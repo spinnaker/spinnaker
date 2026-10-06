@@ -1,26 +1,18 @@
-import { mount } from 'enzyme';
-import React from 'react';
-
+import { renderHookHarness } from '../../utils/testUtils/hookHarness';
 import { useDeepObjectDiff } from './useDeepObjectDiff.hook';
-
-const { useEffect } = React;
 
 describe('useDeepObjectDiff', () => {
   it('changes its return value when the object has changed between renders', () => {
-    const spy = vi.fn();
-    function TestComponent(props: any) {
-      useEffect(spy, [useDeepObjectDiff(props)]);
-      return null as JSX.Element;
-    }
+    const rendered = renderHookHarness((props) => useDeepObjectDiff(props), { prop: 123 });
+    expect(rendered.result.current).toBe(1);
 
-    const wrapper = mount(<TestComponent prop={123} />);
-    wrapper.setProps({ prop: 123 });
-    wrapper.setProps({ prop: 123 });
-    wrapper.setProps({ prop: 123 });
-    wrapper.setProps({ prop: 123 });
-    expect(spy).toHaveBeenCalledTimes(1);
+    rendered.rerenderHook({ prop: 123 });
+    rendered.rerenderHook({ prop: 123 });
+    rendered.rerenderHook({ prop: 123 });
+    rendered.rerenderHook({ prop: 123 });
+    expect(rendered.result.current).toBe(1);
 
-    wrapper.setProps({ prop: 456 });
-    expect(spy).toHaveBeenCalledTimes(2);
+    rendered.rerenderHook({ prop: 456 });
+    expect(rendered.result.current).toBe(2);
   });
 });

@@ -1,13 +1,11 @@
-import { mount as enzymeMount } from 'enzyme';
+import { fireEvent, render, screen, waitFor } from '@testing-library/react';
 import React from 'react';
-import { Dropdown, Tooltip } from 'react-bootstrap';
 
 import { AWSProviderSettings } from '@spinnaker/amazon';
 import {
-  AddEntityTagLinks,
   ConfirmationModalService,
   DeckRuntimeContext,
-  ManagedMenuItem,
+  EntityTagEditor,
   SETTINGS,
   ServerGroupWarningMessageService,
 } from '@spinnaker/core';
@@ -22,7 +20,8 @@ describe('<EcsServerGroupActions />', () => {
   const RuntimeWrapper = ({ children }: React.PropsWithChildren<{}>) => (
     <DeckRuntimeContext.Provider value={{ services: runtimeServices } as any}>{children}</DeckRuntimeContext.Provider>
   );
-  const shallow = (component: React.ReactElement) => enzymeMount(component, { wrappingComponent: RuntimeWrapper });
+  const renderActions = (component: React.ReactElement) => render(<RuntimeWrapper>{component}</RuntimeWrapper>);
+  const openActions = () => fireEvent.click(screen.getByRole('button', { name: 'Server Group Actions' }));
 
   const buildServerGroup = (overrides: any = {}) => ({
     account: 'test-account',
@@ -48,9 +47,6 @@ describe('<EcsServerGroupActions />', () => {
     } as any;
   };
 
-  const action = (wrapper: any, label: string) =>
-    wrapper.find(ManagedMenuItem).filterWhere((item: any) => item.prop('children') === label);
-
   beforeEach(() => {
     AWSProviderSettings.adHocInfraWritesEnabled = true;
     runtimeServices = {
@@ -69,28 +65,26 @@ describe('<EcsServerGroupActions />', () => {
 
   it('shows rollback, resize, disable, and destroy for an enabled server group', () => {
     const serverGroup = buildServerGroup();
-    const wrapper = shallow(
-      <EcsServerGroupActions app={buildApp({ serverGroups: [serverGroup] })} serverGroup={serverGroup} />,
-    );
+    renderActions(<EcsServerGroupActions app={buildApp({ serverGroups: [serverGroup] })} serverGroup={serverGroup} />);
+    openActions();
 
-    expect(action(wrapper, 'Rollback').length).toBe(1);
-    expect(action(wrapper, 'Resize').length).toBe(1);
-    expect(action(wrapper, 'Disable').length).toBe(1);
-    expect(action(wrapper, 'Enable').length).toBe(0);
-    expect(action(wrapper, 'Destroy').length).toBe(1);
+    expect(screen.getByRole('menuitem', { name: 'Rollback' })).toBeInTheDocument();
+    expect(screen.getByRole('menuitem', { name: 'Resize' })).toBeInTheDocument();
+    expect(screen.getByRole('menuitem', { name: 'Disable' })).toBeInTheDocument();
+    expect(screen.queryByRole('menuitem', { name: 'Enable' })).not.toBeInTheDocument();
+    expect(screen.getByRole('menuitem', { name: 'Destroy' })).toBeInTheDocument();
   });
 
   it('shows resize, enable, and destroy for a disabled server group', () => {
     const serverGroup = buildServerGroup({ isDisabled: true });
-    const wrapper = shallow(
-      <EcsServerGroupActions app={buildApp({ serverGroups: [serverGroup] })} serverGroup={serverGroup} />,
-    );
+    renderActions(<EcsServerGroupActions app={buildApp({ serverGroups: [serverGroup] })} serverGroup={serverGroup} />);
+    openActions();
 
-    expect(action(wrapper, 'Rollback').length).toBe(0);
-    expect(action(wrapper, 'Resize').length).toBe(1);
-    expect(action(wrapper, 'Disable').length).toBe(0);
-    expect(action(wrapper, 'Enable').length).toBe(1);
-    expect(action(wrapper, 'Destroy').length).toBe(1);
+    expect(screen.queryByRole('menuitem', { name: 'Rollback' })).not.toBeInTheDocument();
+    expect(screen.getByRole('menuitem', { name: 'Resize' })).toBeInTheDocument();
+    expect(screen.queryByRole('menuitem', { name: 'Disable' })).not.toBeInTheDocument();
+    expect(screen.getByRole('menuitem', { name: 'Enable' })).toBeInTheDocument();
+    expect(screen.getByRole('menuitem', { name: 'Destroy' })).toBeInTheDocument();
   });
 
   it('locks enable while a resize task is running', () => {
@@ -98,61 +92,88 @@ describe('<EcsServerGroupActions />', () => {
       isDisabled: true,
       runningTasks: [{ execution: { stages: [{ type: 'resizeServerGroup' }] } }],
     });
-    const wrapper = shallow(<EcsServerGroupActions app={buildApp()} serverGroup={serverGroup} />);
+    renderActions(<EcsServerGroupActions app={buildApp()} serverGroup={serverGroup} />);
+    openActions();
 
-    expect(action(wrapper, 'Enable').length).toBe(0);
-    expect(wrapper.find('li.disabled').length).toBe(1);
-    expect(wrapper.find(Tooltip).prop('value')).toContain('Cannot enable');
+    expect(screen.queryByRole('menuitem', { name: 'Enable' })).not.toBeInTheDocument();
+    expect(screen.getByText(/Enable/).closest('li')).toHaveClass('disabled');
   });
 
   it('hides all actions when AWS ad-hoc infrastructure writes are disabled', () => {
     const app = buildApp();
     const serverGroup = buildServerGroup();
-    expect(shallow(<EcsServerGroupActions app={app} serverGroup={serverGroup} />).find(Dropdown).length).toBe(1);
+    const rendered = renderActions(<EcsServerGroupActions app={app} serverGroup={serverGroup} />);
+    expect(screen.getByRole('button', { name: 'Server Group Actions' })).toBeInTheDocument();
 
     AWSProviderSettings.adHocInfraWritesEnabled = false;
 
-    const wrapper = shallow(<EcsServerGroupActions app={app} serverGroup={serverGroup} />);
+    rendered.rerender(
+      <RuntimeWrapper>
+        <EcsServerGroupActions app={app} serverGroup={serverGroup} />
+      </RuntimeWrapper>,
+    );
 
-    expect(wrapper.find(Dropdown).length).toBe(0);
+    expect(screen.queryByRole('button', { name: 'Server Group Actions' })).not.toBeInTheDocument();
   });
 
-  it('protects every write action with the managed-resource interstitial', () => {
+  it('protects every write action with the managed-resource interstitial', async () => {
     const app = buildApp();
-    const serverGroup = buildServerGroup({ isManaged: true });
-    const wrapper = shallow(<EcsServerGroupActions app={app} serverGroup={serverGroup} />);
-
-    expect(wrapper.find(ManagedMenuItem).length).toBe(4);
-    wrapper.find(ManagedMenuItem).forEach((item) => {
-      expect(item.prop('resource')).toBe(serverGroup);
-      expect(item.prop('application')).toBe(app);
+    const serverGroup = buildServerGroup({
+      isManaged: true,
+      managedResourceSummary: {
+        id: 'managed-server-group',
+        isPaused: false,
+        locations: { account: 'test-account', regions: [{ name: 'us-east-1' }] },
+      },
     });
+    const confirm = vi.spyOn(ConfirmationModalService, 'confirm').mockRejectedValue(new Error('cancelled'));
+    const rollback = vi.spyOn(EcsRollbackServerGroupModal, 'show');
+    const resize = vi.spyOn(EcsResizeServerGroupModal, 'show');
+    for (const label of ['Rollback', 'Resize', 'Disable', 'Destroy']) {
+      const rendered = renderActions(<EcsServerGroupActions app={app} serverGroup={serverGroup} />);
+      openActions();
+      fireEvent.click(screen.getByRole('menuitem', { name: label }));
+      await waitFor(() => expect(confirm).toHaveBeenCalledOnce());
+      expect(confirm.mock.lastCall[0]).toEqual(
+        expect.objectContaining({ account: 'test-account', header: 'Pause Management?' }),
+      );
+      confirm.mockClear();
+      rendered.unmount();
+    }
+    expect(rollback).not.toHaveBeenCalled();
+    expect(resize).not.toHaveBeenCalled();
   });
 
-  it('opens the completed rollback modal with the enriched server group', () => {
+  it('opens the completed rollback modal with the enriched server group', async () => {
     const app = buildApp();
     const serverGroup = buildServerGroup();
     const show = vi.spyOn(EcsRollbackServerGroupModal, 'show').mockReturnValue(Promise.resolve({} as any));
-    const wrapper = shallow(<EcsServerGroupActions app={app} serverGroup={serverGroup} />);
+    renderActions(<EcsServerGroupActions app={app} serverGroup={serverGroup} />);
 
-    action(wrapper, 'Rollback').prop('onClick')();
+    openActions();
+    fireEvent.click(screen.getByRole('menuitem', { name: 'Rollback' }));
 
-    expect(show).toHaveBeenCalledExactlyOnceWith({ application: app, serverGroup }, runtimeServices);
+    await waitFor(() =>
+      expect(show).toHaveBeenCalledExactlyOnceWith({ application: app, serverGroup }, runtimeServices),
+    );
   });
 
-  it('opens the completed resize modal with the enriched server group', () => {
+  it('opens the completed resize modal with the enriched server group', async () => {
     const app = buildApp();
     const serverGroup = buildServerGroup();
     const show = vi.spyOn(EcsResizeServerGroupModal, 'show').mockReturnValue(Promise.resolve({} as any));
-    const wrapper = shallow(<EcsServerGroupActions app={app} serverGroup={serverGroup} />);
+    renderActions(<EcsServerGroupActions app={app} serverGroup={serverGroup} />);
 
-    action(wrapper, 'Resize').prop('onClick')();
+    openActions();
+    fireEvent.click(screen.getByRole('menuitem', { name: 'Resize' }));
 
-    expect(show).toHaveBeenCalledExactlyOnceWith({ application: app, serverGroup }, runtimeServices);
+    await waitFor(() =>
+      expect(show).toHaveBeenCalledExactlyOnceWith({ application: app, serverGroup }, runtimeServices),
+    );
   });
 
   ['Disable', 'Enable', 'Destroy'].forEach((label) => {
-    it(`confirms ${label.toLowerCase()} with reason and account verification and preserves the exact writer contract`, () => {
+    it(`confirms ${label.toLowerCase()} with reason and account verification and preserves the exact writer contract`, async () => {
       const app = buildApp();
       const serverGroup = buildServerGroup({ isDisabled: label === 'Enable' });
       const writerMethod = `${label.toLowerCase()}ServerGroup`;
@@ -165,7 +186,7 @@ describe('<EcsServerGroupActions />', () => {
       };
       vi.spyOn(ServerGroupWarningMessageService, 'addDisableWarningMessage').mockReturnValue(undefined);
       vi.spyOn(ServerGroupWarningMessageService, 'addDestroyWarningMessage').mockReturnValue(undefined);
-      const wrapper = shallow(
+      renderActions(
         <EcsServerGroupActions
           app={app}
           router={{} as any}
@@ -175,8 +196,10 @@ describe('<EcsServerGroupActions />', () => {
         />,
       );
 
-      action(wrapper, label).prop('onClick')();
+      openActions();
+      fireEvent.click(screen.getByRole('menuitem', { name: label }));
 
+      await waitFor(() => expect(confirm).toHaveBeenCalledOnce());
       const params = confirm.mock.lastCall[0] as any;
       expect(params.account).toBe('test-account');
       expect(params.askForReason).toBe(true);
@@ -190,40 +213,47 @@ describe('<EcsServerGroupActions />', () => {
     });
   });
 
-  it('preselects ECS health only when the application requests platform-only health', () => {
+  it('preselects ECS health only when the application requests platform-only health', async () => {
     const app = buildApp({ attributes: { platformHealthOnly: true, platformHealthOnlyShowOverride: true } });
     const confirm = vi.spyOn(ConfirmationModalService, 'confirm').mockReturnValue(Promise.resolve());
     vi.spyOn(ServerGroupWarningMessageService, 'addDisableWarningMessage').mockReturnValue(undefined);
-    const wrapper = shallow(<EcsServerGroupActions app={app} serverGroup={buildServerGroup()} />);
+    renderActions(<EcsServerGroupActions app={app} serverGroup={buildServerGroup()} />);
 
-    action(wrapper, 'Disable').prop('onClick')();
+    openActions();
+    fireEvent.click(screen.getByRole('menuitem', { name: 'Disable' }));
 
-    expect((confirm.mock.lastCall[0] as any).interestingHealthProviderNames).toEqual(['Ecs']);
+    await waitFor(() => expect((confirm.mock.lastCall[0] as any).interestingHealthProviderNames).toEqual(['Ecs']));
   });
 
   it('adds entity tag links using the enriched ECS coordinates and refreshes after updates', () => {
     SETTINGS.feature.entityTags = true;
     const app = buildApp();
     const serverGroup = buildServerGroup();
-    const wrapper = shallow(<EcsServerGroupActions app={app} serverGroup={serverGroup} />);
-    const links = wrapper.find(AddEntityTagLinks);
+    const show = vi.spyOn(EntityTagEditor, 'show').mockReturnValue(undefined);
+    renderActions(<EcsServerGroupActions app={app} serverGroup={serverGroup} />);
+    openActions();
+    fireEvent.click(screen.getByText('Add notice'));
 
-    expect(links.prop('component')).toBe(serverGroup);
-    expect(links.prop('application')).toBe(app);
-    expect(links.prop('entityType')).toBe('serverGroup');
-    expect(links.prop('ownerOptions')).toEqual([
-      expect.objectContaining({ type: 'serverGroup', owner: serverGroup }),
+    expect(show).toHaveBeenCalledWith(
       expect.objectContaining({
-        type: 'cluster',
-        owner: { account: 'test-account', cloudProvider: 'ecs', name: 'test-app-main', region: 'us-east-1' },
+        application: app,
+        entityType: 'serverGroup',
+        owner: serverGroup,
+        ownerOptions: [
+          expect.objectContaining({ type: 'serverGroup', owner: serverGroup }),
+          expect.objectContaining({
+            type: 'cluster',
+            owner: { account: 'test-account', cloudProvider: 'ecs', name: 'test-app-main', region: 'us-east-1' },
+          }),
+          expect.objectContaining({
+            type: 'cluster',
+            owner: { account: 'test-account', cloudProvider: 'ecs', name: 'test-app-main', region: '*' },
+          }),
+        ],
       }),
-      expect.objectContaining({
-        type: 'cluster',
-        owner: { account: 'test-account', cloudProvider: 'ecs', name: 'test-app-main', region: '*' },
-      }),
-    ]);
+    );
 
-    links.prop('onUpdate')();
+    show.mock.lastCall[0].onUpdate();
     expect(app.serverGroups.refresh).toHaveBeenCalled();
   });
 
@@ -231,14 +261,19 @@ describe('<EcsServerGroupActions />', () => {
     const app = buildApp();
     const serverGroup = buildServerGroup();
     SETTINGS.feature.entityTags = true;
-    expect(shallow(<EcsServerGroupActions app={app} serverGroup={serverGroup} />).find(AddEntityTagLinks).length).toBe(
-      1,
-    );
+    const rendered = renderActions(<EcsServerGroupActions app={app} serverGroup={serverGroup} />);
+    openActions();
+    expect(screen.getByText('Add notice')).toBeInTheDocument();
 
     SETTINGS.feature.entityTags = false;
 
-    const wrapper = shallow(<EcsServerGroupActions app={app} serverGroup={serverGroup} />);
+    rendered.rerender(
+      <RuntimeWrapper>
+        <EcsServerGroupActions app={app} serverGroup={serverGroup} />
+      </RuntimeWrapper>,
+    );
+    openActions();
 
-    expect(wrapper.find(AddEntityTagLinks).length).toBe(0);
+    expect(screen.queryByText('Add notice')).not.toBeInTheDocument();
   });
 });

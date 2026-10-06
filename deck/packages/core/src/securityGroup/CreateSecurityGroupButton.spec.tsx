@@ -1,6 +1,7 @@
-import { mount } from 'enzyme';
+import { render, screen } from '@testing-library/react';
+import userEvent from '@testing-library/user-event';
 import React from 'react';
-import { act } from 'react-dom/test-utils';
+import { act } from '@testing-library/react';
 
 import { CloudProviderRegistry, ProviderSelectionService } from '../cloudProvider';
 import { DeckRuntimeContext } from '../bootstrap/DeckRuntimeContext';
@@ -47,14 +48,12 @@ describe('<CreateSecurityGroupButton />', () => {
       CreateSecurityGroupModal: modal,
     });
 
-    const wrapper = mount(
+    render(
       <DeckRuntimeContext.Provider value={{ services: runtimeServices }}>
         <CreateSecurityGroupButton app={app} />
       </DeckRuntimeContext.Provider>,
     );
-    act(() => {
-      wrapper.find('button').simulate('click');
-    });
+    await userEvent.click(screen.getByRole('button'));
     expect(modal.show).not.toHaveBeenCalled();
 
     await act(async () => {
@@ -89,14 +88,12 @@ describe('<CreateSecurityGroupButton />', () => {
       CreateSecurityGroupModal: modal,
     });
 
-    const wrapper = mount(
+    render(
       <DeckRuntimeContext.Provider value={{ services: runtimeServices }}>
         <CreateSecurityGroupButton app={app} />
       </DeckRuntimeContext.Provider>,
     );
-    act(() => {
-      wrapper.find('button').simulate('click');
-    });
+    await userEvent.click(screen.getByRole('button'));
     expect(modal.show).not.toHaveBeenCalled();
 
     await act(async () => {

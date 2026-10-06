@@ -1,16 +1,17 @@
-import { mount, shallow } from 'enzyme';
+import { fireEvent, render, screen } from '@testing-library/react';
 import React from 'react';
 
 import {
   CloudProviderRegistry,
   ConfirmationModalService,
-  HelpField,
+  HelpContentsRegistry,
+  HelpTextExpandedContext,
   InfrastructureCaches,
-  ManagedMenuItem,
   TaskExecutor,
 } from '@spinnaker/core';
 
 import { mockHttpClient } from '../../../../core/src/api/mock/mockHttpSupport';
+
 import { GceLoadBalancerChoiceModal } from '../configure/choice/GceLoadBalancerChoiceModal';
 import {
   GceLoadBalancerActions,
@@ -29,52 +30,68 @@ describe('GceLoadBalancerActions', () => {
     name: 'fnord-main',
     region: 'europe-west1',
   } as any;
+  const managedLoadBalancer = {
+    ...loadBalancer,
+    isManaged: true,
+    managedResourceSummary: { id: 'resource-a', isPaused: false, locations: { account: 'account-a', regions: [] } },
+  };
 
   it('hides write actions when the Google provider is disabled', () => {
     vi.spyOn(CloudProviderRegistry, 'isDisabled').mockReturnValue(true);
 
-    const wrapper = shallow(<GceLoadBalancerActions app={app} loadBalancer={loadBalancer} />);
+    const { container } = render(<GceLoadBalancerActions app={app} loadBalancer={loadBalancer} />);
 
-    expect(wrapper.isEmptyRender()).toBe(true);
+    expect(container).toBeEmptyDOMElement();
   });
 
-  it('opens the current load balancer in edit mode through managed-resource gating', () => {
+  it('opens the current load balancer in edit mode through managed-resource gating', async () => {
     vi.spyOn(CloudProviderRegistry, 'isDisabled').mockReturnValue(false);
     const show = vi.spyOn(GceLoadBalancerChoiceModal, 'show').mockReturnValue(Promise.resolve() as any);
+    const confirm = vi.spyOn(ConfirmationModalService, 'confirm').mockReturnValue(Promise.reject() as any);
 
-    const wrapper = shallow(<GceLoadBalancerActions app={app} loadBalancer={loadBalancer} />);
-    const edit = wrapper.find(ManagedMenuItem).filterWhere((item) => item.prop('children') === 'Edit Load Balancer');
+    const managed = render(<GceLoadBalancerActions app={app} loadBalancer={managedLoadBalancer} />);
+    fireEvent.click(screen.getByText('Edit Load Balancer'));
+    await vi.waitFor(() =>
+      expect(confirm).toHaveBeenCalledExactlyOnceWith(expect.objectContaining({ header: 'Pause Management?' })),
+    );
+    expect(show).not.toHaveBeenCalled();
+    managed.unmount();
 
-    expect(edit.prop('application')).toBe(app);
-    expect(edit.prop('resource')).toBe(loadBalancer);
-    edit.prop('onClick')();
-    expect(show).toHaveBeenCalledExactlyOnceWith({
-      app,
-      application: app,
-      forPipelineConfig: false,
-      isNew: false,
-      loadBalancer,
-      mode: 'edit',
-    } as any);
+    render(<GceLoadBalancerActions app={app} loadBalancer={loadBalancer} />);
+
+    fireEvent.click(screen.getByText('Edit Load Balancer'));
+    await vi.waitFor(() =>
+      expect(show).toHaveBeenCalledExactlyOnceWith({
+        app,
+        application: app,
+        forPipelineConfig: false,
+        isNew: false,
+        loadBalancer,
+        mode: 'edit',
+      } as any),
+    );
   });
 
-  it('keeps delete behind managed-resource gating and disables it while instances are attached', () => {
+  it('keeps delete behind managed-resource gating and disables it while instances are attached', async () => {
     vi.spyOn(CloudProviderRegistry, 'isDisabled').mockReturnValue(false);
+    const confirm = vi.spyOn(ConfirmationModalService, 'confirm').mockReturnValue(Promise.reject() as any);
 
-    const editable = shallow(<GceLoadBalancerActions app={app} loadBalancer={loadBalancer} />);
-    const managedDelete = editable
-      .find(ManagedMenuItem)
-      .filterWhere((item) => item.prop('children') === 'Delete Load Balancer');
-    expect(managedDelete.prop('application')).toBe(app);
-    expect(managedDelete.prop('resource')).toBe(loadBalancer);
+    const editable = render(<GceLoadBalancerActions app={app} loadBalancer={managedLoadBalancer} />);
+    fireEvent.click(editable.getByText('Delete Load Balancer'));
+    await vi.waitFor(() =>
+      expect(confirm).toHaveBeenCalledExactlyOnceWith(expect.objectContaining({ header: 'Pause Management?' })),
+    );
+    editable.unmount();
+    confirm.mockClear();
 
-    const attached = shallow(
+    render(
       <GceLoadBalancerActions app={app} loadBalancer={{ ...loadBalancer, instances: [{ name: 'instance-a' }] }} />,
     );
-    expect(
-      attached.find(ManagedMenuItem).filterWhere((item) => item.prop('children') === 'Delete Load Balancer'),
-    ).toHaveSize(0);
-    expect(attached.find('li.disabled').text()).toContain('Delete Load Balancer');
+    const attachedDelete = screen.getByText('Delete Load Balancer');
+    expect(attachedDelete.closest('li')).toHaveClass('disabled');
+    fireEvent.click(attachedDelete);
+    await Promise.resolve();
+    expect(confirm).not.toHaveBeenCalled();
   });
 });
 
@@ -216,10 +233,10 @@ describe('loadGceLoadBalancerDetails', () => {
     // AccountTag lazily loads credentials; answer that request so the fail-closed test client allows it.
     const http = mockHttpClient();
     http.expectGET('/credentials').respond(200, []);
-    const wrapper = mount(<GceLoadBalancerInformationSection app={{}} loadBalancer={loadBalancer} />);
-    expect(wrapper.text()).toContain('203.0.113.10');
-    expect(wrapper.text()).not.toContain('http://');
-    expect(wrapper.text()).not.toContain('https://');
+    const { container } = render(<GceLoadBalancerInformationSection app={{}} loadBalancer={loadBalancer} />);
+    expect(screen.getByText('203.0.113.10')).toBeInTheDocument();
+    expect(container).not.toHaveTextContent('http://');
+    expect(container).not.toHaveTextContent('https://');
     await http.flush();
   });
 
@@ -248,9 +265,9 @@ describe('loadGceLoadBalancerDetails', () => {
       } as any,
     });
 
-    const wrapper = mount(<GceLoadBalancerBackendServicesSection app={{}} loadBalancer={loadBalancer} />);
-    expect(wrapper.text()).toContain('passthrough-backend');
-    expect(wrapper.text()).toContain('tcp-hc');
+    render(<GceLoadBalancerBackendServicesSection app={{}} loadBalancer={loadBalancer} />);
+    expect(screen.getByText('passthrough-backend')).toBeInTheDocument();
+    expect(screen.getByText('tcp-hc')).toBeInTheDocument();
   });
 });
 
@@ -276,11 +293,9 @@ describe('GceLoadBalancerActions delete behavior', () => {
       urlMapName: 'regional-url-map',
     };
 
-    const wrapper = mount(<GceLoadBalancerActions app={app} loadBalancer={loadBalancer} />);
-    wrapper
-      .find(ManagedMenuItem)
-      .filterWhere((item) => item.prop('children') === 'Delete Load Balancer')
-      .prop('onClick')();
+    render(<GceLoadBalancerActions app={app} loadBalancer={loadBalancer} />);
+    fireEvent.click(screen.getByText('Delete Load Balancer'));
+    await vi.waitFor(() => expect(confirmSpy).toHaveBeenCalledTimes(1));
     const modalParams = confirmSpy.mock.lastCall[0] as any;
     await modalParams.submitMethod({ deleteHealthChecks: true });
 
@@ -300,11 +315,22 @@ describe('GceLoadBalancerActions delete behavior', () => {
         }),
       ],
     });
-    wrapper.unmount();
   });
 
-  it('shows delete-health-check controls for EXTERNAL_MANAGED and REGIONAL_EXTERNAL_NETWORK load balancers', () => {
+  it('shows delete-health-check controls for EXTERNAL_MANAGED and REGIONAL_EXTERNAL_NETWORK load balancers', async () => {
     const confirmSpy = vi.spyOn(ConfirmationModalService, 'confirm').mockReturnValue(Promise.resolve({}) as any);
+    const deleteBodyHasHealthCheckOption = async (loadBalancer: any): Promise<boolean> => {
+      const callCount = confirmSpy.mock.calls.length;
+      const actions = render(<GceLoadBalancerActions app={app} loadBalancer={loadBalancer} />);
+      fireEvent.click(actions.getByText('Delete Load Balancer'));
+      await vi.waitFor(() => expect(confirmSpy).toHaveBeenCalledTimes(callCount + 1));
+      actions.unmount();
+
+      const body = render(<>{(confirmSpy.mock.lastCall[0] as any).bodyContent}</>);
+      const checkbox = body.queryByRole('checkbox', { name: 'Delete associated health checks' });
+      body.unmount();
+      return checkbox !== null;
+    };
 
     const externalManaged = {
       account: 'test-account',
@@ -316,15 +342,7 @@ describe('GceLoadBalancerActions delete behavior', () => {
       region: 'us-central1',
       urlMapName: 'regional-url-map',
     };
-    mount(<GceLoadBalancerActions app={app} loadBalancer={externalManaged} />)
-      .find(ManagedMenuItem)
-      .filterWhere((item) => item.prop('children') === 'Delete Load Balancer')
-      .prop('onClick')();
-    expect(
-      shallow(confirmSpy.mock.calls.map((args) => ({ args }))[0].args[0].bodyContent)
-        .find('input[type="checkbox"]')
-        .exists(),
-    ).toBe(true);
+    expect(await deleteBodyHasHealthCheckOption(externalManaged)).toBe(true);
 
     const regionalExternalNetwork = {
       account: 'test-account',
@@ -335,36 +353,33 @@ describe('GceLoadBalancerActions delete behavior', () => {
       provider: 'gce',
       region: 'us-central1',
     };
-    mount(<GceLoadBalancerActions app={app} loadBalancer={regionalExternalNetwork} />)
-      .find(ManagedMenuItem)
-      .filterWhere((item) => item.prop('children') === 'Delete Load Balancer')
-      .prop('onClick')();
-    expect(
-      shallow(confirmSpy.mock.calls.map((args) => ({ args }))[1].args[0].bodyContent)
-        .find('input[type="checkbox"]')
-        .exists(),
-    ).toBe(true);
+    expect(await deleteBodyHasHealthCheckOption(regionalExternalNetwork)).toBe(true);
 
     // INTERNAL deletes always remove unused health checks, so no option is offered.
-    mount(
-      <GceLoadBalancerActions app={app} loadBalancer={{ ...regionalExternalNetwork, loadBalancerType: 'INTERNAL' }} />,
-    )
-      .find(ManagedMenuItem)
-      .filterWhere((item) => item.prop('children') === 'Delete Load Balancer')
-      .prop('onClick')();
-    expect(
-      shallow(confirmSpy.mock.calls.map((args) => ({ args }))[2].args[0].bodyContent)
-        .find('input[type="checkbox"]')
-        .exists(),
-    ).toBe(false);
+    expect(await deleteBodyHasHealthCheckOption({ ...regionalExternalNetwork, loadBalancerType: 'INTERNAL' })).toBe(
+      false,
+    );
   });
 });
 
 describe('GceLoadBalancerListenersSection', () => {
   const app = { name: 'fnord' } as any;
 
+  beforeEach(() => {
+    vi.spyOn(HelpContentsRegistry, 'getHelpField').mockImplementation((id: string) => `help:${id}`);
+  });
+
+  // Expanded help renders the registered help contents inline, which makes the HelpField id observable.
   function renderListeners(loadBalancer: any) {
-    return shallow(<GceLoadBalancerListenersSection app={app} loadBalancer={loadBalancer} />);
+    return render(
+      <HelpTextExpandedContext.Provider value={true}>
+        <GceLoadBalancerListenersSection app={app} loadBalancer={loadBalancer} />
+      </HelpTextExpandedContext.Provider>,
+    );
+  }
+
+  function definitions(container: HTMLElement): string[] {
+    return Array.from(container.querySelectorAll('dd')).map((node) => node.textContent);
   }
 
   it('keeps the historical listener list for existing load balancer families', () => {
@@ -377,20 +392,23 @@ describe('GceLoadBalancerListenersSection', () => {
         ],
       },
     });
+
+    expect(network.getAllByRole('listitem').map((node) => node.textContent)).toEqual(['8080']);
+    expect(definitions(network.container)).toEqual([]);
+    network.unmount();
+
     const http = renderListeners({
       loadBalancerType: 'HTTP',
       listeners: [{ port: '80' }, { port: '443', protocol: 'HTTPS' }],
       provider: 'gce',
     });
 
-    expect(network.find('li').map((node) => node.text())).toEqual(['8080']);
-    expect(network.find('dd').exists()).toBe(false);
-    expect(http.find('li').map((node) => node.text())).toEqual(['80', 'HTTPS:443']);
-    expect(http.find(HelpField).exists()).toBe(false);
+    expect(http.getAllByRole('listitem').map((node) => node.textContent)).toEqual(['80', 'HTTPS:443']);
+    expect(http.queryByText(/^help:/)).not.toBeInTheDocument();
   });
 
   it('renders REGIONAL_EXTERNAL_NETWORK listenerDescriptions without named-port help', () => {
-    const wrapper = renderListeners({
+    const { container, queryByText } = renderListeners({
       loadBalancerType: 'REGIONAL_EXTERNAL_NETWORK',
       elb: {
         listenerDescriptions: [
@@ -399,12 +417,12 @@ describe('GceLoadBalancerListenersSection', () => {
       },
     });
 
-    expect(wrapper.find('dd').text()).toBe('TCP:8080 → TCP:8080');
-    expect(wrapper.find(HelpField).exists()).toBe(false);
+    expect(definitions(container)).toEqual(['TCP:8080 → TCP:8080']);
+    expect(queryByText(/^help:/)).not.toBeInTheDocument();
   });
 
   it('prefers EXTERNAL_MANAGED elb.listenerDescriptions over normalized listeners', () => {
-    const wrapper = renderListeners({
+    const { container, getByText } = renderListeners({
       loadBalancerType: 'EXTERNAL_MANAGED',
       listeners: [{ port: '80' }, { port: '443' }],
       provider: 'gce',
@@ -422,13 +440,12 @@ describe('GceLoadBalancerListenersSection', () => {
       },
     });
 
-    expect(wrapper.find('dd')).toHaveSize(1);
-    expect(wrapper.find('dd').text()).toBe('HTTPS:443 → HTTP:8080');
-    expect(wrapper.find(HelpField).prop('id')).toBe('gce.httpLoadBalancer.namedPort');
+    expect(definitions(container)).toEqual(['HTTPS:443 → HTTP:8080']);
+    expect(getByText('help:gce.httpLoadBalancer.namedPort')).toBeInTheDocument();
   });
 
   it('falls back to normalized EXTERNAL_MANAGED listeners only when elb.listenerDescriptions are absent', () => {
-    const wrapper = renderListeners({
+    const { container } = renderListeners({
       loadBalancerType: 'EXTERNAL_MANAGED',
       listeners: [
         { port: '80', name: 'frontend-80' },
@@ -437,16 +454,16 @@ describe('GceLoadBalancerListenersSection', () => {
       provider: 'gce',
     });
 
-    expect(wrapper.find('dd').map((node) => node.text())).toEqual(['HTTP:80', 'HTTPS:443']);
+    expect(definitions(container)).toEqual(['HTTP:80', 'HTTPS:443']);
   });
 
   it('shows no listeners configured when a regional external network load balancer has no descriptions', () => {
-    const wrapper = renderListeners({
+    const { container, getByText } = renderListeners({
       loadBalancerType: 'REGIONAL_EXTERNAL_NETWORK',
       listeners: [{ port: '8080' }],
     });
 
-    expect(wrapper.find('span').text()).toBe('No listeners configured');
-    expect(wrapper.find('dd').exists()).toBe(false);
+    expect(getByText('No listeners configured')).toBeInTheDocument();
+    expect(definitions(container)).toEqual([]);
   });
 });

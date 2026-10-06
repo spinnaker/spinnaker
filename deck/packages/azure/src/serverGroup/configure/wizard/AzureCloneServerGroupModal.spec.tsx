@@ -1,15 +1,14 @@
+import { fireEvent, render, screen } from '@testing-library/react';
 import {
   CloudProviderRegistry,
   DeployInitializer,
   DeploymentStrategySelector,
-  MapEditor,
   NetworkReader,
   nativePromiseService,
   ReactModal,
   WizardModal,
   WizardPage,
 } from '@spinnaker/core';
-import { shallow } from 'enzyme';
 import React from 'react';
 
 import { registerAzureProvider } from '../../../azure.module';
@@ -81,22 +80,29 @@ describe('AzureCloneServerGroupModal', () => {
     };
   });
 
-  function shallowModal(serverGroupCommand: any): any {
-    const wrapper = shallow(
-      <AzureCloneServerGroupModal
-        title="Configure"
-        application={application}
-        command={serverGroupCommand}
-        closeModal={vi.fn()}
-        dismissModal={vi.fn()}
-      />,
-      { disableLifecycleMethods: true },
-    );
-    const modal = wrapper.instance() as any;
+  function buildModal(serverGroupCommand: any): any {
+    const modal = new AzureCloneServerGroupModal({
+      title: 'Configure',
+      application: application,
+      command: serverGroupCommand,
+      closeModal: vi.fn(),
+      dismissModal: vi.fn(),
+    } as any);
     modal.context = { services: runtimeServices };
     modal.componentDidMount();
-    wrapper.update();
-    return wrapper;
+    return modal;
+  }
+
+  function findElement(root: React.ReactNode, type: React.ElementType): React.ReactElement<any> | undefined {
+    if (!React.isValidElement(root)) {
+      return undefined;
+    }
+    if (root.type === type) {
+      return root;
+    }
+    return React.Children.toArray(root.props.children)
+      .map((child) => findElement(child, type))
+      .find(Boolean);
   }
 
   function loadBalancerPage(serverGroupCommand: any): any {
@@ -229,11 +235,10 @@ describe('AzureCloneServerGroupModal', () => {
 
   it('renders the React wizard with Azure pages in parity order', () => {
     const serverGroupCommand = command();
-    const wrapper = shallowModal(serverGroupCommand);
-
-    wrapper.setState({ loaded: true });
-    const wizard = wrapper.find(WizardModal);
-    const pages = wizard.prop('render')({
+    const modal = buildModal(serverGroupCommand);
+    modal.state = { ...modal.state, loaded: true };
+    const wizard = modal.render() as React.ReactElement<any>;
+    const pages = wizard.props.render({
       formik: { values: serverGroupCommand } as any,
       nextIdx: () => 0,
       wizard: {} as any,
@@ -261,13 +266,13 @@ describe('AzureCloneServerGroupModal', () => {
       viewState: { mode: 'createPipeline', disableStrategySelection: false },
     });
     const formikProps = formik(serverGroupCommand);
-    const wrapper = shallow(<ServerGroupBasicSettings app={application} formik={formikProps} />);
-    const selector = wrapper.find(DeploymentStrategySelector);
+    const page = new ServerGroupBasicSettings({ app: application, formik: formikProps } as any);
+    const selector = findElement(page.render(), DeploymentStrategySelector);
 
-    expect(selector.exists()).toBe(true);
+    expect(selector).toBeDefined();
 
-    const onFieldChange = selector.exists() ? selector.prop('onFieldChange') : undefined;
-    const onSelectorStrategyChange = selector.exists() ? selector.prop('onStrategyChange') : undefined;
+    const onFieldChange = selector?.props.onFieldChange;
+    const onSelectorStrategyChange = selector?.props.onStrategyChange;
     const strategy = { key: 'redblack' } as any;
     onFieldChange?.('scaleDown', true);
 
@@ -279,10 +284,10 @@ describe('AzureCloneServerGroupModal', () => {
 
   it('renders template selection before configuring deploy-stage commands', () => {
     const serverGroupCommand = { viewState: { requiresTemplateSelection: true, disableStrategySelection: true } };
-    const wrapper = shallowModal(serverGroupCommand);
+    const rendered = buildModal(serverGroupCommand).render() as React.ReactElement;
 
-    expect(wrapper.find(DeployInitializer).exists()).toBe(true);
-    expect(wrapper.find(WizardModal).exists()).toBe(false);
+    expect(rendered.type).toBe(DeployInitializer);
+    expect(rendered.type).not.toBe(WizardModal);
   });
 
   it('configures filtered images on the modal working command without mutating the caller command', () => {
@@ -293,8 +298,7 @@ describe('AzureCloneServerGroupModal', () => {
       ],
     });
 
-    const wrapper = shallowModal(serverGroupCommand);
-    const workingCommand = (wrapper.state() as any).command;
+    const workingCommand = buildModal(serverGroupCommand).state.command;
 
     expect(workingCommand.backingData.filtered.images).toEqual([{ imageName: 'ubuntu-west', ami: 'ami-west' }]);
     expect(serverGroupCommand.backingData.filtered.images).toBeUndefined();
@@ -309,8 +313,7 @@ describe('AzureCloneServerGroupModal', () => {
         { imageName: 'ubuntu-east', amis: { eastus: ['ami-east'] } },
       ],
     });
-    const wrapper = shallowModal(serverGroupCommand);
-    const workingCommand = (wrapper.state() as any).command;
+    const workingCommand = buildModal(serverGroupCommand).state.command;
 
     workingCommand.region = 'eastus';
     const result = workingCommand.regionChanged(workingCommand);
@@ -346,16 +349,20 @@ describe('AzureCloneServerGroupModal', () => {
     });
   });
 
-  it('renders account and region filtered load balancers from the command', () => {
+  it('selects account and region filtered load balancers on the command', () => {
     vi.spyOn(NetworkReader, 'listNetworks').mockReturnValue(Promise.resolve({ azure: [] }) as any);
     const serverGroupCommand = command({
       loadBalancers: ['lb-a'],
       loadBalancerName: null,
       backingData: { loadBalancers: [{ name: 'lb-a', loadBalancerType: 'LOAD_BALANCER' }], filtered: {} },
     });
-    const wrapper = shallow(<ServerGroupLoadBalancers formik={formik(serverGroupCommand)} />);
+    const formikProps = formik(serverGroupCommand);
+    render(<ServerGroupLoadBalancers formik={formikProps} />);
 
-    expect(wrapper.find('option[value="lb-a"]').exists()).toBe(true);
+    fireEvent.change(screen.getByRole('combobox', { name: 'Load Balancer' }), { target: { value: 'lb-a' } });
+
+    expect(formikProps.setFieldValue).toHaveBeenCalledWith('loadBalancerName', 'lb-a');
+    expect(serverGroupCommand.loadBalancerName).toBe('lb-a');
   });
 
   it('loads VNet and subnet options when an application gateway load balancer is selected', async () => {
@@ -719,15 +726,15 @@ describe('AzureCloneServerGroupModal', () => {
   });
 
   it('renders health settings protocol, port, and HTTP path fields', () => {
-    const wrapper = shallow(
+    const rendered = render(
       <ServerGroupHealthSettings
         formik={formik({ healthSettings: { protocol: 'http', port: '80', requestPath: '/health' } })}
       />,
     );
 
-    expect(wrapper.find('select').exists()).toBe(true);
-    expect(wrapper.find('input[value="80"]').exists()).toBe(true);
-    expect(wrapper.find('input[value="/health"]').exists()).toBe(true);
+    expect(rendered.container.querySelector('select')).toHaveValue('http');
+    expect(screen.getByDisplayValue('80')).toBeInTheDocument();
+    expect(screen.getByDisplayValue('/health')).toBeInTheDocument();
   });
 
   it('adds Azure data disks with the legacy defaults', () => {
@@ -751,8 +758,8 @@ describe('AzureCloneServerGroupModal', () => {
   });
 
   it('uses the shared map editor for Azure tags', () => {
-    const wrapper = shallow(<ServerGroupTags formik={formik({ instanceTags: { team: 'cd' } })} />);
+    render(<ServerGroupTags formik={formik({ instanceTags: { team: 'cd' } })} />);
 
-    expect(wrapper.find(MapEditor).exists()).toBe(true);
+    expect(screen.getByRole('button', { name: 'Add New Tags' })).toBeInTheDocument();
   });
 });

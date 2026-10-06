@@ -1,7 +1,9 @@
 import type { Mock } from 'vitest';
-import { SecurityGroupWriter } from '@spinnaker/core';
-import { shallow } from 'enzyme';
+import { fireEvent, screen, within } from '@testing-library/react';
 import React from 'react';
+
+import { SecurityGroupWriter } from '@spinnaker/core';
+import { renderWithRouter } from '../../../../core/src/utils/testUtils/rtl';
 
 import {
   AmazonSecurityGroupModalComponent as AmazonSecurityGroupModal,
@@ -35,24 +37,21 @@ describe('AmazonSecurityGroupModal', () => {
     };
   }
 
-  function buildModal(securityGroup: any, mode = 'edit'): any {
-    const modal = new AmazonSecurityGroupModal({
-      app: { name: 'fnord' },
-      closeModal: vi.fn(),
-      dismissModal: vi.fn(),
-      mode,
-      securityGroup,
-    } as any) as any;
-    modal.state = {
-      ...modal.state,
-      securityGroup,
-      taskMonitor: { submit: vi.fn().mockImplementation((method: () => any) => method()) },
-    };
-    modal.setState = (updater: any) => {
-      const nextState = typeof updater === 'function' ? updater(modal.state, modal.props) : updater;
-      modal.state = { ...modal.state, ...nextState };
-    };
-    return modal;
+  function renderModal(securityGroup: any, mode: 'edit' | 'clone' = 'edit') {
+    return renderWithRouter(
+      <AmazonSecurityGroupModal
+        {...({
+          app: { name: 'fnord' },
+          closeModal: vi.fn(),
+          dismissModal: vi.fn(),
+          mode,
+          router: {} as any,
+          securityGroup,
+          stateParams: {},
+          stateService: { go: vi.fn(), includes: vi.fn() },
+        } as any)}
+      />,
+    );
   }
 
   it('preserves inferred source security group identity when initializing edit rules', () => {
@@ -94,23 +93,21 @@ describe('AmazonSecurityGroupModal', () => {
   });
 
   it('renders existing identity immutably, allows protocol and port edits, and submits the retained identity', () => {
-    vi.spyOn(SecurityGroupWriter, 'upsertSecurityGroup').mockReturnValue(Promise.resolve({} as any));
+    vi.spyOn(SecurityGroupWriter, 'upsertSecurityGroup').mockResolvedValue({} as any);
     const securityGroup = initializeAmazonSecurityGroupForModal(
       { mode: 'edit', securityGroup: inferredSecurityGroup() } as any,
       'fnord',
     );
-    const modal = buildModal(securityGroup);
-    const wrapper = shallow(<div>{modal.renderSecurityGroupRules()}</div>);
-    const inputs = wrapper.find('input');
+    renderModal(securityGroup);
+    const rules = screen.getByText('Firewall Ingress').parentElement as HTMLElement;
 
-    expect(wrapper.text()).toContain('sg-123456');
-    expect(inputs.length).toBe(3);
-    expect(inputs.someWhere((input) => input.prop('value') === 'sg-123456')).toBe(false);
-
-    inputs.at(0).simulate('change', { target: { value: 'udp' } });
-    inputs.at(1).simulate('change', { target: { value: '8443' } });
-    inputs.at(2).simulate('change', { target: { value: '9443' } });
-    modal.submit();
+    expect(within(rules).getByText('sg-123456')).toBeInTheDocument();
+    expect(within(rules).queryByDisplayValue('sg-123456')).not.toBeInTheDocument();
+    fireEvent.change(within(rules).getByDisplayValue('tcp'), { target: { value: 'udp' } });
+    const ports = within(rules).getAllByRole('spinbutton');
+    fireEvent.change(ports[0], { target: { value: '8443' } });
+    fireEvent.change(ports[1], { target: { value: '9443' } });
+    fireEvent.click(screen.getByRole('button', { name: 'Update' }));
 
     const submittedRule = (SecurityGroupWriter.upsertSecurityGroup as Mock).mock.lastCall[0].securityGroupIngress[0];
     expect(submittedRule).toEqual({
@@ -128,7 +125,7 @@ describe('AmazonSecurityGroupModal', () => {
   });
 
   it('submits cloned rules by their editable name without stale source identity', () => {
-    vi.spyOn(SecurityGroupWriter, 'upsertSecurityGroup').mockReturnValue(Promise.resolve({} as any));
+    vi.spyOn(SecurityGroupWriter, 'upsertSecurityGroup').mockResolvedValue({} as any);
     const source = inferredSecurityGroup();
     source.inboundRules[0].securityGroup.inferredName = false;
     source.inboundRules[0].securityGroup.name = 'resolved-source-group';
@@ -136,14 +133,10 @@ describe('AmazonSecurityGroupModal', () => {
       { mode: 'clone', securityGroup: source } as any,
       'fnord',
     );
-    const modal = buildModal(securityGroup, 'clone');
-    const wrapper = shallow(<div>{modal.renderSecurityGroupRules()}</div>);
-    const nameInput = wrapper.find('input').at(0);
+    renderModal(securityGroup, 'clone');
 
-    expect(nameInput.prop('value')).toBe('resolved-source-group');
-
-    nameInput.simulate('change', { target: { value: 'cloned-source-group' } });
-    modal.submit();
+    fireEvent.change(screen.getByDisplayValue('resolved-source-group'), { target: { value: 'cloned-source-group' } });
+    fireEvent.click(screen.getByRole('button', { name: 'Clone' }));
 
     const submittedRule = (SecurityGroupWriter.upsertSecurityGroup as Mock).mock.lastCall[0].securityGroupIngress[0];
     expect(submittedRule).toEqual({
@@ -157,7 +150,6 @@ describe('AmazonSecurityGroupModal', () => {
   it('requires an inferred source group to be replaced by name when cloning', () => {
     const source = inferredSecurityGroup();
     source.inboundRules[0].securityGroup.name = 'sg-123456';
-
     const securityGroup = initializeAmazonSecurityGroupForModal(
       { mode: 'clone', securityGroup: source } as any,
       'fnord',

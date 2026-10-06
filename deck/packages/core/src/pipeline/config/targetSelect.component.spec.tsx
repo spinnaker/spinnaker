@@ -1,51 +1,49 @@
-import { mount } from 'enzyme';
+import { render, screen } from '@testing-library/react';
+import { setupUser } from '../../utils/testUtils/userEvent';
 import React from 'react';
 
 import * as TargetSelectExports from './TargetSelect';
 
 describe('TargetSelect', () => {
-  it('renders the native selector and updates the model target', () => {
+  it('renders the native selector and updates the model target', async () => {
+    const user = setupUser();
     const onChange = vi.fn();
     const model = { target: 'current_asg_dynamic' };
-    const component = mount(
-      <TargetSelectExports.TargetSelect model={model} onChange={onChange} options={targetOptions()} />,
-    );
+    render(<TargetSelectExports.TargetSelect model={model} onChange={onChange} options={targetOptions()} />);
 
-    component.find('input.target-select-search').simulate('focus');
-    component.find('button.target-select-option').at(1).simulate('click');
+    await user.click(screen.getByRole('combobox'));
+    await user.click(screen.getByRole('button', { name: /Previous/ }));
 
     expect(model.target).toBe('ancestor_asg_dynamic');
     expect(onChange).toHaveBeenCalledWith('ancestor_asg_dynamic');
   });
 
-  it('renders descriptions and filters options by search text', () => {
-    const component = mount(
-      <TargetSelectExports.TargetSelect model={{ target: '' }} onChange={vi.fn()} options={targetOptions()} />,
-    );
+  it('renders descriptions and filters options by search text', async () => {
+    const user = setupUser();
+    render(<TargetSelectExports.TargetSelect model={{ target: '' }} onChange={vi.fn()} options={targetOptions()} />);
 
-    component.find('input.target-select-search').simulate('focus');
+    const input = screen.getByRole('combobox');
+    await user.click(input);
 
-    expect(component.find('.target-select-description').map((node) => node.text())).toContain('Previous server group');
+    expect(screen.getByText('Previous server group')).toBeInTheDocument();
 
-    component.find('input.target-select-search').simulate('change', { target: { value: 'current' } });
+    await user.type(input, 'current');
 
-    expect(component.find('button.target-select-option').map((node) => node.text())).toEqual([
-      'CurrentCurrent server group',
-    ]);
+    expect(screen.getAllByRole('button')).toHaveLength(1);
+    expect(screen.getByRole('button', { name: /Current/ })).toHaveTextContent('Current server group');
   });
 
-  it('supports clearing to None', () => {
+  it('supports clearing to None', async () => {
+    const user = setupUser();
     const onChange = vi.fn();
     const model = { target: 'current_asg_dynamic' };
-    const component = mount(
-      <TargetSelectExports.TargetSelect model={model} onChange={onChange} options={targetOptions()} />,
-    );
+    render(<TargetSelectExports.TargetSelect model={model} onChange={onChange} options={targetOptions()} />);
 
-    component.find('button.target-select-clear').simulate('click');
+    await user.click(screen.getByRole('button', { name: 'None' }));
 
     expect(model.target).toBe('');
     expect(onChange).toHaveBeenCalledWith('');
-    expect(component.find('input.target-select-search').prop('placeholder')).toBe('None');
+    expect(screen.getByRole('combobox')).toHaveAttribute('placeholder', 'None');
   });
 });
 
