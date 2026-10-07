@@ -21,6 +21,7 @@ import com.google.api.services.compute.model.*
 import com.netflix.spectator.api.DefaultRegistry
 import com.netflix.spinnaker.clouddriver.data.task.Task
 import com.netflix.spinnaker.clouddriver.data.task.TaskRepository
+import com.netflix.spinnaker.clouddriver.google.GoogleApiTestUtils
 import com.netflix.spinnaker.clouddriver.google.deploy.GoogleOperationPoller
 import com.netflix.spinnaker.clouddriver.google.deploy.SafeRetry
 import com.netflix.spinnaker.clouddriver.google.deploy.description.DeleteGoogleLoadBalancerDescription
@@ -257,6 +258,75 @@ class DeleteGoogleExternalHttpLoadBalancerAtomicOperationUnitSpec extends Specif
       0 * compute.regionHealthChecks()
       // The listener's rule and proxy, the URL map and the backend service.
       4 * poller.waitForRegionalOperation(*_)
+      result.deletedLoadBalancerNames == [LOAD_BALANCER_NAME]
+  }
+
+  void "finishes the delete when a listener's target proxy is already gone"() {
+    setup:
+      def compute = Mock(Compute)
+      def forwardingRules = Mock(Compute.ForwardingRules)
+      def forwardingRulesGet = Mock(Compute.ForwardingRules.Get)
+      def forwardingRulesList = Mock(Compute.ForwardingRules.List)
+      def forwardingRulesDelete = Mock(Compute.ForwardingRules.Delete)
+      def targetHttpProxies = Mock(Compute.RegionTargetHttpProxies)
+      def targetHttpProxiesGet = Mock(Compute.RegionTargetHttpProxies.Get)
+      def targetHttpProxiesDelete = Mock(Compute.RegionTargetHttpProxies.Delete)
+      def urlMaps = Mock(Compute.RegionUrlMaps)
+      def urlMapsList = Mock(Compute.RegionUrlMaps.List)
+      def urlMapsDelete = Mock(Compute.RegionUrlMaps.Delete)
+      def backendServices = Mock(Compute.RegionBackendServices)
+      def backendServicesGet = Mock(Compute.RegionBackendServices.Get)
+      def backendServicesDelete = Mock(Compute.RegionBackendServices.Delete)
+      def poller = Mock(GoogleOperationPoller)
+      def forwardingRule = new ForwardingRule(
+        name: LOAD_BALANCER_NAME,
+        target: TARGET_HTTP_PROXY_URL,
+        loadBalancingScheme: "EXTERNAL_MANAGED")
+      def credentials = new GoogleNamedAccountCredentials.Builder().project(PROJECT_NAME).compute(compute).build()
+      def description = new DeleteGoogleLoadBalancerDescription(
+        loadBalancerName: LOAD_BALANCER_NAME,
+        region: REGION,
+        accountName: ACCOUNT_NAME,
+        credentials: credentials,
+        deleteHealthChecks: false)
+      @Subject def operation = new DeleteGoogleExternalHttpLoadBalancerAtomicOperation(description)
+      setPrivateField(operation, AbstractDeleteGoogleRegionalHttpLoadBalancerAtomicOperation, "googleOperationPoller", poller)
+      operation.registry = new DefaultRegistry()
+      operation.safeRetry = safeRetry
+
+    when:
+      def result = operation.operate([])
+
+    then:
+      _ * compute.forwardingRules() >> forwardingRules
+      1 * forwardingRules.list(PROJECT_NAME, REGION) >> forwardingRulesList
+      1 * forwardingRulesList.execute() >> new ForwardingRuleList(items: [forwardingRule])
+      1 * forwardingRules.get(PROJECT_NAME, REGION, LOAD_BALANCER_NAME) >> forwardingRulesGet
+      1 * forwardingRulesGet.execute() >> forwardingRule
+      1 * forwardingRules.delete(PROJECT_NAME, REGION, LOAD_BALANCER_NAME) >> forwardingRulesDelete
+      1 * forwardingRulesDelete.execute() >> new Operation(name: "rule-delete", status: "DONE")
+
+      _ * compute.regionTargetHttpProxies() >> targetHttpProxies
+      _ * targetHttpProxies.get(PROJECT_NAME, REGION, TARGET_HTTP_PROXY_NAME) >> targetHttpProxiesGet
+      _ * targetHttpProxiesGet.execute() >> new TargetHttpProxy(urlMap: URL_MAP_URL)
+      1 * targetHttpProxies.delete(PROJECT_NAME, REGION, TARGET_HTTP_PROXY_NAME) >> targetHttpProxiesDelete
+      1 * targetHttpProxiesDelete.execute() >> { throw GoogleApiTestUtils.makeGoogleJsonResponseException(404) }
+
+      _ * compute.regionUrlMaps() >> urlMaps
+      1 * urlMaps.list(PROJECT_NAME, REGION) >> urlMapsList
+      1 * urlMapsList.execute() >> new UrlMapList(items: [new UrlMap(name: URL_MAP_NAME, defaultService: BACKEND_SERVICE_URL)])
+      1 * urlMaps.delete(PROJECT_NAME, REGION, URL_MAP_NAME) >> urlMapsDelete
+      1 * urlMapsDelete.execute() >> new Operation(name: "url-map-delete", status: "DONE")
+      _ * compute.regionBackendServices() >> backendServices
+      1 * backendServices.get(PROJECT_NAME, REGION, BACKEND_SERVICE_NAME) >> backendServicesGet
+      1 * backendServicesGet.execute() >> new BackendService(backends: [])
+      1 * backendServices.delete(PROJECT_NAME, REGION, BACKEND_SERVICE_NAME) >> backendServicesDelete
+      1 * backendServicesDelete.execute() >> new Operation(name: "backend-service-delete", status: "DONE")
+
+      1 * poller.waitForRegionalOperation(compute, PROJECT_NAME, REGION, "rule-delete", *_)
+      1 * poller.waitForRegionalOperation(compute, PROJECT_NAME, REGION, "url-map-delete", *_)
+      1 * poller.waitForRegionalOperation(compute, PROJECT_NAME, REGION, "backend-service-delete", *_)
+      0 * poller.waitForRegionalOperation(*_)
       result.deletedLoadBalancerNames == [LOAD_BALANCER_NAME]
   }
 

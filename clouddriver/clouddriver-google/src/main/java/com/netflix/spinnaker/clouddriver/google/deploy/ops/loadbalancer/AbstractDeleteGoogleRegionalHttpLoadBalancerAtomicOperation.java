@@ -292,15 +292,17 @@ public abstract class AbstractDeleteGoogleRegionalHttpLoadBalancerAtomicOperatio
                 getSafeRetry(),
                 AbstractDeleteGoogleRegionalHttpLoadBalancerAtomicOperation.this);
 
-        googleOperationPoller.waitForRegionalOperation(
-            compute,
-            project,
-            region,
-            operation.getName(),
-            timeoutSeconds,
-            getTask(),
-            "listener " + ruleName,
-            getBasePhase());
+        if (operation != null) {
+          googleOperationPoller.waitForRegionalOperation(
+              compute,
+              project,
+              region,
+              operation.getName(),
+              timeoutSeconds,
+              getTask(),
+              "listener " + ruleName,
+              getBasePhase());
+        }
         deletedLoadBalancerNames.add(ruleName);
       }
 
