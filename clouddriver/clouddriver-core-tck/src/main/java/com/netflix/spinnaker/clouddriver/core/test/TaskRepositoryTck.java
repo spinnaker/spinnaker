@@ -19,6 +19,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.netflix.spinnaker.clouddriver.core.ClouddriverHostname;
+import com.netflix.spinnaker.clouddriver.data.task.SagaId;
 import com.netflix.spinnaker.clouddriver.data.task.Status;
 import com.netflix.spinnaker.clouddriver.data.task.Task;
 import com.netflix.spinnaker.clouddriver.data.task.TaskRepository;
@@ -203,6 +204,18 @@ public abstract class TaskRepositoryTck<T extends TaskRepository> {
 
     assertThat(t1.getId()).isEqualTo(t2.getId());
     assertThat(t1.getId()).isNotEqualTo(t3.getId());
+  }
+
+  @Test
+  public void testSagaIdsPersistence() {
+    Task t1 = subject.create("TEST", "Test Status");
+    SagaId sagaId = SagaId.builder().name("aSaga").id("abc123").build();
+    t1.addSagaId(sagaId);
+
+    Task t2 = subject.get(t1.getId());
+
+    assertThat(t2.hasSagaIds()).isTrue();
+    assertThat(t2.getSagaIds()).containsExactly(sagaId);
   }
 
   @Test
