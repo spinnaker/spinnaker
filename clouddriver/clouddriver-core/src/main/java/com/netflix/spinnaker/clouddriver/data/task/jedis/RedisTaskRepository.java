@@ -39,9 +39,10 @@ import java.util.function.Supplier;
 import java.util.stream.Collectors;
 import net.jodah.failsafe.Failsafe;
 import net.jodah.failsafe.RetryPolicy;
-import net.jodah.failsafe.function.CheckedConsumer;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.http.HttpStatus;
+import org.springframework.web.bind.annotation.ResponseStatus;
 import redis.clients.jedis.exceptions.JedisException;
 
 public class RedisTaskRepository implements TaskRepository {
@@ -437,30 +438,30 @@ public class RedisTaskRepository implements TaskRepository {
     return redisClientDelegate;
   }
 
+  // Failsafe 1.x ignores exceptions thrown from an onRetriesExceeded listener and rethrows the
+  // last failure, so the exhausted JedisException is wrapped here instead.
   private <T> T retry(Supplier<T> f, String onRetriesExceededMessage) {
-    return retry(
-        f,
-        failure -> {
-          throw new ExcessiveRedisFailureRetries(onRetriesExceededMessage, failure);
-        });
-  }
-
-  private <T> T retry(Supplier<T> f, CheckedConsumer<? extends Throwable> retryExceededListener) {
-    return Failsafe.with(REDIS_RETRY_POLICY).onRetriesExceeded(retryExceededListener).get(f::get);
+    try {
+      return Failsafe.with(REDIS_RETRY_POLICY).get(f::get);
+    } catch (JedisException e) {
+      throw new ExcessiveRedisFailureRetries(onRetriesExceededMessage, e);
+    }
   }
 
   private void retry(Runnable f, String onRetriesExceededMessage) {
-    retry(
-        f,
-        failure -> {
-          throw new ExcessiveRedisFailureRetries(onRetriesExceededMessage, failure);
-        });
+    try {
+      Failsafe.with(REDIS_RETRY_POLICY).run(f::run);
+    } catch (JedisException e) {
+      throw new ExcessiveRedisFailureRetries(onRetriesExceededMessage, e);
+    }
   }
 
-  private void retry(Runnable f, CheckedConsumer<? extends Throwable> retryExceededListener) {
-    Failsafe.with(REDIS_RETRY_POLICY).onRetriesExceeded(retryExceededListener).run(f::run);
-  }
-
+  /**
+   * Redis was unreachable for longer than the retry policy allows. Reported as 503 rather than the
+   * default 500 so callers treat it as transient: Orca retries a 503 on any request method, but
+   * fails the stage on a 500.
+   */
+  @ResponseStatus(value = HttpStatus.SERVICE_UNAVAILABLE)
   private static class ExcessiveRedisFailureRetries extends RuntimeException {
     ExcessiveRedisFailureRetries(String message, Throwable cause) {
       super(message, cause);
