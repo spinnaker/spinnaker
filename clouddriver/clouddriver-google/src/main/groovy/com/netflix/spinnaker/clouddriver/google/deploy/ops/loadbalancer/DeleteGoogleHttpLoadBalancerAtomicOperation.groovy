@@ -16,7 +16,6 @@
 
 package com.netflix.spinnaker.clouddriver.google.deploy.ops.loadbalancer
 
-import com.google.api.client.googleapis.json.GoogleJsonResponseException
 import com.google.api.services.compute.model.*
 import com.netflix.spinnaker.clouddriver.data.task.Task
 import com.netflix.spinnaker.clouddriver.data.task.TaskRepository
@@ -24,6 +23,8 @@ import com.netflix.spinnaker.clouddriver.google.deploy.GCEUtil
 import com.netflix.spinnaker.clouddriver.google.deploy.GoogleOperationPoller
 import com.netflix.spinnaker.clouddriver.google.deploy.SafeRetry
 import com.netflix.spinnaker.clouddriver.google.deploy.description.DeleteGoogleLoadBalancerDescription
+import com.netflix.spinnaker.clouddriver.google.deploy.exception.GoogleOperationException
+import com.netflix.spinnaker.clouddriver.googlecommon.deploy.GoogleApiException
 import groovy.util.logging.Slf4j
 import org.springframework.beans.factory.annotation.Autowired
 
@@ -116,12 +117,12 @@ class DeleteGoogleHttpLoadBalancerAtomicOperation extends DeleteGoogleLoadBalanc
         if (GCEUtil.getLocalName(proxy?.urlMap) == urlMapName) {
           listenersToDelete << rule.getName()
         }
-      } catch (GoogleJsonResponseException e) {
+      } catch (GoogleOperationException e) {
         // 404 is thrown if the target proxy does not exist.
         // We can ignore 404's here because we are iterating over all forwarding rules and some other process may have
         // deleted the target proxy between the time we queried for the list of forwarding rules and now.
         // Any other exception needs to be propagated.
-        if (e.getStatusCode() != 404) {
+        if (!(e.cause instanceof GoogleApiException.NotFoundException)) {
           throw e
         }
       }
