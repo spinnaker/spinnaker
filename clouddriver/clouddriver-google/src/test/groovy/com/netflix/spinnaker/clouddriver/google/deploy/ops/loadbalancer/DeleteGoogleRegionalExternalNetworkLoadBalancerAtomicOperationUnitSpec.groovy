@@ -261,7 +261,8 @@ class DeleteGoogleRegionalExternalNetworkLoadBalancerAtomicOperationUnitSpec ext
       1 * compute.forwardingRules() >> forwardingRules
       1 * forwardingRules.list(PROJECT, REGION) >> forwardingRulesList
       1 * forwardingRulesList.execute() >> new ForwardingRuleList(items: [forwardingRule])
-      thrown GoogleResourceNotFoundException
+      def e = thrown(GoogleResourceNotFoundException)
+      e.message.contains("If an earlier delete removed it, its backend service and health check")
       0 * compute.regionBackendServices()
       0 * compute.regionHealthChecks()
 

@@ -350,7 +350,8 @@ class DeleteGoogleInternalHttpLoadBalancerAtomicOperationUnitSpec extends Specif
       1 * computeMock.forwardingRules() >> regionForwardingRules
       1 * regionForwardingRules.list(PROJECT_NAME, REGION) >> regionForwardingRulesList
       1 * regionForwardingRulesList.execute() >> [items: []]
-      thrown GoogleResourceNotFoundException
+      def e = thrown(GoogleResourceNotFoundException)
+      e.message.contains("If an earlier delete removed it, its target proxy, URL map, backend services and health checks")
   }
 
   void "should fail to delete Internal Http Load Balancer if failed to delete a resource"() {

@@ -124,7 +124,16 @@ public abstract class AbstractDeleteGoogleRegionalHttpLoadBalancerAtomicOperatio
               .orElse(null);
       if (forwardingRule == null) {
         GCEUtil.updateStatusAndThrowNotFoundException(
-            "Forwarding rule " + forwardingRuleName + " not found in " + region + " for " + project,
+            "Forwarding rule "
+                + forwardingRuleName
+                + " not found in "
+                + region
+                + " for "
+                + project
+                + ". If an earlier delete removed it, its target proxy, URL map, backend services and"
+                + " health checks may still exist in "
+                + region
+                + " and have to be deleted by hand.",
             getTask(),
             getBasePhase());
       }
