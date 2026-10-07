@@ -35,6 +35,7 @@ import com.netflix.spinnaker.clouddriver.aws.data.Keys;
 import com.netflix.spinnaker.clouddriver.aws.jackson.AwsObjectMapperFactory;
 import com.netflix.spinnaker.clouddriver.aws.security.AmazonClientProvider;
 import com.netflix.spinnaker.clouddriver.aws.security.NetflixAmazonCredentials;
+import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -104,9 +105,14 @@ class AmazonLoadBalancerInstanceStateCachingAgentTest {
     when(ctx.getBean(Cache.class)).thenReturn(cache);
     when(cache.filterIdentifiers(eq(LOAD_BALANCERS.ns), anyString()))
         .thenReturn(
-            Set.of(
-                Keys.getLoadBalancerKey(loadBalancerOneName, accountId, region, vpcId, "classic"),
-                Keys.getLoadBalancerKey(loadBalancerTwoName, accountId, region, vpcId, "classic")),
+            // LinkedHashSet: the test relies on iteration order (last load balancer wins);
+            // Set.of() order is randomized per JVM.
+            new LinkedHashSet<>(
+                List.of(
+                    Keys.getLoadBalancerKey(
+                        loadBalancerOneName, accountId, region, vpcId, "classic"),
+                    Keys.getLoadBalancerKey(
+                        loadBalancerTwoName, accountId, region, vpcId, "classic"))),
             Set.of()); // nonvpc
 
     when(loadBalancing.describeInstanceHealth(any(DescribeInstanceHealthRequest.class)))
