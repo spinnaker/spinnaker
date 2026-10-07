@@ -175,7 +175,8 @@ class DeleteGoogleHttpLoadBalancerAtomicOperation extends DeleteGoogleLoadBalanc
 
     listenersToDelete.each { String ruleName ->
       task.updateStatus BASE_PHASE, "Deleting listener $ruleName..."
-      Operation operation = GCEUtil.deleteGlobalListener(compute, project, ruleName, BASE_PHASE, safeRetry, this)
+      Operation operation = GCEUtil.deleteGlobalListener(compute, project, ruleName, BASE_PHASE, timeoutSeconds,
+        task, googleOperationPoller, safeRetry, this)
       googleOperationPoller.waitForGlobalOperation(compute, project, operation.getName(),
         timeoutSeconds, task, "listener " + ruleName, BASE_PHASE)
     }

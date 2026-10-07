@@ -2368,14 +2368,21 @@ class GCEUtil {
 
   /**
    * Deletes an L7/SSL LB global listener, i.e. a global forwarding rule and its target proxy.
+   * GCP rejects deleting a proxy that a forwarding rule still references, so this waits for the
+   * forwarding rule delete to finish before deleting the proxy.
    * @param compute
    * @param project
    * @param forwardingRuleName - Name of global forwarding rule to delete (along with its target proxy).
+   * @param timeoutSeconds - Timeout for the forwarding rule delete; null uses the configured default.
+   * @return The target proxy delete operation, or null if there was nothing left to delete.
    */
   static Operation deleteGlobalListener(Compute compute,
                                         String project,
                                         String forwardingRuleName,
                                         String phase,
+                                        Long timeoutSeconds,
+                                        Task task,
+                                        GoogleOperationPoller googleOperationPoller,
                                         SafeRetry safeRetry,
                                         GoogleExecutorTraits executor) {
     ForwardingRule ruleToDelete = safeRetry.doRetry(
@@ -2393,10 +2400,23 @@ class GCEUtil {
     ) as ForwardingRule
     if (ruleToDelete) {
       def operation_name
-      executor.timeExecute(
-        compute.globalForwardingRules().delete(project, ruleToDelete.getName()),
-        "compute.globalForwardingRules.delete",
-        executor.TAG_SCOPE, executor.SCOPE_GLOBAL)
+      Operation deleteRuleOp = safeRetry.doRetry(
+        { executor.timeExecute(
+          compute.globalForwardingRules().delete(project, ruleToDelete.getName()),
+          "compute.globalForwardingRules.delete",
+          executor.TAG_SCOPE, executor.SCOPE_GLOBAL)
+        },
+        "global forwarding rule ${forwardingRuleName}",
+        null,
+        [400, 412],
+        [404],
+        [action: "delete", phase: phase, operation: "compute.globalForwardingRules.delete", (executor.TAG_SCOPE): executor.SCOPE_GLOBAL],
+        executor.registry
+      ) as Operation
+      if (deleteRuleOp) {
+        googleOperationPoller.waitForGlobalOperation(compute, project, deleteRuleOp.getName(),
+          timeoutSeconds, task, "global forwarding rule ${forwardingRuleName}", phase)
+      }
       String targetProxyLink = ruleToDelete.getTarget()
       String targetProxyName = getLocalName(targetProxyLink)
       GoogleTargetProxyType targetProxyType = Utils.getTargetProxyType(targetProxyLink)
@@ -2455,11 +2475,20 @@ class GCEUtil {
       return result
     }
   }
+
+  /**
+   * Regional counterpart of {@link #deleteGlobalListener}: deletes a regional forwarding rule, waits
+   * for that delete to finish, then deletes its regional target HTTP(S) proxy.
+   * @return The target proxy delete operation, or null if there was nothing left to delete.
+   */
   static Operation deleteRegionalListener(Compute compute,
                                           String project,
                                           String region,
                                           String forwardingRuleName,
                                           String phase,
+                                          Long timeoutSeconds,
+                                          Task task,
+                                          GoogleOperationPoller googleOperationPoller,
                                           SafeRetry safeRetry,
                                           GoogleExecutorTraits executor) {
     ForwardingRule ruleToDelete = safeRetry.doRetry(
@@ -2477,10 +2506,23 @@ class GCEUtil {
     ) as ForwardingRule
     if (ruleToDelete) {
       def operation_name
-      executor.timeExecute(
-        compute.forwardingRules().delete(project, region, ruleToDelete.getName()),
-        "compute.forwardingRules.delete",
-        executor.TAG_SCOPE, executor.SCOPE_REGIONAL, executor.TAG_REGION, region)
+      Operation deleteRuleOp = safeRetry.doRetry(
+        { executor.timeExecute(
+          compute.forwardingRules().delete(project, region, ruleToDelete.getName()),
+          "compute.forwardingRules.delete",
+          executor.TAG_SCOPE, executor.SCOPE_REGIONAL, executor.TAG_REGION, region)
+        },
+        "forwarding rule ${forwardingRuleName}",
+        null,
+        [400, 412],
+        [404],
+        [action: "delete", phase: phase, operation: "compute.forwardingRules.delete", (executor.TAG_SCOPE): executor.SCOPE_REGIONAL, (executor.TAG_REGION): region],
+        executor.registry
+      ) as Operation
+      if (deleteRuleOp) {
+        googleOperationPoller.waitForRegionalOperation(compute, project, region, deleteRuleOp.getName(),
+          timeoutSeconds, task, "forwarding rule ${forwardingRuleName}", phase)
+      }
       String targetProxyLink = ruleToDelete.getTarget()
       String targetProxyName = getLocalName(targetProxyLink)
       GoogleTargetProxyType targetProxyType = Utils.getTargetProxyType(targetProxyLink)

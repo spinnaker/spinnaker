@@ -174,8 +174,8 @@ class DeleteGoogleExternalHttpLoadBalancerAtomicOperationUnitSpec extends Specif
       _ * compute.regionHealthChecks() >> healthChecks
       1 * healthChecks.delete(PROJECT_NAME, REGION, HEALTH_CHECK_NAME) >> healthChecksDelete
       1 * healthChecksDelete.execute() >> operationResult
-      // Two listener proxies, the URL map, the backend service and the health check.
-      5 * poller.waitForRegionalOperation(*_)
+      // Two listeners (rule and proxy each), the URL map, the backend service and the health check.
+      7 * poller.waitForRegionalOperation(*_)
       result.deletedLoadBalancerNames == [LOAD_BALANCER_NAME, SECOND_LISTENER_NAME]
   }
 
@@ -255,8 +255,8 @@ class DeleteGoogleExternalHttpLoadBalancerAtomicOperationUnitSpec extends Specif
       1 * backendServices.delete(PROJECT_NAME, REGION, BACKEND_SERVICE_NAME) >> backendServicesDelete
       1 * backendServicesDelete.execute() >> operationResult
       0 * compute.regionHealthChecks()
-      // The listener proxy, the URL map and the backend service.
-      3 * poller.waitForRegionalOperation(*_)
+      // The listener's rule and proxy, the URL map and the backend service.
+      4 * poller.waitForRegionalOperation(*_)
       result.deletedLoadBalancerNames == [LOAD_BALANCER_NAME]
   }
 
