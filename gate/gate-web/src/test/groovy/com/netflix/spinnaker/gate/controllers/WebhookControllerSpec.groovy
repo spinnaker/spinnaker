@@ -71,7 +71,7 @@ class WebhooksControllerSpec extends Specification {
       .build()
   }
 
-  void 'handles null Maps'() {
+  void 'handles a missing body'() {
 
     given:
     WebhookController controller = new WebhookController()
@@ -79,7 +79,7 @@ class WebhooksControllerSpec extends Specification {
 
     when:
     controller.webhooks(
-      'git', 'bitbucket', null, null, 'repo:refs_changed'
+      'git', 'bitbucket', null, new HttpHeaders()
     )
 
     then:
