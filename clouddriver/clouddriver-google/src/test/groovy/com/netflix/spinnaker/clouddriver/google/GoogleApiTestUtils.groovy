@@ -38,11 +38,19 @@ public class GoogleApiTestUtils {
   }
 
   static public GoogleJsonResponseException makeGoogleJsonResponseException(int statusCode) {
+    return makeGoogleJsonResponseException(statusCode, null)
+  }
+
+  static public GoogleJsonResponseException makeGoogleJsonResponseException(int statusCode, String reason) {
     def builder = new HttpResponseException.Builder(
         statusCode,
         "Injected Error",
         new HttpHeaders()).setMessage(statusCode.toString() + " Injected Error")
-    return new GoogleJsonResponseException(builder, new GoogleJsonError(code: statusCode, message: "Injected Error"))
+    def details = new GoogleJsonError(code: statusCode, message: "Injected Error")
+    if (reason) {
+      details.errors = [new GoogleJsonError.ErrorInfo(reason: reason, message: "Injected Error")]
+    }
+    return new GoogleJsonResponseException(builder, details)
   }
 
   static public Map makeTraitsTagMap(String method, int statusCode, Map extra) {

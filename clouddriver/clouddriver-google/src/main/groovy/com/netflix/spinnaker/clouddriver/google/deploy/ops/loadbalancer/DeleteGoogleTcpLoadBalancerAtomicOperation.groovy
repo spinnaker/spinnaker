@@ -175,8 +175,10 @@ class DeleteGoogleTcpLoadBalancerAtomicOperation extends DeleteGoogleLoadBalance
       safeRetry,
       this
     )
-    googleOperationPoller.waitForGlobalOperation(compute, project, deleteBackendServiceOp.getName(),
-      timeoutSeconds, task, "backend service $backendServiceName", BASE_PHASE)
+    if (deleteBackendServiceOp) {
+      googleOperationPoller.waitForGlobalOperation(compute, project, deleteBackendServiceOp.getName(),
+        timeoutSeconds, task, "backend service $backendServiceName", BASE_PHASE)
+    }
 
     if (description.deleteHealthChecks) {
       Operation deleteHealthCheckOp = GCEUtil.deleteIfNotInUse(
@@ -191,8 +193,10 @@ class DeleteGoogleTcpLoadBalancerAtomicOperation extends DeleteGoogleLoadBalance
         safeRetry,
         this
       )
-      googleOperationPoller.waitForGlobalOperation(compute, project, deleteHealthCheckOp.getName(),
-        timeoutSeconds, task, "health check $healthCheckName", BASE_PHASE)
+      if (deleteHealthCheckOp) {
+        googleOperationPoller.waitForGlobalOperation(compute, project, deleteHealthCheckOp.getName(),
+          timeoutSeconds, task, "health check $healthCheckName", BASE_PHASE)
+      }
     }
 
     task.updateStatus BASE_PHASE, "Done deleting tcp load balancer $description.loadBalancerName."
