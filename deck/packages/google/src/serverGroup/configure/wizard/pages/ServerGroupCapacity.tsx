@@ -2,6 +2,8 @@ import React from 'react';
 
 import type { GceCommandHandlerName, IGceServerGroupCommand } from '../GceServerGroupWizard.types';
 import { GceServerGroupWizardPage } from '../GceServerGroupWizardPage';
+import type { IGceInstanceFlexibilityPolicy } from '../../../../domain/serverGroup';
+import { GceInstanceFlexibilityConfigurer, hasValidFlexibilityPolicy } from '../zones/GceInstanceFlexibilityConfigurer';
 
 interface ICapacityValidationErrors {
   autoscalingPolicy?: {
@@ -10,6 +12,7 @@ interface ICapacityValidationErrors {
   };
   capacity?: { desired?: string };
   distributionPolicy?: { targetShape?: string; zones?: string };
+  instanceFlexibilityPolicy?: string;
   zone?: string;
 }
 
@@ -22,46 +25,53 @@ type CapacityValue = number | string | null | undefined;
 
 const INTEGER_ERROR = 'must be a finite non-negative integer.';
 
+export function validateGceServerGroupCapacity(values: IGceServerGroupCommand): ICapacityValidationErrors {
+  const errors: ICapacityValidationErrors = {};
+  const desired = values.capacity?.desired;
+
+  if (!isValidCapacityValue(desired, values)) {
+    errors.capacity = { desired: `Desired capacity ${INTEGER_ERROR}` };
+  }
+
+  if (values.autoscalingPolicy) {
+    const min = values.autoscalingPolicy?.minNumReplicas;
+    const max = values.autoscalingPolicy?.maxNumReplicas;
+
+    if (!isValidCapacityValue(min, values)) {
+      errors.autoscalingPolicy = {
+        ...errors.autoscalingPolicy,
+        minNumReplicas: `Minimum capacity ${INTEGER_ERROR}`,
+      };
+    }
+    if (!isValidCapacityValue(max, values)) {
+      errors.autoscalingPolicy = {
+        ...errors.autoscalingPolicy,
+        maxNumReplicas: `Maximum capacity ${INTEGER_ERROR}`,
+      };
+    }
+    if (isNonNegativeInteger(desired) && isNonNegativeInteger(min) && desired < min) {
+      errors.capacity = { desired: 'Desired capacity must be at least minimum capacity.' };
+    } else if (isNonNegativeInteger(desired) && isNonNegativeInteger(max) && desired > max) {
+      errors.capacity = { desired: 'Desired capacity must not exceed maximum capacity.' };
+    }
+  }
+
+  if (!values.regional && !values.zone?.trim()) {
+    errors.zone = 'Zone required.';
+  }
+  if (values.regional && values.selectZones && !values.distributionPolicy?.zones?.length) {
+    errors.distributionPolicy = { zones: 'At least one zone required.' };
+  }
+  if (!hasValidFlexibilityPolicy(values)) {
+    errors.instanceFlexibilityPolicy = 'Instance flexibility policy is invalid.';
+  }
+
+  return errors;
+}
+
 export class ServerGroupCapacity extends GceServerGroupWizardPage {
   public validate(values: IGceServerGroupCommand): ICapacityValidationErrors {
-    const errors: ICapacityValidationErrors = {};
-    const desired = values.capacity?.desired;
-
-    if (!isValidCapacityValue(desired, values)) {
-      errors.capacity = { desired: `Desired capacity ${INTEGER_ERROR}` };
-    }
-
-    if (values.autoscalingPolicy) {
-      const min = values.autoscalingPolicy?.minNumReplicas;
-      const max = values.autoscalingPolicy?.maxNumReplicas;
-
-      if (!isValidCapacityValue(min, values)) {
-        errors.autoscalingPolicy = {
-          ...errors.autoscalingPolicy,
-          minNumReplicas: `Minimum capacity ${INTEGER_ERROR}`,
-        };
-      }
-      if (!isValidCapacityValue(max, values)) {
-        errors.autoscalingPolicy = {
-          ...errors.autoscalingPolicy,
-          maxNumReplicas: `Maximum capacity ${INTEGER_ERROR}`,
-        };
-      }
-      if (isNonNegativeInteger(desired) && isNonNegativeInteger(min) && desired < min) {
-        errors.capacity = { desired: 'Desired capacity must be at least minimum capacity.' };
-      } else if (isNonNegativeInteger(desired) && isNonNegativeInteger(max) && desired > max) {
-        errors.capacity = { desired: 'Desired capacity must not exceed maximum capacity.' };
-      }
-    }
-
-    if (!values.regional && !values.zone?.trim()) {
-      errors.zone = 'Zone required.';
-    }
-    if (values.regional && values.selectZones && !values.distributionPolicy?.zones?.length) {
-      errors.distributionPolicy = { zones: 'At least one zone required.' };
-    }
-
-    return errors;
+    return validateGceServerGroupCapacity(values);
   }
 
   private commandChanged = (
@@ -81,7 +91,6 @@ export class ServerGroupCapacity extends GceServerGroupWizardPage {
     if (value === undefined) {
       return;
     }
-
     const { values } = this.props.formik;
     if (!values.autoscalingPolicy) {
       this.props.formik.setFieldValue('capacity', { min: value, max: value, desired: value });
@@ -172,6 +181,10 @@ export class ServerGroupCapacity extends GceServerGroupWizardPage {
     this.props.formik.setFieldValue('distributionPolicy', { ...values.distributionPolicy, targetShape });
   };
 
+  private instanceFlexibilityPolicyChanged = (instanceFlexibilityPolicy: IGceInstanceFlexibilityPolicy): void => {
+    this.props.formik.setFieldValue('instanceFlexibilityPolicy', instanceFlexibilityPolicy);
+  };
+
   private renderCapacityInput(label: string, field: 'desired' | 'max' | 'min', value: CapacityValue) {
     const id = `gce-capacity-${field}`;
     const error = capacityError(this.props.formik.errors, field);
@@ -248,7 +261,12 @@ export class ServerGroupCapacity extends GceServerGroupWizardPage {
     const zones = zoneOptions(values.backingData?.filtered?.zones, selectedZones);
     const errors = this.props.formik.errors as any;
     const zonesError = errors?.distributionPolicy?.zones;
-    const targetShapes: string[] = values.backingData?.distributionPolicyTargetShapes || ['ANY', 'EVEN'];
+    const targetShapes: string[] = values.backingData?.distributionPolicyTargetShapes || [
+      'ANY',
+      'EVEN',
+      'BALANCED',
+      'ANY_SINGLE_ZONE',
+    ];
 
     return (
       <div>
@@ -393,6 +411,13 @@ export class ServerGroupCapacity extends GceServerGroupWizardPage {
         </div>
 
         {values.regional ? this.renderRegionalDistribution() : this.renderZonalLocation()}
+        <GceInstanceFlexibilityConfigurer
+          instanceFlexibilityPolicy={values.instanceFlexibilityPolicy}
+          regional={values.regional}
+          setInstanceFlexibilityPolicy={this.instanceFlexibilityPolicyChanged}
+          targetShape={values.distributionPolicy?.targetShape || undefined}
+          validationError={(this.props.formik.errors as any)?.instanceFlexibilityPolicy}
+        />
       </div>
     );
   }

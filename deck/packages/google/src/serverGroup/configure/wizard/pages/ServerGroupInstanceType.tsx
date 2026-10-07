@@ -38,6 +38,34 @@ interface IGceInstanceTypeValidationErrors {
   instanceType?: string;
 }
 
+export function validateGceServerGroupInstanceType(values: IGceServerGroupCommand): IGceInstanceTypeValidationErrors {
+  const errors: IGceInstanceTypeValidationErrors = {};
+  if (!values.instanceType) {
+    errors.instanceType = 'Machine type required.';
+  }
+
+  const bootDisk = getBootDisk(values);
+  if (!bootDisk?.type || !isValidBoundedValue(bootDisk.sizeGb, values, MIN_BOOT_DISK_SIZE_GB, MAX_BOOT_DISK_SIZE_GB)) {
+    errors.disks = `Boot disk size must be between ${MIN_BOOT_DISK_SIZE_GB} and ${MAX_BOOT_DISK_SIZE_GB} GB.`;
+  }
+
+  const accelerators = getAcceleratorConfigs(values);
+  const availableAccelerators = getAvailableAccelerators(values);
+  if (
+    accelerators.some((config) => {
+      if (!config.acceleratorType || !isValidPositiveInteger(config.acceleratorCount, values)) {
+        return true;
+      }
+      const available = availableAccelerators.find((accelerator) => accelerator.name === config.acceleratorType);
+      return available ? !available.availableCardCounts.includes(Number(config.acceleratorCount)) : false;
+    })
+  ) {
+    errors.acceleratorConfigs = 'Accelerator count is unavailable for the selected type.';
+  }
+
+  return errors;
+}
+
 export class ServerGroupInstanceType extends GceServerGroupWizardPage {
   public static contextType = DeckRuntimeContext;
   public declare context: React.ContextType<typeof DeckRuntimeContext>;
@@ -45,34 +73,7 @@ export class ServerGroupInstanceType extends GceServerGroupWizardPage {
   private instanceTypeRequestGeneration = 0;
 
   public validate(values: IGceServerGroupCommand): IGceInstanceTypeValidationErrors {
-    const errors: IGceInstanceTypeValidationErrors = {};
-    if (!values.instanceType) {
-      errors.instanceType = 'Machine type required.';
-    }
-
-    const bootDisk = getBootDisk(values);
-    if (
-      !bootDisk?.type ||
-      !isValidBoundedValue(bootDisk.sizeGb, values, MIN_BOOT_DISK_SIZE_GB, MAX_BOOT_DISK_SIZE_GB)
-    ) {
-      errors.disks = `Boot disk size must be between ${MIN_BOOT_DISK_SIZE_GB} and ${MAX_BOOT_DISK_SIZE_GB} GB.`;
-    }
-
-    const accelerators = getAcceleratorConfigs(values);
-    const availableAccelerators = getAvailableAccelerators(values);
-    if (
-      accelerators.some((config) => {
-        if (!config.acceleratorType || !isValidPositiveInteger(config.acceleratorCount, values)) {
-          return true;
-        }
-        const available = availableAccelerators.find((accelerator) => accelerator.name === config.acceleratorType);
-        return available ? !available.availableCardCounts.includes(Number(config.acceleratorCount)) : false;
-      })
-    ) {
-      errors.acceleratorConfigs = 'Accelerator count is unavailable for the selected type.';
-    }
-
-    return errors;
+    return validateGceServerGroupInstanceType(values);
   }
 
   private publish = (nextValues: IGceServerGroupCommand): void => {

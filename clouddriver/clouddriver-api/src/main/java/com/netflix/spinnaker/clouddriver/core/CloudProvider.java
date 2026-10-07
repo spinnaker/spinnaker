@@ -21,9 +21,9 @@ import com.netflix.spinnaker.kork.annotations.Beta;
 import java.lang.annotation.Annotation;
 
 /**
- * Different cloud providers (AWS, GCE, Titus, etc.) should implement this interface and annotate
- * different implementations with annotation class indicated by {@code getAnnotation} method to
- * identify the cloud provider specific implementations
+ * Different cloud providers (AWS, GCE, Kubernetes, etc.) should implement this interface and
+ * annotate different implementations with annotation class indicated by {@code getAnnotation}
+ * method to identify the cloud provider specific implementations
  */
 @Beta
 public interface CloudProvider {

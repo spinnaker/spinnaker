@@ -32,7 +32,7 @@ export class AccountRegionClusterSelector extends React.Component<
   IAccountRegionClusterSelectorProps,
   IAccountRegionClusterSelectorState
 > {
-  private destroy$ = new Subject();
+  private destroy$ = new Subject<void>();
 
   constructor(props: IAccountRegionClusterSelectorProps) {
     super(props);

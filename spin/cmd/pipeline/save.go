@@ -15,9 +15,11 @@
 package pipeline
 
 import (
+	"errors"
 	"fmt"
 	"io/ioutil"
 	"net/http"
+	"strings"
 
 	"github.com/spf13/cobra"
 
@@ -28,6 +30,7 @@ type saveOptions struct {
 	*PipelineOptions
 	output       string
 	pipelineFile string
+	staleCheck   bool
 }
 
 var (
@@ -50,6 +53,8 @@ func NewSaveCmd(pipelineOptions *PipelineOptions) *cobra.Command {
 	}
 
 	cmd.PersistentFlags().StringVarP(&options.pipelineFile, "file", "f", "", "path to the pipeline file")
+	cmd.PersistentFlags().BoolVar(&options.staleCheck, "stale-check", true,
+		"fail instead of overwriting if the pipeline changed in Spinnaker after this command read it")
 
 	return cmd
 }
@@ -85,12 +90,30 @@ func savePipeline(cmd *cobra.Command, options *saveOptions) error {
 	application := pipelineJson["application"].(string)
 	pipelineName := pipelineJson["name"].(string)
 
-	foundPipeline, queryResp, _ := options.GateClient.ApplicationControllerAPI.GetPipelineConfig(options.GateClient.Context, application, pipelineName).Execute()
+	// updateTs is server-owned. A value carried in the user's input file (e.g. a committed
+	// export) must never become a precondition -- only a value we just fetched may be.
+	delete(pipelineJson, "updateTs")
+
+	foundPipeline, queryResp, queryErr := options.GateClient.ApplicationControllerAPI.
+		GetPipelineConfig(options.GateClient.Context, application, pipelineName).Execute()
+	if queryResp == nil {
+		return fmt.Errorf("failed to look up pipeline %q in application %q: %w", pipelineName, application, queryErr)
+	}
+	defer queryResp.Body.Close()
+
 	switch queryResp.StatusCode {
 	case http.StatusOK:
 		// pipeline found, let's use Spinnaker's known Pipeline ID, otherwise we'll get one created for us
 		if len(foundPipeline) > 0 {
 			pipelineJson["id"] = foundPipeline["id"].(string)
+
+			// Carry the server's fingerprint forward so front50 can reject the write if
+			// someone else changed the pipeline inside our read -> write window.
+			if options.staleCheck {
+				if updateTs, present := foundPipeline["updateTs"]; present && updateTs != nil {
+					pipelineJson["updateTs"] = updateTs
+				}
+			}
 		}
 	case http.StatusNotFound:
 		// pipeline doesn't exists, let's create a new one
@@ -99,14 +122,52 @@ func savePipeline(cmd *cobra.Command, options *saveOptions) error {
 		return fmt.Errorf("unhandled response %d: %s", queryResp.StatusCode, b)
 	}
 
-	saveResp, err := options.GateClient.PipelineControllerAPI.SavePipeline(options.GateClient.Context).RequestBody(pipelineJson).Execute()
+	saveReq := options.GateClient.PipelineControllerAPI.SavePipeline(options.GateClient.Context).RequestBody(pipelineJson)
+	if options.staleCheck {
+		saveReq = saveReq.StaleCheck(true)
+	}
+
+	saveResp, err := saveReq.Execute()
 	if err != nil {
-		return err
+		return savePipelineError(application, pipelineName, saveResp, err)
 	}
 	if saveResp.StatusCode != http.StatusOK {
-		return fmt.Errorf("Encountered an error saving pipeline, status code: %d\n", saveResp.StatusCode)
+		return savePipelineError(application, pipelineName, saveResp, nil)
 	}
 
 	options.Ui.Success("Pipeline save succeeded")
 	return nil
+}
+
+// savePipelineError turns a failed save into something actionable, special-casing
+// front50's stale-pipeline rejection.
+func savePipelineError(application, name string, resp *http.Response, err error) error {
+	body := ""
+	// The generated client drains the response body into its own error type, so prefer
+	// that when it's present.
+	var apiErr interface{ Body() []byte }
+	if err != nil && errors.As(err, &apiErr) {
+		body = string(apiErr.Body())
+	} else if resp != nil && resp.Body != nil {
+		if b, readErr := ioutil.ReadAll(resp.Body); readErr == nil {
+			body = string(b)
+		}
+	}
+
+	if strings.Contains(body, "is stale") {
+		return fmt.Errorf(
+			"pipeline %q in application %q was modified in Spinnaker while this command was running; nothing was saved.\n"+
+				"Re-run to pick up the change, or pass --stale-check=false to overwrite it.\n"+
+				"Server said: %s",
+			name, application, strings.TrimSpace(body))
+	}
+
+	if err != nil {
+		return fmt.Errorf("encountered an error saving pipeline %q: %w", name, err)
+	}
+	status := 0
+	if resp != nil {
+		status = resp.StatusCode
+	}
+	return fmt.Errorf("encountered an error saving pipeline %q, status code: %d\n%s", name, status, strings.TrimSpace(body))
 }

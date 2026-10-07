@@ -21,7 +21,9 @@ import java.util.Objects;
 import lombok.extern.slf4j.Slf4j;
 import software.amazon.awssdk.auth.credentials.AwsCredentials;
 import software.amazon.awssdk.auth.credentials.AwsCredentialsProvider;
+import software.amazon.awssdk.core.exception.SdkClientException;
 import software.amazon.awssdk.regions.Region;
+import software.amazon.awssdk.regions.providers.DefaultAwsRegionProviderChain;
 import software.amazon.awssdk.services.sts.StsClient;
 import software.amazon.awssdk.services.sts.StsClientBuilder;
 import software.amazon.awssdk.services.sts.auth.StsAssumeRoleCredentialsProvider;
@@ -32,8 +34,8 @@ import software.amazon.awssdk.services.sts.model.AssumeRoleRequest;
  * given IAM role using the supplied long-lived {@link AwsCredentialsProvider} and returns
  * short-lived session credentials.
  *
- * <p>This provider is used by {@link AmazonCredentials#getV2CredentialsProvider()} for accounts
- * that have an {@code assumeRole} configured.
+ * <p>This provider is used by {@link AssumeRoleAmazonCredentials} for accounts that have an {@code
+ * assumeRole} configured.
  */
 @Slf4j
 public class SpinnakerStsAssumeRoleCredentialsProviderV2 implements AwsCredentialsProvider {
@@ -85,11 +87,16 @@ public class SpinnakerStsAssumeRoleCredentialsProviderV2 implements AwsCredentia
         StsClient.builder().credentialsProvider(longLivedCredentialsProvider);
 
     // Choose the STS endpoint for GovCloud / China partitions; standard AWS uses the global
-    // endpoint which the default v2 region resolution handles automatically.
+    // endpoint. Always set an explicit region rather than relying solely on the SDK's default
+    // region provider chain, which throws if no region is resolvable in the environment (e.g. a
+    // bare unit test with no AWS_REGION set) -- mirrors the guaranteed fallback the v1 STS
+    // provider used to provide via SpinnakerAwsRegionProvider's DefaultRegionProvider.
     if (resolvedArn.contains("aws-us-gov")) {
       stsClientBuilder.region(Region.US_GOV_WEST_1);
     } else if (resolvedArn.contains("aws-cn")) {
       stsClientBuilder.region(Region.CN_NORTH_1);
+    } else {
+      stsClientBuilder.region(resolveDefaultRegion());
     }
 
     StsClient stsClient = stsClientBuilder.build();
@@ -104,6 +111,14 @@ public class SpinnakerStsAssumeRoleCredentialsProviderV2 implements AwsCredentia
     }
 
     this.delegate = providerBuilder.build();
+  }
+
+  private static Region resolveDefaultRegion() {
+    try {
+      return new DefaultAwsRegionProviderChain().getRegion();
+    } catch (SdkClientException e) {
+      return Region.US_EAST_1;
+    }
   }
 
   /** Returns the AWS account ID this provider targets. */

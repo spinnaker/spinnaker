@@ -14,7 +14,7 @@ import lombok.Data;
 @AllArgsConstructor
 public class OperationsInput {
 
-  /** The cloud provider (AWS, Kubernetes, Titus, etc) if the operation is a cloud operation. */
+  /** The cloud provider (AWS, Kubernetes, etc) if the operation is a cloud operation. */
   @Nullable private String cloudProvider;
 
   /** The operations collection. */

@@ -34,7 +34,7 @@ async function buildModules() {
       ].map((module) => runPnpmBuild(`${PACKAGES_ROOT}/${module}`)),
     );
 
-    await Promise.all(['ecs', 'titus'].map((module) => runPnpmBuild(`${PACKAGES_ROOT}/${module}`)));
+    await runPnpmBuild(`${PACKAGES_ROOT}/ecs`);
   } catch (err) {
     console.log(err.stdout);
     console.error(err.stderr);

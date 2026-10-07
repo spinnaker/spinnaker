@@ -97,7 +97,15 @@ class StartExecutionHandler(
       } else {
         execution.updateStatus(RUNNING)
         repository.updateStatus(execution)
-        initialStages.forEach { queue.push(StartStage(it)) }
+        try {
+          initialStages.forEach { queue.push(StartStage(it)) }
+        } catch (e: Exception) {
+          // Restore to NOT_STARTED so the ack-timeout retried StartExecution
+          // message isn't dropped by the status guard above.
+          execution.updateStatus(NOT_STARTED)
+          repository.updateStatus(execution)
+          throw e
+        }
         publisher.publishEvent(ExecutionStarted(this, execution))
       }
     }

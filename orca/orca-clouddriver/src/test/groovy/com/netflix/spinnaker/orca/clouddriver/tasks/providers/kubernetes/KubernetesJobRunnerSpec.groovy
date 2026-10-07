@@ -20,6 +20,7 @@ import com.fasterxml.jackson.databind.ObjectMapper
 import com.google.common.collect.ImmutableList
 import com.netflix.spinnaker.kork.artifacts.model.Artifact
 import com.netflix.spinnaker.kork.core.RetrySupport
+import com.netflix.spinnaker.orca.api.pipeline.models.ExecutionType
 import com.netflix.spinnaker.orca.api.pipeline.models.StageExecution
 import com.netflix.spinnaker.orca.clouddriver.OortService
 import com.netflix.spinnaker.orca.clouddriver.tasks.manifest.ManifestEvaluator
@@ -27,6 +28,7 @@ import com.netflix.spinnaker.orca.pipeline.model.PipelineExecutionImpl
 import com.netflix.spinnaker.orca.pipeline.model.StageExecutionImpl
 import com.netflix.spinnaker.orca.pipeline.util.ArtifactUtils
 import com.netflix.spinnaker.orca.pipeline.util.ContextParameterProcessor
+import com.netflix.spinnaker.security.AuthenticatedRequest
 import okhttp3.MediaType
 import okhttp3.ResponseBody
 import retrofit2.mock.Calls
@@ -139,5 +141,42 @@ class KubernetesJobRunnerSpec extends Specification {
     op.manifest == manifest
     op.requiredArtifacts == []
     op.optionalArtifacts == []
+  }
+
+  def "adds provenance annotations to run job operation"() {
+    given:
+    ArtifactUtils artifactUtils = Mock(ArtifactUtils)
+    ObjectMapper objectMapper = new ObjectMapper()
+    ManifestEvaluator manifestEvaluator = new ManifestEvaluator(
+        Mock(ArtifactUtils) {
+          getArtifacts(_ as StageExecution) >> ImmutableList.of()
+        },
+        Mock(ContextParameterProcessor),
+        Mock(OortService),
+        new RetrySupport()
+    )
+    def stage = new StageExecutionImpl(new PipelineExecutionImpl(ExecutionType.PIPELINE, "test"), "runJob", [
+      credentials: "abc", cloudProvider: "kubernetes",
+      foo: "bar",
+      source: "text",
+      manifest: [
+        metadata: [
+          name: "my-job"
+        ]
+      ]
+    ])
+    AuthenticatedRequest.setUser("mdc-user")
+    KubernetesJobRunner kubernetesJobRunner = new KubernetesJobRunner(artifactUtils, objectMapper, manifestEvaluator)
+
+    when:
+    def ops = kubernetesJobRunner.getOperations(stage)
+    def op = ops.get(0).get("runJob")
+
+    then:
+    op."provenance.deployedBy" == "mdc-user"
+    op."provenance.executionId" == stage.getExecution().getId()
+
+    cleanup:
+    AuthenticatedRequest.clear()
   }
 }

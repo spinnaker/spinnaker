@@ -14,8 +14,8 @@
  * limitations under the License.
  */
 package com.netflix.spinnaker.clouddriver.aws.deploy.ops
-import com.amazonaws.services.ec2.AmazonEC2
-import com.amazonaws.services.ec2.model.TerminateInstancesRequest
+import software.amazon.awssdk.services.ec2.Ec2Client
+import software.amazon.awssdk.services.ec2.model.TerminateInstancesRequest
 import com.netflix.spinnaker.clouddriver.aws.security.AmazonClientProvider
 import com.netflix.spinnaker.clouddriver.data.task.Task
 import com.netflix.spinnaker.clouddriver.data.task.TaskRepository
@@ -29,9 +29,9 @@ class TerminateInstancesAtomicOperationUnitSpec extends Specification {
     TaskRepository.threadLocalTask.set(Mock(Task))
   }
 
-  def mockAmazonEC2 = Mock(AmazonEC2)
+  def mockAmazonEC2 = Mock(Ec2Client)
   def mockAmazonClientProvider = Mock(AmazonClientProvider) {
-    getAmazonEC2(_, _, true) >> mockAmazonEC2
+    getAmazonEC2V2(_, _) >> mockAmazonEC2
   }
 
   void "should terminate instances"() {
@@ -46,7 +46,7 @@ class TerminateInstancesAtomicOperationUnitSpec extends Specification {
     then:
     with(mockAmazonEC2) {
       0 * _
-      1 * terminateInstances(new TerminateInstancesRequest(instanceIds: ["i-123", "i-456"]))
+      1 * terminateInstances(TerminateInstancesRequest.builder().instanceIds(["i-123", "i-456"]).build())
     }
   }
 }

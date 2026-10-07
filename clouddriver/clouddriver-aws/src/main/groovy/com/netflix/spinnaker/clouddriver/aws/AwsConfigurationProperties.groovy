@@ -27,8 +27,6 @@ class AwsConfigurationProperties {
   @Canonical
   static class ClientConfig {
     int maxErrorRetry = 3
-    int maxConnections = 200
-    int maxConnectionsPerRoute = 20
     boolean useGzip = true
     boolean addSpinnakerUserToUserAgent = false
     boolean logEndpoints = false

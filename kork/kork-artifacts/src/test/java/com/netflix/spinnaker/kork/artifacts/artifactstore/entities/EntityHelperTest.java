@@ -52,10 +52,41 @@ class EntityHelperTest {
     Artifact artifact =
         EntityHelper.toArtifact(obj, ArtifactTypes.EMBEDDED_MAP_BASE64.getMimeType());
     assertEquals(ArtifactTypes.EMBEDDED_MAP_BASE64.getMimeType(), artifact.getType());
+    assertEquals("stored-entity", artifact.getName());
+    assertTrue(artifact.getMetadata().isEmpty());
     ObjectMapper mapper = new ObjectMapper();
     byte[] reference = Base64.getDecoder().decode(artifact.getReference());
     Map convert = mapper.readValue(reference, Map.class);
     assertEquals(obj, convert);
+  }
+
+  @Test
+  void toArtifactSurfacesManifestIdentity() {
+    Map<String, Object> manifest =
+        Map.of(
+            "kind",
+            "Deployment",
+            "apiVersion",
+            "apps/v1",
+            "metadata",
+            Map.of("name", "my-app", "namespace", "prod"));
+
+    Artifact artifact =
+        EntityHelper.toArtifact(manifest, ArtifactTypes.EMBEDDED_MAP_BASE64.getMimeType());
+    assertEquals("Deployment prod/my-app", artifact.getName());
+    assertEquals(
+        Map.of("kind", "Deployment", "name", "my-app", "namespace", "prod"),
+        artifact.getMetadata());
+  }
+
+  @Test
+  void toArtifactOmitsNamespaceWhenAbsent() {
+    Map<String, Object> manifest = Map.of("kind", "Namespace", "metadata", Map.of("name", "prod"));
+
+    Artifact artifact =
+        EntityHelper.toArtifact(manifest, ArtifactTypes.EMBEDDED_MAP_BASE64.getMimeType());
+    assertEquals("Namespace prod", artifact.getName());
+    assertEquals(Map.of("kind", "Namespace", "name", "prod"), artifact.getMetadata());
   }
 
   @Test

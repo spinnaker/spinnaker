@@ -17,7 +17,7 @@
 
 package com.netflix.spinnaker.clouddriver.aws.deploy.asg
 
-import com.amazonaws.services.autoscaling.model.AutoScalingGroup
+import software.amazon.awssdk.services.autoscaling.model.AutoScalingGroup
 import com.netflix.spinnaker.clouddriver.aws.services.AsgService
 import com.netflix.spinnaker.clouddriver.data.task.DefaultTask
 import com.netflix.spinnaker.clouddriver.data.task.Task
@@ -65,7 +65,7 @@ class AWSServerGroupNameResolverSpec extends Specification {
         sG('application-stack-details-v001', 0, region)
       ])
     }
-    1 * asgService.getAutoScalingGroup('application-stack-details-v000') >> new AutoScalingGroup()
+    1 * asgService.getAutoScalingGroup('application-stack-details-v000') >> AutoScalingGroup.builder().build()
     1 * asgService.getAutoScalingGroup('application-stack-details-v999') >> null
     0 * _
 
@@ -91,7 +91,7 @@ class AWSServerGroupNameResolverSpec extends Specification {
         sG("${clusterName}-v999", 0, region)
       ])
     }
-    1 * asgService.getAutoScalingGroup("${clusterName}-v999") >> new AutoScalingGroup()
+    1 * asgService.getAutoScalingGroup("${clusterName}-v999") >> AutoScalingGroup.builder().build()
     1 * asgService.getAutoScalingGroup("${clusterName}-v000") >> { null }
     0 * _
 
@@ -107,9 +107,9 @@ class AWSServerGroupNameResolverSpec extends Specification {
       ])
     }
     (0..4).each {
-      1 * asgService.getAutoScalingGroup(String.format("${clusterName}-v%03d", it)) >> { new AutoScalingGroup() }
+      1 * asgService.getAutoScalingGroup(String.format("${clusterName}-v%03d", it)) >> { AutoScalingGroup.builder().build() }
     }
-    1 * asgService.getAutoScalingGroup("${clusterName}-v999") >> new AutoScalingGroup()
+    1 * asgService.getAutoScalingGroup("${clusterName}-v999") >> AutoScalingGroup.builder().build()
     1 * asgService.getAutoScalingGroup("${clusterName}-v005") >> { null }
     0 * _
 
@@ -135,7 +135,7 @@ class AWSServerGroupNameResolverSpec extends Specification {
     }
     (0..5).each {
       // represents an edge case where the cache is sufficiently out of date and there are 1000 existing server groups
-      1 * asgService.getAutoScalingGroup(String.format("${clusterName}-v%03d", it)) >> { new AutoScalingGroup() }
+      1 * asgService.getAutoScalingGroup(String.format("${clusterName}-v%03d", it)) >> { AutoScalingGroup.builder().build() }
     }
 
     thrown(IllegalArgumentException)

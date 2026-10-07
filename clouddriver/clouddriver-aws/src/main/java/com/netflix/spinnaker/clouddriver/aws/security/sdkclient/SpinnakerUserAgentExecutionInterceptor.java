@@ -25,8 +25,7 @@ import software.amazon.awssdk.http.SdkHttpRequest;
 
 /**
  * An AWS SDK v2 {@link ExecutionInterceptor} that appends the current Spinnaker user and execution
- * ID to the User-Agent header on each outgoing HTTP request. This is the v2 equivalent of {@link
- * com.netflix.spinnaker.clouddriver.aws.security.AddSpinnakerUserToUserAgentRequestHandler}.
+ * ID to the User-Agent header on each outgoing HTTP request.
  *
  * <p>The appended value follows the pattern: {@code spinnaker-user/<user>
  * spinnaker-executionId/<id>}

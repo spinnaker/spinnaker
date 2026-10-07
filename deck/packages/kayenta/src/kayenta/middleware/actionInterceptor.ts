@@ -1,15 +1,13 @@
-import type { Action, Dispatch, Middleware, MiddlewareAPI } from 'redux';
+import type { Action, Dispatch, Middleware } from 'redux';
 
 import * as Creators from '../actions/creators';
 import * as Actions from '../actions/index';
 import type { ICanaryState } from '../reducers/index';
 import { buildConfigCopy, buildNewConfig } from '../service/canaryConfig.service';
 
-// TODO: replace the `any` generic passed to MiddlewareAPI with ICanaryState. The Redux typings here are wrong.
-// Should be fixed in this PR: https://github.com/reactjs/redux/pull/2563
-export const actionInterceptingMiddleware: Middleware = (store: MiddlewareAPI<any>) => (
-  next: Dispatch<ICanaryState>,
-) => (action: Action & any) => {
+export const actionInterceptingMiddleware: Middleware<{}, ICanaryState> = (store) => (next: Dispatch) => (
+  action: Action & any,
+) => {
   switch (action.type) {
     case Actions.CREATE_NEW_CONFIG: {
       const newConfig = buildNewConfig(store.getState());

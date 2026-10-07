@@ -18,17 +18,13 @@ package com.netflix.spinnaker.clouddriver.ecs.cache.client;
 
 import static com.netflix.spinnaker.clouddriver.ecs.cache.Keys.Namespace.TASK_DEFINITIONS;
 
-import com.amazonaws.services.ecs.model.ContainerDefinition;
-import com.amazonaws.services.ecs.model.TaskDefinition;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.netflix.spinnaker.cats.cache.Cache;
 import com.netflix.spinnaker.cats.cache.CacheData;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.List;
 import java.util.Map;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
+import software.amazon.awssdk.services.ecs.model.TaskDefinition;
 
 @Component
 public class TaskDefinitionCacheClient extends AbstractCacheClient<TaskDefinition> {
@@ -42,32 +38,7 @@ public class TaskDefinitionCacheClient extends AbstractCacheClient<TaskDefinitio
 
   @Override
   protected TaskDefinition convert(CacheData cacheData) {
-    TaskDefinition taskDefinition = new TaskDefinition();
     Map<String, Object> attributes = cacheData.getAttributes();
-
-    taskDefinition.setTaskDefinitionArn((String) attributes.get("taskDefinitionArn"));
-    taskDefinition.setTaskRoleArn((String) attributes.get("taskRoleArn"));
-    taskDefinition.setCpu((String) attributes.get("cpu"));
-    taskDefinition.setMemory((String) attributes.get("memory"));
-
-    if (attributes.containsKey("containerDefinitions")) {
-      List<Map<String, Object>> containerDefinitions =
-          (List<Map<String, Object>>) attributes.get("containerDefinitions");
-      List<ContainerDefinition> deserializedContainerDefinitions =
-          new ArrayList<>(containerDefinitions.size());
-
-      for (Map<String, Object> serializedContainerDefinitions : containerDefinitions) {
-        if (serializedContainerDefinitions != null) {
-          deserializedContainerDefinitions.add(
-              objectMapper.convertValue(serializedContainerDefinitions, ContainerDefinition.class));
-        }
-      }
-
-      taskDefinition.setContainerDefinitions(deserializedContainerDefinitions);
-    } else {
-      taskDefinition.setContainerDefinitions(Collections.emptyList());
-    }
-
-    return taskDefinition;
+    return objectMapper.convertValue(attributes, TaskDefinition.class);
   }
 }

@@ -137,6 +137,24 @@ public class CredentialsConfig {
     }
   }
 
+  /**
+   * When true, AWS SDK calls that require a region for account bootstrapping (e.g. listRegions)
+   * will use the first configured region of the account (or of defaultRegions) instead of relying
+   * on the host's region via {@link
+   * software.amazon.awssdk.regions.providers.DefaultAwsRegionProviderChain}.
+   *
+   * <p>Defaults to false to preserve existing behaviour.
+   */
+  private boolean useAccountRegions = false;
+
+  public boolean isUseAccountRegions() {
+    return useAccountRegions;
+  }
+
+  public void setUseAccountRegions(boolean useAccountRegions) {
+    this.useAccountRegions = useAccountRegions;
+  }
+
   /** LoadAccounts class contains configuration related to loading aws accounts at start up. */
   @Data
   public static class LoadAccounts {
@@ -183,9 +201,7 @@ public class CredentialsConfig {
   private List<Region> defaultRegions;
   private List<String> defaultSecurityGroups;
   private List<LifecycleHook> defaultLifecycleHooks;
-  private String defaultEddaTemplate;
   private String defaultFront50Template;
-  private String defaultBastionHostTemplate;
   private String defaultDiscoveryTemplate;
   private String defaultAssumeRole;
   private String defaultSessionName;
@@ -217,28 +233,12 @@ public class CredentialsConfig {
     this.defaultSecurityGroups = defaultSecurityGroups;
   }
 
-  public String getDefaultEddaTemplate() {
-    return defaultEddaTemplate;
-  }
-
-  public void setDefaultEddaTemplate(String defaultEddaTemplate) {
-    this.defaultEddaTemplate = defaultEddaTemplate;
-  }
-
   public String getDefaultFront50Template() {
     return defaultFront50Template;
   }
 
   public void setDefaultFront50Template(String defaultFront50Template) {
     this.defaultFront50Template = defaultFront50Template;
-  }
-
-  public String getDefaultBastionHostTemplate() {
-    return defaultBastionHostTemplate;
-  }
-
-  public void setDefaultBastionHostTemplate(String defaultBastionHostTemplate) {
-    this.defaultBastionHostTemplate = defaultBastionHostTemplate;
   }
 
   public String getDefaultDiscoveryTemplate() {

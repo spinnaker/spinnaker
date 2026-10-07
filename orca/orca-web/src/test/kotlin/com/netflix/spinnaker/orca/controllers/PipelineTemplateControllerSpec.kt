@@ -23,7 +23,7 @@ import dev.minutest.junit.JUnit5Minutests
 import dev.minutest.rootContext
 import java.net.InetSocketAddress
 import org.springframework.beans.factory.annotation.Autowired
-import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc
+import org.springframework.boot.webmvc.test.autoconfigure.AutoConfigureMockMvc
 import org.springframework.test.web.servlet.MockMvc
 import org.springframework.test.web.servlet.get
 import strikt.api.expect

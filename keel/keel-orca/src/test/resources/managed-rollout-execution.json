@@ -1,6 +1,6 @@
 {
   "id": "01FH8ZX2F1F3YWGQTH0R9BQKR3",
-  "name": "Deploy master-h97.cd22e76 to cluster emburnstest-eggo in titustestvpc/us-east-1,us-west-2 using a managed rollout",
+  "name": "Deploy master-h97.cd22e76 to cluster emburnstest-eggo in testvpc/us-east-1,us-west-2 using a managed rollout",
   "application": "emburnstest",
   "status": "SUCCEEDED",
   "variables": [
@@ -15,7 +15,7 @@
             "scaling": {
 
             },
-            "imageId": "emburns/spin-titus-demo:master-h97.cd22e76",
+            "imageId": "emburns/spin-demo:master-h97.cd22e76",
             "targetHealthyDeployPercentage": 100,
             "loadBalancers": [
 
@@ -54,7 +54,7 @@
             "targetGroups": [
 
             ],
-            "cloudProvider": "titus",
+            "cloudProvider": "aws",
             "containerAttributes": {
 
             },
@@ -74,23 +74,23 @@
         ],
         "targets": [
           {
-            "cloudProvider": "titus",
+            "cloudProvider": "aws",
             "location": {
               "sublocations": [
 
               ],
               "region": "us-east-1",
-              "account": "titustestvpc"
+              "account": "testvpc"
             }
           },
           {
-            "cloudProvider": "titus",
+            "cloudProvider": "aws",
             "location": {
               "sublocations": [
 
               ],
               "region": "us-west-2",
-              "account": "titustestvpc"
+              "account": "testvpc"
             }
           }
         ]
@@ -112,13 +112,13 @@
       "key": "targets",
       "value": [
         {
-          "cloudProvider": "titus",
+          "cloudProvider": "aws",
           "location": {
             "sublocations": [
 
             ],
             "region": "us-west-2",
-            "account": "titustestvpc"
+            "account": "testvpc"
           }
         }
       ]
@@ -129,13 +129,13 @@
         "id": "c7178e73-e67a-35ff-aedc-504c3b178973",
         "targets": [
           {
-            "cloudProvider": "titus",
+            "cloudProvider": "aws",
             "location": {
               "sublocations": [
 
               ],
               "region": "us-west-2",
-              "account": "titustestvpc"
+              "account": "testvpc"
             }
           }
         ]
@@ -146,7 +146,7 @@
       "value": [
         {
           "stack": "eggo",
-          "credentials": "titustestvpc",
+          "credentials": "testvpc",
           "targetHealthyDeployPercentage": 100,
           "constraints": {
             "hard": {
@@ -162,14 +162,14 @@
             "desired": 1,
             "max": 1
           },
-          "cloudProvider": "titus",
+          "cloudProvider": "aws",
           "tag": "master-h97.cd22e76",
           "inService": true,
           "registry": "testregistry",
           "scaling": {
 
           },
-          "imageId": "emburns/spin-titus-demo:master-h97.cd22e76",
+          "imageId": "emburns/spin-demo:master-h97.cd22e76",
           "loadBalancers": [
 
           ],
@@ -187,7 +187,7 @@
             "EC2_REGION": "us-west-2",
             "NETFLIX_HOME_REGION": "us-west-2",
             "NETFLIX_REGION": "us-west-2",
-            "SPINNAKER_ACCOUNT": "titustestvpc"
+            "SPINNAKER_ACCOUNT": "testvpc"
           },
           "tags": {
 
@@ -209,7 +209,7 @@
           },
           "entryPoint": "",
           "region": "us-west-2",
-          "account": "titustestvpc",
+          "account": "testvpc",
           "capacityGroup": "emburnstest"
         }
       ]
@@ -226,7 +226,7 @@
     },
     {
       "key": "deploy.account.name",
-      "value": "titustestvpc"
+      "value": "testvpc"
     },
     {
       "key": "zeroDesiredCapacityCount",
@@ -250,7 +250,7 @@
     },
     {
       "key": "credentials",
-      "value": "titustestvpc"
+      "value": "testvpc"
     },
     {
       "key": "targetHealthyDeployPercentage",
@@ -299,7 +299,7 @@
     },
     {
       "key": "cloudProvider",
-      "value": "titus"
+      "value": "aws"
     },
     {
       "key": "kato.result.expected",
@@ -339,7 +339,7 @@
     },
     {
       "key": "imageId",
-      "value": "emburns/spin-titus-demo:master-h97.cd22e76"
+      "value": "emburns/spin-demo:master-h97.cd22e76"
     },
     {
       "key": "workflowExecution",
@@ -394,7 +394,7 @@
               "serverGroupNames": [
                 "us-west-2:emburnstest-eggo-v000"
               ],
-              "outputType": "titusServerGroupDeployOperation",
+              "outputType": "awsServerGroupDeployOperation",
               "serverGroupNameByRegion": {
                 "us-west-2": "emburnstest-eggo-v000"
               }
@@ -415,12 +415,12 @@
         "logs": [
           "Retrieved application data from front50 for application: emburnstest",
           "Resolved disruption budget.",
-          "Prepared job request for: emburnstest-eggo-v000 with imageId emburns/spin-titus-demo:master-h97.cd22e76",
+          "Prepared job request for: emburnstest-eggo-v000 with imageId emburns/spin-demo:master-h97.cd22e76",
           "Submitting job with name: emburnstest-eggo-v000, attempt: 1",
           "Successfully created job with name: emburnstest-eggo-v000, jobUri: 52c7569b-0898-4302-a44d-90f440e94a76",
           "Invalid source asg null",
-          "Entity tags with titus:servergroup:emburnstest-eggo-v000:titustestvpc:us-west-2 not found in front50",
-          "Deleting tags with titus:servergroup:emburnstest-eggo-v000:titustestvpc:us-west-2 from ElasticSearch"
+          "Entity tags with aws:servergroup:emburnstest-eggo-v000:testvpc:us-west-2 not found in front50",
+          "Deleting tags with aws:servergroup:emburnstest-eggo-v000:testvpc:us-west-2 from ElasticSearch"
         ],
         "status": "WORKFLOW_EXECUTION_STATUS_COMPLETED",
         "isCompleted": true
@@ -432,7 +432,7 @@
         "EC2_REGION": "us-west-2",
         "NETFLIX_HOME_REGION": "us-west-2",
         "NETFLIX_REGION": "us-west-2",
-        "SPINNAKER_ACCOUNT": "titustestvpc"
+        "SPINNAKER_ACCOUNT": "testvpc"
       }
     },
     {
@@ -501,7 +501,7 @@
               "serverGroupNames": [
                 "us-west-2:emburnstest-eggo-v000"
               ],
-              "outputType": "titusServerGroupDeployOperation",
+              "outputType": "awsServerGroupDeployOperation",
               "serverGroupNameByRegion": {
                 "us-west-2": "emburnstest-eggo-v000"
               }
@@ -527,7 +527,7 @@
     },
     {
       "key": "account",
-      "value": "titustestvpc"
+      "value": "testvpc"
     },
     {
       "key": "capacityGroup",
@@ -974,7 +974,7 @@
                 "scaling": {
 
                 },
-                "imageId": "emburns/spin-titus-demo:master-h97.cd22e76",
+                "imageId": "emburns/spin-demo:master-h97.cd22e76",
                 "targetHealthyDeployPercentage": 100,
                 "loadBalancers": [
 
@@ -1013,7 +1013,7 @@
                 "targetGroups": [
 
                 ],
-                "cloudProvider": "titus",
+                "cloudProvider": "aws",
                 "containerAttributes": {
 
                 },
@@ -1033,23 +1033,23 @@
             ],
             "targets": [
               {
-                "cloudProvider": "titus",
+                "cloudProvider": "aws",
                 "location": {
                   "sublocations": [
 
                   ],
                   "region": "us-east-1",
-                  "account": "titustestvpc"
+                  "account": "testvpc"
                 }
               },
               {
-                "cloudProvider": "titus",
+                "cloudProvider": "aws",
                 "location": {
                   "sublocations": [
 
                   ],
                   "region": "us-west-2",
-                  "account": "titustestvpc"
+                  "account": "testvpc"
                 }
               }
             ]
@@ -1090,23 +1090,23 @@
           "rolloutWorkflowId": "rollout:01FH8ZX2F1F3YWGQTH0R9BQKR3:01FH8ZX2F181G1G04H09KMYNSR",
           "targets": [
             {
-              "cloudProvider": "titus",
+              "cloudProvider": "aws",
               "location": {
                 "sublocations": [
 
                 ],
                 "region": "us-east-1",
-                "account": "titustestvpc"
+                "account": "testvpc"
               }
             },
             {
-              "cloudProvider": "titus",
+              "cloudProvider": "aws",
               "location": {
                 "sublocations": [
 
                 ],
                 "region": "us-west-2",
-                "account": "titustestvpc"
+                "account": "testvpc"
               }
             }
           ]
@@ -1150,9 +1150,9 @@
             "id": "3add7639-3a42-3bda-abfe-df9af902c928",
             "targets": [
               {
-                "cloudProvider": "titus",
+                "cloudProvider": "aws",
                 "location": {
-                  "account": "titustestvpc",
+                  "account": "testvpc",
                   "region": "us-east-1",
                   "sublocations": [
 
@@ -1196,13 +1196,13 @@
             "id": "3add7639-3a42-3bda-abfe-df9af902c928",
             "targets": [
               {
-                "cloudProvider": "titus",
+                "cloudProvider": "aws",
                 "location": {
                   "sublocations": [
 
                   ],
                   "region": "us-east-1",
-                  "account": "titustestvpc"
+                  "account": "testvpc"
                 }
               }
             ]
@@ -1265,20 +1265,20 @@
         "context": {
           "targets": [
             {
-              "cloudProvider": "titus",
+              "cloudProvider": "aws",
               "location": {
                 "sublocations": [
 
                 ],
                 "region": "us-east-1",
-                "account": "titustestvpc"
+                "account": "testvpc"
               }
             }
           ],
           "clusters": [
             {
               "stack": "eggo",
-              "credentials": "titustestvpc",
+              "credentials": "testvpc",
               "targetHealthyDeployPercentage": 100,
               "constraints": {
                 "hard": {
@@ -1294,14 +1294,14 @@
                 "desired": 1,
                 "max": 1
               },
-              "cloudProvider": "titus",
+              "cloudProvider": "aws",
               "tag": "master-h97.cd22e76",
               "inService": true,
               "registry": "testregistry",
               "scaling": {
 
               },
-              "imageId": "emburns/spin-titus-demo:master-h97.cd22e76",
+              "imageId": "emburns/spin-demo:master-h97.cd22e76",
               "loadBalancers": [
 
               ],
@@ -1319,7 +1319,7 @@
                 "EC2_REGION": "us-east-1",
                 "NETFLIX_HOME_REGION": "us-east-1",
                 "NETFLIX_REGION": "us-east-1",
-                "SPINNAKER_ACCOUNT": "titustestvpc"
+                "SPINNAKER_ACCOUNT": "testvpc"
               },
               "tags": {
 
@@ -1341,7 +1341,7 @@
               },
               "entryPoint": "",
               "region": "us-east-1",
-              "account": "titustestvpc",
+              "account": "testvpc",
               "capacityGroup": "emburnstest"
             }
           ]
@@ -1382,7 +1382,7 @@
 
           },
           "notification.type": "upsertentitytags",
-          "deploy.account.name": "titustestvpc",
+          "deploy.account.name": "testvpc",
           "zeroDesiredCapacityCount": 0,
           "stack": "eggo",
           "lastCapacityCheck": {
@@ -1394,7 +1394,7 @@
             "succeeded": 0,
             "unknown": 1
           },
-          "credentials": "titustestvpc",
+          "credentials": "testvpc",
           "targetHealthyDeployPercentage": 100,
           "source": {
 
@@ -1402,13 +1402,13 @@
           "type": "createServerGroup",
           "targets": [
             {
-              "cloudProvider": "titus",
+              "cloudProvider": "aws",
               "location": {
                 "sublocations": [
 
                 ],
                 "region": "us-east-1",
-                "account": "titustestvpc"
+                "account": "testvpc"
               }
             }
           ],
@@ -1428,7 +1428,7 @@
             "max": 1
           },
           "targetDesiredSize": 1,
-          "cloudProvider": "titus",
+          "cloudProvider": "aws",
           "kato.result.expected": true,
           "deploy.server.groups": {
             "us-east-1": [
@@ -1444,7 +1444,7 @@
           "scaling": {
 
           },
-          "imageId": "emburns/spin-titus-demo:master-h97.cd22e76",
+          "imageId": "emburns/spin-demo:master-h97.cd22e76",
           "workflowExecution": {
             "namespace": "spinnaker",
             "workflowType": "WorkflowDispatcher",
@@ -1484,7 +1484,7 @@
                   "serverGroupNames": [
                     "us-east-1:emburnstest-eggo-v000"
                   ],
-                  "outputType": "titusServerGroupDeployOperation",
+                  "outputType": "awsServerGroupDeployOperation",
                   "serverGroupNameByRegion": {
                     "us-east-1": "emburnstest-eggo-v000"
                   }
@@ -1505,12 +1505,12 @@
             "logs": [
               "Retrieved application data from front50 for application: emburnstest",
               "Resolved disruption budget.",
-              "Prepared job request for: emburnstest-eggo-v000 with imageId emburns/spin-titus-demo:master-h97.cd22e76",
+              "Prepared job request for: emburnstest-eggo-v000 with imageId emburns/spin-demo:master-h97.cd22e76",
               "Submitting job with name: emburnstest-eggo-v000, attempt: 1",
               "Successfully created job with name: emburnstest-eggo-v000, jobUri: 69973db2-88e0-4c44-8f84-1dac7834859f",
               "Invalid source asg null",
-              "Entity tags with titus:servergroup:emburnstest-eggo-v000:titustestvpc:us-east-1 not found in front50",
-              "Deleting tags with titus:servergroup:emburnstest-eggo-v000:titustestvpc:us-east-1 from ElasticSearch"
+              "Entity tags with aws:servergroup:emburnstest-eggo-v000:testvpc:us-east-1 not found in front50",
+              "Deleting tags with aws:servergroup:emburnstest-eggo-v000:testvpc:us-east-1 from ElasticSearch"
             ],
             "status": "WORKFLOW_EXECUTION_STATUS_COMPLETED",
             "isCompleted": true
@@ -1519,7 +1519,7 @@
             "EC2_REGION": "us-east-1",
             "NETFLIX_HOME_REGION": "us-east-1",
             "NETFLIX_REGION": "us-east-1",
-            "SPINNAKER_ACCOUNT": "titustestvpc"
+            "SPINNAKER_ACCOUNT": "testvpc"
           },
           "tags": {
 
@@ -1558,7 +1558,7 @@
                   "serverGroupNames": [
                     "us-east-1:emburnstest-eggo-v000"
                   ],
-                  "outputType": "titusServerGroupDeployOperation",
+                  "outputType": "awsServerGroupDeployOperation",
                   "serverGroupNameByRegion": {
                     "us-east-1": "emburnstest-eggo-v000"
                   }
@@ -1575,7 +1575,7 @@
           ],
           "entryPoint": "",
           "region": "us-east-1",
-          "account": "titustestvpc",
+          "account": "testvpc",
           "capacityGroup": "emburnstest"
         },
         "outputs": {
@@ -1709,11 +1709,11 @@
           "force.cache.refresh.errors": [
 
           ],
-          "credentials": "titustestvpc",
+          "credentials": "testvpc",
           "processed.server.groups": [
 
           ],
-          "cloudProvider": "titus",
+          "cloudProvider": "aws",
           "deploy.server.groups": {
 
           },
@@ -1787,9 +1787,9 @@
             "id": "c7178e73-e67a-35ff-aedc-504c3b178973",
             "targets": [
               {
-                "cloudProvider": "titus",
+                "cloudProvider": "aws",
                 "location": {
-                  "account": "titustestvpc",
+                  "account": "testvpc",
                   "region": "us-west-2",
                   "sublocations": [
 
@@ -1833,13 +1833,13 @@
             "id": "c7178e73-e67a-35ff-aedc-504c3b178973",
             "targets": [
               {
-                "cloudProvider": "titus",
+                "cloudProvider": "aws",
                 "location": {
                   "sublocations": [
 
                   ],
                   "region": "us-west-2",
-                  "account": "titustestvpc"
+                  "account": "testvpc"
                 }
               }
             ]
@@ -1902,20 +1902,20 @@
         "context": {
           "targets": [
             {
-              "cloudProvider": "titus",
+              "cloudProvider": "aws",
               "location": {
                 "sublocations": [
 
                 ],
                 "region": "us-west-2",
-                "account": "titustestvpc"
+                "account": "testvpc"
               }
             }
           ],
           "clusters": [
             {
               "stack": "eggo",
-              "credentials": "titustestvpc",
+              "credentials": "testvpc",
               "targetHealthyDeployPercentage": 100,
               "constraints": {
                 "hard": {
@@ -1931,14 +1931,14 @@
                 "desired": 1,
                 "max": 1
               },
-              "cloudProvider": "titus",
+              "cloudProvider": "aws",
               "tag": "master-h97.cd22e76",
               "inService": true,
               "registry": "testregistry",
               "scaling": {
 
               },
-              "imageId": "emburns/spin-titus-demo:master-h97.cd22e76",
+              "imageId": "emburns/spin-demo:master-h97.cd22e76",
               "loadBalancers": [
 
               ],
@@ -1956,7 +1956,7 @@
                 "EC2_REGION": "us-west-2",
                 "NETFLIX_HOME_REGION": "us-west-2",
                 "NETFLIX_REGION": "us-west-2",
-                "SPINNAKER_ACCOUNT": "titustestvpc"
+                "SPINNAKER_ACCOUNT": "testvpc"
               },
               "tags": {
 
@@ -1978,7 +1978,7 @@
               },
               "entryPoint": "",
               "region": "us-west-2",
-              "account": "titustestvpc",
+              "account": "testvpc",
               "capacityGroup": "emburnstest"
             }
           ]
@@ -2019,7 +2019,7 @@
 
           },
           "notification.type": "upsertentitytags",
-          "deploy.account.name": "titustestvpc",
+          "deploy.account.name": "testvpc",
           "zeroDesiredCapacityCount": 0,
           "stack": "eggo",
           "lastCapacityCheck": {
@@ -2031,7 +2031,7 @@
             "succeeded": 0,
             "unknown": 1
           },
-          "credentials": "titustestvpc",
+          "credentials": "testvpc",
           "targetHealthyDeployPercentage": 100,
           "source": {
 
@@ -2039,13 +2039,13 @@
           "type": "createServerGroup",
           "targets": [
             {
-              "cloudProvider": "titus",
+              "cloudProvider": "aws",
               "location": {
                 "sublocations": [
 
                 ],
                 "region": "us-west-2",
-                "account": "titustestvpc"
+                "account": "testvpc"
               }
             }
           ],
@@ -2065,7 +2065,7 @@
             "max": 1
           },
           "targetDesiredSize": 1,
-          "cloudProvider": "titus",
+          "cloudProvider": "aws",
           "kato.result.expected": true,
           "deploy.server.groups": {
             "us-west-2": [
@@ -2081,7 +2081,7 @@
           "scaling": {
 
           },
-          "imageId": "emburns/spin-titus-demo:master-h97.cd22e76",
+          "imageId": "emburns/spin-demo:master-h97.cd22e76",
           "workflowExecution": {
             "namespace": "spinnaker",
             "workflowType": "WorkflowDispatcher",
@@ -2121,7 +2121,7 @@
                   "serverGroupNames": [
                     "us-west-2:emburnstest-eggo-v000"
                   ],
-                  "outputType": "titusServerGroupDeployOperation",
+                  "outputType": "awsServerGroupDeployOperation",
                   "serverGroupNameByRegion": {
                     "us-west-2": "emburnstest-eggo-v000"
                   }
@@ -2143,12 +2143,12 @@
               "Retrieved application data from front50 for application: emburnstest",
               "Resolved disruption budget.",
               "Resolved security groups: sg-6b98a80e,sg-1398a876,sg-0514c958346cc16a4",
-              "Prepared job request for: emburnstest-eggo-v000 with imageId emburns/spin-titus-demo:master-h97.cd22e76",
+              "Prepared job request for: emburnstest-eggo-v000 with imageId emburns/spin-demo:master-h97.cd22e76",
               "Submitting job with name: emburnstest-eggo-v000, attempt: 1",
               "Successfully created job with name: emburnstest-eggo-v000, jobUri: 52c7569b-0898-4302-a44d-90f440e94a76",
               "Invalid source asg null",
-              "Entity tags with titus:servergroup:emburnstest-eggo-v000:titustestvpc:us-west-2 not found in front50",
-              "Deleting tags with titus:servergroup:emburnstest-eggo-v000:titustestvpc:us-west-2 from ElasticSearch"
+              "Entity tags with aws:servergroup:emburnstest-eggo-v000:testvpc:us-west-2 not found in front50",
+              "Deleting tags with aws:servergroup:emburnstest-eggo-v000:testvpc:us-west-2 from ElasticSearch"
             ],
             "status": "WORKFLOW_EXECUTION_STATUS_COMPLETED",
             "isCompleted": true
@@ -2157,7 +2157,7 @@
             "EC2_REGION": "us-west-2",
             "NETFLIX_HOME_REGION": "us-west-2",
             "NETFLIX_REGION": "us-west-2",
-            "SPINNAKER_ACCOUNT": "titustestvpc"
+            "SPINNAKER_ACCOUNT": "testvpc"
           },
           "tags": {
 
@@ -2196,7 +2196,7 @@
                   "serverGroupNames": [
                     "us-west-2:emburnstest-eggo-v000"
                   ],
-                  "outputType": "titusServerGroupDeployOperation",
+                  "outputType": "awsServerGroupDeployOperation",
                   "serverGroupNameByRegion": {
                     "us-west-2": "emburnstest-eggo-v000"
                   }
@@ -2213,7 +2213,7 @@
           ],
           "entryPoint": "",
           "region": "us-west-2",
-          "account": "titustestvpc",
+          "account": "testvpc",
           "capacityGroup": "emburnstest"
         },
         "outputs": {
@@ -2347,11 +2347,11 @@
           "force.cache.refresh.errors": [
 
           ],
-          "credentials": "titustestvpc",
+          "credentials": "testvpc",
           "processed.server.groups": [
 
           ],
-          "cloudProvider": "titus",
+          "cloudProvider": "aws",
           "deploy.server.groups": {
 
           },
@@ -2422,7 +2422,7 @@
     "origin": "keel",
     "trigger": {
       "type": "keel",
-      "correlationId": "titus:cluster:titustestvpc:emburnstest-eggo:managed-rollout",
+      "correlationId": "ec2:cluster:testvpc:emburnstest-eggo:managed-rollout",
       "user": "keel",
       "parameters": {
 
@@ -2443,7 +2443,7 @@
 
       ]
     },
-    "description": "Deploy master-h97.cd22e76 to cluster emburnstest-eggo in titustestvpc/us-east-1,us-west-2 using a managed rollout",
+    "description": "Deploy master-h97.cd22e76 to cluster emburnstest-eggo in testvpc/us-east-1,us-west-2 using a managed rollout",
     "notifications": [
 
     ],

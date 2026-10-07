@@ -15,37 +15,37 @@
  */
 package com.netflix.spinnaker.clouddriver.aws.model
 
-import com.amazonaws.services.ec2.model.Subnet
-import com.amazonaws.services.ec2.model.Tag
+import software.amazon.awssdk.services.ec2.model.Subnet
+import software.amazon.awssdk.services.ec2.model.Tag
 import com.fasterxml.jackson.databind.ObjectMapper
 import groovy.transform.Immutable
 
 /**
  * Immutable Wrapper for an AWS Subnet.
  * Metadata in tags becomes proper attributes here.
- * {@link com.amazonaws.services.ec2.model.Subnet}
+ * {@link software.amazon.awssdk.services.ec2.model.Subnet}
  */
 @Immutable
 class SubnetData {
 
   static final String METADATA_TAG_KEY = 'immutable_metadata'
 
-  /** {@link com.amazonaws.services.ec2.model.Subnet#subnetId} */
+  /** {@link software.amazon.awssdk.services.ec2.model.Subnet#subnetId} */
   String subnetId
 
-  /** {@link com.amazonaws.services.ec2.model.Subnet#state} */
+  /** {@link software.amazon.awssdk.services.ec2.model.Subnet#state} */
   String state
 
-  /** {@link com.amazonaws.services.ec2.model.Subnet#vpcId} */
+  /** {@link software.amazon.awssdk.services.ec2.model.Subnet#vpcId} */
   String vpcId
 
-  /** {@link com.amazonaws.services.ec2.model.Subnet#cidrBlock} */
+  /** {@link software.amazon.awssdk.services.ec2.model.Subnet#cidrBlock} */
   String cidrBlock
 
-  /** {@link com.amazonaws.services.ec2.model.Subnet#availableIpAddressCount} */
+  /** {@link software.amazon.awssdk.services.ec2.model.Subnet#availableIpAddressCount} */
   Integer availableIpAddressCount
 
-  /** {@link com.amazonaws.services.ec2.model.Subnet#availabilityZone} */
+  /** {@link software.amazon.awssdk.services.ec2.model.Subnet#availabilityZone} */
   String availabilityZone
 
   /** A label that indicates the purpose of this Subnet's configuration. */
@@ -83,7 +83,7 @@ class SubnetData {
     }
 
     new SubnetData(purpose: purpose, target: target,
-      subnetId: subnet.subnetId, state: subnet.state, vpcId: subnet.vpcId, cidrBlock: subnet.cidrBlock,
+      subnetId: subnet.subnetId, state: subnet.stateAsString(), vpcId: subnet.vpcId, cidrBlock: subnet.cidrBlock,
       availableIpAddressCount: subnet.availableIpAddressCount, availabilityZone: subnet.availabilityZone)
   }
 

@@ -42,7 +42,7 @@ class GlobalSearchComponent extends React.Component<IRouterInjectedProps, IGloba
   private resultRefs: HTMLElement[][];
 
   private query$ = new Subject<string>();
-  private destroy$ = new Subject();
+  private destroy$ = new Subject<void>();
 
   constructor(props: IRouterInjectedProps) {
     super(props);

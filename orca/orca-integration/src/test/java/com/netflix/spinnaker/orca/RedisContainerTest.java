@@ -47,7 +47,7 @@ public class RedisContainerTest extends BaseContainerTest {
   @BeforeEach
   void setup() throws Exception {
     redis =
-        new GenericContainer<>(DockerImageName.parse("library/redis:5-alpine"))
+        new GenericContainer<>(DockerImageName.parse("valkey/valkey:8"))
             .withNetwork(network)
             .withStartupTimeout(Duration.ofSeconds(120))
             .withNetworkAliases(REDIS_NETWORK_ALIAS)

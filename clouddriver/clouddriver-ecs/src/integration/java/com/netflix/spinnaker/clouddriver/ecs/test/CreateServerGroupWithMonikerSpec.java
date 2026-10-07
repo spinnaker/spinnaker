@@ -22,11 +22,9 @@ import static org.hamcrest.Matchers.containsInAnyOrder;
 import static org.hamcrest.Matchers.containsString;
 import static org.hamcrest.Matchers.notNullValue;
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.mockito.ArgumentMatchers.*;
 import static org.mockito.Mockito.*;
 
-import com.amazonaws.services.ecs.AmazonECS;
-import com.amazonaws.services.ecs.model.*;
-import com.amazonaws.services.elasticloadbalancingv2.AmazonElasticLoadBalancing;
 import com.netflix.spinnaker.clouddriver.aws.security.NetflixAmazonCredentials;
 import com.netflix.spinnaker.clouddriver.ecs.EcsSpec;
 import io.restassured.http.ContentType;
@@ -40,50 +38,40 @@ import org.mockito.ArgumentCaptor;
 import org.mockito.Mockito;
 import org.mockito.stubbing.Answer;
 import software.amazon.awssdk.services.ecs.EcsClient;
-import software.amazon.awssdk.services.ecs.model.DescribeServicesResponse;
-import software.amazon.awssdk.services.ecs.model.ListServicesResponse;
+import software.amazon.awssdk.services.ecs.model.*;
 
 public class CreateServerGroupWithMonikerSpec extends EcsSpec {
 
-  private AmazonECS mockECS = mock(AmazonECS.class);
-  private AmazonElasticLoadBalancing mockELB = mock(AmazonElasticLoadBalancing.class);
   private EcsClient mockEcsV2 = mock(EcsClient.class);
 
   @BeforeEach
   public void setup() {
     // mock v2 ECS responses (used by EcsServerGroupNameResolver)
-    when(mockEcsV2.listServices(
-            any(software.amazon.awssdk.services.ecs.model.ListServicesRequest.class)))
+    when(mockEcsV2.listServices(any(ListServicesRequest.class)))
         .thenReturn(
             ListServicesResponse.builder().serviceArns(java.util.Collections.emptyList()).build());
-    when(mockEcsV2.describeServices(
-            any(software.amazon.awssdk.services.ecs.model.DescribeServicesRequest.class)))
+    when(mockEcsV2.describeServices(any(DescribeServicesRequest.class)))
         .thenReturn(
             DescribeServicesResponse.builder().services(java.util.Collections.emptyList()).build());
 
+    when(mockEcsV2.registerTaskDefinition(any(RegisterTaskDefinitionRequest.class)))
+        .thenAnswer(
+            (Answer<RegisterTaskDefinitionResponse>)
+                invocation -> {
+                  RegisterTaskDefinitionRequest request = invocation.getArgument(0);
+                  String testArn = "arn:aws:ecs:::task-definition/" + request.family() + ":1";
+                  return RegisterTaskDefinitionResponse.builder()
+                      .taskDefinition(TaskDefinition.builder().taskDefinitionArn(testArn).build())
+                      .build();
+                });
+    when(mockEcsV2.createService(any(CreateServiceRequest.class)))
+        .thenReturn(
+            CreateServiceResponse.builder()
+                .service(Service.builder().serviceName("createdService").build())
+                .build());
+
     when(mockAwsProvider.getAmazonEcsV2(any(NetflixAmazonCredentials.class), anyString()))
         .thenReturn(mockEcsV2);
-
-    when(mockECS.listServices(any(ListServicesRequest.class))).thenReturn(new ListServicesResult());
-    when(mockECS.describeServices(any(DescribeServicesRequest.class)))
-        .thenReturn(new DescribeServicesResult());
-    when(mockECS.registerTaskDefinition(any(RegisterTaskDefinitionRequest.class)))
-        .thenAnswer(
-            (Answer<RegisterTaskDefinitionResult>)
-                invocation -> {
-                  RegisterTaskDefinitionRequest request =
-                      (RegisterTaskDefinitionRequest) invocation.getArguments()[0];
-                  String testArn = "arn:aws:ecs:::task-definition/" + request.getFamily() + ":1";
-                  TaskDefinition taskDef = new TaskDefinition().withTaskDefinitionArn(testArn);
-                  return new RegisterTaskDefinitionResult().withTaskDefinition(taskDef);
-                });
-    when(mockECS.createService(any(CreateServiceRequest.class)))
-        .thenReturn(
-            new CreateServiceResult().withService(new Service().withServiceName("createdService")));
-
-    when(mockAwsProvider.getAmazonEcs(
-            any(NetflixAmazonCredentials.class), anyString(), anyBoolean()))
-        .thenReturn(mockECS);
   }
 
   @DisplayName(
@@ -94,12 +82,19 @@ public class CreateServerGroupWithMonikerSpec extends EcsSpec {
   @Test
   public void createServerGroup_InputsEc2WithMoniker() throws IOException, InterruptedException {
     // When account has tags enabled
-    when(mockECS.listAccountSettings(any(ListAccountSettingsRequest.class)))
+    when(mockEcsV2.listAccountSettings(any(ListAccountSettingsRequest.class)))
         .thenReturn(
-            new ListAccountSettingsResult()
-                .withSettings(
-                    new Setting().withName(SettingName.ServiceLongArnFormat).withValue("enabled"),
-                    new Setting().withName(SettingName.TaskLongArnFormat).withValue("enabled")));
+            ListAccountSettingsResponse.builder()
+                .settings(
+                    Setting.builder()
+                        .name(SettingName.SERVICE_LONG_ARN_FORMAT)
+                        .value("enabled")
+                        .build(),
+                    Setting.builder()
+                        .name(SettingName.TASK_LONG_ARN_FORMAT)
+                        .value("enabled")
+                        .build())
+                .build());
 
     // given
     String url = getTestUrl(CREATE_SG_TEST_PATH);
@@ -142,25 +137,25 @@ public class CreateServerGroupWithMonikerSpec extends EcsSpec {
     // then
     ArgumentCaptor<RegisterTaskDefinitionRequest> registerTaskDefArgs =
         ArgumentCaptor.forClass(RegisterTaskDefinitionRequest.class);
-    verify(mockECS).registerTaskDefinition(registerTaskDefArgs.capture());
+    verify(mockEcsV2).registerTaskDefinition(registerTaskDefArgs.capture());
     RegisterTaskDefinitionRequest seenTaskDefRequest = registerTaskDefArgs.getValue();
-    assertEquals(expectedServerGroupName, seenTaskDefRequest.getFamily());
-    assertEquals(1, seenTaskDefRequest.getContainerDefinitions().size());
+    assertEquals(expectedServerGroupName, seenTaskDefRequest.family());
+    assertEquals(1, seenTaskDefRequest.containerDefinitions().size());
 
     ArgumentCaptor<CreateServiceRequest> createServiceArgs =
         ArgumentCaptor.forClass(CreateServiceRequest.class);
-    verify(mockECS).createService(createServiceArgs.capture());
+    verify(mockEcsV2).createService(createServiceArgs.capture());
     CreateServiceRequest seenCreateServRequest = createServiceArgs.getValue();
-    assertEquals("EC2", seenCreateServRequest.getLaunchType());
-    assertEquals(expectedServerGroupName + "-v000", seenCreateServRequest.getServiceName());
-    assertEquals(4, seenCreateServRequest.getTags().size());
+    assertEquals("EC2", seenCreateServRequest.launchTypeAsString());
+    assertEquals(expectedServerGroupName + "-v000", seenCreateServRequest.serviceName());
+    assertEquals(4, seenCreateServRequest.tags().size());
     assertThat(
-        seenCreateServRequest.getTags(),
+        seenCreateServRequest.tags(),
         containsInAnyOrder(
-            new Tag().withKey("moniker.spinnaker.io/application").withValue("ecs"),
-            new Tag().withKey("moniker.spinnaker.io/stack").withValue("integInputsMoniker"),
-            new Tag().withKey("moniker.spinnaker.io/detail").withValue("detailTest"),
-            new Tag().withKey("moniker.spinnaker.io/sequence").withValue("0")));
+            Tag.builder().key("moniker.spinnaker.io/application").value("ecs").build(),
+            Tag.builder().key("moniker.spinnaker.io/stack").value("integInputsMoniker").build(),
+            Tag.builder().key("moniker.spinnaker.io/detail").value("detailTest").build(),
+            Tag.builder().key("moniker.spinnaker.io/sequence").value("0").build()));
   }
 
   @DisplayName(
@@ -172,16 +167,16 @@ public class CreateServerGroupWithMonikerSpec extends EcsSpec {
   public void createServerGroup_errorIfCreateServiceFails()
       throws IOException, InterruptedException {
     // When account has tags disabled
-    when(mockECS.listAccountSettings(any(ListAccountSettingsRequest.class)))
-        .thenReturn(new ListAccountSettingsResult());
+    when(mockEcsV2.listAccountSettings(any(ListAccountSettingsRequest.class)))
+        .thenReturn(ListAccountSettingsResponse.builder().build());
 
     // given
     String url = getTestUrl(CREATE_SG_TEST_PATH);
     String requestBody = generateStringFromTestFile("/createServerGroup-inputs-ec2-moniker.json");
 
     // when
-    Mockito.doThrow(new InvalidParameterException("Something is wrong."))
-        .when(mockECS)
+    Mockito.doThrow(InvalidParameterException.builder().message("Something is wrong.").build())
+        .when(mockEcsV2)
         .createService(any(CreateServiceRequest.class));
 
     String taskId =

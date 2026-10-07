@@ -16,10 +16,10 @@
 
 package com.netflix.spinnaker.clouddriver.ecs.model;
 
-import com.amazonaws.services.ecs.model.KeyValuePair;
 import java.util.Collection;
 import lombok.Data;
 import lombok.NoArgsConstructor;
+import software.amazon.awssdk.services.ecs.model.KeyValuePair;
 
 @Data
 @NoArgsConstructor

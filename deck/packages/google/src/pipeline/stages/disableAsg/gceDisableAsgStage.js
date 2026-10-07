@@ -1,12 +1,12 @@
 import { Registry } from '@spinnaker/core';
 
-import { GceTargetServerGroupStageConfig } from '../googleStageConfig';
+import { GceDisableAsgStageConfig } from '../googleStageConfig';
 
 export function registerGceDisableAsgStage() {
   Registry.pipeline.registerStage({
     provides: 'disableServerGroup',
     cloudProvider: 'gce',
-    component: GceTargetServerGroupStageConfig,
+    component: GceDisableAsgStageConfig,
     validators: [
       {
         type: 'targetImpedance',

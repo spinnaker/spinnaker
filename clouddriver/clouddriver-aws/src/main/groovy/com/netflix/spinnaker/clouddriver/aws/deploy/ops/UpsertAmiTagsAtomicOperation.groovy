@@ -17,10 +17,10 @@
 
 package com.netflix.spinnaker.clouddriver.aws.deploy.ops
 
-import com.amazonaws.services.ec2.model.CreateTagsRequest
-import com.amazonaws.services.ec2.model.DescribeImagesRequest
-import com.amazonaws.services.ec2.model.Filter
-import com.amazonaws.services.ec2.model.Tag
+import software.amazon.awssdk.services.ec2.model.CreateTagsRequest
+import software.amazon.awssdk.services.ec2.model.DescribeImagesRequest
+import software.amazon.awssdk.services.ec2.model.Filter
+import software.amazon.awssdk.services.ec2.model.Tag
 import com.netflix.spinnaker.clouddriver.aws.deploy.description.UpsertAmiTagsDescription
 import com.netflix.spinnaker.clouddriver.aws.security.AmazonClientProvider
 import com.netflix.spinnaker.clouddriver.data.task.Task
@@ -50,11 +50,11 @@ class UpsertAmiTagsAtomicOperation implements AtomicOperation<Void> {
     task.updateStatus BASE_PHASE, "Initializing Upsert AMI Tags operation for ${descriptor}..."
 
     description.regions.each { String region ->
-      def amazonEC2 = amazonClientProvider.getAmazonEC2(description.credentials, region, true)
-      def describeImagesRequest = new DescribeImagesRequest().withFilters(
-        new Filter("name", [description.amiName])
-      )
-      def images = amazonEC2.describeImages(describeImagesRequest).images
+      def amazonEC2 = amazonClientProvider.getAmazonEC2V2(description.credentials, region)
+      def describeImagesRequest = DescribeImagesRequest.builder().filters(
+        Filter.builder().name("name").values([description.amiName]).build()
+      ).build()
+      def images = amazonEC2.describeImages(describeImagesRequest).images()
       if (!images) {
         task.updateStatus BASE_PHASE, "No AMI found for ${descriptor} in ${region}."
         task.fail()
@@ -81,10 +81,11 @@ class UpsertAmiTagsAtomicOperation implements AtomicOperation<Void> {
 
   private boolean upsertAmiTags(String region, String amiId, Collection<Tag> tags) {
     try {
-      def amazonEC2 = amazonClientProvider.getAmazonEC2(description.credentials, region)
-      def createTagsRequest = new CreateTagsRequest()
-        .withResources(amiId)
-        .withTags(tags)
+      def amazonEC2 = amazonClientProvider.getAmazonEC2V2(description.credentials, region)
+      def createTagsRequest = CreateTagsRequest.builder()
+        .resources(amiId)
+        .tags(tags)
+        .build()
 
       if (!tags) {
         // createTags expects at least one tag to have been provided
@@ -104,7 +105,7 @@ class UpsertAmiTagsAtomicOperation implements AtomicOperation<Void> {
 
   private static Collection<Tag> buildTags(UpsertAmiTagsDescription upsertAmiTagsDescription) {
     return upsertAmiTagsDescription.tags.collect {
-      new Tag(it.key, it.value)
+      Tag.builder().key(it.key).value(it.value).build()
     }
   }
 }

@@ -80,41 +80,7 @@ function renderValidationError(error: string, id: string): React.ReactNode {
 
 export class AdvancedSettings extends GceServerGroupWizardPage {
   public validate(values: IGceServerGroupCommand): { [key: string]: string } {
-    const errors: { [key: string]: string } = {};
-    if (getPersistentDisks(values).some((disk: any) => !disk.type || !isValidInteger(disk.sizeGb, 10, values, 65536))) {
-      errors.disks = 'Every persistent disk requires a type and an integer size between 10 and 65536 GB.';
-    }
-    if ((values.acceleratorConfigs || []).some((accelerator: any) => !isValidAccelerator(accelerator, values))) {
-      errors.acceleratorConfigs = 'Every accelerator requires a type and a supported positive integer count.';
-    }
-    if (hasEmptyKey(values.instanceMetadata)) {
-      errors.instanceMetadata = 'Metadata keys cannot be empty.';
-    }
-    if (hasEmptyKey(values.labels) || hasEmptyValue(values.labels)) {
-      errors.labels = hasEmptyKey(values.labels) ? 'Label keys cannot be empty.' : 'Label values cannot be empty.';
-    }
-    if (hasEmptyKey(values.resourceManagerTags) || hasEmptyValue(values.resourceManagerTags)) {
-      errors.resourceManagerTags = hasEmptyKey(values.resourceManagerTags)
-        ? 'Resource Manager tag keys cannot be empty.'
-        : 'Resource Manager tag values cannot be empty.';
-    }
-    if ((values.tags || []).some((tag: any) => !(typeof tag === 'string' ? tag : tag.value)?.trim())) {
-      errors.tags = 'Network tags cannot be empty.';
-    }
-    if ((values.authScopes || []).some((scope: string) => !scope.trim())) {
-      errors.authScopes = 'Auth scopes cannot be empty.';
-    }
-    if (
-      typeof values.partnerMetadata === 'string' ||
-      Array.isArray(values.partnerMetadata) ||
-      (values.partnerMetadata != null && typeof values.partnerMetadata !== 'object')
-    ) {
-      errors.partnerMetadata = 'Partner metadata must be a JSON object.';
-    }
-    if (values.enableConfidentialCompute && 'confidentialInstanceType' in values && !values.confidentialInstanceType) {
-      errors.confidentialInstanceType = 'Confidential instance type required.';
-    }
-    return errors;
+    return validateGceAdvancedSettings(values);
   }
 
   private setField = (field: string, value: any): void => {
@@ -192,15 +158,6 @@ export class AdvancedSettings extends GceServerGroupWizardPage {
       'authScopes',
       (this.props.formik.values.authScopes || []).filter((_scope: string, scopeIndex: number) => scopeIndex !== index),
     );
-  };
-
-  private updatePartnerMetadata = (value: string): void => {
-    try {
-      const parsed = JSON.parse(value);
-      this.setField('partnerMetadata', parsed && typeof parsed === 'object' && !Array.isArray(parsed) ? parsed : value);
-    } catch (_error) {
-      this.setField('partnerMetadata', value);
-    }
   };
 
   private setPreemptible = (preemptible: boolean): void => {
@@ -611,27 +568,6 @@ export class AdvancedSettings extends GceServerGroupWizardPage {
           {renderValidationError(errors.resourceManagerTags, 'gce-advanced-resource-manager-tags-error')}
         </div>
         <div className="form-group">
-          <label className="sm-label-left" htmlFor="gce-partner-metadata">
-            <b>Partner Metadata</b>
-          </label>
-          <textarea
-            aria-describedby={errors.partnerMetadata ? 'gce-advanced-partner-metadata-error' : undefined}
-            aria-invalid={Boolean(errors.partnerMetadata)}
-            className="form-control"
-            data-testid="partner-metadata"
-            id="gce-partner-metadata"
-            onChange={(event) => this.updatePartnerMetadata(event.target.value)}
-            rows={5}
-            value={
-              typeof values.partnerMetadata === 'string'
-                ? values.partnerMetadata
-                : JSON.stringify(values.partnerMetadata || {}, null, 2)
-            }
-          />
-          {renderValidationError(errors.partnerMetadata, 'gce-advanced-partner-metadata-error')}
-        </div>
-
-        <div className="form-group">
           <div className="sm-label-left">
             <b>Network Tags</b>
           </div>
@@ -684,7 +620,7 @@ export class AdvancedSettings extends GceServerGroupWizardPage {
 
         <fieldset className="form-group">
           <legend className="sm-label-left">
-            Shielded VM <HelpField id="gce.serverGroup.shieldedVmConfig" />
+            Shielded VM <HelpField id="gce.serverGroup.shieldedInstanceConfig" />
           </legend>
           <div className="col-md-9 checkbox">
             <label>
@@ -905,4 +841,35 @@ export class AdvancedSettings extends GceServerGroupWizardPage {
       </div>
     );
   }
+}
+
+export function validateGceAdvancedSettings(values: IGceServerGroupCommand): { [key: string]: string } {
+  const errors: { [key: string]: string } = {};
+  if (getPersistentDisks(values).some((disk: any) => !disk.type || !isValidInteger(disk.sizeGb, 10, values, 65536))) {
+    errors.disks = 'Every persistent disk requires a type and an integer size between 10 and 65536 GB.';
+  }
+  if ((values.acceleratorConfigs || []).some((accelerator: any) => !isValidAccelerator(accelerator, values))) {
+    errors.acceleratorConfigs = 'Every accelerator requires a type and a supported positive integer count.';
+  }
+  if (hasEmptyKey(values.instanceMetadata)) {
+    errors.instanceMetadata = 'Metadata keys cannot be empty.';
+  }
+  if (hasEmptyKey(values.labels) || hasEmptyValue(values.labels)) {
+    errors.labels = hasEmptyKey(values.labels) ? 'Label keys cannot be empty.' : 'Label values cannot be empty.';
+  }
+  if (hasEmptyKey(values.resourceManagerTags) || hasEmptyValue(values.resourceManagerTags)) {
+    errors.resourceManagerTags = hasEmptyKey(values.resourceManagerTags)
+      ? 'Resource Manager tag keys cannot be empty.'
+      : 'Resource Manager tag values cannot be empty.';
+  }
+  if ((values.tags || []).some((tag: any) => !(typeof tag === 'string' ? tag : tag.value)?.trim())) {
+    errors.tags = 'Network tags cannot be empty.';
+  }
+  if ((values.authScopes || []).some((scope: string) => !scope.trim())) {
+    errors.authScopes = 'Auth scopes cannot be empty.';
+  }
+  if (values.enableConfidentialCompute && 'confidentialInstanceType' in values && !values.confidentialInstanceType) {
+    errors.confidentialInstanceType = 'Confidential instance type required.';
+  }
+  return errors;
 }

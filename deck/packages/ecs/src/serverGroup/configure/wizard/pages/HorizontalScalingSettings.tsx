@@ -5,12 +5,30 @@ import { HelpField } from '@spinnaker/core';
 import { EcsCapacityProvider } from '../capacityProvider/CapacityProvider';
 import type { IEcsWizardPageProps } from './common';
 
+const HIGH_RESOLUTION_SECONDS = 20;
+const HIGH_RESOLUTION_METRICS = ['CPUUtilization', 'MemoryUtilization'];
+
 export const HorizontalScalingSettings = ({ command, configureCommand, onFieldChange }: IEcsWizardPageProps) => {
   const useCapacityProviders =
     command.computeOption === 'capacityProviders' ||
     (!command.computeOption && (command.capacityProviderStrategy || []).length > 0);
   const capacity = command.capacity || {};
   const updateCapacity = (field: string, value: number) => onFieldChange('capacity', { ...capacity, [field]: value });
+
+  const highResolutionMetrics = (command.monitoringConfiguration?.metricConfigurations || [])
+    .filter((metricConfiguration) => metricConfiguration.resolutionSeconds === HIGH_RESOLUTION_SECONDS)
+    .flatMap((metricConfiguration) => metricConfiguration.metricNames || []);
+  const toggleHighResolutionMetric = (metricName: string, enabled: boolean) => {
+    const metricNames = HIGH_RESOLUTION_METRICS.filter((name) =>
+      name === metricName ? enabled : highResolutionMetrics.includes(name),
+    );
+    onFieldChange(
+      'monitoringConfiguration',
+      metricNames.length
+        ? { metricConfigurations: [{ metricNames, resolutionSeconds: HIGH_RESOLUTION_SECONDS }] }
+        : undefined,
+    );
+  };
 
   return (
     <div className="container-fluid form-horizontal" data-test-id="EcsServerGroupWizard.horizontalScaling">
@@ -130,6 +148,42 @@ export const HorizontalScalingSettings = ({ command, configureCommand, onFieldCh
             <b>If available, copy the previous server group's autoscaling policies</b>
           </label>{' '}
           <HelpField id="ecs.capacity.copySourceScalingPoliciesAndActions" />
+        </div>
+      </div>
+      <div className="form-group">
+        <div className="col-md-12 checkbox">
+          <label>
+            <input
+              checked={!!command.copySourceMonitoringConfiguration}
+              data-test-id="ServerGroup.copySourceMonitoringConfiguration"
+              onChange={(event) => onFieldChange('copySourceMonitoringConfiguration', event.target.checked)}
+              type="checkbox"
+            />{' '}
+            <b>If available, copy the previous server group's monitoring configuration (metric resolution)</b>
+          </label>{' '}
+          <HelpField id="ecs.capacity.copySourceMonitoringConfiguration" />
+        </div>
+      </div>
+
+      <hr />
+      <div className="form-group">
+        <div className="col-md-5 sm-label-right">
+          High-resolution metrics <HelpField id="ecs.capacity.monitoringConfiguration" />
+        </div>
+        <div className="col-md-7">
+          {HIGH_RESOLUTION_METRICS.map((metricName) => (
+            <div className="checkbox" key={metricName}>
+              <label>
+                <input
+                  checked={highResolutionMetrics.includes(metricName)}
+                  data-test-id={`ServerGroup.monitoringConfiguration.${metricName}`}
+                  onChange={(event) => toggleHighResolutionMetric(metricName, event.target.checked)}
+                  type="checkbox"
+                />{' '}
+                {metricName}
+              </label>
+            </div>
+          ))}
         </div>
       </div>
     </div>

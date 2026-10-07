@@ -16,11 +16,11 @@
 
 package com.netflix.spinnaker.clouddriver.aws.deploy.ops
 
-import com.amazonaws.services.autoscaling.AmazonAutoScaling
-import com.amazonaws.services.autoscaling.model.PutScalingPolicyRequest
-import com.amazonaws.services.autoscaling.model.PutScalingPolicyResult
-import com.amazonaws.services.autoscaling.model.StepAdjustment
-import com.amazonaws.services.cloudwatch.AmazonCloudWatch
+import software.amazon.awssdk.services.autoscaling.AutoScalingClient
+import software.amazon.awssdk.services.autoscaling.model.PutScalingPolicyRequest
+import software.amazon.awssdk.services.autoscaling.model.PutScalingPolicyResponse
+import software.amazon.awssdk.services.autoscaling.model.StepAdjustment
+import software.amazon.awssdk.services.cloudwatch.CloudWatchClient
 import com.netflix.spinnaker.clouddriver.aws.deploy.description.AdjustmentType
 import com.netflix.spinnaker.clouddriver.aws.deploy.description.MetricAggregationType
 import com.netflix.spinnaker.clouddriver.aws.deploy.description.UpsertAlarmDescription
@@ -48,11 +48,11 @@ class UpsertScalingPolicyAtomicOperationUnitSpec extends Specification {
     )
   )
 
-  def autoScaling = Mock(AmazonAutoScaling)
-  def cloudWatch = Mock(AmazonCloudWatch)
+  def autoScaling = Mock(AutoScalingClient)
+  def cloudWatch = Mock(CloudWatchClient)
   def amazonClientProvider = Stub(AmazonClientProvider) {
-    getAutoScaling(_, _, true) >> autoScaling
-    getCloudWatch(_, _, true) >> cloudWatch
+    getAutoScalingV2(_, _) >> autoScaling
+    getAmazonCloudWatchV2(_, _) >> cloudWatch
   }
 
   @Subject def op = new UpsertScalingPolicyAtomicOperation(description)
@@ -73,16 +73,16 @@ class UpsertScalingPolicyAtomicOperationUnitSpec extends Specification {
     final result = op.operate([])
 
     then:
-    1 * autoScaling.putScalingPolicy(new PutScalingPolicyRequest(
-      policyName: "kato-main-v000-policy-1",
-      autoScalingGroupName: "kato-main-v000",
-      adjustmentType: "PercentChangeInCapacity",
-      cooldown: 1,
-      minAdjustmentMagnitude: 3,
-      scalingAdjustment: 5,
-      policyType: "SimpleScaling"
-    )) >> {
-      new PutScalingPolicyResult(policyARN: "arn", )
+    1 * autoScaling.putScalingPolicy(PutScalingPolicyRequest.builder()
+      .policyName("kato-main-v000-policy-1")
+      .autoScalingGroupName("kato-main-v000")
+      .adjustmentType("PercentChangeInCapacity")
+      .cooldown(1)
+      .minAdjustmentMagnitude(3)
+      .scalingAdjustment(5)
+      .policyType("SimpleScaling")
+      .build()) >> {
+      PutScalingPolicyResponse.builder().policyARN("arn").build()
     }
 
     result == new UpsertScalingPolicyResult(policyArn: "arn", policyName: "kato-main-v000-policy-1")
@@ -94,7 +94,7 @@ class UpsertScalingPolicyAtomicOperationUnitSpec extends Specification {
       estimatedInstanceWarmup: 2,
       metricAggregationType: MetricAggregationType.Average,
       stepAdjustments: [
-            new StepAdjustment(metricIntervalLowerBound: 100, metricIntervalUpperBound: 200, scalingAdjustment: 30)
+            StepAdjustment.builder().metricIntervalLowerBound(100).metricIntervalUpperBound(200).scalingAdjustment(30).build()
       ]
     )
 
@@ -102,19 +102,19 @@ class UpsertScalingPolicyAtomicOperationUnitSpec extends Specification {
     final result = op.operate([])
 
     then:
-    1 * autoScaling.putScalingPolicy(new PutScalingPolicyRequest(
-      policyName: "kato-main-v000-policy-1",
-      autoScalingGroupName: "kato-main-v000",
-      adjustmentType: "PercentChangeInCapacity",
-      estimatedInstanceWarmup: 2,
-      minAdjustmentMagnitude: 3,
-      stepAdjustments: [
-        new StepAdjustment(metricIntervalLowerBound: 100, metricIntervalUpperBound: 200, scalingAdjustment: 30)
-      ],
-      metricAggregationType: "Average",
-      policyType: "StepScaling"
-    )) >> {
-      new PutScalingPolicyResult(policyARN: "arn")
+    1 * autoScaling.putScalingPolicy(PutScalingPolicyRequest.builder()
+      .policyName("kato-main-v000-policy-1")
+      .autoScalingGroupName("kato-main-v000")
+      .adjustmentType("PercentChangeInCapacity")
+      .estimatedInstanceWarmup(2)
+      .minAdjustmentMagnitude(3)
+      .stepAdjustments([
+        StepAdjustment.builder().metricIntervalLowerBound(100).metricIntervalUpperBound(200).scalingAdjustment(30).build()
+      ])
+      .metricAggregationType("Average")
+      .policyType("StepScaling")
+      .build()) >> {
+      PutScalingPolicyResponse.builder().policyARN("arn").build()
     }
 
     result == new UpsertScalingPolicyResult(policyArn: "arn", policyName: "kato-main-v000-policy-1")
@@ -129,16 +129,16 @@ class UpsertScalingPolicyAtomicOperationUnitSpec extends Specification {
     final result = op.operate([])
 
     then:
-    1 * autoScaling.putScalingPolicy(new PutScalingPolicyRequest(
-      policyName: "existingPolicy",
-      autoScalingGroupName: "kato-main-v000",
-      adjustmentType: "PercentChangeInCapacity",
-      cooldown: 1,
-      minAdjustmentMagnitude: 3,
-      scalingAdjustment: 5,
-      policyType: "SimpleScaling"
-    )) >> {
-      new PutScalingPolicyResult(policyARN: "arn")
+    1 * autoScaling.putScalingPolicy(PutScalingPolicyRequest.builder()
+      .policyName("existingPolicy")
+      .autoScalingGroupName("kato-main-v000")
+      .adjustmentType("PercentChangeInCapacity")
+      .cooldown(1)
+      .minAdjustmentMagnitude(3)
+      .scalingAdjustment(5)
+      .policyType("SimpleScaling")
+      .build()) >> {
+      PutScalingPolicyResponse.builder().policyARN("arn").build()
     }
 
     result == new UpsertScalingPolicyResult(policyArn: "arn", policyName: "existingPolicy")
@@ -154,16 +154,16 @@ class UpsertScalingPolicyAtomicOperationUnitSpec extends Specification {
     final result = op.operate([])
 
     then:
-    1 * autoScaling.putScalingPolicy(new PutScalingPolicyRequest(
-        policyName: "existingPolicy",
-        autoScalingGroupName: "kato-main-v000",
-        adjustmentType: "PercentChangeInCapacity",
-        cooldown: 1,
-        minAdjustmentMagnitude: 3,
-        scalingAdjustment: 5,
-        policyType: "SimpleScaling",
-    )) >> {
-      new PutScalingPolicyResult(policyARN: "arn")
+    1 * autoScaling.putScalingPolicy(PutScalingPolicyRequest.builder()
+      .policyName("existingPolicy")
+      .autoScalingGroupName("kato-main-v000")
+      .adjustmentType("PercentChangeInCapacity")
+      .cooldown(1)
+      .minAdjustmentMagnitude(3)
+      .scalingAdjustment(5)
+      .policyType("SimpleScaling")
+      .build()) >> {
+      PutScalingPolicyResponse.builder().policyARN("arn").build()
     }
 
     1 * cloudWatch.putMetricAlarm(alarm.buildRequest())
@@ -183,16 +183,16 @@ class UpsertScalingPolicyAtomicOperationUnitSpec extends Specification {
     final result = op.operate([])
 
     then:
-    1 * autoScaling.putScalingPolicy(new PutScalingPolicyRequest(
-        policyName: "existingPolicy",
-        autoScalingGroupName: "kato-main-v000",
-        adjustmentType: "PercentChangeInCapacity",
-        cooldown: 1,
-        minAdjustmentMagnitude: 3,
-        scalingAdjustment: 5,
-        policyType: "SimpleScaling",
-    )) >> {
-      new PutScalingPolicyResult(policyARN: "arn")
+    1 * autoScaling.putScalingPolicy(PutScalingPolicyRequest.builder()
+      .policyName("existingPolicy")
+      .autoScalingGroupName("kato-main-v000")
+      .adjustmentType("PercentChangeInCapacity")
+      .cooldown(1)
+      .minAdjustmentMagnitude(3)
+      .scalingAdjustment(5)
+      .policyType("SimpleScaling")
+      .build()) >> {
+      PutScalingPolicyResponse.builder().policyARN("arn").build()
     }
 
     1 * cloudWatch.putMetricAlarm(_)

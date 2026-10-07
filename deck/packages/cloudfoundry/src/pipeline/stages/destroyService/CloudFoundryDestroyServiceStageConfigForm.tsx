@@ -17,7 +17,7 @@ export class CloudFoundryDestroyServiceStageConfigForm extends React.Component<
   IFormikStageConfigInjectedProps,
   ICloudFoundryDestroyServiceStageConfigState
 > {
-  private destroy$ = new Subject();
+  private destroy$ = new Subject<void>();
 
   constructor(props: IFormikStageConfigInjectedProps, context: any) {
     super(props, context);

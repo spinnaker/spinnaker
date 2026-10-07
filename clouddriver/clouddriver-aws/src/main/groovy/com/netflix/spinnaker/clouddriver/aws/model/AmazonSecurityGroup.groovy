@@ -16,7 +16,7 @@
 
 package com.netflix.spinnaker.clouddriver.aws.model
 
-import com.amazonaws.services.ec2.model.Tag
+import software.amazon.awssdk.services.ec2.model.Tag
 import com.fasterxml.jackson.annotation.JsonInclude
 import com.netflix.spinnaker.clouddriver.aws.AmazonCloudProvider
 import com.netflix.spinnaker.clouddriver.model.SecurityGroup

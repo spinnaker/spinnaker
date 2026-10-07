@@ -47,7 +47,7 @@ class TargetHealthCachingAgentSpec extends Specification {
     new TargetHealthCachingAgent(CommonCachingAgent.netflixAmazonCredentials, CommonCachingAgent.REGION, clientProvider, mapper)
 
   def setup() {
-    clientProvider.getAmazonElasticLoadBalancingV2V2(_, _) >> amazonloadBalancing
+    clientProvider.getElasticLoadBalancingV2Client(_, _) >> amazonloadBalancing
     awsProviderCache.filterIdentifiers(_, _) >> []
 
     def targetGroupAttributes = [

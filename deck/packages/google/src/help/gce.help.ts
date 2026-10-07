@@ -135,7 +135,9 @@ const helpContents: { [key: string]: string } = {
   'gce.serverGroup.labels.spinnaker-region': 'This label can be used to group instances when querying for metrics.',
   'gce.serverGroup.labels.spinnaker-server-group':
     'This label can be used to group instances when querying for metrics.',
-  'gce.serverGroup.shieldedVmConfig':
+  'gce.serverGroup.instanceFlexibilityPolicy':
+    'Defines named sets of acceptable machine types for a regional managed instance group. Lower ranks are preferred; Google Compute Engine selects an available type when creating each VM.',
+  'gce.serverGroup.shieldedInstanceConfig':
     'Shielded VM features include trusted UEFI firmware and come with options for Secure Boot, Virtual Trusted Platform Module (vTPM), and Integrity Monitoring.',
   'gce.serverGroup.shieldedVmSecureBoot':
     'Secure boot helps protect your VM instances against boot-level and kernel-level malware and rootkits.',
@@ -172,12 +174,6 @@ const helpContents: { [key: string]: string } = {
     'VMs in the group are recreated as needed. You can use a health check to recreate a VM if the health check finds the VM unresponsive. If you do not select a health check, VMs are recreated only when stopped.',
   'gce.serverGroup.initialDelaySec':
     'The time to allow an instance to boot and applications to fully start before the first health check.',
-  'gce.serverGroup.maxUnavailable': `
-      Maximum number of instances that can be unavailable when auto-healing. The instance is considered available if all of the following conditions are satisfied:
-      <ul>
-        <li>1. Instance's status is RUNNING.</li>
-        <li>2. Instance's liveness health check result was observed to be HEALTHY at least once.</li>
-      </ul>`,
   'gce.serverGroup.subnet': `
       Subnetworks allow you to regionally segment the network IP space into prefixes (subnets) and control which prefix a VM instance's internal IP address is allocated from. There are several types of GCE networks:
       <ul>

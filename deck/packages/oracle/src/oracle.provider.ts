@@ -10,14 +10,14 @@ import {
   useOracleLoadBalancerDetails,
 } from './loadBalancer/details/OracleLoadBalancerDetails';
 import { OracleLoadBalancerTransformer } from './loadBalancer/loadBalancer.transformer';
-import { registerOracleBakeStage } from './pipeline/stages/bake/ociBakeStage';
-import { registerOracleDestroyAsgStage } from './pipeline/stages/destroyAsg/destroyAsgStage';
-import { registerOracleDisableAsgStage } from './pipeline/stages/disableAsg/disableAsgStage';
-import { registerOracleFindAmiStage } from './pipeline/stages/findAmi/findAmiStage';
-import { registerOracleFindImageFromTagsStage } from './pipeline/stages/findImageFromTags/oracleFindImageFromTagsStage';
-import { registerOracleResizeAsgStage } from './pipeline/stages/resizeAsg/resizeAsgStage';
-import { registerOracleScaleDownClusterStage } from './pipeline/stages/scaleDownCluster/scaleDownClusterStage';
-import { registerOracleShrinkClusterStage } from './pipeline/stages/shrinkCluster/shrinkClusterStage';
+import { registerOracleBakeStage } from './pipeline/stages/bake/OracleBakeStageConfig';
+import { registerOracleDestroyAsgStage } from './pipeline/stages/destroyAsg/OracleDestroyAsgStageConfig';
+import { registerOracleDisableAsgStage } from './pipeline/stages/disableAsg/OracleDisableAsgStageConfig';
+import { registerOracleFindAmiStage } from './pipeline/stages/findAmi/OracleFindAmiStageConfig';
+import { registerOracleFindImageFromTagsStage } from './pipeline/stages/findImageFromTags/OracleFindImageFromTagsStageConfig';
+import { registerOracleResizeAsgStage } from './pipeline/stages/resizeAsg/OracleResizeAsgStageConfig';
+import { registerOracleScaleDownClusterStage } from './pipeline/stages/scaleDownCluster/OracleScaleDownClusterStageConfig';
+import { registerOracleShrinkClusterStage } from './pipeline/stages/shrinkCluster/OracleShrinkClusterStageConfig';
 import { OracleSecurityGroupDetails } from './securityGroup/details/OracleSecurityGroupDetails';
 import { OracleSecurityGroupReader } from './securityGroup/securityGroup.reader';
 import { OracleSecurityGroupTransformer } from './securityGroup/securityGroup.transformer';

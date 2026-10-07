@@ -1,33 +1,20 @@
-import { shallow } from 'enzyme';
+import { act, screen, waitFor, within } from '@testing-library/react';
 import React from 'react';
+import type { Mock } from 'vitest';
 
-import {
-  AccountTag,
-  CollapsibleSection,
-  ConsoleOutputLink,
-  InstanceDetailsHeader,
-  InstanceLinks,
-  InstanceReader,
-  ManifestReader,
-  RecentHistoryService,
-} from '@spinnaker/core';
+import { AccountService, InstanceReader, ManifestReader, RecentHistoryService, SETTINGS } from '@spinnaker/core';
 
 import type { IKubernetesInstanceDetailsProps } from './KubernetesInstanceDetails';
-import {
-  KubernetesInstanceActions,
-  KubernetesInstanceDetailsComponent as KubernetesInstanceDetails,
-} from './KubernetesInstanceDetails';
+import { KubernetesInstanceDetailsComponent as KubernetesInstanceDetails } from './KubernetesInstanceDetails';
+import { renderWithRouter } from '../../../../core/src/utils/testUtils/rtl';
+import { setupUser } from '../../../../core/src/utils/testUtils/userEvent';
 import { findKubernetesInstanceIdentifier } from './kubernetesInstanceDetails.utils';
-import { AnnotationCustomSections } from '../../manifest/AnnotationCustomSections';
-import { ManifestLabels } from '../../manifest/ManifestLabels';
-import { ManifestQos } from '../../manifest/ManifestQos';
-import { ManifestResources } from '../../manifest/ManifestResources';
-import { ManifestEvents } from '../../pipelines/stages/deployManifest/manifestStatus/ManifestEvents';
-import { ManifestCondition } from '../../manifest';
+import { KubernetesManifestCommandBuilder } from '../../manifest/manifestCommandBuilder.service';
+import { ManifestWizard } from '../../manifest/wizard/ManifestWizard';
 
 describe('findKubernetesInstanceIdentifier', () => {
   it('finds pod instances under server groups and records server group recent-history data', () => {
-    const addRecentHistory = jasmine.createSpy('addRecentHistory');
+    const addRecentHistory = vi.fn();
     const identifier = findKubernetesInstanceIdentifier(
       appWithInfrastructure({
         serverGroups: [
@@ -56,7 +43,7 @@ describe('findKubernetesInstanceIdentifier', () => {
   });
 
   it('finds pod instances under load balancers without server group recent-history data', () => {
-    const addRecentHistory = jasmine.createSpy('addRecentHistory');
+    const addRecentHistory = vi.fn();
     const identifier = findKubernetesInstanceIdentifier(
       appWithInfrastructure({
         loadBalancers: [
@@ -84,7 +71,7 @@ describe('findKubernetesInstanceIdentifier', () => {
   });
 
   it('finds pod instances under load balancer server groups and records server group recent-history data', () => {
-    const addRecentHistory = jasmine.createSpy('addRecentHistory');
+    const addRecentHistory = vi.fn();
     const identifier = findKubernetesInstanceIdentifier(
       appWithInfrastructure({
         loadBalancers: [
@@ -117,7 +104,7 @@ describe('findKubernetesInstanceIdentifier', () => {
   });
 
   it('returns null for missing instances without recording recent-history data', () => {
-    const addRecentHistory = jasmine.createSpy('addRecentHistory');
+    const addRecentHistory = vi.fn();
 
     expect(
       findKubernetesInstanceIdentifier(
@@ -133,9 +120,12 @@ describe('findKubernetesInstanceIdentifier', () => {
 });
 
 describe('<KubernetesInstanceDetails />', () => {
+  let originalAdHocInfraWritesEnabled: boolean;
   let props: IKubernetesInstanceDetailsProps;
 
   beforeEach(() => {
+    originalAdHocInfraWritesEnabled = SETTINGS.kubernetesAdHocInfraWritesEnabled;
+    SETTINGS.kubernetesAdHocInfraWritesEnabled = true;
     props = {
       app: appWithInfrastructure({
         serverGroups: [
@@ -151,16 +141,46 @@ describe('<KubernetesInstanceDetails />', () => {
       moniker: { app: 'kubernetesapp', cluster: 'deployment backend' },
     } as IKubernetesInstanceDetailsProps;
 
-    spyOn(InstanceReader, 'getInstanceDetails').and.returnValue(Promise.resolve(instanceDetails()) as any);
-    spyOn(ManifestReader, 'getManifest').and.returnValue(Promise.resolve(manifestDetails()) as any);
-    spyOn(RecentHistoryService, 'addExtraDataToLatest');
+    vi.spyOn(InstanceReader, 'getInstanceDetails').mockReturnValue(Promise.resolve(instanceDetails()) as any);
+    vi.spyOn(ManifestReader, 'getManifest').mockReturnValue(Promise.resolve(manifestDetails()) as any);
+    vi.spyOn(RecentHistoryService, 'addExtraDataToLatest').mockReturnValue(undefined);
+    vi.spyOn(AccountService, 'challengeDestructiveActions').mockResolvedValue(false);
+  });
+
+  afterEach(() => {
+    SETTINGS.kubernetesAdHocInfraWritesEnabled = originalAdHocInfraWritesEnabled;
   });
 
   it('loads instance and manifest details before rendering the React sections', async () => {
-    const component = shallow(<KubernetesInstanceDetails {...props} />);
+    const user = setupUser();
+    const loadedInstance = instanceDetails();
+    const loadedManifest = manifestDetails({
+      events: [
+        {
+          apiVersion: 'v1',
+          count: 1,
+          kind: 'Event',
+          lastTimestamp: '2025-07-24T01:27:29Z',
+          message: 'Created pod: backend-abc123-def45',
+          reason: 'SuccessfulCreate',
+          type: 'Normal',
+        },
+      ],
+    });
+    loadedManifest.manifest.metadata.annotations = {
+      'custom.details.spinnaker.io/resource': '{{account}} {{name}} {{provider}}',
+    };
+    const builtCommand = { command: 'edit-pod' } as any;
+    (InstanceReader.getInstanceDetails as Mock).mockResolvedValue(loadedInstance);
+    (ManifestReader.getManifest as Mock).mockResolvedValue(loadedManifest);
+    const buildCommand = vi
+      .spyOn(KubernetesManifestCommandBuilder, 'buildNewManifestCommand')
+      .mockResolvedValue(builtCommand);
+    const showWizard = vi.spyOn(ManifestWizard, 'show').mockReturnValue(undefined);
 
-    await settle();
-    component.update();
+    renderWithRouter(<KubernetesInstanceDetails {...props} />);
+
+    expect(await screen.findByRole('heading', { name: 'backend-abc123-def45' })).toBeInTheDocument();
 
     expect(InstanceReader.getInstanceDetails).toHaveBeenCalledWith('k8s-local', 'dev', 'pod backend-abc123-def45');
     expect(ManifestReader.getManifest).toHaveBeenCalledWith('k8s-local', 'dev', 'pod backend-abc123-def45');
@@ -169,48 +189,84 @@ describe('<KubernetesInstanceDetails />', () => {
       region: 'dev',
       serverGroup: 'replicaSet backend-abc123',
     });
-    expect(component.find(InstanceDetailsHeader).prop('instanceId')).toBe('backend-abc123-def45');
-    expect(component.find(CollapsibleSection).map((section) => section.prop('heading'))).toEqual([
-      'Information',
-      'Status',
-      'Events',
-      'Resources',
-      'Labels',
+    ['Information', 'Status', 'Events', 'Resources', 'Labels', 'Instance links'].forEach((heading) => {
+      expect(screen.getByRole('heading', { name: heading })).toBeInTheDocument();
+    });
+    expect(screen.getByText('k8s-local')).toBeInTheDocument();
+    expect(screen.getByRole('heading', { name: 'custom' })).toBeInTheDocument();
+    expect(screen.getByText('k8s-local pod backend-abc123-def45 kubernetes')).toBeInTheDocument();
+    expect(screen.getByText('BestEffort')).toBeInTheDocument();
+    expect(screen.getByText('Ready')).toBeInTheDocument();
+    expect(screen.getByText('CPU')).toBeInTheDocument();
+    expect(screen.getByText(/app:\s*backend/)).toBeInTheDocument();
+    expect(screen.getByText('SuccessfulCreate')).toBeInTheDocument();
+    expect(screen.getByText('Created pod: backend-abc123-def45')).toBeInTheDocument();
+    await user.click(screen.getByRole('heading', { name: 'Instance links' }));
+    expect(screen.getByRole('link', { name: 'Backend endpoint' })).toHaveAttribute(
+      'href',
+      'http://backend.example.com/test',
+    );
+    expect(screen.getByRole('button', { name: 'Console Output (Raw)' })).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: 'Pod Actions' })).toBeInTheDocument();
+    expect(screen.queryByText('Node IP')).not.toBeInTheDocument();
+    expect(screen.queryByText('Pod IP')).not.toBeInTheDocument();
+
+    await user.click(screen.getByRole('button', { name: 'Pod Actions' }));
+    await user.click(screen.getByText('Edit'));
+
+    expect(buildCommand).toHaveBeenCalledWith(
+      props.app,
+      loadedManifest.manifest,
+      loadedInstance.moniker,
+      loadedInstance.account,
+    );
+    await waitFor(() =>
+      expect(showWizard).toHaveBeenCalledWith({
+        application: props.app,
+        command: builtCommand,
+        title: 'Edit Manifest',
+      }),
+    );
+  });
+
+  it('renders an Images section with copy-to-clipboard for each manifest artifact', async () => {
+    (ManifestReader.getManifest as Mock).mockReturnValue(
+      Promise.resolve(
+        manifestDetails({
+          artifacts: [
+            { id: '1', type: 'docker/image', reference: 'gcr.io/project/backend@sha256:abc123' },
+            { id: '2', type: 'docker/image', reference: 'gcr.io/project/worker@sha256:def456' },
+          ],
+        }),
+      ) as any,
+    );
+    renderWithRouter(<KubernetesInstanceDetails {...props} />);
+
+    const imagesHeading = await screen.findByRole('heading', { name: 'Images' });
+    const imagesSection = within(imagesHeading.closest('.collapsible-section') as HTMLElement);
+    const items = imagesSection.getAllByRole('listitem');
+    expect(items).toHaveLength(2);
+    expect(imagesSection.getAllByRole('button', { name: 'Copy to clipboard' })).toHaveLength(2);
+    expect(imagesSection.getAllByRole('textbox').map((node) => (node as HTMLTextAreaElement).value)).toEqual([
+      'gcr.io/project/backend@sha256:abc123',
+      'gcr.io/project/worker@sha256:def456',
     ]);
-    expect(component.find(AccountTag).prop('account')).toBe('k8s-local');
-    expect(component.find(ManifestQos).prop('manifest')).toEqual(manifestDetails().manifest);
-    expect(component.find(ManifestCondition).length).toBe(1);
-    expect(component.find(ManifestEvents).prop('manifest')).toEqual(manifestDetails());
-    expect(component.find(ManifestResources).prop('metrics')).toEqual(manifestDetails().metrics);
-    expect(component.find(ManifestLabels).prop('manifest')).toEqual(manifestDetails().manifest);
-    expect(component.find(AnnotationCustomSections).prop('manifest')).toEqual(manifestDetails().manifest);
-    expect(component.find(AnnotationCustomSections).prop('resource')).toEqual(
-      jasmine.objectContaining({
-        account: 'k8s-local',
-        name: 'pod backend-abc123-def45',
-        provider: 'kubernetes',
-      }),
-    );
-    expect(component.find(InstanceLinks).prop('application')).toBe(props.app);
-    expect(component.find(InstanceLinks).prop('environment')).toBe('test');
-    expect(component.find(InstanceLinks).prop('address')).toBe('backend.example.com');
-    expect(component.find(ConsoleOutputLink).prop('usesMultiOutput')).toBe(true);
-    expect(component.find(KubernetesInstanceActions).prop('app')).toBe(props.app);
-    expect(component.find(KubernetesInstanceActions).prop('manifest')).toEqual(manifestDetails());
-    expect(component.find(KubernetesInstanceActions).prop('instance')).toEqual(
-      jasmine.objectContaining({
-        account: 'k8s-local',
-        name: 'pod backend-abc123-def45',
-        provider: 'kubernetes',
-      }),
-    );
-    expect(informationSectionText(component)).not.toContain('Node IP');
-    expect(informationSectionText(component)).not.toContain('Pod IP');
+    expect(within(items[0]).getByText('gcr.io/project/backend@sha256:abc123', { selector: 'i' })).toBeInTheDocument();
+    expect(within(items[1]).getByText('gcr.io/project/worker@sha256:def456', { selector: 'i' })).toBeInTheDocument();
+    expect(imagesSection.getAllByText('docker/image', { exact: false, selector: 'b' })).toHaveLength(2);
+  });
+
+  it('omits the Images section when the manifest has no artifacts', async () => {
+    renderWithRouter(<KubernetesInstanceDetails {...props} />);
+
+    expect(await screen.findByRole('heading', { name: 'backend-abc123-def45' })).toBeInTheDocument();
+    expect(screen.getByRole('heading', { name: 'Labels' })).toBeInTheDocument();
+    expect(screen.queryByRole('heading', { name: 'Images' })).not.toBeInTheDocument();
   });
 
   it('auto-closes when the instance cannot be found in application infrastructure', async () => {
-    const autoClose = jasmine.createSpy('autoClose');
-    const component = shallow(
+    const autoClose = vi.fn();
+    renderWithRouter(
       <KubernetesInstanceDetails
         {...props}
         app={appWithInfrastructure({ serverGroups: [], loadBalancers: [] })}
@@ -218,16 +274,13 @@ describe('<KubernetesInstanceDetails />', () => {
       />,
     );
 
-    await settle();
-    component.update();
-
-    expect(autoClose).toHaveBeenCalled();
+    await waitFor(() => expect(autoClose).toHaveBeenCalled());
     expect(InstanceReader.getInstanceDetails).not.toHaveBeenCalled();
     expect(ManifestReader.getManifest).not.toHaveBeenCalled();
   });
 
   it('replaces missing instance details through the injected state service', () => {
-    const stateService = { go: jasmine.createSpy('go'), params: {} };
+    const stateService = { go: vi.fn(), params: {} };
     const component = new KubernetesInstanceDetails({
       ...props,
       router: {},
@@ -242,15 +295,17 @@ describe('<KubernetesInstanceDetails />', () => {
   });
 
   it('waits for application data before loading changed instance props', async () => {
-    const autoClose = jasmine.createSpy('autoClose');
+    const autoClose = vi.fn();
     const ready = deferred<void>();
     const serverGroups: any[] = [];
     const app = appWithInfrastructure({ serverGroups });
     app.ready = () => ready.promise;
-    const component = shallow(<KubernetesInstanceDetails {...props} app={app} autoClose={autoClose} />);
+    const rendered = renderWithRouter(<KubernetesInstanceDetails {...props} app={app} autoClose={autoClose} />);
 
-    component.setProps({ instance: { instanceId: 'new-pod-uid' } });
-    await settle();
+    rendered.rerender(
+      <KubernetesInstanceDetails {...props} app={app} autoClose={autoClose} instance={{ instanceId: 'new-pod-uid' }} />,
+    );
+    await act(async () => Promise.resolve());
 
     expect(autoClose).not.toHaveBeenCalled();
     expect(InstanceReader.getInstanceDetails).not.toHaveBeenCalled();
@@ -261,11 +316,11 @@ describe('<KubernetesInstanceDetails />', () => {
         instances: [{ id: 'new-pod-uid', name: 'pod backend-new' }],
       }),
     );
-    ready.resolve();
-    await settle();
-    component.update();
+    await act(async () => ready.resolve());
 
-    expect(InstanceReader.getInstanceDetails).toHaveBeenCalledWith('k8s-local', 'dev', 'pod backend-new');
+    await waitFor(() =>
+      expect(InstanceReader.getInstanceDetails).toHaveBeenCalledWith('k8s-local', 'dev', 'pod backend-new'),
+    );
   });
 
   it('keeps the newer pod details when an older load resolves last', async () => {
@@ -287,36 +342,36 @@ describe('<KubernetesInstanceDetails />', () => {
       }),
     };
 
-    (InstanceReader.getInstanceDetails as jasmine.Spy).and.callFake(
+    (InstanceReader.getInstanceDetails as Mock).mockImplementation(
       (_account: string, _namespace: string, name: string) =>
         name === 'pod backend-new' ? newInstance.promise : oldInstance.promise,
     );
-    (ManifestReader.getManifest as jasmine.Spy).and.callFake((_account: string, _namespace: string, name: string) =>
+    (ManifestReader.getManifest as Mock).mockImplementation((_account: string, _namespace: string, name: string) =>
       name === 'pod backend-new' ? newManifest.promise : oldManifest.promise,
     );
 
-    const component = shallow(<KubernetesInstanceDetails {...props} />);
+    const rendered = renderWithRouter(<KubernetesInstanceDetails {...props} />);
+    await waitFor(() => expect(InstanceReader.getInstanceDetails).toHaveBeenCalled());
+    rendered.rerender(<KubernetesInstanceDetails {...props} instance={{ instanceId: 'new-pod-uid' }} />);
 
-    await settle();
-    component.setProps({ instance: { instanceId: 'new-pod-uid' } });
+    await act(async () => {
+      newInstance.resolve(instanceDetails({ displayName: 'backend-new', humanReadableName: 'pod backend-new' }));
+      newManifest.resolve(manifestDetails());
+    });
 
-    newInstance.resolve(instanceDetails({ displayName: 'backend-new', humanReadableName: 'pod backend-new' }));
-    newManifest.resolve(manifestDetails());
-    await settle();
-    component.update();
+    expect(await screen.findByRole('heading', { name: 'backend-new' })).toBeInTheDocument();
 
-    expect(component.find(InstanceDetailsHeader).prop('instanceId')).toBe('backend-new');
+    await act(async () => {
+      oldInstance.resolve(instanceDetails({ displayName: 'backend-old', humanReadableName: 'pod backend-old' }));
+      oldManifest.resolve(manifestDetails());
+    });
 
-    oldInstance.resolve(instanceDetails({ displayName: 'backend-old', humanReadableName: 'pod backend-old' }));
-    oldManifest.resolve(manifestDetails());
-    await settle();
-    component.update();
-
-    expect(component.find(InstanceDetailsHeader).prop('instanceId')).toBe('backend-new');
+    expect(screen.getByRole('heading', { name: 'backend-new' })).toBeInTheDocument();
+    expect(screen.queryByRole('heading', { name: 'backend-old' })).not.toBeInTheDocument();
   });
 
   it('ignores stale load failures after a newer pod has rendered', async () => {
-    const autoClose = jasmine.createSpy('autoClose');
+    const autoClose = vi.fn();
     const oldInstance = deferred<any>();
     const oldManifest = deferred<any>();
     const newInstance = deferred<any>();
@@ -336,38 +391,31 @@ describe('<KubernetesInstanceDetails />', () => {
       }),
     };
 
-    (InstanceReader.getInstanceDetails as jasmine.Spy).and.callFake(
+    (InstanceReader.getInstanceDetails as Mock).mockImplementation(
       (_account: string, _namespace: string, name: string) =>
         name === 'pod backend-new' ? newInstance.promise : oldInstance.promise,
     );
-    (ManifestReader.getManifest as jasmine.Spy).and.callFake((_account: string, _namespace: string, name: string) =>
+    (ManifestReader.getManifest as Mock).mockImplementation((_account: string, _namespace: string, name: string) =>
       name === 'pod backend-new' ? newManifest.promise : oldManifest.promise,
     );
 
-    const component = shallow(<KubernetesInstanceDetails {...props} />);
+    const rendered = renderWithRouter(<KubernetesInstanceDetails {...props} />);
+    await waitFor(() => expect(InstanceReader.getInstanceDetails).toHaveBeenCalled());
+    rendered.rerender(<KubernetesInstanceDetails {...props} instance={{ instanceId: 'new-pod-uid' }} />);
 
-    await settle();
-    component.setProps({ instance: { instanceId: 'new-pod-uid' } });
+    await act(async () => {
+      oldInstance.resolve(instanceDetails({ displayName: 'backend-old', humanReadableName: 'pod backend-old' }));
+      newInstance.resolve(instanceDetails({ displayName: 'backend-new', humanReadableName: 'pod backend-new' }));
+      newManifest.resolve(manifestDetails());
+    });
+    expect(await screen.findByRole('heading', { name: 'backend-new' })).toBeInTheDocument();
 
-    oldInstance.resolve(instanceDetails({ displayName: 'backend-old', humanReadableName: 'pod backend-old' }));
-    newInstance.resolve(instanceDetails({ displayName: 'backend-new', humanReadableName: 'pod backend-new' }));
-    newManifest.resolve(manifestDetails());
-    await settle();
-    component.update();
-
-    oldManifest.reject(new Error('stale load failed'));
-    await settle();
-    component.update();
+    await act(async () => oldManifest.reject(new Error('stale load failed')));
 
     expect(autoClose).not.toHaveBeenCalled();
-    expect(component.find(InstanceDetailsHeader).prop('instanceId')).toBe('backend-new');
+    expect(screen.getByRole('heading', { name: 'backend-new' })).toBeInTheDocument();
   });
 });
-
-const settle = () => new Promise((resolve) => setTimeout(resolve));
-
-const informationSectionText = (component: any) =>
-  shallow(<div>{component.find(CollapsibleSection).at(0).prop('children')}</div>).text();
 
 function deferred<T>() {
   let resolve!: (value: T | PromiseLike<T>) => void;
@@ -397,14 +445,22 @@ const appWithInfrastructure = ({
   loadBalancers?: any[];
 }) =>
   ({
-    isStandalone: false,
+    isStandalone: true,
     ready: () => Promise.resolve(),
     onRefresh: () => () => null,
     getDataSource: (key: string) => ({
       data: key === 'serverGroups' ? serverGroups : loadBalancers,
     }),
     serverGroups: {
-      refresh: jasmine.createSpy('refreshServerGroups'),
+      refresh: vi.fn(),
+    },
+    attributes: {
+      instanceLinks: [
+        {
+          title: 'Instance links',
+          links: [{ title: 'Backend endpoint', path: 'http://{{ipAddress}}/{{environment}}' }],
+        },
+      ],
     },
   } as any);
 
@@ -425,11 +481,12 @@ const instanceDetails = (overrides: any = {}) =>
     ...overrides,
   } as any);
 
-const manifestDetails = () =>
+const manifestDetails = (overrides: any = {}) =>
   ({
     account: 'k8s-local',
     metrics: [{ containerName: 'backend', metrics: { 'CPU(cores)': '1', 'MEMORY(bytes)': '1Gi' } }],
     manifest: {
+      kind: 'Pod',
       metadata: {
         labels: {
           app: 'backend',
@@ -448,4 +505,5 @@ const manifestDetails = () =>
       },
     },
     events: [],
+    ...overrides,
   } as any);

@@ -1,6 +1,6 @@
 FROM alpine:3.24
 LABEL maintainer="sig-platform@spinnaker.io"
-RUN apk --no-cache add --update bash curl openjdk17-jre
+RUN apk --no-cache add --update bash curl openjdk25-jre
 RUN addgroup -S -g 10111 spinnaker
 RUN adduser -S -G spinnaker -u 10111 spinnaker
 COPY echo-web/build/install/echo /opt/echo

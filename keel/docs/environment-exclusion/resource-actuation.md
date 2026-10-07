@@ -41,7 +41,7 @@ class ResourceActuator {
 
 In the current implementation, keel implements the APPROVED → DEPLOYING version-in-environment repository state transition like this:
 
-1. ResourceHandler upsert methods (e.g., `ClusterHandler.upsert`, `TitusClusterHandler.upsert`) call `notifyArtifactDeploying`
+1. ResourceHandler upsert methods (e.g., `ClusterHandler.upsert`) call `notifyArtifactDeploying`
 2. `notifyArtifactDeploying` emits an `artifactVersionDeploying` event.
 3. The `onArtifactVersionDeploying` event handler writes DEPLOYING to the database.
 

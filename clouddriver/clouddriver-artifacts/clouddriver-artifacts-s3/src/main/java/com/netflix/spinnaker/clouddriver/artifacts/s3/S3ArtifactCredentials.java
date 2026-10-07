@@ -17,9 +17,7 @@
 package com.netflix.spinnaker.clouddriver.artifacts.s3;
 
 import com.google.common.collect.ImmutableList;
-import com.netflix.spectator.api.Registry;
-import com.netflix.spectator.aws2.SpectatorExecutionInterceptor;
-import com.netflix.spinnaker.clouddriver.artifacts.config.ArtifactCredentials;
+import com.netflix.spinnaker.clouddriver.artifacts.config.AbstractArtifactCredentials;
 import com.netflix.spinnaker.kork.annotations.NonnullByDefault;
 import com.netflix.spinnaker.kork.artifacts.model.Artifact;
 import com.netflix.spinnaker.kork.web.exceptions.NotFoundException;
@@ -49,7 +47,7 @@ import software.amazon.awssdk.services.s3.model.S3Exception;
 
 @Slf4j
 @NonnullByDefault
-public class S3ArtifactCredentials implements ArtifactCredentials {
+public class S3ArtifactCredentials extends AbstractArtifactCredentials {
   public static final String CREDENTIALS_TYPE = "artifacts-s3";
   @Getter private final String name;
   @Getter private final ImmutableList<String> types = ImmutableList.of("s3/object");
@@ -62,33 +60,30 @@ public class S3ArtifactCredentials implements ArtifactCredentials {
   private final Optional<S3ArtifactValidator> s3ArtifactValidator;
   private final S3ArtifactProviderProperties s3ArtifactProviderProperties;
   private final S3ArtifactRequestInterceptor s3ArtifactRequestInterceptor;
-  private final SpectatorExecutionInterceptor spectatorExecutionInterceptor;
 
   private S3Client s3Client;
 
   S3ArtifactCredentials(
       S3ArtifactAccount account,
       Optional<S3ArtifactValidator> s3ArtifactValidator,
-      S3ArtifactProviderProperties s3ArtifactProviderProperties,
-      Registry registry) {
-    this(account, s3ArtifactValidator, null, s3ArtifactProviderProperties, registry);
+      S3ArtifactProviderProperties s3ArtifactProviderProperties) {
+    this(account, s3ArtifactValidator, null, s3ArtifactProviderProperties);
   }
 
   S3ArtifactCredentials(
       S3ArtifactAccount account,
       @Nullable S3Client s3Client,
-      S3ArtifactProviderProperties s3ArtifactProviderProperties,
-      Registry registry) {
-    this(account, Optional.empty(), s3Client, s3ArtifactProviderProperties, registry);
+      S3ArtifactProviderProperties s3ArtifactProviderProperties) {
+    this(account, Optional.empty(), s3Client, s3ArtifactProviderProperties);
   }
 
   S3ArtifactCredentials(
       S3ArtifactAccount account,
       Optional<S3ArtifactValidator> s3ArtifactValidator,
       @Nullable S3Client s3Client,
-      S3ArtifactProviderProperties s3ArtifactProviderProperties,
-      Registry registry)
+      S3ArtifactProviderProperties s3ArtifactProviderProperties)
       throws IllegalArgumentException {
+    super(account);
     name = account.getName();
     apiEndpoint = account.getApiEndpoint();
     apiRegion = account.getApiRegion();
@@ -100,7 +95,6 @@ public class S3ArtifactCredentials implements ArtifactCredentials {
     this.s3ArtifactProviderProperties = s3ArtifactProviderProperties;
     s3ArtifactRequestInterceptor =
         new S3ArtifactRequestInterceptor(name, this.s3ArtifactProviderProperties);
-    spectatorExecutionInterceptor = new SpectatorExecutionInterceptor(registry);
   }
 
   private S3Client getS3Client() {
@@ -117,7 +111,6 @@ public class S3ArtifactCredentials implements ArtifactCredentials {
     ClientOverrideConfiguration.Builder configBuilder = ClientOverrideConfiguration.builder();
     configureClientOverrides(configBuilder);
     configBuilder.addExecutionInterceptor(s3ArtifactRequestInterceptor);
-    configBuilder.addExecutionInterceptor(spectatorExecutionInterceptor);
     builder.overrideConfiguration(configBuilder.build());
 
     if (!apiEndpoint.isEmpty()) {

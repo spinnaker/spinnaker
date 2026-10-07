@@ -17,10 +17,7 @@
 package com.netflix.spinnaker.gate
 
 import com.netflix.spinnaker.kork.boot.DefaultPropertiesBuilder
-import org.springframework.boot.actuate.autoconfigure.ldap.LdapHealthContributorAutoConfiguration
 import org.springframework.boot.autoconfigure.SpringBootApplication
-import org.springframework.boot.autoconfigure.groovy.template.GroovyTemplateAutoConfiguration
-import org.springframework.boot.autoconfigure.gson.GsonAutoConfiguration
 import org.springframework.boot.builder.SpringApplicationBuilder
 import org.springframework.boot.context.properties.EnableConfigurationProperties
 import org.springframework.scheduling.annotation.EnableAsync
@@ -31,11 +28,6 @@ import org.springframework.scheduling.annotation.EnableAsync
   scanBasePackages = [
     "com.netflix.spinnaker.gate",
     "com.netflix.spinnaker.config"
-  ],
-  exclude = [
-    GroovyTemplateAutoConfiguration,
-    GsonAutoConfiguration,
-    LdapHealthContributorAutoConfiguration
   ]
 )
 class Main {

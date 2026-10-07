@@ -3,12 +3,18 @@ import { isEmpty, orderBy } from 'lodash';
 import React from 'react';
 
 import type { IServerGroup } from '@spinnaker/core';
-import { CollapsibleSection, CopyToClipboard, HealthCounts, robotToHuman } from '@spinnaker/core';
+import { CollapsibleSection, CopyToClipboard, HealthCounts, robotToHuman, SETTINGS } from '@spinnaker/core';
 
 import type { IKubernetesLoadBalancerDetailsSectionProps } from './IKubernetesLoadBalancerDetailsSectionProps';
+import { extractDataFromLoadBalancerManifest, interpolate } from '../../interpolate';
 
 export function LoadBalancerStatusSection({ loadBalancer }: IKubernetesLoadBalancerDetailsSectionProps) {
   const { manifest } = loadBalancer;
+  const internalDNSNameTemplate =
+    SETTINGS.providers?.kubernetes?.defaults?.internalDNSNameTemplate ||
+    '{{displayName}}.{{namespace}}.svc.cluster.local';
+  const LBData = extractDataFromLoadBalancerManifest(manifest);
+  const DNSName = LBData ? interpolate(internalDNSNameTemplate, LBData) : null;
   return (
     <CollapsibleSection heading="Status" defaultExpanded={true}>
       <dl className="dl-horizontal dl-narrow">
@@ -47,18 +53,34 @@ export function LoadBalancerStatusSection({ loadBalancer }: IKubernetesLoadBalan
             </div>
           </>
         )}
+        {DNSName && (
+          <div>
+            <dt>FQDN</dt>
+            <dd>
+              <CopyToClipboard
+                className="sp-margin-s-right copy-to-clipboard copy-to-clipboard-sm"
+                text={DNSName}
+                toolTip="Copy full DNS name to clipboard"
+              />
+              <a target="_blank" href={`http://${DNSName}`}>
+                {' '}
+                {DNSName}{' '}
+              </a>
+            </dd>
+          </div>
+        )}
         {manifest.manifest.spec.clusterIP && (
           <div>
             <dt>Cluster IP</dt>
             <dd>
-              <a target="_blank" href={`//${manifest.manifest.spec.clusterIP}`}>
-                {manifest.manifest.spec.clusterIP}
-              </a>
               <CopyToClipboard
-                className="sp-margin-s-left copy-to-clipboard copy-to-clipboard-sm"
+                className="sp-margin-s-right copy-to-clipboard copy-to-clipboard-sm"
                 text={manifest.manifest.spec.clusterIP}
                 toolTip="Copy Cluster IP to clipboard"
               />
+              <a target="_blank" href={`//${manifest.manifest.spec.clusterIP}`}>
+                {manifest.manifest.spec.clusterIP}
+              </a>
             </dd>
           </div>
         )}

@@ -15,9 +15,6 @@
  */
 package com.netflix.spinnaker.clouddriver.aws.deploy.ops;
 
-import com.amazonaws.AmazonServiceException;
-import com.amazonaws.services.cloudformation.AmazonCloudFormation;
-import com.amazonaws.services.cloudformation.model.*;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.netflix.spinnaker.clouddriver.aws.deploy.description.DeleteCloudFormationDescription;
 import com.netflix.spinnaker.clouddriver.aws.security.AmazonClientProvider;
@@ -31,6 +28,9 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.util.StringUtils;
+import software.amazon.awssdk.awscore.exception.AwsServiceException;
+import software.amazon.awssdk.services.cloudformation.CloudFormationClient;
+import software.amazon.awssdk.services.cloudformation.model.DeleteStackRequest;
 
 @Slf4j
 public class DeleteCloudFormationAtomicOperation implements AtomicOperation<Map> {
@@ -53,21 +53,21 @@ public class DeleteCloudFormationAtomicOperation implements AtomicOperation<Map>
   @Override
   public Map operate(List priorOutputs) {
     Task task = TaskRepository.threadLocalTask.get();
-    AmazonCloudFormation amazonCloudFormation =
-        amazonClientProvider.getAmazonCloudFormation(
+    CloudFormationClient cloudFormationClient =
+        amazonClientProvider.getAmazonCloudFormationV2(
             description.getCredentials(), description.getRegion());
 
-    DeleteStackRequest deleteStackRequest =
-        new DeleteStackRequest().withStackName(description.getStackName());
+    DeleteStackRequest.Builder requestBuilder =
+        DeleteStackRequest.builder().stackName(description.getStackName());
 
     if (StringUtils.hasText(description.getRoleARN())) {
-      deleteStackRequest.setRoleARN(description.getRoleARN());
+      requestBuilder.roleARN(description.getRoleARN());
     }
 
     try {
       task.updateStatus(BASE_PHASE, "Deleting CloudFormation Stack");
-      amazonCloudFormation.deleteStack(deleteStackRequest);
-    } catch (AmazonServiceException e) {
+      cloudFormationClient.deleteStack(requestBuilder.build());
+    } catch (AwsServiceException e) {
       log.error("Error deleting stack {}", description.getStackName(), e);
       throw e;
     }

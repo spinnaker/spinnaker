@@ -16,7 +16,7 @@
 
 package com.netflix.spinnaker.clouddriver.aws.deploy.ops
 
-import com.amazonaws.services.ec2.model.AttachClassicLinkVpcRequest
+import software.amazon.awssdk.services.ec2.model.AttachClassicLinkVpcRequest
 import com.netflix.spinnaker.clouddriver.aws.security.AmazonClientProvider
 import com.netflix.spinnaker.clouddriver.data.task.Task
 import com.netflix.spinnaker.clouddriver.data.task.TaskRepository
@@ -44,12 +44,12 @@ class AttachClassicLinkVpcAtomicOperation implements AtomicOperation<Void> {
   Void operate(List priorOutputs) {
     def msg = "attach classic link VPC (${description.vpcId}) to ${description.instanceId}."
     task.updateStatus BASE_PHASE, "Initializing $msg"
-    def amazonEC2 = amazonClientProvider.getAmazonEC2(description.credentials, description.region, true)
-    amazonEC2.attachClassicLinkVpc(new AttachClassicLinkVpcRequest(
-      instanceId: description.instanceId,
-      vpcId: description.vpcId,
-      groups: description.securityGroupIds
-    ))
+    def amazonEC2 = amazonClientProvider.getAmazonEC2V2(description.credentials, description.region)
+    amazonEC2.attachClassicLinkVpc(AttachClassicLinkVpcRequest.builder()
+      .instanceId(description.instanceId)
+      .vpcId(description.vpcId)
+      .groups(description.securityGroupIds)
+      .build())
     task.updateStatus BASE_PHASE, "Done executing $msg"
     null
   }

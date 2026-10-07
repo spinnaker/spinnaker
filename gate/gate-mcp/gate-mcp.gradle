@@ -1,0 +1,16 @@
+dependencies {
+  implementation project(":gate-core")
+
+  implementation platform("org.springframework.ai:spring-ai-bom:1.1.8")
+  implementation "org.springframework.ai:spring-ai-starter-mcp-server-webmvc"
+
+  implementation "io.spinnaker.kork:kork-web"
+  implementation "io.spinnaker.kork:kork-retrofit"
+  implementation "io.spinnaker.kork:kork-retrofit2"
+
+  testImplementation "org.springframework.boot:spring-boot-starter-test"
+  testImplementation "org.mockito:mockito-core"
+  testImplementation "com.squareup.retrofit2:retrofit-mock"
+  testImplementation "com.squareup.retrofit2:converter-jackson"
+  testImplementation "com.squareup.okhttp3:mockwebserver"
+}

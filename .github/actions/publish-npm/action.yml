@@ -18,7 +18,7 @@ runs:
         ORG_GRADLE_PROJECT_version: ${{ inputs.version }}
       shell: bash
       run: |
-        ./gradlew :${{ inputs.project }}:webpack
+        ./gradlew :${{ inputs.project }}:viteBuild
 
     - name: Rewrite package.json files
       shell: bash

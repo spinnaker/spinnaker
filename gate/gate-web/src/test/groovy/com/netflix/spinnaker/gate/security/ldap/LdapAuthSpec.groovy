@@ -29,7 +29,7 @@ import groovy.util.logging.Slf4j
 import org.spockframework.spring.SpringBean
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.context.properties.ConfigurationProperties
-import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc
+import org.springframework.boot.webmvc.test.autoconfigure.AutoConfigureMockMvc
 import org.springframework.boot.test.context.SpringBootTest
 import org.springframework.context.ApplicationContext
 import org.springframework.context.annotation.Bean
@@ -46,6 +46,7 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.*
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*
 import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.httpBasic
+import static org.hamcrest.Matchers.containsString
 
 @Slf4j
 @GateSystemTest
@@ -88,10 +89,12 @@ class LdapAuthSpec extends Specification {
     }
 
     when:
+    // Spring Framework 7's MockMvc no longer absolutizes redirect Locations
+    // (real servlet containers still do); assert the relative form here.
     mockMvc.perform(get("/credentials"))
            .andDo(print())
            .andExpect(status().is3xxRedirection())
-           .andExpect(header().string("Location", "http://localhost/login"))
+           .andExpect(header().string("Location", "/login"))
            .andDo(extractSession)
 
     mockMvc.perform(new FormLoginRequestBuilder().user("batman")
@@ -109,6 +112,35 @@ class LdapAuthSpec extends Specification {
 
     then:
     result.response.contentAsString.contains("foo")
+  }
+
+  def "should serve the branded Spinnaker login page instead of the default one"() {
+    when:
+    def result = mockMvc.perform(get("/login"))
+                        .andDo(print())
+                        .andExpect(status().isOk())
+                        .andExpect(content().contentTypeCompatibleWith("text/html"))
+                        .andExpect(content().string(containsString("Sign in")))
+                        .andReturn()
+
+    then:
+    result.response.contentAsString.contains("Sign in · Spinnaker")
+    result.response.contentAsString.contains("action=\"/login\" method=\"post\"")
+    result.response.contentAsString.contains('name="username"')
+    result.response.contentAsString.contains('name="password"')
+    result.response.contentAsString.contains("Login with Username and Password") == false
+  }
+
+  def "should show an error message on the login page after a failed login"() {
+    when:
+    def result = mockMvc.perform(get("/login?error"))
+           .andDo(print())
+           .andExpect(status().isOk())
+           .andExpect(content().string(containsString("Invalid username or password.")))
+           .andReturn()
+
+    then:
+    result.response.contentAsString.contains('banner-error')
   }
 
   static class LdapTestConfig {

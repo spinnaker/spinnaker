@@ -31,7 +31,7 @@ export class BaseBuildTriggerTemplate extends React.Component<
   IBaseBuildTriggerTemplateProps,
   IBaseBuildTriggerTemplateState
 > {
-  private destroy$ = new Subject();
+  private destroy$ = new Subject<void>();
 
   public static formatLabel(trigger: IBuildTrigger): Promise<string> {
     return Promise.resolve(`(${capitalize(trigger.type)}) ${trigger.master}: ${trigger.job}`);

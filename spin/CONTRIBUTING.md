@@ -8,10 +8,11 @@ Interested in contributing to Spinnaker? Please review the [contribution documen
 
 [Install Go 1.17.x](https://golang.org/doc/install).
 
-Clone the repository:
+Clone the monorepo and enter the `spin/` directory:
 
 ```bash
-$ git clone https://github.com/spinnaker/spin
+$ git clone https://github.com/spinnaker/spinnaker
+$ cd spinnaker/spin
 ```
 
 Afterward, use `go build` to build the program. This will automatically fetch dependencies.

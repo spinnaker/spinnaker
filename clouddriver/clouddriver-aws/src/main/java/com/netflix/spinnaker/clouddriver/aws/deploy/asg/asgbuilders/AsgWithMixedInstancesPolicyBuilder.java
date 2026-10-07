@@ -17,12 +17,6 @@
 
 package com.netflix.spinnaker.clouddriver.aws.deploy.asg.asgbuilders;
 
-import com.amazonaws.services.autoscaling.AmazonAutoScaling;
-import com.amazonaws.services.autoscaling.model.CreateAutoScalingGroupRequest;
-import com.amazonaws.services.autoscaling.model.InstancesDistribution;
-import com.amazonaws.services.autoscaling.model.LaunchTemplateSpecification;
-import com.amazonaws.services.autoscaling.model.MixedInstancesPolicy;
-import com.amazonaws.services.ec2.AmazonEC2;
 import com.netflix.spinnaker.clouddriver.aws.deploy.asg.AsgConfigHelper;
 import com.netflix.spinnaker.clouddriver.aws.deploy.asg.AsgLifecycleHookWorker;
 import com.netflix.spinnaker.clouddriver.aws.deploy.asg.AutoScalingWorker.AsgConfiguration;
@@ -31,6 +25,12 @@ import com.netflix.spinnaker.clouddriver.aws.services.SecurityGroupService;
 import com.netflix.spinnaker.clouddriver.data.task.Task;
 import com.netflix.spinnaker.config.AwsConfiguration.DeployDefaults;
 import lombok.extern.slf4j.Slf4j;
+import software.amazon.awssdk.services.autoscaling.AutoScalingClient;
+import software.amazon.awssdk.services.autoscaling.model.CreateAutoScalingGroupRequest;
+import software.amazon.awssdk.services.autoscaling.model.InstancesDistribution;
+import software.amazon.awssdk.services.autoscaling.model.LaunchTemplateSpecification;
+import software.amazon.awssdk.services.autoscaling.model.MixedInstancesPolicy;
+import software.amazon.awssdk.services.ec2.Ec2Client;
 
 /**
  * A builder used to build an AWS Autoscaling group with mixed instances policy, backed by EC2
@@ -46,8 +46,8 @@ public class AsgWithMixedInstancesPolicyBuilder extends AsgBuilder {
       LaunchTemplateService ec2LtService,
       SecurityGroupService securityGroupService,
       DeployDefaults deployDefaults,
-      AmazonAutoScaling autoScaling,
-      AmazonEC2 ec2,
+      AutoScalingClient autoScaling,
+      Ec2Client ec2,
       AsgLifecycleHookWorker asgLifecycleHookWorker) {
     super(autoScaling, ec2, asgLifecycleHookWorker);
 
@@ -64,47 +64,48 @@ public class AsgWithMixedInstancesPolicyBuilder extends AsgBuilder {
     config = AsgConfigHelper.setAppSecurityGroups(config, securityGroupService, deployDefaults);
 
     // create EC2 LaunchTemplate
-    final com.amazonaws.services.ec2.model.LaunchTemplate ec2Lt =
+    final software.amazon.awssdk.services.ec2.model.LaunchTemplate ec2Lt =
         ec2LtService.createLaunchTemplate(
             config, asgName, AsgConfigHelper.createName(asgName, null));
 
     // create ASG LaunchTemplate spec
     LaunchTemplateSpecification asgLtSpec =
-        new LaunchTemplateSpecification()
-            .withLaunchTemplateId(ec2Lt.getLaunchTemplateId())
-            .withVersion("$Latest");
-
-    // create ASG LaunchTemplate
-    com.amazonaws.services.autoscaling.model.LaunchTemplate asgLt =
-        new com.amazonaws.services.autoscaling.model.LaunchTemplate()
-            .withLaunchTemplateSpecification(asgLtSpec);
+        LaunchTemplateSpecification.builder()
+            .launchTemplateId(ec2Lt.launchTemplateId())
+            .version("$Latest")
+            .build();
 
     // create and add overrides
     // https://docs.aws.amazon.com/autoscaling/ec2/userguide/asg-override-options.html
-    asgLt.withOverrides(
-        AsgConfigHelper.getLaunchTemplateOverrides(
-            config.getLaunchTemplateOverridesForInstanceType()));
+    // create ASG LaunchTemplate
+    software.amazon.awssdk.services.autoscaling.model.LaunchTemplate asgLt =
+        software.amazon.awssdk.services.autoscaling.model.LaunchTemplate.builder()
+            .launchTemplateSpecification(asgLtSpec)
+            .overrides(
+                AsgConfigHelper.getLaunchTemplateOverrides(
+                    config.getLaunchTemplateOverridesForInstanceType()))
+            .build();
 
     // configure instance distribution
     // https://docs.aws.amazon.com/autoscaling/ec2/userguide/asg-purchase-options.html
     InstancesDistribution dist =
-        new InstancesDistribution()
-            .withOnDemandBaseCapacity(config.getOnDemandBaseCapacity())
-            .withOnDemandPercentageAboveBaseCapacity(
-                config.getOnDemandPercentageAboveBaseCapacity())
-            .withSpotInstancePools(config.getSpotInstancePools())
-            .withSpotMaxPrice(config.getSpotMaxPrice())
-            .withSpotAllocationStrategy(config.getSpotAllocationStrategy());
+        InstancesDistribution.builder()
+            .onDemandBaseCapacity(config.getOnDemandBaseCapacity())
+            .onDemandPercentageAboveBaseCapacity(config.getOnDemandPercentageAboveBaseCapacity())
+            .spotInstancePools(config.getSpotInstancePools())
+            .spotMaxPrice(config.getSpotMaxPrice())
+            .spotAllocationStrategy(config.getSpotAllocationStrategy())
+            .build();
 
     // create mixed instances policy with overrides and instance distribution
     final MixedInstancesPolicy mixedInsPolicy =
-        new MixedInstancesPolicy().withLaunchTemplate(asgLt).withInstancesDistribution(dist);
+        MixedInstancesPolicy.builder().launchTemplate(asgLt).instancesDistribution(dist).build();
 
     task.updateStatus(
         taskPhase,
         "Deploying ASG " + asgName + " with mixed instances policy " + mixedInsPolicy.toString());
     CreateAutoScalingGroupRequest request = buildPartialRequest(task, taskPhase, asgName, config);
 
-    return request.withMixedInstancesPolicy(mixedInsPolicy);
+    return request.toBuilder().mixedInstancesPolicy(mixedInsPolicy).build();
   }
 }

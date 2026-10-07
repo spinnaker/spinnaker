@@ -48,6 +48,6 @@ class UpsertGoogleAutoscalingPolicyDescriptionValidator extends
     }
 
     helper.validateAutoscalingPolicy(description.autoscalingPolicy)
-    helper.validateAutoHealingPolicy(description.autoHealingPolicy, false)
+    helper.validateAutoHealingPolicy(description.autoHealingPolicy)
   }
 }

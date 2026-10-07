@@ -16,8 +16,8 @@
 
 package com.netflix.spinnaker.clouddriver.aws.provider.agent
 
-import com.amazonaws.services.elasticloadbalancingv2.AmazonElasticLoadBalancing
-import com.amazonaws.services.elasticloadbalancingv2.model.*
+import software.amazon.awssdk.services.elasticloadbalancingv2.ElasticLoadBalancingV2Client
+import software.amazon.awssdk.services.elasticloadbalancingv2.model.*
 import com.fasterxml.jackson.core.type.TypeReference
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.netflix.spectator.api.Registry
@@ -31,27 +31,18 @@ import com.netflix.spinnaker.cats.provider.ProviderCache
 import com.netflix.spinnaker.clouddriver.aws.AmazonCloudProvider
 import com.netflix.spinnaker.clouddriver.aws.data.ArnUtils
 import com.netflix.spinnaker.clouddriver.aws.data.Keys
-import com.netflix.spinnaker.clouddriver.aws.edda.EddaApi
 import com.netflix.spinnaker.clouddriver.aws.model.InstanceTargetGroupState
 import com.netflix.spinnaker.clouddriver.aws.model.InstanceTargetGroups
-import com.netflix.spinnaker.clouddriver.aws.model.edda.EddaRule
-import com.netflix.spinnaker.clouddriver.aws.model.edda.TargetGroupAttributes
-import com.netflix.spinnaker.clouddriver.aws.model.edda.TargetGroupHealth
 import com.netflix.spinnaker.clouddriver.aws.security.AmazonClientProvider
-import com.netflix.spinnaker.clouddriver.aws.security.EddaTimeoutConfig
 import com.netflix.spinnaker.clouddriver.aws.security.NetflixAmazonCredentials
 import com.netflix.spinnaker.clouddriver.cache.OnDemandAgent
 import com.netflix.spinnaker.clouddriver.core.provider.agent.HealthProvidingCachingAgent
-import com.netflix.spinnaker.kork.retrofit.Retrofit2SyncCall
 
 import static com.netflix.spinnaker.cats.agent.AgentDataType.Authority.AUTHORITATIVE
 import static com.netflix.spinnaker.cats.agent.AgentDataType.Authority.INFORMATIVE
 import static com.netflix.spinnaker.clouddriver.core.provider.agent.Namespace.*
 
 class AmazonApplicationLoadBalancerCachingAgent extends AbstractAmazonLoadBalancerCachingAgent implements HealthProvidingCachingAgent {
-  final EddaApi eddaApi
-  final EddaTimeoutConfig eddaTimeoutConfig
-
   static final Collection<AgentDataType> types = Collections.unmodifiableCollection([
     AUTHORITATIVE.forType(LOAD_BALANCERS.ns),
     AUTHORITATIVE.forType(TARGET_GROUPS.ns),
@@ -66,14 +57,10 @@ class AmazonApplicationLoadBalancerCachingAgent extends AbstractAmazonLoadBalanc
                                             AmazonClientProvider amazonClientProvider,
                                             NetflixAmazonCredentials account,
                                             String region,
-                                            EddaApi eddaApi,
                                             ObjectMapper objectMapper,
                                             Registry registry,
-                                            EddaTimeoutConfig eddaTimeoutConfig,
                                             AmazonCachingAgentFilter amazonCachingAgentFilter) {
     super(amazonCloudProvider, amazonClientProvider, account, region, objectMapper, registry, amazonCachingAgentFilter)
-    this.eddaApi = eddaApi
-    this.eddaTimeoutConfig = eddaTimeoutConfig
   }
 
   @Override
@@ -115,13 +102,13 @@ class AmazonApplicationLoadBalancerCachingAgent extends AbstractAmazonLoadBalanc
       return null
     }
 
-    def loadBalancing = amazonClientProvider.getAmazonElasticLoadBalancingV2(account, region, true)
+    def loadBalancing = amazonClientProvider.getElasticLoadBalancingV2Client(account, region)
 
     LoadBalancer loadBalancer = metricsSupport.readData {
       try {
         return loadBalancing.describeLoadBalancers(
-          new DescribeLoadBalancersRequest().withNames([data.loadBalancerName as String])
-        ).loadBalancers.get(0)
+          DescribeLoadBalancersRequest.builder().names([data.loadBalancerName as String]).build()
+        ).loadBalancers().get(0)
       } catch (LoadBalancerNotFoundException ignored) {
         return null
       }
@@ -129,13 +116,13 @@ class AmazonApplicationLoadBalancerCachingAgent extends AbstractAmazonLoadBalanc
 
     List<TargetGroup> targetGroups = metricsSupport.readData {
       return loadBalancing.describeTargetGroups(
-        new DescribeTargetGroupsRequest().withLoadBalancerArn(loadBalancer.loadBalancerArn)
-      ).targetGroups
+        DescribeTargetGroupsRequest.builder().loadBalancerArn(loadBalancer.loadBalancerArn()).build()
+      ).targetGroups()
     }
 
-    TargetGroupAssociations targetGroupAssociations = this.buildTargetGroupAssociations(loadBalancing, targetGroups, false)
-    ListenerAssociations listenerAssociations = this.buildListenerAssociations(loadBalancing, [loadBalancer], false)
-    Map<String, List<LoadBalancerAttribute>> loadBalancerAttributes = this.buildLoadBalancerAttributes(loadBalancing, [loadBalancer], false)
+    TargetGroupAssociations targetGroupAssociations = this.buildTargetGroupAssociations(loadBalancing, targetGroups)
+    ListenerAssociations listenerAssociations = this.buildListenerAssociations(loadBalancing, [loadBalancer])
+    Map<String, List<LoadBalancerAttribute>> loadBalancerAttributes = this.buildLoadBalancerAttributes(loadBalancing, [loadBalancer])
 
     def cacheResult = metricsSupport.transformData {
       buildCacheResult(
@@ -167,7 +154,7 @@ class AmazonApplicationLoadBalancerCachingAgent extends AbstractAmazonLoadBalanc
           Keys.getLoadBalancerKey(
             data.loadBalancerName as String,
             account.name, region,
-            loadBalancer ? loadBalancer.getVpcId() : null,
+            loadBalancer ? loadBalancer.vpcId() : null,
             data.loadBalancerType as String
           ),
           10 * 60,
@@ -198,28 +185,19 @@ class AmazonApplicationLoadBalancerCachingAgent extends AbstractAmazonLoadBalanc
     )
   }
 
-  TargetGroupAssociations buildTargetGroupAssociations(AmazonElasticLoadBalancing loadBalancing, List<TargetGroup> allTargetGroups, boolean useEdda) {
+  TargetGroupAssociations buildTargetGroupAssociations(ElasticLoadBalancingV2Client loadBalancing, List<TargetGroup> allTargetGroups) {
     // Get all the target group health and attributes
-    Map<String, List<TargetHealthDescription>> targetGroupArnToHealths
-    Map<String, List<TargetGroupAttribute>> targetGroupArnToAttributes
-    if (useEdda) {
-      List<TargetGroupAttributes> targetGroupAttributesList = Retrofit2SyncCall.execute(eddaApi.targetGroupAttributes())
-      List<TargetGroupHealth> targetGroupHealthList = Retrofit2SyncCall.execute(eddaApi.targetGroupHealth())
-      targetGroupArnToAttributes = targetGroupAttributesList.collectEntries { [(it.targetGroupArn): it.attributes] }
-      targetGroupArnToHealths = targetGroupHealthList.collectEntries { [(it.targetGroupArn): it.health] }
-    } else {
-      targetGroupArnToHealths = new HashMap<String, List<TargetHealthDescription>>()
-      targetGroupArnToAttributes = new HashMap<String, List<TargetGroupAttribute>>()
-      for (TargetGroup targetGroup : allTargetGroups) {
-        List<TargetHealthDescription> targetHealthDescriptions = loadBalancing.describeTargetHealth(
-          new DescribeTargetHealthRequest().withTargetGroupArn(targetGroup.targetGroupArn)
-        ).targetHealthDescriptions
-        targetGroupArnToHealths.put(targetGroup.targetGroupArn, targetHealthDescriptions)
-        List<TargetGroupAttribute> targetGroupAttributes = loadBalancing.describeTargetGroupAttributes(
-          new DescribeTargetGroupAttributesRequest().withTargetGroupArn(targetGroup.targetGroupArn)
-        ).attributes
-        targetGroupArnToAttributes.put(targetGroup.targetGroupArn, targetGroupAttributes)
-      }
+    Map<String, List<TargetHealthDescription>> targetGroupArnToHealths = new HashMap<String, List<TargetHealthDescription>>()
+    Map<String, List<TargetGroupAttribute>> targetGroupArnToAttributes = new HashMap<String, List<TargetGroupAttribute>>()
+    for (TargetGroup targetGroup : allTargetGroups) {
+      List<TargetHealthDescription> targetHealthDescriptions = loadBalancing.describeTargetHealth(
+        DescribeTargetHealthRequest.builder().targetGroupArn(targetGroup.targetGroupArn()).build()
+      ).targetHealthDescriptions()
+      targetGroupArnToHealths.put(targetGroup.targetGroupArn(), targetHealthDescriptions)
+      List<TargetGroupAttribute> targetGroupAttributes = loadBalancing.describeTargetGroupAttributes(
+        DescribeTargetGroupAttributesRequest.builder().targetGroupArn(targetGroup.targetGroupArn()).build()
+      ).attributes()
+      targetGroupArnToAttributes.put(targetGroup.targetGroupArn(), targetGroupAttributes)
     }
 
     return [
@@ -228,73 +206,45 @@ class AmazonApplicationLoadBalancerCachingAgent extends AbstractAmazonLoadBalanc
     ]
   }
 
-  Map<String, List<LoadBalancerAttribute>> buildLoadBalancerAttributes(AmazonElasticLoadBalancing loadBalancing,
-                                                                       List<LoadBalancer> allLoadBalancers,
-                                                                       boolean useEdda) {
-    Map<String, List<LoadBalancerAttribute>> loadBalancerArnToAttributes
-    if (useEdda) {
-      loadBalancerArnToAttributes = Retrofit2SyncCall.execute(eddaApi.applicationLoadBalancerAttributes()).collectEntries {
-        [(it.loadBalancerArn): it.attributes]
-      }
-    } else {
-      loadBalancerArnToAttributes = new HashMap<String, List<LoadBalancerAttribute>>()
-      for (LoadBalancer loadBalancer : allLoadBalancers) {
-        loadBalancerArnToAttributes.put(loadBalancer.loadBalancerArn, loadBalancing.describeLoadBalancerAttributes(
-          new DescribeLoadBalancerAttributesRequest().withLoadBalancerArn(loadBalancer.loadBalancerArn)).attributes)
-      }
+  Map<String, List<LoadBalancerAttribute>> buildLoadBalancerAttributes(ElasticLoadBalancingV2Client loadBalancing,
+                                                                       List<LoadBalancer> allLoadBalancers) {
+    Map<String, List<LoadBalancerAttribute>> loadBalancerArnToAttributes = new HashMap<String, List<LoadBalancerAttribute>>()
+    for (LoadBalancer loadBalancer : allLoadBalancers) {
+      loadBalancerArnToAttributes.put(loadBalancer.loadBalancerArn(), loadBalancing.describeLoadBalancerAttributes(
+        DescribeLoadBalancerAttributesRequest.builder().loadBalancerArn(loadBalancer.loadBalancerArn()).build()).attributes())
     }
     return loadBalancerArnToAttributes
   }
 
-  ListenerAssociations buildListenerAssociations(AmazonElasticLoadBalancing loadBalancing,
-                                                 List<LoadBalancer> allLoadBalancers,
-                                                 boolean useEdda) {
+  ListenerAssociations buildListenerAssociations(ElasticLoadBalancingV2Client loadBalancing,
+                                                 List<LoadBalancer> allLoadBalancers) {
     Map<String, List<Listener>> loadBalancerArnToListeners = allLoadBalancers.collectEntries {
-      [(it.loadBalancerArn): []]
+      [(it.loadBalancerArn()): []]
     }
     Map<Listener, List<Rule>> listenerToRules = [:].withDefault { [] }
 
-    if (useEdda) {
-      loadBalancerArnToListeners.putAll(
-        Retrofit2SyncCall.execute(eddaApi.allListeners()).flatten().groupBy { Listener listener ->
-          listener.loadBalancerArn
-        }
-      )
+    for (LoadBalancer lb : allLoadBalancers) {
+      List<Listener> listenerData = new ArrayList<>()
 
-      Map<String, Listener> listenerByListenerArn = loadBalancerArnToListeners.values().flatten().collectEntries {
-        [(it.listenerArn): it]
-      }
-
-      Retrofit2SyncCall.execute(eddaApi.allRules()).flatten().each { EddaRule eddaRule ->
-        def listener = listenerByListenerArn.get(eddaRule.listenerArn)
-        if (listener) {
-          listenerToRules[listener].addAll(eddaRule.rules)
+      DescribeListenersRequest describeListenersRequest = DescribeListenersRequest.builder().loadBalancerArn(lb.loadBalancerArn()).build()
+      while (true) {
+        DescribeListenersResponse result = loadBalancing.describeListeners(describeListenersRequest)
+        listenerData.addAll(result.listeners())
+        if (result.nextMarker()) {
+          describeListenersRequest = describeListenersRequest.toBuilder().marker(result.nextMarker()).build()
+        } else {
+          break
         }
       }
-    } else {
-      for (LoadBalancer lb : allLoadBalancers) {
-        List<Listener> listenerData = new ArrayList<>()
+      loadBalancerArnToListeners.put(lb.loadBalancerArn(), listenerData)
 
-        DescribeListenersRequest describeListenersRequest = new DescribeListenersRequest(loadBalancerArn: lb.loadBalancerArn)
-        while (true) {
-          DescribeListenersResult result = loadBalancing.describeListeners(describeListenersRequest)
-          listenerData.addAll(result.listeners)
-          if (result.nextMarker) {
-            describeListenersRequest.withMarker(result.nextMarker)
-          } else {
-            break
-          }
-        }
-        loadBalancerArnToListeners.put(lb.loadBalancerArn, listenerData)
-
-        for (listener in listenerData) {
-          try {
-            DescribeRulesRequest describeRulesRequest = new DescribeRulesRequest(listenerArn: listener.listenerArn)
-            DescribeRulesResult result = loadBalancing.describeRules(describeRulesRequest)
-            listenerToRules.get(listener).addAll(result.rules)
-          } catch (ListenerNotFoundException ignore) {
-            // should be fine
-          }
+      for (listener in listenerData) {
+        try {
+          DescribeRulesRequest describeRulesRequest = DescribeRulesRequest.builder().listenerArn(listener.listenerArn()).build()
+          DescribeRulesResponse result = loadBalancing.describeRules(describeRulesRequest)
+          listenerToRules.get(listener).addAll(result.rules())
+        } catch (ListenerNotFoundException ignore) {
+          // should be fine
         }
       }
     }
@@ -307,22 +257,18 @@ class AmazonApplicationLoadBalancerCachingAgent extends AbstractAmazonLoadBalanc
 
   @Override
   CacheResult loadDataInternal(ProviderCache providerCache) {
-    AmazonElasticLoadBalancing loadBalancing = amazonClientProvider.getAmazonElasticLoadBalancingV2(account, region)
-    boolean useEdda = account.eddaEnabled && eddaTimeoutConfig.albEnabled
+    ElasticLoadBalancingV2Client loadBalancing = amazonClientProvider.getElasticLoadBalancingV2Client(account, region)
 
-    Long start = useEdda ? null : System.currentTimeMillis()
+    Long start = System.currentTimeMillis()
 
     // Get all the load balancers
     List<LoadBalancer> allLoadBalancers = []
-    DescribeLoadBalancersRequest describeLoadBalancerRequest = new DescribeLoadBalancersRequest()
+    DescribeLoadBalancersRequest describeLoadBalancerRequest = DescribeLoadBalancersRequest.builder().build()
     while (true) {
       def resp = loadBalancing.describeLoadBalancers(describeLoadBalancerRequest)
-      if (useEdda) {
-        start = amazonClientProvider.lastModified ?: 0
-      }
-      allLoadBalancers.addAll(resp.loadBalancers)
-      if (resp.nextMarker) {
-        describeLoadBalancerRequest.withMarker(resp.nextMarker)
+      allLoadBalancers.addAll(resp.loadBalancers())
+      if (resp.nextMarker()) {
+        describeLoadBalancerRequest = describeLoadBalancerRequest.toBuilder().marker(resp.nextMarker()).build()
       } else {
         break
       }
@@ -330,63 +276,56 @@ class AmazonApplicationLoadBalancerCachingAgent extends AbstractAmazonLoadBalanc
 
     // filter load balancers if there is any filter configuration established
     if (amazonCachingAgentFilter.hasTagFilter()) {
-      def loadBalancerPartitions = allLoadBalancers*.loadBalancerArn.collate(DESCRIBE_TAG_LIMIT)
+      def loadBalancerPartitions = allLoadBalancers*.loadBalancerArn().collate(DESCRIBE_TAG_LIMIT)
       Map<String, List<AmazonCachingAgentFilter.ResourceTag>> loadBalancerTags = [:]
       loadBalancerPartitions.each {loadBalancerPartition ->
-        def tagsRequest = new DescribeTagsRequest().withResourceArns(loadBalancerPartition)
+        def tagsRequest = DescribeTagsRequest.builder().resourceArns(loadBalancerPartition).build()
         def tagsResponse = loadBalancing.describeTags(tagsRequest)
-        loadBalancerTags.putAll(tagsResponse.tagDescriptions?.collectEntries {
-          [(it.resourceArn): it.tags?.collect {new AmazonCachingAgentFilter.ResourceTag(it.key, it.value)} ]
+        loadBalancerTags.putAll(tagsResponse.tagDescriptions()?.collectEntries {
+          [(it.resourceArn()): it.tags()?.collect {new AmazonCachingAgentFilter.ResourceTag(it.key(), it.value())} ]
         })
       }
 
       allLoadBalancers = allLoadBalancers.findAll { lb ->
-        return amazonCachingAgentFilter.shouldRetainResource(loadBalancerTags?.get(lb.loadBalancerArn))
+        return amazonCachingAgentFilter.shouldRetainResource(loadBalancerTags?.get(lb.loadBalancerArn()))
       }
     }
 
-    def loadBalancerAttributes = this.buildLoadBalancerAttributes(loadBalancing, allLoadBalancers, useEdda)
+    def loadBalancerAttributes = this.buildLoadBalancerAttributes(loadBalancing, allLoadBalancers)
 
     // Get all the target groups
     List<TargetGroup> allTargetGroups = []
-    DescribeTargetGroupsRequest describeTargetGroupsRequest = new DescribeTargetGroupsRequest()
-    HashSet<String> allLoadBalancerArns = new HashSet(allLoadBalancers*.loadBalancerArn)
+    DescribeTargetGroupsRequest describeTargetGroupsRequest = DescribeTargetGroupsRequest.builder().build()
+    HashSet<String> allLoadBalancerArns = new HashSet(allLoadBalancers*.loadBalancerArn())
     while (true) {
       def resp = loadBalancing.describeTargetGroups(describeTargetGroupsRequest)
 
       // only keep target groups which are for the set of filtered load balancers
-      def targetGroups = resp.targetGroups
+      def targetGroups = new ArrayList<>(resp.targetGroups())
       if (amazonCachingAgentFilter.hasTagFilter()) {
         targetGroups?.retainAll{ tg ->
-          tg.loadBalancerArns?.find { tgLB ->
+          tg.loadBalancerArns()?.find { tgLB ->
             allLoadBalancerArns.contains(tgLB)
           } != null
         }
       }
 
       allTargetGroups.addAll(targetGroups)
-      if (resp.nextMarker) {
-        describeTargetGroupsRequest.withMarker(resp.nextMarker)
+      if (resp.nextMarker()) {
+        describeTargetGroupsRequest = describeTargetGroupsRequest.toBuilder().marker(resp.nextMarker()).build()
       } else {
         break
       }
     }
 
-    def targetGroupAssociations = this.buildTargetGroupAssociations(loadBalancing, allTargetGroups, useEdda)
-    def listenerAssociations = this.buildListenerAssociations(loadBalancing, allLoadBalancers, useEdda)
-
-    if (!start) {
-      if (useEdda && allTargetGroups) {
-        log.warn("${agentType} did not receive lastModified value in response metadata")
-      }
-      start = System.currentTimeMillis()
-    }
+    def targetGroupAssociations = this.buildTargetGroupAssociations(loadBalancing, allTargetGroups)
+    def listenerAssociations = this.buildListenerAssociations(loadBalancing, allLoadBalancers)
 
     def evictableOnDemandCacheDatas = []
     def usableOnDemandCacheDatas = []
 
     def loadBalancerKeys = allLoadBalancers.collect {
-      Keys.getLoadBalancerKey(it.loadBalancerName, account.name, region, it.getVpcId(), it.getType())
+      Keys.getLoadBalancerKey(it.loadBalancerName(), account.name, region, it.vpcId(), it.typeAsString())
     } as Set<String>
     def pendingOnDemandRequestKeys = providerCache
       .filterIdentifiers(ON_DEMAND.ns, Keys.getLoadBalancerKey("*", account.name, region, "*", "*"))
@@ -450,11 +389,11 @@ class AmazonApplicationLoadBalancerCachingAgent extends AbstractAmazonLoadBalanc
     Map<String, CacheData> targetGroups = CacheHelpers.cache()
 
     Map<String, String> targetGroupNameToType = allTargetGroups.collectEntries {
-      [(it.targetGroupName): it.targetType]
+      [(it.targetGroupName()): it.targetTypeAsString()]
     }
 
     for (LoadBalancer lb : allLoadBalancers) {
-      String loadBalancerKey = Keys.getLoadBalancerKey(lb.loadBalancerName, account.name, region, lb.vpcId, lb.type)
+      String loadBalancerKey = Keys.getLoadBalancerKey(lb.loadBalancerName(), account.name, region, lb.vpcId(), lb.typeAsString())
 
       def onDemandCacheData = onDemandCacheDataByLb ? onDemandCacheDataByLb[loadBalancerKey] : null
       if (onDemandCacheData) {
@@ -485,7 +424,7 @@ class AmazonApplicationLoadBalancerCachingAgent extends AbstractAmazonLoadBalanc
         def listeners = []
         Set<String> allTargetGroupKeys = []
         String vpcId = Keys.parse(loadBalancerKey).vpcId
-        def listenerData = listenerAssociations.loadBalancerArnToListeners.get(lb.loadBalancerArn)
+        def listenerData = listenerAssociations.loadBalancerArnToListeners.get(lb.loadBalancerArn())
         for (Listener listener : listenerData) {
 
           Map<String, Object> listenerAttributes = objectMapper.convertValue(listener, ATTRIBUTES)
@@ -530,25 +469,25 @@ class AmazonApplicationLoadBalancerCachingAgent extends AbstractAmazonLoadBalanc
 
         lbAttributes.listeners = listeners
 
-        if (loadBalancerAttributes.containsKey(lb.loadBalancerArn)) {
-          lbAttributes.attributes = loadBalancerAttributes.get(lb.loadBalancerArn)
+        if (loadBalancerAttributes.containsKey(lb.loadBalancerArn())) {
+          lbAttributes.attributes = loadBalancerAttributes.get(lb.loadBalancerArn())
           LoadBalancerAttribute deletionProtectionAttribute = lbAttributes.attributes?.find {
-            it.key == 'deletion_protection.enabled'
+            it.key() == 'deletion_protection.enabled'
           }
           if (deletionProtectionAttribute != null) {
-            lbAttributes.deletionProtection = Boolean.parseBoolean(deletionProtectionAttribute.getValue())
+            lbAttributes.deletionProtection = Boolean.parseBoolean(deletionProtectionAttribute.value())
           }
           LoadBalancerAttribute loadBalancingCrossZoneAttribute = lbAttributes.attributes?.find {
-            it.key == 'load_balancing.cross_zone.enabled'
+            it.key() == 'load_balancing.cross_zone.enabled'
           }
           if (loadBalancingCrossZoneAttribute != null) {
-            lbAttributes.loadBalancingCrossZone = Boolean.parseBoolean(loadBalancingCrossZoneAttribute.getValue())
+            lbAttributes.loadBalancingCrossZone = Boolean.parseBoolean(loadBalancingCrossZoneAttribute.value())
           }
           LoadBalancerAttribute idleTimeoutAttribute = lbAttributes.attributes?.find {
-            it.key == 'idle_timeout.timeout_seconds'
+            it.key() == 'idle_timeout.timeout_seconds'
           }
           if (idleTimeoutAttribute != null) {
-            lbAttributes.idleTimeout = Integer.parseInt(idleTimeoutAttribute.getValue())
+            lbAttributes.idleTimeout = Integer.parseInt(idleTimeoutAttribute.value())
           }
         }
 
@@ -561,31 +500,31 @@ class AmazonApplicationLoadBalancerCachingAgent extends AbstractAmazonLoadBalanc
 
     List<InstanceTargetGroupState> instanceTargetGroupStates = []
     for (TargetGroup targetGroup : allTargetGroups) {
-      String targetGroupId = Keys.getTargetGroupKey(targetGroup.targetGroupName, account.name, region, targetGroup.targetType, targetGroup.vpcId)
+      String targetGroupId = Keys.getTargetGroupKey(targetGroup.targetGroupName(), account.name, region, targetGroup.targetTypeAsString(), targetGroup.vpcId())
       // Get associated load balancer keys
-      Collection<String> loadBalancerIds = targetGroup.loadBalancerArns.collect {
+      Collection<String> loadBalancerIds = targetGroup.loadBalancerArns().collect {
         String lbName = ArnUtils.extractLoadBalancerName(it).get()
         String lbType = ArnUtils.extractLoadBalancerType(it)
-        Keys.getLoadBalancerKey(lbName, account.name, region, targetGroup.vpcId, lbType)
+        Keys.getLoadBalancerKey(lbName, account.name, region, targetGroup.vpcId(), lbType)
       }
 
       // Collect health information for the target group and instance ids
       List<String> instanceIds = new ArrayList<String>()
-      List<TargetHealthDescription> targetHealthDescriptions = targetGroupAssociations.targetGroupArnToHealths.get(targetGroup.targetGroupArn)
+      List<TargetHealthDescription> targetHealthDescriptions = targetGroupAssociations.targetGroupArnToHealths.get(targetGroup.targetGroupArn())
       for (TargetHealthDescription targetHealthDescription : targetHealthDescriptions) {
         instanceTargetGroupStates << new InstanceTargetGroupState(
-          targetHealthDescription.target.id,
-          ArnUtils.extractTargetGroupName(targetGroup.targetGroupArn).get(),
-          targetHealthDescription.targetHealth.state,
-          targetHealthDescription.targetHealth.reason,
-          targetHealthDescription.targetHealth.description
+          targetHealthDescription.target().id(),
+          ArnUtils.extractTargetGroupName(targetGroup.targetGroupArn()).get(),
+          targetHealthDescription.targetHealth().stateAsString(),
+          targetHealthDescription.targetHealth().reasonAsString(),
+          targetHealthDescription.targetHealth().description()
         )
-        instanceIds << targetHealthDescription.target.id
+        instanceIds << targetHealthDescription.target().id()
       }
 
       // Get target group attributes
-      Map<String, String> tgAttributes = targetGroupAssociations.targetGroupArnToAttributes.get(targetGroup.targetGroupArn)?.collectEntries {
-        [(it.key): it.value]
+      Map<String, String> tgAttributes = targetGroupAssociations.targetGroupArnToAttributes.get(targetGroup.targetGroupArn())?.collectEntries {
+        [(it.key()): it.value()]
       }
 
       Map<String, Object> tgCacheAttributes = objectMapper.convertValue(targetGroup, ATTRIBUTES)

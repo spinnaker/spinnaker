@@ -87,7 +87,7 @@ class RedisPermissionsRepositorySpec extends Specification {
   Clock clock = new TestClock()
 
   def setupSpec() {
-    embeddedRedis = new GenericContainer(DockerImageName.parse("library/redis:5-alpine")).withExposedPorts(6379)
+    embeddedRedis = new GenericContainer(DockerImageName.parse("valkey/valkey:8")).withExposedPorts(6379)
     embeddedRedis.start()
     def jedisPool = new JedisPool(embeddedRedis.host, embeddedRedis.getMappedPort(6379))
     jedis = jedisPool.getResource()
@@ -431,7 +431,7 @@ class RedisPermissionsRepositorySpec extends Specification {
                  .setAdmin(true))
 
     then:
-    jedis.keys("*").size() == 6 // users, accounts, applications, roles, and reverse-index roles.
+    jedis.keys("*").size() == 9 // users, accounts, applications, roles, their digests, and reverse-index roles.
     jedis.sismember("unittests:permissions:admin", "testuser")
 
     when:

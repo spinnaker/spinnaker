@@ -16,12 +16,12 @@
 
 package com.netflix.spinnaker.clouddriver.aws.agent
 
-import com.amazonaws.services.ec2.AmazonEC2
-import com.amazonaws.services.ec2.model.AttachClassicLinkVpcRequest
-import com.amazonaws.services.ec2.model.ClassicLinkInstance
-import com.amazonaws.services.ec2.model.DescribeVpcClassicLinkResult
-import com.amazonaws.services.ec2.model.Instance
-import com.amazonaws.services.ec2.model.Tag
+import software.amazon.awssdk.services.ec2.Ec2Client
+import software.amazon.awssdk.services.ec2.model.AttachClassicLinkVpcRequest
+import software.amazon.awssdk.services.ec2.model.ClassicLinkInstance
+import software.amazon.awssdk.services.ec2.model.DescribeVpcClassicLinkResponse
+import software.amazon.awssdk.services.ec2.model.Instance
+import software.amazon.awssdk.services.ec2.model.Tag
 import com.netflix.spinnaker.config.AwsConfiguration
 import com.netflix.spinnaker.clouddriver.aws.TestCredential
 import com.netflix.spinnaker.clouddriver.aws.security.AmazonClientProvider
@@ -47,17 +47,15 @@ class ReconcileClassicLinkSecurityGroupsAgentSpec extends Specification {
     reconcileClassicLinkAccounts: ["test"],
     addAppGroupsToClassicLink: true
   )
-  def ec2 = Mock(AmazonEC2)
+  def ec2 = Mock(Ec2Client)
   def amazonClientProvider = Stub(AmazonClientProvider) {
-    getAmazonEC2(_, _, _) >> ec2
+    getAmazonEC2V2(_, _) >> ec2
   }
 
   def agent = buildAgent(test)
 
-  // We convert this to a Date in "should filter instances that havent been up
-  // long enough", but Date objects can't store nanosecond precision, meaning
-  // our before/after calculations are off by nanoseconds. Just truncate this
-  // down to something a Date can handle.
+  // Truncate to milliseconds so equality checks against a fixed clock aren't
+  // thrown off by nanosecond precision.
   @Shared
   Instant currentTime = Instant.now().truncatedTo(ChronoUnit.MILLIS)
 
@@ -102,24 +100,24 @@ class ReconcileClassicLinkSecurityGroupsAgentSpec extends Specification {
     agent.run()
 
     then:
-    1 * ec2.describeVpcClassicLink() >> new DescribeVpcClassicLinkResult()
+    1 * ec2.describeVpcClassicLink() >> DescribeVpcClassicLinkResponse.builder().build()
     0 * _
   }
 
   def "should filter instances that havent been up long enough"() {
     given:
-    Instance i = new Instance(launchTime: launchTime)
+    Instance i = Instance.builder().launchTime(launchTime).build()
 
     expect:
     agent.isInstanceOldEnough(i) == expected
 
     where:
-    launchTime                                                                                                                       | expected
-    null                                                                                                                             | false
-    new Date(currentTime.toEpochMilli())                                                                                             | false
-    new Date(currentTime.minusMillis(ReconcileClassicLinkSecurityGroupsAgent.DEFAULT_REQUIRED_INSTANCE_LIFETIME).toEpochMilli())     | false
-    new Date(currentTime.minusMillis(ReconcileClassicLinkSecurityGroupsAgent.DEFAULT_REQUIRED_INSTANCE_LIFETIME - 1).toEpochMilli()) | false
-    new Date(currentTime.minusMillis(ReconcileClassicLinkSecurityGroupsAgent.DEFAULT_REQUIRED_INSTANCE_LIFETIME + 1).toEpochMilli()) | true
+    launchTime                                                                                     | expected
+    null                                                                                            | false
+    currentTime                                                                                     | false
+    currentTime.minusMillis(ReconcileClassicLinkSecurityGroupsAgent.DEFAULT_REQUIRED_INSTANCE_LIFETIME)     | false
+    currentTime.minusMillis(ReconcileClassicLinkSecurityGroupsAgent.DEFAULT_REQUIRED_INSTANCE_LIFETIME - 1) | false
+    currentTime.minusMillis(ReconcileClassicLinkSecurityGroupsAgent.DEFAULT_REQUIRED_INSTANCE_LIFETIME + 1) | true
   }
 
   def "should add missing groups"() {
@@ -128,7 +126,7 @@ class ReconcileClassicLinkSecurityGroupsAgentSpec extends Specification {
 
     then:
     1 * ec2.attachClassicLinkVpc(_) >> { AttachClassicLinkVpcRequest req ->
-      assert req.groups.sort() == groups.values().sort()
+      assert req.groups().sort(false) == groups.values().sort()
     }
     0 * _
 
@@ -136,7 +134,7 @@ class ReconcileClassicLinkSecurityGroupsAgentSpec extends Specification {
     where:
     classicLinkVpcId = "vpc-1234"
     groups = ["nf-classiclink": "sg-1234", "foo": "sg-2345"]
-    classicLinkInstances = [new ClassicLinkInstance().withInstanceId("i-1234").withVpcId(classicLinkVpcId).withTags(new Tag(ReconcileClassicLinkSecurityGroupsAgent.AUTOSCALING_TAG, "foo-v001"))]
+    classicLinkInstances = [ClassicLinkInstance.builder().instanceId("i-1234").vpcId(classicLinkVpcId).tags(Tag.builder().key(ReconcileClassicLinkSecurityGroupsAgent.AUTOSCALING_TAG).value("foo-v001").build()).build()]
   }
 
   def "should classiclink non ASG instance"() {
@@ -145,7 +143,7 @@ class ReconcileClassicLinkSecurityGroupsAgentSpec extends Specification {
 
     then:
     1 * ec2.attachClassicLinkVpc(_) >> { AttachClassicLinkVpcRequest req ->
-      assert req.groups.sort() == groups.values().sort()
+      assert req.groups().sort(false) == groups.values().sort()
     }
     0 * _
 
@@ -153,7 +151,7 @@ class ReconcileClassicLinkSecurityGroupsAgentSpec extends Specification {
     where:
     classicLinkVpcId = "vpc-1234"
     groups = ["nf-classiclink": "sg-1234"]
-    classicLinkInstances = [new ClassicLinkInstance().withInstanceId("i-1234").withVpcId(classicLinkVpcId)]
+    classicLinkInstances = [ClassicLinkInstance.builder().instanceId("i-1234").vpcId(classicLinkVpcId).build()]
   }
 
   def "should only include existing groups when classiclinking"() {
@@ -162,7 +160,7 @@ class ReconcileClassicLinkSecurityGroupsAgentSpec extends Specification {
 
     then:
     1 * ec2.attachClassicLinkVpc(_) >> { AttachClassicLinkVpcRequest req ->
-      assert req.groups.sort() == groups.values().sort()
+      assert req.groups().sort(false) == groups.values().sort()
     }
     0 * _
 
@@ -170,7 +168,7 @@ class ReconcileClassicLinkSecurityGroupsAgentSpec extends Specification {
     where:
     classicLinkVpcId = "vpc-1234"
     groups = ["nf-classiclink": "sg-1234", "foo": "sg-2345", "foo-bar-baz": "sg-3456"]
-    classicLinkInstances = [new ClassicLinkInstance().withInstanceId("i-1234").withVpcId(classicLinkVpcId).withTags(new Tag(ReconcileClassicLinkSecurityGroupsAgent.AUTOSCALING_TAG, "foo-bar-baz-v001"))]
+    classicLinkInstances = [ClassicLinkInstance.builder().instanceId("i-1234").vpcId(classicLinkVpcId).tags(Tag.builder().key(ReconcileClassicLinkSecurityGroupsAgent.AUTOSCALING_TAG).value("foo-bar-baz-v001").build()).build()]
   }
 
   def "should not exceed maximum number of groups"() {
@@ -180,7 +178,7 @@ class ReconcileClassicLinkSecurityGroupsAgentSpec extends Specification {
 
     then:
     1 * ec2.attachClassicLinkVpc(_) >> { AttachClassicLinkVpcRequest req ->
-      assert req.groups == expectedGroups
+      assert req.groups() == expectedGroups
     }
     0 * _
 
@@ -194,6 +192,6 @@ class ReconcileClassicLinkSecurityGroupsAgentSpec extends Specification {
     5         | ["sg-1234", "sg-2345", "sg-3456", "sg-4567"]
     classicLinkVpcId = "vpc-1234"
     groups = ["nf-classiclink": "sg-1234", "foo": "sg-2345", "foo-bar": "sg-3456", "foo-bar-baz": "sg-4567"]
-    classicLinkInstances = [new ClassicLinkInstance().withInstanceId("i-1234").withVpcId(classicLinkVpcId).withTags(new Tag(ReconcileClassicLinkSecurityGroupsAgent.AUTOSCALING_TAG, "foo-bar-baz-v001"))]
+    classicLinkInstances = [ClassicLinkInstance.builder().instanceId("i-1234").vpcId(classicLinkVpcId).tags(Tag.builder().key(ReconcileClassicLinkSecurityGroupsAgent.AUTOSCALING_TAG).value("foo-bar-baz-v001").build()).build()]
   }
 }

@@ -23,7 +23,7 @@ import com.netflix.spinnaker.fiat.shared.FiatService
 import com.netflix.spinnaker.fiat.shared.FiatStatus
 import com.netflix.spinnaker.orca.api.pipeline.models.ExecutionType
 import com.netflix.spinnaker.orca.api.pipeline.models.PipelineExecution
-import com.netflix.spinnaker.orca.api.preconfigured.jobs.TitusPreconfiguredJobProperties
+import com.netflix.spinnaker.orca.clouddriver.config.KubernetesPreconfiguredJobProperties
 import com.netflix.spinnaker.orca.clouddriver.service.JobService
 import com.netflix.spinnaker.orca.exceptions.PipelineTemplateValidationException
 import com.netflix.spinnaker.orca.front50.Front50Service
@@ -44,7 +44,6 @@ import com.netflix.spinnaker.orca.webhook.config.WebhookProperties
 import com.netflix.spinnaker.orca.webhook.service.WebhookService
 import groovy.json.JsonSlurper
 import org.slf4j.MDC
-import org.springframework.http.HttpHeaders
 import org.springframework.http.HttpMethod
 import org.springframework.http.MediaType
 import org.springframework.test.web.servlet.setup.MockMvcBuilders
@@ -749,9 +748,9 @@ class OperationsControllerSpec extends Specification {
 
   def "should return only jobs that are enabled"() {
     given:
-    TitusPreconfiguredJobProperties jobProps1 = new TitusPreconfiguredJobProperties(enabled: true, label: 'job1')
-    TitusPreconfiguredJobProperties jobProps2 = new TitusPreconfiguredJobProperties(enabled: false, label: 'job2')
-    TitusPreconfiguredJobProperties jobProps3 = new TitusPreconfiguredJobProperties(label: 'job3')
+    KubernetesPreconfiguredJobProperties jobProps1 = new KubernetesPreconfiguredJobProperties(enabled: true, label: 'job1')
+    KubernetesPreconfiguredJobProperties jobProps2 = new KubernetesPreconfiguredJobProperties(enabled: false, label: 'job2')
+    KubernetesPreconfiguredJobProperties jobProps3 = new KubernetesPreconfiguredJobProperties(label: 'job3')
 
     when:
     def preconfiguredWebhooks = controller.preconfiguredJob()
@@ -765,8 +764,7 @@ class OperationsControllerSpec extends Specification {
 
   static WebhookProperties.PreconfiguredWebhook createPreconfiguredWebhook(
     def label, def description, def type, def permissions) {
-    def customHeaders = new HttpHeaders()
-    customHeaders.put("header", ["value1"])
+    def customHeaders = ["header": ["value1"]]
     return new WebhookProperties.PreconfiguredWebhook(
       label: label, description: description, type: type,
       url: "a", customHeaders: customHeaders, method: HttpMethod.POST, payload: "b",

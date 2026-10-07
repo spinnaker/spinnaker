@@ -104,4 +104,30 @@ Final output
       bakeStatus.outputContent == ""
       bakeStatus.logsContent == "No output from command."
   }
+
+  void 'job executor passes jobRequest.env to the subprocess without dropping the inherited environment'() {
+    setup:
+      def jobRequest = new JobRequest(
+          tokenizedCommand: ["/bin/bash", "-c", "echo \"HELMFILE_DISABLE_HOOKS=\$HELMFILE_DISABLE_HOOKS\"; echo \"PATH set: \$([ -n \"\$PATH\" ] && echo yes || echo no)\""],
+          jobId: SOME_JOB_ID,
+          combineStdOutAndErr: true,
+          env: ["HELMFILE_DISABLE_HOOKS": "true"])
+
+      @Subject
+      def jobExecutorLocal = new JobExecutorLocal(
+          registry: new DefaultRegistry(),
+          timeoutMinutes: 1)
+
+    when:
+      def jobId = jobExecutorLocal.startJob(jobRequest)
+      sleep(1000)
+      def bakeStatus = jobExecutorLocal.updateJob(jobId)
+
+    then:
+      bakeStatus != null
+      bakeStatus.state == BakeStatus.State.COMPLETED
+      bakeStatus.result == BakeStatus.Result.SUCCESS
+      bakeStatus.outputContent.contains("HELMFILE_DISABLE_HOOKS=true")
+      bakeStatus.outputContent.contains("PATH set: yes")
+  }
 }

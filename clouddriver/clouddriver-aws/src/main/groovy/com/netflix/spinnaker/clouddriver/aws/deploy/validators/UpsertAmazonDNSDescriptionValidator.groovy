@@ -44,9 +44,9 @@ class UpsertAmazonDNSDescriptionValidator extends AmazonDescriptionValidationSup
     } else if (!ALLOWED_TYPES.contains(description.type)) {
       errors.rejectValue("type", "upsertAmazonDNSDescription.type.invalid")
     } else if (ALLOWED_TYPES.contains(description.type) && description.target && description.hostedZoneName) {
-      def route53 = amazonClientProvider.getAmazonRoute53(description.credentials, null, true)
-      def allowedNames = route53.listHostedZones().hostedZones.collect {
-        it.name
+      def route53 = amazonClientProvider.getAmazonRoute53V2(description.credentials, null)
+      def allowedNames = route53.listHostedZones().hostedZones().collect {
+        it.name()
       }
       if (!allowedNames.contains(description.hostedZoneName)) {
         errors.rejectValue("hostedZoneName", "upsertAmazonDNSDescription.hostedZoneName.invalid")

@@ -1,0 +1,25 @@
+# Argo Rollout that has finished rolling out. Argo Rollouts declares
+# status.observedGeneration as a string.
+apiVersion: argoproj.io/v1alpha1
+kind: Rollout
+metadata:
+  name: my-rollout
+  namespace: default
+  generation: 4
+spec:
+  replicas: 3
+status:
+  observedGeneration: "4"
+  phase: Healthy
+  replicas: 3
+  readyReplicas: 3
+  availableReplicas: 3
+  conditions:
+    - type: Available
+      status: "True"
+      reason: AvailableReason
+      message: Rollout has minimum availability
+    - type: Progressing
+      status: "True"
+      reason: NewReplicaSetAvailable
+      message: Rollout "my-rollout" has successfully progressed.

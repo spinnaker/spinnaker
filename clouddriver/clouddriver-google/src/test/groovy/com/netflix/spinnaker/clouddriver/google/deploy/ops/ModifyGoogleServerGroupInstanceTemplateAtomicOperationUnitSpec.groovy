@@ -25,6 +25,7 @@ import com.google.api.services.compute.model.InstanceTemplate
 import com.google.api.services.compute.model.Metadata
 import com.google.api.services.compute.model.NetworkInterface
 import com.google.api.services.compute.model.Operation
+import com.google.api.services.compute.model.ShieldedInstanceConfig
 import com.google.api.services.compute.model.Tags
 import com.netflix.spectator.api.DefaultRegistry
 import com.netflix.spinnaker.clouddriver.data.task.Task
@@ -229,6 +230,213 @@ class ModifyGoogleServerGroupInstanceTemplateAtomicOperationUnitSpec extends Spe
       // Set the new instance template on the managed instance group.
       1 * instanceGroupManagersMock.setInstanceTemplate(PROJECT_NAME, ZONE, SERVER_GROUP_NAME, {
         // Verify that the target link of the instance creation operation is used to set the new instance template.
+        it.instanceTemplate == NEW_INSTANCE_TEMPLATE_NAME
+      }) >> setInstanceTemplateMock
+      1 * setInstanceTemplateMock.execute() >> setInstanceTemplateOperationReal
+      1 * computeMock.zoneOperations() >> computeZonalOperations
+      1 * computeZonalOperations.get(PROJECT_NAME, ZONE, SET_INSTANCE_TEMPLATE_OP_NAME) >> setInstanceTemplateOperationGetMock
+      1 * setInstanceTemplateOperationGetMock.execute() >> setInstanceTemplateOperationReal
+
+      // Delete the original instance template.
+      1 * instanceTemplatesMock.delete(PROJECT_NAME, ORIG_INSTANCE_TEMPLATE_NAME) >> instanceTemplatesDeleteMock
+      1 * instanceTemplatesDeleteMock.execute()
+  }
+
+  void "should set shielded instance config when shielded settings are overridden"() {
+    setup:
+      def googleClusterProviderMock = Mock(GoogleClusterProvider)
+      def serverGroup = new GoogleServerGroup(zone: ZONE).view
+      def computeMock = Mock(Compute)
+      def globalOperations = Mock(Compute.GlobalOperations)
+      def instanceTemplatesMock = Mock(Compute.InstanceTemplates)
+      def instanceTemplatesGetMock = Mock(Compute.InstanceTemplates.Get)
+      def instanceTemplateReal = new InstanceTemplate(
+        properties: new InstanceProperties(
+          machineType: MACHINE_TYPE,
+          networkInterfaces: [
+            new NetworkInterface(network: NETWORK_1)
+          ],
+          disks: [
+            new AttachedDisk(autoDelete: true,
+                             initializeParams: new AttachedDiskInitializeParams(
+              sourceImage: IMAGE,
+              diskType: DISK_TYPE,
+              diskSizeGb: DISK_SIZE_GB
+            ))
+          ],
+          metadata: new Metadata(GCEUtil.buildMetadataFromMap(METADATA_1)),
+          tags: new Tags(items: TAGS_1)
+        )
+      )
+      def instanceTemplatesInsertMock = Mock(Compute.InstanceTemplates.Insert)
+      def instanceTemplateInsertionOperationGetMock = Mock(Compute.GlobalOperations.Get)
+      def instanceTemplateInsertionOperationReal = new Operation(targetLink: NEW_INSTANCE_TEMPLATE_NAME,
+                                                                 name: INSTANCE_TEMPLATE_INSERTION_OP_NAME,
+                                                                 status: DONE)
+      def instanceGroupManagersMock = Mock(Compute.InstanceGroupManagers)
+      def instanceGroupManagersGetMock = Mock(Compute.InstanceGroupManagers.Get)
+      def computeZonalOperations = Mock(Compute.ZoneOperations)
+      def instanceGroupManagerReal = new InstanceGroupManager(instanceTemplate: ORIG_INSTANCE_TEMPLATE_URL, group: SERVER_GROUP_NAME)
+      def setInstanceTemplateMock = Mock(Compute.InstanceGroupManagers.SetInstanceTemplate)
+      def setInstanceTemplateOperationReal = new Operation(targetLink: SERVER_GROUP_NAME,
+                                                           name: SET_INSTANCE_TEMPLATE_OP_NAME,
+                                                           status: DONE)
+      def setInstanceTemplateOperationGetMock = Mock(Compute.ZoneOperations.Get)
+      def instanceTemplatesDeleteMock = Mock(Compute.InstanceTemplates.Delete)
+      def credentials = new GoogleNamedAccountCredentials.Builder().name("gce").project(PROJECT_NAME).compute(computeMock).build()
+      def description = new ModifyGoogleServerGroupInstanceTemplateDescription(serverGroupName: SERVER_GROUP_NAME,
+                                                                               region: REGION,
+                                                                               enableSecureBoot: true,
+                                                                               enableVtpm: false,
+                                                                               enableIntegrityMonitoring: true,
+                                                                               accountName: ACCOUNT_NAME,
+                                                                               credentials: credentials)
+      @Subject def operation = new ModifyGoogleServerGroupInstanceTemplateAtomicOperation(description)
+      operation.googleOperationPoller =
+          new GoogleOperationPoller(
+            googleConfigurationProperties: new GoogleConfigurationProperties(),
+            threadSleeper: threadSleeperMock,
+            registry: new DefaultRegistry(),
+            safeRetry: safeRetry
+          )
+      operation.googleClusterProvider = googleClusterProviderMock
+      operation.registry = registry
+
+    when:
+      operation.operate([])
+
+    then:
+      1 * googleClusterProviderMock.getServerGroup(ACCOUNT_NAME, REGION, SERVER_GROUP_NAME) >> serverGroup
+
+    then:
+      // Query the managed instance group and its instance template.
+      1 * computeMock.instanceGroupManagers() >> instanceGroupManagersMock
+      1 * instanceGroupManagersMock.get(PROJECT_NAME, ZONE, SERVER_GROUP_NAME) >> instanceGroupManagersGetMock
+      1 * instanceGroupManagersGetMock.execute() >> instanceGroupManagerReal
+      1 * computeMock.instanceTemplates() >> instanceTemplatesMock
+      1 * instanceTemplatesMock.get(PROJECT_NAME, ORIG_INSTANCE_TEMPLATE_NAME) >> instanceTemplatesGetMock
+      1 * instanceTemplatesGetMock.execute() >> instanceTemplateReal
+
+      // Insert the new instance template with shielded instance config applied.
+      1 * instanceTemplatesMock.insert(PROJECT_NAME, {
+        it.name != ORIG_INSTANCE_TEMPLATE_NAME &&
+          it.properties.shieldedInstanceConfig != null &&
+          it.properties.shieldedInstanceConfig.enableSecureBoot == true &&
+          it.properties.shieldedInstanceConfig.enableVtpm == false &&
+          it.properties.shieldedInstanceConfig.enableIntegrityMonitoring == true
+      }) >> instanceTemplatesInsertMock
+      1 * instanceTemplatesInsertMock.execute() >> instanceTemplateInsertionOperationReal
+      1 * computeMock.globalOperations() >> globalOperations
+      1 * globalOperations.get(PROJECT_NAME, INSTANCE_TEMPLATE_INSERTION_OP_NAME) >> instanceTemplateInsertionOperationGetMock
+      1 * instanceTemplateInsertionOperationGetMock.execute() >> instanceTemplateInsertionOperationReal
+
+      // Set the new instance template on the managed instance group.
+      1 * instanceGroupManagersMock.setInstanceTemplate(PROJECT_NAME, ZONE, SERVER_GROUP_NAME, {
+        it.instanceTemplate == NEW_INSTANCE_TEMPLATE_NAME
+      }) >> setInstanceTemplateMock
+      1 * setInstanceTemplateMock.execute() >> setInstanceTemplateOperationReal
+      1 * computeMock.zoneOperations() >> computeZonalOperations
+      1 * computeZonalOperations.get(PROJECT_NAME, ZONE, SET_INSTANCE_TEMPLATE_OP_NAME) >> setInstanceTemplateOperationGetMock
+      1 * setInstanceTemplateOperationGetMock.execute() >> setInstanceTemplateOperationReal
+
+      // Delete the original instance template.
+      1 * instanceTemplatesMock.delete(PROJECT_NAME, ORIG_INSTANCE_TEMPLATE_NAME) >> instanceTemplatesDeleteMock
+      1 * instanceTemplatesDeleteMock.execute()
+  }
+
+  void "should preserve unspecified shielded settings when partially overriding shielded flags"() {
+    setup:
+      def googleClusterProviderMock = Mock(GoogleClusterProvider)
+      def serverGroup = new GoogleServerGroup(zone: ZONE).view
+      def computeMock = Mock(Compute)
+      def globalOperations = Mock(Compute.GlobalOperations)
+      def instanceTemplatesMock = Mock(Compute.InstanceTemplates)
+      def instanceTemplatesGetMock = Mock(Compute.InstanceTemplates.Get)
+      def instanceTemplateReal = new InstanceTemplate(
+        properties: new InstanceProperties(
+          machineType: MACHINE_TYPE,
+          networkInterfaces: [
+            new NetworkInterface(network: NETWORK_1)
+          ],
+          disks: [
+            new AttachedDisk(autoDelete: true,
+                             initializeParams: new AttachedDiskInitializeParams(
+              sourceImage: IMAGE,
+              diskType: DISK_TYPE,
+              diskSizeGb: DISK_SIZE_GB
+            ))
+          ],
+          metadata: new Metadata(GCEUtil.buildMetadataFromMap(METADATA_1)),
+          tags: new Tags(items: TAGS_1),
+          shieldedInstanceConfig: new ShieldedInstanceConfig(
+            enableSecureBoot: true,
+            enableVtpm: true,
+            enableIntegrityMonitoring: false
+          )
+        )
+      )
+      def instanceTemplatesInsertMock = Mock(Compute.InstanceTemplates.Insert)
+      def instanceTemplateInsertionOperationGetMock = Mock(Compute.GlobalOperations.Get)
+      def instanceTemplateInsertionOperationReal = new Operation(targetLink: NEW_INSTANCE_TEMPLATE_NAME,
+                                                                 name: INSTANCE_TEMPLATE_INSERTION_OP_NAME,
+                                                                 status: DONE)
+      def instanceGroupManagersMock = Mock(Compute.InstanceGroupManagers)
+      def instanceGroupManagersGetMock = Mock(Compute.InstanceGroupManagers.Get)
+      def computeZonalOperations = Mock(Compute.ZoneOperations)
+      def instanceGroupManagerReal = new InstanceGroupManager(instanceTemplate: ORIG_INSTANCE_TEMPLATE_URL, group: SERVER_GROUP_NAME)
+      def setInstanceTemplateMock = Mock(Compute.InstanceGroupManagers.SetInstanceTemplate)
+      def setInstanceTemplateOperationReal = new Operation(targetLink: SERVER_GROUP_NAME,
+                                                           name: SET_INSTANCE_TEMPLATE_OP_NAME,
+                                                           status: DONE)
+      def setInstanceTemplateOperationGetMock = Mock(Compute.ZoneOperations.Get)
+      def instanceTemplatesDeleteMock = Mock(Compute.InstanceTemplates.Delete)
+      def credentials = new GoogleNamedAccountCredentials.Builder().name("gce").project(PROJECT_NAME).compute(computeMock).build()
+      def description = new ModifyGoogleServerGroupInstanceTemplateDescription(serverGroupName: SERVER_GROUP_NAME,
+                                                                               region: REGION,
+                                                                               enableSecureBoot: false,
+                                                                               accountName: ACCOUNT_NAME,
+                                                                               credentials: credentials)
+      @Subject def operation = new ModifyGoogleServerGroupInstanceTemplateAtomicOperation(description)
+      operation.googleOperationPoller =
+          new GoogleOperationPoller(
+            googleConfigurationProperties: new GoogleConfigurationProperties(),
+            threadSleeper: threadSleeperMock,
+            registry: new DefaultRegistry(),
+            safeRetry: safeRetry
+          )
+      operation.googleClusterProvider = googleClusterProviderMock
+      operation.registry = registry
+
+    when:
+      operation.operate([])
+
+    then:
+      1 * googleClusterProviderMock.getServerGroup(ACCOUNT_NAME, REGION, SERVER_GROUP_NAME) >> serverGroup
+
+    then:
+      // Query the managed instance group and its instance template.
+      1 * computeMock.instanceGroupManagers() >> instanceGroupManagersMock
+      1 * instanceGroupManagersMock.get(PROJECT_NAME, ZONE, SERVER_GROUP_NAME) >> instanceGroupManagersGetMock
+      1 * instanceGroupManagersGetMock.execute() >> instanceGroupManagerReal
+      1 * computeMock.instanceTemplates() >> instanceTemplatesMock
+      1 * instanceTemplatesMock.get(PROJECT_NAME, ORIG_INSTANCE_TEMPLATE_NAME) >> instanceTemplatesGetMock
+      1 * instanceTemplatesGetMock.execute() >> instanceTemplateReal
+
+      // Insert the new instance template with unspecified shielded fields preserved.
+      1 * instanceTemplatesMock.insert(PROJECT_NAME, {
+        it.name != ORIG_INSTANCE_TEMPLATE_NAME &&
+          it.properties.shieldedInstanceConfig != null &&
+          it.properties.shieldedInstanceConfig.enableSecureBoot == false &&
+          it.properties.shieldedInstanceConfig.enableVtpm == true &&
+          it.properties.shieldedInstanceConfig.enableIntegrityMonitoring == false
+      }) >> instanceTemplatesInsertMock
+      1 * instanceTemplatesInsertMock.execute() >> instanceTemplateInsertionOperationReal
+      1 * computeMock.globalOperations() >> globalOperations
+      1 * globalOperations.get(PROJECT_NAME, INSTANCE_TEMPLATE_INSERTION_OP_NAME) >> instanceTemplateInsertionOperationGetMock
+      1 * instanceTemplateInsertionOperationGetMock.execute() >> instanceTemplateInsertionOperationReal
+
+      // Set the new instance template on the managed instance group.
+      1 * instanceGroupManagersMock.setInstanceTemplate(PROJECT_NAME, ZONE, SERVER_GROUP_NAME, {
         it.instanceTemplate == NEW_INSTANCE_TEMPLATE_NAME
       }) >> setInstanceTemplateMock
       1 * setInstanceTemplateMock.execute() >> setInstanceTemplateOperationReal

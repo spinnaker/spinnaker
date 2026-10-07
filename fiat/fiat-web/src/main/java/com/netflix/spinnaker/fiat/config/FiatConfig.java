@@ -60,7 +60,7 @@ public class FiatConfig implements WebMvcConfigurer {
 
   @Override
   public void configureContentNegotiation(ContentNegotiationConfigurer configurer) {
-    configurer.favorPathExtension(false).defaultContentType(MediaType.APPLICATION_JSON);
+    configurer.defaultContentType(MediaType.APPLICATION_JSON);
   }
 
   @Bean

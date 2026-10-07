@@ -18,7 +18,7 @@ export class CloudFoundryRollbackClusterStageConfig extends React.Component<
   ICloudFoundryRollbackClusterStageProps,
   ICloudFoundryRollbackClusterStageConfigState
 > {
-  private destroy$ = new Subject();
+  private destroy$ = new Subject<void>();
 
   constructor(props: ICloudFoundryRollbackClusterStageProps) {
     super(props);

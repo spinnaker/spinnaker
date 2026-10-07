@@ -17,14 +17,14 @@
 
 package com.netflix.spinnaker.clouddriver.aws.deploy.asg.asgbuilders
 
-import com.amazonaws.services.autoscaling.AmazonAutoScaling
-import com.amazonaws.services.autoscaling.model.AlreadyExistsException
-import com.amazonaws.services.autoscaling.model.AutoScalingGroup
-import com.amazonaws.services.autoscaling.model.DescribeAutoScalingGroupsResult
-import com.amazonaws.services.ec2.AmazonEC2
-import com.amazonaws.services.ec2.model.DescribeSubnetsResult
-import com.amazonaws.services.ec2.model.Subnet
-import com.amazonaws.services.ec2.model.Tag
+import software.amazon.awssdk.services.autoscaling.AutoScalingClient
+import software.amazon.awssdk.services.autoscaling.model.AlreadyExistsException
+import software.amazon.awssdk.services.autoscaling.model.AutoScalingGroup
+import software.amazon.awssdk.services.autoscaling.model.DescribeAutoScalingGroupsResponse
+import software.amazon.awssdk.services.ec2.Ec2Client
+import software.amazon.awssdk.services.ec2.model.DescribeSubnetsResponse
+import software.amazon.awssdk.services.ec2.model.Subnet
+import software.amazon.awssdk.services.ec2.model.Tag
 import com.netflix.spinnaker.clouddriver.aws.TestCredential
 import com.netflix.spinnaker.clouddriver.aws.deploy.asg.AsgLifecycleHookWorker
 import com.netflix.spinnaker.clouddriver.aws.deploy.asg.AutoScalingWorker.AsgConfiguration
@@ -45,8 +45,8 @@ import static com.netflix.spinnaker.clouddriver.aws.model.AmazonAsgLifecycleHook
 class AsgWithLaunchConfigurationBuilderSpec extends Specification {
 
   def lcBuilder = Mock(LaunchConfigurationBuilder)
-  def autoScaling = Mock(AmazonAutoScaling)
-  def amazonEC2 = Mock(AmazonEC2)
+  def autoScaling = Mock(AutoScalingClient)
+  def amazonEC2 = Mock(Ec2Client)
   def asgLifecycleHookWorker = Mock(AsgLifecycleHookWorker)
 
   def credential = TestCredential.named('foo')
@@ -95,12 +95,12 @@ class AsgWithLaunchConfigurationBuilderSpec extends Specification {
       .build()
   }
 
-  private DescribeSubnetsResult getDescribeSubnetsResult() {
-    return new DescribeSubnetsResult(subnets: [
-      new Subnet(subnetId: 'subnetId1', availabilityZone: 'us-east-1a', tags: [new Tag(key: 'immutable_metadata', value: '{"purpose": "internal", "target": "ec2" }')]),
-      new Subnet(subnetId: 'subnetId2', availabilityZone: 'us-west-2a'),
-      new Subnet(subnetId: 'subnetId3', availabilityZone: 'us-west-2a'),
-    ])
+  private DescribeSubnetsResponse getDescribeSubnetsResult() {
+    return DescribeSubnetsResponse.builder().subnets([
+      Subnet.builder().subnetId('subnetId1').availabilityZone('us-east-1a').tags([Tag.builder().key('immutable_metadata').value('{"purpose": "internal", "target": "ec2" }').build()]).build(),
+      Subnet.builder().subnetId('subnetId2').availabilityZone('us-west-2a').build(),
+      Subnet.builder().subnetId('subnetId3').availabilityZone('us-west-2a').build(),
+    ]).build()
   }
 
   void "should build ASG request with launch config correctly"() {
@@ -129,17 +129,17 @@ class AsgWithLaunchConfigurationBuilderSpec extends Specification {
     2 * amazonEC2.describeSubnets() >> getDescribeSubnetsResult()
 
     and:
-    request.getLaunchConfigurationName() == launchConfigName
-    request.getAutoScalingGroupName() == asgName
-    request.getMinSize() == 1
-    request.getMaxSize() == 3
-    request.getDesiredCapacity() == 2
-    request.getLoadBalancerNames() == ["one", "two"]
-    request.getTargetGroupARNs() == ["tg1", "tg2"]
-    request.getDefaultCooldown() == 5
-    request.getHealthCheckGracePeriod() == 5
-    request.getHealthCheckType() == "ec2"
-    request.getTerminationPolicies() == ["Default", "OldestInstance"]
+    request.launchConfigurationName() == launchConfigName
+    request.autoScalingGroupName() == asgName
+    request.minSize() == 1
+    request.maxSize() == 3
+    request.desiredCapacity() == 2
+    request.loadBalancerNames() == ["one", "two"]
+    request.targetGroupARNs() == ["tg1", "tg2"]
+    request.defaultCooldown() == 5
+    request.healthCheckGracePeriod() == 5
+    request.healthCheckType() == "ec2"
+    request.terminationPolicies() == ["Default", "OldestInstance"]
   }
 
   void "should build ASG request with tags correctly"() {
@@ -153,11 +153,11 @@ class AsgWithLaunchConfigurationBuilderSpec extends Specification {
 
     then:
     1 * lcBuilder.buildLaunchConfiguration("myasg", null, settings, null, null) >> launchConfigName
-    request.getLaunchConfigurationName() == launchConfigName
-    def tag = request.getTags()[0]
-    tag.getKey() == "foo"
-    tag.getValue() == "bar"
-    tag.getPropagateAtLaunch() == true
+    request.launchConfigurationName() == launchConfigName
+    def tag = request.tags()[0]
+    tag.key() == "foo"
+    tag.value() == "bar"
+    tag.propagateAtLaunch() == true
   }
 
   @Unroll
@@ -180,11 +180,11 @@ class AsgWithLaunchConfigurationBuilderSpec extends Specification {
     0 * _
 
     and:
-    request.getLaunchConfigurationName() == launchConfigName
-    request.getVPCZoneIdentifier() == subnetIdsForAsg
+    request.launchConfigurationName() == launchConfigName
+    request.vpcZoneIdentifier() == subnetIdsForAsg
     subnetIdsForAsg == null
-      ? request.getAvailabilityZones() == ["us-west-2a"]
-      : request.getAvailabilityZones() == []
+      ? request.availabilityZones() == ["us-west-2a"]
+      : request.availabilityZones() == []
 
     where:
     subnetType |  subnetIds   | subnetIdsForAsg  ||  deployMsg
@@ -214,9 +214,9 @@ class AsgWithLaunchConfigurationBuilderSpec extends Specification {
     0 * _
 
     and:
-    request.getLaunchConfigurationName() == launchConfigName
-    request.getVPCZoneIdentifier() == subnetIdsForAsg
-    request.getAvailabilityZones() == []
+    request.launchConfigurationName() == launchConfigName
+    request.vpcZoneIdentifier() == subnetIdsForAsg
+    request.availabilityZones() == []
 
     where:
     subnetIds     |   subnetIdsForAsg
@@ -278,9 +278,9 @@ class AsgWithLaunchConfigurationBuilderSpec extends Specification {
     0 * _
 
     and:
-    request.getLaunchConfigurationName() == launchConfigName
-    request.getVPCZoneIdentifier() == subnetIdsForAsg
-    request.getAvailabilityZones() == []
+    request.launchConfigurationName() == launchConfigName
+    request.vpcZoneIdentifier() == subnetIdsForAsg
+    request.availabilityZones() == []
 
     where:
            subnetIds         |  subnetIdsForAsg       ||  deployMsg
@@ -358,7 +358,7 @@ class AsgWithLaunchConfigurationBuilderSpec extends Specification {
     asgWithLcBuilder.build(task, taskPhase, asgName, asgConfig)
 
     then:
-    count * autoScaling.enableMetricsCollection({count == 1 ? it.metrics == ['GroupMinSize', 'GroupMaxSize'] : _ })
+    count * autoScaling.enableMetricsCollection({count == 1 ? it.metrics() == ['GroupMinSize', 'GroupMaxSize'] : _ })
 
     where:
     enabledMetrics                   | instanceMonitoring  | count
@@ -384,7 +384,7 @@ class AsgWithLaunchConfigurationBuilderSpec extends Specification {
     // According to
     // https://docs.aws.amazon.com/autoscaling/ec2/APIReference/API_EnableMetricsCollection.html,
     // specifying granularity with no metrics means all metrics.
-    1 * autoScaling.enableMetricsCollection({ (it.granularity == '1Minute') && (it.metrics == []) })
+    1 * autoScaling.enableMetricsCollection({ (it.granularity() == '1Minute') && (it.metrics() == []) })
   }
 
   void "continues if serverGroup already exists, is reasonably the same and within safety window"() {
@@ -398,18 +398,16 @@ class AsgWithLaunchConfigurationBuilderSpec extends Specification {
     then:
     noExceptionThrown()
     1 * lcBuilder.buildLaunchConfiguration("myasg", null, _, null, null) >> launchConfigName
-    1 * autoScaling.createAutoScalingGroup(_) >> { throw new AlreadyExistsException("Already exists, man") }
+    1 * autoScaling.createAutoScalingGroup(_) >> { throw AlreadyExistsException.builder().message("Already exists, man").build() }
     1 * autoScaling.describeAutoScalingGroups(_) >> {
-      new DescribeAutoScalingGroupsResult(
-        autoScalingGroups: [
-          new AutoScalingGroup(
-            autoScalingGroupName: "myasg-v000",
-            launchConfigurationName: launchConfigName,
-            loadBalancerNames: ["one", "two"],
-            createdTime: new Date()
-          )
-        ]
-      )
+      DescribeAutoScalingGroupsResponse.builder().autoScalingGroups([
+        AutoScalingGroup.builder()
+          .autoScalingGroupName("myasg-v000")
+          .launchConfigurationName(launchConfigName)
+          .loadBalancerNames(["one", "two"])
+          .createdTime(Instant.now())
+          .build()
+      ]).build()
     }
   }
 
@@ -436,27 +434,25 @@ class AsgWithLaunchConfigurationBuilderSpec extends Specification {
     noExceptionThrown()
     1 * lcBuilder.buildLaunchConfiguration("myasg", asgConfig.subnetType, _, false, null) >> launchConfigName
     if (sbTypeReq != null) {
-      2 * amazonEC2.describeSubnets() >> new DescribeSubnetsResult(subnets: [new Subnet(subnetId: 'sb1', availabilityZone: 'us-east-1a'), new Subnet(subnetId: 'sb2', availabilityZone: 'us-east-1b'),])
+      2 * amazonEC2.describeSubnets() >> DescribeSubnetsResponse.builder().subnets([Subnet.builder().subnetId('sb1').availabilityZone('us-east-1a').build(), Subnet.builder().subnetId('sb2').availabilityZone('us-east-1b').build(),]).build()
     }
-    1 * autoScaling.createAutoScalingGroup(_) >> { throw new AlreadyExistsException("Already exists, man") }
+    1 * autoScaling.createAutoScalingGroup(_) >> { throw AlreadyExistsException.builder().message("Already exists, man").build() }
     1 * autoScaling.describeAutoScalingGroups(_) >> {
-      new DescribeAutoScalingGroupsResult(
-        autoScalingGroups: [
-          new AutoScalingGroup(
-            autoScalingGroupName: "myasg-v000",
-            launchConfigurationName: launchConfigName,
-            availabilityZones: az,
-            vPCZoneIdentifier: sb,
-            loadBalancerNames: ["one", "two"],
-            targetGroupARNs: ["tg1", "tg2"],
-            defaultCooldown: 5,
-            healthCheckGracePeriod: 5,
-            healthCheckType: "ec2",
-            terminationPolicies: ["tp1", "tp2"],
-            createdTime: new Date()
-          )
-        ]
-      )
+      DescribeAutoScalingGroupsResponse.builder().autoScalingGroups([
+        AutoScalingGroup.builder()
+          .autoScalingGroupName("myasg-v000")
+          .launchConfigurationName(launchConfigName)
+          .availabilityZones(az)
+          .vpcZoneIdentifier(sb)
+          .loadBalancerNames(["one", "two"])
+          .targetGroupARNs(["tg1", "tg2"])
+          .defaultCooldown(5)
+          .healthCheckGracePeriod(5)
+          .healthCheckType("ec2")
+          .terminationPolicies(["tp1", "tp2"])
+          .createdTime(Instant.now())
+          .build()
+      ]).build()
     }
     1 * task.updateStatus('AWS_DEPLOY_TEST', deployMsg)
 
@@ -478,18 +474,16 @@ class AsgWithLaunchConfigurationBuilderSpec extends Specification {
     then:
     thrown(AlreadyExistsException)
     1 * lcBuilder.buildLaunchConfiguration("myasg", null, _, null, null) >> launchConfigName
-    1 * autoScaling.createAutoScalingGroup(_) >> { throw new AlreadyExistsException("Already exists, man") }
+    1 * autoScaling.createAutoScalingGroup(_) >> { throw AlreadyExistsException.builder().message("Already exists, man").build() }
     1 * autoScaling.describeAutoScalingGroups(_) >> {
-      new DescribeAutoScalingGroupsResult(
-        autoScalingGroups: [
-          new AutoScalingGroup(
-            autoScalingGroupName: "myasg-v000",
-            launchConfigurationName: launchConfigName,
-            loadBalancerNames: ["one", "two"],
-            createdTime: new Date(Instant.now().minus(3, ChronoUnit.HOURS).toEpochMilli())
-          )
-        ]
-      )
+      DescribeAutoScalingGroupsResponse.builder().autoScalingGroups([
+        AutoScalingGroup.builder()
+          .autoScalingGroupName("myasg-v000")
+          .launchConfigurationName(launchConfigName)
+          .loadBalancerNames(["one", "two"])
+          .createdTime(Instant.now().minus(3, ChronoUnit.HOURS))
+          .build()
+      ]).build()
     }
   }
 
@@ -515,26 +509,24 @@ class AsgWithLaunchConfigurationBuilderSpec extends Specification {
     then:
     thrown(AlreadyExistsException)
     1 * lcBuilder.buildLaunchConfiguration("myasg", asgConfig.subnetType, _, false, null) >> launchConfigName
-    _ * amazonEC2.describeSubnets() >> new DescribeSubnetsResult(subnets: [new Subnet(subnetId: 'sb1', availabilityZone: 'az1'),new Subnet(subnetId: 'sb2', availabilityZone: 'az2'),])
-    1 * autoScaling.createAutoScalingGroup(_) >> { throw new AlreadyExistsException("Already exists, man") }
+    _ * amazonEC2.describeSubnets() >> DescribeSubnetsResponse.builder().subnets([Subnet.builder().subnetId('sb1').availabilityZone('az1').build(),Subnet.builder().subnetId('sb2').availabilityZone('az2').build(),]).build()
+    1 * autoScaling.createAutoScalingGroup(_) >> { throw AlreadyExistsException.builder().message("Already exists, man").build() }
     1 * autoScaling.describeAutoScalingGroups(_) >> {
-      new DescribeAutoScalingGroupsResult(
-        autoScalingGroups: [
-          new AutoScalingGroup(
-            autoScalingGroupName: "myasg-v000",
-            launchConfigurationName: lc,
-            availabilityZones: null,
-            vPCZoneIdentifier: sb,
-            loadBalancerNames: lb,
-            targetGroupARNs: tg,
-            defaultCooldown: cd,
-            healthCheckGracePeriod: hcGp,
-            healthCheckType: hc,
-            terminationPolicies: tp,
-            createdTime: new Date()
-          )
-        ]
-      )
+      DescribeAutoScalingGroupsResponse.builder().autoScalingGroups([
+        AutoScalingGroup.builder()
+          .autoScalingGroupName("myasg-v000")
+          .launchConfigurationName(lc)
+          .availabilityZones(null)
+          .vpcZoneIdentifier(sb)
+          .loadBalancerNames(lb)
+          .targetGroupARNs(tg)
+          .defaultCooldown(cd)
+          .healthCheckGracePeriod(hcGp)
+          .healthCheckType(hc)
+          .terminationPolicies(tp)
+          .createdTime(Instant.now())
+          .build()
+      ]).build()
     }
     1 * task.updateStatus('AWS_DEPLOY_TEST', "Deploying ASG myasg-v000 with launch configuration $launchConfigName")
     1 * task.updateStatus(taskPhase, "$asgName already exists and does not seem to match desired state on: $failedPredicates")
@@ -606,7 +598,7 @@ class AsgWithLaunchConfigurationBuilderSpec extends Specification {
 
     then:
     1 * lcBuilder.buildLaunchConfiguration("myasg", null, settings, null, null) >> launchConfigName
-    request.capacityRebalance == capacityRebalance
+    request.capacityRebalance() == capacityRebalance
 
     where:
     capacityRebalance << [true, false, null]

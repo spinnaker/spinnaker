@@ -49,6 +49,12 @@ inputs:
   publish-npm:
     description: If publishing, determines whether to publish NPM packages or not
     default: 'false'
+  generate-sbom:
+    description: >
+      Whether to generate a CycloneDX SBOM for this project (uploaded as a workflow artifact on
+      every run) and, if publishing containers, also attach a buildx-generated SBOM attestation
+      to them
+    default: 'false'
 
 runs:
   using: "composite"
@@ -65,9 +71,18 @@ runs:
     - uses: actions/setup-java@v4
       with:
         java-version: |
-          17
+          25
         distribution: 'zulu'
         cache: ${{ !env.ACT && 'gradle' || '' }}  # Disable Gradle cache when running actions locally
+
+    - name: Cache Gradle build cache
+      if: ${{ !env.ACT }}
+      uses: actions/cache@v4
+      with:
+        path: ~/.gradle/build-cache
+        key: ${{ runner.os }}-gradle-build-cache-${{ inputs.project }}-${{ github.sha }}
+        restore-keys: |
+          ${{ runner.os }}-gradle-build-cache-${{ inputs.project }}-
 
     # Set up nodejs if a package.json file is present in that project
     - uses: ./.github/actions/setup-node
@@ -86,7 +101,7 @@ runs:
       run: |
         ## GHA Blocks rebinding attack based which causes some tests to fail.  This changes this
         sudo sh -c 'echo "nameserver 1.1.1.1" > /etc/resolv.conf'
-        ./gradlew ${{ inputs.gradle-cmd-opts }} -Dorg.gradle.daemon=false --stacktrace ':${{ inputs.project }}:build'
+        ./gradlew ${{ inputs.gradle-cmd-opts }} -Dorg.gradle.daemon=false --build-cache --stacktrace ':${{ inputs.project }}:build'
 
     # If configured, build a container, publish it locally, and run its tests
     - name: Run build to produce container artifacts
@@ -125,6 +140,46 @@ runs:
         sudo sh -c 'echo "nameserver 1.1.1.1" > /etc/resolv.conf'
         ./gradlew ${{ inputs.gradle-cmd-opts }} -Dorg.gradle.daemon=false :${{ inputs.project }}:${{ inputs.project }}-integration:test
 
+    # Runs on every PR and push (not gated on `publish`) so the SBOM is visible and downloadable
+    # from every CI run, not just real releases.
+    - name: Generate SBOM
+      if: inputs.generate-sbom == 'true'
+      env:
+        ORG_GRADLE_PROJECT_version: ${{ steps.version.outputs.version }}
+      shell: bash
+      run: |
+        ./gradlew :${{ inputs.project }}:cyclonedxBom
+
+    # Renamed from the generic bom.json/bom.xml so files stay unambiguous once collected
+    # alongside every other service's SBOM (e.g. as release assets).
+    - name: Rename SBOM for upload
+      if: inputs.generate-sbom == 'true'
+      shell: bash
+      run: |
+        cp ${{ inputs.project }}/build/reports/cyclonedx/bom.json ${{ inputs.project }}/build/reports/cyclonedx/${{ inputs.project }}-app-sbom.cdx.json
+        cp ${{ inputs.project }}/build/reports/cyclonedx/bom.xml ${{ inputs.project }}/build/reports/cyclonedx/${{ inputs.project }}-app-sbom.cdx.xml
+
+    - name: Upload SBOM artifact
+      if: inputs.generate-sbom == 'true'
+      uses: actions/upload-artifact@v4
+      with:
+        name: sbom-${{ inputs.project }}-${{ steps.version.outputs.version }}
+        path: |
+          ${{ inputs.project }}/build/reports/cyclonedx/${{ inputs.project }}-app-sbom.cdx.json
+          ${{ inputs.project }}/build/reports/cyclonedx/${{ inputs.project }}-app-sbom.cdx.xml
+        if-no-files-found: error
+
+    - name: Summarize SBOM
+      if: inputs.generate-sbom == 'true'
+      shell: bash
+      run: |
+        COMPONENT_COUNT=$(jq '.components | length' ${{ inputs.project }}/build/reports/cyclonedx/bom.json)
+        cat <<EOF >> "$GITHUB_STEP_SUMMARY"
+        ### SBOM (CycloneDX)
+        Generated for \`${{ inputs.project }}\` version \`${{ steps.version.outputs.version }}\`: $COMPONENT_COUNT components.
+        Full ${{ inputs.project }}-app-sbom.cdx.json/.cdx.xml available in the \`sbom-${{ inputs.project }}-${{ steps.version.outputs.version }}\` workflow artifact.
+        EOF
+
     # Containers should generally be built in PRs to ensure that Dockerfiles are functioning properly
     - name: Build/Publish Docker containers
       uses: ./.github/actions/publish-docker
@@ -136,6 +191,7 @@ runs:
         build-url: ${{ steps.version.outputs.build-url }}
         build-command: ${{ inputs.docker-build-command }}
         push: ${{ github.event_name != 'pull_request' && inputs.publish == 'true' && inputs.publish-containers == 'true' }}
+        generate-sbom: ${{ inputs.generate-sbom }}
         gar-json-key: ${{ inputs.gar-json-key }}
         github-token: ${{ inputs.github-token }}
 

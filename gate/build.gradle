@@ -6,10 +6,15 @@ plugins {
 
 }
 
+// WireMock standalone substitution is centralized in wiremock-substitution.gradle
+// at the repo root (single home for the version).
+apply from: "../wiremock-substitution.gradle"
+
 allprojects {
   apply plugin: 'io.spinnaker.project'
 
   group = "io.spinnaker.gate"
+
 
   if (name != "gate-bom" && name != "gate-api") {
     apply plugin: 'java-library'

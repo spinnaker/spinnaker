@@ -1,6 +1,6 @@
 Orca
 ====
-[![Build Status](https://api.travis-ci.org/spinnaker/orca.svg?branch=master)](https://travis-ci.org/spinnaker/orca)
+[![Build Status](https://github.com/spinnaker/spinnaker/actions/workflows/orca.yml/badge.svg)](https://github.com/spinnaker/spinnaker/actions/workflows/orca.yml)
 
 ![Orca Logo](logo.jpg?raw=true)
 
@@ -92,14 +92,14 @@ The following backends are supported for the work queue:
 
 Orca requires Redis (and optionally MySQL) to be up and running.
 
-Start Orca via `./gradlew bootRun`, or by following the instructions using the [Spinnaker installation scripts](https://www.github.com/spinnaker/spinnaker).
+Start Orca via `./gradlew orca` (run from the monorepo root). See [CLAUDE.md](../CLAUDE.md) for the full set of build/run commands.
 
 ### Debugging
 
-To start the JVM in debug mode, set the Java system property `DEBUG=true`:
+To start the JVM in debug mode, set the Java system property `DEBUG=true` (run from the monorepo root):
 
 ```
-./gradlew -DDEBUG=true
+./gradlew orca -DDEBUG=true
 ```
 
 The JVM will then listen for a debugger to be attached on port `8183`.

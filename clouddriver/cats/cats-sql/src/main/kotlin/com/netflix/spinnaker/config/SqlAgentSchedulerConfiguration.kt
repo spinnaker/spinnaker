@@ -47,7 +47,7 @@ class SqlAgentSchedulerConfiguration {
     @Value("\${sql.table-namespace:#{null}}") tableNamespace: String?,
     sqlAgentProperties: SqlAgentProperties,
     shardingFilter: ShardingFilter
-  ): AgentScheduler<*> {
+  ): AgentScheduler {
     return SqlClusteredAgentScheduler(
       jooq = jooq,
       nodeIdentity = DefaultNodeIdentity(),

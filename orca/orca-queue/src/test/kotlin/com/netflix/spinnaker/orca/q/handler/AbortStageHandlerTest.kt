@@ -34,12 +34,15 @@ import com.netflix.spinnaker.time.fixedClock
 import org.mockito.kotlin.any
 import org.mockito.kotlin.check
 import org.mockito.kotlin.doReturn
+import org.mockito.kotlin.doThrow
+import org.mockito.kotlin.isA
 import org.mockito.kotlin.mock
 import org.mockito.kotlin.never
 import org.mockito.kotlin.reset
 import org.mockito.kotlin.verify
 import org.mockito.kotlin.verifyNoMoreInteractions
 import org.mockito.kotlin.whenever
+import redis.clients.jedis.exceptions.JedisConnectionException
 import org.assertj.core.api.Assertions.assertThat
 import org.jetbrains.spek.api.dsl.describe
 import org.jetbrains.spek.api.dsl.given
@@ -193,6 +196,45 @@ object AbortStageHandlerTest : SubjectSpek<AbortStageHandler>({
             assertThat(it.stage.status).isEqualTo(TERMINAL)
           }
         )
+      }
+    }
+  }
+
+  describe("handling transient Redis exceptions") {
+    given("a JedisConnectionException is thrown during queue.push") {
+      val pipeline = pipeline {
+        application = "whatever"
+        stage {
+          refId = "1"
+          type = "whatever"
+          status = RUNNING
+        }
+      }
+      val message = AbortStage(pipeline.stageByRef("1"))
+
+      beforeGroup {
+        whenever(repository.retrieve(PIPELINE, pipeline.id)) doReturn pipeline
+        whenever(queue.push(isA<CancelStage>())) doThrow JedisConnectionException("Read timed out")
+      }
+
+      afterGroup(::resetMocks)
+
+      var thrownException: Exception? = null
+
+      on("receiving a message") {
+        try {
+          subject.handle(message)
+        } catch (e: Exception) {
+          thrownException = e
+        }
+      }
+
+      it("rethrows the exception so the message is not acked") {
+        assertThat(thrownException).isInstanceOf(JedisConnectionException::class.java)
+      }
+
+      it("restores stage status to the original value") {
+        assertThat(pipeline.stageByRef("1").status).isEqualTo(RUNNING)
       }
     }
   }

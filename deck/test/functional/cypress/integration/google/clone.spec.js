@@ -545,43 +545,46 @@ function createWizardAdapter(core, instanceTypeService, securityGroupReader, win
 }
 
 function installGceTestHarness() {
-  cy.window().then((win) => {
-    const core = win.spinnaker?.plugins?.sharedLibraries?._spinnaker_core;
-    expect(core, 'shared @spinnaker/core library').to.exist;
+  cy.window({ timeout: 10000 })
+    .should((win) => {
+      expect(win.spinnaker?.plugins?.sharedLibraries?._spinnaker_core, 'shared @spinnaker/core library').to.exist;
+    })
+    .then((win) => {
+      const core = win.spinnaker.plugins.sharedLibraries._spinnaker_core;
 
-    const securityGroupReader = {
-      getAllSecurityGroups: () => core.REST('/securityGroups').get(),
-    };
-    const instanceTypeService = createInstanceTypeService(core);
-    const commandBuilder = createCommandBuilder(core, instanceTypeService);
-    const lifecycle = [];
-    const adapter = {
-      ...createWizardAdapter(core, instanceTypeService, securityGroupReader, win, lifecycle),
-      ...commandBuilder,
-    };
-    const facade = core.ServerGroupCommandBuilderService.prototype;
-    facade.buildNewServerGroupCommand = (application, _provider, defaults) =>
-      commandBuilder.buildNewServerGroupCommand(application, defaults);
-    facade.buildNewServerGroupCommandForPipeline = (_provider, stage, pipeline) =>
-      commandBuilder.buildNewServerGroupCommandForPipeline(stage, pipeline);
-    facade.buildServerGroupCommandFromExisting = commandBuilder.buildServerGroupCommandFromExisting;
-    facade.buildServerGroupCommandFromPipeline = commandBuilder.buildServerGroupCommandFromPipeline;
+      const securityGroupReader = {
+        getAllSecurityGroups: () => core.REST('/securityGroups').get(),
+      };
+      const instanceTypeService = createInstanceTypeService(core);
+      const commandBuilder = createCommandBuilder(core, instanceTypeService);
+      const lifecycle = [];
+      const adapter = {
+        ...createWizardAdapter(core, instanceTypeService, securityGroupReader, win, lifecycle),
+        ...commandBuilder,
+      };
+      const facade = core.ServerGroupCommandBuilderService.prototype;
+      facade.buildNewServerGroupCommand = (application, _provider, defaults) =>
+        commandBuilder.buildNewServerGroupCommand(application, defaults);
+      facade.buildNewServerGroupCommandForPipeline = (_provider, stage, pipeline) =>
+        commandBuilder.buildNewServerGroupCommandForPipeline(stage, pipeline);
+      facade.buildServerGroupCommandFromExisting = commandBuilder.buildServerGroupCommandFromExisting;
+      facade.buildServerGroupCommandFromPipeline = commandBuilder.buildServerGroupCommandFromPipeline;
 
-    const CloneServerGroupModal = core.CloudProviderRegistry.getValue('gce', 'serverGroup.CloneServerGroupModal');
-    const showModal = CloneServerGroupModal.show.bind(CloneServerGroupModal);
-    const runtime = core.createDeckRuntime(core.getDirectRouter());
-    const showModalWithAdapter = (props, runtimeServices = runtime.services) =>
-      showModal({ ...props, adapter }, runtimeServices);
-    core.CloudProviderRegistry.overrideValue('gce', 'serverGroup.CloneServerGroupModal.show', showModalWithAdapter);
-    win.__gceFunctionalHarness = {
-      adapter,
-      commandBuilder,
-      core,
-      lifecycle,
-      runtime,
-      showModal: showModalWithAdapter,
-    };
-  });
+      const CloneServerGroupModal = core.CloudProviderRegistry.getValue('gce', 'serverGroup.CloneServerGroupModal');
+      const showModal = CloneServerGroupModal.show.bind(CloneServerGroupModal);
+      const runtime = core.createDeckRuntime(core.getDirectRouter());
+      const showModalWithAdapter = (props, runtimeServices = runtime.services) =>
+        showModal({ ...props, adapter }, runtimeServices);
+      core.CloudProviderRegistry.overrideValue('gce', 'serverGroup.CloneServerGroupModal.show', showModalWithAdapter);
+      win.__gceFunctionalHarness = {
+        adapter,
+        commandBuilder,
+        core,
+        lifecycle,
+        runtime,
+        showModal: showModalWithAdapter,
+      };
+    });
 }
 
 function resolvedApplication(harness) {

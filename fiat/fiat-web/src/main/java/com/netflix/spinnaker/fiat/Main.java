@@ -19,11 +19,9 @@ package com.netflix.spinnaker.fiat;
 import com.netflix.spinnaker.config.ErrorConfiguration;
 import com.netflix.spinnaker.kork.boot.DefaultPropertiesBuilder;
 import java.util.Map;
-import org.springframework.boot.actuate.autoconfigure.ldap.LdapHealthContributorAutoConfiguration;
 import org.springframework.boot.autoconfigure.EnableAutoConfiguration;
-import org.springframework.boot.autoconfigure.gson.GsonAutoConfiguration;
-import org.springframework.boot.autoconfigure.jdbc.DataSourceAutoConfiguration;
 import org.springframework.boot.builder.SpringApplicationBuilder;
+import org.springframework.boot.jdbc.autoconfigure.DataSourceAutoConfiguration;
 import org.springframework.boot.web.servlet.support.SpringBootServletInitializer;
 import org.springframework.context.annotation.ComponentScan;
 import org.springframework.context.annotation.Configuration;
@@ -39,10 +37,6 @@ import org.springframework.scheduling.annotation.EnableScheduling;
 @Import(ErrorConfiguration.class)
 @EnableAutoConfiguration(
     exclude = {
-      GsonAutoConfiguration.class,
-      // Disable LDAP health check until we pull in the fix to
-      // https://github.com/spring-projects/spring-ldap/issues/473
-      LdapHealthContributorAutoConfiguration.class,
       // SQL is optional
       DataSourceAutoConfiguration.class,
     })

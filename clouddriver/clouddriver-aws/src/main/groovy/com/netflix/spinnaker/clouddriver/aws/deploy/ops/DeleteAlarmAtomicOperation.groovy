@@ -15,7 +15,7 @@
  */
 package com.netflix.spinnaker.clouddriver.aws.deploy.ops
 
-import com.amazonaws.services.cloudwatch.model.DeleteAlarmsRequest
+import software.amazon.awssdk.services.cloudwatch.model.DeleteAlarmsRequest
 import com.netflix.spinnaker.clouddriver.aws.deploy.description.DeleteAlarmDescription
 import com.netflix.spinnaker.clouddriver.aws.security.AmazonClientProvider
 import com.netflix.spinnaker.clouddriver.data.task.Task
@@ -43,12 +43,12 @@ class DeleteAlarmAtomicOperation implements AtomicOperation<Void> {
     @Override
     Void operate(List priorOutputs) {
       task.updateStatus BASE_PHASE, "Initializing Delete Alarm Operation..."
-      def cloudWatch = amazonClientProvider.getCloudWatch(description.credentials, description.region, true)
+      def cloudWatch = amazonClientProvider.getAmazonCloudWatchV2(description.credentials, description.region)
       String alarmDescription = "${description.names.join(", ")} in ${description.region} for ${description.credentials.name}"
       task.updateStatus BASE_PHASE, "Deleting ${alarmDescription}."
-      cloudWatch.deleteAlarms(new DeleteAlarmsRequest(
-        alarmNames: description.names
-      ))
+      cloudWatch.deleteAlarms(DeleteAlarmsRequest.builder()
+        .alarmNames(description.names)
+        .build())
       task.updateStatus BASE_PHASE, "Done deleting ${alarmDescription}."
       null
     }

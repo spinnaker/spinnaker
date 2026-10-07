@@ -58,7 +58,8 @@ function findTriggerImages(triggers) {
     }));
 }
 
-function buildNewServerGroupCommand(application, defaults = {}) {
+function buildNewServerGroupCommand(application, defaults) {
+  defaults = defaults || {};
   const defaultCredentials = defaults.account || application.defaultCredentials.ecs;
   const defaultRegion = defaults.region || application.defaultRegions.ecs;
 
@@ -90,6 +91,7 @@ function buildNewServerGroupCommand(application, defaults = {}) {
       ecsClusterName: '',
       targetGroup: '',
       copySourceScalingPoliciesAndActions: true,
+      copySourceMonitoringConfiguration: true,
       preferSourceCapacity: true,
       useSourceCapacity: true,
       enableDeploymentCircuitBreaker: false,

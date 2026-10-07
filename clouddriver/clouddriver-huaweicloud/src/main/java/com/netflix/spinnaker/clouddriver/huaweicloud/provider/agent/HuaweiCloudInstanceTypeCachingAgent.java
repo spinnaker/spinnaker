@@ -71,7 +71,7 @@ public class HuaweiCloudInstanceTypeCachingAgent extends AbstractHuaweiCloudCach
       return null;
     }
 
-    CacheResultBuilder cacheResultBuilder = new CacheResultBuilder(0);
+    CacheResultBuilder cacheResultBuilder = new CacheResultBuilder(0, getProvidedDataTypes());
 
     zones.forEach(
         zone -> {

@@ -16,7 +16,7 @@
 
 package com.netflix.spinnaker.clouddriver.aws.deploy.ops
 
-import com.amazonaws.services.ec2.model.RebootInstancesRequest
+import software.amazon.awssdk.services.ec2.model.RebootInstancesRequest
 import com.netflix.spinnaker.clouddriver.aws.security.AmazonClientProvider
 import com.netflix.spinnaker.clouddriver.data.task.Task
 import com.netflix.spinnaker.clouddriver.data.task.TaskRepository
@@ -43,8 +43,8 @@ class RebootInstancesAtomicOperation implements AtomicOperation<Void> {
   @Override
   Void operate(List priorOutputs) {
     task.updateStatus BASE_PHASE, "Initializing Reboot Instances Operation for ${description.instanceIds.join(", ")}..."
-    def amazonEC2 = amazonClientProvider.getAmazonEC2(description.credentials, description.region, true)
-    amazonEC2.rebootInstances(new RebootInstancesRequest(instanceIds: description.instanceIds))
+    def amazonEC2 = amazonClientProvider.getAmazonEC2V2(description.credentials, description.region)
+    amazonEC2.rebootInstances(RebootInstancesRequest.builder().instanceIds(description.instanceIds).build())
     task.updateStatus BASE_PHASE, "Done rebooting instances (${description.instanceIds.join(", ")})."
     null
   }

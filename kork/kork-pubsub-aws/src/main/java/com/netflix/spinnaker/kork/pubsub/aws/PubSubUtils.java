@@ -38,6 +38,7 @@ import software.amazon.awssdk.policybuilder.iam.IamResource;
 import software.amazon.awssdk.policybuilder.iam.IamStatement;
 import software.amazon.awssdk.services.sns.SnsClient;
 import software.amazon.awssdk.services.sns.model.CreateTopicRequest;
+import software.amazon.awssdk.services.sns.model.SetTopicAttributesRequest;
 import software.amazon.awssdk.services.sns.model.SubscribeRequest;
 import software.amazon.awssdk.services.sqs.SqsClient;
 import software.amazon.awssdk.services.sqs.model.CreateQueueRequest;
@@ -155,8 +156,8 @@ public class PubSubUtils {
     if (!subscription.getAccountIds().isEmpty()) {
       String snsPolicy =
           buildSNSPolicy(new ARN(createdTopicARN), subscription.getAccountIds()).toJson();
-      software.amazon.awssdk.services.sns.model.SetTopicAttributesRequest topicAttributesRequest =
-          software.amazon.awssdk.services.sns.model.SetTopicAttributesRequest.builder()
+      SetTopicAttributesRequest topicAttributesRequest =
+          SetTopicAttributesRequest.builder()
               .topicArn(createdTopicARN)
               .attributeName("Policy")
               .attributeValue(snsPolicy)
@@ -178,6 +179,7 @@ public class PubSubUtils {
             && discoveryStatus.isEnabled();
   }
 
+  /** This policy allows specified accounts to publish messages to the topic. */
   public static IamPolicy buildSNSPolicy(ARN topicARN, List<String> accountIds) {
     List<IamPrincipal> principals =
         accountIds.stream().map(a -> IamPrincipal.create(IamPrincipalType.AWS, a)).toList();

@@ -64,6 +64,8 @@ export class PipelineGraphService {
     const nodes: IPipelineGraphNode[] = [];
     (execution.stageSummaries || []).forEach((stage: IExecutionStageSummary, idx: number) => {
       const parentIds = (stage.requisiteStageRefIds || []).slice();
+      const activeSubStage =
+        viewState.activeStageId === stage.index ? stage.groupStages?.[viewState.activeSubStageId] : undefined;
       const node: IPipelineGraphNode = {
         childLinks: [],
         children: [],
@@ -77,7 +79,7 @@ export class PipelineGraphService {
         isHighlighted: false,
         labelComponent: stage.labelComponent,
         masterStage: stage.masterStage,
-        name: stage.name,
+        name: activeSubStage ? `${stage.name}: ${activeSubStage.name}` : stage.name,
         parentIds,
         parentLinks: [],
         parents: [],

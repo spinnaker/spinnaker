@@ -18,7 +18,7 @@ import com.netflix.spinnaker.keel.persistence.ResourceRepository
 import com.netflix.spinnaker.keel.test.DummyResourceHandlerV1
 import com.netflix.spinnaker.keel.test.DummyResourceSpec
 import com.netflix.spinnaker.kork.sql.test.SqlTestUtil.cleanupDb
-import com.ninjasquad.springmockk.SpykBean
+import com.ninjasquad.springmockk.MockkSpyBean
 import dev.minutest.junit.JUnit5Minutests
 import dev.minutest.rootContext
 import io.mockk.clearAllMocks
@@ -47,13 +47,13 @@ internal class DeliveryConfigTransactionTests
   val jooq: DSLContext
 ) : JUnit5Minutests {
 
-  @SpykBean
+  @MockkSpyBean
   lateinit var artifactRepository: ArtifactRepository
 
-  @SpykBean
+  @MockkSpyBean
   lateinit var resourceRepository: ResourceRepository
 
-  @SpykBean
+  @MockkSpyBean
   lateinit var deliveryConfigRepository: DeliveryConfigRepository
 
   private fun KeelRepository.allResourceNames(): List<String> =

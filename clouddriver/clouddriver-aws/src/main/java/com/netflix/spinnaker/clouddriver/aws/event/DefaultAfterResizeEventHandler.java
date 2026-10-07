@@ -16,14 +16,14 @@
 
 package com.netflix.spinnaker.clouddriver.aws.event;
 
-import com.amazonaws.services.autoscaling.AmazonAutoScaling;
-import com.amazonaws.services.autoscaling.model.AutoScalingGroup;
-import com.amazonaws.services.autoscaling.model.DescribeLifecycleHooksRequest;
-import com.amazonaws.services.autoscaling.model.LifecycleHook;
 import java.util.List;
 import java.util.stream.Collectors;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import software.amazon.awssdk.services.autoscaling.AutoScalingClient;
+import software.amazon.awssdk.services.autoscaling.model.AutoScalingGroup;
+import software.amazon.awssdk.services.autoscaling.model.DescribeLifecycleHooksRequest;
+import software.amazon.awssdk.services.autoscaling.model.LifecycleHook;
 
 public class DefaultAfterResizeEventHandler implements AfterResizeEventHandler {
   private final Logger log = LoggerFactory.getLogger(getClass());
@@ -44,8 +44,8 @@ public class DefaultAfterResizeEventHandler implements AfterResizeEventHandler {
       return;
     }
 
-    if (!autoScalingGroup.getLoadBalancerNames().isEmpty()
-        || !autoScalingGroup.getTargetGroupARNs().isEmpty()) {
+    if (!autoScalingGroup.loadBalancerNames().isEmpty()
+        || !autoScalingGroup.targetGroupARNs().isEmpty()) {
       event
           .getTask()
           .updateStatus(
@@ -57,7 +57,7 @@ public class DefaultAfterResizeEventHandler implements AfterResizeEventHandler {
     try {
       List<LifecycleHook> existingLifecycleHooks =
           fetchTerminatingLifecycleHooks(
-              event.getAmazonAutoScaling(), autoScalingGroup.getAutoScalingGroupName());
+              event.getAmazonAutoScaling(), autoScalingGroup.autoScalingGroupName());
       if (!existingLifecycleHooks.isEmpty()) {
         event
             .getTask()
@@ -69,8 +69,8 @@ public class DefaultAfterResizeEventHandler implements AfterResizeEventHandler {
     } catch (Exception e) {
       log.error(
           "Unable to fetch lifecycle hooks (serverGroupName: {}, arn: {})",
-          autoScalingGroup.getAutoScalingGroupName(),
-          autoScalingGroup.getAutoScalingGroupARN(),
+          autoScalingGroup.autoScalingGroupName(),
+          autoScalingGroup.autoScalingGroupARN(),
           e);
 
       event
@@ -88,14 +88,13 @@ public class DefaultAfterResizeEventHandler implements AfterResizeEventHandler {
   }
 
   private static List<LifecycleHook> fetchTerminatingLifecycleHooks(
-      AmazonAutoScaling amazonAutoScaling, String serverGroupName) {
+      AutoScalingClient amazonAutoScaling, String serverGroupName) {
     DescribeLifecycleHooksRequest request =
-        new DescribeLifecycleHooksRequest().withAutoScalingGroupName(serverGroupName);
+        DescribeLifecycleHooksRequest.builder().autoScalingGroupName(serverGroupName).build();
 
-    return amazonAutoScaling.describeLifecycleHooks(request).getLifecycleHooks().stream()
+    return amazonAutoScaling.describeLifecycleHooks(request).lifecycleHooks().stream()
         .filter(
-            h ->
-                "autoscaling:EC2_INSTANCE_TERMINATING".equalsIgnoreCase(h.getLifecycleTransition()))
+            h -> "autoscaling:EC2_INSTANCE_TERMINATING".equalsIgnoreCase(h.lifecycleTransition()))
         .collect(Collectors.toList());
   }
 }

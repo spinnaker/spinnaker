@@ -30,7 +30,7 @@ class SearchService {
   @Autowired
   ClouddriverServiceSelector clouddriverServiceSelector
 
-  List<Map> search(String query, String type, String platform, String selectorKey, int pageSize = 10000, int page = 1, Map<String, String> filters) {
+  List<Map> search(String query, List<String> type, String platform, String selectorKey, int pageSize = 10000, int page = 1, Map<String, String> filters) {
     return Retrofit2SyncCall.execute(clouddriverServiceSelector.select().search(query, type, platform, pageSize, page, filters))
   }
 }

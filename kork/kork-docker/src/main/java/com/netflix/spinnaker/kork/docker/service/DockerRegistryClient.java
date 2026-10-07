@@ -449,9 +449,9 @@ public class DockerRegistryClient {
         int status = error.getResponseCode();
         if (status == 400 || status == 401) {
           List<String> authenticateHeader = null;
-          for (Map.Entry<String, List<String>> header : error.getHeaders().entrySet()) {
-            if ("www-authenticate".equalsIgnoreCase(header.getKey())) {
-              authenticateHeader = header.getValue();
+          for (String headerName : error.getHeaders().headerNames()) {
+            if ("www-authenticate".equalsIgnoreCase(headerName)) {
+              authenticateHeader = error.getHeaders().get(headerName);
             }
           }
           if (authenticateHeader == null || authenticateHeader.isEmpty()) {

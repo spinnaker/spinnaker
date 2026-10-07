@@ -15,12 +15,12 @@
  */
 package com.netflix.spinnaker.clouddriver.aws.deploy.asg
 
-import com.amazonaws.services.autoscaling.AmazonAutoScaling
-import com.amazonaws.services.autoscaling.model.AlreadyExistsException
-import com.amazonaws.services.autoscaling.model.DescribeScheduledActionsRequest
-import com.amazonaws.services.autoscaling.model.DescribeScheduledActionsResult
-import com.amazonaws.services.autoscaling.model.PutScheduledUpdateGroupActionRequest
-import com.amazonaws.services.autoscaling.model.ScheduledUpdateGroupAction
+import software.amazon.awssdk.services.autoscaling.AutoScalingClient
+import software.amazon.awssdk.services.autoscaling.model.AlreadyExistsException
+import software.amazon.awssdk.services.autoscaling.model.DescribeScheduledActionsRequest
+import software.amazon.awssdk.services.autoscaling.model.DescribeScheduledActionsResponse
+import software.amazon.awssdk.services.autoscaling.model.PutScheduledUpdateGroupActionRequest
+import software.amazon.awssdk.services.autoscaling.model.ScheduledUpdateGroupAction
 import com.netflix.spinnaker.clouddriver.aws.model.AwsResultsRetriever
 import com.netflix.spinnaker.clouddriver.aws.security.AmazonClientProvider
 import com.netflix.spinnaker.clouddriver.aws.security.NetflixAmazonCredentials
@@ -46,24 +46,24 @@ class AsgReferenceCopier {
   IdGenerator idGenerator
 
   void copyScheduledActionsForAsg(Task task, String sourceAsgName, String targetAsgName) {
-    AmazonAutoScaling sourceAutoScaling = amazonClientProvider.getAutoScaling(sourceCredentials, sourceRegion, true)
-    AmazonAutoScaling targetAutoScaling = amazonClientProvider.getAutoScaling(targetCredentials, targetRegion, true)
-    def sourceScheduledActions = new ScheduledActionsRetriever(sourceAutoScaling).retrieve(new DescribeScheduledActionsRequest(autoScalingGroupName: sourceAsgName))
+    AutoScalingClient sourceAutoScaling = amazonClientProvider.getAutoScalingV2(sourceCredentials, sourceRegion)
+    AutoScalingClient targetAutoScaling = amazonClientProvider.getAutoScalingV2(targetCredentials, targetRegion)
+    def sourceScheduledActions = new ScheduledActionsRetriever(sourceAutoScaling).retrieve(DescribeScheduledActionsRequest.builder().autoScalingGroupName(sourceAsgName).build())
     sourceScheduledActions.each { sourceScheduledAction ->
       String newScheduledActionName = [targetAsgName, 'schedule', idGenerator.nextId()].join('-')
-      def request = new PutScheduledUpdateGroupActionRequest(
-        autoScalingGroupName: targetAsgName,
-        scheduledActionName: newScheduledActionName,
-        endTime: sourceScheduledAction.endTime,
-        recurrence: sourceScheduledAction.recurrence,
-        minSize: sourceScheduledAction.minSize,
-        maxSize: sourceScheduledAction.maxSize,
-        desiredCapacity: sourceScheduledAction.desiredCapacity
-      )
-      Date startTime = sourceScheduledAction.startTime ?: sourceScheduledAction.time
-      if (startTime?.time > System.currentTimeMillis()) {
-        request.withStartTime(startTime)
+      def requestBuilder = PutScheduledUpdateGroupActionRequest.builder()
+        .autoScalingGroupName(targetAsgName)
+        .scheduledActionName(newScheduledActionName)
+        .endTime(sourceScheduledAction.endTime)
+        .recurrence(sourceScheduledAction.recurrence)
+        .minSize(sourceScheduledAction.minSize)
+        .maxSize(sourceScheduledAction.maxSize)
+        .desiredCapacity(sourceScheduledAction.desiredCapacity)
+      java.time.Instant startTime = sourceScheduledAction.startTime ?: sourceScheduledAction.time
+      if (startTime?.toEpochMilli() > System.currentTimeMillis()) {
+        requestBuilder.startTime(startTime)
       }
+      def request = requestBuilder.build()
 
       try {
         targetAutoScaling.putScheduledUpdateGroupAction(request)
@@ -77,17 +77,22 @@ class AsgReferenceCopier {
   }
 
   @Canonical
-  static class ScheduledActionsRetriever extends AwsResultsRetriever<ScheduledUpdateGroupAction, DescribeScheduledActionsRequest, DescribeScheduledActionsResult> {
-    final AmazonAutoScaling autoScaling
+  static class ScheduledActionsRetriever extends AwsResultsRetriever<ScheduledUpdateGroupAction, DescribeScheduledActionsRequest, DescribeScheduledActionsResponse> {
+    final AutoScalingClient autoScaling
 
     @Override
-    protected DescribeScheduledActionsResult makeRequest(DescribeScheduledActionsRequest request) {
+    protected DescribeScheduledActionsResponse makeRequest(DescribeScheduledActionsRequest request) {
       autoScaling.describeScheduledActions(request)
     }
 
     @Override
-    protected List<ScheduledUpdateGroupAction> accessResult(DescribeScheduledActionsResult result) {
-      result.scheduledUpdateGroupActions
+    protected List<ScheduledUpdateGroupAction> accessResult(DescribeScheduledActionsResponse result) {
+      result.scheduledUpdateGroupActions()
+    }
+
+    @Override
+    protected DescribeScheduledActionsRequest setNextToken(DescribeScheduledActionsRequest request, String nextToken) {
+      request.toBuilder().nextToken(nextToken).build()
     }
   }
 

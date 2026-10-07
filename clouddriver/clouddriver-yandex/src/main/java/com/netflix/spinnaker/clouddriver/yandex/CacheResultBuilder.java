@@ -63,6 +63,11 @@ public class CacheResultBuilder {
   public DefaultCacheResult build() {
     Map<String, Collection<CacheData>> keep = new HashMap<>();
     Map<String, Collection<String>> evict = new HashMap<>();
+    // Guarantee every authoritative type has a key in the result, even one with zero items --
+    // otherwise a type that just dropped to zero live resources this cycle would be silently
+    // absent instead, and SqlCache's existingIds-minus-currentIds eviction diff (which only runs
+    // for types present here) would never clean up its now-stale cached entries.
+    authoritativeTypes.forEach(namespace -> keep.put(namespace, new ArrayList<>()));
     namespaceBuilders.forEach(
         (namespace, nsBuilder) -> {
           CacheMutation buildResult = nsBuilder.build();

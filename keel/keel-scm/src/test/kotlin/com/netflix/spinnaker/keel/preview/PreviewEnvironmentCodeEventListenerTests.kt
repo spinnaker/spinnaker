@@ -14,8 +14,6 @@ import com.netflix.spinnaker.keel.api.PreviewEnvironmentSpec
 import com.netflix.spinnaker.keel.api.Resource
 import com.netflix.spinnaker.keel.api.artifacts.ArtifactOriginFilter
 import com.netflix.spinnaker.keel.api.artifacts.DEBIAN
-import com.netflix.spinnaker.keel.api.artifacts.DOCKER
-import com.netflix.spinnaker.keel.api.artifacts.branchName
 import com.netflix.spinnaker.keel.api.artifacts.branchStartsWith
 import com.netflix.spinnaker.keel.api.ec2.ClusterDependencies
 import com.netflix.spinnaker.keel.api.ec2.ClusterSpec
@@ -25,6 +23,7 @@ import com.netflix.spinnaker.keel.api.ec2.EC2_SECURITY_GROUP_V1
 import com.netflix.spinnaker.keel.api.ec2.SecurityGroupSpec
 import com.netflix.spinnaker.keel.api.ec2.old.ClusterV1Spec
 import com.netflix.spinnaker.keel.api.ec2.old.ClusterV1Spec.ImageProvider
+import com.netflix.spinnaker.keel.api.toSimpleLocations
 import com.netflix.spinnaker.keel.core.api.ManualJudgementConstraint
 import com.netflix.spinnaker.keel.core.api.SubmittedDeliveryConfig
 import com.netflix.spinnaker.keel.core.api.SubmittedEnvironment
@@ -64,10 +63,9 @@ import com.netflix.spinnaker.keel.test.DummyLocatableResourceSpec
 import com.netflix.spinnaker.keel.test.applicationLoadBalancer
 import com.netflix.spinnaker.keel.test.configuredTestObjectMapper
 import com.netflix.spinnaker.keel.test.debianArtifact
-import com.netflix.spinnaker.keel.test.dockerArtifact
+import com.netflix.spinnaker.keel.test.ec2Cluster
 import com.netflix.spinnaker.keel.test.resource
 import com.netflix.spinnaker.keel.test.submittedResource
-import com.netflix.spinnaker.keel.test.titusCluster
 import com.netflix.spinnaker.keel.validators.DeliveryConfigValidator
 import com.netflix.spinnaker.kork.exceptions.SystemException
 import com.netflix.spinnaker.time.MutableClock
@@ -165,28 +163,22 @@ internal class PreviewEnvironmentCodeEventListenerTests : JUnit5Minutests {
       dataSources = DataSources(enabled = emptyList(), disabled = emptyList())
     )
 
-    val dockerFromMain = dockerArtifact()
-
-    val dockerFromBranch = dockerFromMain.copy(
-      reference = "docker-from-branch",
-      from = ArtifactOriginFilter(branch = branchStartsWith("feature/"))
-    )
-
-    val dockerWithNonMatchingFilter = dockerFromBranch.copy(
-      reference = "fnord-non-matching",
-      from = ArtifactOriginFilter(branch = branchName("not-the-right-branch"))
+    val debianFromMain = debianArtifact()
+    val debianFromBranch = debianFromMain.copy(
+      reference = "debian-from-branch",
+      from = ArtifactOriginFilter(branchStartsWith("feature/"))
     )
 
     val applicationLoadBalancer = applicationLoadBalancer()
 
-    val cluster = titusCluster(artifact = dockerFromMain)
+    val cluster = ec2Cluster(artifact = debianFromMain)
 
     val defaultAppSecurityGroup = Resource(
       kind = EC2_SECURITY_GROUP_V1.kind,
       metadata = mapOf("id" to "fnord", "application" to "fnord"),
       spec = SecurityGroupSpec(
         moniker = Moniker("fnord"),
-        locations = cluster.spec.locations,
+        locations = cluster.spec.locations.toSimpleLocations(),
         description = "default app security group"
       )
     )
@@ -196,19 +188,19 @@ internal class PreviewEnvironmentCodeEventListenerTests : JUnit5Minutests {
       metadata = mapOf("id" to "fnord", "application" to "fnord"),
       spec = SecurityGroupSpec(
         moniker = Moniker("fnord", "elb"),
-        locations = cluster.spec.locations,
+        locations = cluster.spec.locations.toSimpleLocations(),
         description = "default load balancer security group"
       )
     )
 
-    val clusterNamedAfterApp = titusCluster(
+    val clusterNamedAfterApp = ec2Cluster(
       moniker = Moniker("fnord"),
-      artifact = dockerFromMain
+      artifact = debianFromMain
     )
 
-    val clusterWithDependencies = titusCluster(
+    val clusterWithDependencies = ec2Cluster(
       moniker = Moniker("fnord", "dependent"),
-      artifact = dockerFromMain
+      artifact = debianFromMain
     ).run {
       copy(
         spec = spec.copy(
@@ -221,12 +213,6 @@ internal class PreviewEnvironmentCodeEventListenerTests : JUnit5Minutests {
         )
       )
     }
-
-    val debianFromMain = debianArtifact()
-    val debianFromBranch = debianFromMain.copy(
-      reference = "debian-from-branch",
-      from = ArtifactOriginFilter(branchStartsWith("feature/"))
-    )
 
     val clusterWithOldSpecVersion = resource(
       kind = EC2_CLUSTER_V1.kind,
@@ -241,7 +227,7 @@ internal class PreviewEnvironmentCodeEventListenerTests : JUnit5Minutests {
       application = "fnord",
       name = "myconfig",
       serviceAccount = "keel@keel.io",
-      artifacts = setOf(dockerFromMain, debianFromMain),
+      artifacts = setOf(debianFromMain),
       environments = setOf(
         Environment(
           name = "test",
@@ -455,11 +441,6 @@ internal class PreviewEnvironmentCodeEventListenerTests : JUnit5Minutests {
           test("the updated delivery config contains preview artifacts") {
             expectThat(previewArtifacts) {
               one {
-                get { name }.isEqualTo(dockerFromMain.name)
-                get { type }.isEqualTo(dockerFromMain.type)
-                get { from!!.branch }.isEqualTo(previewEnvSpec.branch)
-              }
-              one {
                 get { name }.isEqualTo(debianFromMain.name)
                 get { type }.isEqualTo(debianFromMain.type)
                 get { from!!.branch }.isEqualTo(previewEnvSpec.branch)
@@ -521,7 +502,7 @@ internal class PreviewEnvironmentCodeEventListenerTests : JUnit5Minutests {
           test("the artifact reference in a resource is updated to match the preview artifact") {
             expectThat(previewEnv.resources.find { it.basedOn == cluster.id }?.spec)
               .isA<ArtifactReferenceProvider>()
-              .get { artifactReference }.isEqualTo(previewArtifacts.find { it.type == DOCKER }!!.reference)
+              .get { artifactReference }.isEqualTo(previewArtifacts.find { it.type == DEBIAN }!!.reference)
 
             expectThat(previewEnv.resources.find { it.basedOn == clusterWithOldSpecVersion.id }?.spec)
               // this also demonstrates that the old cluster spec gets migrated and now supports the standard artifact reference interface

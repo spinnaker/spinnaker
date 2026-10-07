@@ -33,6 +33,28 @@ public class RedisPermissionRepositoryConfigProps {
     private Duration getUserResourceTimeout = Duration.ofSeconds(1);
     private int syncThreads = Runtime.getRuntime().availableProcessors();
 
+    /**
+     * Skip rewriting per-user permission keys whose content matches the stored write digest. When
+     * disabled every key is rewritten on every put, and digests are still kept accurate so that
+     * re-enabling is safe.
+     */
+    private boolean skipUnchangedWrites = true;
+
+    /**
+     * Optional expiry for write digests; unset, zero or negative means they never expire. Fiat
+     * versions that predate digests can rewrite a key without updating its digest, so setting this
+     * temporarily during a mixed-version rollout or rollback bounds how long such a write could go
+     * unnoticed.
+     */
+    private Duration writeDigestTtl;
+
+    /**
+     * Included in every write digest. Changing it invalidates all stored digests, so the next sync
+     * rewrites every key; do this when rolling forward after running a Fiat version that predates
+     * digests.
+     */
+    private String writeDigestGeneration = "1";
+
     public Duration getGetPermissionTimeout() {
       return getPermissionTimeout;
     }
@@ -63,6 +85,30 @@ public class RedisPermissionRepositoryConfigProps {
 
     public void setSyncThreads(int threads) {
       this.syncThreads = threads;
+    }
+
+    public boolean isSkipUnchangedWrites() {
+      return skipUnchangedWrites;
+    }
+
+    public void setSkipUnchangedWrites(boolean skipUnchangedWrites) {
+      this.skipUnchangedWrites = skipUnchangedWrites;
+    }
+
+    public Duration getWriteDigestTtl() {
+      return writeDigestTtl;
+    }
+
+    public void setWriteDigestTtl(Duration writeDigestTtl) {
+      this.writeDigestTtl = writeDigestTtl;
+    }
+
+    public String getWriteDigestGeneration() {
+      return writeDigestGeneration;
+    }
+
+    public void setWriteDigestGeneration(String writeDigestGeneration) {
+      this.writeDigestGeneration = writeDigestGeneration;
     }
   }
 }

@@ -97,6 +97,7 @@ export function validateAwsResizeAsgStage(stage: IResizeAsgStage): string {
 }
 
 interface IControlledIntegerInputProps {
+  ariaLabel: string;
   dataCapacityField?: string;
   maximum?: number;
   name: string;
@@ -106,6 +107,7 @@ interface IControlledIntegerInputProps {
 }
 
 function ControlledIntegerInput({
+  ariaLabel,
   dataCapacityField,
   maximum,
   name,
@@ -128,6 +130,7 @@ function ControlledIntegerInput({
 
   return (
     <input
+      aria-label={ariaLabel}
       aria-invalid={!valid}
       className="form-control input-sm"
       data-capacity-field={dataCapacityField}
@@ -263,6 +266,7 @@ export function AwsResizeAsgStageConfig(props: IStageConfigProps) {
           {stage.resizeType === 'pct' && (
             <StageConfigField label="Resize Percentage">
               <ControlledIntegerInput
+                ariaLabel="Resize percentage"
                 name="scalePct"
                 onValidChange={(scalePct) => updateStageField({ scalePct })}
                 resetKey={stage.refId}
@@ -273,6 +277,7 @@ export function AwsResizeAsgStageConfig(props: IStageConfigProps) {
           {stage.resizeType === 'incr' && (
             <StageConfigField label="Resize Count">
               <ControlledIntegerInput
+                ariaLabel="Resize count"
                 name="scaleNum"
                 onValidChange={(scaleNum) => updateStageField({ scaleNum })}
                 resetKey={stage.refId}
@@ -283,6 +288,7 @@ export function AwsResizeAsgStageConfig(props: IStageConfigProps) {
           {(stage.action === 'scale_up' || stage.action === 'scale_to_cluster') && (
             <StageConfigField label="Target Healthy Percentage">
               <ControlledIntegerInput
+                ariaLabel="Target healthy percentage"
                 maximum={100}
                 name="targetHealthyDeployPercentage"
                 onValidChange={(targetHealthyDeployPercentage) => updateStageField({ targetHealthyDeployPercentage })}
@@ -307,6 +313,7 @@ export function AwsResizeAsgStageConfig(props: IStageConfigProps) {
               {(['min', 'max', 'desired'] as const).map((field) => (
                 <div className="col-md-3" key={field}>
                   <ControlledIntegerInput
+                    ariaLabel={`${field === 'min' ? 'Minimum' : field === 'max' ? 'Maximum' : 'Desired'} capacity`}
                     dataCapacityField={field}
                     name={`capacity.${field}`}
                     onValidChange={(value) =>

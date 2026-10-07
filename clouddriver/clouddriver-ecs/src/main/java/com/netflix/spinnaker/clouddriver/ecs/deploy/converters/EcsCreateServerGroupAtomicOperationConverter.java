@@ -37,6 +37,11 @@ public class EcsCreateServerGroupAtomicOperationConverter
 
   @Override
   public CreateServerGroupDescription convertDescription(Map input) {
+    // CreateServerGroupDescription embeds AWS SDK v2 model types (e.g.
+    // CapacityProviderStrategyItem,
+    // PlacementStrategy, PlacementConstraint) which are immutable and cannot be constructed by a
+    // plain ObjectMapper. The Spring-managed ObjectMapper already has AwsSdkV2Module registered
+    // (via AwsSdkV2JacksonConfiguration) which handles deserialization via their SDK builders.
     CreateServerGroupDescription converted =
         getObjectMapper().convertValue(input, CreateServerGroupDescription.class);
     converted.setCredentials(getCredentialsObject(input.get("credentials").toString()));

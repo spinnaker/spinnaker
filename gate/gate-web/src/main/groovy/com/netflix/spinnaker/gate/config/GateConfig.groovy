@@ -57,9 +57,9 @@ import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.beans.factory.annotation.Value
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty
-import org.springframework.boot.autoconfigure.websocket.servlet.TomcatWebSocketServletWebServerCustomizer
 import org.springframework.boot.context.properties.EnableConfigurationProperties
-import org.springframework.boot.web.embedded.tomcat.TomcatServletWebServerFactory
+import org.springframework.boot.tomcat.servlet.TomcatServletWebServerFactory
+import org.springframework.boot.web.server.WebServerFactoryCustomizer
 import org.springframework.boot.web.servlet.FilterRegistrationBean
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
@@ -402,20 +402,17 @@ class GateConfig {
    * exceptions that bubble up to tomcat / aren't handled by spring boot nor spring security.
    */
   @Bean
-  public TomcatWebSocketServletWebServerCustomizer errorValveCustomizer() {
-    return new TomcatWebSocketServletWebServerCustomizer() {
-      @Override
-      public void customize(TomcatServletWebServerFactory factory) {
-        factory.addContextCustomizers(
-            (Context context) -> {
-              Container parent = context.getParent();
-              if (parent instanceof StandardHost) {
-                ((StandardHost) parent)
-                    .setErrorReportValveClass(
-                        "com.netflix.spinnaker.gate.tomcat.SpinnakerTomcatErrorValve");
-              }
-            });
-      }
+  public WebServerFactoryCustomizer<TomcatServletWebServerFactory> errorValveCustomizer() {
+    return (factory) -> {
+      factory.addContextCustomizers(
+          (Context context) -> {
+            Container parent = context.getParent();
+            if (parent instanceof StandardHost) {
+              ((StandardHost) parent)
+                  .setErrorReportValveClass(
+                      "com.netflix.spinnaker.gate.tomcat.SpinnakerTomcatErrorValve");
+            }
+          });
     };
   }
 }

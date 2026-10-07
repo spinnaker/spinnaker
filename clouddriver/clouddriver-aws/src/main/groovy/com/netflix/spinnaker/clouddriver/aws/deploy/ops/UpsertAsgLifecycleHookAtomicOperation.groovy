@@ -16,7 +16,7 @@
 
 package com.netflix.spinnaker.clouddriver.aws.deploy.ops
 
-import com.amazonaws.services.autoscaling.model.PutLifecycleHookRequest
+import software.amazon.awssdk.services.autoscaling.model.PutLifecycleHookRequest
 import com.netflix.spinnaker.clouddriver.aws.deploy.asg.AsgLifecycleHookWorker
 import com.netflix.spinnaker.clouddriver.aws.deploy.description.UpsertAsgLifecycleHookDescription
 import com.netflix.spinnaker.clouddriver.aws.security.AmazonClientProvider
@@ -42,18 +42,18 @@ class UpsertAsgLifecycleHookAtomicOperation implements AtomicOperation<Void> {
   @Override
   Void operate(List priorOutputs) {
     final lifecycleHookName = description.name ?: "${description.serverGroupName}-lifecycle-${idGenerator.nextId()}"
-    final request = new PutLifecycleHookRequest(
-      lifecycleHookName: AsgLifecycleHookWorker.cleanLifecycleHookName(lifecycleHookName),
-      autoScalingGroupName: description.serverGroupName,
-      lifecycleTransition: description.lifecycleTransition.toString(),
-      roleARN: description.roleARN,
-      notificationTargetARN: description.notificationTargetARN,
-      notificationMetadata: description.notificationMetadata,
-      heartbeatTimeout: description.heartbeatTimeout,
-      defaultResult: description.defaultResult.toString()
-    )
+    final request = PutLifecycleHookRequest.builder()
+      .lifecycleHookName(AsgLifecycleHookWorker.cleanLifecycleHookName(lifecycleHookName))
+      .autoScalingGroupName(description.serverGroupName)
+      .lifecycleTransition(description.lifecycleTransition.toString())
+      .roleARN(description.roleARN)
+      .notificationTargetARN(description.notificationTargetARN)
+      .notificationMetadata(description.notificationMetadata)
+      .heartbeatTimeout(description.heartbeatTimeout)
+      .defaultResult(description.defaultResult.toString())
+      .build()
 
-    final autoScaling = amazonClientProvider.getAutoScaling(description.credentials, description.region, true)
+    final autoScaling = amazonClientProvider.getAutoScalingV2(description.credentials, description.region)
     autoScaling.putLifecycleHook(request)
 
     return null

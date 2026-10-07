@@ -22,7 +22,7 @@ import com.netflix.spinnaker.clouddriver.azure.client.AzureResourceManagerClient
 import com.netflix.spinnaker.clouddriver.azure.security.AzureCredentials
 import com.netflix.spinnaker.clouddriver.azure.security.AzureNamedAccountCredentials
 import com.netflix.spinnaker.clouddriver.security.AccountCredentialsProvider
-import org.springframework.boot.actuate.health.Status
+import org.springframework.boot.health.contributor.Status
 import spock.lang.Shared
 import spock.lang.Specification
 import spock.lang.Unroll

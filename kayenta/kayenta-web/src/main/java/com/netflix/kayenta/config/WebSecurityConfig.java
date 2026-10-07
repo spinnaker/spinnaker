@@ -38,8 +38,8 @@ public class WebSecurityConfig {
 
   @Bean
   SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
-    http.csrf().disable();
-    http.authorizeHttpRequests().anyRequest().permitAll();
+    http.csrf(csrf -> csrf.disable());
+    http.authorizeHttpRequests(requests -> requests.anyRequest().permitAll());
     return http.build();
   }
 }

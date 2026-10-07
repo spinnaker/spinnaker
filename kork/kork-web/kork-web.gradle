@@ -10,9 +10,13 @@ dependencies {
   api project(":kork-security")
   api project(":kork-exceptions")
   api "org.apache.groovy:groovy"
-  api "org.springframework.boot:spring-boot-starter-web"
+  api "org.springframework.boot:spring-boot-starter-webmvc"
   api "org.springframework.boot:spring-boot-starter-webflux"
+  api "org.springframework.boot:spring-boot-starter-webclient"
   api "org.springframework.boot:spring-boot-starter-security"
+  api "org.springframework.boot:spring-boot-jackson2"
+  api "org.springframework.boot:spring-boot-jackson"
+  api "tools.jackson.core:jackson-databind"
   api "org.springframework.security:spring-security-core"
   api "com.netflix.spectator:spectator-api"
   api "com.fasterxml.jackson.core:jackson-annotations"
@@ -36,7 +40,7 @@ dependencies {
   runtimeOnly("org.springframework.boot:spring-boot-properties-migrator")
 
   testImplementation project(":kork-test")
-  testImplementation "com.github.tomakehurst:wiremock-jre8-standalone"
+  testImplementation "org.wiremock:wiremock"
   testImplementation "ch.qos.logback:logback-classic"
   testImplementation "ch.qos.logback:logback-core"
   testImplementation "com.squareup.retrofit2:retrofit"
@@ -44,6 +48,8 @@ dependencies {
   testImplementation "org.spockframework:spock-core"
   testImplementation "org.spockframework:spock-spring"
   testImplementation "org.springframework.boot:spring-boot-starter-test"
+  testImplementation "org.springframework.boot:spring-boot-starter-webmvc-test"
+  testImplementation "org.springframework.boot:spring-boot-starter-restclient"
   testImplementation "com.netflix.spectator:spectator-reg-micrometer"
   testImplementation testFixtures(project(":kork-crypto"))
   testRuntimeOnly "cglib:cglib-nodep"

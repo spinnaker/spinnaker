@@ -1,11 +1,11 @@
 package com.netflix.spinnaker.clouddriver.aws.deploy.ops.actions
 
-import com.amazonaws.services.autoscaling.model.AutoScalingGroup
-import com.amazonaws.services.autoscaling.model.InstancesDistribution
-import com.amazonaws.services.autoscaling.model.LaunchTemplateSpecification
-import com.amazonaws.services.autoscaling.model.MixedInstancesPolicy
-import com.amazonaws.services.ec2.AmazonEC2
-import com.amazonaws.services.ec2.model.*
+import software.amazon.awssdk.services.autoscaling.model.AutoScalingGroup
+import software.amazon.awssdk.services.autoscaling.model.InstancesDistribution
+import software.amazon.awssdk.services.autoscaling.model.LaunchTemplateSpecification
+import software.amazon.awssdk.services.autoscaling.model.MixedInstancesPolicy
+import software.amazon.awssdk.services.ec2.Ec2Client
+import software.amazon.awssdk.services.ec2.model.*
 import com.netflix.spinnaker.clouddriver.aws.TestCredential
 import com.netflix.spinnaker.clouddriver.aws.deploy.InstanceTypeUtils.BlockDeviceConfig
 import com.netflix.spinnaker.clouddriver.aws.deploy.description.ModifyServerGroupLaunchTemplateDescription
@@ -26,16 +26,16 @@ class PrepareModifyServerGroupLaunchTemplateSpec extends Specification {
   def credentials = TestCredential.named("test")
   def ltService = Mock(LaunchTemplateService)
   def asgService = Mock(AsgService)
-  def ec2 = Mock(AmazonEC2)
+  def ec2 = Mock(Ec2Client)
   def blockDeviceConfig = Mock(BlockDeviceConfig)
   def credentialsRepository = Stub(MapBackedCredentialsRepository) {
     getOne(_) >> credentials
   }
 
-  def autoScalingGroupWithLt = new AutoScalingGroup(
-    autoScalingGroupName: "test-v001",
-    launchTemplate: new LaunchTemplateSpecification(launchTemplateName: LT_ID_1, version: LT_ID_1_V)
-  )
+  def autoScalingGroupWithLt = AutoScalingGroup.builder()
+    .autoScalingGroupName("test-v001")
+    .launchTemplate(LaunchTemplateSpecification.builder().launchTemplateName(LT_ID_1).version(LT_ID_1_V).build())
+    .build()
 
   def regionScopedProvider = Stub(RegionScopedProviderFactory.RegionScopedProvider) {
     getAmazonEC2() >> ec2
@@ -68,14 +68,14 @@ class PrepareModifyServerGroupLaunchTemplateSpec extends Specification {
     modifyDescription.instanceType = "c5.large"
 
     and:
-    def ltVersionBeforeModify = new LaunchTemplateVersion(
-      launchTemplateName: LT_ID_1,
-      versionNumber: LT_ID_1_V,
-      launchTemplateData: new ResponseLaunchTemplateData(
-        imageId: "ami-1",
-        instanceType: "c3.large"
-      )
-    )
+    def ltVersionBeforeModify = LaunchTemplateVersion.builder()
+      .launchTemplateName(LT_ID_1)
+      .versionNumber(Long.valueOf(LT_ID_1_V))
+      .launchTemplateData(ResponseLaunchTemplateData.builder()
+        .imageId("ami-1")
+        .instanceType("c3.large")
+        .build())
+      .build()
 
     when:
     prepareAction.apply(prepareCommand, new Saga("test", "test"))
@@ -95,36 +95,36 @@ class PrepareModifyServerGroupLaunchTemplateSpec extends Specification {
     modifyDescription.spotPrice = spotPrice                             // Mixed instances policy property as ASG is backed by MIP
 
     and:
-    def mixedInstancesPolicy = new MixedInstancesPolicy(
-      launchTemplate: new com.amazonaws.services.autoscaling.model.LaunchTemplate(
-        launchTemplateSpecification: autoScalingGroupWithLt.launchTemplate,
-        overrides: [
-          new com.amazonaws.services.autoscaling.model.LaunchTemplateOverrides(instanceType: "c3.large", weightedCapacity: "2"),
-          new com.amazonaws.services.autoscaling.model.LaunchTemplateOverrides(instanceType: "c3.xlarge", weightedCapacity: "4")
-        ]
-      ),
-      instancesDistribution: new InstancesDistribution(
-        onDemandAllocationStrategy: "prioritized",
-        onDemandBaseCapacity: 2,
-        onDemandPercentageAboveBaseCapacity: 50,
-        spotAllocationStrategy: "lowest-price",
-        spotInstancePools: 2,
-        spotMaxPrice: "1"
-      )
-    )
-    def autoScalingGroup = new AutoScalingGroup(
-      autoScalingGroupName: "test-v001",
-      mixedInstancesPolicy: mixedInstancesPolicy
-    )
+    def mixedInstancesPolicy = MixedInstancesPolicy.builder()
+      .launchTemplate(software.amazon.awssdk.services.autoscaling.model.LaunchTemplate.builder()
+        .launchTemplateSpecification(autoScalingGroupWithLt.launchTemplate)
+        .overrides([
+          software.amazon.awssdk.services.autoscaling.model.LaunchTemplateOverrides.builder().instanceType("c3.large").weightedCapacity("2").build(),
+          software.amazon.awssdk.services.autoscaling.model.LaunchTemplateOverrides.builder().instanceType("c3.xlarge").weightedCapacity("4").build()
+        ])
+        .build())
+      .instancesDistribution(InstancesDistribution.builder()
+        .onDemandAllocationStrategy("prioritized")
+        .onDemandBaseCapacity(2)
+        .onDemandPercentageAboveBaseCapacity(50)
+        .spotAllocationStrategy("lowest-price")
+        .spotInstancePools(2)
+        .spotMaxPrice("1")
+        .build())
+      .build()
+    def autoScalingGroup = AutoScalingGroup.builder()
+      .autoScalingGroupName("test-v001")
+      .mixedInstancesPolicy(mixedInstancesPolicy)
+      .build()
 
-    def ltVersionBeforeModify = new LaunchTemplateVersion(
-      launchTemplateName: LT_ID_1,
-      versionNumber: LT_ID_1_V,
-      launchTemplateData: new ResponseLaunchTemplateData(
-        imageId: "ami-1",
-        instanceType: "m5.large"
-      )
-    )
+    def ltVersionBeforeModify = LaunchTemplateVersion.builder()
+      .launchTemplateName(LT_ID_1)
+      .versionNumber(Long.valueOf(LT_ID_1_V))
+      .launchTemplateData(ResponseLaunchTemplateData.builder()
+        .imageId("ami-1")
+        .instanceType("m5.large")
+        .build())
+      .build()
 
     when:
     SagaAction.Result result = prepareAction.apply(prepareCommand, new Saga("test", "test"))
@@ -147,9 +147,9 @@ class PrepareModifyServerGroupLaunchTemplateSpec extends Specification {
     // assert description fields
     nextCommand.description.spotAllocationStrategy == expectedSpotALlocStrategy
     nextCommand.description.spotInstancePools == expectedSpotInstancePools
-    nextCommand.description.onDemandAllocationStrategy == mixedInstancesPolicy.getInstancesDistribution().getOnDemandAllocationStrategy()
-    nextCommand.description.onDemandBaseCapacity == mixedInstancesPolicy.getInstancesDistribution().getOnDemandBaseCapacity()
-    nextCommand.description.onDemandPercentageAboveBaseCapacity == mixedInstancesPolicy.getInstancesDistribution().getOnDemandPercentageAboveBaseCapacity()
+    nextCommand.description.onDemandAllocationStrategy == mixedInstancesPolicy.instancesDistribution().onDemandAllocationStrategy()
+    nextCommand.description.onDemandBaseCapacity == mixedInstancesPolicy.instancesDistribution().onDemandBaseCapacity()
+    nextCommand.description.onDemandPercentageAboveBaseCapacity == mixedInstancesPolicy.instancesDistribution().onDemandPercentageAboveBaseCapacity()
 
     where:
         spotAllocationStrategy      | spotPrice | instanceType||    expectedSpotALlocStrategy   || expectedSpotInstancePools || expectedToSkipStep
@@ -167,21 +167,24 @@ class PrepareModifyServerGroupLaunchTemplateSpec extends Specification {
     modifyDescription.spotPrice = newSpotPrice
 
     and:
-    def autoScalingGroup = new AutoScalingGroup(
-      autoScalingGroupName: "test-v001",
-      launchTemplate: new LaunchTemplateSpecification(launchTemplateName: LT_ID_1, version: LT_ID_1_V)
-    )
+    def autoScalingGroup = AutoScalingGroup.builder()
+      .autoScalingGroupName("test-v001")
+      .launchTemplate(LaunchTemplateSpecification.builder().launchTemplateName(LT_ID_1).version(LT_ID_1_V).build())
+      .build()
 
-    def ltVersionBeforeModify = new LaunchTemplateVersion(
-      launchTemplateName: LT_ID_1,
-      versionNumber: LT_ID_1_V,
-      launchTemplateData: new ResponseLaunchTemplateData(
-        imageId: "ami-1",
-        instanceMarketOptions: asgHasSpotLt
-          ? new LaunchTemplateInstanceMarketOptions().withMarketType("spot").withSpotOptions(new LaunchTemplateSpotMarketOptions(maxPrice: "0.5"))
-          : null
-      )
-    )
+    def ltVersionDataBuilder = ResponseLaunchTemplateData.builder().imageId("ami-1")
+    if (asgHasSpotLt) {
+      ltVersionDataBuilder.instanceMarketOptions(
+        LaunchTemplateInstanceMarketOptions.builder()
+          .marketType("spot")
+          .spotOptions(LaunchTemplateSpotMarketOptions.builder().maxPrice("0.5").build())
+          .build())
+    }
+    def ltVersionBeforeModify = LaunchTemplateVersion.builder()
+      .launchTemplateName(LT_ID_1)
+      .versionNumber(Long.valueOf(LT_ID_1_V))
+      .launchTemplateData(ltVersionDataBuilder.build())
+      .build()
 
     when:
     SagaAction.Result result = prepareAction.apply(prepareCommand, new Saga("test", "test"))
@@ -217,13 +220,11 @@ class PrepareModifyServerGroupLaunchTemplateSpec extends Specification {
     modifyDescription.imageId = imageIdInReq
     modifyDescription.amiName = amiNameInReq
 
-    def ltVersionBeforeModify = new LaunchTemplateVersion(
-      launchTemplateName: LT_ID_1,
-      versionNumber: 1,
-      launchTemplateData: new ResponseLaunchTemplateData(
-        imageId: imageIdInSrc
-      )
-    )
+    def ltVersionBeforeModify = LaunchTemplateVersion.builder()
+      .launchTemplateName(LT_ID_1)
+      .versionNumber(1L)
+      .launchTemplateData(ResponseLaunchTemplateData.builder().imageId(imageIdInSrc).build())
+      .build()
 
     when:
     prepareAction.apply(prepareCommand, new Saga("test", "test"))
@@ -232,7 +233,7 @@ class PrepareModifyServerGroupLaunchTemplateSpec extends Specification {
     1 * asgService.getAutoScalingGroup(autoScalingGroupWithLt.autoScalingGroupName) >> autoScalingGroupWithLt
     1 * ltService.getLaunchTemplateVersion(autoScalingGroupWithLt.launchTemplate) >> Optional.of(ltVersionBeforeModify)
     resolveAmiCallCount * ec2.describeImages(_) >> { DescribeImagesRequest req ->
-      new DescribeImagesResult().withImages(req.imageIds.collect { new Image(imageId: "img-from-ami") })
+      DescribeImagesResponse.builder().images(req.imageIds.collect { Image.builder().imageId("img-from-ami").build() }).build()
     }
 
     where:
@@ -249,21 +250,21 @@ class PrepareModifyServerGroupLaunchTemplateSpec extends Specification {
     modifyDescription.securityGroupsAppendOnly = sgAppendOnly
     modifyDescription.amiName = "ami-1"
 
-    def launchTemplateData = new ResponseLaunchTemplateData(
-      imageId: "ami-1",
-      networkInterfaces: [
-        new LaunchTemplateInstanceNetworkInterfaceSpecification(
-          deviceIndex: 0,
-          groups: ["sg-1"]
-        )
-      ],
-    )
+    def launchTemplateData = ResponseLaunchTemplateData.builder()
+      .imageId("ami-1")
+      .networkInterfaces([
+        LaunchTemplateInstanceNetworkInterfaceSpecification.builder()
+          .deviceIndex(0)
+          .groups(["sg-1"])
+          .build()
+      ])
+      .build()
 
-    def ltVersionBeforeModify = new LaunchTemplateVersion(
-      launchTemplateName: LT_ID_1,
-      versionNumber: 1,
-      launchTemplateData: launchTemplateData
-    )
+    def ltVersionBeforeModify = LaunchTemplateVersion.builder()
+      .launchTemplateName(LT_ID_1)
+      .versionNumber(1L)
+      .launchTemplateData(launchTemplateData)
+      .build()
 
     when:
     prepareAction.apply(prepareCommand, new Saga("test", "test"))
@@ -272,7 +273,7 @@ class PrepareModifyServerGroupLaunchTemplateSpec extends Specification {
     1 * asgService.getAutoScalingGroup(autoScalingGroupWithLt.autoScalingGroupName) >> autoScalingGroupWithLt
     1 * ltService.getLaunchTemplateVersion(autoScalingGroupWithLt.launchTemplate) >> Optional.of(ltVersionBeforeModify)
     1 * ec2.describeImages(_) >> { DescribeImagesRequest req ->
-      new DescribeImagesResult().withImages(req.imageIds.collect { new Image(imageId: it) })
+      DescribeImagesResponse.builder().images(req.imageIds.collect { Image.builder().imageId(it).build() }).build()
     }
     modifyDescription.getSecurityGroups().sort() == expectedGroups
 
@@ -294,28 +295,28 @@ class PrepareModifyServerGroupLaunchTemplateSpec extends Specification {
     modifyDescription.instanceType = newInstanceType
     modifyDescription.blockDevices = null
 
-    def launchTemplateData = new ResponseLaunchTemplateData(
-      imageId: "ami-1",
-      instanceType: "m3-medium",
-      networkInterfaces: [
-        new LaunchTemplateInstanceNetworkInterfaceSpecification(
-          deviceIndex: "0",
-          groups: ["sg-1"]
-        )
-      ],
-      blockDeviceMappings: [
-        new LaunchTemplateBlockDeviceMapping(
-          deviceName: "/dev/sdb",
-          ebs: new LaunchTemplateEbsBlockDevice(volumeSize: 40)
-        )
-      ]
-    )
+    def launchTemplateData = ResponseLaunchTemplateData.builder()
+      .imageId("ami-1")
+      .instanceType("m3-medium")
+      .networkInterfaces([
+        LaunchTemplateInstanceNetworkInterfaceSpecification.builder()
+          .deviceIndex(0)
+          .groups(["sg-1"])
+          .build()
+      ])
+      .blockDeviceMappings([
+        LaunchTemplateBlockDeviceMapping.builder()
+          .deviceName("/dev/sdb")
+          .ebs(LaunchTemplateEbsBlockDevice.builder().volumeSize(40).build())
+          .build()
+      ])
+      .build()
 
-    def ltVersionBeforeModify = new LaunchTemplateVersion(
-      launchTemplateName: LT_ID_1,
-      versionNumber: 1,
-      launchTemplateData: launchTemplateData
-    )
+    def ltVersionBeforeModify = LaunchTemplateVersion.builder()
+      .launchTemplateName(LT_ID_1)
+      .versionNumber(1L)
+      .launchTemplateData(launchTemplateData)
+      .build()
 
     when:
     prepareAction.apply(prepareCommand, new Saga("test", "test"))

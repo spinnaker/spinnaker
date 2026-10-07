@@ -12,7 +12,7 @@ export interface ICronAdvanceState {
 }
 
 export class CronAdvance extends React.Component<ICronTriggerConfigProps, ICronAdvanceState> {
-  private destroy$ = new Subject();
+  private destroy$ = new Subject<void>();
 
   constructor(props: ICronTriggerConfigProps) {
     super(props);

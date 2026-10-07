@@ -15,9 +15,9 @@
  */
 package com.netflix.spinnaker.clouddriver.aws.deploy.ops
 
-import com.amazonaws.services.autoscaling.model.DeleteTagsRequest
-import com.amazonaws.services.autoscaling.model.DescribeAutoScalingGroupsRequest
-import com.amazonaws.services.autoscaling.model.Tag
+import software.amazon.awssdk.services.autoscaling.model.DeleteTagsRequest
+import software.amazon.awssdk.services.autoscaling.model.DescribeAutoScalingGroupsRequest
+import software.amazon.awssdk.services.autoscaling.model.Tag
 import com.netflix.spinnaker.clouddriver.aws.deploy.description.DeleteAsgTagsDescription
 import com.netflix.spinnaker.clouddriver.aws.security.AmazonClientProvider
 import com.netflix.spinnaker.clouddriver.data.task.Task
@@ -53,13 +53,13 @@ class DeleteAsgTagsAtomicOperation implements AtomicOperation<Void> {
   }
 
   private void deleteAsgTags(String asgName, String region) {
-    def autoScaling = amazonClientProvider.getAutoScaling(description.credentials, region, true)
-    def result = autoScaling.describeAutoScalingGroups(new DescribeAutoScalingGroupsRequest().withAutoScalingGroupNames(asgName))
-    if (!result.autoScalingGroups) {
+    def autoScaling = amazonClientProvider.getAutoScalingV2(description.credentials, region)
+    def result = autoScaling.describeAutoScalingGroups(DescribeAutoScalingGroupsRequest.builder().autoScalingGroupNames(asgName).build())
+    if (!result.autoScalingGroups()) {
       task.updateStatus BASE_PHASE, "No ASG named $asgName found in $region"
       return
     }
-    def deleteTagsRequest = new DeleteTagsRequest(tags: description.tagKeys.collect { new Tag(resourceId: asgName, resourceType: "auto-scaling-group", key: it) })
+    def deleteTagsRequest = DeleteTagsRequest.builder().tags(description.tagKeys.collect { Tag.builder().resourceId(asgName).resourceType("auto-scaling-group").key(it).build() }).build()
     autoScaling.deleteTags(deleteTagsRequest)
     task.updateStatus BASE_PHASE, "Tags deleted for $asgName in $region"
   }

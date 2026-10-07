@@ -33,6 +33,8 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.concurrent.TimeUnit;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 import javax.annotation.Nonnull;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -44,6 +46,8 @@ import org.springframework.stereotype.Component;
 public class WaitForManifestStableTask
     implements OverridableTimeoutRetryableTask, CloudProviderAware, ManifestAware {
   public static final String TASK_NAME = "waitForManifestToStabilize";
+
+  private static final Pattern BACKTICK_RUN = Pattern.compile("`+");
 
   private final OortService oortService;
 
@@ -125,7 +129,7 @@ public class WaitForManifestStableTask
         Status status = manifest.getStatus();
         if (status.getFailed().isState()) {
           failedManifests.add(manifestNameAndLocation);
-          String failureMessage = identifier + ": " + status.getFailed().getMessage();
+          String failureMessage = identifier + ": " + asInlineCode(status.getFailed().getMessage());
           messages.add(failureMessage);
           failureMessages.add(failureMessage);
         } else if (status.getStable().isState()) {
@@ -182,6 +186,28 @@ public class WaitForManifestStableTask
 
   private String readableIdentifier(String account, String location, String name) {
     return String.format("'%s' in '%s' for account %s", name, location, account);
+  }
+
+  /**
+   * Status messages can be written by any controller that manages the resource, and Deck renders
+   * failure messages as Markdown. Wrapping the message in a CommonMark code span makes it render
+   * literally: the fence is one backtick longer than the longest backtick run in the message, line
+   * breaks are flattened (a blank line would otherwise end the span), and padding keeps a leading
+   * or trailing backtick from joining the fence.
+   */
+  static String asInlineCode(String message) {
+    if (message == null || message.isBlank()) {
+      return message;
+    }
+    String text = message.replaceAll("\\R+", " ");
+    int longestRun = 0;
+    Matcher runs = BACKTICK_RUN.matcher(text);
+    while (runs.find()) {
+      longestRun = Math.max(longestRun, runs.group().length());
+    }
+    String fence = "`".repeat(longestRun + 1);
+    String padding = text.startsWith("`") || text.endsWith("`") ? " " : "";
+    return fence + padding + text + padding + fence;
   }
 
   private static Map<String, Object> buildExceptions(List<String> failureMessages) {

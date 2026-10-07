@@ -21,7 +21,7 @@ import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.google.common.base.Strings;
 import com.netflix.spinnaker.clouddriver.kubernetes.description.KubernetesAtomicOperationDescription;
 import com.netflix.spinnaker.clouddriver.kubernetes.description.KubernetesCoordinates;
-import com.netflix.spinnaker.clouddriver.kubernetes.security.KubernetesSelectorList;
+import com.netflix.spinnaker.clouddriver.kubernetes.security.KubernetesCredentials;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
@@ -36,7 +36,6 @@ public class KubernetesDeleteManifestDescription extends KubernetesAtomicOperati
   private String manifestName;
   private String location;
   private List<String> kinds = new ArrayList<>();
-  private KubernetesSelectorList labelSelectors = new KubernetesSelectorList();
 
   @JsonIgnore
   public boolean isDynamic() {
@@ -44,21 +43,22 @@ public class KubernetesDeleteManifestDescription extends KubernetesAtomicOperati
   }
 
   public List<KubernetesCoordinates> getAllCoordinates() {
+    KubernetesCredentials credentials = getCredentials().getCredentials();
     return kinds.stream()
         .map(
             k ->
                 KubernetesCoordinates.builder()
                     .namespace(location)
                     .kind(KubernetesKind.fromString(k))
-                    .build())
+                    .build()
+                    .withDefaultedNamespace(credentials))
         .collect(Collectors.toList());
   }
 
   @JsonIgnore
   public KubernetesCoordinates getPointCoordinates() {
-    return KubernetesCoordinates.builder()
-        .namespace(location)
-        .fullResourceName(manifestName)
-        .build();
+    KubernetesCoordinates coordinates =
+        KubernetesCoordinates.builder().namespace(location).fullResourceName(manifestName).build();
+    return coordinates.withDefaultedNamespace(getCredentials().getCredentials());
   }
 }

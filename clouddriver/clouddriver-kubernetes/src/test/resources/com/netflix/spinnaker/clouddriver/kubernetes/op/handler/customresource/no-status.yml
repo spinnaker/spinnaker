@@ -1,0 +1,9 @@
+# A custom resource with no controller writing status (config-only kinds).
+apiVersion: example.com/v1
+kind: Widget
+metadata:
+  name: my-widget
+  namespace: default
+  generation: 1
+spec:
+  size: 3

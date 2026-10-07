@@ -15,8 +15,8 @@
  */
 package com.netflix.spinnaker.clouddriver.aws.services
 
-import com.amazonaws.services.autoscaling.AmazonAutoScaling
-import com.amazonaws.services.autoscaling.model.*
+import software.amazon.awssdk.services.autoscaling.AutoScalingClient
+import software.amazon.awssdk.services.autoscaling.model.*
 import com.google.common.collect.Iterables
 import com.netflix.frigga.Names
 import com.netflix.spinnaker.clouddriver.aws.model.AutoScalingProcessType
@@ -27,31 +27,31 @@ import groovy.transform.Canonical
 @Canonical
 class AsgService {
 
-  final AmazonAutoScaling amazonAutoScaling
+  final AutoScalingClient amazonAutoScaling
 
   void suspendProcesses(String asgName, Collection<AutoScalingProcessType> processes) {
-    def request = new SuspendProcessesRequest(scalingProcesses: processes*.name(), autoScalingGroupName: asgName)
+    def request = SuspendProcessesRequest.builder().scalingProcesses(processes*.name()).autoScalingGroupName(asgName).build()
     amazonAutoScaling.suspendProcesses(request)
   }
 
   void resumeProcesses(String asgName, Collection<AutoScalingProcessType> processes) {
-    def request = new ResumeProcessesRequest(scalingProcesses: processes*.name(), autoScalingGroupName: asgName)
+    def request = ResumeProcessesRequest.builder().scalingProcesses(processes*.name()).autoScalingGroupName(asgName).build()
     amazonAutoScaling.resumeProcesses(request)
   }
 
   void putWarmPool(String asgName, Integer minSize, Integer maxGroupPreparedCapacity, String poolState, Boolean reuseOnScaleIn) {
-    def request = new PutWarmPoolRequest(
-      autoScalingGroupName: asgName,
-      minSize: minSize,
-      maxGroupPreparedCapacity: maxGroupPreparedCapacity,
-      poolState: poolState,
-      instanceReusePolicy: new InstanceReusePolicy(reuseOnScaleIn: reuseOnScaleIn)
-    )
+    def request = PutWarmPoolRequest.builder()
+      .autoScalingGroupName(asgName)
+      .minSize(minSize)
+      .maxGroupPreparedCapacity(maxGroupPreparedCapacity)
+      .poolState(poolState)
+      .instanceReusePolicy(InstanceReusePolicy.builder().reuseOnScaleIn(reuseOnScaleIn).build())
+      .build()
     amazonAutoScaling.putWarmPool(request)
   }
 
   void deleteWarmPool(String asgName, Boolean forceDelete = false) {
-    def request = new DeleteWarmPoolRequest(autoScalingGroupName: asgName, forceDelete: forceDelete)
+    def request = DeleteWarmPoolRequest.builder().autoScalingGroupName(asgName).forceDelete(forceDelete).build()
     amazonAutoScaling.deleteWarmPool(request)
   }
 
@@ -60,18 +60,23 @@ class AsgService {
   }
 
   List<AutoScalingGroup> getAutoScalingGroups(Collection<String> asgNames) {
-    def retriever = new AwsResultsRetriever<AutoScalingGroup, DescribeAutoScalingGroupsRequest, DescribeAutoScalingGroupsResult>() {
+    def retriever = new AwsResultsRetriever<AutoScalingGroup, DescribeAutoScalingGroupsRequest, DescribeAutoScalingGroupsResponse>() {
       @Override
-      protected DescribeAutoScalingGroupsResult makeRequest(DescribeAutoScalingGroupsRequest request) {
+      protected DescribeAutoScalingGroupsResponse makeRequest(DescribeAutoScalingGroupsRequest request) {
         amazonAutoScaling.describeAutoScalingGroups(request)
       }
 
       @Override
-      protected List<AutoScalingGroup> accessResult(DescribeAutoScalingGroupsResult result) {
-        result.autoScalingGroups
+      protected List<AutoScalingGroup> accessResult(DescribeAutoScalingGroupsResponse result) {
+        result.autoScalingGroups()
+      }
+
+      @Override
+      protected DescribeAutoScalingGroupsRequest setNextToken(DescribeAutoScalingGroupsRequest request, String nextToken) {
+        request.toBuilder().nextToken(nextToken).build()
       }
     }
-    def request = new DescribeAutoScalingGroupsRequest(autoScalingGroupNames: asgNames)
+    def request = DescribeAutoScalingGroupsRequest.builder().autoScalingGroupNames(asgNames).build()
     retriever.retrieve(request)
   }
 
@@ -80,17 +85,22 @@ class AsgService {
   }
 
   List<LaunchConfiguration> getLaunchConfigurations(Collection<String> launchConfigurationNames) {
-    def retriever = new AwsResultsRetriever<LaunchConfiguration, DescribeLaunchConfigurationsRequest, DescribeLaunchConfigurationsResult>() {
+    def retriever = new AwsResultsRetriever<LaunchConfiguration, DescribeLaunchConfigurationsRequest, DescribeLaunchConfigurationsResponse>() {
       @Override
-      protected DescribeLaunchConfigurationsResult makeRequest(DescribeLaunchConfigurationsRequest request) {
+      protected DescribeLaunchConfigurationsResponse makeRequest(DescribeLaunchConfigurationsRequest request) {
         amazonAutoScaling.describeLaunchConfigurations(request)
       }
 
       @Override
-      protected List<LaunchConfiguration> accessResult(DescribeLaunchConfigurationsResult result) {
-        result.launchConfigurations
+      protected List<LaunchConfiguration> accessResult(DescribeLaunchConfigurationsResponse result) {
+        result.launchConfigurations()
+      }
+
+      @Override
+      protected DescribeLaunchConfigurationsRequest setNextToken(DescribeLaunchConfigurationsRequest request, String nextToken) {
+        request.toBuilder().nextToken(nextToken).build()
       }
     }
-    retriever.retrieve(new DescribeLaunchConfigurationsRequest(launchConfigurationNames: launchConfigurationNames))
+    retriever.retrieve(DescribeLaunchConfigurationsRequest.builder().launchConfigurationNames(launchConfigurationNames).build())
   }
 }

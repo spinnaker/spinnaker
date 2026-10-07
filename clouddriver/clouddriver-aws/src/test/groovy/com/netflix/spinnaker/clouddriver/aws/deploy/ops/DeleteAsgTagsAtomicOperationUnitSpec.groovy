@@ -14,8 +14,8 @@
  * limitations under the License.
  */
 package com.netflix.spinnaker.clouddriver.aws.deploy.ops
-import com.amazonaws.services.autoscaling.AmazonAutoScaling
-import com.amazonaws.services.autoscaling.model.*
+import software.amazon.awssdk.services.autoscaling.AutoScalingClient
+import software.amazon.awssdk.services.autoscaling.model.*
 import com.netflix.spinnaker.clouddriver.aws.TestCredential
 import com.netflix.spinnaker.clouddriver.aws.deploy.description.DeleteAsgTagsDescription
 import com.netflix.spinnaker.clouddriver.aws.security.AmazonClientProvider
@@ -25,7 +25,7 @@ import spock.lang.Specification
 
 class DeleteAsgTagsAtomicOperationUnitSpec extends Specification {
 
-  def mockAutoScaling = Mock(AmazonAutoScaling)
+  def mockAutoScaling = Mock(AutoScalingClient)
   def mockAmazonClientProvider = Mock(AmazonClientProvider)
 
   def setupSpec() {
@@ -48,10 +48,10 @@ class DeleteAsgTagsAtomicOperationUnitSpec extends Specification {
     operation.operate([])
 
     then:
-    1 * mockAmazonClientProvider.getAutoScaling(_, _, true) >> mockAutoScaling
-    1 * mockAutoScaling.describeAutoScalingGroups(new DescribeAutoScalingGroupsRequest(autoScalingGroupNames: ["myasg-stack-v000"])) >> new DescribeAutoScalingGroupsResult(
-      autoScalingGroups: [new AutoScalingGroup(autoScalingGroupName: "myasg-stack-v000")])
-    1 * mockAutoScaling.deleteTags(new DeleteTagsRequest(tags: [new Tag(resourceId: "myasg-stack-v000", resourceType: "auto-scaling-group", key: "key")]))
+    1 * mockAmazonClientProvider.getAutoScalingV2(_, _) >> mockAutoScaling
+    1 * mockAutoScaling.describeAutoScalingGroups(DescribeAutoScalingGroupsRequest.builder().autoScalingGroupNames(["myasg-stack-v000"]).build()) >> DescribeAutoScalingGroupsResponse.builder()
+      .autoScalingGroups([AutoScalingGroup.builder().autoScalingGroupName("myasg-stack-v000").build()]).build()
+    1 * mockAutoScaling.deleteTags(DeleteTagsRequest.builder().tags([Tag.builder().resourceId("myasg-stack-v000").resourceType("auto-scaling-group").key("key").build()]).build())
     0 * _
   }
 }

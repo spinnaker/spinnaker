@@ -47,6 +47,7 @@ import com.netflix.spinnaker.clouddriver.jobs.local.JobExecutorLocal;
 import com.netflix.spinnaker.clouddriver.kubernetes.config.KubernetesConfigurationProperties;
 import com.netflix.spinnaker.clouddriver.kubernetes.description.KubernetesPodMetric;
 import com.netflix.spinnaker.clouddriver.kubernetes.description.KubernetesPodMetric.ContainerMetric;
+import com.netflix.spinnaker.clouddriver.kubernetes.description.manifest.KubernetesKind;
 import com.netflix.spinnaker.clouddriver.kubernetes.description.manifest.KubernetesManifest;
 import com.netflix.spinnaker.clouddriver.kubernetes.op.handler.ManifestFetcher;
 import com.netflix.spinnaker.clouddriver.kubernetes.security.KubernetesCredentials;
@@ -184,6 +185,111 @@ final class KubectlJobExecutorTest {
       assertThat(podMetric.get().getContainerMetrics())
           .containsExactlyInAnyOrderElementsOf(expectedMetrics.get(pod));
     }
+  }
+
+  @Test
+  void listAuthoritativeThrowsForbiddenExceptionOnPermissionError() {
+    KubernetesManifest deployment = new KubernetesManifest();
+    deployment.putAll(
+        Map.of(
+            "kind",
+            "Deployment",
+            "metadata",
+            Map.of("name", "my-deployment", "namespace", NAMESPACE)));
+
+    when(jobExecutor.<ImmutableList<KubernetesManifest>>runJob(any(JobRequest.class), any()))
+        .thenReturn(
+            JobResult.<ImmutableList<KubernetesManifest>>builder()
+                .result(Result.FAILURE)
+                .output(ImmutableList.of(deployment))
+                .error(
+                    "Error from server (Forbidden): secrets is forbidden: User \"x\" cannot list"
+                        + " resource \"secrets\"")
+                .build());
+
+    KubectlJobExecutor kubectlJobExecutor =
+        new KubectlJobExecutor(
+            jobExecutor, kubernetesConfigurationProperties, new SimpleMeterRegistry());
+
+    List<KubernetesKind> kinds = List.of(KubernetesKind.DEPLOYMENT, KubernetesKind.SECRET);
+
+    // A permission error must surface as a distinct, typed exception -- not be swallowed and
+    // returned as if the denied kind simply had zero live resources -- since callers (caching
+    // agents) use that to decide whether it's safe to evict previously cached entries.
+    assertThatThrownBy(
+            () ->
+                kubectlJobExecutor.listAuthoritative(
+                    mockKubernetesCredentials(), kinds, NAMESPACE, new KubernetesSelectorList()))
+        .isInstanceOf(KubectlJobExecutor.KubectlForbiddenException.class)
+        .satisfies(
+            e -> {
+              KubectlJobExecutor.KubectlForbiddenException forbidden =
+                  (KubectlJobExecutor.KubectlForbiddenException) e;
+              assertThat(forbidden.getRequestedKinds()).containsExactlyElementsOf(kinds);
+              assertThat(forbidden.getPartialResults()).containsExactly(deployment);
+            });
+  }
+
+  @Test
+  void listAuthoritativeThrowsPlainExceptionOnNonPermissionError() {
+    when(jobExecutor.<ImmutableList<KubernetesManifest>>runJob(any(JobRequest.class), any()))
+        .thenReturn(
+            JobResult.<ImmutableList<KubernetesManifest>>builder()
+                .result(Result.FAILURE)
+                .output(ImmutableList.of())
+                .error("some other error")
+                .build());
+
+    KubectlJobExecutor kubectlJobExecutor =
+        new KubectlJobExecutor(
+            jobExecutor, kubernetesConfigurationProperties, new SimpleMeterRegistry());
+
+    assertThatThrownBy(
+            () ->
+                kubectlJobExecutor.listAuthoritative(
+                    mockKubernetesCredentials(),
+                    List.of(KubernetesKind.DEPLOYMENT),
+                    NAMESPACE,
+                    new KubernetesSelectorList()))
+        .isInstanceOf(KubectlJobExecutor.KubectlException.class)
+        .isNotInstanceOf(KubectlJobExecutor.KubectlForbiddenException.class);
+  }
+
+  @Test
+  void listStillReturnsPartialResultsOnPermissionError() {
+    KubernetesManifest deployment = new KubernetesManifest();
+    deployment.putAll(
+        Map.of(
+            "kind",
+            "Deployment",
+            "metadata",
+            Map.of("name", "my-deployment", "namespace", NAMESPACE)));
+
+    when(jobExecutor.<ImmutableList<KubernetesManifest>>runJob(any(JobRequest.class), any()))
+        .thenReturn(
+            JobResult.<ImmutableList<KubernetesManifest>>builder()
+                .result(Result.FAILURE)
+                .output(ImmutableList.of(deployment))
+                .error(
+                    "Error from server (Forbidden): secrets is forbidden: User \"x\" cannot list"
+                        + " resource \"secrets\"")
+                .build());
+
+    KubectlJobExecutor kubectlJobExecutor =
+        new KubectlJobExecutor(
+            jobExecutor, kubernetesConfigurationProperties, new SimpleMeterRegistry());
+
+    // Unlike listAuthoritative, the plain list() method used by UI-facing lookups (artifact and
+    // manifest resolution) must keep tolerating permission errors and returning whatever partial
+    // results it got, rather than throwing.
+    ImmutableList<KubernetesManifest> result =
+        kubectlJobExecutor.list(
+            mockKubernetesCredentials(),
+            List.of(KubernetesKind.DEPLOYMENT, KubernetesKind.SECRET),
+            NAMESPACE,
+            new KubernetesSelectorList());
+
+    assertThat(result).containsExactly(deployment);
   }
 
   @DisplayName("test to verify how kubectl errors are handled when retries are disabled")

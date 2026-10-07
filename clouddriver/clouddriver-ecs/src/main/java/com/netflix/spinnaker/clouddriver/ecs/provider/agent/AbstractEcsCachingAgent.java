@@ -16,13 +16,11 @@
 
 package com.netflix.spinnaker.clouddriver.ecs.provider.agent;
 
-import static com.netflix.spinnaker.cats.agent.AgentDataType.Authority.AUTHORITATIVE;
 import static com.netflix.spinnaker.clouddriver.ecs.cache.Keys.Namespace.ECS_APPLICATIONS;
 import static com.netflix.spinnaker.clouddriver.ecs.cache.Keys.Namespace.ECS_CLUSTERS;
 import static com.netflix.spinnaker.clouddriver.ecs.cache.Keys.Namespace.IAM_ROLE;
 
 import com.netflix.spinnaker.cats.agent.AccountAware;
-import com.netflix.spinnaker.cats.agent.AgentDataType;
 import com.netflix.spinnaker.cats.agent.CacheResult;
 import com.netflix.spinnaker.cats.agent.CachingAgent;
 import com.netflix.spinnaker.cats.agent.DefaultCacheResult;
@@ -87,11 +85,9 @@ abstract class AbstractEcsCachingAgent<T> implements CachingAgent, AccountAware 
 
   @Override
   public CacheResult loadData(ProviderCache providerCache) {
-    String authoritativeKeyName = getAuthoritativeKeyName();
-
     EcsClient ecs = amazonClientProvider.getAmazonEcsV2(account, region);
     List<T> items = getItems(ecs, providerCache);
-    return buildCacheResult(authoritativeKeyName, items, providerCache);
+    return buildCacheResult(items);
   }
 
   /**
@@ -129,72 +125,11 @@ abstract class AbstractEcsCachingAgent<T> implements CachingAgent, AccountAware 
     return clusters;
   }
 
-  /**
-   * Provides the key namespace that the caching agent is authoritative of. Currently only supports
-   * the caching agent being authoritative over one key namespace.
-   *
-   * @return Key namespace.
-   */
-  String getAuthoritativeKeyName() {
-    Collection<AgentDataType> authoritativeNamespaces =
-        getProvidedDataTypes().stream()
-            .filter(agentDataType -> agentDataType.getAuthority().equals(AUTHORITATIVE))
-            .collect(Collectors.toSet());
-
-    if (authoritativeNamespaces.size() != 1) {
-      throw new RuntimeException(
-          "AbstractEcsCachingAgent supports only one authoritative key namespace. "
-              + authoritativeNamespaces.size()
-              + " authoritative key namespace were given.");
-    }
-
-    return authoritativeNamespaces.iterator().next().getTypeName();
-  }
-
-  CacheResult buildCacheResult(
-      String authoritativeKeyName, List<T> items, ProviderCache providerCache) {
-
+  CacheResult buildCacheResult(List<T> items) {
     Map<String, Collection<CacheData>> dataMap = generateFreshData(items);
-    // Old keys can come from different account/region, filter them to the current account/region.
-    // Use the String version of buildGlob to support both ECS and core namespaces
-    Set<String> oldKeys =
-        new HashSet<>(
-            providerCache.filterIdentifiers(
-                authoritativeKeyName,
-                Keys.buildGlob(authoritativeKeyName, accountName, region, "*")));
-
-    Map<String, Collection<String>> evictions =
-        computeEvictableData(dataMap.get(authoritativeKeyName), oldKeys);
-    evictions = addExtraEvictions(evictions);
-    if (log.isInfoEnabled()) {
-      log.info(
-          "Evicting {} for key {} in {}", evictions.size(), authoritativeKeyName, getAgentType());
-    }
+    Map<String, Collection<String>> evictions = addExtraEvictions(new HashMap<>());
 
     return new DefaultCacheResult(dataMap, evictions);
-  }
-
-  /**
-   * Evicts cache that does not belong to an entity on the ECS service. This is done by evicting old
-   * keys that are no longer found in the new keys provided by the new data.
-   *
-   * @param newData New data that contains new keys.
-   * @param oldKeys Old keys.
-   * @return Key collection associated to the key namespace the the caching agent is authoritative
-   *     of.
-   */
-  private Map<String, Collection<String>> computeEvictableData(
-      Collection<CacheData> newData, Collection<String> oldKeys) {
-    // New data can only come from the current account and region, no need to filter.
-    Set<String> newKeys = newData.stream().map(CacheData::getId).collect(Collectors.toSet());
-
-    Set<String> evictedKeys =
-        oldKeys.stream().filter(oldKey -> !newKeys.contains(oldKey)).collect(Collectors.toSet());
-
-    Map<String, Collection<String>> evictionsByKey = new HashMap<>();
-    evictionsByKey.put(getAuthoritativeKeyName(), evictedKeys);
-
-    return evictionsByKey;
   }
 
   protected boolean keyAccountRegionFilter(String authoritativeKeyName, String key) {

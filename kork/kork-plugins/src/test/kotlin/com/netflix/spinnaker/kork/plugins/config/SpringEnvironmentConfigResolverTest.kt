@@ -158,6 +158,48 @@ class SpringEnvironmentConfigResolverTest : JUnit5Minutests {
       )
         .isA<Map<String,String>>()
     }
+
+    // Regression: Spring Boot 4 surfaces an empty YAML map (`repositories: {}`)
+    // as an empty-string-valued `spinnaker.extensibility.repositories` property.
+    // Left unfiltered, JavaPropsMapper expands it into a `{"": ""}` entry that
+    // Jackson 3 cannot coerce into PluginRepositoryProperties, crashing startup.
+    // The resolver must ignore that placeholder and still bind real entries.
+    test("empty-string repositories placeholder is ignored alongside real entries") {
+      val environmentWithPlaceholder: ConfigurableEnvironment = mockk(relaxed = true)
+      every { environmentWithPlaceholder.propertySources } returns MutablePropertySources().apply {
+        addFirst(
+          MapPropertySource(
+            "test",
+            mapOf<String, Any?>(
+              "spinnaker.extensibility.repositories" to "",
+              "spinnaker.extensibility.repositories.foo.url" to "http://localhost:9000"
+            )
+          )
+        )
+      }
+      val resolver = SpringEnvironmentConfigResolver(environmentWithPlaceholder)
+
+      expectCatching {
+        resolver.resolve(
+          RepositoryConfigCoordinates(),
+          object : TypeReference<HashMap<String, PluginRepositoryProperties>>() {}
+        )
+      }.isSuccess()
+
+      expectThat(
+        resolver.resolve(
+          RepositoryConfigCoordinates(),
+          object : TypeReference<HashMap<String, PluginRepositoryProperties>>() {}
+        )
+      )
+        .isA<Map<String, PluginRepositoryProperties>>()
+        .and {
+          get { containsKey("") }.isEqualTo(false)
+          get { get("foo") }
+            .isNotNull()
+            .get { url }.isEqualTo(URL("http://localhost:9000"))
+        }
+    }
   }
 
   private inner class Fixture {

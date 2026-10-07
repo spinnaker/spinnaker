@@ -17,16 +17,6 @@
 
 package com.netflix.spinnaker.clouddriver.aws.deploy.ops.actions;
 
-import com.amazonaws.services.autoscaling.model.AutoScalingGroup;
-import com.amazonaws.services.autoscaling.model.InstancesDistribution;
-import com.amazonaws.services.autoscaling.model.LaunchTemplateSpecification;
-import com.amazonaws.services.ec2.AmazonEC2;
-import com.amazonaws.services.ec2.model.LaunchTemplateBlockDeviceMapping;
-import com.amazonaws.services.ec2.model.LaunchTemplateIamInstanceProfileSpecification;
-import com.amazonaws.services.ec2.model.LaunchTemplateInstanceMarketOptions;
-import com.amazonaws.services.ec2.model.LaunchTemplateInstanceNetworkInterfaceSpecification;
-import com.amazonaws.services.ec2.model.LaunchTemplateVersion;
-import com.amazonaws.services.ec2.model.ResponseLaunchTemplateData;
 import com.fasterxml.jackson.annotation.JsonTypeName;
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 import com.fasterxml.jackson.databind.annotation.JsonPOJOBuilder;
@@ -59,6 +49,16 @@ import lombok.Value;
 import lombok.experimental.NonFinal;
 import org.jetbrains.annotations.NotNull;
 import org.springframework.stereotype.Component;
+import software.amazon.awssdk.services.autoscaling.model.AutoScalingGroup;
+import software.amazon.awssdk.services.autoscaling.model.InstancesDistribution;
+import software.amazon.awssdk.services.autoscaling.model.LaunchTemplateSpecification;
+import software.amazon.awssdk.services.ec2.Ec2Client;
+import software.amazon.awssdk.services.ec2.model.LaunchTemplateBlockDeviceMapping;
+import software.amazon.awssdk.services.ec2.model.LaunchTemplateIamInstanceProfileSpecification;
+import software.amazon.awssdk.services.ec2.model.LaunchTemplateInstanceMarketOptions;
+import software.amazon.awssdk.services.ec2.model.LaunchTemplateInstanceNetworkInterfaceSpecification;
+import software.amazon.awssdk.services.ec2.model.LaunchTemplateVersion;
+import software.amazon.awssdk.services.ec2.model.ResponseLaunchTemplateData;
 
 /**
  * Action to prepare the description of type ModifyServerGroupLaunchTemplateDescription for launch
@@ -103,17 +103,17 @@ public class PrepareModifyServerGroupLaunchTemplate
         getAutoScalingGroup(description.getAsgName(), regionScopedProvider);
     LaunchTemplateVersion launchTemplateVersion =
         getLaunchTemplateVersion(autoScalingGroup, regionScopedProvider);
-    ResponseLaunchTemplateData launchTemplateData = launchTemplateVersion.getLaunchTemplateData();
-    boolean isAsgBackedByMip = autoScalingGroup.getMixedInstancesPolicy() != null;
+    ResponseLaunchTemplateData launchTemplateData = launchTemplateVersion.launchTemplateData();
+    boolean isAsgBackedByMip = autoScalingGroup.mixedInstancesPolicy() != null;
 
     // Step #1: populate description with config from server group's mixed instances policy
-    if (autoScalingGroup.getMixedInstancesPolicy() != null) {
+    if (autoScalingGroup.mixedInstancesPolicy() != null) {
       populateDescWithMipFields(description, autoScalingGroup);
     }
 
     // Determine if step #2(populate description with config from current launch template version)
     // can be skipped
-    boolean asgUsesSpotLt = launchTemplateData.getInstanceMarketOptions() != null;
+    boolean asgUsesSpotLt = launchTemplateData.instanceMarketOptions() != null;
 
     /**
      * A valid request should include fields mapped to either launch template or AWS ASG config or
@@ -200,12 +200,12 @@ public class PrepareModifyServerGroupLaunchTemplate
       AutoScalingGroup autoScalingGroup, RegionScopedProvider regionScopedProvider) {
     LaunchTemplateSpecification launchTemplateSpec =
         Optional.ofNullable(
-                autoScalingGroup.getMixedInstancesPolicy() != null
+                autoScalingGroup.mixedInstancesPolicy() != null
                     ? autoScalingGroup
-                        .getMixedInstancesPolicy()
-                        .getLaunchTemplate()
-                        .getLaunchTemplateSpecification()
-                    : autoScalingGroup.getLaunchTemplate())
+                        .mixedInstancesPolicy()
+                        .launchTemplate()
+                        .launchTemplateSpecification()
+                    : autoScalingGroup.launchTemplate())
             .orElseThrow(
                 () ->
                     new IllegalArgumentException(
@@ -226,36 +226,33 @@ public class PrepareModifyServerGroupLaunchTemplate
   private void populateDescWithMipFields(
       ModifyServerGroupLaunchTemplateDescription modifyDesc, AutoScalingGroup autoScalingGroup) {
     final InstancesDistribution distInAsg =
-        autoScalingGroup.getMixedInstancesPolicy().getInstancesDistribution();
+        autoScalingGroup.mixedInstancesPolicy().instancesDistribution();
 
     modifyDesc.setOnDemandAllocationStrategy(
         Optional.ofNullable(modifyDesc.getOnDemandAllocationStrategy())
-            .orElse(distInAsg.getOnDemandAllocationStrategy()));
+            .orElse(distInAsg.onDemandAllocationStrategy()));
     modifyDesc.setOnDemandBaseCapacity(
         Optional.ofNullable(modifyDesc.getOnDemandBaseCapacity())
-            .orElse(distInAsg.getOnDemandBaseCapacity()));
+            .orElse(distInAsg.onDemandBaseCapacity()));
     modifyDesc.setOnDemandPercentageAboveBaseCapacity(
         Optional.ofNullable(modifyDesc.getOnDemandPercentageAboveBaseCapacity())
-            .orElse(distInAsg.getOnDemandPercentageAboveBaseCapacity()));
+            .orElse(distInAsg.onDemandPercentageAboveBaseCapacity()));
     modifyDesc.setSpotAllocationStrategy(
         Optional.ofNullable(modifyDesc.getSpotAllocationStrategy())
-            .orElse(distInAsg.getSpotAllocationStrategy()));
+            .orElse(distInAsg.spotAllocationStrategy()));
     modifyDesc.setSpotInstancePools(
         Optional.ofNullable(modifyDesc.getSpotInstancePools())
             .orElse(
                 // return the spotInstancePools in ASG iff it is compatible with the
                 // spotAllocationStrategy
                 modifyDesc.getSpotAllocationStrategy().equals("lowest-price")
-                    ? distInAsg.getSpotInstancePools()
+                    ? distInAsg.spotInstancePools()
                     : null));
     modifyDesc.setLaunchTemplateOverridesForInstanceType(
         Optional.ofNullable(modifyDesc.getLaunchTemplateOverridesForInstanceType())
             .orElse(
                 AsgConfigHelper.getDescriptionOverrides(
-                    autoScalingGroup
-                        .getMixedInstancesPolicy()
-                        .getLaunchTemplate()
-                        .getOverrides())));
+                    autoScalingGroup.mixedInstancesPolicy().launchTemplate().overrides())));
 
     modifyDesc.setSpotPrice(getSpotMaxPrice(modifyDesc.getSpotPrice(), autoScalingGroup, null));
   }
@@ -265,14 +262,14 @@ public class PrepareModifyServerGroupLaunchTemplate
       ModifyServerGroupLaunchTemplateDescription modifyDesc,
       LaunchTemplateVersion sourceLtVersion,
       String accountId,
-      AmazonEC2 amazonEC2,
+      Ec2Client amazonEC2,
       AutoScalingGroup autoScalingGroup) {
-    ResponseLaunchTemplateData sourceLtData = sourceLtVersion.getLaunchTemplateData();
+    ResponseLaunchTemplateData sourceLtData = sourceLtVersion.launchTemplateData();
 
     modifyDesc.setSpotPrice(
         getSpotMaxPrice(modifyDesc.getSpotPrice(), autoScalingGroup, sourceLtData));
     modifyDesc.setImageId(
-        getImageId(saga, amazonEC2, accountId, modifyDesc).orElse(sourceLtData.getImageId()));
+        getImageId(saga, amazonEC2, accountId, modifyDesc).orElse(sourceLtData.imageId()));
 
     Set<String> securityGroups = new HashSet<>();
     if (modifyDesc.getSecurityGroups() != null) {
@@ -284,25 +281,25 @@ public class PrepareModifyServerGroupLaunchTemplate
             .orElseGet(securityGroups::isEmpty);
     if (includePreviousGroups) {
       securityGroups.addAll(
-          sourceLtData.getNetworkInterfaces().stream()
-              .filter(i -> i.getDeviceIndex() == 0)
+          sourceLtData.networkInterfaces().stream()
+              .filter(i -> i.deviceIndex() == 0)
               .findFirst()
-              .map(LaunchTemplateInstanceNetworkInterfaceSpecification::getGroups)
+              .map(LaunchTemplateInstanceNetworkInterfaceSpecification::groups)
               .orElse(Collections.emptyList()));
     }
     modifyDesc.setSecurityGroups(new ArrayList<>(securityGroups));
 
     LaunchTemplateIamInstanceProfileSpecification iamInstanceProfileInLt =
-        sourceLtData.getIamInstanceProfile();
+        sourceLtData.iamInstanceProfile();
     String iamRoleInLt = null;
     if (iamInstanceProfileInLt != null) {
-      iamRoleInLt = iamInstanceProfileInLt.getName();
+      iamRoleInLt = iamInstanceProfileInLt.name();
     }
     modifyDesc.setIamRole(Optional.ofNullable(modifyDesc.getIamRole()).orElse(iamRoleInLt));
     modifyDesc.setKeyPair(
-        Optional.ofNullable(modifyDesc.getKeyPair()).orElseGet(sourceLtData::getKeyName));
+        Optional.ofNullable(modifyDesc.getKeyPair()).orElseGet(sourceLtData::keyName));
     modifyDesc.setRamdiskId(
-        Optional.ofNullable(modifyDesc.getRamdiskId()).orElseGet(sourceLtData::getRamDiskId));
+        Optional.ofNullable(modifyDesc.getRamdiskId()).orElseGet(sourceLtData::ramDiskId));
     modifyDesc.setBlockDevices(getBlockDeviceMapping(modifyDesc, sourceLtData));
   }
 
@@ -319,7 +316,7 @@ public class PrepareModifyServerGroupLaunchTemplate
     // for multiple instance types case, use the top-level instance type as it is used to derive
     // defaults in {@link BasicAmazonDeployHandler}
     if (modifyDesc.getInstanceType() != null
-        && !modifyDesc.getInstanceType().equals(ltDataOldVersion.getInstanceType())) {
+        && !modifyDesc.getInstanceType().equals(ltDataOldVersion.instanceTypeAsString())) {
       final List<AmazonBlockDevice> defaultBdmForNewType =
           blockDeviceConfig.getBlockDevicesForInstanceType(modifyDesc.getInstanceType());
       // if copy from source flag is unset, use default mapping for the modified instance type
@@ -328,8 +325,9 @@ public class PrepareModifyServerGroupLaunchTemplate
       } else {
         // if prior version used default mapping do use default mapping on new version as well
         List<AmazonBlockDevice> defaultBdmForOldType =
-            blockDeviceConfig.getBlockDevicesForInstanceType(ltDataOldVersion.getInstanceType());
-        if (matchingBlockDevices(ltDataOldVersion.getBlockDeviceMappings(), defaultBdmForOldType)) {
+            blockDeviceConfig.getBlockDevicesForInstanceType(
+                ltDataOldVersion.instanceTypeAsString());
+        if (matchingBlockDevices(ltDataOldVersion.blockDeviceMappings(), defaultBdmForOldType)) {
           return defaultBdmForNewType;
         }
       }
@@ -339,7 +337,7 @@ public class PrepareModifyServerGroupLaunchTemplate
 
   private Optional<String> getImageId(
       Saga saga,
-      AmazonEC2 ec2,
+      Ec2Client ec2,
       String accountId,
       ModifyServerGroupLaunchTemplateDescription modifyDesc) {
     if (modifyDesc.getImageId() != null) {
@@ -373,17 +371,14 @@ public class PrepareModifyServerGroupLaunchTemplate
     }
 
     Optional<String> spotMaxPriceForAsg = Optional.empty();
-    if (autoScalingGroup.getMixedInstancesPolicy() != null) {
+    if (autoScalingGroup.mixedInstancesPolicy() != null) {
       spotMaxPriceForAsg =
           Optional.ofNullable(
-              autoScalingGroup
-                  .getMixedInstancesPolicy()
-                  .getInstancesDistribution()
-                  .getSpotMaxPrice());
+              autoScalingGroup.mixedInstancesPolicy().instancesDistribution().spotMaxPrice());
     } else {
-      LaunchTemplateInstanceMarketOptions marketOptions = ltData.getInstanceMarketOptions();
-      if (marketOptions != null && marketOptions.getSpotOptions() != null) {
-        spotMaxPriceForAsg = Optional.ofNullable(marketOptions.getSpotOptions().getMaxPrice());
+      LaunchTemplateInstanceMarketOptions marketOptions = ltData.instanceMarketOptions();
+      if (marketOptions != null && marketOptions.spotOptions() != null) {
+        spotMaxPriceForAsg = Optional.ofNullable(marketOptions.spotOptions().maxPrice());
       }
     }
     if (spotMaxPriceForAsg.isPresent()) {
@@ -416,9 +411,9 @@ public class PrepareModifyServerGroupLaunchTemplate
 
     BlockDevice device2 =
         new BlockDevice()
-            .withDeviceName(mapping.getDeviceName())
-            .withVirtualName(mapping.getVirtualName())
-            .withSize(mapping.getEbs().getVolumeSize());
+            .withDeviceName(mapping.deviceName())
+            .withVirtualName(mapping.virtualName())
+            .withSize(mapping.ebs().volumeSize());
 
     return device1.equals(device2);
   }

@@ -163,6 +163,10 @@ internal object SqlStorageServiceTests : JUnit5Minutests {
 
           var pipeline = sqlStorageService.loadObject<Pipeline>(ObjectType.PIPELINE, "id-pipeline001")
           expectThat(pipeline.getName()).isEqualTo("pipeline001")
+          // loadObject (the single-object path staleCheck relies on) must agree with
+          // loadObjects/listObjectVersions on lastModified -- regression test for the front50
+          // staleCheck fix.
+          expectThat(pipeline.getLastModified()).isEqualTo(100L)
 
           // verify that a pipeline can be updated
           sqlStorageService.storeObject(
@@ -177,6 +181,7 @@ internal object SqlStorageServiceTests : JUnit5Minutests {
 
           pipeline = sqlStorageService.loadObject(ObjectType.PIPELINE, "id-pipeline001")
           expectThat(pipeline.getName()).isEqualTo("pipeline001_updated")
+          expectThat(pipeline.getLastModified()).isEqualTo(200L)
 
           expectThat(
             jooq

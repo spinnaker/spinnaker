@@ -145,11 +145,37 @@ const helpContents: { [key: string]: string } = {
   'pipeline.config.expectedArtifact.defaultGithub.reference': `
       <p>The GitHub API content url the artifact lives under. The domain name may change if you're running GHE.</p>
       <p>An example for GitHub.com is <code>https://api.github.com/repos/$ORG/$REPO/contents/$FILEPATH</code>. An example for GitHub Enterprise is <code>https://github.domain.com/api/v3/repos/$ORG/$REPO/contents/$FILEPATH</code>. See <a href="https://www.spinnaker.io/reference/artifacts/types/github-file/#fields">our docs</a> for more info.</p>`,
+  'pipeline.config.expectedArtifact.defaultGithub.baseUrl': `
+      <p>The GitHub API base URL, i.e. everything before <code>/repos/$ORG/$REPO/contents/$FILEPATH</code>.</p>
+      <p>For GitHub.com this is <code>https://api.github.com</code>. For GitHub Enterprise this is typically <code>https://github.domain.com/api/v3</code>.</p>`,
+  'pipeline.config.expectedArtifact.defaultGithub.org': `
+      <p>The GitHub organization or user that owns the repository.</p>`,
+  'pipeline.config.expectedArtifact.defaultGithub.repo': `
+      <p>The name of the GitHub repository.</p>`,
+  'pipeline.config.expectedArtifact.defaultGitea.version': `
+      <p>The commit, tag, or branch to read the file from. When left empty, Gitea serves the file from the repository's default branch.</p>`,
+  'pipeline.config.expectedArtifact.defaultGitea.reference': `
+      <p>The Gitea API raw file url the artifact lives under. The domain name is that of your Gitea server.</p>
+      <p>An example is <code>https://gitea.example.com/api/v1/repos/$ORG/$REPO/raw/path/to/file.yml</code>.</p>`,
+  'pipeline.config.expectedArtifact.defaultGitea.baseUrl': `
+      <p>The Gitea API base URL, i.e. everything before <code>/repos/$ORG/$REPO/raw/$FILEPATH</code>.</p>
+      <p>This is typically <code>https://gitea.domain.com/api/v1</code>.</p>`,
+  'pipeline.config.expectedArtifact.defaultGitea.org': `
+      <p>The Gitea organization or user that owns the repository.</p>`,
+  'pipeline.config.expectedArtifact.defaultGitea.repo': `
+      <p>The name of the Gitea repository.</p>`,
   'pipeline.config.expectedArtifact.defaultGitlab.version': `
       <p>Either the commit or branch to checkout.</p>`,
   'pipeline.config.expectedArtifact.defaultGitlab.reference': `
       <p>The Gitlab API file url the artifact lives under. The domain name may change if you're running your own Gitlab server. The repository and path to files must be URL encoded.</p>
       <p>An example is <code>https://gitlab.com/api/v4/projects/$ORG%2F$REPO/repository/files/path%2Fto%2Ffile.yml/raw</code>. See <a href="https://www.spinnaker.io/reference/artifacts/types/gitlab-file/#fields">our docs</a> for more info.</p>`,
+  'pipeline.config.expectedArtifact.defaultGitlab.baseUrl': `
+      <p>The Gitlab API base URL, i.e. everything before <code>/projects/$ORG%2F$REPO/repository/files/$FILEPATH/raw</code>.</p>
+      <p>For gitlab.com this is <code>https://gitlab.com/api/v4</code>. For a self-hosted Gitlab server this is typically <code>https://gitlab.domain.com/api/v4</code>.</p>`,
+  'pipeline.config.expectedArtifact.defaultGitlab.org': `
+      <p>The Gitlab group or namespace that owns the repository.</p>`,
+  'pipeline.config.expectedArtifact.defaultGitlab.repo': `
+      <p>The name of the Gitlab project (repository).</p>`,
   'pipeline.config.expectedArtifact.gitrepo.url': '<p>The location of your Git repository.</p>',
   'pipeline.config.expectedArtifact.gitrepo.branch': '<p>The branch of the repository you want to use.</p>',
   'pipeline.config.expectedArtifact.gitrepo.checkoutSubpath':
@@ -168,6 +194,18 @@ const helpContents: { [key: string]: string } = {
       <p>An example is <code>https://api.bitbucket.org/1.0/repositories/$ORG/$REPO/raw/$VERSION/$FILEPATH</code>. See <a href="https://www.spinnaker.io/reference/artifacts/types/bitbucket-file/#fields">our docs</a> for more info.</p>`,
   'pipeline.config.expectedArtifact.defaultBitbucket.filepath': `
       <p>The file path within your repo. path/to/file.yml is an example.</p>`,
+  'pipeline.config.expectedArtifact.defaultBitbucket.baseUrl': `
+      <p>The Bitbucket API base URL. For Bitbucket Server (Stash) this is everything before <code>/projects/$PROJECTKEY/repos/$REPONAME/raw/$FILEPATH</code>, e.g. <code>https://bitbucket.mycompany.com/rest/api/1.0</code>. For Bitbucket Cloud this is everything before <code>/repositories/$ORG/$REPO/raw/$VERSION/$FILEPATH</code>, e.g. <code>https://api.bitbucket.org/1.0</code>.</p>`,
+  'pipeline.config.expectedArtifact.defaultBitbucket.projectKey': `
+      <p>The Bitbucket Server project key that owns the repository.</p>`,
+  'pipeline.config.expectedArtifact.defaultBitbucket.repoName': `
+      <p>The name of the Bitbucket Server repository.</p>`,
+  'pipeline.config.expectedArtifact.defaultBitbucket.org': `
+      <p>The Bitbucket Cloud workspace or account that owns the repository.</p>`,
+  'pipeline.config.expectedArtifact.defaultBitbucket.repo': `
+      <p>The name of the Bitbucket Cloud repository.</p>`,
+  'pipeline.config.expectedArtifact.defaultBitbucket.version': `
+      <p>Either the commit or branch to checkout.</p>`,
   'pipeline.config.trigger.helm.chart': `The Helm chart name.`,
   'pipeline.config.trigger.helm.version': `The Helm chart version, as semver.`,
   'pipeline.config.trigger.helm.version.manual': `The Helm chart version, as an exact version.`,
@@ -205,7 +243,7 @@ const helpContents: { [key: string]: string } = {
       <p>Select the types of executions to consider. When no selection is made, the default is "any execution".</p>
       <p>This will always evaluate to the most recent execution matching your provided criteria.</p>
   `,
-  'pipeline.config.tags': `<p>Pipeline tags let you filter pipelines/executions by addition dimensions in the executions page</p>`,
+  'pipeline.config.tags': `<p>Pipeline tags let you filter pipelines/executions by additional dimensions on the executions page.</p><p>A tag with the exact case-sensitive name <samp>project</samp> and value equal to a project name also includes this pipeline on that project's dashboard, in addition to any pipelines configured on the project.</p>`,
   'loadBalancer.advancedSettings.healthTimeout':
     '<p>Configures the timeout, in seconds, for reaching the healthCheck target.  Must be less than the interval.</p><p> Default: <b>5</b></p>',
   'loadBalancer.advancedSettings.idleTimeout':
@@ -412,6 +450,8 @@ const helpContents: { [key: string]: string } = {
     '<p>(Optional) If specified, only pushes to the branches that match this Java Regular Expression will be triggered. Leave empty to trigger builds for every branch.</p>',
   'pipeline.config.git.trigger.githubSecret':
     '<p>(Optional, but recommended) If specified, verifies GitHub as the sender of this trigger. See <a target="_blank" href="https://developer.github.com/webhooks/securing/">GitHub docs</a> for more information.</p>',
+  'pipeline.config.git.trigger.giteaSecret':
+    '<p>(Optional, but recommended) The secret configured on the Gitea webhook. If specified, the trigger only fires for payloads whose <code>X-Gitea-Signature</code> (HMAC-SHA256) matches.</p>',
   'serverGroup.ipv6': `<p>Associating an IPv6 address to nodes allows for ingress and egress communication over IPv6. Most modern software supports IPv6 and enablement is transparent. This is an incremental addition to IPv4 and will not remove the ability for connectivity over IPv4.</p>`,
   'serverGroupCapacity.useSourceCapacityTrue': `
       <p>Spinnaker will use the current capacity of the existing server group when deploying a new server group.</p>

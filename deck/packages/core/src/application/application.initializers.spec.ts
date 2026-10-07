@@ -10,7 +10,7 @@ describe('application.initializers', () => {
   it('applies registered initializers once for the current context', () => {
     const applicationState = {} as any;
     const uiRouter = {} as any;
-    const initializer = jasmine.createSpy('initializer');
+    const initializer = vi.fn();
 
     registerApplicationInitializer(initializer);
     applyApplicationInitializers(applicationState, uiRouter);
@@ -23,7 +23,7 @@ describe('application.initializers', () => {
   it('runs late registrations immediately after the context has been applied', () => {
     const applicationState = {} as any;
     const uiRouter = {} as any;
-    const initializer = jasmine.createSpy('initializer');
+    const initializer = vi.fn();
 
     applyApplicationInitializers(applicationState, uiRouter);
     registerApplicationInitializer(initializer);

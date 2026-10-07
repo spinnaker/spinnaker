@@ -28,6 +28,7 @@ import com.github.tomakehurst.wiremock.client.WireMock;
 import com.github.tomakehurst.wiremock.core.WireMockConfiguration;
 import com.netflix.spinnaker.kork.retrofit.ErrorHandlingExecutorCallAdapterFactory;
 import com.netflix.spinnaker.kork.retrofit.Retrofit2SyncCall;
+import java.util.List;
 import java.util.Map;
 import okhttp3.OkHttpClient;
 import org.junit.jupiter.api.AfterEach;
@@ -77,7 +78,7 @@ public class ClouddriverServiceTest {
                         "[{\"pageNumber\":1,\"pageSize\":500,\"platform\":\"aws\",\"query\":\"app1\",\"results\":[],\"totalMatches\":0}]")));
 
     Retrofit2SyncCall.execute(
-        clouddriverService.search("app1", "securityGroups", "aws", 500, 1, Map.of()));
+        clouddriverService.search("app1", List.of("securityGroups"), "aws", 500, 1, Map.of()));
 
     verify(
         1,

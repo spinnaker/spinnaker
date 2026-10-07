@@ -31,7 +31,7 @@ export class DeployAppengineConfigForm extends React.Component<
     ArtifactTypePatterns.ORACLE_OBJECT,
   );
 
-  private destroy$ = new Subject();
+  private destroy$ = new Subject<void>();
   public state: IAppEngineDeployConfigSettingsState = {
     accounts: [],
   };

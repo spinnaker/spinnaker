@@ -29,7 +29,6 @@ import io.cloudevents.CloudEvent
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.http.HttpHeaders
 import org.springframework.http.ResponseEntity
-import org.springframework.util.CollectionUtils
 import org.springframework.web.bind.annotation.*
 
 @RestController
@@ -58,7 +57,7 @@ class WebhooksController {
     event.details = new Metadata()
     event.details.source = source
     event.details.type = type
-    event.details.requestHeaders = headers
+    event.details.requestHeaders = copyHeaders(headers)
     event.rawContent = rawPayload
 
     if (!rawPayload && source == 'bitbucket') {
@@ -74,10 +73,13 @@ class WebhooksController {
     }
     event.content = postedEvent
     event.payload = new HashMap(postedEvent)
-    if (headers.containsKey('X-Event-Key')) {
+    if (headers.containsHeader('X-Event-Key')) {
       event.content.event_type = headers['X-Event-Key'][0]
     }
-    def filteredHeaders = CollectionUtils.toMultiValueMap(headers.findAll { headersPredicate(it) })
+    // Build the handler-facing headers with the default (case-insensitive) HttpHeaders: wrapping a
+    // plain map via `new HttpHeaders(map)` makes lookups like getFirst("x-github-event") case-sensitive.
+    HttpHeaders filteredHeaders = new HttpHeaders()
+    headers.headerNames().findAll { headersPredicate(it) }.each { filteredHeaders.addAll(it, headers.get(it)) }
 
     if (type == 'git') {
       GitWebhookHandler handler
@@ -87,7 +89,7 @@ class WebhooksController {
         log.error("Unable to handle SCM source: {}", source)
         throw e
       }
-      handler.handle(event, postedEvent, new HttpHeaders(filteredHeaders))
+      handler.handle(event, postedEvent, filteredHeaders)
       // shouldSendEvent should be called after the event
       // has been processed
       sendEvent = handler.shouldSendEvent(event)
@@ -109,8 +111,17 @@ class WebhooksController {
   }
 
   // If your scm implementation needs access to headers, add them as a clause to this filter predicate
-  private static boolean headersPredicate(Map.Entry<String, List<String>> header) {
-    header.key.toLowerCase().startsWith("x-github")
+  private static boolean headersPredicate(String headerName) {
+    headerName.toLowerCase().startsWith("x-github") || headerName.toLowerCase().startsWith("x-gitea")
+  }
+
+  // Spring 7's HttpHeaders is no longer a Map: copy into the case-insensitive
+  // TreeMap shape Metadata.requestHeaders has always carried.
+  private static TreeMap<String, List<String>> copyHeaders(HttpHeaders headers) {
+    TreeMap<String, List<String>> requestHeaders =
+        new TreeMap<>(String.CASE_INSENSITIVE_ORDER)
+    requestHeaders.putAll(headers.asMultiValueMap())
+    return requestHeaders
   }
 
   @RequestMapping(value = '/webhooks/{type}', method = RequestMethod.POST)
@@ -120,7 +131,7 @@ class WebhooksController {
     Event event = new Event()
     event.details = new Metadata()
     event.details.type = type
-    event.details.requestHeaders = headers
+    event.details.requestHeaders = copyHeaders(headers)
     event.content = postedEvent
 
     if (event.content.source != null) {
@@ -156,7 +167,7 @@ class WebhooksController {
     event.details = new Metadata()
     event.details.source = source
     event.details.type = "cdevents"
-    event.details.requestHeaders = headers
+    event.details.requestHeaders = copyHeaders(headers)
     event.rawContent = ceDataJsonString
     event.payload = new HashMap(postedEvent)
     event.content = new HashMap<>();

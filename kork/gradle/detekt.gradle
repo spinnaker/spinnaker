@@ -14,20 +14,12 @@
  * limitations under the License.
  */
 
-apply plugin: "io.gitlab.arturbosch.detekt"
+apply plugin: "dev.detekt"
 
 detekt {
   source.setFrom("src/main/kotlin", "src/custom/kotlin")
   parallel = false
-  config = files("$rootDir/.detekt.yml")
+  config.setFrom("$rootDir/.detekt.yml")
   buildUponDefaultConfig = true
   ignoreFailures = true
-  reports {
-    xml {
-      enabled = false
-    }
-    txt {
-      enabled = false
-    }
-  }
 }

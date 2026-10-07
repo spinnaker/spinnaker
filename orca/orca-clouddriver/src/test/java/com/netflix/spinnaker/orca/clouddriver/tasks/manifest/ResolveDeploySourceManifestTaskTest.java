@@ -224,7 +224,7 @@ final class ResolveDeploySourceManifestTaskTest {
     // the 'outputs' key should not contain the values present in the input i.e. in `keysToFilter`
     if (expectedKeysToBeExcludedFromOutput.containsAll(
         List.of("manifests", "requiredArtifacts", "optionalArtifacts"))) {
-      assertThat(result.getOutputs().isEmpty());
+      assertThat(result.getOutputs()).isEmpty();
     } else {
       assertThat(result.getOutputs()).isNotEmpty();
     }

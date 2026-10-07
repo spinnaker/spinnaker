@@ -9,12 +9,9 @@ import com.netflix.spinnaker.keel.api.ec2.ClassicLoadBalancerSpec
 import com.netflix.spinnaker.keel.api.ec2.ClusterDependencies
 import com.netflix.spinnaker.keel.api.ec2.ClusterSpec
 import com.netflix.spinnaker.keel.api.ec2.ClusterSpec.ServerGroupSpec
-import com.netflix.spinnaker.keel.api.titus.TitusClusterSpec
-import com.netflix.spinnaker.keel.api.titus.TitusServerGroupSpec
 import com.netflix.spinnaker.keel.test.applicationLoadBalancer
 import com.netflix.spinnaker.keel.test.classicLoadBalancer
 import com.netflix.spinnaker.keel.test.ec2Cluster
-import com.netflix.spinnaker.keel.test.titusCluster
 import org.junit.jupiter.api.Test
 import strikt.api.expectThat
 import strikt.assertions.isEqualTo
@@ -23,17 +20,6 @@ class DependencyReconciliationTests {
   private val ec2ClusterSpec = ec2Cluster().spec.copy(
     overrides = mapOf(
       "us-east-1" to ServerGroupSpec(
-        dependencies = ClusterDependencies(
-          loadBalancerNames = setOf("fnord-external"),
-          securityGroupNames = setOf("fnord-ext")
-        )
-      )
-    )
-  )
-
-  private val titusClusterSpec = titusCluster().spec.copy(
-    overrides = mapOf(
-      "us-east-1" to TitusServerGroupSpec(
         dependencies = ClusterDependencies(
           loadBalancerNames = setOf("fnord-external"),
           securityGroupNames = setOf("fnord-ext")
@@ -96,24 +82,6 @@ class DependencyReconciliationTests {
   @Test
   fun `EC2 cluster spec copy with updated dependencies is correct`() {
     expectThat(ec2ClusterSpec.withDependencies(ClusterSpec::class, updatedClusterDeps).dependsOn)
-      .isEqualTo(updatedClusterDeps)
-  }
-
-  @Test
-  fun `Titus cluster spec is forward-compatible with Dependent interface`() {
-    expectThat(titusClusterSpec.dependsOn)
-      .isEqualTo(clusterDeps)
-  }
-
-  @Test
-  fun `Titus cluster spec copy with the same dependencies returns the same spec`() {
-    expectThat(titusClusterSpec.withDependencies(TitusClusterSpec::class, clusterDeps))
-      .isEqualTo(titusClusterSpec)
-  }
-
-  @Test
-  fun `Titus cluster spec copy with updated dependencies is correct`() {
-    expectThat(titusClusterSpec.withDependencies(TitusClusterSpec::class, updatedClusterDeps).dependsOn)
       .isEqualTo(updatedClusterDeps)
   }
 

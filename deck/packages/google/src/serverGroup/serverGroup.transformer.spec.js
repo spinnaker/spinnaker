@@ -47,6 +47,54 @@ describe('gceServerGroupTransformer', () => {
       expect(normalizedServerGroup.loadBalancers.includes('network-load-balancer')).toEqual(true);
       expect(normalizedServerGroup.loadBalancers.includes('internal-load-balancer')).toEqual(true);
     });
+
+    it('scopes EXTERNAL_MANAGED listener normalization by server group region', async function () {
+      app = {
+        getDataSource: () => ({
+          ready: () => Promise.resolve(),
+          data: [
+            {
+              account: 'my-google-account',
+              listeners: [{ name: 'external-listener' }],
+              loadBalancerType: 'EXTERNAL_MANAGED',
+              name: 'app-main (my-google-account/us-central1/EXTERNAL_MANAGED)',
+              provider: 'gce',
+              region: 'us-central1',
+              urlMapName: 'app-main',
+            },
+            {
+              account: 'my-google-account',
+              listeners: [{ name: 'external-listener' }],
+              loadBalancerType: 'EXTERNAL_MANAGED',
+              name: 'app-main (my-google-account/europe-west1/EXTERNAL_MANAGED)',
+              provider: 'gce',
+              region: 'europe-west1',
+              urlMapName: 'app-main',
+            },
+          ],
+        }),
+      };
+
+      const centralServerGroup = await transformer.normalizeServerGroup(
+        {
+          account: 'my-google-account',
+          region: 'us-central1',
+          loadBalancers: ['external-listener'],
+        },
+        app,
+      );
+      const europeServerGroup = await transformer.normalizeServerGroup(
+        {
+          account: 'my-google-account',
+          region: 'europe-west1',
+          loadBalancers: ['external-listener'],
+        },
+        app,
+      );
+
+      expect(centralServerGroup.loadBalancers).toEqual(['app-main (my-google-account/us-central1/EXTERNAL_MANAGED)']);
+      expect(europeServerGroup.loadBalancers).toEqual(['app-main (my-google-account/europe-west1/EXTERNAL_MANAGED)']);
+    });
   });
 
   describe('convert server group command to deploy configuration', () => {
@@ -68,6 +116,67 @@ describe('gceServerGroupTransformer', () => {
       expect(deployConfig.availabilityZones).toEqual({ 'us-central1': ['us-central1-a', 'us-central1-b'] });
       expect(deployConfig.account).toBe('my-google-account');
       expect(deployConfig.backingData).toBeUndefined();
+    });
+
+    it('preserves instanceFlexibilityPolicy for pipeline edit/save round-trips', () => {
+      const flexibilityPolicy = {
+        instanceSelections: {
+          preferred: { machineTypes: ['n2-standard-8'] },
+          fallback: { rank: 2, machineTypes: ['e2-standard-8'] },
+        },
+      };
+      const command = {
+        credentials: 'test-account',
+        region: 'us-central1',
+        zone: 'us-central1-a',
+        enableTraffic: true,
+        instanceFlexibilityPolicy: flexibilityPolicy,
+        backingData: { filtered: { truncatedZones: ['us-central1-a'] } },
+        viewState: { mode: 'editPipeline' },
+      };
+
+      const deployConfig = transformer.convertServerGroupCommandToDeployConfiguration(command);
+
+      expect(deployConfig.instanceFlexibilityPolicy).toEqual(flexibilityPolicy);
+      expect(deployConfig.backingData).toBeUndefined();
+      expect(deployConfig.viewState).toBeUndefined();
+    });
+
+    it('preserves nested distribution and flexibility intent while stripping unsupported legacy fields', () => {
+      const flexibilityPolicy = {
+        instanceSelections: {
+          preferred: { machineTypes: ['n2-standard-8'] },
+        },
+      };
+      const deployConfig = transformer.convertServerGroupCommandToDeployConfiguration({
+        autoHealingPolicy: {
+          healthCheck: 'web-health-check',
+          healthCheckUrl: 'https://compute/healthChecks/web-health-check',
+          initialDelaySec: 0,
+          maxUnavailable: { fixed: 2 },
+        },
+        credentials: 'test-account',
+        distributionPolicy: { zones: ['us-central1-a'], targetShape: 'ANY_SINGLE_ZONE' },
+        enableTraffic: true,
+        instanceFlexibilityPolicy: flexibilityPolicy,
+        partnerMetadata: { legacy: true },
+        region: 'us-central1',
+        selectZones: false,
+        viewState: { mode: 'editPipeline' },
+      });
+
+      expect(deployConfig.distributionPolicy).toEqual({
+        zones: ['us-central1-a'],
+        targetShape: 'ANY_SINGLE_ZONE',
+      });
+      expect(deployConfig.selectZones).toBe(false);
+      expect(deployConfig.instanceFlexibilityPolicy).toEqual(flexibilityPolicy);
+      expect(deployConfig.partnerMetadata).toBeUndefined();
+      expect(deployConfig.autoHealingPolicy).toEqual({
+        healthCheck: 'web-health-check',
+        healthCheckUrl: 'https://compute/healthChecks/web-health-check',
+        initialDelaySec: 0,
+      });
     });
   });
 });

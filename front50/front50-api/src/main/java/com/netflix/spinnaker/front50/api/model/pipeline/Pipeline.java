@@ -68,6 +68,26 @@ public class Pipeline implements Timestamped, Cloneable {
     return lastModified != null ? lastModified.toString() : null;
   }
 
+  /**
+   * Counterpart to {@link #getUpdateTs()}.
+   *
+   * <p>Without this, {@code updateTs} is a read-only derived property: clients receive it but
+   * cannot echo it back, so {@link #getLastModified()} is always null on an HTTP-submitted
+   * pipeline. Null, blank and unparseable values are treated as "no fingerprint supplied" rather
+   * than as an error, so a hand-written or hand-edited pipeline body still saves.
+   */
+  public void setUpdateTs(String updateTs) {
+    if (updateTs == null || updateTs.trim().isEmpty()) {
+      setLastModified(null);
+      return;
+    }
+    try {
+      setLastModified(Long.valueOf(updateTs.trim()));
+    } catch (NumberFormatException e) {
+      setLastModified(null);
+    }
+  }
+
   public void setAny(String key, Object value) {
     anyMap.put(key, value);
   }

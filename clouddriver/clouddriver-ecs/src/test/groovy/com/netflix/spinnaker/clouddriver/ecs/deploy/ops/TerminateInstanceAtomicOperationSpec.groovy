@@ -31,7 +31,7 @@ class TerminateInstanceAtomicOperationSpec extends CommonAtomicOperation {
     operation.credentialsRepository = credentialsRepository
     operation.containerInformationService = containerInformationService
 
-    amazonClientProvider.getAmazonEcs(_, _, _) >> ecs
+    amazonClientProvider.getAmazonEcsV2(_, _) >> ecs
     containerInformationService.getClusterArn(_, _, _) >> 'cluster-arn'
     credentialsRepository.getOne(_) >> TestCredential.named("test")
 

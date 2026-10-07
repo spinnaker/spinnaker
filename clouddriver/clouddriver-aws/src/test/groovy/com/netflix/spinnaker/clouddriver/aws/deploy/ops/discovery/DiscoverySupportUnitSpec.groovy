@@ -16,14 +16,13 @@
 
 package com.netflix.spinnaker.clouddriver.aws.deploy.ops.discovery
 
-import com.amazonaws.AmazonServiceException
-import com.amazonaws.services.autoscaling.model.AutoScalingGroup
-import com.amazonaws.services.autoscaling.model.Instance
-import com.amazonaws.services.ec2.AmazonEC2
-import com.amazonaws.services.ec2.model.DescribeInstancesResult
-import com.amazonaws.services.ec2.model.InstanceState
-import com.amazonaws.services.ec2.model.InstanceStateName
-import com.amazonaws.services.ec2.model.Reservation
+import software.amazon.awssdk.services.autoscaling.model.AutoScalingGroup
+import software.amazon.awssdk.services.autoscaling.model.Instance
+import software.amazon.awssdk.services.ec2.Ec2Client
+import software.amazon.awssdk.services.ec2.model.DescribeInstancesResponse
+import software.amazon.awssdk.services.ec2.model.InstanceState
+import software.amazon.awssdk.services.ec2.model.InstanceStateName
+import software.amazon.awssdk.services.ec2.model.Reservation
 import com.netflix.spinnaker.clouddriver.aws.TestCredential
 import com.netflix.spinnaker.clouddriver.aws.deploy.description.EnableDisableInstanceDiscoveryDescription
 import com.netflix.spinnaker.clouddriver.aws.security.AmazonClientProvider
@@ -410,15 +409,16 @@ class DiscoverySupportUnitSpec extends Specification {
   void "should fail verification if asg does not exist"() {
     given:
     def discoverySupport = new AwsEurekaSupport()
-    def amazonEC2 = Mock(AmazonEC2) {
+    def amazonEC2 = Mock(Ec2Client) {
       _ * describeInstances(_) >> {
-        return new DescribeInstancesResult().withReservations(
-          new Reservation().withInstances(instanceIds.collect {
-            new com.amazonaws.services.ec2.model.Instance()
-              .withInstanceId(it.name)
-              .withState(new InstanceState().withName(it.state))
-          })
-        )
+        return DescribeInstancesResponse.builder().reservations(
+          Reservation.builder().instances(instanceIds.collect {
+            software.amazon.awssdk.services.ec2.model.Instance.builder()
+              .instanceId(it.name)
+              .state(InstanceState.builder().name(it.state).build())
+              .build()
+          }).build()
+        ).build()
       }
     }
     def asgService = Mock(AsgService) {
@@ -448,12 +448,12 @@ class DiscoverySupportUnitSpec extends Specification {
     bASG("Deleting")         | []                                                       || false
     bASG(null, "---")        | []                                                       || false
     null                     | []                                                       || false
-    bASG(null, "i-12345")    | [[name: "---", state: InstanceStateName.Terminated]]     || false
+    bASG(null, "i-12345")    | [[name: "---", state: InstanceStateName.TERMINATED]]     || false
     bASG(null, "---")        | ["i-12345"]                                              || false
     bASG(null, "i-12345", 0) | ["i-12345"]                                              || false
-    bASG(null, "i-12345")    | [[name: "i-12345", state: InstanceStateName.Running]]    || true
-    bASG(null, "i-12345")    | [[name: "i-12345", state: InstanceStateName.Pending]]    || true
-    bASG(null, "i-12345")    | [[name: "i-12345", state: InstanceStateName.Terminated]] || false
+    bASG(null, "i-12345")    | [[name: "i-12345", state: InstanceStateName.RUNNING]]    || true
+    bASG(null, "i-12345")    | [[name: "i-12345", state: InstanceStateName.PENDING]]    || true
+    bASG(null, "i-12345")    | [[name: "i-12345", state: InstanceStateName.TERMINATED]] || false
 
   }
 
@@ -521,23 +521,17 @@ class DiscoverySupportUnitSpec extends Specification {
     return new SpinnakerHttpException(retrofit2Response, retrofit);
   }
 
-  private static AmazonServiceException amazonError(int code) {
-    def ase = new AmazonServiceException("boom")
-    ase.setStatusCode(code)
-    return ase
-  }
-
   private static bASG(String status = null, String instanceId = null, int capacity = 1) {
-    def autoScalingGroup = new AutoScalingGroup()
+    def builder = AutoScalingGroup.builder()
     if (status) {
-      autoScalingGroup = autoScalingGroup.withStatus(status)
+      builder.status(status)
     }
     if (instanceId) {
-      autoScalingGroup = autoScalingGroup.withInstances(new Instance().withInstanceId(instanceId))
+      builder.instances([Instance.builder().instanceId(instanceId).build()])
     }
-    autoScalingGroup = autoScalingGroup.withDesiredCapacity(capacity)
+    builder.desiredCapacity(capacity)
 
-    return autoScalingGroup
+    return builder.build()
   }
 
   private static class DefaultServerGroup implements ServerGroup {

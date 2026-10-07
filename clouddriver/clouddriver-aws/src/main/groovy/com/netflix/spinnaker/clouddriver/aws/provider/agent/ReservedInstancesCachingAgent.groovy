@@ -17,8 +17,8 @@
 
 package com.netflix.spinnaker.clouddriver.aws.provider.agent
 
-import com.amazonaws.services.ec2.model.DescribeReservedInstancesRequest
-import com.amazonaws.services.ec2.model.ReservedInstances
+import software.amazon.awssdk.services.ec2.model.DescribeReservedInstancesRequest
+import software.amazon.awssdk.services.ec2.model.ReservedInstances
 import com.fasterxml.jackson.core.type.TypeReference
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.fasterxml.jackson.databind.SerializationFeature
@@ -97,16 +97,16 @@ class ReservedInstancesCachingAgent implements CachingAgent, CustomScheduledAgen
   CacheResult loadData(ProviderCache providerCache) {
     log.info("Describing items in ${agentType}")
 
-    def amazonEC2 = amazonClientProvider.getAmazonEC2(account, region)
+    def amazonEC2 = amazonClientProvider.getAmazonEC2V2(account, region)
 
-    def result = amazonEC2.describeReservedInstances(new DescribeReservedInstancesRequest())
-    List<ReservedInstances> allReservedInstances = result.reservedInstances
+    def result = amazonEC2.describeReservedInstances(DescribeReservedInstancesRequest.builder().build())
+    List<ReservedInstances> allReservedInstances = result.reservedInstances()
 
     Collection<CacheData> reservedInstancesData = allReservedInstances
-      .findAll { it.state.equalsIgnoreCase("active") }
+      .findAll { it.stateAsString().equalsIgnoreCase("active") }
       .collect { ReservedInstances reservedInstances ->
       Map<String, Object> attributes = objectMapper.convertValue(reservedInstances, ATTRIBUTES);
-      new DefaultCacheData(Keys.getReservedInstancesKey(reservedInstances.reservedInstancesId, account.name, region), attributes, [:])
+      new DefaultCacheData(Keys.getReservedInstancesKey(reservedInstances.reservedInstancesId(), account.name, region), attributes, [:])
     }
 
     log.info("Caching ${reservedInstancesData.size()} items in ${agentType}")

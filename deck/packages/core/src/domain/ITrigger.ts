@@ -35,7 +35,7 @@ export interface IDockerTrigger extends ITrigger {
 }
 
 export interface IGitTrigger extends ITrigger {
-  source: 'stash' | 'github' | 'bitbucket' | 'gitlab';
+  source: 'stash' | 'github' | 'bitbucket' | 'gitlab' | 'gitea';
   secret?: string;
   project: string;
   slug: string;

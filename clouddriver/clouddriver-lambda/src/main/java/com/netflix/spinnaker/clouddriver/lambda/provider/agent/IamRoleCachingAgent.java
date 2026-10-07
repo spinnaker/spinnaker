@@ -19,11 +19,6 @@ package com.netflix.spinnaker.clouddriver.lambda.provider.agent;
 import static com.netflix.spinnaker.cats.agent.AgentDataType.Authority.AUTHORITATIVE;
 import static com.netflix.spinnaker.clouddriver.lambda.cache.Keys.Namespace.IAM_ROLE;
 
-import com.amazonaws.regions.Regions;
-import com.amazonaws.services.identitymanagement.AmazonIdentityManagement;
-import com.amazonaws.services.identitymanagement.model.ListRolesRequest;
-import com.amazonaws.services.identitymanagement.model.ListRolesResult;
-import com.amazonaws.services.identitymanagement.model.Role;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.netflix.spinnaker.cats.agent.AgentDataType;
 import com.netflix.spinnaker.cats.agent.CacheResult;
@@ -45,6 +40,11 @@ import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import software.amazon.awssdk.regions.Region;
+import software.amazon.awssdk.services.iam.IamClient;
+import software.amazon.awssdk.services.iam.model.ListRolesRequest;
+import software.amazon.awssdk.services.iam.model.ListRolesResponse;
+import software.amazon.awssdk.services.iam.model.Role;
 
 public class IamRoleCachingAgent implements CachingAgent, CustomScheduledAgent {
   private static final long POLL_INTERVAL_MILLIS = TimeUnit.MINUTES.toMillis(30);
@@ -98,8 +98,7 @@ public class IamRoleCachingAgent implements CachingAgent, CustomScheduledAgent {
 
   @Override
   public CacheResult loadData(ProviderCache providerCache) {
-    AmazonIdentityManagement iam =
-        amazonClientProvider.getIam(account, Regions.DEFAULT_REGION.getName(), false);
+    IamClient iam = amazonClientProvider.getIamV2(account, Region.US_EAST_1.id());
 
     Set<IamRole> cacheableRoles = fetchIamRoles(iam, accountName);
     Map<String, Collection<CacheData>> newDataMap = generateFreshData(cacheableRoles);
@@ -165,28 +164,28 @@ public class IamRoleCachingAgent implements CachingAgent, CustomScheduledAgent {
     return newDataMap;
   }
 
-  private Set<IamRole> fetchIamRoles(AmazonIdentityManagement iam, String accountName) {
+  private Set<IamRole> fetchIamRoles(IamClient iam, String accountName) {
     Set<IamRole> cacheableRoles = new HashSet<>();
     String marker = null;
     do {
-      ListRolesRequest request = new ListRolesRequest();
+      ListRolesRequest.Builder requestBuilder = ListRolesRequest.builder();
       if (marker != null) {
-        request.setMarker(marker);
+        requestBuilder.marker(marker);
       }
 
-      ListRolesResult listRolesResult = iam.listRoles(request);
-      List<Role> roles = listRolesResult.getRoles();
+      ListRolesResponse listRolesResult = iam.listRoles(requestBuilder.build());
+      List<Role> roles = listRolesResult.roles();
       for (Role role : roles) {
         cacheableRoles.add(
             new IamRole(
-                role.getArn(),
-                role.getRoleName(),
+                role.arn(),
+                role.roleName(),
                 accountName,
-                getTrustedEntities(role.getAssumeRolePolicyDocument())));
+                getTrustedEntities(role.assumeRolePolicyDocument())));
       }
 
-      if (listRolesResult.isTruncated()) {
-        marker = listRolesResult.getMarker();
+      if (Boolean.TRUE.equals(listRolesResult.isTruncated())) {
+        marker = listRolesResult.marker();
       } else {
         marker = null;
       }

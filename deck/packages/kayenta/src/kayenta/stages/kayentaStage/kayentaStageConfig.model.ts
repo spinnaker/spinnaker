@@ -16,7 +16,7 @@ import { KayentaAccountType, KayentaAnalysisType } from '../../domain';
 import type { IDuration } from '../../utils/duration';
 import { getDurationString, parseDurationString } from '../../utils/duration';
 
-export const REAL_TIME_AUTOMATIC_PROVIDERS = ['gce', 'aws', 'titus'];
+export const REAL_TIME_AUTOMATIC_PROVIDERS = ['gce', 'aws'];
 
 export interface IKayentaStageConfigViewState {
   useLookback: boolean;

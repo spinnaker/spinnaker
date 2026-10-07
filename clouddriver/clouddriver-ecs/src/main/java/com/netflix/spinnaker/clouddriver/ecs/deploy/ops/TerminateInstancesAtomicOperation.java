@@ -16,10 +16,10 @@
 
 package com.netflix.spinnaker.clouddriver.ecs.deploy.ops;
 
-import com.amazonaws.services.ecs.AmazonECS;
-import com.amazonaws.services.ecs.model.StopTaskRequest;
 import com.netflix.spinnaker.clouddriver.ecs.deploy.description.TerminateInstancesDescription;
 import java.util.List;
+import software.amazon.awssdk.services.ecs.EcsClient;
+import software.amazon.awssdk.services.ecs.model.StopTaskRequest;
 
 public class TerminateInstancesAtomicOperation
     extends AbstractEcsAtomicOperation<TerminateInstancesDescription, Void> {
@@ -31,14 +31,14 @@ public class TerminateInstancesAtomicOperation
   @Override
   public Void operate(List priorOutputs) {
     updateTaskStatus("Initializing Terminate ECS Instances Operation...");
-    AmazonECS ecs = getAmazonEcsClient();
+    EcsClient ecs = getAmazonEcsClient();
 
     for (String taskId : description.getEcsTaskIds()) {
       updateTaskStatus("Terminating instance: " + taskId);
       String clusterArn =
           containerInformationService.getClusterArn(
               description.getAccount(), description.getRegion(), taskId);
-      StopTaskRequest request = new StopTaskRequest().withTask(taskId).withCluster(clusterArn);
+      StopTaskRequest request = StopTaskRequest.builder().task(taskId).cluster(clusterArn).build();
       ecs.stopTask(request);
     }
 

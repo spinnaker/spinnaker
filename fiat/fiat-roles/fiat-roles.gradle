@@ -23,8 +23,9 @@ dependencies {
   implementation "io.github.resilience4j:resilience4j-spring-boot2"
   implementation "org.springframework:spring-core"
   implementation "org.springframework.boot:spring-boot-starter-actuator"
-  implementation "org.springframework.boot:spring-boot-starter-aop"
-  implementation "org.springframework.boot:spring-boot-starter-web"
+  implementation "org.springframework.boot:spring-boot-starter-aspectj"
+  implementation "org.springframework.boot:spring-boot-starter-webmvc"
+  implementation "org.springframework.boot:spring-boot-jackson2"
   implementation "org.lz4:lz4-java:1.7.1"
 
   implementation "io.spinnaker.kork:kork-jedis"

@@ -17,8 +17,6 @@
 
 package com.netflix.spinnaker.clouddriver.aws.security.config;
 
-import com.amazonaws.auth.AWSCredentialsProvider;
-import com.amazonaws.util.CollectionUtils;
 import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.base.Strings;
@@ -29,6 +27,7 @@ import com.netflix.spinnaker.clouddriver.aws.security.AWSAccountInfoLookupFactor
 import com.netflix.spinnaker.clouddriver.aws.security.AWSCredentialsProviderFactory;
 import com.netflix.spinnaker.clouddriver.aws.security.AmazonClientProvider;
 import com.netflix.spinnaker.clouddriver.aws.security.AmazonCredentials;
+import com.netflix.spinnaker.clouddriver.aws.security.DefaultAWSAccountInfoLookup;
 import com.netflix.spinnaker.clouddriver.aws.security.NetflixAmazonCredentials;
 import com.netflix.spinnaker.clouddriver.aws.security.config.AccountsConfiguration.Account;
 import com.netflix.spinnaker.clouddriver.aws.security.config.CredentialsConfig.Region;
@@ -48,6 +47,10 @@ import java.util.stream.Collectors;
 import lombok.extern.slf4j.Slf4j;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
+import org.springframework.util.CollectionUtils;
+import software.amazon.awssdk.auth.credentials.AwsCredentialsProvider;
+import software.amazon.awssdk.services.ec2.Ec2Client;
+import software.amazon.awssdk.services.ec2.model.AvailabilityZone;
 
 @Slf4j
 public class AmazonCredentialsParser<
@@ -56,7 +59,7 @@ public class AmazonCredentialsParser<
 
   private final AmazonClientProvider amazonClientProvider;
 
-  private final AWSCredentialsProvider credentialsProvider;
+  private final AwsCredentialsProvider credentialsProvider;
   private final AWSAccountInfoLookup awsAccountInfoLookup;
 
   /** Used with multiple managing accounts to lookup aws account info */
@@ -66,7 +69,7 @@ public class AmazonCredentialsParser<
   private final AWSCredentialsProviderFactory awsCredentialsProviderFactory;
 
   /** The key is a profile name, and the value is the provider for that profile */
-  private final Map<String, AWSCredentialsProvider> credentialsProviderMap;
+  private final Map<String, AwsCredentialsProvider> credentialsProviderMap;
 
   /** The key is a profile name, and the value is account info lookup object for that profile. */
   private final Map<String, AWSAccountInfoLookup> awsAccountInfoLookupMap;
@@ -88,7 +91,7 @@ public class AmazonCredentialsParser<
   private static final String DEFAULT_REGIONS_PROCESSED_KEY = "default_regions_processed";
 
   public AmazonCredentialsParser(
-      AWSCredentialsProvider credentialsProvider,
+      AwsCredentialsProvider credentialsProvider,
       AmazonClientProvider amazonClientProvider,
       AWSAccountInfoLookup awsAccountInfoLookup,
       AWSAccountInfoLookupFactory awsAccountInfoLookupFactory,
@@ -122,7 +125,7 @@ public class AmazonCredentialsParser<
     this.awsConfigurationProperties = Objects.requireNonNull(awsConfigurationProperties);
 
     // look in the credentials config to find default region names
-    if (!CollectionUtils.isNullOrEmpty(credentialsConfig.getDefaultRegions())) {
+    if (!CollectionUtils.isEmpty(credentialsConfig.getDefaultRegions())) {
       // With multiple managing accounts, is there more than one list of default
       // regions?  It's possible to add another property to add profile-specific
       // defaults, like:
@@ -150,14 +153,28 @@ public class AmazonCredentialsParser<
    *
    * <p>- An account's region does not have availability zones defined and that region doesn't exist
    * in the region cache.
+   *
+   * <p>When {@code useAccountRegions} is true and the account has explicit regions configured, the
+   * shared default-region cache is bypassed entirely. Any missing availability zones are resolved
+   * by calling describeAvailabilityZones directly against each account region's own endpoint,
+   * without going through describeRegions first.
    */
-  private List<Region> initRegions(AWSAccountInfoLookup awsAccountInfoLookup, List<Region> toInit) {
+  private List<Region> initRegions(
+      AWSAccountInfoLookup awsAccountInfoLookup,
+      AwsCredentialsProvider credentialsProviderToUse,
+      List<Region> toInit) {
+    // Fast path: when useAccountRegions is enabled and the account has its own regions, skip the
+    // shared default-region cache entirely and resolve AZs directly per account region.
+    if (credentialsConfig.isUseAccountRegions() && !CollectionUtils.isEmpty(toInit)) {
+      return initRegionsFromAccountConfig(credentialsProviderToUse, toInit);
+    }
+
     // initialize regions cache if it hasn't been done already. We do this here and not in
     // toInit.isNullOrEmpty() because we need the default region values if a region in toInit list
     // has no availability zones specified.
     initializeRegionsCacheWithDefaultRegions();
 
-    if (CollectionUtils.isNullOrEmpty(toInit)) {
+    if (CollectionUtils.isEmpty(toInit)) {
       return getRegionsFromCache(awsAccountInfoLookup, this.defaultRegionNames);
     }
 
@@ -168,7 +185,7 @@ public class AmazonCredentialsParser<
     List<String> toLookup = new ArrayList<>();
     for (Region region : toInit) {
       // only attempt to lookup regions that don't have any availability zones set in the config
-      if (CollectionUtils.isNullOrEmpty(region.getAvailabilityZones())) {
+      if (CollectionUtils.isEmpty(region.getAvailabilityZones())) {
         Region fromCache = regionCache.get(region.getName());
         // no need to lookup the region if it already exists in the cache
         if (fromCache != null) {
@@ -204,6 +221,37 @@ public class AmazonCredentialsParser<
       }
     }
 
+    return result;
+  }
+
+  /**
+   * Initializes regions purely from the account's own configuration, without consulting the shared
+   * default-region cache. For regions missing availability zones, describeAvailabilityZones is
+   * called directly against each region's own endpoint — no describeRegions call is made.
+   */
+  private List<Region> initRegionsFromAccountConfig(
+      AwsCredentialsProvider credentialsProviderToUse, List<Region> toInit) {
+    List<Region> result = new ArrayList<>(toInit.size());
+    for (Region region : toInit) {
+      if (!CollectionUtils.isEmpty(region.getAvailabilityZones())) {
+        // AZs fully specified — use as-is
+        result.add(region);
+      } else {
+        // AZs missing — call describeAvailabilityZones against this region's own endpoint
+        log.info(
+            "useAccountRegions: fetching availability zones for {} directly", region.getName());
+        Ec2Client ec2 =
+            amazonClientProvider.getAmazonEC2V2(credentialsProviderToUse, region.getName());
+        List<AvailabilityZone> azs = ec2.describeAvailabilityZones().availabilityZones();
+        List<String> azNames = new ArrayList<>(azs.size());
+        for (AvailabilityZone az : azs) {
+          azNames.add(az.zoneName());
+        }
+        Region resolved = region.copyOf();
+        resolved.setAvailabilityZones(azNames);
+        result.add(resolved);
+      }
+    }
     return result;
   }
 
@@ -371,8 +419,7 @@ public class AmazonCredentialsParser<
       }
 
       account.setAccountId(
-          Retry.decorateSupplier(retry, getAwsAccountInfoLookup(config, account)::findAccountId)
-              .get());
+          Retry.decorateSupplier(retry, () -> findAccountId(config, account)).get());
     }
 
     if (account.getEnvironment() == null) {
@@ -386,9 +433,13 @@ public class AmazonCredentialsParser<
     log.info("Setting regions for aws account: {}", account.getName());
 
     AWSAccountInfoLookup awsAccountInfoLookupToUse = getAwsAccountInfoLookup(config, account);
+    AwsCredentialsProvider credentialsProviderToUse = getCredentialsProvider(config, account);
     account.setRegions(
         Retry.decorateSupplier(
-                retry, () -> initRegions(awsAccountInfoLookupToUse, account.getRegions()))
+                retry,
+                () ->
+                    initRegions(
+                        awsAccountInfoLookupToUse, credentialsProviderToUse, account.getRegions()))
             .get());
 
     account.setDefaultSecurityGroups(
@@ -410,8 +461,6 @@ public class AmazonCredentialsParser<
     account.setDefaultKeyPair(
         templateFirstNonNull(
             templateContext, account.getDefaultKeyPair(), config.getDefaultKeyPairTemplate()));
-    account.setEdda(
-        templateFirstNonNull(templateContext, account.getEdda(), config.getDefaultEddaTemplate()));
     account.setFront50(
         templateFirstNonNull(
             templateContext, account.getFront50(), config.getDefaultFront50Template()));
@@ -428,10 +477,6 @@ public class AmazonCredentialsParser<
         account.getSessionDurationSeconds() != null
             ? account.getSessionDurationSeconds()
             : config.getDefaultSessionDurationSeconds());
-    account.setBastionHost(
-        templateFirstNonNull(
-            templateContext, account.getBastionHost(), config.getDefaultBastionHostTemplate()));
-
     if (account.getLifecycleHooks() != null) {
       for (CredentialsConfig.LifecycleHook lifecycleHook : account.getLifecycleHooks()) {
         lifecycleHook.setRoleARN(
@@ -448,6 +493,36 @@ public class AmazonCredentialsParser<
     }
     return credentialTranslator.translate(
         getCredentialsProvider(config, account), account, awsConfigurationProperties);
+  }
+
+  /**
+   * Returns the name of the first region in the list, or null if the list is null/empty. Used to
+   * pick an explicit region for bootstrapping SDK calls when useAccountRegions is true.
+   */
+  private static String firstRegionNameOf(List<Region> regions) {
+    if (regions != null && !regions.isEmpty()) {
+      return regions.get(0).getName();
+    }
+    return null;
+  }
+
+  /**
+   * Resolves the account ID for the given account.
+   *
+   * <p>When {@code useAccountRegions} is enabled and the account has at least one region
+   * configured, a dedicated lookup is created that targets that region so the bootstrapping EC2
+   * call does not depend on the host's AWS region. Otherwise the account's configured {@link
+   * AWSAccountInfoLookup} (which may fall back to {@link
+   * software.amazon.awssdk.regions.providers.DefaultAwsRegionProviderChain}) is used.
+   */
+  private String findAccountId(CredentialsConfig config, Account account) {
+    if (config.isUseAccountRegions() && !CollectionUtils.isEmpty(account.getRegions())) {
+      String region = firstRegionNameOf(account.getRegions());
+      return new DefaultAWSAccountInfoLookup(
+              getCredentialsProvider(config, account), amazonClientProvider, region)
+          .findAccountId();
+    }
+    return getAwsAccountInfoLookup(config, account).findAccountId();
   }
 
   /**
@@ -502,7 +577,7 @@ public class AmazonCredentialsParser<
    * @param account access the credentials provider for this account
    * @return the credentials provider for account
    */
-  private AWSCredentialsProvider getCredentialsProvider(
+  private AwsCredentialsProvider getCredentialsProvider(
       CredentialsConfig credentialsConfig, Account account) {
     // If the useManagingAccountProfile feature is disabled, return the standalone credentials
     // provider.
@@ -593,7 +668,7 @@ public class AmazonCredentialsParser<
     boolean resolveAccountId();
 
     T translate(
-        AWSCredentialsProvider credentialsProvider,
+        AwsCredentialsProvider credentialsProvider,
         Account account,
         AwsConfigurationProperties awsConfigurationProperties)
         throws Throwable;
@@ -612,7 +687,7 @@ public class AmazonCredentialsParser<
       try {
         copyConstructor =
             credentialType.getConstructor(
-                credentialType, AWSCredentialsProvider.class, AwsConfigurationProperties.class);
+                credentialType, AwsCredentialsProvider.class, AwsConfigurationProperties.class);
       } catch (NoSuchMethodException nsme) {
         throw new IllegalArgumentException(
             "Class "
@@ -620,7 +695,7 @@ public class AmazonCredentialsParser<
                 + " must supply a constructor with "
                 + credentialType
                 + ", "
-                + AWSCredentialsProvider.class
+                + AwsCredentialsProvider.class
                 + ", "
                 + AwsConfigurationProperties.class
                 + " args.");
@@ -644,7 +719,7 @@ public class AmazonCredentialsParser<
 
     @Override
     public T translate(
-        AWSCredentialsProvider credentialsProvider,
+        AwsCredentialsProvider credentialsProvider,
         Account account,
         AwsConfigurationProperties awsConfigurationProperties)
         throws Throwable {

@@ -23,6 +23,7 @@ import com.netflix.spinnaker.assertj.assertSoftly
 import com.netflix.spinnaker.orca.DefaultStageResolver
 import com.netflix.spinnaker.orca.NoOpTaskImplementationResolver
 import com.netflix.spinnaker.orca.api.pipeline.SyntheticStageOwner.STAGE_BEFORE
+import com.netflix.spinnaker.orca.api.pipeline.models.ExecutionStatus.NOT_STARTED
 import com.netflix.spinnaker.orca.api.pipeline.models.ExecutionStatus.FAILED_CONTINUE
 import com.netflix.spinnaker.orca.api.pipeline.models.ExecutionStatus.RUNNING
 import com.netflix.spinnaker.orca.api.pipeline.models.ExecutionStatus.SUCCEEDED
@@ -93,6 +94,7 @@ import org.jetbrains.spek.api.dsl.on
 import org.jetbrains.spek.api.lifecycle.CachingMode.GROUP
 import org.jetbrains.spek.subject.SubjectSpek
 import org.springframework.context.ApplicationEventPublisher
+import redis.clients.jedis.exceptions.JedisConnectionException
 import java.util.concurrent.Executors
 import java.util.concurrent.TimeUnit
 import java.util.concurrent.TimeoutException
@@ -1353,6 +1355,114 @@ object StartStageHandlerTest : SubjectSpek<StartStageHandler>({
 
       it("emits an error event") {
         verify(queue).push(isA<InvalidStageId>())
+      }
+    }
+  }
+
+  describe("handling transient Redis exceptions") {
+    given("a JedisConnectionException is thrown during stage.start()") {
+      val pipeline = pipeline {
+        application = "test"
+        stage {
+          refId = "1"
+          type = singleTaskStage.type
+        }
+      }
+      val message = StartStage(pipeline.stageByRef("1"))
+
+      and("the exception handler marks it as retryable") {
+        val retryableResponse = ExceptionHandler.Response(
+          "JedisConnectionException",
+          "dummy",
+          ExceptionHandler.responseDetails("Transient Redis Failure"),
+          true
+        )
+
+        beforeGroup {
+          whenever(repository.retrieve(PIPELINE, message.executionId)) doReturn pipeline
+          whenever(exceptionHandler.handles(any())) doReturn true
+          whenever(exceptionHandler.handle(anyOrNull(), any())) doReturn retryableResponse
+          whenever(queue.push(isA<StartTask>())) doThrow JedisConnectionException("Read timed out")
+        }
+
+        afterGroup(::resetMocks)
+
+        on("receiving a message") {
+          subject.handle(message)
+        }
+
+        it("retries via queue push with delay instead of completing the stage") {
+          verify(queue).push(eq(message), eq(retryDelay))
+        }
+
+        it("does not push CompleteStage") {
+          verify(queue, never()).push(isA<CompleteStage>())
+        }
+
+        it("resets stage status to NOT_STARTED") {
+          assertThat(pipeline.stageByRef("1").status).isEqualTo(NOT_STARTED)
+        }
+
+        it("does not mark the stage as permanently failed") {
+          assertThat(pipeline.stageByRef("1").context["beforeStagePlanningFailed"]).isNull()
+        }
+      }
+    }
+
+    given("a JedisConnectionException is thrown in the outer catch block") {
+      val pipeline = pipeline {
+        application = "test"
+        stage {
+          refId = "1"
+          type = singleTaskStage.type
+        }
+      }
+      val message = StartStage(pipeline.stageByRef("1"))
+
+      and("both the initial push and the retry push fail with JedisConnectionException") {
+        val retryableResponse = ExceptionHandler.Response(
+          "JedisConnectionException",
+          "dummy",
+          ExceptionHandler.responseDetails("Transient Redis Failure"),
+          true
+        )
+
+        var thrownException: Exception? = null
+
+        beforeGroup {
+          whenever(repository.retrieve(PIPELINE, message.executionId)) doReturn pipeline
+          whenever(exceptionHandler.handles(any())) doReturn true
+          whenever(exceptionHandler.handle(anyOrNull(), any())) doReturn retryableResponse
+          whenever(queue.push(isA<StartTask>())) doThrow JedisConnectionException("Read timed out")
+          whenever(queue.push(any(), any<Duration>())) doThrow JedisConnectionException("Read timed out")
+        }
+
+        afterGroup(::resetMocks)
+
+        on("receiving a message") {
+          try {
+            subject.handle(message)
+          } catch (e: Exception) {
+            thrownException = e
+          }
+        }
+
+        it("rethrows the exception so the message is not acked") {
+          assertThat(thrownException).isInstanceOf(JedisConnectionException::class.java)
+        }
+
+        it("resets stage status to NOT_STARTED") {
+          assertThat(pipeline.stageByRef("1").status).isEqualTo(NOT_STARTED)
+        }
+
+        it("does not push CompleteStage") {
+          verify(queue, never()).push(isA<CompleteStage>())
+        }
+
+        it("does not bake permanent failure into stage context") {
+          assertThat(pipeline.stageByRef("1").context["beforeStagePlanningFailed"]).isNull()
+          assertThat(pipeline.stageByRef("1").context["exception"]).isNull()
+        }
       }
     }
   }

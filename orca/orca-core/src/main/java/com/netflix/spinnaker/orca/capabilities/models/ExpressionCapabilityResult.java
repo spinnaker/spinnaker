@@ -25,6 +25,14 @@ public class ExpressionCapabilityResult {
   private List<ExpressionFunctionDefinition> functions;
   private List<ExpressionSpelEvaluatorDefinition> spelEvaluators;
 
+  /**
+   * Whether {@code ${...}} expressions consisting entirely of a hyphen-joined bareword (e.g. {@code
+   * ${my-container-name}}) are resolved as a literal key lookup instead of failing due to SpEL
+   * interpreting the hyphen(s) as subtraction operators. Reflects {@code
+   * expression.dashed-identifiers.enabled}.
+   */
+  private boolean dashedIdentifiersEnabled;
+
   public ExpressionCapabilityResult() {
     functions = new ArrayList<>();
     spelEvaluators = new ArrayList<>();

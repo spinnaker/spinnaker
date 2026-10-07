@@ -19,9 +19,10 @@ dependencies {
   implementation project(":clouddriver-core")
   implementation project(":clouddriver-security")
 
-  implementation "com.amazonaws:aws-java-sdk"
+  // TODO: redundant once clouddriver-aws's SDKv2 EC2 migration merges (it declares this as `api`,
+  // exposing it here transitively). Harmless in the meantime; safe to remove at that point.
+  implementation "software.amazon.awssdk:ec2"
   implementation "com.github.ben-manes.caffeine:guava"
-  implementation "com.netflix.awsobjectmapper:awsobjectmapper"
   implementation "com.netflix.frigga:frigga"
   implementation "com.netflix.spectator:spectator-api"
   implementation "io.spinnaker.fiat:fiat-api"
@@ -39,6 +40,9 @@ dependencies {
   implementation "org.springframework.boot:spring-boot-starter-web"
 
   testImplementation "cglib:cglib-nodep"
+  // Explicit: jackson-datatype-jsr310 no longer arrives transitively (aws-java-sdk
+  // v1 removal + Boot 4 Jackson line); ECS cache specs register JavaTimeModule.
+  testImplementation "com.fasterxml.jackson.datatype:jackson-datatype-jsr310"
   testImplementation "org.mockito:mockito-core"
   testImplementation "org.objenesis:objenesis"
   testImplementation "org.spockframework:spock-core"
@@ -48,7 +52,7 @@ dependencies {
 
   integrationImplementation project(":clouddriver-web")
   integrationImplementation "org.springframework:spring-test"
-  integrationImplementation "org.testcontainers:mysql"
+  integrationImplementation "org.testcontainers:testcontainers-mysql"
   integrationImplementation "com.mysql:mysql-connector-j"
   integrationImplementation sourceSets.test.output
   integrationImplementation sourceSets.main.output

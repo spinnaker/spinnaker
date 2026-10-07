@@ -20,13 +20,12 @@ import com.netflix.spectator.api.Id;
 import com.netflix.spectator.api.Registry;
 import com.netflix.spinnaker.kork.pubsub.aws.api.AmazonMessageAcknowledger;
 import lombok.extern.slf4j.Slf4j;
-import software.amazon.awssdk.services.sqs.model.DeleteMessageRequest;
 import software.amazon.awssdk.services.sqs.model.Message;
-import software.amazon.awssdk.services.sqs.model.ReceiptHandleIsInvalidException;
+import software.amazon.awssdk.services.sqs.model.SqsException;
 
 @Slf4j
 public class DefaultAmazonMessageAcknowledger implements AmazonMessageAcknowledger {
-  private Registry registry;
+  private final Registry registry;
 
   public DefaultAmazonMessageAcknowledger(Registry registry) {
     this.registry = registry;
@@ -38,12 +37,9 @@ public class DefaultAmazonMessageAcknowledger implements AmazonMessageAcknowledg
       subscription
           .getSqsClient()
           .deleteMessage(
-              DeleteMessageRequest.builder()
-                  .queueUrl(subscription.getQueueUrl())
-                  .receiptHandle(message.receiptHandle())
-                  .build());
+              r -> r.queueUrl(subscription.getQueueUrl()).receiptHandle(message.receiptHandle()));
       registry.counter(getSuccessCounter(subscription)).increment();
-    } catch (ReceiptHandleIsInvalidException e) {
+    } catch (SqsException e) {
       log.warn(
           "Error deleting message: {}, subscription: {}", message.messageId(), subscription, e);
       registry.counter(getErrorCounter(subscription, e)).increment();
@@ -52,6 +48,7 @@ public class DefaultAmazonMessageAcknowledger implements AmazonMessageAcknowledg
 
   @Override
   public void nack(AmazonSubscriptionInformation subscription, Message message) {
+    // Do nothing — message will become visible again after visibility timeout
     registry.counter(getNackCounter(subscription)).increment();
   }
 

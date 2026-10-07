@@ -16,9 +16,6 @@
 
 package com.netflix.spinnaker.clouddriver.ecs.deploy.description;
 
-import com.amazonaws.services.ecs.model.CapacityProviderStrategyItem;
-import com.amazonaws.services.ecs.model.PlacementConstraint;
-import com.amazonaws.services.ecs.model.PlacementStrategy;
 import com.netflix.spinnaker.clouddriver.model.ServerGroup;
 import com.netflix.spinnaker.kork.artifacts.model.Artifact;
 import java.util.List;
@@ -27,6 +24,10 @@ import java.util.Set;
 import javax.annotation.Nullable;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
+import software.amazon.awssdk.services.ecs.model.CapacityProviderStrategyItem;
+import software.amazon.awssdk.services.ecs.model.MonitoringConfiguration;
+import software.amazon.awssdk.services.ecs.model.PlacementConstraint;
+import software.amazon.awssdk.services.ecs.model.PlacementStrategy;
 
 @Data
 @EqualsAndHashCode(callSuper = false)
@@ -66,7 +67,19 @@ public class CreateServerGroupDescription extends AbstractECSDescription {
   Map<String, List<String>> availabilityZones;
 
   boolean copySourceScalingPoliciesAndActions = true;
+
+  /**
+   * When true and no explicit {@link #monitoringConfiguration} is given, the monitoring
+   * configuration (e.g. 20-second high-resolution CPU/Memory metrics) of the source service's
+   * active revision is copied onto the new service so that high-resolution target tracking scaling
+   * policies keep working after a deploy.
+   */
+  boolean copySourceMonitoringConfiguration = true;
+
   Source source = new Source();
+
+  /** Explicit service-level monitoring configuration; takes precedence over the source's. */
+  @Nullable MonitoringConfiguration monitoringConfiguration;
 
   List<PlacementStrategy> placementStrategySequence;
   List<PlacementConstraint> placementConstraints;

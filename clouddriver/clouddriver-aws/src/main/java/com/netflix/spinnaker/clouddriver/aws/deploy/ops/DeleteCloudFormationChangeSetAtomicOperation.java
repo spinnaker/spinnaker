@@ -15,9 +15,6 @@
  */
 package com.netflix.spinnaker.clouddriver.aws.deploy.ops;
 
-import com.amazonaws.AmazonServiceException;
-import com.amazonaws.services.cloudformation.AmazonCloudFormation;
-import com.amazonaws.services.cloudformation.model.*;
 import com.netflix.spinnaker.clouddriver.aws.deploy.description.DeleteCloudFormationChangeSetDescription;
 import com.netflix.spinnaker.clouddriver.aws.security.AmazonClientProvider;
 import com.netflix.spinnaker.clouddriver.data.task.Task;
@@ -28,6 +25,9 @@ import java.util.List;
 import java.util.Map;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
+import software.amazon.awssdk.awscore.exception.AwsServiceException;
+import software.amazon.awssdk.services.cloudformation.CloudFormationClient;
+import software.amazon.awssdk.services.cloudformation.model.DeleteChangeSetRequest;
 
 @Slf4j
 public class DeleteCloudFormationChangeSetAtomicOperation implements AtomicOperation<Map> {
@@ -46,18 +46,19 @@ public class DeleteCloudFormationChangeSetAtomicOperation implements AtomicOpera
   @Override
   public Map operate(List priorOutputs) {
     Task task = TaskRepository.threadLocalTask.get();
-    AmazonCloudFormation amazonCloudFormation =
-        amazonClientProvider.getAmazonCloudFormation(
+    CloudFormationClient cloudFormationClient =
+        amazonClientProvider.getAmazonCloudFormationV2(
             description.getCredentials(), description.getRegion());
 
     DeleteChangeSetRequest deleteChangeSetRequest =
-        new DeleteChangeSetRequest()
-            .withStackName(description.getStackName())
-            .withChangeSetName(description.getChangeSetName());
+        DeleteChangeSetRequest.builder()
+            .stackName(description.getStackName())
+            .changeSetName(description.getChangeSetName())
+            .build();
     try {
       task.updateStatus(BASE_PHASE, "Deleting CloudFormation ChangeSet");
-      amazonCloudFormation.deleteChangeSet(deleteChangeSetRequest);
-    } catch (AmazonServiceException e) {
+      cloudFormationClient.deleteChangeSet(deleteChangeSetRequest);
+    } catch (AwsServiceException e) {
       log.error(
           "Error removing change set "
               + description.getChangeSetName()

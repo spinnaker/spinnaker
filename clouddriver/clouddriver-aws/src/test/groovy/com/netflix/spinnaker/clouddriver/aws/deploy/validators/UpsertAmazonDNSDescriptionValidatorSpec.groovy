@@ -16,9 +16,9 @@
 
 package com.netflix.spinnaker.clouddriver.aws.deploy.validators
 
-import com.amazonaws.services.route53.AmazonRoute53
-import com.amazonaws.services.route53.model.HostedZone
-import com.amazonaws.services.route53.model.ListHostedZonesResult
+import software.amazon.awssdk.services.route53.Route53Client
+import software.amazon.awssdk.services.route53.model.HostedZone
+import software.amazon.awssdk.services.route53.model.ListHostedZonesResponse
 import com.netflix.spinnaker.clouddriver.aws.deploy.validators.UpsertAmazonDNSDescriptionValidator
 import com.netflix.spinnaker.clouddriver.aws.security.AmazonClientProvider
 import com.netflix.spinnaker.clouddriver.aws.deploy.description.UpsertAmazonLoadBalancerDescription
@@ -86,9 +86,9 @@ class UpsertAmazonDNSDescriptionValidatorSpec extends Specification {
     description.target = "foo.netflix.net."
     description.hostedZoneName = "netflix.net."
     def errors = Mock(ValidationErrors)
-    def route53 = Mock(AmazonRoute53)
+    def route53 = Mock(Route53Client)
     validator.amazonClientProvider = Mock(AmazonClientProvider)
-    validator.amazonClientProvider.getAmazonRoute53(_, _, true) >> route53
+    validator.amazonClientProvider.getAmazonRoute53V2(_, _) >> route53
 
     when:
     validator.validate([], description, errors)
@@ -96,8 +96,8 @@ class UpsertAmazonDNSDescriptionValidatorSpec extends Specification {
     then:
     1 * route53.listHostedZones() >> {
       def zone = Mock(HostedZone)
-      zone.getName() >> "netflix.net."
-      new ListHostedZonesResult().withHostedZones(zone)
+      zone.name() >> "netflix.net."
+      ListHostedZonesResponse.builder().hostedZones([zone]).build()
     }
   }
 }

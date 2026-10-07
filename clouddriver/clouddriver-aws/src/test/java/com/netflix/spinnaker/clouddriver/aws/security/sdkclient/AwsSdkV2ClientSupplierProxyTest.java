@@ -76,4 +76,29 @@ class AwsSdkV2ClientSupplierProxyTest {
     assertThat(config.port()).isEqualTo(9090);
     assertThat(config.scheme()).isEqualTo("http");
   }
+
+  @Test
+  void buildProxyConfiguration_ntlmProxy_setsDomainAndWorkstation() {
+    AWSProxy proxy =
+        new AWSProxy(
+            "ntlm-proxy.corp.net", "8080", "admin", "s3cret", "CORP", "WORKSTATION1", "HTTP");
+
+    ProxyConfiguration config = AwsSdkV2ClientSupplier.buildProxyConfiguration(proxy);
+
+    assertThat(config.host()).isEqualTo("ntlm-proxy.corp.net");
+    assertThat(config.username()).isEqualTo("admin");
+    assertThat(config.password()).isEqualTo("s3cret");
+    assertThat(config.ntlmDomain()).isEqualTo("CORP");
+    assertThat(config.ntlmWorkstation()).isEqualTo("WORKSTATION1");
+  }
+
+  @Test
+  void buildProxyConfiguration_nonNtlmProxy_leavesNtlmFieldsNull() {
+    AWSProxy proxy = new AWSProxy("proxy.corp.net", "8080", "admin", "s3cret", "HTTP");
+
+    ProxyConfiguration config = AwsSdkV2ClientSupplier.buildProxyConfiguration(proxy);
+
+    assertThat(config.ntlmDomain()).isNull();
+    assertThat(config.ntlmWorkstation()).isNull();
+  }
 }

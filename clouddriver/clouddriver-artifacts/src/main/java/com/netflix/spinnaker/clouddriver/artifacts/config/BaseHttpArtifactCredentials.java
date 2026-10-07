@@ -30,11 +30,13 @@ import okhttp3.Response;
 import okhttp3.ResponseBody;
 
 @Slf4j
-public abstract class BaseHttpArtifactCredentials<T extends UserInputValidatedArtifactAccount> {
+public abstract class BaseHttpArtifactCredentials<T extends UserInputValidatedArtifactAccount>
+    extends AbstractArtifactCredentials {
   @JsonIgnore private final OkHttpClient okHttpClient;
   @Getter @VisibleForTesting @JsonIgnore private final T account;
 
   protected BaseHttpArtifactCredentials(OkHttpClient okHttpClient, T account) {
+    super(account);
     this.account = account;
     // Disable automatic redirects to prevent SSRF via unvalidated redirect chains.
     // We manually follow redirects, validating each Location header when restrictions are set.
@@ -57,7 +59,7 @@ public abstract class BaseHttpArtifactCredentials<T extends UserInputValidatedAr
     return authHeader;
   }
 
-  protected Headers getHeaders(T account) {
+  protected Headers getHeaders(T account) throws IOException {
     Headers.Builder headers = new Headers.Builder();
     Optional<String> authHeader = getAuthHeader(account);
     if (authHeader.isPresent()) {
@@ -67,6 +69,15 @@ public abstract class BaseHttpArtifactCredentials<T extends UserInputValidatedAr
       log.info("No credentials included for artifact account {}", account.getName());
     }
     return headers.build();
+  }
+
+  /**
+   * Request-URL-aware variant of {@link #getHeaders(ArtifactAccount)} for credentials whose auth
+   * material depends on the URL being fetched (e.g. GitHub App installation tokens derived from the
+   * repository owner). Defaults to the URL-agnostic behavior.
+   */
+  protected Headers getHeaders(T account, HttpUrl url) throws IOException {
+    return getHeaders(account);
   }
 
   protected HttpUrl parseUrl(String stringUrl) {
@@ -98,7 +109,7 @@ public abstract class BaseHttpArtifactCredentials<T extends UserInputValidatedAr
       // to prevent credential leakage to attacker-controlled redirect targets
       Headers headers =
           currentUrl.host().equals(originalHost.host())
-              ? getHeaders(account)
+              ? getHeaders(account, currentUrl)
               : new Headers.Builder().build();
       Request request = new Request.Builder().headers(headers).url(currentUrl).build();
       Response response = okHttpClient.newCall(request).execute();

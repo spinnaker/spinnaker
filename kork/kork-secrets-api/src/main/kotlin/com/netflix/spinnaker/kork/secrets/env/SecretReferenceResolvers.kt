@@ -17,14 +17,14 @@
 
 package com.netflix.spinnaker.kork.secrets.env
 
-import com.fasterxml.jackson.dataformat.yaml.YAMLMapper
+import tools.jackson.core.type.TypeReference
+import tools.jackson.dataformat.yaml.YAMLMapper
 import com.netflix.spinnaker.kork.secrets.SecretDecryptionException
 import com.netflix.spinnaker.kork.secrets.SecretReferenceParser
 import com.netflix.spinnaker.kork.secrets.SecretReferenceResolver
 import com.netflix.spinnaker.kork.secrets.SecretUriReferenceParser
 import com.netflix.spinnaker.kork.secrets.SecretUriType
 import com.netflix.spinnaker.kork.secrets.StandardSecretParameter
-import org.springframework.boot.json.JacksonJsonParser
 import org.springframework.core.env.CompositePropertySource
 import org.springframework.core.env.EnumerablePropertySource
 import org.springframework.core.env.MutablePropertySources
@@ -43,7 +43,10 @@ class SecretReferenceResolvers(
     "=",
     SecretUriType.HIERARCHICAL
   ),
-  private val secretParser: (String) -> Map<String, Any> = JacksonJsonParser(YAMLMapper())::parseMap,
+  private val yamlMapper: YAMLMapper = YAMLMapper(),
+  private val secretParser: (String) -> Map<String, Any> = {
+    yamlMapper.readValue(it, object : TypeReference<Map<String, Any>>() {})
+  },
 ) {
 
   /**

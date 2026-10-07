@@ -14,7 +14,7 @@ public class S3ClientFactoryTest {
     AwsCredentialsProvider mockProvider = mock(AwsCredentialsProvider.class);
     S3Properties props = new S3MetadataStorageProperties();
     props.setRegion("us-west-2");
-    props.setEndpoint("https://minio-host:9000");
+    props.setEndpoint("https://s3-compatible-host:9000");
     S3Client client = S3ClientFactory.create(mockProvider, props);
     assertThat(client.serviceClientConfiguration().region().id()).isEqualTo("us-west-2");
   }

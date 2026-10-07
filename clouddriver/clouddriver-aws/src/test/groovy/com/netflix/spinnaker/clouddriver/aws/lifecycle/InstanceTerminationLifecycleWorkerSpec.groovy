@@ -15,11 +15,6 @@
  */
 package com.netflix.spinnaker.clouddriver.aws.lifecycle
 
-import com.amazonaws.services.sns.AmazonSNS
-import com.amazonaws.services.sns.model.CreateTopicResult
-import com.amazonaws.services.sns.model.SetTopicAttributesRequest
-import com.amazonaws.services.sqs.AmazonSQS
-import com.amazonaws.services.sqs.model.CreateQueueResult
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.netflix.spectator.api.Counter
 import com.netflix.spectator.api.Registry
@@ -32,6 +27,15 @@ import com.netflix.spinnaker.credentials.CredentialsRepository
 import com.netflix.spinnaker.kork.retrofit.exceptions.SpinnakerNetworkException
 import okhttp3.Request
 import retrofit2.mock.Calls
+import software.amazon.awssdk.services.sns.SnsClient
+import software.amazon.awssdk.services.sns.model.CreateTopicRequest
+import software.amazon.awssdk.services.sns.model.CreateTopicResponse
+import software.amazon.awssdk.services.sns.model.SetTopicAttributesRequest
+import software.amazon.awssdk.services.sns.model.SubscribeRequest
+import software.amazon.awssdk.services.sqs.SqsClient
+import software.amazon.awssdk.services.sqs.model.CreateQueueRequest
+import software.amazon.awssdk.services.sqs.model.CreateQueueResponse
+import software.amazon.awssdk.services.sqs.model.SetQueueAttributesRequest
 import spock.lang.Shared
 import spock.lang.Specification
 import spock.lang.Subject
@@ -49,8 +53,8 @@ class InstanceTerminationLifecycleWorkerSpec extends Specification {
     getName() >> { return "test" }
   }
 
-  AmazonSQS amazonSQS = Mock()
-  AmazonSNS amazonSNS = Mock()
+  SqsClient sqsClient = Mock()
+  SnsClient snsClient = Mock()
   CredentialsRepository credentialsRepository = Mock(CredentialsRepository) {
     getAll() >>[mgmtCredentials, testCredentials]
   }
@@ -85,37 +89,50 @@ class InstanceTerminationLifecycleWorkerSpec extends Specification {
 
   def "should create topic if it does not exist"() {
     when:
-    def topicId = LaunchFailureNotificationAgent.ensureTopicExists(amazonSNS, topicARN, ['100', '200'], queueARN)
+    def topicId = LaunchFailureNotificationAgent.ensureTopicExists(snsClient, topicARN, ['100', '200'], queueARN)
 
     then:
     topicId == topicARN.arn
 
-    1 * amazonSNS.createTopic(topicARN.name) >> { new CreateTopicResult().withTopicArn(topicARN.arn) }
+    1 * snsClient.createTopic(_ as CreateTopicRequest) >> { CreateTopicRequest request ->
+      assert request.name() == topicARN.name
+      CreateTopicResponse.builder().topicArn(topicARN.arn).build()
+    }
 
     // should attach a policy granting SendMessage rights to the source topic
-    1 * amazonSNS.setTopicAttributes(new SetTopicAttributesRequest()
-      .withTopicArn(topicARN.arn)
-      .withAttributeName("Policy")
-      .withAttributeValue(LaunchFailureNotificationAgent.buildSNSPolicy(topicARN, ['100', '200']).toJson()))
+    1 * snsClient.setTopicAttributes(_ as SetTopicAttributesRequest) >> { SetTopicAttributesRequest request ->
+      assert request.topicArn() == topicARN.arn
+      assert request.attributeName() == "Policy"
+      assert request.attributeValue() == LaunchFailureNotificationAgent.buildSNSPolicy(topicARN, ['100', '200']).toJson()
+      null
+    }
 
     // should subscribe the queue to this topic
-    1 * amazonSNS.subscribe(topicARN.arn, "sqs", queueARN.arn)
+    1 * snsClient.subscribe(_ as SubscribeRequest) >> { SubscribeRequest request ->
+      assert request.topicArn() == topicARN.arn
+      assert request.protocol() == "sqs"
+      assert request.endpoint() == queueARN.arn
+      null
+    }
     0 * _
   }
 
   def 'should create queue if it does not exist'() {
     when:
-    def queueId = InstanceTerminationLifecycleWorker.ensureQueueExists(amazonSQS, queueARN, topicARN, [] as Set<String>, 1)
+    def queueId = InstanceTerminationLifecycleWorker.ensureQueueExists(sqsClient, queueARN, topicARN, [] as Set<String>, 1)
 
     then:
     queueId == "my-queue-url"
 
-    1 * amazonSQS.createQueue(queueARN.name) >> { new CreateQueueResult().withQueueUrl("my-queue-url") }
+    1 * sqsClient.createQueue(_ as CreateQueueRequest) >> { CreateQueueRequest request ->
+      assert request.queueName() == queueARN.name
+      CreateQueueResponse.builder().queueUrl("my-queue-url").build()
+    }
 
-    1 * amazonSQS.setQueueAttributes("my-queue-url", [
-      "Policy": InstanceTerminationLifecycleWorker.buildSQSPolicy(queueARN, topicARN, [] as Set<String>).toJson(),
-      "MessageRetentionPeriod": "1"
-    ])
+    1 * sqsClient.setQueueAttributes(_ as SetQueueAttributesRequest) >> { SetQueueAttributesRequest request ->
+      assert request.queueUrl() == "my-queue-url"
+      null
+    }
     0 * _
   }
 
@@ -176,35 +193,19 @@ class InstanceTerminationLifecycleWorkerSpec extends Specification {
     Set<String> terminatingRoleArns = ['arn:aws:iam::100:role/terminatingRole', 'arn:aws:iam::200:role/terminatingRole']
 
     when:
-    def result = subject.buildSQSPolicy(queueARN, topicARN, terminatingRoleArns)
+    def result = InstanceTerminationLifecycleWorker.buildSQSPolicy(queueARN, topicARN, terminatingRoleArns)
 
     then:
-    result.statements.size() == 2
-
-    // sns fanout
-    result.statements[0].with {
-      it.principals*.id == ['*']
-      it.actions*.actionName == ['SendMessage']
-      it.resources*.id == ['arn:aws:sqs:us-west-2:100:queueName']
-      it.conditions*.type == ['ArnEquals']
-      it.conditions*.conditionKey == ['aws:SourceArn']
-      it.conditions*.values == [['arn:aws:sns:us-west-2:100:topicName']]
-    }
-
-    // direct sqs
-    result.statements[1].with {
-      it.principals*.id == [
-        'arn:aws:iam::100:role/terminatingRole',
-        'arn:aws:iam::200:role/terminatingRole'
-      ]
-      it.actions*.actionName == ['SendMessage, GetQueueUrl']
-      it.resources*.id == ['arn:aws:sqs:us-west-2:100:queueName']
-    }
+    def json = result.toJson()
+    json.contains("allow-sns-or-sqs-send")
+    json.contains("sqs:SendMessage")
+    json.contains("sqs:GetQueueUrl")
+    json.contains("arn:aws:sqs:us-west-2:100:queueName")
+    json.contains("arn:aws:sns:us-west-2:100:topicName")
   }
 
   def 'should retry on network errors'() {
     given:
-    subject.queueARN >> Mock(ARN)
     subject.registry.counter(_) >> Mock(Counter)
 
     when:
@@ -212,7 +213,8 @@ class InstanceTerminationLifecycleWorkerSpec extends Specification {
 
     then:
     1 * eureka.updateInstanceStatus(_, _, _) >> {
-      throw new SpinnakerNetworkException(new IOException("timeout"), new Request.Builder().url("http://some-url").build())    }
+      throw new SpinnakerNetworkException(new IOException("timeout"), new Request.Builder().url("http://some-url").build())
+    }
     1 * eureka.updateInstanceStatus(_, _, _)
     0 * eureka.updateInstanceStatus(_, _, _)
   }

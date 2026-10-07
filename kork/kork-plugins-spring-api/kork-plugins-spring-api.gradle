@@ -22,8 +22,9 @@ dependencies {
   api(platform(project(":spinnaker-dependencies")))
 
   api project(":kork-plugins-api")
-  api "org.springframework.boot:spring-boot-starter-web"
-  api "org.springframework.boot:spring-boot-actuator"
+  api "org.springframework.boot:spring-boot"
+  api "org.springframework.boot:spring-boot-autoconfigure"
+  api "org.springframework:spring-web"
 
   testImplementation "org.springframework.boot:spring-boot-starter-test"
 }

@@ -40,7 +40,6 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
-import java.util.stream.Collectors;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -85,49 +84,17 @@ public class IamRoleCachingAgent implements CachingAgent, AccountAware {
 
     Set<IamRole> cacheableRoles = fetchIamRoles(iam, accountName);
     Map<String, Collection<CacheData>> newDataMap = generateFreshData(cacheableRoles);
-    Collection<CacheData> newData = newDataMap.get(IAM_ROLE.toString());
 
-    Set<String> oldKeys =
-        new HashSet<>(
-            providerCache.filterIdentifiers(
-                IAM_ROLE.toString(), Keys.buildGlob(IAM_ROLE, accountName, null)));
-    Map<String, Collection<String>> evictionsByKey = computeEvictableData(newData, oldKeys);
+    logUpcomingActions(newDataMap);
 
-    logUpcomingActions(newDataMap, evictionsByKey);
-
-    return new DefaultCacheResult(newDataMap, evictionsByKey);
+    return new DefaultCacheResult(newDataMap);
   }
 
-  private void logUpcomingActions(
-      Map<String, Collection<CacheData>> newDataMap,
-      Map<String, Collection<String>> evictionsByKey) {
+  private void logUpcomingActions(Map<String, Collection<CacheData>> newDataMap) {
     log.info(
         String.format(
             "Caching %s IAM roles in %s for account %s",
             newDataMap.get(IAM_ROLE.toString()).size(), getAgentType(), accountName));
-
-    if (evictionsByKey.get(IAM_ROLE.toString()).size() > 0) {
-      log.info(
-          String.format(
-              "Evicting %s IAM roles in %s for account %s",
-              evictionsByKey.get(IAM_ROLE.toString()).size(), getAgentType(), accountName));
-    }
-  }
-
-  private Map<String, Collection<String>> computeEvictableData(
-      Collection<CacheData> newData, Collection<String> oldKeys) {
-
-    Set<String> newKeys = newData.stream().map(CacheData::getId).collect(Collectors.toSet());
-
-    Set<String> evictedKeys = new HashSet<>();
-    for (String oldKey : oldKeys) {
-      if (!newKeys.contains(oldKey)) {
-        evictedKeys.add(oldKey);
-      }
-    }
-    Map<String, Collection<String>> evictionsByKey = new HashMap<>();
-    evictionsByKey.put(IAM_ROLE.toString(), evictedKeys);
-    return evictionsByKey;
   }
 
   protected String getIamRegion() {

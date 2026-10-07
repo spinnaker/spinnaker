@@ -14,7 +14,7 @@ describe('evaluateArtifactsStage', () => {
     const stageConfig = Registry.pipeline.getStageConfig({ type: 'evaluateArtifacts' } as any);
 
     expect(stageConfig).toEqual(
-      jasmine.objectContaining({
+      expect.objectContaining({
         label: 'Evaluate Artifacts',
         description: 'Evaluates SpEL expressions in artifact contents and produces embedded artifacts.',
         key: 'evaluateArtifacts',
@@ -25,7 +25,7 @@ describe('evaluateArtifactsStage', () => {
     );
   });
 
-  it('does not register Angular-only config fields', () => {
+  it('does not register legacy config fields', () => {
     const stageConfig = Registry.pipeline.getStageConfig({ type: 'evaluateArtifacts' } as any) as any;
 
     expect(stageConfig.controller).toBeUndefined();

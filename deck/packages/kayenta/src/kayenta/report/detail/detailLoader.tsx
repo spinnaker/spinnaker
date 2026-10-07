@@ -1,11 +1,10 @@
 import * as React from 'react';
-import type { Dispatch } from 'react-redux';
 import { connect } from 'react-redux';
+import type { Dispatch } from 'redux';
 import type { Observable, Subscription } from 'rxjs';
 
 import * as Creators from '../../actions/creators';
 import ReportDetailLoadStates from './loadStates';
-import type { ICanaryState } from '../../reducers';
 
 interface IResultLoaderStateParamsProps {
   resultIdStream: Observable<IResultLoaderStateParams>;
@@ -42,7 +41,7 @@ class ResultDetailLoader extends React.Component<IResultLoaderDispatchProps & IR
   }
 }
 
-const mapDispatchToProps = (dispatch: Dispatch<ICanaryState>): IResultLoaderDispatchProps => ({
+const mapDispatchToProps = (dispatch: Dispatch): IResultLoaderDispatchProps => ({
   loadResult: (stateParams: IResultLoaderStateParams) =>
     dispatch(
       Creators.loadRunRequest({

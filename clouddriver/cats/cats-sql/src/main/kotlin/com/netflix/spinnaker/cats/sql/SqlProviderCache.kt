@@ -331,8 +331,7 @@ class SqlProviderCache(private val backingStore: WriteableCache) : ProviderCache
   }
 
   private fun getGlobalTypes(source: String, authoritativeTypes: Collection<String>, cacheResult: CacheResult): Set<String> = when {
-    (source.contains("clustercaching", ignoreCase = true) ||
-      source.contains("titusstreaming", ignoreCase = true)) &&
+    source.contains("clustercaching", ignoreCase = true) &&
       !authoritativeTypes.contains(CLUSTERS.ns) &&
       cacheResult.cacheResults
         .any {

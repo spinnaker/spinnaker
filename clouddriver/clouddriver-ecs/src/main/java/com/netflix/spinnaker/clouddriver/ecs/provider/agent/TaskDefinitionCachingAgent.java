@@ -19,7 +19,6 @@ package com.netflix.spinnaker.clouddriver.ecs.provider.agent;
 import static com.netflix.spinnaker.cats.agent.AgentDataType.Authority.AUTHORITATIVE;
 import static com.netflix.spinnaker.clouddriver.ecs.cache.Keys.Namespace.TASK_DEFINITIONS;
 
-import com.amazonaws.services.ecs.model.LoadBalancer;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.netflix.spectator.api.Registry;
 import com.netflix.spinnaker.cats.agent.AgentDataType;
@@ -37,6 +36,7 @@ import org.slf4j.LoggerFactory;
 import software.amazon.awssdk.services.ecs.EcsClient;
 import software.amazon.awssdk.services.ecs.model.DescribeTaskDefinitionRequest;
 import software.amazon.awssdk.services.ecs.model.DescribeTaskDefinitionResponse;
+import software.amazon.awssdk.services.ecs.model.LoadBalancer;
 import software.amazon.awssdk.services.ecs.model.TaskDefinition;
 
 public class TaskDefinitionCachingAgent extends AbstractEcsOnDemandAgent<TaskDefinition> {
@@ -97,8 +97,8 @@ public class TaskDefinitionCachingAgent extends AbstractEcsOnDemandAgent<TaskDef
       }
 
       for (LoadBalancer loadBalancer : service.getLoadBalancers()) {
-        if (loadBalancer.getContainerPort() != null) {
-          loadBalancedPorts.add(loadBalancer.getContainerPort());
+        if (loadBalancer.containerPort() != null) {
+          loadBalancedPorts.add(loadBalancer.containerPort());
         }
       }
     }

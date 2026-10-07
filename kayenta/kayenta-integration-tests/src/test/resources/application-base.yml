@@ -1,5 +1,6 @@
 
 redis.connection: redis://${embedded.redis.user}:${embedded.redis.password}@localhost:${embedded.redis.port}
+embedded.redis.dockerImage: valkey/valkey:8
 
 kayenta:
   standaloneCanaryAnalysis.enabled: true
@@ -7,13 +8,14 @@ kayenta:
   aws:
     enabled: true
     accounts:
-      - name: minio-store-account
+      - name: s3-store-account
         bucket: kayenta-bucket
         rootFolder: kayenta
-        endpoint: http://${embedded.minio.host}:${embedded.minio.port}
+        endpoint: ${embedded.ministack.endpoint}
+        region: ${embedded.ministack.region}
         explicitCredentials:
-          accessKey: ${embedded.minio.accessKey}
-          secretKey: ${embedded.minio.secretKey}
+          accessKey: ${embedded.ministack.accessKey}
+          secretKey: ${embedded.ministack.secretKey}
         supportedTypes:
           - OBJECT_STORE
           - CONFIGURATION_STORE
@@ -40,7 +42,7 @@ spring:
       org.springframework.boot.actuate.autoconfigure.metrics.JvmMetricsAutoConfiguration,
       org.springframework.boot.actuate.autoconfigure.metrics.LogbackMetricsAutoConfiguration,
       org.springframework.boot.actuate.autoconfigure.metrics.SystemMetricsAutoConfiguration,
-      org.springframework.boot.autoconfigure.jdbc.DataSourceAutoConfiguration,
+      org.springframework.boot.jdbc.autoconfigure.DataSourceAutoConfiguration,
       com.playtika.test.common.properties.InstallPackagePropertiesConfiguration,
 
 management:

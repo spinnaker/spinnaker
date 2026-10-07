@@ -33,6 +33,7 @@ import org.springframework.stereotype.Component;
 @Component
 public class CapabilitiesService {
   private ExpressionsSupport expressionsSupport;
+  private ExpressionProperties expressionProperties;
 
   @Autowired
   public CapabilitiesService(
@@ -42,10 +43,12 @@ public class CapabilitiesService {
     this.expressionsSupport =
         new ExpressionsSupport(
             new Class[] {}, expressionFunctionProviders, pluginManager, expressionProperties);
+    this.expressionProperties = expressionProperties;
   }
 
   public ExpressionCapabilityResult getExpressionCapabilities() {
     ExpressionCapabilityResult result = new ExpressionCapabilityResult();
+    result.setDashedIdentifiersEnabled(expressionProperties.getDashedIdentifiers().isEnabled());
 
     for (ExpressionFunctionProvider provider :
         expressionsSupport.getExpressionFunctionProviders()) {

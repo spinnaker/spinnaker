@@ -17,9 +17,6 @@
 
 package com.netflix.spinnaker.clouddriver.aws.security;
 
-import com.amazonaws.SDKGlobalConfiguration;
-import com.amazonaws.regions.Regions;
-import com.amazonaws.util.CollectionUtils;
 import com.google.common.util.concurrent.ThreadFactoryBuilder;
 import com.netflix.spinnaker.clouddriver.aws.security.config.AccountsConfiguration;
 import com.netflix.spinnaker.clouddriver.aws.security.config.AmazonCredentialsParser;
@@ -38,6 +35,9 @@ import java.util.stream.Collectors;
 import java.util.stream.Stream;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
+import org.springframework.util.CollectionUtils;
+import software.amazon.awssdk.core.SdkSystemSetting;
+import software.amazon.awssdk.regions.Region;
 
 @Slf4j
 public class AmazonBasicCredentialsLoader<
@@ -70,18 +70,18 @@ public class AmazonBasicCredentialsLoader<
             : defaultAccountConfigurationProperties.getEnv();
     if (!StringUtils.isEmpty(credentialsConfig.getAccessKeyId())) {
       System.setProperty(
-          SDKGlobalConfiguration.ACCESS_KEY_SYSTEM_PROPERTY, credentialsConfig.getAccessKeyId());
+          SdkSystemSetting.AWS_ACCESS_KEY_ID.property(), credentialsConfig.getAccessKeyId());
     }
     if (!StringUtils.isEmpty(credentialsConfig.getSecretAccessKey())) {
       System.setProperty(
-          SDKGlobalConfiguration.SECRET_KEY_SYSTEM_PROPERTY,
+          SdkSystemSetting.AWS_SECRET_ACCESS_KEY.property(),
           credentialsConfig.getSecretAccessKey());
     }
   }
 
   @Override
   public void load() {
-    if (CollectionUtils.isNullOrEmpty(accountsConfig.getAccounts())
+    if (CollectionUtils.isEmpty(accountsConfig.getAccounts())
         && (StringUtils.isEmpty(credentialsConfig.getDefaultAssumeRole()))) {
       accountsConfig.setAccounts(
           Collections.singletonList(
@@ -92,18 +92,18 @@ public class AmazonBasicCredentialsLoader<
                   setAccountType(defaultAccountType);
                 }
               }));
-      if (CollectionUtils.isNullOrEmpty(credentialsConfig.getDefaultRegions())) {
-        List<Regions> regions =
+      if (CollectionUtils.isEmpty(credentialsConfig.getDefaultRegions())) {
+        List<Region> regions =
             new ArrayList<>(
                 Arrays.asList(
-                    Regions.US_EAST_1, Regions.US_WEST_1, Regions.US_WEST_2, Regions.EU_WEST_1));
+                    Region.US_EAST_1, Region.US_WEST_1, Region.US_WEST_2, Region.EU_WEST_1));
         credentialsConfig.setDefaultRegions(
             regions.stream()
                 .map(
                     it ->
                         new CredentialsConfig.Region() {
                           {
-                            setName(it.getName());
+                            setName(it.id());
                           }
                         })
                 .collect(Collectors.toList()));

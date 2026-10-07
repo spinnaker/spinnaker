@@ -53,6 +53,7 @@ import com.netflix.spinnaker.clouddriver.kubernetes.description.manifest.Kuberne
 import com.netflix.spinnaker.clouddriver.kubernetes.description.manifest.KubernetesKindProperties;
 import com.netflix.spinnaker.clouddriver.kubernetes.description.manifest.KubernetesManifest;
 import com.netflix.spinnaker.clouddriver.kubernetes.names.KubernetesNamerRegistry;
+import com.netflix.spinnaker.clouddriver.kubernetes.op.handler.CustomResourceStatusEvaluator;
 import com.netflix.spinnaker.clouddriver.kubernetes.op.handler.KubernetesCustomResourceHandler;
 import com.netflix.spinnaker.clouddriver.kubernetes.op.handler.KubernetesHandler;
 import com.netflix.spinnaker.clouddriver.kubernetes.op.job.KubectlJobExecutor;
@@ -88,6 +89,7 @@ public class KubernetesCredentials {
   private final Clock clock;
   private final KubectlJobExecutor jobExecutor;
   private final GlobalResourcePropertyRegistry globalResourcePropertyRegistry;
+  private final CustomResourceStatusEvaluator customResourceStatusEvaluator;
 
   @Include @Getter @Nonnull private final String accountName;
 
@@ -151,8 +153,10 @@ public class KubernetesCredentials {
       KubernetesSpinnakerKindMap kubernetesSpinnakerKindMap,
       String kubeconfigFile,
       Namer<KubernetesManifest> manifestNamer,
-      GlobalResourcePropertyRegistry globalResourcePropertyRegistry) {
+      GlobalResourcePropertyRegistry globalResourcePropertyRegistry,
+      CustomResourceStatusEvaluator customResourceStatusEvaluator) {
     this.registry = registry;
+    this.customResourceStatusEvaluator = customResourceStatusEvaluator;
     this.clock = registry.clock();
     this.jobExecutor = jobExecutor;
     this.kindRegistry =
@@ -182,7 +186,10 @@ public class KubernetesCredentials {
     this.resourcePropertyRegistry =
         resourcePropertyRegistryFactory.create(
             managedAccount.getCustomResources().stream()
-                .map(KubernetesResourceProperties::fromCustomResource)
+                .map(
+                    cr ->
+                        KubernetesResourceProperties.fromCustomResource(
+                            cr, customResourceStatusEvaluator))
                 .collect(toImmutableList()));
     this.kubernetesSpinnakerKindMap = kubernetesSpinnakerKindMap;
 
@@ -338,7 +345,7 @@ public class KubernetesCredentials {
 
       List<KubernetesHandler> crdHandlers =
           crds.keySet().stream()
-              .map(KubernetesCustomResourceHandler::new)
+              .map(kind -> new KubernetesCustomResourceHandler(kind, customResourceStatusEvaluator))
               .collect(toImmutableList());
       this.globalResourcePropertyRegistry.updateCrdProperties(crdHandlers);
 
@@ -477,6 +484,27 @@ public class KubernetesCredentials {
           kinds,
           namespace,
           () -> jobExecutor.list(this, kinds, namespace, new KubernetesSelectorList()));
+    }
+  }
+
+  /**
+   * Like {@link #list(List, String)}, but for callers that use the absence of a kind from the
+   * result to drive cache eviction. See {@link KubectlJobExecutor#listAuthoritative} for why this
+   * throws {@link KubectlJobExecutor.KubectlForbiddenException} on a permission error instead of
+   * silently returning partial results.
+   */
+  @Nonnull
+  public ImmutableList<KubernetesManifest> listAuthoritative(
+      List<KubernetesKind> kinds, String namespace) {
+    if (kinds.isEmpty()) {
+      return ImmutableList.of();
+    } else {
+      return runAndRecordMetrics(
+          "list",
+          kinds,
+          namespace,
+          () ->
+              jobExecutor.listAuthoritative(this, kinds, namespace, new KubernetesSelectorList()));
     }
   }
 
@@ -816,6 +844,7 @@ public class KubernetesCredentials {
     private final KubernetesKindRegistry.Factory kindRegistryFactory;
     private final KubernetesSpinnakerKindMap kubernetesSpinnakerKindMap;
     private final GlobalResourcePropertyRegistry globalResourcePropertyRegistry;
+    private final CustomResourceStatusEvaluator customResourceStatusEvaluator;
 
     public KubernetesCredentials build(ManagedAccount managedAccount) {
       Namer<KubernetesManifest> manifestNamer =
@@ -829,7 +858,8 @@ public class KubernetesCredentials {
           kubernetesSpinnakerKindMap,
           getKubeconfigFile(configFileService, managedAccount),
           manifestNamer,
-          globalResourcePropertyRegistry);
+          globalResourcePropertyRegistry,
+          customResourceStatusEvaluator);
     }
 
     private String getKubeconfigFile(

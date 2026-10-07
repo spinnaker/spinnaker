@@ -499,15 +499,8 @@ public class KubectlJobExecutor {
       List<KubernetesKind> kinds,
       String namespace,
       KubernetesSelectorList selectors) {
-    log.debug("Getting list of kinds {} in namespace {}", kinds, namespace);
-    List<String> command = kubectlNamespacedGet(credentials, kinds, namespace);
-    if (selectors.isNotEmpty()) {
-      log.debug("with selectors: {}", selectors.toString());
-      command.add("-l=" + selectors.toString());
-    }
-
     JobResult<ImmutableList<KubernetesManifest>> status =
-        executeKubectlCommand(credentials, command, parseManifestList());
+        executeList(credentials, kinds, namespace, selectors);
 
     if (status.getResult() != JobResult.Result.SUCCESS) {
       boolean permissionError =
@@ -525,6 +518,79 @@ public class KubectlJobExecutor {
     }
 
     return status.getOutput();
+  }
+
+  /**
+   * Like {@link #list}, but intended for callers (namely, caching agents) that use the absence of a
+   * kind from the result to conclude that kind has zero live resources and evict any previously
+   * cached entries accordingly.
+   *
+   * <p>A plain permission ("forbidden") error from {@code kubectl get kind1,kind2,...} is
+   * indistinguishable, from the caller's perspective, from that kind genuinely having zero live
+   * resources -- both just result in the kind being absent from the parsed output. Since {@link
+   * #list} swallows permission errors and returns whatever partial output it got (to keep
+   * best-effort, UI-facing lookups like artifact/manifest resolution working even when the account
+   * lacks access to some kinds), it must not be used to drive cache eviction: a transient or
+   * misconfigured permission gap would look identical to a real deletion and cause live resources
+   * to be evicted from the cache.
+   *
+   * <p>This method instead throws {@link KubectlForbiddenException} whenever the underlying command
+   * reports a permission error, carrying the full set of requested {@code kinds} (kubectl is
+   * invoked once for all of them together, and a permission error isn't reliably attributable to a
+   * single kind within that batch) along with whatever manifests were still parsed from partial
+   * output. Callers should treat every kind in that set as unconfirmed for this cycle -- neither
+   * caching new state nor evicting previously cached entries for it -- rather than assuming zero
+   * live resources.
+   */
+  @Nonnull
+  public ImmutableList<KubernetesManifest> listAuthoritative(
+      KubernetesCredentials credentials,
+      List<KubernetesKind> kinds,
+      String namespace,
+      KubernetesSelectorList selectors) {
+    JobResult<ImmutableList<KubernetesManifest>> status =
+        executeList(credentials, kinds, namespace, selectors);
+
+    if (status.getResult() != JobResult.Result.SUCCESS) {
+      boolean permissionError =
+          org.apache.commons.lang3.StringUtils.containsIgnoreCase(status.getError(), "forbidden");
+      if (permissionError) {
+        log.warn(status.getError());
+        throw new KubectlForbiddenException(
+            "Permission denied listing one or more of "
+                + kinds
+                + " from "
+                + namespace
+                + ": "
+                + status.getError(),
+            ImmutableList.copyOf(kinds),
+            status.getOutput() == null ? ImmutableList.of() : status.getOutput());
+      }
+      throw new KubectlException(
+          "Failed to read " + kinds + " from " + namespace + ": " + status.getError());
+    }
+
+    if (status.getError().contains("No resources found")) {
+      return ImmutableList.of();
+    }
+
+    return status.getOutput();
+  }
+
+  @Nonnull
+  private JobResult<ImmutableList<KubernetesManifest>> executeList(
+      KubernetesCredentials credentials,
+      List<KubernetesKind> kinds,
+      String namespace,
+      KubernetesSelectorList selectors) {
+    log.debug("Getting list of kinds {} in namespace {}", kinds, namespace);
+    List<String> command = kubectlNamespacedGet(credentials, kinds, namespace);
+    if (selectors.isNotEmpty()) {
+      log.debug("with selectors: {}", selectors.toString());
+      command.add("-l=" + selectors.toString());
+    }
+
+    return executeKubectlCommand(credentials, command, parseManifestList());
   }
 
   /**
@@ -1146,6 +1212,25 @@ public class KubectlJobExecutor {
   public static class KubectlNotFoundException extends KubectlException {
     public KubectlNotFoundException(String message) {
       super(message);
+    }
+  }
+
+  /**
+   * Thrown by {@link #listAuthoritative} when kubectl reports a permission error for one or more of
+   * the requested kinds. See {@link #listAuthoritative} for why this must not be treated the same
+   * as those kinds having zero live resources.
+   */
+  public static class KubectlForbiddenException extends KubectlException {
+    @Getter private final ImmutableList<KubernetesKind> requestedKinds;
+    @Getter private final ImmutableList<KubernetesManifest> partialResults;
+
+    public KubectlForbiddenException(
+        String message,
+        ImmutableList<KubernetesKind> requestedKinds,
+        ImmutableList<KubernetesManifest> partialResults) {
+      super(message);
+      this.requestedKinds = requestedKinds;
+      this.partialResults = partialResults;
     }
   }
 

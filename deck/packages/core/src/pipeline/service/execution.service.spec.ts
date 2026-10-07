@@ -1,6 +1,6 @@
 import type { StateService } from '@uirouter/core';
 
-import { mockHttpClient } from '../../api/mock/jasmine';
+import { mockHttpClient } from '../../api/mock/mockHttpSupport';
 import type { Application } from '../../application';
 import type { IExecution } from '../../domain';
 import { ExecutionService } from './execution.service';
@@ -195,6 +195,56 @@ describe('Service: executionService', () => {
       await http.flush().catch(() => null);
 
       expect(error).toBeDefined();
+    });
+  });
+
+  describe('project pipeline executions', () => {
+    it('loads one transformed execution per selected pipeline config', async () => {
+      const http = mockHttpClient();
+      const executions = [
+        {
+          id: 'execution-1',
+          application: 'payments',
+          name: 'Deploy',
+          pipelineConfigId: 'payments-deploy',
+          stages: [],
+          trigger: {},
+          startTime: 10,
+        },
+      ] as any;
+      http
+        .expectGET('/executions')
+        .withParams({ limit: 1, pipelineConfigIds: 'payments-deploy,storefront-deploy' })
+        .respond(200, executions);
+
+      const request = executionService.getProjectExecutionsForConfigIds(['payments-deploy', 'storefront-deploy']);
+      await http.flush();
+      const result = await request;
+
+      expect(result.length).toBe(1);
+      expect(result[0].pipelineConfigId).toBe('payments-deploy');
+      expect(result[0].stageSummaries).toEqual([]);
+    });
+
+    it('skips the request when no pipeline config IDs are selected', async () => {
+      const http = mockHttpClient();
+
+      expect(await executionService.getProjectExecutionsForConfigIds([])).toEqual([]);
+      http.verifyNoOutstandingRequests();
+    });
+
+    it('propagates execution request failures', async () => {
+      const http = mockHttpClient();
+      http
+        .expectGET('/executions')
+        .withParams({ limit: 1, pipelineConfigIds: 'payments-deploy' })
+        .respond(500, { message: 'failed' });
+
+      let rejected = false;
+      executionService.getProjectExecutionsForConfigIds(['payments-deploy']).catch(() => (rejected = true));
+      await http.flush().catch(() => null);
+
+      expect(rejected).toBe(true);
     });
   });
 

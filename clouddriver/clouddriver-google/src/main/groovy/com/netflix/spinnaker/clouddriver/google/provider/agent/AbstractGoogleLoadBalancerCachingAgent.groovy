@@ -111,7 +111,7 @@ abstract class AbstractGoogleLoadBalancerCachingAgent extends AbstractGoogleCach
       identifiers = providerCache.filterIdentifiers(LOAD_BALANCERS.ns, loadBalancerKey)
     }
 
-    def cacheResultBuilder = new CacheResultBuilder(startTime: Long.MAX_VALUE)
+    def cacheResultBuilder = new CacheResultBuilder(providedDataTypes, Long.MAX_VALUE)
     CacheResult result = metricsSupport.transformData {
       buildCacheResult(cacheResultBuilder, loadBalancer ? [loadBalancer] : [])
     }
@@ -176,7 +176,7 @@ abstract class AbstractGoogleLoadBalancerCachingAgent extends AbstractGoogleCach
 
   @Override
   CacheResult loadData(ProviderCache providerCache) {
-    def cacheResultBuilder = new CacheResultBuilder(startTime: System.currentTimeMillis())
+    def cacheResultBuilder = new CacheResultBuilder(providedDataTypes, System.currentTimeMillis())
 
     List<GoogleLoadBalancer> loadBalancers = getLoadBalancers()
     def loadBalancerKeys = loadBalancers.collect { Keys.getLoadBalancerKey(it.region, it.account, it.name) }

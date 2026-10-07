@@ -15,8 +15,8 @@
  */
 package com.netflix.spinnaker.clouddriver.aws.deploy.ops
 
-import com.amazonaws.services.autoscaling.AmazonAutoScaling
-import com.amazonaws.services.autoscaling.model.PutLifecycleHookRequest
+import software.amazon.awssdk.services.autoscaling.AutoScalingClient
+import software.amazon.awssdk.services.autoscaling.model.PutLifecycleHookRequest
 import com.netflix.spinnaker.clouddriver.aws.deploy.description.UpsertAsgLifecycleHookDescription
 import com.netflix.spinnaker.clouddriver.aws.security.AmazonClientProvider
 import com.netflix.spinnaker.clouddriver.aws.services.IdGenerator
@@ -40,9 +40,9 @@ class UpsertAsgLifecycleHookAtomicOperationUnitSpec extends Specification {
 
   @Subject def op = new UpsertAsgLifecycleHookAtomicOperation(description)
 
-  def autoScaling = Mock(AmazonAutoScaling)
+  def autoScaling = Mock(AutoScalingClient)
   def amazonClientProvider = Stub(AmazonClientProvider) {
-    getAutoScaling(_, _, true) >> autoScaling
+    getAutoScalingV2(_, _) >> autoScaling
   }
 
   def setup() {
@@ -60,15 +60,7 @@ class UpsertAsgLifecycleHookAtomicOperationUnitSpec extends Specification {
     op.operate([])
 
     then:
-    1 * autoScaling.putLifecycleHook(new PutLifecycleHookRequest(
-      lifecycleHookName: 'asg-v000-lifecycle-1',
-      autoScalingGroupName: 'asg-v000',
-      lifecycleTransition: 'autoscaling:EC2_INSTANCE_TERMINATING',
-      roleARN: 'arn:aws:iam::123456789012:role/my-notification-role',
-      notificationTargetARN: 'arn:aws:sns:us-west-1:123456789012:my-sns-topic',
-      heartbeatTimeout: 3600,
-      defaultResult: 'ABANDON'
-    ))
+    1 * autoScaling.putLifecycleHook(PutLifecycleHookRequest.builder().lifecycleHookName('asg-v000-lifecycle-1').autoScalingGroupName('asg-v000').lifecycleTransition('autoscaling:EC2_INSTANCE_TERMINATING').roleARN('arn:aws:iam::123456789012:role/my-notification-role').notificationTargetARN('arn:aws:sns:us-west-1:123456789012:my-sns-topic').heartbeatTimeout(3600).defaultResult('ABANDON').build())
     0 * _
   }
 
@@ -78,15 +70,7 @@ class UpsertAsgLifecycleHookAtomicOperationUnitSpec extends Specification {
     op.operate([])
 
     then:
-    1 * autoScaling.putLifecycleHook(new PutLifecycleHookRequest(
-      lifecycleHookName: 'a_b_c_d_e_f_g_h_i_j_k_l_m-n_o_p_q_r_s_t_u_v_w_x/y_z-v001-lifecycle-1',
-      autoScalingGroupName: 'a+b=c!d@e#f$g%h&i*j(k)l_m-n{o}p[q]r\\s<t>u,v.w?x/y|z-v001',
-      lifecycleTransition: 'autoscaling:EC2_INSTANCE_TERMINATING',
-      roleARN: 'arn:aws:iam::123456789012:role/my-notification-role',
-      notificationTargetARN: 'arn:aws:sns:us-west-1:123456789012:my-sns-topic',
-      heartbeatTimeout: 3600,
-      defaultResult: 'ABANDON'
-    ))
+    1 * autoScaling.putLifecycleHook(PutLifecycleHookRequest.builder().lifecycleHookName('a_b_c_d_e_f_g_h_i_j_k_l_m-n_o_p_q_r_s_t_u_v_w_x/y_z-v001-lifecycle-1').autoScalingGroupName('a+b=c!d@e#f$g%h&i*j(k)l_m-n{o}p[q]r\\s<t>u,v.w?x/y|z-v001').lifecycleTransition('autoscaling:EC2_INSTANCE_TERMINATING').roleARN('arn:aws:iam::123456789012:role/my-notification-role').notificationTargetARN('arn:aws:sns:us-west-1:123456789012:my-sns-topic').heartbeatTimeout(3600).defaultResult('ABANDON').build())
     0 * _
   }
 
@@ -98,15 +82,7 @@ class UpsertAsgLifecycleHookAtomicOperationUnitSpec extends Specification {
     op.operate([])
 
     then:
-    1 * autoScaling.putLifecycleHook(new PutLifecycleHookRequest(
-      lifecycleHookName: 'fancyHook',
-      autoScalingGroupName: 'asg-v000',
-      lifecycleTransition: 'autoscaling:EC2_INSTANCE_TERMINATING',
-      roleARN: 'arn:aws:iam::123456789012:role/my-notification-role',
-      notificationTargetARN: 'arn:aws:sns:us-west-1:123456789012:my-sns-topic',
-      heartbeatTimeout: 3600,
-      defaultResult: 'ABANDON'
-    ))
+    1 * autoScaling.putLifecycleHook(PutLifecycleHookRequest.builder().lifecycleHookName('fancyHook').autoScalingGroupName('asg-v000').lifecycleTransition('autoscaling:EC2_INSTANCE_TERMINATING').roleARN('arn:aws:iam::123456789012:role/my-notification-role').notificationTargetARN('arn:aws:sns:us-west-1:123456789012:my-sns-topic').heartbeatTimeout(3600).defaultResult('ABANDON').build())
     0 * _
   }
 }

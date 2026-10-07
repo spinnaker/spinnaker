@@ -54,7 +54,7 @@ class InsightConfigurationSpec extends Specification {
 
     expect:
     link.applyContext([:]) == null
-    link.applyContext([cloudProvider: 'titus']) == null
+    link.applyContext([cloudProvider: 'kubernetes']) == null
     link.applyContext([cloudProvider: 'aws']).url == 'http://providerLink'
   }
 }

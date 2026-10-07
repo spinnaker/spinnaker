@@ -17,9 +17,13 @@
 plugins {
   id 'io.spinnaker.project' apply false
   alias(libs.plugins.kotlin.jvm) apply false
-  id "io.gitlab.arturbosch.detekt" version "1.23.8" apply false
+  id "dev.detekt" version "2.0.0-alpha.6" apply false
   alias(libs.plugins.kotlin.allopen) apply false
 }
+
+// WireMock standalone substitution is centralized in wiremock-substitution.gradle
+// at the repo root (single home for the version).
+apply from: "../wiremock-substitution.gradle"
 
 allprojects {
   apply plugin: "io.spinnaker.project"
@@ -44,6 +48,7 @@ subprojects {
   tasks.withType(JavaCompile) {
     options.compilerArgs << "-parameters"
   }
+
 
   if (it.name != "kork-bom" && it.name != "spinnaker-dependencies") {
     apply plugin: 'java-library'

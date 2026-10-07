@@ -17,8 +17,8 @@ package com.netflix.spinnaker.kork.jedis;
 
 import java.lang.reflect.Field;
 import org.springframework.beans.factory.BeanCreationException;
-import org.springframework.boot.actuate.health.Health;
-import org.springframework.boot.actuate.health.HealthIndicator;
+import org.springframework.boot.health.contributor.Health;
+import org.springframework.boot.health.contributor.HealthIndicator;
 import redis.clients.jedis.Jedis;
 import redis.clients.jedis.util.Pool;
 

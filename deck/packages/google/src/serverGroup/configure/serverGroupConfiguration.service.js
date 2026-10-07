@@ -18,6 +18,8 @@ import { GceTagManager } from './wizard/securityGroups/tagManager.service';
 export const GOOGLE_SERVERGROUP_CONFIGURE_SERVERGROUPCONFIGURATION_SERVICE =
   'spinnaker.serverGroup.configure.gce.configuration.service';
 export const name = GOOGLE_SERVERGROUP_CONFIGURE_SERVERGROUPCONFIGURATION_SERVICE; // for backwards compatibility
+// EVEN remains for non-flex regional MIGs. Flexibility requires BALANCED, ANY, or ANY_SINGLE_ZONE.
+export const GCE_DISTRIBUTION_POLICY_TARGET_SHAPES = ['ANY', 'EVEN', 'BALANCED', 'ANY_SINGLE_ZONE'];
 export class GceServerGroupConfigurationService {
   static requiresDeckRuntimeServices = true;
 
@@ -147,7 +149,9 @@ export class GceServerGroupConfigurationService {
     }
 
     function getDistributionPolicyTargetShapes() {
-      return ['ANY', 'EVEN'];
+      // EVEN remains for non-flex regional MIGs. Flexibility requires BALANCED, ANY, or
+      // ANY_SINGLE_ZONE (enforced in the configurer and clone validation).
+      return GCE_DISTRIBUTION_POLICY_TARGET_SHAPES.slice();
     }
 
     function configureDistributionPolicyTargetShape(command) {
@@ -424,6 +428,7 @@ export class GceServerGroupConfigurationService {
           command.loadBalancers,
           command.credentials,
           newLoadBalancerObjects,
+          command.region,
         );
         const matched = _.intersection(command.backingData.filtered.loadBalancers, command.loadBalancers);
         const removed = _.xor(matched, command.loadBalancers);
@@ -448,7 +453,12 @@ export class GceServerGroupConfigurationService {
       const lbIndex = command.backingData.filtered.loadBalancerIndex;
 
       const backendServices = command.loadBalancers.reduce((backendServices, lbName) => {
-        if (gceHttpLoadBalancerUtils.isHttpLoadBalancer(lbIndex[lbName])) {
+        // Clouddriver attaches every EXTERNAL_MANAGED backend service; its regional names must not
+        // enter the global backend-service-names metadata.
+        if (
+          gceHttpLoadBalancerUtils.isHttpLoadBalancer(lbIndex[lbName]) &&
+          lbIndex[lbName].loadBalancerType !== 'EXTERNAL_MANAGED'
+        ) {
           backendServices[lbName] = _.intersection(lbIndex[lbName].backendServices, backendsFromMetadata);
         }
         return backendServices;

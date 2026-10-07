@@ -16,11 +16,11 @@
 
 package com.netflix.spinnaker.clouddriver.aws.deploy.ops
 
-import com.amazonaws.services.autoscaling.AmazonAutoScaling
-import com.amazonaws.services.autoscaling.model.AutoScalingGroup
-import com.amazonaws.services.autoscaling.model.DescribeAutoScalingGroupsResult
-import com.amazonaws.services.autoscaling.model.DescribeScheduledActionsResult
-import com.amazonaws.services.autoscaling.model.ScheduledUpdateGroupAction
+import software.amazon.awssdk.services.autoscaling.AutoScalingClient
+import software.amazon.awssdk.services.autoscaling.model.AutoScalingGroup
+import software.amazon.awssdk.services.autoscaling.model.DescribeAutoScalingGroupsResponse
+import software.amazon.awssdk.services.autoscaling.model.DescribeScheduledActionsResponse
+import software.amazon.awssdk.services.autoscaling.model.ScheduledUpdateGroupAction
 import com.netflix.spinnaker.clouddriver.aws.security.AmazonClientProvider
 import com.netflix.spinnaker.clouddriver.data.task.DefaultTask
 import com.netflix.spinnaker.clouddriver.data.task.TaskRepository
@@ -37,11 +37,11 @@ class UpsertAsgScheduledActionsAtomicOperationUnitSpec extends Specification {
 
   void "creates a new scheduled action for each supplied input"() {
     setup:
-    def mockAutoScalingA = Mock(AmazonAutoScaling)
-    def mockAutoScalingB = Mock(AmazonAutoScaling)
+    def mockAutoScalingA = Mock(AutoScalingClient)
+    def mockAutoScalingB = Mock(AutoScalingClient)
     def mockAmazonClientProvider = Mock(AmazonClientProvider)
-    mockAmazonClientProvider.getAutoScaling(_, 'us-east-1', true) >> mockAutoScalingA
-    mockAmazonClientProvider.getAutoScaling(_, 'us-west-1', true) >> mockAutoScalingB
+    mockAmazonClientProvider.getAutoScalingV2(_, 'us-east-1') >> mockAutoScalingA
+    mockAmazonClientProvider.getAutoScalingV2(_, 'us-west-1') >> mockAutoScalingB
     def description = new UpsertAsgScheduledActionsDescription(
         asgs: [
             new AsgDescription(asgName: 'asg-v001', region: 'us-east-1'),
@@ -65,20 +65,18 @@ class UpsertAsgScheduledActionsAtomicOperationUnitSpec extends Specification {
 
     then:
     1 * mockAutoScalingA.describeAutoScalingGroups({ it.autoScalingGroupNames == ['asg-v001']}) >> {
-      def mock = Mock(AutoScalingGroup)
-      mock.getAutoScalingGroupName() >> "asg-v001"
-      new DescribeAutoScalingGroupsResult().withAutoScalingGroups(mock)
+      def mock = AutoScalingGroup.builder().autoScalingGroupName("asg-v001").build()
+      DescribeAutoScalingGroupsResponse.builder().autoScalingGroups(mock).build()
     }
     1 * mockAutoScalingB.describeAutoScalingGroups({ it.autoScalingGroupNames == ['asg-v002']}) >> {
-      def mock = Mock(AutoScalingGroup)
-      mock.getAutoScalingGroupName() >> "asg-v002"
-      new DescribeAutoScalingGroupsResult().withAutoScalingGroups(mock)
+      def mock = AutoScalingGroup.builder().autoScalingGroupName("asg-v002").build()
+      DescribeAutoScalingGroupsResponse.builder().autoScalingGroups(mock).build()
     }
     1 * mockAutoScalingA.describeScheduledActions(_) >> {
-      new DescribeScheduledActionsResult().withScheduledUpdateGroupActions([])
+      DescribeScheduledActionsResponse.builder().scheduledUpdateGroupActions([]).build()
     }
     1 * mockAutoScalingB.describeScheduledActions(_) >> {
-      new DescribeScheduledActionsResult().withScheduledUpdateGroupActions([])
+      DescribeScheduledActionsResponse.builder().scheduledUpdateGroupActions([]).build()
     }
     1 * mockAutoScalingA.putScheduledUpdateGroupAction({
       it.recurrence == '* 0 0 0 0' && it.minSize == 1 && it.maxSize == 1 && it.desiredCapacity == 1 && it.scheduledActionName == 'asg-v001-abc'
@@ -95,9 +93,9 @@ class UpsertAsgScheduledActionsAtomicOperationUnitSpec extends Specification {
   }
 
   void "deletes any existing scheduled actions if no new actions have the same schedule"() {
-    def mockAutoScaling = Mock(AmazonAutoScaling)
+    def mockAutoScaling = Mock(AutoScalingClient)
     def mockAmazonClientProvider = Mock(AmazonClientProvider)
-    mockAmazonClientProvider.getAutoScaling(_, 'us-east-1', true) >> mockAutoScaling
+    mockAmazonClientProvider.getAutoScalingV2(_, 'us-east-1') >> mockAutoScaling
     def description = new UpsertAsgScheduledActionsDescription(
         asgs: [
             new AsgDescription(asgName: 'asg-v001', region: 'us-east-1'),
@@ -114,15 +112,14 @@ class UpsertAsgScheduledActionsAtomicOperationUnitSpec extends Specification {
 
     then:
     1 * mockAutoScaling.describeAutoScalingGroups({ it.autoScalingGroupNames == ['asg-v001']}) >> {
-      def mock = Mock(AutoScalingGroup)
-      mock.getAutoScalingGroupName() >> "asg-v001"
-      new DescribeAutoScalingGroupsResult().withAutoScalingGroups(mock)
+      def mock = AutoScalingGroup.builder().autoScalingGroupName("asg-v001").build()
+      DescribeAutoScalingGroupsResponse.builder().autoScalingGroups(mock).build()
     }
     1 * mockAutoScaling.describeScheduledActions(_) >> {
-      new DescribeScheduledActionsResult().withScheduledUpdateGroupActions([
-          new ScheduledUpdateGroupAction(scheduledActionName: 'action-1', autoScalingGroupName: 'asg-v001'),
-          new ScheduledUpdateGroupAction(scheduledActionName: 'action-2', autoScalingGroupName: 'asg-v001'),
-      ])
+      DescribeScheduledActionsResponse.builder().scheduledUpdateGroupActions([
+          ScheduledUpdateGroupAction.builder().scheduledActionName('action-1').autoScalingGroupName('asg-v001').build(),
+          ScheduledUpdateGroupAction.builder().scheduledActionName('action-2').autoScalingGroupName('asg-v001').build(),
+      ]).build()
     }
 
     1 * mockAutoScaling.deleteScheduledAction({
@@ -134,9 +131,9 @@ class UpsertAsgScheduledActionsAtomicOperationUnitSpec extends Specification {
   }
 
   void "updates any existing scheduled actions if they have the same recurrence"() {
-    def mockAutoScaling = Mock(AmazonAutoScaling)
+    def mockAutoScaling = Mock(AutoScalingClient)
     def mockAmazonClientProvider = Mock(AmazonClientProvider)
-    mockAmazonClientProvider.getAutoScaling(_, 'us-east-1', true) >> mockAutoScaling
+    mockAmazonClientProvider.getAutoScalingV2(_, 'us-east-1') >> mockAutoScaling
     def description = new UpsertAsgScheduledActionsDescription(
         asgs: [
             new AsgDescription(asgName: 'asg-v001', region: 'us-east-1'),
@@ -159,15 +156,14 @@ class UpsertAsgScheduledActionsAtomicOperationUnitSpec extends Specification {
 
     then:
     1 * mockAutoScaling.describeAutoScalingGroups({ it.autoScalingGroupNames == ['asg-v001']}) >> {
-      def mock = Mock(AutoScalingGroup)
-      mock.getAutoScalingGroupName() >> "asg-v001"
-      new DescribeAutoScalingGroupsResult().withAutoScalingGroups(mock)
+      def mock = AutoScalingGroup.builder().autoScalingGroupName("asg-v001").build()
+      DescribeAutoScalingGroupsResponse.builder().autoScalingGroups(mock).build()
     }
     1 * mockAutoScaling.describeScheduledActions(_) >> {
-      new DescribeScheduledActionsResult().withScheduledUpdateGroupActions([
-          new ScheduledUpdateGroupAction(recurrence: "40 20 * * *", scheduledActionName: 'action-1', autoScalingGroupName: 'asg-v001'),
-          new ScheduledUpdateGroupAction(recurrence: "20 20 * * *",scheduledActionName: 'action-2', autoScalingGroupName: 'asg-v001'),
-      ])
+      DescribeScheduledActionsResponse.builder().scheduledUpdateGroupActions([
+          ScheduledUpdateGroupAction.builder().recurrence("40 20 * * *").scheduledActionName('action-1').autoScalingGroupName('asg-v001').build(),
+          ScheduledUpdateGroupAction.builder().recurrence("20 20 * * *").scheduledActionName('action-2').autoScalingGroupName('asg-v001').build(),
+      ]).build()
     }
 
     1 * mockAutoScaling.putScheduledUpdateGroupAction({

@@ -16,9 +16,9 @@
 
 package com.netflix.spinnaker.clouddriver.aws.provider.agent
 
-import com.amazonaws.services.ec2.AmazonEC2
-import com.amazonaws.services.ec2.model.DescribeKeyPairsResult
-import com.amazonaws.services.ec2.model.KeyPairInfo
+import software.amazon.awssdk.services.ec2.Ec2Client
+import software.amazon.awssdk.services.ec2.model.DescribeKeyPairsResponse
+import software.amazon.awssdk.services.ec2.model.KeyPairInfo
 import com.netflix.spinnaker.cats.cache.CacheData
 import com.netflix.spinnaker.cats.provider.ProviderCache
 import com.netflix.spinnaker.clouddriver.aws.security.AmazonClientProvider
@@ -32,7 +32,7 @@ class AmazonKeyPairCachingAgentSpec extends Specification {
   static final String region = 'us-east-1'
 
 
-  AmazonEC2 ec2 = Mock(AmazonEC2)
+  Ec2Client ec2 = Mock(Ec2Client)
 
   ProviderCache providerCache = Mock(ProviderCache)
 
@@ -41,7 +41,7 @@ class AmazonKeyPairCachingAgentSpec extends Specification {
   }
 
   AmazonClientProvider amazonClientProvider = Stub(AmazonClientProvider) {
-    getAmazonEC2(creds, region) >> ec2
+    getAmazonEC2V2(creds, region) >> ec2
   }
 
   @Subject
@@ -52,10 +52,10 @@ class AmazonKeyPairCachingAgentSpec extends Specification {
     def result = agent.loadData(providerCache)
 
     then:
-    1 * ec2.describeKeyPairs() >> new DescribeKeyPairsResult(keyPairs: [
-      new KeyPairInfo(keyName: 'key1', keyFingerprint: '1'),
-      new KeyPairInfo(keyName: 'key2', keyFingerprint: '2')
-    ])
+    1 * ec2.describeKeyPairs() >> DescribeKeyPairsResponse.builder().keyPairs(
+      KeyPairInfo.builder().keyName('key1').keyFingerprint('1').build(),
+      KeyPairInfo.builder().keyName('key2').keyFingerprint('2').build()
+    ).build()
     with (result.cacheResults.get(Keys.Namespace.KEY_PAIRS.ns)) { List<CacheData> cd ->
       cd.size() == 2
       def k1 = cd.find { it.id == Keys.getKeyPairKey('key1', region, account) }

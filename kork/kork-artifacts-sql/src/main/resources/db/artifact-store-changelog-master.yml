@@ -1,0 +1,4 @@
+databaseChangeLog:
+  - include:
+      file: changelog/20260911-create-artifact-store-table.yml
+      relativeToChangelogFile: true

@@ -53,9 +53,9 @@ jobs:
           go-version-file: spin/go.mod
           cache: false
 
-      - uses: actions/setup-java@v5
+      - uses: actions/setup-java@v6
         with:
-          java-version: '17'
+          java-version: '25'
           distribution: zulu
           cache: ${{ !env.ACT && 'gradle' || '' }}
 
@@ -74,6 +74,10 @@ jobs:
         with:
           version: v2.1.0
           working-directory: spin
+
+      - name: Run go tests
+        working-directory: spin
+        run: go test ./...
 
       - name: Build binaries
         env:

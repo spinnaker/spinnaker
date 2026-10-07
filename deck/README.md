@@ -15,7 +15,8 @@ Run the following commands (in the deck directory) to get all dependencies insta
 
 The app will start up on localhost:9000.
 
-When editing `core` or any other cloud provider package, please run the following in that folder
+Vite consumes each workspace package from its `dist` directory, so run `pnpm modules` before starting Deck. While
+editing `core` or another package, run its development watcher in that package:
 
 - `pnpm dev`
 
@@ -45,7 +46,7 @@ Deck is a React application. New changes to Deck should use React.
 
 To run the tests within the application, run `pnpm test`.
 
-Developing things locally? You may want to run [gate](https://github.com/spinnaker/gate) locally (which runs on port 8084) as well.
+Developing things locally? You may want to run [gate](../gate) locally (which runs on port 8084) as well.
 Gate is the service that hosts the spinnaker REST API.
 Then run deck like this:
 
@@ -55,8 +56,8 @@ API_HOST=http://localhost:8084 pnpm start
 
 ## Building &amp; Deploying
 
-To build the application, run `pnpm modules && pnpm build`.
-The built application lives in `build/`.
+To build the application, run `pnpm modules && pnpm typecheck && pnpm build`.
+The packaged application is written to `packages/app/dist`.
 
 ## Graphql
 
@@ -65,12 +66,13 @@ To generate the TS types and the Apollo hooks, run `pnpm graphql:generate` from 
 
 ## Conventions
 
-It's a work in progress, but please try to follow the [conventions here](https://github.com/spinnaker/deck/wiki/Conventions).
+It's a work in progress, but please try to follow the conventions demonstrated across the
+existing [packages](packages/).
 
 ## Customizing the UI
 
 It's certainly doable - we're in the middle of some significant changes to our build process, which should make it easier.
-For now, you can look at the [all modules](https://github.com/spinnaker/deck/tree/master/packages/) to
+For now, you can look at the [all modules](packages/) to
 get an idea how we are customizing Deck internally. Expect a lot of this to change, though, as we figure out better, cleaner
 hooks and integration points. And we're happy to provide new integration points (or accept pull requests) following
 those existing conventions if you need an integration point that doesn't already exist.

@@ -78,7 +78,7 @@ class DeleteGoogleInternalLoadBalancerAtomicOperationUnitSpec extends Specificat
       def forwardingRulesDeleteOp = new Operation(
         name: FORWARDING_RULE_DELETE_OP_NAME,
         status: "DONE")
-      def forwardingRule = new ForwardingRule(backendService: BS_URL, name: LOAD_BALANCER_NAME, region: REGION)
+      def forwardingRule = new ForwardingRule(backendService: BS_URL, loadBalancingScheme: INTERNAL, name: LOAD_BALANCER_NAME, region: REGION)
 
       def backendServices = Mock(Compute.RegionBackendServices)
       def backendServicesGet = Mock(Compute.RegionBackendServices.Get)
@@ -87,6 +87,7 @@ class DeleteGoogleInternalLoadBalancerAtomicOperationUnitSpec extends Specificat
         name: BS_DELETE_OP,
         status: "DONE")
       def backendService = new BackendService(
+        loadBalancingScheme: INTERNAL,
         name: BS_NAME,
         healthChecks: [HTTP_HC_URL]
       )
@@ -164,7 +165,7 @@ class DeleteGoogleInternalLoadBalancerAtomicOperationUnitSpec extends Specificat
       def forwardingRulesDeleteOp = new Operation(
         name: FORWARDING_RULE_DELETE_OP_NAME,
         status: "DONE")
-      def forwardingRule = new ForwardingRule(backendService: BS_URL, name: LOAD_BALANCER_NAME, region: REGION)
+      def forwardingRule = new ForwardingRule(backendService: BS_URL, loadBalancingScheme: INTERNAL, name: LOAD_BALANCER_NAME, region: REGION)
 
       def backendServices = Mock(Compute.RegionBackendServices)
       def backendServicesGet = Mock(Compute.RegionBackendServices.Get)
@@ -173,6 +174,7 @@ class DeleteGoogleInternalLoadBalancerAtomicOperationUnitSpec extends Specificat
         name: BS_DELETE_OP,
         status: "DONE")
       def backendService = new BackendService(
+        loadBalancingScheme: INTERNAL,
         name: BS_NAME,
         healthChecks: [HTTPS_HC_URL]
       )
@@ -250,7 +252,7 @@ class DeleteGoogleInternalLoadBalancerAtomicOperationUnitSpec extends Specificat
       def forwardingRulesDeleteOp = new Operation(
         name: FORWARDING_RULE_DELETE_OP_NAME,
         status: "DONE")
-      def forwardingRule = new ForwardingRule(backendService: BS_URL, name: LOAD_BALANCER_NAME, region: REGION)
+      def forwardingRule = new ForwardingRule(backendService: BS_URL, loadBalancingScheme: INTERNAL, name: LOAD_BALANCER_NAME, region: REGION)
 
       def backendServices = Mock(Compute.RegionBackendServices)
       def backendServicesGet = Mock(Compute.RegionBackendServices.Get)
@@ -259,6 +261,7 @@ class DeleteGoogleInternalLoadBalancerAtomicOperationUnitSpec extends Specificat
         name: BS_DELETE_OP,
         status: "DONE")
       def backendService = new BackendService(
+        loadBalancingScheme: INTERNAL,
         name: BS_NAME,
         healthChecks: [HC_URL]
       )
@@ -334,7 +337,7 @@ class DeleteGoogleInternalLoadBalancerAtomicOperationUnitSpec extends Specificat
       def forwardingRulesDeleteOp = new Operation(
         name: FORWARDING_RULE_DELETE_OP_NAME,
         status: "DONE")
-      def forwardingRule = new ForwardingRule(backendService: BS_URL, name: LOAD_BALANCER_NAME, region: REGION)
+      def forwardingRule = new ForwardingRule(backendService: BS_URL, loadBalancingScheme: INTERNAL, name: LOAD_BALANCER_NAME, region: REGION)
 
       def backendServices = Mock(Compute.RegionBackendServices)
       def backendServicesGet = Mock(Compute.RegionBackendServices.Get)
@@ -343,6 +346,7 @@ class DeleteGoogleInternalLoadBalancerAtomicOperationUnitSpec extends Specificat
         name: BS_DELETE_OP,
         status: "DONE")
       def backendService = new BackendService(
+        loadBalancingScheme: INTERNAL,
         name: BS_NAME,
         healthChecks: [HTTP_HC_URL]
       )
@@ -426,12 +430,13 @@ class DeleteGoogleInternalLoadBalancerAtomicOperationUnitSpec extends Specificat
       def forwardingRulesDeleteOp = new Operation(
         name: FORWARDING_RULE_DELETE_OP_NAME,
         status: "DONE")
-      def forwardingRule = new ForwardingRule(backendService: BS_URL, name: LOAD_BALANCER_NAME, region: REGION)
+      def forwardingRule = new ForwardingRule(backendService: BS_URL, loadBalancingScheme: INTERNAL, name: LOAD_BALANCER_NAME, region: REGION)
 
       def backendServices = Mock(Compute.RegionBackendServices)
       def backendServicesGet = Mock(Compute.RegionBackendServices.Get)
       def backendServicesDelete = Mock(Compute.RegionBackendServices.Delete)
       def backendService = new BackendService(
+        loadBalancingScheme: INTERNAL,
         name: BS_NAME,
         healthChecks: [HTTP_HC_URL]
       )

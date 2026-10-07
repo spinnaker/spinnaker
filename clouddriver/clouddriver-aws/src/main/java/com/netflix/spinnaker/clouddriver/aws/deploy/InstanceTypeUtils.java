@@ -17,10 +17,6 @@
 
 package com.netflix.spinnaker.clouddriver.aws.deploy;
 
-import com.amazonaws.services.ec2.AmazonEC2;
-import com.amazonaws.services.ec2.model.DescribeInstanceTypesRequest;
-import com.amazonaws.services.ec2.model.DescribeInstanceTypesResult;
-import com.amazonaws.services.ec2.model.InstanceTypeInfo;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;
@@ -33,6 +29,10 @@ import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
+import software.amazon.awssdk.services.ec2.Ec2Client;
+import software.amazon.awssdk.services.ec2.model.DescribeInstanceTypesRequest;
+import software.amazon.awssdk.services.ec2.model.DescribeInstanceTypesResponse;
+import software.amazon.awssdk.services.ec2.model.InstanceTypeInfo;
 
 /** Utility class for AWS EC2 instance types. */
 public class InstanceTypeUtils {
@@ -60,7 +60,7 @@ public class InstanceTypeUtils {
    * @param instanceTypes set of one or more instance types requested
    */
   public static void validateCompatibilityWithAmi(
-      AmazonEC2 ec2, ResolvedAmiResult ami, Set<String> instanceTypes) {
+      Ec2Client ec2, ResolvedAmiResult ami, Set<String> instanceTypes) {
     final String amiVirtualizationType = ami.getVirtualizationType();
     final String amiArchitecture = ami.getArchitecture();
     final List<InstanceTypeInfo> instanceTypeInfos = getInstanceTypesInfo(ec2, instanceTypes);
@@ -68,11 +68,11 @@ public class InstanceTypeUtils {
     instanceTypeInfos.forEach(
         instanceTypeInfo -> {
           if (!instanceTypeInfo
-              .getSupportedVirtualizationTypes()
+              .supportedVirtualizationTypesAsStrings()
               .contains(ami.getVirtualizationType())) {
             throw new IllegalArgumentException(
                 "Instance type "
-                    + instanceTypeInfo.getInstanceType()
+                    + instanceTypeInfo.instanceTypeAsString()
                     + " does not support "
                     + "virtualization type "
                     + amiVirtualizationType
@@ -80,12 +80,12 @@ public class InstanceTypeUtils {
           }
 
           if (!instanceTypeInfo
-              .getProcessorInfo()
-              .getSupportedArchitectures()
+              .processorInfo()
+              .supportedArchitecturesAsStrings()
               .contains(amiArchitecture)) {
             throw new IllegalArgumentException(
                 "Instance type "
-                    + instanceTypeInfo.getInstanceType()
+                    + instanceTypeInfo.instanceTypeAsString()
                     + " does not support "
                     + "architecture type "
                     + amiArchitecture
@@ -121,21 +121,21 @@ public class InstanceTypeUtils {
   }
 
   private static List<InstanceTypeInfo> getInstanceTypesInfo(
-      AmazonEC2 ec2, Set<String> instanceTypesReq) {
+      Ec2Client ec2, Set<String> instanceTypesReq) {
     final List<InstanceTypeInfo> allInstanceTypesInfo = new ArrayList<>();
-    final DescribeInstanceTypesRequest request = new DescribeInstanceTypesRequest();
+    DescribeInstanceTypesRequest request = DescribeInstanceTypesRequest.builder().build();
     while (true) {
-      final DescribeInstanceTypesResult result = ec2.describeInstanceTypes(request);
-      allInstanceTypesInfo.addAll(result.getInstanceTypes());
-      if (result.getNextToken() != null) {
-        request.withNextToken(result.getNextToken());
+      final DescribeInstanceTypesResponse result = ec2.describeInstanceTypes(request);
+      allInstanceTypesInfo.addAll(result.instanceTypes());
+      if (result.nextToken() != null) {
+        request = request.toBuilder().nextToken(result.nextToken()).build();
       } else {
         break;
       }
     }
 
     return allInstanceTypesInfo.stream()
-        .filter(info -> instanceTypesReq.contains(info.getInstanceType()))
+        .filter(info -> instanceTypesReq.contains(info.instanceTypeAsString()))
         .collect(Collectors.toList());
   }
 

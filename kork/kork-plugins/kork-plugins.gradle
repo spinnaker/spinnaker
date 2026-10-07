@@ -41,7 +41,7 @@ dependencies {
   testImplementation("org.mockito:mockito-core")
   testImplementation "org.spockframework:spock-core"
   testImplementation "org.springframework.boot:spring-boot-starter-test"
-  testImplementation("org.wiremock:wiremock-jetty12:3.10.0")
+  testImplementation("org.wiremock:wiremock-jetty12:3.13.2")
 
   testRuntimeOnly "cglib:cglib-nodep"
   testRuntimeOnly "org.objenesis:objenesis"
@@ -56,7 +56,7 @@ detekt {
   // detekt scans test code (i.e. src/test/java and src/test/kotlin) by default.
   // See https://detekt.github.io/detekt/changelog.html#notable-changes-2 and
   // https://github.com/detekt/detekt/pull/3649.
-  input = files(
+  source.setFrom(
     "src/main/java",
     "src/main/kotlin"
   )

@@ -16,11 +16,12 @@
 
 package com.netflix.spinnaker.clouddriver.aws.deploy.ops
 
-import com.amazonaws.AmazonServiceException
-import com.amazonaws.services.ec2.AmazonEC2
-import com.amazonaws.services.ec2.model.DeleteSecurityGroupRequest
-import com.amazonaws.services.ec2.model.DescribeSecurityGroupsResult
-import com.amazonaws.services.ec2.model.SecurityGroup
+import software.amazon.awssdk.awscore.exception.AwsErrorDetails
+import software.amazon.awssdk.services.ec2.Ec2Client
+import software.amazon.awssdk.services.ec2.model.DeleteSecurityGroupRequest
+import software.amazon.awssdk.services.ec2.model.DescribeSecurityGroupsResponse
+import software.amazon.awssdk.services.ec2.model.Ec2Exception
+import software.amazon.awssdk.services.ec2.model.SecurityGroup
 import com.netflix.spinnaker.clouddriver.aws.deploy.ops.securitygroup.DeleteSecurityGroupAtomicOperation
 import com.netflix.spinnaker.clouddriver.aws.security.AmazonClientProvider
 import com.netflix.spinnaker.clouddriver.aws.security.NetflixAmazonCredentials
@@ -37,7 +38,7 @@ class DeleteSecurityGroupAtomicOperationSpec extends Specification {
     getName() >> ACCOUNT
   }
 
-  def ec2 = Mock(AmazonEC2)
+  def ec2 = Mock(Ec2Client)
   def amazonClientProvider = Mock(AmazonClientProvider)
 
   Task task = new DefaultTask("task1")
@@ -55,13 +56,11 @@ class DeleteSecurityGroupAtomicOperationSpec extends Specification {
     op.operate([])
 
     then:
-    1 * amazonClientProvider.getAmazonEC2(credz, 'us-east-1', true) >> ec2
-    1 * ec2.describeSecurityGroups() >> new DescribeSecurityGroupsResult(
-            securityGroups: [
-                    new SecurityGroup(groupName: "foo", groupId: "123")
-            ]
-    )
-    1 * ec2.deleteSecurityGroup(new DeleteSecurityGroupRequest(groupId: '123'))
+    1 * amazonClientProvider.getAmazonEC2V2(credz, 'us-east-1') >> ec2
+    1 * ec2.describeSecurityGroups() >> DescribeSecurityGroupsResponse.builder().securityGroups([
+                    SecurityGroup.builder().groupName("foo").groupId("123").build()
+            ]).build()
+    1 * ec2.deleteSecurityGroup(DeleteSecurityGroupRequest.builder().groupId('123').build())
     0 * _
 
     and:
@@ -82,14 +81,12 @@ class DeleteSecurityGroupAtomicOperationSpec extends Specification {
     op.operate([])
 
     then:
-    1 * amazonClientProvider.getAmazonEC2(credz, 'us-east-1', true) >> ec2
-    1 * ec2.describeSecurityGroups() >> new DescribeSecurityGroupsResult(
-            securityGroups: [
-                    new SecurityGroup(groupName: "foo", groupId: "123", vpcId: null),
-                    new SecurityGroup(groupName: "foo", groupId: "456", vpcId: "vpc1")
-            ]
-    )
-    1 * ec2.deleteSecurityGroup(new DeleteSecurityGroupRequest(groupId: '123'))
+    1 * amazonClientProvider.getAmazonEC2V2(credz, 'us-east-1') >> ec2
+    1 * ec2.describeSecurityGroups() >> DescribeSecurityGroupsResponse.builder().securityGroups([
+                    SecurityGroup.builder().groupName("foo").groupId("123").vpcId(null).build(),
+                    SecurityGroup.builder().groupName("foo").groupId("456").vpcId("vpc1").build()
+            ]).build()
+    1 * ec2.deleteSecurityGroup(DeleteSecurityGroupRequest.builder().groupId('123').build())
     0 * _
 
     and:
@@ -110,14 +107,12 @@ class DeleteSecurityGroupAtomicOperationSpec extends Specification {
     op.operate([])
 
     then:
-    1 * amazonClientProvider.getAmazonEC2(credz, 'us-east-1', true) >> ec2
-    1 * ec2.describeSecurityGroups() >> new DescribeSecurityGroupsResult(
-            securityGroups: [
-                    new SecurityGroup(groupName: "foo", groupId: "123", vpcId: null),
-                    new SecurityGroup(groupName: "foo", groupId: "456", vpcId: "vpc1")
-            ]
-    )
-    1 * ec2.deleteSecurityGroup(new DeleteSecurityGroupRequest(groupId: '456'))
+    1 * amazonClientProvider.getAmazonEC2V2(credz, 'us-east-1') >> ec2
+    1 * ec2.describeSecurityGroups() >> DescribeSecurityGroupsResponse.builder().securityGroups([
+                    SecurityGroup.builder().groupName("foo").groupId("123").vpcId(null).build(),
+                    SecurityGroup.builder().groupName("foo").groupId("456").vpcId("vpc1").build()
+            ]).build()
+    1 * ec2.deleteSecurityGroup(DeleteSecurityGroupRequest.builder().groupId('456').build())
     0 * _
 
     and:
@@ -138,10 +133,8 @@ class DeleteSecurityGroupAtomicOperationSpec extends Specification {
     op.operate([])
 
     then:
-    1 * amazonClientProvider.getAmazonEC2(credz, 'us-east-1', true) >> ec2
-    1 * ec2.describeSecurityGroups() >> new DescribeSecurityGroupsResult(
-            securityGroups: []
-    )
+    1 * amazonClientProvider.getAmazonEC2V2(credz, 'us-east-1') >> ec2
+    1 * ec2.describeSecurityGroups() >> DescribeSecurityGroupsResponse.builder().securityGroups([]).build()
     0 * _
 
     and:
@@ -161,12 +154,10 @@ class DeleteSecurityGroupAtomicOperationSpec extends Specification {
       op.operate([])
 
       then:
-      1 * amazonClientProvider.getAmazonEC2(credz, 'us-east-1', true) >> ec2
-      1 * ec2.describeSecurityGroups() >> new DescribeSecurityGroupsResult(
-              securityGroups: [
-                      new SecurityGroup(groupName: "bar", groupId: "123", vpcId: null)
-              ]
-      )
+      1 * amazonClientProvider.getAmazonEC2V2(credz, 'us-east-1') >> ec2
+      1 * ec2.describeSecurityGroups() >> DescribeSecurityGroupsResponse.builder().securityGroups([
+                      SecurityGroup.builder().groupName("bar").groupId("123").vpcId(null).build()
+              ]).build()
       0 * _
 
       and:
@@ -186,12 +177,10 @@ class DeleteSecurityGroupAtomicOperationSpec extends Specification {
     op.operate([])
 
     then:
-    1 * amazonClientProvider.getAmazonEC2(credz, 'us-east-1', true) >> ec2
-    1 * ec2.describeSecurityGroups() >> new DescribeSecurityGroupsResult(
-            securityGroups: [
-                    new SecurityGroup(groupName: "foo", groupId: "123", vpcId: null)
-            ]
-    )
+    1 * amazonClientProvider.getAmazonEC2V2(credz, 'us-east-1') >> ec2
+    1 * ec2.describeSecurityGroups() >> DescribeSecurityGroupsResponse.builder().securityGroups([
+                    SecurityGroup.builder().groupName("foo").groupId("123").vpcId(null).build()
+            ]).build()
     0 * _
 
     and:
@@ -211,16 +200,15 @@ class DeleteSecurityGroupAtomicOperationSpec extends Specification {
       op.operate([])
 
       then:
-      1 * amazonClientProvider.getAmazonEC2(credz, 'us-east-1', true) >> ec2
-      1 * ec2.describeSecurityGroups() >> new DescribeSecurityGroupsResult(
-              securityGroups: [
-                      new SecurityGroup(groupName: "foo", groupId: "123", vpcId: null)
-              ]
-      )
-      1 * ec2.deleteSecurityGroup(new DeleteSecurityGroupRequest(groupId: '123')) >> {
-          def e = new AmazonServiceException("The security group '123' does not exist")
-          e.errorCode = "InvalidGroup.NotFound"
-          throw e
+      1 * amazonClientProvider.getAmazonEC2V2(credz, 'us-east-1') >> ec2
+      1 * ec2.describeSecurityGroups() >> DescribeSecurityGroupsResponse.builder().securityGroups([
+                      SecurityGroup.builder().groupName("foo").groupId("123").vpcId(null).build()
+              ]).build()
+      1 * ec2.deleteSecurityGroup(DeleteSecurityGroupRequest.builder().groupId('123').build()) >> {
+          throw Ec2Exception.builder()
+            .message("The security group '123' does not exist")
+            .awsErrorDetails(AwsErrorDetails.builder().errorCode("InvalidGroup.NotFound").errorMessage("The security group '123' does not exist").build())
+            .build()
       }
       0 * _
 
@@ -242,19 +230,18 @@ class DeleteSecurityGroupAtomicOperationSpec extends Specification {
       op.operate([])
 
       then:
-      thrown(AmazonServiceException)
+      thrown(Ec2Exception)
 
       and:
-      1 * amazonClientProvider.getAmazonEC2(credz, 'us-east-1', true) >> ec2
-      1 * ec2.describeSecurityGroups() >> new DescribeSecurityGroupsResult(
-              securityGroups: [
-                      new SecurityGroup(groupName: "foo", groupId: "123", vpcId: null)
-              ]
-      )
-      1 * ec2.deleteSecurityGroup(new DeleteSecurityGroupRequest(groupId: '123')) >> {
-          def e = new AmazonServiceException("No idea what happened here, but you should know about it!")
-          e.errorCode = "Something.Seriously.BAD"
-          throw e
+      1 * amazonClientProvider.getAmazonEC2V2(credz, 'us-east-1') >> ec2
+      1 * ec2.describeSecurityGroups() >> DescribeSecurityGroupsResponse.builder().securityGroups([
+                      SecurityGroup.builder().groupName("foo").groupId("123").vpcId(null).build()
+              ]).build()
+      1 * ec2.deleteSecurityGroup(DeleteSecurityGroupRequest.builder().groupId('123').build()) >> {
+          throw Ec2Exception.builder()
+            .message("No idea what happened here, but you should know about it!")
+            .awsErrorDetails(AwsErrorDetails.builder().errorCode("Something.Seriously.BAD").errorMessage("No idea what happened here, but you should know about it!").build())
+            .build()
       }
       0 * _
 

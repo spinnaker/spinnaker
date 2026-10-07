@@ -16,21 +16,21 @@
 
 package com.netflix.spinnaker.clouddriver.aws.model
 
-import com.amazonaws.services.cloudwatch.model.Datapoint
-import com.amazonaws.services.cloudwatch.model.GetMetricStatisticsResult
+import software.amazon.awssdk.services.cloudwatch.model.Datapoint
+import software.amazon.awssdk.services.cloudwatch.model.GetMetricStatisticsResponse
 import spock.lang.Specification
 
 class AmazonMetricStatisticsSpec extends Specification {
 
   void "should sort metrics by timestamp"() {
     given:
-    GetMetricStatisticsResult amazonResult = new GetMetricStatisticsResult()
-    .withDatapoints(
-        new Datapoint().withTimestamp(new Date(4)).withAverage(3.0),
-        new Datapoint().withTimestamp(new Date(0)).withAverage(1.0),
-        new Datapoint().withTimestamp(new Date(1)).withAverage(2.0),
-        new Datapoint().withTimestamp(new Date(3)).withAverage(1.0)
-    )
+    GetMetricStatisticsResponse amazonResult = GetMetricStatisticsResponse.builder()
+    .datapoints(
+        Datapoint.builder().timestamp(new Date(4).toInstant()).average(3.0).build(),
+        Datapoint.builder().timestamp(new Date(0).toInstant()).average(1.0).build(),
+        Datapoint.builder().timestamp(new Date(1).toInstant()).average(2.0).build(),
+        Datapoint.builder().timestamp(new Date(3).toInstant()).average(1.0).build()
+    ).build()
     when:
     AmazonMetricStatistics result = AmazonMetricStatistics.from(amazonResult)
 
@@ -41,14 +41,14 @@ class AmazonMetricStatisticsSpec extends Specification {
 
   void "should add any statistics provided by datapoints"() {
     given:
-    GetMetricStatisticsResult amazonResult = new GetMetricStatisticsResult()
-        .withDatapoints(
-        new Datapoint().withTimestamp(new Date(0)).withAverage(3.0),
-        new Datapoint().withTimestamp(new Date(1)).withMaximum(1.0),
-        new Datapoint().withTimestamp(new Date(2)).withMinimum(2.0),
-        new Datapoint().withTimestamp(new Date(3)).withSampleCount(1.0),
-        new Datapoint().withTimestamp(new Date(3)).withSum(6.0)
-    )
+    GetMetricStatisticsResponse amazonResult = GetMetricStatisticsResponse.builder()
+        .datapoints(
+        Datapoint.builder().timestamp(new Date(0).toInstant()).average(3.0).build(),
+        Datapoint.builder().timestamp(new Date(1).toInstant()).maximum(1.0).build(),
+        Datapoint.builder().timestamp(new Date(2).toInstant()).minimum(2.0).build(),
+        Datapoint.builder().timestamp(new Date(3).toInstant()).sampleCount(1.0).build(),
+        Datapoint.builder().timestamp(new Date(3).toInstant()).sum(6.0).build()
+    ).build()
     when:
     AmazonMetricStatistics result = AmazonMetricStatistics.from(amazonResult)
 
@@ -62,13 +62,13 @@ class AmazonMetricStatisticsSpec extends Specification {
 
   void "should add unit from first datapoint"() {
     given:
-    GetMetricStatisticsResult amazonResult = new GetMetricStatisticsResult()
-        .withDatapoints(
-        new Datapoint().withTimestamp(new Date(4)).withAverage(3.0).withUnit("hectares"),
-        new Datapoint().withTimestamp(new Date(0)).withAverage(1.0).withUnit("stone"),
-        new Datapoint().withTimestamp(new Date(1)).withAverage(2.0).withUnit("siriometers"),
-        new Datapoint().withTimestamp(new Date(3)).withAverage(1.0).withUnit("metric ounces")
-    )
+    GetMetricStatisticsResponse amazonResult = GetMetricStatisticsResponse.builder()
+        .datapoints(
+        Datapoint.builder().timestamp(new Date(4).toInstant()).average(3.0).unit("hectares").build(),
+        Datapoint.builder().timestamp(new Date(0).toInstant()).average(1.0).unit("stone").build(),
+        Datapoint.builder().timestamp(new Date(1).toInstant()).average(2.0).unit("siriometers").build(),
+        Datapoint.builder().timestamp(new Date(3).toInstant()).average(1.0).unit("metric ounces").build()
+    ).build()
     when:
     AmazonMetricStatistics result = AmazonMetricStatistics.from(amazonResult)
 

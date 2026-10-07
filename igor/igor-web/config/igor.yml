@@ -14,7 +14,9 @@ spinnaker:
     # https://github.com/spinnaker/igor/blob/master/igor-core/src/main/java/com/netflix/spinnaker/igor/IgorConfigurationProperties.java#L92
     itemUpperThreshold: 1000
 
-spring.jackson.serialization.write_dates_as_timestamps: false
+# Jackson 3 moved WRITE_DATES_AS_TIMESTAMPS from SerializationFeature to
+# DateTimeFeature; the old serialization key no longer binds (hard startup failure).
+spring.jackson.datatype.datetime.write-dates-as-timestamps: false
 
 server.port: 8088
 

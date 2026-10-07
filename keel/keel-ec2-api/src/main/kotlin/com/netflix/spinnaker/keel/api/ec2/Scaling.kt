@@ -44,11 +44,7 @@ data class TargetTrackingPolicy(
   val targetValue: Double,
   val disableScaleIn: Boolean = false,
   val predefinedMetricSpec: PredefinedMetricSpecification? = null,
-  val customMetricSpec: CustomizedMetricSpecification? = null,
-  @Description("Applies only to Titus clusters")
-  val scaleOutCooldown: Duration? = null,
-  @Description("Applies only to Titus clusters")
-  val scaleInCooldown: Duration? = null
+  val customMetricSpec: CustomizedMetricSpecification? = null
 ) : ScalingPolicy() {
   init {
     require(customMetricSpec != null || predefinedMetricSpec != null) {
@@ -70,8 +66,6 @@ data class TargetTrackingPolicy(
     if (disableScaleIn != other.disableScaleIn) return false
     if (predefinedMetricSpec != other.predefinedMetricSpec) return false
     if (customMetricSpec != other.customMetricSpec) return false
-    if (scaleOutCooldown != other.scaleOutCooldown) return false
-    if (scaleInCooldown != other.scaleInCooldown) return false
 
     return true
   }
@@ -82,8 +76,6 @@ data class TargetTrackingPolicy(
     result = 31 * result + disableScaleIn.hashCode()
     result = 31 * result + predefinedMetricSpec.hashCode()
     result = 31 * result + customMetricSpec.hashCode()
-    result = 31 * result + scaleOutCooldown.hashCode()
-    result = 31 * result + scaleInCooldown.hashCode()
     return result
   }
 }

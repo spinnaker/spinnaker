@@ -24,8 +24,8 @@ import lombok.extern.slf4j.Slf4j;
  * <p>This agent just indexes the server groups that exist to find clusters that should be removed
  * and causes them to be evicted.
  *
- * <p>This class is abstract to allow for an AWS and Titus subclass to handle the differentiation in
- * cache key parsing, globbing, and construction but otherwise the logic is the same across both
+ * <p>This class is abstract to allow for provider-specific subclasses to handle the differentiation
+ * in cache key parsing, globbing, and construction but otherwise the logic is the same across
  * providers.
  */
 @Slf4j

@@ -3,8 +3,6 @@ buildscript {
         mavenCentral()
     }
     dependencies {
-        // Apache 2.0, https://github.com/ozimov/embedded-redis#license
-        classpath 'it.ozimov:embedded-redis:0.7.2'
         classpath 'com.github.docker-java:docker-java:3.1.0-rc-5'
     }
 }
@@ -13,7 +11,7 @@ buildscript {
 import com.github.dockerjava.api.model.ExposedPort
 import com.github.dockerjava.api.model.Ports
 import com.github.dockerjava.core.DockerClientBuilder
-import redis.embedded.RedisServer
+import com.github.dockerjava.core.command.PullImageResultCallback
 
 sourceSets {
     integrationTest {
@@ -52,19 +50,24 @@ int getOpenPort(String service) {
 //noinspection GroovyAssignabilityCheck
 task startEmbeddedRedis() {
     group 'Application'
-    description 'Starts an embedded Redis server on an open port.'
+    description 'Starts an embedded Valkey server on an open port.'
 
     doLast {
         def redisPort = getOpenPort("Redis")
-        String redisBinPath = getRequiredSystemProp('redis.path')
-        File redisBin = new File(redisBinPath)
-        if (!redisBin.exists()) {
-            //noinspection GroovyAssignabilityCheck
-            throw new GradleScriptException("The redis executable at '${redisBinPath}' did not exist")
-        }
-        def redisServer = new RedisServer(redisBin, redisPort)
-        redisServer.start()
-        startEmbeddedRedis.ext.redisServer = redisServer
+        def dockerClient = DockerClientBuilder.getInstance().build()
+
+        dockerClient.pullImageCmd("valkey/valkey:8").exec(new PullImageResultCallback()).awaitCompletion()
+
+        def portBindings = new Ports()
+        portBindings.bind(ExposedPort.tcp(6379), Ports.Binding.bindPort(redisPort))
+
+        def container = dockerClient.createContainerCmd("valkey/valkey:8")
+                .withExposedPorts(ExposedPort.tcp(6379))
+                .withPortBindings(portBindings)
+                .exec()
+        dockerClient.startContainerCmd(container.getId()).exec()
+        startEmbeddedRedis.ext.dockerClient = dockerClient
+        startEmbeddedRedis.ext.container = container
         startEmbeddedRedis.ext.redisPort = redisPort
     }
 }
@@ -73,10 +76,10 @@ task startEmbeddedRedis() {
 task stopEmbeddedRedis() {
     dependsOn startEmbeddedRedis
     group 'Application'
-    description 'Stops the embedded Redis server.'
+    description 'Stops the embedded Valkey server.'
 
     doLast {
-        startEmbeddedRedis.ext.redisServer.stop()
+        startEmbeddedRedis.ext.dockerClient.stopContainerCmd(startEmbeddedRedis.ext.container.getId()).exec()
     }
 }
 
@@ -117,15 +120,6 @@ task stopGraphite() {
     doLast {
         startGraphite.ext.dockerClient.stopContainerCmd(startGraphite.ext.container.getId()).exec()
     }
-}
-
-@SuppressWarnings("GrMethodMayBeStatic")
-String getRequiredSystemProp(String key) {
-    String value = System.getProperty(key)
-    if (value == null || value == "") {
-        throw new IllegalStateException("The system property ${key} was not supplied to the gradle script via a -D param".toString())
-    }
-    return value
 }
 
 @SuppressWarnings("GrMethodMayBeStatic")

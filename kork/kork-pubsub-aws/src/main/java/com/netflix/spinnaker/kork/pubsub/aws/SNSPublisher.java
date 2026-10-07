@@ -44,7 +44,7 @@ public class SNSPublisher implements PubsubPublisher {
 
   private final ARN topicARN;
   private final RetrySupport retrySupport;
-  private Counter successCounter;
+  private final Counter successCounter;
 
   public SNSPublisher(
       AmazonPubsubProperties.AmazonPubsubSubscription subscription,

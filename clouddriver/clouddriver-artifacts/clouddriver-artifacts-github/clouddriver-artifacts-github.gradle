@@ -1,6 +1,8 @@
 dependencies {
   implementation "com.squareup.okhttp3:okhttp"
+  implementation "io.spinnaker.kork:kork-github"
 
+  testImplementation testFixtures("io.spinnaker.kork:kork-github")
   testImplementation "commons-io:commons-io"
   testImplementation "org.springframework.boot:spring-boot-starter-test"
 }

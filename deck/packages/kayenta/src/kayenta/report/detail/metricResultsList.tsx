@@ -1,7 +1,7 @@
 import classNames from 'classnames';
 import * as React from 'react';
-import type { Dispatch } from 'react-redux';
 import { connect } from 'react-redux';
+import type { Dispatch } from 'redux';
 
 import * as Creators from '../../actions/creators';
 import type { MetricClassificationLabel } from '../../domain';
@@ -111,7 +111,7 @@ const mapStateToProps = (state: ICanaryState): IResultsListStateProps => ({
 });
 
 const mapDispatchToProps = (
-  dispatch: Dispatch<ICanaryState>,
+  dispatch: Dispatch,
   ownProps: IResultsListOwnProps,
 ): IResultsListOwnProps & IResultsListDispatchProps => ({
   select: (metricId: string) => dispatch(Creators.selectReportMetric({ metricId })),

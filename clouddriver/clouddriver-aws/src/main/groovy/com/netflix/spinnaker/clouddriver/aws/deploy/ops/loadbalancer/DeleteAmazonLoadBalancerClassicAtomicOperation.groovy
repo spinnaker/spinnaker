@@ -16,7 +16,7 @@
 
 package com.netflix.spinnaker.clouddriver.aws.deploy.ops.loadbalancer
 
-import com.amazonaws.services.elasticloadbalancing.model.DeleteLoadBalancerRequest
+import software.amazon.awssdk.services.elasticloadbalancing.model.DeleteLoadBalancerRequest
 import com.netflix.spinnaker.clouddriver.aws.security.AmazonClientProvider
 import com.netflix.spinnaker.clouddriver.data.task.Task
 import com.netflix.spinnaker.clouddriver.data.task.TaskRepository
@@ -45,8 +45,8 @@ class DeleteAmazonLoadBalancerClassicAtomicOperation implements AtomicOperation<
   Void operate(List priorOutputs) {
     task.updateStatus BASE_PHASE, "Initializing Delete Amazon Load Balancer Classic Operation..."
     for (region in description.regions) {
-      def loadBalancing = amazonClientProvider.getAmazonElasticLoadBalancing(description.credentials, region, true)
-      DeleteLoadBalancerRequest request = new DeleteLoadBalancerRequest(loadBalancerName: description.loadBalancerName)
+      def loadBalancing = amazonClientProvider.getAmazonElasticLoadBalancingClassicV2(description.credentials, region)
+      DeleteLoadBalancerRequest request = DeleteLoadBalancerRequest.builder().loadBalancerName(description.loadBalancerName).build()
       task.updateStatus BASE_PHASE, "Deleting ${description.loadBalancerName} in ${region} for ${description.credentials.name}."
       loadBalancing.deleteLoadBalancer(request)
     }

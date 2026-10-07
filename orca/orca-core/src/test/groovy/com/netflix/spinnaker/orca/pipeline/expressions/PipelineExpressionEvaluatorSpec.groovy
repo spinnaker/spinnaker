@@ -34,6 +34,7 @@ class PipelineExpressionEvaluatorSpec extends Specification {
     ExpressionProperties.FeatureFlag featureFlag = new ExpressionProperties.FeatureFlag()
     featureFlag.setEnabled(true) // arbitrary, the tests here don't care
     getDoNotEvalSpel() >> featureFlag
+    getDashedIdentifiers() >> new ExpressionProperties.FeatureFlag().setEnabled(false)
   }
 
   def 'should set execution aware functions for the given function providers'() {
@@ -89,6 +90,38 @@ class PipelineExpressionEvaluatorSpec extends Specification {
     evaluationSummary.expressionResult.isEmpty()
     evaluationSummary.failureCount == 0
     result.test == '{foo=bar}'
+  }
+
+  def "does not resolve a hyphenated identifier when dashed identifier support is disabled"() {
+    given:
+    def source = [test: '${my-container-name}']
+    PipelineExpressionEvaluator evaluator = new PipelineExpressionEvaluator([], pluginManager, expressionProperties)
+
+    when:
+    ExpressionEvaluationSummary evaluationSummary = new ExpressionEvaluationSummary()
+    def result = evaluator.evaluate(source, ['my-container': 'nginx'], evaluationSummary, true)
+
+    then:
+    result.test == '${my-container-name}'
+    evaluationSummary.failureCount > 0
+  }
+
+  def "resolves a hyphenated identifier as a literal key when dashed identifier support is enabled"() {
+    given:
+    ExpressionProperties enabledExpressionProperties = Mock() {
+      getDoNotEvalSpel() >> new ExpressionProperties.FeatureFlag().setEnabled(true)
+      getDashedIdentifiers() >> new ExpressionProperties.FeatureFlag().setEnabled(true)
+    }
+    def source = [test: '${my-container-name}']
+    PipelineExpressionEvaluator evaluator = new PipelineExpressionEvaluator([], pluginManager, enabledExpressionProperties)
+
+    when:
+    ExpressionEvaluationSummary evaluationSummary = new ExpressionEvaluationSummary()
+    def result = evaluator.evaluate(source, ['my-container-name': 'nginx'], evaluationSummary, true)
+
+    then:
+    result.test == 'nginx'
+    evaluationSummary.failureCount == 0
   }
 
   static ExpressionFunctionProvider buildExpressionFunctionProvider(String providerName) {

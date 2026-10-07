@@ -18,12 +18,11 @@ package com.netflix.spinnaker.cats.test
 
 import com.netflix.spinnaker.cats.agent.Agent
 import com.netflix.spinnaker.cats.agent.AgentExecution
-import com.netflix.spinnaker.cats.agent.AgentLock
 import com.netflix.spinnaker.cats.agent.AgentScheduler
 import com.netflix.spinnaker.cats.agent.ExecutionInstrumentation
 import com.netflix.spinnaker.cats.module.CatsModuleAware
 
-class TestScheduler extends CatsModuleAware implements AgentScheduler<AgentLock> {
+class TestScheduler extends CatsModuleAware implements AgentScheduler {
     Collection<Scheduled> scheduled = []
 
     @Override

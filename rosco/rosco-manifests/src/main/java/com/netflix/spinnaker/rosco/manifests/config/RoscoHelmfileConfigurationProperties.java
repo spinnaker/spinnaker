@@ -23,4 +23,16 @@ import org.springframework.boot.context.properties.ConfigurationProperties;
 @Data
 public class RoscoHelmfileConfigurationProperties {
   private String executablePath = "helmfile";
+
+  /**
+   * Helmfile supports `hooks:` (events such as `prepare`/`cleanup`, which run even for the
+   * otherwise side-effect-free `helmfile template` command) and `postRenderers:` (also settable via
+   * `helmDefaults.args`/per-release `args` containing `--post-renderer`/ `--post-renderer-args`),
+   * both of which have helmfile execute an arbitrary local command/script as part of baking.
+   * Because the helmfile.yaml content baked here is supplied as an input artifact - and so may not
+   * be as trusted as the pipeline that references it (e.g. a git branch anyone can push to) - rosco
+   * refuses to bake helmfile content that declares either feature unless this is explicitly set to
+   * true. Only enable this for helmfile sources you trust as much as the code they deploy.
+   */
+  private boolean allowHooksAndPostRenderers = false;
 }

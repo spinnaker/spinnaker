@@ -16,14 +16,15 @@
 
 package com.netflix.spinnaker.clouddriver.aws.deploy.ops
 
-import com.amazonaws.AmazonServiceException
-import com.amazonaws.services.cloudformation.AmazonCloudFormation
-import com.amazonaws.services.cloudformation.model.*
 import com.netflix.spinnaker.clouddriver.aws.TestCredential
 import com.netflix.spinnaker.clouddriver.aws.deploy.description.DeleteCloudFormationChangeSetDescription
 import com.netflix.spinnaker.clouddriver.aws.security.AmazonClientProvider
 import com.netflix.spinnaker.clouddriver.data.task.Task
 import com.netflix.spinnaker.clouddriver.data.task.TaskRepository
+import software.amazon.awssdk.awscore.exception.AwsServiceException
+import software.amazon.awssdk.services.cloudformation.CloudFormationClient
+import software.amazon.awssdk.services.cloudformation.model.DeleteChangeSetRequest
+import software.amazon.awssdk.services.cloudformation.model.DeleteChangeSetResponse
 import spock.lang.Specification
 
 class DeleteCloudFormationChangeSetAtomicOperationSpec extends Specification {
@@ -34,8 +35,7 @@ class DeleteCloudFormationChangeSetAtomicOperationSpec extends Specification {
   void "should build a DeleteChangeSetRequest and submit through aws client"() {
     given:
     def amazonClientProvider = Mock(AmazonClientProvider)
-    def amazonCloudFormation = Mock(AmazonCloudFormation)
-    def deleteChangeSetResult = Mock(DeleteChangeSetResult)
+    def cloudFormationClient = Mock(CloudFormationClient)
     def op = new DeleteCloudFormationChangeSetAtomicOperation(
       new DeleteCloudFormationChangeSetDescription(
         [
@@ -52,18 +52,18 @@ class DeleteCloudFormationChangeSetAtomicOperationSpec extends Specification {
     op.operate([])
 
     then:
-    1 * amazonClientProvider.getAmazonCloudFormation(_, _) >> amazonCloudFormation
-    1 * amazonCloudFormation.deleteChangeSet(_) >> { DeleteChangeSetRequest request ->
-      assert request.getStackName() == "stackTest"
-      assert request.getChangeSetName() == "changeSetName"
-      deleteChangeSetResult
+    1 * amazonClientProvider.getAmazonCloudFormationV2(_, _) >> cloudFormationClient
+    1 * cloudFormationClient.deleteChangeSet(_ as DeleteChangeSetRequest) >> { DeleteChangeSetRequest request ->
+      assert request.stackName() == "stackTest"
+      assert request.changeSetName() == "changeSetName"
+      DeleteChangeSetResponse.builder().build()
     }
   }
 
   void "should propagate exceptions when deleting the change set"() {
     given:
     def amazonClientProvider = Mock(AmazonClientProvider)
-    def amazonCloudFormation = Mock(AmazonCloudFormation)
+    def cloudFormationClient = Mock(CloudFormationClient)
     def op = new DeleteCloudFormationChangeSetAtomicOperation(
       new DeleteCloudFormationChangeSetDescription(
         [
@@ -75,22 +75,16 @@ class DeleteCloudFormationChangeSetAtomicOperationSpec extends Specification {
       )
     )
     op.amazonClientProvider = amazonClientProvider
-    def exception = new AmazonServiceException("error")
+    def exception = AwsServiceException.builder().message("error").build()
 
     when:
-    try {
-      op.operate([])
-    }
-    catch (Exception e) {
-      e instanceof AmazonServiceException
-    }
+    op.operate([])
 
     then:
-    1 * amazonClientProvider.getAmazonCloudFormation(_, _) >> amazonCloudFormation
-    1 * amazonCloudFormation.deleteChangeSet(_) >> {
+    1 * amazonClientProvider.getAmazonCloudFormationV2(_, _) >> cloudFormationClient
+    1 * cloudFormationClient.deleteChangeSet(_ as DeleteChangeSetRequest) >> {
       throw exception
     }
+    thrown(AwsServiceException)
   }
-
-
 }

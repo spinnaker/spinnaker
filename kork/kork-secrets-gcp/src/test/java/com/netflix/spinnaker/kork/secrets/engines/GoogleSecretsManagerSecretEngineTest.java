@@ -36,9 +36,9 @@ public class GoogleSecretsManagerSecretEngineTest {
   private GoogleSecretsManagerSecretEngine googleSecretsManagerSecretEngine =
       new GoogleSecretsManagerSecretEngine();
 
-  private final SecretPayload minioAccessKeyId =
+  private final SecretPayload objectStoreAccessKeyId =
       SecretPayload.newBuilder()
-          .setData(ByteString.copyFromUtf8("{\"minioAccessKeyId\":\"minioadmin\"}"))
+          .setData(ByteString.copyFromUtf8("{\"objectStoreAccessKeyId\":\"object-store-admin\"}"))
           .build();
 
   private final SecretPayload binarySecretValue =
@@ -52,7 +52,7 @@ public class GoogleSecretsManagerSecretEngineTest {
           .build();
 
   private final SecretPayload kvSecretValue =
-      SecretPayload.newBuilder().setData(ByteString.copyFromUtf8("minioadmin")).build();
+      SecretPayload.newBuilder().setData(ByteString.copyFromUtf8("object-store-admin")).build();
 
   private final SecretPayload plaintextSecretValue =
       SecretPayload.newBuilder().setData(ByteString.copyFromUtf8("my-k8s-v2-account-name")).build();
@@ -66,11 +66,12 @@ public class GoogleSecretsManagerSecretEngineTest {
   public void decryptStringWithKey() {
     EncryptedSecret kvSecret =
         EncryptedSecret.parse(
-            "encrypted:google-secrets-manager!p:824069899151!s:spinnaker-store!k:minioAccessKeyId");
-    doReturn(minioAccessKeyId)
+            "encrypted:google-secrets-manager!p:824069899151!s:spinnaker-store!k:objectStoreAccessKeyId");
+    doReturn(objectStoreAccessKeyId)
         .when(googleSecretsManagerSecretEngine)
         .getSecretPayload(any(), any(), any());
-    assertArrayEquals("minioadmin".getBytes(), googleSecretsManagerSecretEngine.decrypt(kvSecret));
+    assertArrayEquals(
+        "object-store-admin".getBytes(), googleSecretsManagerSecretEngine.decrypt(kvSecret));
   }
 
   @Test
@@ -89,7 +90,7 @@ public class GoogleSecretsManagerSecretEngineTest {
   public void decryptFileWithKey() {
     EncryptedSecret kvSecret =
         EncryptedSecret.parse(
-            "encryptedFile:google-secrets-manager!p:824069899151!s:spinnaker-store!k:minioAccessKeyId");
+            "encryptedFile:google-secrets-manager!p:824069899151!s:spinnaker-store!k:objectStoreAccessKeyId");
     doReturn(kvSecretValue)
         .when(googleSecretsManagerSecretEngine)
         .getSecretPayload(any(), any(), any());
@@ -126,7 +127,7 @@ public class GoogleSecretsManagerSecretEngineTest {
   public void decryptStringWithBinaryResult() {
     EncryptedSecret kvSecret =
         EncryptedSecret.parse(
-            "encrypted:google-secrets-manager!p:824069899151!s:spinnaker-store!k:minioAccessKeyId");
+            "encrypted:google-secrets-manager!p:824069899151!s:spinnaker-store!k:objectStoreAccessKeyId");
     doReturn(binarySecretValue)
         .when(googleSecretsManagerSecretEngine)
         .getSecretPayload(any(), any(), any());

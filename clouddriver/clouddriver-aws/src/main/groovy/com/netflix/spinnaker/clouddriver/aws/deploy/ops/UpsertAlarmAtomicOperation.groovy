@@ -16,8 +16,7 @@
 
 package com.netflix.spinnaker.clouddriver.aws.deploy.ops
 
-import com.amazonaws.services.cloudwatch.model.Dimension
-import com.amazonaws.services.cloudwatch.model.PutMetricAlarmRequest
+import software.amazon.awssdk.services.cloudwatch.model.Dimension
 import com.netflix.spinnaker.clouddriver.aws.deploy.description.UpsertAlarmDescription
 import com.netflix.spinnaker.clouddriver.aws.security.AmazonClientProvider
 import com.netflix.spinnaker.clouddriver.aws.services.IdGenerator
@@ -44,7 +43,7 @@ class UpsertAlarmAtomicOperation implements AtomicOperation<Map<String, String>>
 
     if (description.asgName) {
       description.dimensions = description.dimensions ?: []
-      description.dimensions.add(new Dimension(name: "AutoScalingGroupName", value: description.asgName))
+      description.dimensions.add(Dimension.builder().name("AutoScalingGroupName").value(description.asgName).build())
     }
 
     final previousUpsertScalingPolicyResult = (UpsertScalingPolicyResult) priorOutputs.reverse().find {
@@ -56,7 +55,7 @@ class UpsertAlarmAtomicOperation implements AtomicOperation<Map<String, String>>
     }
 
     def request = description.buildRequest()
-    def cloudWatch = amazonClientProvider.getCloudWatch(description.credentials, description.region, true)
+    def cloudWatch = amazonClientProvider.getAmazonCloudWatchV2(description.credentials, description.region)
     cloudWatch.putMetricAlarm(request)
 
     [alarmName: description.name.toString()]

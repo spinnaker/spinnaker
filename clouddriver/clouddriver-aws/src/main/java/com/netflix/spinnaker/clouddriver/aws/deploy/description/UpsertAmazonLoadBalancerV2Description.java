@@ -16,11 +16,11 @@
 
 package com.netflix.spinnaker.clouddriver.aws.deploy.description;
 
-import com.amazonaws.services.elasticloadbalancingv2.model.*;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
+import software.amazon.awssdk.services.elasticloadbalancingv2.model.*;
 
 public class UpsertAmazonLoadBalancerV2Description extends UpsertAmazonLoadBalancerDescription {
   public List<Listener> listeners = new ArrayList<>();
@@ -151,18 +151,20 @@ public class UpsertAmazonLoadBalancerV2Description extends UpsertAmazonLoadBalan
     }
 
     public Boolean compare(
-        com.amazonaws.services.elasticloadbalancingv2.model.TargetGroup awsTargetGroup) {
-      return this.name.equals(awsTargetGroup.getTargetGroupName())
-          && this.protocol.toString().equals(awsTargetGroup.getProtocol())
-          && this.port.equals(awsTargetGroup.getPort())
-          && this.healthCheckProtocol.toString().equals(awsTargetGroup.getHealthCheckProtocol())
-          && this.healthCheckPath.equals(awsTargetGroup.getHealthCheckPath())
-          && this.healthCheckPort.equals(awsTargetGroup.getHealthCheckPort())
-          && this.healthCheckInterval.equals(awsTargetGroup.getHealthCheckIntervalSeconds())
-          && this.healthCheckTimeout.equals(awsTargetGroup.getHealthCheckTimeoutSeconds())
-          && this.healthyThreshold.equals(awsTargetGroup.getHealthyThresholdCount())
-          && this.unhealthyThreshold.equals(awsTargetGroup.getUnhealthyThresholdCount())
-          && this.healthCheckMatcher.equals(awsTargetGroup.getMatcher().getHttpCode());
+        software.amazon.awssdk.services.elasticloadbalancingv2.model.TargetGroup awsTargetGroup) {
+      return this.name.equals(awsTargetGroup.targetGroupName())
+          && this.protocol.toString().equals(awsTargetGroup.protocolAsString())
+          && this.port.equals(awsTargetGroup.port())
+          && this.healthCheckProtocol
+              .toString()
+              .equals(awsTargetGroup.healthCheckProtocolAsString())
+          && this.healthCheckPath.equals(awsTargetGroup.healthCheckPath())
+          && this.healthCheckPort.equals(awsTargetGroup.healthCheckPort())
+          && this.healthCheckInterval.equals(awsTargetGroup.healthCheckIntervalSeconds())
+          && this.healthCheckTimeout.equals(awsTargetGroup.healthCheckTimeoutSeconds())
+          && this.healthyThreshold.equals(awsTargetGroup.healthyThresholdCount())
+          && this.unhealthyThreshold.equals(awsTargetGroup.unhealthyThresholdCount())
+          && this.healthCheckMatcher.equals(awsTargetGroup.matcher().httpCode());
     }
   }
 
@@ -223,10 +225,10 @@ public class UpsertAmazonLoadBalancerV2Description extends UpsertAmazonLoadBalan
     }
 
     public Boolean compare(
-        com.amazonaws.services.elasticloadbalancingv2.model.Listener awsListener,
-        List<com.amazonaws.services.elasticloadbalancingv2.model.Action> actions,
-        List<com.amazonaws.services.elasticloadbalancingv2.model.Rule> existingRules,
-        List<com.amazonaws.services.elasticloadbalancingv2.model.Rule> rules) {
+        software.amazon.awssdk.services.elasticloadbalancingv2.model.Listener awsListener,
+        List<software.amazon.awssdk.services.elasticloadbalancingv2.model.Action> actions,
+        List<software.amazon.awssdk.services.elasticloadbalancingv2.model.Rule> existingRules,
+        List<software.amazon.awssdk.services.elasticloadbalancingv2.model.Rule> rules) {
       if (existingRules == null) {
         existingRules = new ArrayList<>();
       }
@@ -235,19 +237,17 @@ public class UpsertAmazonLoadBalancerV2Description extends UpsertAmazonLoadBalan
       }
 
       int awsCertificateCount =
-          awsListener.getCertificates() != null ? awsListener.getCertificates().size() : 0;
+          awsListener.certificates() != null ? awsListener.certificates().size() : 0;
       int certificateCount = certificates != null ? certificates.size() : 0;
       Boolean certificatesSame = awsCertificateCount == certificateCount;
       if (certificatesSame) {
         Set<String> awsListenerArns = new HashSet<>();
         Set<String> thisListenerArns = new HashSet<>();
-        if (awsListener.getCertificates() != null) {
-          awsListener
-              .getCertificates()
-              .forEach(cert -> awsListenerArns.add(cert.getCertificateArn()));
+        if (awsListener.certificates() != null) {
+          awsListener.certificates().forEach(cert -> awsListenerArns.add(cert.certificateArn()));
         }
         if (certificates != null) {
-          certificates.forEach(cert -> thisListenerArns.add(cert.getCertificateArn()));
+          certificates.forEach(cert -> thisListenerArns.add(cert.certificateArn()));
         }
         certificatesSame = awsListenerArns.equals(thisListenerArns);
       }
@@ -256,15 +256,15 @@ public class UpsertAmazonLoadBalancerV2Description extends UpsertAmazonLoadBalan
           existingRules.size()
               == rules.size() + 1; // existing rules has the default rule, rules does not
       if (rulesSame) {
-        for (com.amazonaws.services.elasticloadbalancingv2.model.Rule existingRule :
+        for (software.amazon.awssdk.services.elasticloadbalancingv2.model.Rule existingRule :
             existingRules) {
           boolean match = true;
           if (!existingRule.isDefault()) {
             match = false;
-            for (com.amazonaws.services.elasticloadbalancingv2.model.Rule rule : rules) {
-              if (existingRule.getActions().equals(rule.getActions())
-                  && existingRule.getConditions().equals(rule.getConditions())
-                  && existingRule.getPriority().equals(rule.getPriority())) {
+            for (software.amazon.awssdk.services.elasticloadbalancingv2.model.Rule rule : rules) {
+              if (existingRule.actions().equals(rule.actions())
+                  && existingRule.conditions().equals(rule.conditions())
+                  && existingRule.priority().equals(rule.priority())) {
                 match = true;
                 break;
               }
@@ -278,11 +278,12 @@ public class UpsertAmazonLoadBalancerV2Description extends UpsertAmazonLoadBalan
       }
 
       Boolean actionsSame =
-          awsListener.getDefaultActions().containsAll(actions)
-              && actions.containsAll(awsListener.getDefaultActions());
+          awsListener.defaultActions().containsAll(actions)
+              && actions.containsAll(awsListener.defaultActions());
 
-      return (this.protocol != null && this.protocol.toString().equals(awsListener.getProtocol()))
-          && (this.port != null && this.port.equals(awsListener.getPort()))
+      return (this.protocol != null
+              && this.protocol.toString().equals(awsListener.protocolAsString()))
+          && (this.port != null && this.port.equals(awsListener.port()))
           && actionsSame
           && rulesSame
           && certificatesSame;
@@ -290,7 +291,7 @@ public class UpsertAmazonLoadBalancerV2Description extends UpsertAmazonLoadBalan
   }
 
   public static class Action {
-    private String type = ActionTypeEnum.Forward.toString();
+    private String type = ActionTypeEnum.FORWARD.toString();
     private String targetGroupName;
     private AuthenticateOidcActionConfig authenticateOidcActionConfig;
 

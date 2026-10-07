@@ -17,7 +17,7 @@
 package com.netflix.spinnaker.clouddriver.aws.provider.agent
 
 
-import com.amazonaws.services.ec2.model.DescribeInstancesRequest
+import software.amazon.awssdk.services.ec2.model.DescribeInstancesRequest
 import com.fasterxml.jackson.annotation.JsonCreator
 import com.fasterxml.jackson.annotation.JsonProperty
 import com.fasterxml.jackson.core.JsonGenerator
@@ -272,7 +272,7 @@ class ReservationReportCachingAgent implements CachingAgent, CustomScheduledAgen
         long startTime = System.currentTimeMillis()
 
         try {
-          def amazonEC2 = amazonClientProvider.getAmazonEC2(credentials, region.name)
+          def amazonEC2 = amazonClientProvider.getAmazonEC2V2(credentials, region.name)
           def cacheView = getCacheView()
           def reservedInstances = cacheView.getAll(
             RESERVED_INSTANCES.ns,
@@ -295,37 +295,37 @@ class ReservationReportCachingAgent implements CachingAgent, CustomScheduledAgen
 
           startTime = System.currentTimeMillis()
           def fetchedInstanceCount = 0
-          def describeInstancesRequest = new DescribeInstancesRequest().withMaxResults(500)
+          def describeInstancesRequest = DescribeInstancesRequest.builder().maxResults(500).build()
           def allowedStates = ["pending", "running"] as Set<String>
           while (true) {
             log.debug("Describing instances for ${credentials.name}/${region.name}")
             def result = amazonEC2.describeInstances(describeInstancesRequest)
             log.debug("Described instances for ${credentials.name}/${region.name}")
 
-            result.reservations.each {
-              it.getInstances().each {
-                if (!allowedStates.contains(it.state.name.toLowerCase())) {
+            result.reservations().each {
+              it.instances().each {
+                if (!allowedStates.contains(it.state().nameAsString().toLowerCase())) {
                   return
                 }
 
-                def osTypeName = operatingSystemType(it.platform ? "Windows" : "Linux/UNIX").name
-                def reservation = getReservation(it.placement.availabilityZone[0..-2], it.placement.availabilityZone, osTypeName, it.instanceType)
+                def osTypeName = operatingSystemType(it.platform() ? "Windows" : "Linux/UNIX").name
+                def reservation = getReservation(it.placement().availabilityZone()[0..-2], it.placement().availabilityZone(), osTypeName, it.instanceTypeAsString())
                 reservation.totalUsed.incrementAndGet()
 
-                if (it.vpcId) {
+                if (it.vpcId()) {
                   reservation.getAccount(credentials.name).usedVpc.incrementAndGet()
                 } else {
                   reservation.getAccount(credentials.name).used.incrementAndGet()
                 }
               }
 
-              fetchedInstanceCount += it.getInstances().size()
+              fetchedInstanceCount += it.instances().size()
             }
 
-            log.debug("Fetched ${fetchedInstanceCount} instances in ${credentials.name}/${region.name} (nextToken: ${result.nextToken})")
+            log.debug("Fetched ${fetchedInstanceCount} instances in ${credentials.name}/${region.name} (nextToken: ${result.nextToken()})")
 
-            if (result.nextToken) {
-              describeInstancesRequest.withNextToken(result.nextToken)
+            if (result.nextToken()) {
+              describeInstancesRequest = describeInstancesRequest.toBuilder().nextToken(result.nextToken()).build()
             } else {
               break
             }

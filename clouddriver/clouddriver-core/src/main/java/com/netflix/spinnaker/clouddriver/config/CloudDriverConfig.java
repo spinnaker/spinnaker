@@ -17,8 +17,10 @@
 package com.netflix.spinnaker.clouddriver.config;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
+import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.Module;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.SerializationFeature;
 import com.fasterxml.jackson.datatype.jdk8.Jdk8Module;
 import com.fasterxml.jackson.datatype.joda.JodaModule;
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
@@ -117,9 +119,9 @@ import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnExpression;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
-import org.springframework.boot.autoconfigure.jackson.Jackson2ObjectMapperBuilderCustomizer;
 import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
+import org.springframework.boot.jackson2.autoconfigure.Jackson2ObjectMapperBuilderCustomizer;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -166,6 +168,9 @@ class CloudDriverConfig {
       jacksonObjectMapperBuilder.serializationInclusion(JsonInclude.Include.NON_NULL);
       jacksonObjectMapperBuilder.failOnEmptyBeans(false);
       jacksonObjectMapperBuilder.failOnUnknownProperties(false);
+      jacksonObjectMapperBuilder.featuresToDisable(
+          SerializationFeature.WRITE_DATE_TIMESTAMPS_AS_NANOSECONDS,
+          DeserializationFeature.READ_DATE_TIMESTAMPS_AS_NANOSECONDS);
       jacksonObjectMapperBuilder.modules(modules);
     };
   }

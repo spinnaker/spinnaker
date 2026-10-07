@@ -38,7 +38,7 @@ class SelectableServiceSpec extends Specification {
         priority: 1,
         config: [altApiEbabled: false],
         parameters: [
-          new Parameter("cloudProvider", ["aws", "titus"]),
+          new Parameter("cloudProvider", ["aws", "ecs"]),
           new Parameter("authenticatedUser", ["regex:.+@netflix.com\$"])
         ]
       ),
@@ -73,10 +73,10 @@ class SelectableServiceSpec extends Specification {
       new Parameter(name: "authenticatedUser", values: ["bob@company.com"])
     ]                                                                         || [cores: 10, altApiEbabled: true]   ||  altBakeryService
 
-    [new Parameter(name: "cloudProvider", values: ["titus"])]                 || [cores: 10]                        ||  bakery
+    [new Parameter(name: "cloudProvider", values: ["ecs"])]                 || [cores: 10]                        ||  bakery
 
     [
-      new Parameter(name: "cloudProvider", values: ["titus"]),
+      new Parameter(name: "cloudProvider", values: ["ecs"]),
       new Parameter(name: "authenticatedUser", values: ["blah@netflix.com"])
     ]                                                                         || [cores: 10, altApiEbabled: false]  ||  bakery
 

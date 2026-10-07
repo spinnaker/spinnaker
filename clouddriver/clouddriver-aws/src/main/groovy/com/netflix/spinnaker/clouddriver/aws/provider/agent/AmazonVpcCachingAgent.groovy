@@ -16,7 +16,7 @@
 
 package com.netflix.spinnaker.clouddriver.aws.provider.agent
 
-import com.amazonaws.services.ec2.model.Vpc
+import software.amazon.awssdk.services.ec2.model.Vpc
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.netflix.spinnaker.cats.agent.AccountAware
 import com.netflix.spinnaker.cats.agent.AgentDataType
@@ -81,12 +81,12 @@ class AmazonVpcCachingAgent implements CachingAgent, AccountAware {
   @Override
   CacheResult loadData(ProviderCache providerCache) {
     log.info("Describing items in ${agentType}")
-    def ec2 = amazonClientProvider.getAmazonEC2(account, region)
-    def vpcs = ec2.describeVpcs().vpcs
+    def ec2 = amazonClientProvider.getAmazonEC2V2(account, region)
+    def vpcs = ec2.describeVpcs().vpcs()
 
     List<CacheData> data = vpcs.collect { Vpc vpc ->
       Map<String, Object> attributes = objectMapper.convertValue(vpc, AwsInfrastructureProvider.ATTRIBUTES)
-      new DefaultCacheData(Keys.getVpcKey(vpc.vpcId, region, account.name),
+      new DefaultCacheData(Keys.getVpcKey(vpc.vpcId(), region, account.name),
         attributes,
         [:])
     }

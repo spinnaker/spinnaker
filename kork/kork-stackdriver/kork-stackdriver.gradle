@@ -32,6 +32,7 @@ dependencies {
 
   // Force component bringing this in to already support spring boot configure.
   compileOnly "org.springframework.boot:spring-boot-autoconfigure"
+  compileOnly "org.springframework.boot:spring-boot-web-server"
 
   testImplementation "org.mockito:mockito-core"
   testImplementation "org.junit.jupiter:junit-jupiter-api"

@@ -22,6 +22,7 @@ export class FilterCollapse extends React.Component<IFilterCollapseProps> {
                 className="btn btn-xs btn-default pin clickable sp-padding-xs"
                 onClick={onToggle}
                 style={{ display: filtersExpanded ? 'none' : 'inherit' }}
+                type="button"
               >
                 <i className="fa fa-forward" />
                 <span className="show-filter-text"> Show filters</span>
@@ -36,6 +37,7 @@ export class FilterCollapse extends React.Component<IFilterCollapseProps> {
                 className="btn btn-xs btn-default unpin clickable sp-margin-s-xaxis sp-margin-2xs-yaxis sp-padding-xs"
                 onClick={onToggle}
                 style={{ display: filtersExpanded ? 'inherit' : 'none' }}
+                type="button"
               >
                 <i className="fa fa-backward" />
               </button>

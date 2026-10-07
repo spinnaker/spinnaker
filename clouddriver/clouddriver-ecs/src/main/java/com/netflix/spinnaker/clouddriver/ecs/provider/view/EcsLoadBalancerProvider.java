@@ -18,7 +18,6 @@ package com.netflix.spinnaker.clouddriver.ecs.provider.view;
 
 import static com.netflix.spinnaker.clouddriver.core.provider.agent.Namespace.TARGET_GROUPS;
 
-import com.amazonaws.services.ecs.model.LoadBalancer;
 import com.google.common.collect.Sets;
 import com.netflix.spinnaker.clouddriver.aws.AmazonCloudProvider;
 import com.netflix.spinnaker.clouddriver.aws.data.ArnUtils;
@@ -40,6 +39,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
+import software.amazon.awssdk.services.ecs.model.LoadBalancer;
 
 @Component
 public class EcsLoadBalancerProvider implements LoadBalancerProvider<EcsLoadBalancer> {
@@ -144,8 +144,8 @@ public class EcsLoadBalancerProvider implements LoadBalancerProvider<EcsLoadBala
       String awsAccountName =
           ecsAccountMapper.fromEcsAccountNameToAwsAccountName(service.getAccount());
       for (LoadBalancer loadBalancer : service.getLoadBalancers()) {
-        if (loadBalancer.getTargetGroupArn() != null) {
-          String tgArn = loadBalancer.getTargetGroupArn();
+        if (loadBalancer.targetGroupArn() != null) {
+          String tgArn = loadBalancer.targetGroupArn();
           String keyPrefix =
               String.format(
                   "%s:%s:%s:%s:%s:",

@@ -17,9 +17,9 @@ package com.netflix.spinnaker.igor.config;
 
 import com.netflix.spinnaker.fiat.model.resources.Permissions;
 import jakarta.validation.Valid;
+import jakarta.validation.constraints.NotEmpty;
 import java.util.ArrayList;
 import java.util.List;
-import org.hibernate.validator.constraints.NotEmpty;
 import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.validation.annotation.Validated;
 

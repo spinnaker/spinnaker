@@ -16,7 +16,12 @@
 
 package com.netflix.spinnaker.clouddriver.aws.deploy.ops.dns
 
-import com.amazonaws.services.route53.model.*
+import software.amazon.awssdk.services.route53.model.Change
+import software.amazon.awssdk.services.route53.model.ChangeAction
+import software.amazon.awssdk.services.route53.model.ChangeBatch
+import software.amazon.awssdk.services.route53.model.ChangeResourceRecordSetsRequest
+import software.amazon.awssdk.services.route53.model.ResourceRecord
+import software.amazon.awssdk.services.route53.model.ResourceRecordSet
 import com.netflix.spinnaker.clouddriver.aws.security.AmazonClientProvider
 import com.netflix.spinnaker.clouddriver.data.task.Task
 import com.netflix.spinnaker.clouddriver.data.task.TaskRepository
@@ -52,14 +57,18 @@ class UpsertAmazonDNSAtomicOperation implements AtomicOperation<UpsertAmazonDNSR
       description.target = priorElb.loadBalancers?.values()?.getAt(0)?.dnsName
     }
 
-    def route53 = amazonClientProvider.getAmazonRoute53(description.credentials, null, true)
-    def hostedZone = route53.listHostedZones().hostedZones.find { it.name == description.hostedZoneName }
+    def route53 = amazonClientProvider.getAmazonRoute53V2(description.credentials, null)
+    def hostedZone = route53.listHostedZones().hostedZones().find { it.name() == description.hostedZoneName }
 
-    def recordSet = new ResourceRecordSet(description.name, description.type)
-      .withResourceRecords(new ResourceRecord(description.target)).withTTL(60)
-    def change = new Change(action: ChangeAction.UPSERT, resourceRecordSet: recordSet)
-    def batch = new ChangeBatch([change])
-    def request = new ChangeResourceRecordSetsRequest(hostedZone.id, batch)
+    def recordSet = ResourceRecordSet.builder()
+      .name(description.name)
+      .type(description.type)
+      .resourceRecords(ResourceRecord.builder().value(description.target).build())
+      .ttl(60L)
+      .build()
+    def change = Change.builder().action(ChangeAction.UPSERT).resourceRecordSet(recordSet).build()
+    def batch = ChangeBatch.builder().changes([change]).build()
+    def request = ChangeResourceRecordSetsRequest.builder().hostedZoneId(hostedZone.id()).changeBatch(batch).build()
 
     task.updateStatus BASE_PHASE, "Upserting record..."
     route53.changeResourceRecordSets(request)

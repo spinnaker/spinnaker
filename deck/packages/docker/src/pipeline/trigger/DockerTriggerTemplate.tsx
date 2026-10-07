@@ -30,7 +30,7 @@ export class DockerTriggerTemplate extends React.Component<
   ITriggerTemplateComponentProps,
   IDockerTriggerTemplateState
 > {
-  private queryStream = new Subject();
+  private queryStream = new Subject<void>();
   private subscription: Subscription;
   private tagRequest: AbortController;
 

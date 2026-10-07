@@ -13,10 +13,15 @@ on:
         required: true
       spinnaker-previous-version:
         description: Override the previous version used for changelog generation (picks the last patch version if unset)
+      publish-api-docs:
+        description: Publish Gate's OpenAPI spec to the docs site? Only set true for the most current release.
+        type: boolean
+        required: true
 permissions:
   id-token: write
   contents: write
   packages: write
+  attestations: write
 
 jobs:
   check-preconditions:
@@ -94,30 +99,11 @@ jobs:
       version-override: ${{ needs.version.outputs.version }}
   deck:
     needs: version
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/create-github-app-token@v3
-        id: app-token
-        with:
-          app-id: ${{ secrets.RELEASE_APP_ID }}
-          private-key: ${{ secrets.RELEASE_PRIVATE_KEY }}
-
-
-      - name: Trigger Deck Release
-        uses: actions/github-script@v8
-        with:
-          github-token: ${{ steps.app-token.outputs.token }}
-          script: |
-            await github.rest.actions.createWorkflowDispatch({
-              owner: context.repo.owner,
-              repo: context.repo.repo,
-              workflow_id: 'deck.yml',
-              ref: '${{ github.ref_name }}',
-              inputs: {
-                'publish-debs': true,
-                'version-override': '${{ needs.version.outputs.version }}'
-              }
-            });
+    uses: ./.github/workflows/deck.yml
+    secrets: inherit
+    with:
+      publish-debs: true
+      version-override: ${{ needs.version.outputs.version }}
   echo:
     needs: version
     uses: ./.github/workflows/echo.yml
@@ -217,3 +203,4 @@ jobs:
       add-to-versions-yml: ${{ inputs.add-to-versions-yml }}
       spinnaker-version: ${{ inputs.spinnaker-version }}
       spinnaker-previous-version: ${{ inputs.spinnaker-previous-version }}
+      publish-api-docs: ${{ inputs.publish-api-docs }}

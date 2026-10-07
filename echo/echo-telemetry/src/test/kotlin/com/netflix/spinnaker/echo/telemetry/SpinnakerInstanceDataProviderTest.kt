@@ -23,6 +23,9 @@ import com.netflix.spinnaker.echo.api.events.Metadata
 import com.netflix.spinnaker.echo.config.TelemetryConfig.TelemetryConfigProps
 import com.netflix.spinnaker.kork.proto.stats.DeploymentMethod
 import com.netflix.spinnaker.kork.proto.stats.Event as StatsEvent
+import com.netflix.spinnaker.kork.version.ServiceVersion
+import io.mockk.every
+import io.mockk.mockk
 import org.junit.jupiter.api.Assumptions.assumeTrue
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
@@ -37,12 +40,16 @@ class SpinnakerInstanceDataProviderTest {
 
   private lateinit var config: TelemetryConfigProps
 
+  private lateinit var serviceVersion: ServiceVersion
+
   private lateinit var dataProvider: SpinnakerInstanceDataProvider
 
   @BeforeEach
   fun setUp() {
     config = TelemetryConfigProps()
-    dataProvider = SpinnakerInstanceDataProvider(config, InstanceIdSupplier(config, null))
+    serviceVersion = mockk()
+    every { serviceVersion.resolve() } returns "resolved.version.from.manifest"
+    dataProvider = SpinnakerInstanceDataProvider(config, InstanceIdSupplier(config, null), serviceVersion)
   }
 
   @Test
@@ -68,6 +75,16 @@ class SpinnakerInstanceDataProviderTest {
     expectThat(result.spinnakerInstance.version).isEqualTo(config.spinnakerVersion)
     expectThat(result.spinnakerInstance.deploymentMethod.type).isEqualTo(DeploymentMethod.Type.HALYARD)
     expectThat(result.spinnakerInstance.deploymentMethod.version).isEqualTo(config.deploymentMethod.version)
+  }
+
+  @Test
+  fun `falls back to resolved service version when spinnakerVersion is not configured`() {
+    val echoEvent = createLoggableEvent()
+    val statsEventInput = StatsEvent.getDefaultInstance()
+
+    val result = dataProvider.populateData(echoEvent, statsEventInput)
+
+    expectThat(result.spinnakerInstance.version).isEqualTo("resolved.version.from.manifest")
   }
 
   @ParameterizedTest

@@ -84,6 +84,8 @@ class StartStageHandler(
           log.warn("Tried to start stage ${stage.id} but something upstream had failed (executionId: ${message.executionId})")
           queue.push(CompleteExecution(message))
         } else if (stage.allUpstreamStagesComplete()) {
+          // guard to prevent this start stage from being processed multiple times. Only
+          // process it if the status is NOT_STARTED
           if (stage.status != NOT_STARTED) {
             log.warn("Ignoring $message as stage is already ${stage.status}")
           } else if (stage.shouldSkip()) {
@@ -97,6 +99,10 @@ class StartStageHandler(
                 // Set the startTime in case we throw an exception.
                 stage.startTime = clock.millis()
                 stage.plan()
+
+                // StartTask handler (or downstream logic) would see the stage is still NOT_STARTED instead
+                // of RUNNING, which could cause it to be treated as not yet started or behave unexpectedly.
+                // Hence marking it as running and persisting it in the db here before we call stage.start().
                 stage.status = RUNNING
                 repository.storeStage(stage)
 
@@ -110,6 +116,10 @@ class StartStageHandler(
                   val attempts = message.getAttribute<AttemptsAttribute>()?.attempts ?: 0
                   log.warn("Error planning ${stage.type} stage for ${message.executionType}[${message.executionId}] (attempts: $attempts)")
 
+                  // Reset status to NOT_STARTED so the retried StartStage message
+                  // isn't silently dropped by the status != NOT_STARTED guard above.
+                  stage.status = NOT_STARTED
+                  repository.storeStage(stage)
                   message.setAttribute(MaxAttemptsAttribute(40))
                   queue.push(message, retryDelay)
                 } else {
@@ -130,16 +140,23 @@ class StartStageHandler(
         }
 
       } catch (e: Exception) {
-        log.error("Error running ${stage.type}[${stage.id}] stage for ${message.executionType}[${message.executionId}]", e)
-
-        stage.apply {
-          val exceptionDetails = exceptionHandlers.shouldRetry(e, stage.name)
-          context["exception"] = exceptionDetails
-          context["beforeStagePlanningFailed"] = true
+        val exceptionDetails = exceptionHandlers.shouldRetry(e, stage.name)
+        if (exceptionDetails?.shouldRetry == true) {
+          log.warn("Transient error in ${stage.type}[${stage.id}] stage for ${message.executionType}[${message.executionId}], will be retried via ack-timeout", e)
+          // Reset status to NOT_STARTED via SQL (works even when Redis is down)
+          // so the ack-timeout retried message isn't dropped by the status guard.
+          stage.status = NOT_STARTED
+          repository.storeStage(stage)
+          throw e
+        } else {
+          log.error("Error running ${stage.type}[${stage.id}] stage for ${message.executionType}[${message.executionId}]", e)
+          stage.apply {
+            context["exception"] = exceptionDetails
+            context["beforeStagePlanningFailed"] = true
+          }
+          repository.storeStage(stage)
+          queue.push(CompleteStage(message))
         }
-
-        repository.storeStage(stage)
-        queue.push(CompleteStage(message))
       }
     }
   }

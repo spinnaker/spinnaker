@@ -15,6 +15,7 @@ import {
 } from '@spinnaker/core';
 import { DockerImageReader } from '@spinnaker/docker';
 
+import { normalizeEcsDockerImage } from '../../dockerImage.util';
 import type {
   IEcsContainerMapping,
   IEcsDockerImage,
@@ -41,6 +42,26 @@ interface ITaskDefinitionState {
   loadBalancedContainer: string;
   evaluateTaskDefinitionArtifactExpressions: boolean;
 }
+
+const getEcsTaskDefinitionViewModel = (
+  cmd: IEcsServerGroupCommand,
+): Omit<ITaskDefinitionState, 'dockerRegistryAccounts' | 'selectedDockerAccount'> => {
+  const containerMappings = cmd.containerMappings || [];
+  const targetGroupMappings = cmd.targetGroupMappings || [];
+  return {
+    taskDefArtifact: cmd.taskDefinitionArtifact,
+    taskDefArtifactAccount: cmd.taskDefinitionArtifactAccount,
+    containerMappings,
+    targetGroupMappings,
+    dockerImages: cmd.backingData?.filtered?.images || [],
+    targetGroupsAvailable: uniq([
+      ...(cmd.backingData?.filtered?.targetGroups || []),
+      ...targetGroupMappings.map((mapping) => mapping.targetGroup).filter(Boolean),
+    ]),
+    loadBalancedContainer: cmd.loadBalancedContainer || containerMappings[0]?.containerName || '',
+    evaluateTaskDefinitionArtifactExpressions: cmd.evaluateTaskDefinitionArtifactExpressions,
+  };
+};
 
 export class TaskDefinition extends React.Component<ITaskDefinitionProps, ITaskDefinitionState> {
   constructor(props: ITaskDefinitionProps) {
@@ -107,28 +128,15 @@ export class TaskDefinition extends React.Component<ITaskDefinitionProps, ITaskD
     this.props.command.backingData.filtered.images = [];
     this.setState({ selectedDockerAccount: account, dockerImages: [] });
     DockerImageReader.findImages({ provider: 'dockerRegistry', account, count: 50 }).then((images) => {
-      const ecsImages = images as IEcsDockerImage[];
+      const ecsImages = images.map((image) => normalizeEcsDockerImage(image));
       this.props.command.backingData.filtered.images = ecsImages;
       this.setState({ dockerImages: ecsImages });
     });
   };
 
   public componentDidUpdate() {
-    const cmd = this.props.command;
-    const containerMappings = cmd.containerMappings || [];
-    const targetGroupMappings = cmd.targetGroupMappings || [];
     const nextState: ITaskDefinitionState = {
-      taskDefArtifact: cmd.taskDefinitionArtifact,
-      taskDefArtifactAccount: cmd.taskDefinitionArtifactAccount,
-      containerMappings,
-      targetGroupMappings,
-      dockerImages: cmd.backingData?.filtered?.images || [],
-      targetGroupsAvailable: uniq([
-        ...(cmd.backingData?.filtered?.targetGroups || []),
-        ...targetGroupMappings.map((mapping) => mapping.targetGroup).filter(Boolean),
-      ]),
-      loadBalancedContainer: cmd.loadBalancedContainer || containerMappings[0]?.containerName || '',
-      evaluateTaskDefinitionArtifactExpressions: cmd.evaluateTaskDefinitionArtifactExpressions,
+      ...getEcsTaskDefinitionViewModel(this.props.command),
       dockerRegistryAccounts: this.state.dockerRegistryAccounts,
       selectedDockerAccount: this.state.selectedDockerAccount,
     };
@@ -305,7 +313,7 @@ export class TaskDefinition extends React.Component<ITaskDefinitionProps, ITaskD
           </td>
           <td data-test-id="Artifacts.containerImage">
             <TetheredSelect
-              inputProps={{ 'aria-label': `Container image ${index + 1}` }}
+              aria-label={`Container image ${index + 1}`}
               placeholder="Select an image to use..."
               options={dockerImageOptions}
               value={mapping.imageDescription.imageId}
@@ -349,7 +357,7 @@ export class TaskDefinition extends React.Component<ITaskDefinitionProps, ITaskD
           </td>
           <td data-test-id="Artifacts.targetGroup">
             <TetheredSelect
-              inputProps={{ 'aria-label': `Target group ${index + 1}` }}
+              aria-label={`Target group ${index + 1}`}
               placeholder="Select a target group to use..."
               options={targetGroupsAvailable}
               value={mapping.targetGroup.toString()}

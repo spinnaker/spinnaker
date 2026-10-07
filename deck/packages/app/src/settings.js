@@ -270,19 +270,17 @@ window.spinnakerSettings = {
         region: 'cn-north-1',
       },
     },
-    kubernetes: {},
+    kubernetes: {
+      defaults: {
+        internalDNSNameTemplate:
+          '{{displayName}}.{{namespace}}.svc.{{account | replace:"-cluster":""}}.custom.cluster.local',
+      },
+    },
     oracle: {
       defaults: {
         account: 'DEFAULT',
         bakeryRegions: ['us-phoenix-1'],
         region: 'us-phoenix-1',
-      },
-    },
-    titus: {
-      defaults: {
-        account: 'titustestvpc',
-        iamProfile: '{{application}}InstanceProfile',
-        region: 'us-east-1',
       },
     },
     tencentcloud: {

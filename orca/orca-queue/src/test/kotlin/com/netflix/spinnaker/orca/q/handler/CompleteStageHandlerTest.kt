@@ -75,6 +75,7 @@ import org.mockito.kotlin.argumentCaptor
 import org.mockito.kotlin.atLeastOnce
 import org.mockito.kotlin.check
 import org.mockito.kotlin.doReturn
+import org.mockito.kotlin.doThrow
 import org.mockito.kotlin.isA
 import org.mockito.kotlin.mock
 import org.mockito.kotlin.never
@@ -84,6 +85,7 @@ import org.mockito.kotlin.times
 import org.mockito.kotlin.verify
 import org.mockito.kotlin.verifyNoMoreInteractions
 import org.mockito.kotlin.whenever
+import redis.clients.jedis.exceptions.JedisConnectionException
 import java.time.Duration.ZERO
 import org.assertj.core.api.Assertions.assertThat
 import org.assertj.core.api.Assertions.fail
@@ -1745,6 +1747,47 @@ object CompleteStageHandlerTest : SubjectSpek<CompleteStageHandler>({
         it("updates the stage status") {
           assertThat(pipeline.stageById(message.stageId).status).isEqualTo(TERMINAL)
         }
+      }
+    }
+  }
+
+  describe("handling transient Redis exceptions") {
+    given("a JedisConnectionException is thrown during startNext()") {
+      val pipeline = pipeline {
+        application = "foo"
+        stage {
+          refId = "1"
+          type = singleTaskStage.type
+          singleTaskStage.plan(this)
+          tasks[0].status = SUCCEEDED
+          status = RUNNING
+        }
+      }
+      val message = CompleteStage(pipeline.stageByRef("1"))
+
+      beforeGroup {
+        whenever(repository.retrieve(PIPELINE, message.executionId)) doReturn pipeline
+        whenever(queue.push(isA<CompleteExecution>())) doThrow JedisConnectionException("Read timed out")
+      }
+
+      afterGroup(::resetMocks)
+
+      var thrownException: Exception? = null
+
+      on("receiving a message") {
+        try {
+          subject.handle(message)
+        } catch (e: Exception) {
+          thrownException = e
+        }
+      }
+
+      it("rethrows the exception so the message is not acked") {
+        assertThat(thrownException).isInstanceOf(JedisConnectionException::class.java)
+      }
+
+      it("restores stage status to the original value") {
+        assertThat(pipeline.stageByRef("1").status).isEqualTo(RUNNING)
       }
     }
   }

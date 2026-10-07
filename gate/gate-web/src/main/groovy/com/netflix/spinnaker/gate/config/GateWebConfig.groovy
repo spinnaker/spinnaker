@@ -126,7 +126,9 @@ public class GateWebConfig implements WebMvcConfigurer {
 
   @Override
   void configureContentNegotiation(ContentNegotiationConfigurer configurer) {
-    configurer.favorPathExtension(false)
+    // favorPathExtension was removed in Spring Framework 7 (path-extension
+    // negotiation is gone); false was already the default, so just drop it.
+    configurer
       .defaultContentType(org.springframework.http.MediaType.APPLICATION_JSON)
       .mediaType("html", org.springframework.http.MediaType.TEXT_HTML)
   }

@@ -105,7 +105,7 @@ class GoogleSecurityGroupCachingAgent extends AbstractGoogleCachingAgent impleme
       identifiers = providerCache.filterIdentifiers(SECURITY_GROUPS.ns, securityGroupKey)
     }
 
-    def cacheResultBuilder = new CacheResultBuilder(startTime: Long.MAX_VALUE)
+    def cacheResultBuilder = new CacheResultBuilder(providedDataTypes, Long.MAX_VALUE)
     CacheResult result = metricsSupport.transformData {
       buildCacheResult(cacheResultBuilder, firewall ? [firewall] : [])
     }
@@ -171,7 +171,7 @@ class GoogleSecurityGroupCachingAgent extends AbstractGoogleCachingAgent impleme
 
   @Override
   CacheResult loadData(ProviderCache providerCache) {
-    def cacheResultBuilder = new CacheResultBuilder(startTime: System.currentTimeMillis())
+    def cacheResultBuilder = new CacheResultBuilder(providedDataTypes, System.currentTimeMillis())
 
     List<Firewall> firewalls = getFirewalls()
     def firewallKeys = firewalls.collect { Keys.getSecurityGroupKey(it.getName(), deriveFirewallId(it), "global", accountName) }

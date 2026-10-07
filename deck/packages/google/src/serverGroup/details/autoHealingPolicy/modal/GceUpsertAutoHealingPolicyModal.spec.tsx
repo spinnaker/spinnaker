@@ -23,15 +23,15 @@ describe('GceUpsertAutoHealingPolicyModal', () => {
   }
 
   it('retains edited policy state when task creation is rejected', async () => {
-    spyOn(GceAutoscalingPolicyWriter, 'upsertAutoHealingPolicy').and.returnValue(
+    vi.spyOn(GceAutoscalingPolicyWriter, 'upsertAutoHealingPolicy').mockReturnValue(
       Promise.reject({ failureMessage: 'No permission' }),
     );
     const modal = new GceUpsertAutoHealingPolicyModal({
       application: { name: 'my-app' },
       serverGroup: { account: 'my-account', name: 'my-app-main-v001', region: 'us-central1' },
       policy: { healthCheck: 'web', initialDelaySec: 300 },
-      closeModal: jasmine.createSpy('closeModal'),
-      dismissModal: jasmine.createSpy('dismissModal'),
+      closeModal: vi.fn(),
+      dismissModal: vi.fn(),
     } as any);
     const editedPolicy = { healthCheck: 'web', initialDelaySec: 0 };
     modal.state.policy = editedPolicy;
@@ -62,16 +62,33 @@ describe('GceUpsertAutoHealingPolicyModal', () => {
     expect(isDisabled({ ...policy, initialDelaySec: 2147483648 })).toBe(true);
   });
 
-  it('validates max unavailable unit, value, and range when configured', () => {
+  it('does not validate legacy max unavailable data retained in permissive input', () => {
     const policy = {
       healthCheck: 'web',
       healthCheckKind: IGceHealthCheckKind.healthCheck,
       initialDelaySec: 0,
     };
 
-    expect(isDisabled({ ...policy, maxUnavailable: { percent: 101 } })).toBe(true);
-    expect(isDisabled({ ...policy, maxUnavailable: { fixed: -1 } })).toBe(true);
-    expect(isDisabled({ ...policy, maxUnavailable: { fixed: 1, percent: 1 } })).toBe(true);
-    expect(isDisabled({ ...policy, maxUnavailable: { fixed: Number.NaN } })).toBe(true);
+    expect(isDisabled({ ...policy, maxUnavailable: { percent: 101 } })).toBe(false);
+    expect(isDisabled({ ...policy, maxUnavailable: { fixed: -1, percent: 1 } })).toBe(false);
+  });
+
+  it('does not hydrate legacy max unavailable data into editable modal state', () => {
+    const modal = new GceUpsertAutoHealingPolicyModal({
+      application,
+      serverGroup,
+      policy: {
+        healthCheck: 'web',
+        healthCheckKind: IGceHealthCheckKind.healthCheck,
+        initialDelaySec: 0,
+        maxUnavailable: { fixed: 2 },
+      } as any,
+    } as any);
+
+    expect(modal.state.policy).toEqual({
+      healthCheck: 'web',
+      healthCheckKind: IGceHealthCheckKind.healthCheck,
+      initialDelaySec: 0,
+    });
   });
 });

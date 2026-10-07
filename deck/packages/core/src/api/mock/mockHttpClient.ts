@@ -1,3 +1,5 @@
+import { expect } from 'vitest';
+
 import type { IHttpClientImplementation } from '../ApiService';
 import type { IExpectBuilder } from './expectedRequest';
 import { ExpectedRequest } from './expectedRequest';
@@ -158,7 +160,7 @@ export class MockHttpClient implements IHttpClientImplementation {
   verifyNoOutstandingExpectation() {
     const outstanding = this.getOutstandingExpectationMessages();
     const message = outstanding.join('\n');
-    expect(outstanding.length).toBe(0, message);
+    expect(outstanding.length, message).toBe(0);
   }
 
   verifyNoOutstandingRequests() {
@@ -171,7 +173,7 @@ export class MockHttpClient implements IHttpClientImplementation {
         ...outstanding.map((request) => `\t- HTTP ${request.verb} ${request.url}`),
       ].join('\n');
 
-      expect(outstanding.length).toBe(0, message);
+      expect(outstanding.length, message).toBe(0);
     }
   }
 
@@ -185,7 +187,7 @@ export class MockHttpClient implements IHttpClientImplementation {
         ...unexpected.map((request) => `\t- HTTP ${request.verb} ${request.url}`),
       ].join('\n');
 
-      expect(unexpected.length).toBe(0, message);
+      expect(unexpected.length, message).toBe(0);
     }
   }
 }

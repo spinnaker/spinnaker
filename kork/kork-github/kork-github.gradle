@@ -1,4 +1,5 @@
 apply plugin: "java-library"
+apply plugin: "java-test-fixtures"
 apply from: "$rootDir/../kotlin.gradle"
 apply from: "$rootDir/gradle/detekt.gradle"
 apply from: "$rootDir/gradle/lombok.gradle"
@@ -25,9 +26,11 @@ dependencies {
   // Logging
   implementation "org.slf4j:slf4j-api"
   implementation "com.google.guava:guava"
+  api "com.google.code.findbugs:jsr305"
 
   // Testing
   testImplementation project(":kork-test")
+  testImplementation "org.wiremock:wiremock"
   testImplementation "org.junit.jupiter:junit-jupiter"
   testImplementation "org.mockito:mockito-core"
   testImplementation "org.mockito:mockito-junit-jupiter"

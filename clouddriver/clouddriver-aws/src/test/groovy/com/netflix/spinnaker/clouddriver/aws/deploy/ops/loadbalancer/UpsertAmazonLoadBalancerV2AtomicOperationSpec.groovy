@@ -16,10 +16,10 @@
 
 package com.netflix.spinnaker.clouddriver.aws.deploy.ops.loadbalancer
 
-import com.amazonaws.services.elasticloadbalancingv2.AmazonElasticLoadBalancing
-import com.amazonaws.services.elasticloadbalancingv2.model.*
-import com.amazonaws.services.shield.AWSShield
-import com.amazonaws.services.shield.model.CreateProtectionRequest
+import software.amazon.awssdk.services.elasticloadbalancingv2.ElasticLoadBalancingV2Client
+import software.amazon.awssdk.services.elasticloadbalancingv2.model.*
+import software.amazon.awssdk.services.shield.ShieldClient
+import software.amazon.awssdk.services.shield.model.CreateProtectionRequest
 import com.netflix.spinnaker.config.AwsConfiguration
 import com.netflix.spinnaker.clouddriver.aws.TestCredential
 import com.netflix.spinnaker.clouddriver.aws.deploy.description.UpsertAmazonLoadBalancerV2Description
@@ -183,16 +183,16 @@ class UpsertAmazonLoadBalancerV2AtomicOperationSpec extends Specification {
 
   def loadBalancerArn = "test:arn"
   def targetGroupArn = "test:target:group:arn"
-  def targetGroup = new TargetGroup(targetGroupArn: targetGroupArn, targetGroupName: targetGroupName, port: 80, protocol: ProtocolEnum.HTTP)
-  def targetGroupOld = new TargetGroup(targetGroupArn: targetGroupArn, targetGroupName: "target-group-foo-existing", port: 80, protocol: ProtocolEnum.HTTP)
-  def loadBalancerOld = new LoadBalancer(loadBalancerName: "foo-main-frontend", loadBalancerArn: loadBalancerArn, type: "application")
-  def loadBalancerAttributes = [new LoadBalancerAttribute().withKey("idle_timeout.timeout_seconds").withValue("60"), new LoadBalancerAttribute().withKey("deletion_protection.enabled").withValue("true")]
+  def targetGroup = TargetGroup.builder().targetGroupArn(targetGroupArn).targetGroupName(targetGroupName).port(80).protocol(ProtocolEnum.HTTP).build()
+  def targetGroupOld = TargetGroup.builder().targetGroupArn(targetGroupArn).targetGroupName("target-group-foo-existing").port(80).protocol(ProtocolEnum.HTTP).build()
+  def loadBalancerOld = LoadBalancer.builder().loadBalancerName("foo-main-frontend").loadBalancerArn(loadBalancerArn).type("application").build()
+  def loadBalancerAttributes = [LoadBalancerAttribute.builder().key("idle_timeout.timeout_seconds").value("60").build(), LoadBalancerAttribute.builder().key("deletion_protection.enabled").value("true").build()]
 
-  AWSShield awsShield = Mock(AWSShield)
-  AmazonElasticLoadBalancing loadBalancing = Mock(AmazonElasticLoadBalancing)
+  ShieldClient awsShield = Mock(ShieldClient)
+  ElasticLoadBalancingV2Client loadBalancing = Mock(ElasticLoadBalancingV2Client)
   def mockAmazonClientProvider = Stub(AmazonClientProvider) {
-    getAmazonElasticLoadBalancingV2(_, _, true) >> loadBalancing
-    getAmazonShield(_, _) >> awsShield
+    getElasticLoadBalancingV2Client(_, _) >> loadBalancing
+    getAmazonShieldV2(_, _) >> awsShield
   }
   def mockSecurityGroupService = Stub(SecurityGroupService) {
     getSecurityGroupIds(["foo"], null) >> ["foo": "sg-1234"]
@@ -230,17 +230,17 @@ class UpsertAmazonLoadBalancerV2AtomicOperationSpec extends Specification {
 
     then:
     1 * mockSubnetAnalyzer.getSubnetIdsForZones(['us-east-1a'], 'internal', SubnetTarget.ELB, 1) >> ["subnet-1"]
-    1 * loadBalancing.describeLoadBalancers(new DescribeLoadBalancersRequest(names: ["foo-main-frontend"])) >>
-      new DescribeLoadBalancersResult(loadBalancers: existingLoadBalancers)
-    1 * loadBalancing.setIpAddressType(new SetIpAddressTypeRequest (loadBalancerArn: loadBalancerArn, ipAddressType: 'ipv4')) >> new SetIpAddressTypeResult(ipAddressType: 'ipv4')
-    1 * loadBalancing.createLoadBalancer(new CreateLoadBalancerRequest(
-      ipAddressType: 'ipv4',
-      name: "foo-main-frontend",
-      subnets: ["subnet-1"],
-      securityGroups: ["sg-1234"],
-      scheme: "internal",
-      type: "application"
-    )) >> new CreateLoadBalancerResult(loadBalancers: [new LoadBalancer(dNSName: "dnsName1", loadBalancerArn: loadBalancerArn, type: "application")])
+    1 * loadBalancing.describeLoadBalancers(DescribeLoadBalancersRequest.builder().names(["foo-main-frontend"]).build()) >>
+      DescribeLoadBalancersResponse.builder().loadBalancers(existingLoadBalancers).build()
+    1 * loadBalancing.setIpAddressType(SetIpAddressTypeRequest.builder().loadBalancerArn(loadBalancerArn).ipAddressType('ipv4').build()) >> SetIpAddressTypeResponse.builder().ipAddressType('ipv4').build()
+    1 * loadBalancing.createLoadBalancer(CreateLoadBalancerRequest.builder()
+      .ipAddressType('ipv4')
+      .name("foo-main-frontend")
+      .subnets(["subnet-1"])
+      .securityGroups(["sg-1234"])
+      .scheme("internal")
+      .type("application")
+      .build()) >> CreateLoadBalancerResponse.builder().loadBalancers([LoadBalancer.builder().dnsName("dnsName1").loadBalancerArn(loadBalancerArn).type("application").build()]).build()
     1 * ingressLoadBalancerBuilder.ingressApplicationLoadBalancerGroup(
       'foo',
       'us-east-1',
@@ -249,16 +249,16 @@ class UpsertAmazonLoadBalancerV2AtomicOperationSpec extends Specification {
       "vpcId",
       { it.toList().sort() == [80, 8080] },
       _) >> new IngressLoadBalancerBuilder.IngressLoadBalancerGroupResult("sg-1234", "kato-elb")
-    1 * loadBalancing.setSecurityGroups(new SetSecurityGroupsRequest(
-      loadBalancerArn: loadBalancerArn,
-      securityGroups: ["sg-1234"]
-    ))
-    1 * loadBalancing.describeTargetGroups(new DescribeTargetGroupsRequest(loadBalancerArn: loadBalancerArn)) >> new DescribeTargetGroupsResult(targetGroups: existingTargetGroups)
-    1 * loadBalancing.createTargetGroup(_ as CreateTargetGroupRequest) >> new CreateTargetGroupResult(targetGroups: [targetGroup])
+    1 * loadBalancing.setSecurityGroups(SetSecurityGroupsRequest.builder()
+      .loadBalancerArn(loadBalancerArn)
+      .securityGroups(["sg-1234"])
+      .build())
+    1 * loadBalancing.describeTargetGroups(DescribeTargetGroupsRequest.builder().loadBalancerArn(loadBalancerArn).build()) >> DescribeTargetGroupsResponse.builder().targetGroups(existingTargetGroups).build()
+    1 * loadBalancing.createTargetGroup(_ as CreateTargetGroupRequest) >> CreateTargetGroupResponse.builder().targetGroups([targetGroup]).build()
     1 * loadBalancing.modifyTargetGroupAttributes(_ as ModifyTargetGroupAttributesRequest)
-    1 * loadBalancing.describeListeners(new DescribeListenersRequest(loadBalancerArn: loadBalancerArn)) >> new DescribeListenersResult(listeners: existingListeners)
-    1 * loadBalancing.createListener(new CreateListenerRequest(loadBalancerArn: loadBalancerArn, port: 80, protocol: "HTTP", defaultActions: [new Action(targetGroupArn: targetGroupArn, type: ActionTypeEnum.Forward, order: 1)]))
-    1 * loadBalancing.describeLoadBalancerAttributes(_) >> [attributes: loadBalancerAttributes]
+    1 * loadBalancing.describeListeners(DescribeListenersRequest.builder().loadBalancerArn(loadBalancerArn).build()) >> DescribeListenersResponse.builder().listeners(existingListeners).build()
+    1 * loadBalancing.createListener(CreateListenerRequest.builder().loadBalancerArn(loadBalancerArn).port(80).protocol("HTTP").defaultActions([Action.builder().targetGroupArn(targetGroupArn).type(ActionTypeEnum.FORWARD).order(1).build()]).build())
+    1 * loadBalancing.describeLoadBalancerAttributes(_) >> DescribeLoadBalancerAttributesResponse.builder().attributes(loadBalancerAttributes).build()
     0 * _
   }
 
@@ -272,19 +272,19 @@ class UpsertAmazonLoadBalancerV2AtomicOperationSpec extends Specification {
     operation.operate([])
 
     then:
-    1 * loadBalancing.describeLoadBalancers(new DescribeLoadBalancersRequest(names: ["foo-main-frontend"])) >>
-      new DescribeLoadBalancersResult(loadBalancers: existingLoadBalancers)
-    1 * loadBalancing.setSecurityGroups(new SetSecurityGroupsRequest(
-      loadBalancerArn: loadBalancerArn,
-      securityGroups: ["sg-1234"]
-    ))
-    1 * loadBalancing.describeTargetGroups(new DescribeTargetGroupsRequest(loadBalancerArn: loadBalancerArn)) >> new DescribeTargetGroupsResult(targetGroups: existingTargetGroups)
-    1 * loadBalancing.createTargetGroup(_ as CreateTargetGroupRequest) >> new CreateTargetGroupResult(targetGroups: [targetGroup])
+    1 * loadBalancing.describeLoadBalancers(DescribeLoadBalancersRequest.builder().names(["foo-main-frontend"]).build()) >>
+      DescribeLoadBalancersResponse.builder().loadBalancers(existingLoadBalancers).build()
+    1 * loadBalancing.setSecurityGroups(SetSecurityGroupsRequest.builder()
+      .loadBalancerArn(loadBalancerArn)
+      .securityGroups(["sg-1234"])
+      .build())
+    1 * loadBalancing.describeTargetGroups(DescribeTargetGroupsRequest.builder().loadBalancerArn(loadBalancerArn).build()) >> DescribeTargetGroupsResponse.builder().targetGroups(existingTargetGroups).build()
+    1 * loadBalancing.createTargetGroup(_ as CreateTargetGroupRequest) >> CreateTargetGroupResponse.builder().targetGroups([targetGroup]).build()
     1 * loadBalancing.modifyTargetGroupAttributes(_ as ModifyTargetGroupAttributesRequest)
-    1 * loadBalancing.describeListeners(new DescribeListenersRequest(loadBalancerArn: loadBalancerArn)) >> new DescribeListenersResult(listeners: existingListeners)
-    1 * loadBalancing.createListener(new CreateListenerRequest(loadBalancerArn: loadBalancerArn, port: 80, protocol: "HTTP", defaultActions: [new Action(targetGroupArn: targetGroupArn, type: ActionTypeEnum.Forward, order: 1)]))
-    1 * loadBalancing.describeLoadBalancerAttributes(_) >> [attributes: loadBalancerAttributes]
-    1 * loadBalancing.setIpAddressType(new SetIpAddressTypeRequest (loadBalancerArn: loadBalancerArn, ipAddressType: 'ipv4')) >> new SetIpAddressTypeResult(ipAddressType: 'ipv4')
+    1 * loadBalancing.describeListeners(DescribeListenersRequest.builder().loadBalancerArn(loadBalancerArn).build()) >> DescribeListenersResponse.builder().listeners(existingListeners).build()
+    1 * loadBalancing.createListener(CreateListenerRequest.builder().loadBalancerArn(loadBalancerArn).port(80).protocol("HTTP").defaultActions([Action.builder().targetGroupArn(targetGroupArn).type(ActionTypeEnum.FORWARD).order(1).build()]).build())
+    1 * loadBalancing.describeLoadBalancerAttributes(_) >> DescribeLoadBalancerAttributesResponse.builder().attributes(loadBalancerAttributes).build()
+    1 * loadBalancing.setIpAddressType(SetIpAddressTypeRequest.builder().loadBalancerArn(loadBalancerArn).ipAddressType('ipv4').build()) >> SetIpAddressTypeResponse.builder().ipAddressType('ipv4').build()
     0 * _
   }
 
@@ -298,25 +298,25 @@ class UpsertAmazonLoadBalancerV2AtomicOperationSpec extends Specification {
     operation.operate([])
 
     then:
-    1 * loadBalancing.describeLoadBalancers(new DescribeLoadBalancersRequest(names: ["foo-main-frontend"])) >>
-      new DescribeLoadBalancersResult(loadBalancers: existingLoadBalancers)
-    1 * loadBalancing.setSecurityGroups(new SetSecurityGroupsRequest(
-      loadBalancerArn: loadBalancerArn,
-      securityGroups: ["sg-1234"]
-    ))
-    1 * loadBalancing.setIpAddressType(new SetIpAddressTypeRequest (loadBalancerArn: loadBalancerArn, ipAddressType: 'ipv4')) >> new SetIpAddressTypeResult(ipAddressType: 'ipv4')
-    1 * loadBalancing.describeTargetGroups(new DescribeTargetGroupsRequest(loadBalancerArn: loadBalancerArn)) >> new DescribeTargetGroupsResult(targetGroups: existingTargetGroups)
-    1 * loadBalancing.createTargetGroup(_ as CreateTargetGroupRequest) >> new CreateTargetGroupResult(targetGroups: [targetGroup])
-    1 * loadBalancing.describeListeners(new DescribeListenersRequest(loadBalancerArn: loadBalancerArn)) >> new DescribeListenersResult(listeners: existingListeners)
-    1 * loadBalancing.createListener(new CreateListenerRequest(loadBalancerArn: loadBalancerArn, port: 80, protocol: "HTTP", defaultActions: [new Action(targetGroupArn: targetGroupArn, type: ActionTypeEnum.Forward, order: 1)]))
-    1 * loadBalancing.describeLoadBalancerAttributes(_) >> [attributes: loadBalancerAttributes]
+    1 * loadBalancing.describeLoadBalancers(DescribeLoadBalancersRequest.builder().names(["foo-main-frontend"]).build()) >>
+      DescribeLoadBalancersResponse.builder().loadBalancers(existingLoadBalancers).build()
+    1 * loadBalancing.setSecurityGroups(SetSecurityGroupsRequest.builder()
+      .loadBalancerArn(loadBalancerArn)
+      .securityGroups(["sg-1234"])
+      .build())
+    1 * loadBalancing.setIpAddressType(SetIpAddressTypeRequest.builder().loadBalancerArn(loadBalancerArn).ipAddressType('ipv4').build()) >> SetIpAddressTypeResponse.builder().ipAddressType('ipv4').build()
+    1 * loadBalancing.describeTargetGroups(DescribeTargetGroupsRequest.builder().loadBalancerArn(loadBalancerArn).build()) >> DescribeTargetGroupsResponse.builder().targetGroups(existingTargetGroups).build()
+    1 * loadBalancing.createTargetGroup(_ as CreateTargetGroupRequest) >> CreateTargetGroupResponse.builder().targetGroups([targetGroup]).build()
+    1 * loadBalancing.describeListeners(DescribeListenersRequest.builder().loadBalancerArn(loadBalancerArn).build()) >> DescribeListenersResponse.builder().listeners(existingListeners).build()
+    1 * loadBalancing.createListener(CreateListenerRequest.builder().loadBalancerArn(loadBalancerArn).port(80).protocol("HTTP").defaultActions([Action.builder().targetGroupArn(targetGroupArn).type(ActionTypeEnum.FORWARD).order(1).build()]).build())
+    1 * loadBalancing.describeLoadBalancerAttributes(_) >> DescribeLoadBalancerAttributesResponse.builder().attributes(loadBalancerAttributes).build()
     1 * loadBalancing.modifyTargetGroupAttributes(_) >> { ModifyTargetGroupAttributesRequest request ->
-      assert request.attributes.find { it.key == 'deregistration_delay.timeout_seconds' }.value == "300"
-      assert request.attributes.find { it.key == 'stickiness.enabled' }.value == "false"
-      assert request.attributes.find { it.key == 'stickiness.type' }.value == "lb_cookie"
-      assert request.attributes.find { it.key == 'stickiness.lb_cookie.duration_seconds' }.value == "86400"
-      assert request.targetGroupArn == "test:target:group:arn"
-      return new ModifyTargetGroupAttributesResult()
+      assert request.attributes().find { it.key() == 'deregistration_delay.timeout_seconds' }.value() == "300"
+      assert request.attributes().find { it.key() == 'stickiness.enabled' }.value() == "false"
+      assert request.attributes().find { it.key() == 'stickiness.type' }.value() == "lb_cookie"
+      assert request.attributes().find { it.key() == 'stickiness.lb_cookie.duration_seconds' }.value() == "86400"
+      assert request.targetGroupArn() == "test:target:group:arn"
+      return ModifyTargetGroupAttributesResponse.builder().build()
     }
     0 * _
   }
@@ -335,26 +335,26 @@ class UpsertAmazonLoadBalancerV2AtomicOperationSpec extends Specification {
     createOperation.operate([])
 
     then:
-    1 * loadBalancing.describeLoadBalancers(new DescribeLoadBalancersRequest(names: ["foo-main-frontend"])) >>
-      new DescribeLoadBalancersResult(loadBalancers: existingLoadBalancers)
-    1 * loadBalancing.setSecurityGroups(new SetSecurityGroupsRequest(
-      loadBalancerArn: loadBalancerArn,
-      securityGroups: ["sg-1234"]
-    ))
-    1 * loadBalancing.describeTargetGroups(new DescribeTargetGroupsRequest(loadBalancerArn: loadBalancerArn)) >> new DescribeTargetGroupsResult(targetGroups: existingTargetGroups)
-    1 * loadBalancing.createTargetGroup(_ as CreateTargetGroupRequest) >> new CreateTargetGroupResult(targetGroups: [targetGroup])
-    1 * loadBalancing.describeListeners(new DescribeListenersRequest(loadBalancerArn: loadBalancerArn)) >> new DescribeListenersResult(listeners: existingListeners)
-    1 * loadBalancing.createListener(new CreateListenerRequest(loadBalancerArn: loadBalancerArn, port: 80, protocol: "HTTP", defaultActions: [new Action(targetGroupArn: targetGroupArn, type: ActionTypeEnum.Forward, order: 1)]))
-    1 * loadBalancing.describeLoadBalancerAttributes(_) >> [attributes: loadBalancerAttributes]
+    1 * loadBalancing.describeLoadBalancers(DescribeLoadBalancersRequest.builder().names(["foo-main-frontend"]).build()) >>
+      DescribeLoadBalancersResponse.builder().loadBalancers(existingLoadBalancers).build()
+    1 * loadBalancing.setSecurityGroups(SetSecurityGroupsRequest.builder()
+      .loadBalancerArn(loadBalancerArn)
+      .securityGroups(["sg-1234"])
+      .build())
+    1 * loadBalancing.describeTargetGroups(DescribeTargetGroupsRequest.builder().loadBalancerArn(loadBalancerArn).build()) >> DescribeTargetGroupsResponse.builder().targetGroups(existingTargetGroups).build()
+    1 * loadBalancing.createTargetGroup(_ as CreateTargetGroupRequest) >> CreateTargetGroupResponse.builder().targetGroups([targetGroup]).build()
+    1 * loadBalancing.describeListeners(DescribeListenersRequest.builder().loadBalancerArn(loadBalancerArn).build()) >> DescribeListenersResponse.builder().listeners(existingListeners).build()
+    1 * loadBalancing.createListener(CreateListenerRequest.builder().loadBalancerArn(loadBalancerArn).port(80).protocol("HTTP").defaultActions([Action.builder().targetGroupArn(targetGroupArn).type(ActionTypeEnum.FORWARD).order(1).build()]).build())
+    1 * loadBalancing.describeLoadBalancerAttributes(_) >> DescribeLoadBalancerAttributesResponse.builder().attributes(loadBalancerAttributes).build()
     1 * loadBalancing.modifyTargetGroupAttributes(_) >> { ModifyTargetGroupAttributesRequest request ->
-      assert request.attributes.find { it.key == 'deregistration_delay.timeout_seconds' }.value == "300"
-      assert request.attributes.find { it.key == 'stickiness.enabled' }.value == "false"
-      assert request.attributes.find { it.key == 'stickiness.type' }.value == "lb_cookie"
-      assert request.attributes.find { it.key == 'stickiness.lb_cookie.duration_seconds' }.value == "86400"
-      assert request.targetGroupArn == "test:target:group:arn"
-      return new ModifyTargetGroupAttributesResult()
+      assert request.attributes().find { it.key() == 'deregistration_delay.timeout_seconds' }.value() == "300"
+      assert request.attributes().find { it.key() == 'stickiness.enabled' }.value() == "false"
+      assert request.attributes().find { it.key() == 'stickiness.type' }.value() == "lb_cookie"
+      assert request.attributes().find { it.key() == 'stickiness.lb_cookie.duration_seconds' }.value() == "86400"
+      assert request.targetGroupArn() == "test:target:group:arn"
+      return ModifyTargetGroupAttributesResponse.builder().build()
     }
-    1 * loadBalancing.setIpAddressType(new SetIpAddressTypeRequest (loadBalancerArn: loadBalancerArn, ipAddressType: 'ipv4')) >> new SetIpAddressTypeResult(ipAddressType: 'ipv4')
+    1 * loadBalancing.setIpAddressType(SetIpAddressTypeRequest.builder().loadBalancerArn(loadBalancerArn).ipAddressType('ipv4').build()) >> SetIpAddressTypeResponse.builder().ipAddressType('ipv4').build()
     0 * _
   }
 
@@ -368,9 +368,9 @@ class UpsertAmazonLoadBalancerV2AtomicOperationSpec extends Specification {
     def existingLoadBalancers = []
     def existingTargetGroups = []
     def existingListeners = []
-    def nlbLoadBalancerAttributes = [new LoadBalancerAttribute().withKey("idle_timeout.timeout_seconds").withValue("60"),
-                                     new LoadBalancerAttribute().withKey("deletion_protection.enabled").withValue("true"),
-                                     new LoadBalancerAttribute().withKey("load_balancing.cross_zone.enabled").withValue("false")]
+    def nlbLoadBalancerAttributes = [LoadBalancerAttribute.builder().key("idle_timeout.timeout_seconds").value("60").build(),
+                                     LoadBalancerAttribute.builder().key("deletion_protection.enabled").value("true").build(),
+                                     LoadBalancerAttribute.builder().key("load_balancing.cross_zone.enabled").value("false").build()]
 
     nlbDescription.vpcId = 'vpcId'
 
@@ -379,16 +379,16 @@ class UpsertAmazonLoadBalancerV2AtomicOperationSpec extends Specification {
 
     then:
     1 * mockSubnetAnalyzer.getSubnetIdsForZones(['us-east-1a'], 'internal', SubnetTarget.ELB, 1) >> ["subnet-1"]
-    1 * loadBalancing.describeLoadBalancers(new DescribeLoadBalancersRequest(names: ["foo-main-frontend"])) >>
-      new DescribeLoadBalancersResult(loadBalancers: existingLoadBalancers)
-    1 * loadBalancing.setIpAddressType(new SetIpAddressTypeRequest (loadBalancerArn: loadBalancerArn, ipAddressType: 'ipv4')) >> new SetIpAddressTypeResult(ipAddressType: 'ipv4')
-    1 * loadBalancing.createLoadBalancer(new CreateLoadBalancerRequest(
-      ipAddressType: 'ipv4',
-      name: "foo-main-frontend",
-      subnets: ["subnet-1"],
-      scheme: "internal",
-      type: "network"
-    )) >> new CreateLoadBalancerResult(loadBalancers: [new LoadBalancer(dNSName: "dnsName1", loadBalancerArn: loadBalancerArn, type: "network")])
+    1 * loadBalancing.describeLoadBalancers(DescribeLoadBalancersRequest.builder().names(["foo-main-frontend"]).build()) >>
+      DescribeLoadBalancersResponse.builder().loadBalancers(existingLoadBalancers).build()
+    1 * loadBalancing.setIpAddressType(SetIpAddressTypeRequest.builder().loadBalancerArn(loadBalancerArn).ipAddressType('ipv4').build()) >> SetIpAddressTypeResponse.builder().ipAddressType('ipv4').build()
+    1 * loadBalancing.createLoadBalancer(CreateLoadBalancerRequest.builder()
+      .ipAddressType('ipv4')
+      .name("foo-main-frontend")
+      .subnets(["subnet-1"])
+      .scheme("internal")
+      .type("network")
+      .build()) >> CreateLoadBalancerResponse.builder().loadBalancers([LoadBalancer.builder().dnsName("dnsName1").loadBalancerArn(loadBalancerArn).type("network").build()]).build()
     1 * ingressLoadBalancerBuilder.ingressApplicationLoadBalancerGroup(
       'foo',
       'us-east-1',
@@ -397,23 +397,23 @@ class UpsertAmazonLoadBalancerV2AtomicOperationSpec extends Specification {
       "vpcId",
       { it.toList().sort() == [80, 8080] },
       _) >> new IngressLoadBalancerBuilder.IngressLoadBalancerGroupResult("sg-1234", "kato-elb")
-    1 * loadBalancing.describeTargetGroups(new DescribeTargetGroupsRequest(loadBalancerArn: loadBalancerArn)) >> new DescribeTargetGroupsResult(targetGroups: existingTargetGroups)
-    1 * loadBalancing.createTargetGroup(_ as CreateTargetGroupRequest) >> new CreateTargetGroupResult(targetGroups: [targetGroup])
+    1 * loadBalancing.describeTargetGroups(DescribeTargetGroupsRequest.builder().loadBalancerArn(loadBalancerArn).build()) >> DescribeTargetGroupsResponse.builder().targetGroups(existingTargetGroups).build()
+    1 * loadBalancing.createTargetGroup(_ as CreateTargetGroupRequest) >> CreateTargetGroupResponse.builder().targetGroups([targetGroup]).build()
     1 * loadBalancing.modifyLoadBalancerAttributes(_) >> { ModifyLoadBalancerAttributesRequest request ->
-      assert request.attributes.find { it.key == 'load_balancing.cross_zone.enabled' }.withValue("true")
-      assert request.loadBalancerArn == "test:arn"
-      return new ModifyLoadBalancerAttributesResult()
+      assert request.attributes().find { it.key() == 'load_balancing.cross_zone.enabled' }.value()
+      assert request.loadBalancerArn() == "test:arn"
+      return ModifyLoadBalancerAttributesResponse.builder().build()
     }
     1 * loadBalancing.modifyTargetGroupAttributes(_) >> { ModifyTargetGroupAttributesRequest request ->
-      assert request.attributes.find { it.key == 'deregistration_delay.timeout_seconds' }.value == "300"
-      assert request.attributes.find { it.key == 'proxy_protocol_v2.enabled' }.withValue("false")
-      assert request.attributes.find { it.key == 'deregistration_delay.connection_termination.enabled' }.withValue("false")
-      assert request.targetGroupArn == "test:target:group:arn"
-      return new ModifyTargetGroupAttributesResult()
+      assert request.attributes().find { it.key() == 'deregistration_delay.timeout_seconds' }.value() == "300"
+      assert request.attributes().find { it.key() == 'proxy_protocol_v2.enabled' }.value()
+      assert request.attributes().find { it.key() == 'deregistration_delay.connection_termination.enabled' }.value()
+      assert request.targetGroupArn() == "test:target:group:arn"
+      return ModifyTargetGroupAttributesResponse.builder().build()
     }
-    1 * loadBalancing.describeListeners(new DescribeListenersRequest(loadBalancerArn: loadBalancerArn)) >> new DescribeListenersResult(listeners: existingListeners)
-    1 * loadBalancing.createListener(new CreateListenerRequest(loadBalancerArn: loadBalancerArn, port: 80, protocol: "HTTP", defaultActions: [new Action(targetGroupArn: targetGroupArn, type: ActionTypeEnum.Forward, order: 1)]))
-    1 * loadBalancing.describeLoadBalancerAttributes(_) >> [attributes: nlbLoadBalancerAttributes]
+    1 * loadBalancing.describeListeners(DescribeListenersRequest.builder().loadBalancerArn(loadBalancerArn).build()) >> DescribeListenersResponse.builder().listeners(existingListeners).build()
+    1 * loadBalancing.createListener(CreateListenerRequest.builder().loadBalancerArn(loadBalancerArn).port(80).protocol("HTTP").defaultActions([Action.builder().targetGroupArn(targetGroupArn).type(ActionTypeEnum.FORWARD).order(1).build()]).build())
+    1 * loadBalancing.describeLoadBalancerAttributes(_) >> DescribeLoadBalancerAttributesResponse.builder().attributes(nlbLoadBalancerAttributes).build()
     0 * _
   }
 
@@ -424,13 +424,13 @@ class UpsertAmazonLoadBalancerV2AtomicOperationSpec extends Specification {
     createNlbOperation.regionScopedProviderFactory = regionScopedProviderFactory
     createNlbOperation.deployDefaults = new AwsConfiguration.DeployDefaults(addAppGroupToServerGroup: true, createLoadBalancerIngressPermissions: true)
     createNlbOperation.ingressLoadBalancerBuilder = ingressLoadBalancerBuilder
-    def loadBalancerOld = new LoadBalancer(loadBalancerName: "foo-main-frontend", loadBalancerArn: loadBalancerArn, type: "network")
+    def loadBalancerOld = LoadBalancer.builder().loadBalancerName("foo-main-frontend").loadBalancerArn(loadBalancerArn).type("network").build()
     def existingLoadBalancers = [loadBalancerOld]
     def existingTargetGroups = []
     def existingListeners = []
-    def nlbLoadBalancerAttributes = [new LoadBalancerAttribute().withKey("idle_timeout.timeout_seconds").withValue("60"),
-                                     new LoadBalancerAttribute().withKey("deletion_protection.enabled").withValue("true"),
-                                     new LoadBalancerAttribute().withKey("load_balancing.cross_zone.enabled").withValue("true")]
+    def nlbLoadBalancerAttributes = [LoadBalancerAttribute.builder().key("idle_timeout.timeout_seconds").value("60").build(),
+                                     LoadBalancerAttribute.builder().key("deletion_protection.enabled").value("true").build(),
+                                     LoadBalancerAttribute.builder().key("load_balancing.cross_zone.enabled").value("true").build()]
 
     nlbDescription.vpcId = 'vpcId'
 
@@ -439,16 +439,16 @@ class UpsertAmazonLoadBalancerV2AtomicOperationSpec extends Specification {
 
     then:
 
-    1 * loadBalancing.describeLoadBalancers(new DescribeLoadBalancersRequest(names: ["foo-main-frontend"])) >>
-      new DescribeLoadBalancersResult(loadBalancers: existingLoadBalancers)
-    1 * loadBalancing.describeTargetGroups(new DescribeTargetGroupsRequest(loadBalancerArn: loadBalancerArn)) >> new DescribeTargetGroupsResult(targetGroups: existingTargetGroups)
-    1 * loadBalancing.createTargetGroup(_ as CreateTargetGroupRequest) >> new CreateTargetGroupResult(targetGroups: [targetGroup])
+    1 * loadBalancing.describeLoadBalancers(DescribeLoadBalancersRequest.builder().names(["foo-main-frontend"]).build()) >>
+      DescribeLoadBalancersResponse.builder().loadBalancers(existingLoadBalancers).build()
+    1 * loadBalancing.describeTargetGroups(DescribeTargetGroupsRequest.builder().loadBalancerArn(loadBalancerArn).build()) >> DescribeTargetGroupsResponse.builder().targetGroups(existingTargetGroups).build()
+    1 * loadBalancing.createTargetGroup(_ as CreateTargetGroupRequest) >> CreateTargetGroupResponse.builder().targetGroups([targetGroup]).build()
     0 * loadBalancing.modifyLoadBalancerAttributes(_)
-    1 * loadBalancing.describeListeners(new DescribeListenersRequest(loadBalancerArn: loadBalancerArn)) >> new DescribeListenersResult(listeners: existingListeners)
-    1 * loadBalancing.createListener(new CreateListenerRequest(loadBalancerArn: loadBalancerArn, port: 80, protocol: "HTTP", defaultActions: [new Action(targetGroupArn: targetGroupArn, type: ActionTypeEnum.Forward, order: 1)]))
-    1 * loadBalancing.describeLoadBalancerAttributes(_) >> [attributes: nlbLoadBalancerAttributes]
+    1 * loadBalancing.describeListeners(DescribeListenersRequest.builder().loadBalancerArn(loadBalancerArn).build()) >> DescribeListenersResponse.builder().listeners(existingListeners).build()
+    1 * loadBalancing.createListener(CreateListenerRequest.builder().loadBalancerArn(loadBalancerArn).port(80).protocol("HTTP").defaultActions([Action.builder().targetGroupArn(targetGroupArn).type(ActionTypeEnum.FORWARD).order(1).build()]).build())
+    1 * loadBalancing.describeLoadBalancerAttributes(_) >> DescribeLoadBalancerAttributesResponse.builder().attributes(nlbLoadBalancerAttributes).build()
     1 * loadBalancing.modifyTargetGroupAttributes(_ as ModifyTargetGroupAttributesRequest)
-    1 * loadBalancing.setIpAddressType(new SetIpAddressTypeRequest (loadBalancerArn: loadBalancerArn, ipAddressType: 'ipv4')) >> new SetIpAddressTypeResult(ipAddressType: 'ipv4')
+    1 * loadBalancing.setIpAddressType(SetIpAddressTypeRequest.builder().loadBalancerArn(loadBalancerArn).ipAddressType('ipv4').build()) >> SetIpAddressTypeResponse.builder().ipAddressType('ipv4').build()
     0 * _
   }
 
@@ -462,19 +462,19 @@ class UpsertAmazonLoadBalancerV2AtomicOperationSpec extends Specification {
     operation.operate([])
 
     then:
-    1 * loadBalancing.describeLoadBalancers(new DescribeLoadBalancersRequest(names: ["foo-main-frontend"])) >>
-      new DescribeLoadBalancersResult(loadBalancers: existingLoadBalancers)
-    1 * loadBalancing.setSecurityGroups(new SetSecurityGroupsRequest(
-      loadBalancerArn: loadBalancerArn,
-      securityGroups: ["sg-1234"]
-    ))
-    1 * loadBalancing.describeTargetGroups(new DescribeTargetGroupsRequest(loadBalancerArn: loadBalancerArn)) >> new DescribeTargetGroupsResult(targetGroups: existingTargetGroups)
+    1 * loadBalancing.describeLoadBalancers(DescribeLoadBalancersRequest.builder().names(["foo-main-frontend"]).build()) >>
+      DescribeLoadBalancersResponse.builder().loadBalancers(existingLoadBalancers).build()
+    1 * loadBalancing.setSecurityGroups(SetSecurityGroupsRequest.builder()
+      .loadBalancerArn(loadBalancerArn)
+      .securityGroups(["sg-1234"])
+      .build())
+    1 * loadBalancing.describeTargetGroups(DescribeTargetGroupsRequest.builder().loadBalancerArn(loadBalancerArn).build()) >> DescribeTargetGroupsResponse.builder().targetGroups(existingTargetGroups).build()
     1 * loadBalancing.modifyTargetGroup(_ as ModifyTargetGroupRequest)
     1 * loadBalancing.modifyTargetGroupAttributes(_ as ModifyTargetGroupAttributesRequest)
-    1 * loadBalancing.describeListeners(new DescribeListenersRequest(loadBalancerArn: loadBalancerArn)) >> new DescribeListenersResult(listeners: existingListeners)
-    1 * loadBalancing.createListener(new CreateListenerRequest(loadBalancerArn: loadBalancerArn, port: 80, protocol: "HTTP", defaultActions: [new Action(targetGroupArn: targetGroupArn, type: ActionTypeEnum.Forward, order: 1)]))
-    1 * loadBalancing.describeLoadBalancerAttributes(_) >> [attributes: loadBalancerAttributes]
-    1 * loadBalancing.setIpAddressType(new SetIpAddressTypeRequest (loadBalancerArn: loadBalancerArn, ipAddressType: 'ipv4')) >> new SetIpAddressTypeResult(ipAddressType: 'ipv4')
+    1 * loadBalancing.describeListeners(DescribeListenersRequest.builder().loadBalancerArn(loadBalancerArn).build()) >> DescribeListenersResponse.builder().listeners(existingListeners).build()
+    1 * loadBalancing.createListener(CreateListenerRequest.builder().loadBalancerArn(loadBalancerArn).port(80).protocol("HTTP").defaultActions([Action.builder().targetGroupArn(targetGroupArn).type(ActionTypeEnum.FORWARD).order(1).build()]).build())
+    1 * loadBalancing.describeLoadBalancerAttributes(_) >> DescribeLoadBalancerAttributesResponse.builder().attributes(loadBalancerAttributes).build()
+    1 * loadBalancing.setIpAddressType(SetIpAddressTypeRequest.builder().loadBalancerArn(loadBalancerArn).ipAddressType('ipv4').build()) >> SetIpAddressTypeResponse.builder().ipAddressType('ipv4').build()
     0 * _
   }
 
@@ -494,25 +494,25 @@ class UpsertAmazonLoadBalancerV2AtomicOperationSpec extends Specification {
     updateOperation.operate([])
 
     then:
-    1 * loadBalancing.describeLoadBalancers(new DescribeLoadBalancersRequest(names: ["foo-main-frontend"])) >>
-      new DescribeLoadBalancersResult(loadBalancers: existingLoadBalancers)
-    1 * loadBalancing.setSecurityGroups(new SetSecurityGroupsRequest(
-      loadBalancerArn: loadBalancerArn,
-      securityGroups: ["sg-1234"]
-    ))
-    1 * loadBalancing.describeTargetGroups(new DescribeTargetGroupsRequest(loadBalancerArn: loadBalancerArn)) >> new DescribeTargetGroupsResult(targetGroups: existingTargetGroups)
+    1 * loadBalancing.describeLoadBalancers(DescribeLoadBalancersRequest.builder().names(["foo-main-frontend"]).build()) >>
+      DescribeLoadBalancersResponse.builder().loadBalancers(existingLoadBalancers).build()
+    1 * loadBalancing.setSecurityGroups(SetSecurityGroupsRequest.builder()
+      .loadBalancerArn(loadBalancerArn)
+      .securityGroups(["sg-1234"])
+      .build())
+    1 * loadBalancing.describeTargetGroups(DescribeTargetGroupsRequest.builder().loadBalancerArn(loadBalancerArn).build()) >> DescribeTargetGroupsResponse.builder().targetGroups(existingTargetGroups).build()
     1 * loadBalancing.modifyTargetGroup(_ as ModifyTargetGroupRequest)
     1 * loadBalancing.modifyTargetGroupAttributes(_) >> { ModifyTargetGroupAttributesRequest request ->
-      assert request.attributes.find { it.key == 'deregistration_delay.timeout_seconds' }.value == "300"
-      assert request.attributes.find { it.key == 'stickiness.enabled' } == null
-      assert request.attributes.find { it.key == 'load_balancing.cross_zone.enabled' } == null
-      assert request.targetGroupArn == "test:target:group:arn"
-      return new ModifyTargetGroupAttributesResult()
+      assert request.attributes().find { it.key() == 'deregistration_delay.timeout_seconds' }.value() == "300"
+      assert request.attributes().find { it.key() == 'stickiness.enabled' } == null
+      assert request.attributes().find { it.key() == 'load_balancing.cross_zone.enabled' } == null
+      assert request.targetGroupArn() == "test:target:group:arn"
+      return ModifyTargetGroupAttributesResponse.builder().build()
     }
-    1 * loadBalancing.describeListeners(new DescribeListenersRequest(loadBalancerArn: loadBalancerArn)) >> new DescribeListenersResult(listeners: existingListeners)
-    1 * loadBalancing.createListener(new CreateListenerRequest(loadBalancerArn: loadBalancerArn, port: 80, protocol: "HTTP", defaultActions: [new Action(targetGroupArn: targetGroupArn, type: ActionTypeEnum.Forward, order: 1)]))
-    1 * loadBalancing.describeLoadBalancerAttributes(_) >> [attributes: loadBalancerAttributes]
-    1 * loadBalancing.setIpAddressType(new SetIpAddressTypeRequest (loadBalancerArn: loadBalancerArn, ipAddressType: 'ipv4')) >> new SetIpAddressTypeResult(ipAddressType: 'ipv4')
+    1 * loadBalancing.describeListeners(DescribeListenersRequest.builder().loadBalancerArn(loadBalancerArn).build()) >> DescribeListenersResponse.builder().listeners(existingListeners).build()
+    1 * loadBalancing.createListener(CreateListenerRequest.builder().loadBalancerArn(loadBalancerArn).port(80).protocol("HTTP").defaultActions([Action.builder().targetGroupArn(targetGroupArn).type(ActionTypeEnum.FORWARD).order(1).build()]).build())
+    1 * loadBalancing.describeLoadBalancerAttributes(_) >> DescribeLoadBalancerAttributesResponse.builder().attributes(loadBalancerAttributes).build()
+    1 * loadBalancing.setIpAddressType(SetIpAddressTypeRequest.builder().loadBalancerArn(loadBalancerArn).ipAddressType('ipv4').build()) >> SetIpAddressTypeResponse.builder().ipAddressType('ipv4').build()
     0 * _
   }
 
@@ -526,20 +526,20 @@ class UpsertAmazonLoadBalancerV2AtomicOperationSpec extends Specification {
     operation.operate([])
 
     then:
-    1 * loadBalancing.describeLoadBalancers(new DescribeLoadBalancersRequest(names: ["foo-main-frontend"])) >>
-      new DescribeLoadBalancersResult(loadBalancers: existingLoadBalancers)
-    1 * loadBalancing.setSecurityGroups(new SetSecurityGroupsRequest(
-      loadBalancerArn: loadBalancerArn,
-      securityGroups: ["sg-1234"]
-    ))
-    1 * loadBalancing.describeTargetGroups(new DescribeTargetGroupsRequest(loadBalancerArn: loadBalancerArn)) >> new DescribeTargetGroupsResult(targetGroups: existingTargetGroups)
-    1 * loadBalancing.deleteTargetGroup(new DeleteTargetGroupRequest(targetGroupArn: targetGroupArn))
-    1 * loadBalancing.createTargetGroup(_ as CreateTargetGroupRequest) >> new CreateTargetGroupResult(targetGroups: [targetGroup])
+    1 * loadBalancing.describeLoadBalancers(DescribeLoadBalancersRequest.builder().names(["foo-main-frontend"]).build()) >>
+      DescribeLoadBalancersResponse.builder().loadBalancers(existingLoadBalancers).build()
+    1 * loadBalancing.setSecurityGroups(SetSecurityGroupsRequest.builder()
+      .loadBalancerArn(loadBalancerArn)
+      .securityGroups(["sg-1234"])
+      .build())
+    1 * loadBalancing.describeTargetGroups(DescribeTargetGroupsRequest.builder().loadBalancerArn(loadBalancerArn).build()) >> DescribeTargetGroupsResponse.builder().targetGroups(existingTargetGroups).build()
+    1 * loadBalancing.deleteTargetGroup(DeleteTargetGroupRequest.builder().targetGroupArn(targetGroupArn).build())
+    1 * loadBalancing.createTargetGroup(_ as CreateTargetGroupRequest) >> CreateTargetGroupResponse.builder().targetGroups([targetGroup]).build()
     1 * loadBalancing.modifyTargetGroupAttributes(_ as ModifyTargetGroupAttributesRequest)
-    1 * loadBalancing.describeListeners(new DescribeListenersRequest(loadBalancerArn: loadBalancerArn)) >> new DescribeListenersResult(listeners: existingListeners)
-    1 * loadBalancing.createListener(new CreateListenerRequest(loadBalancerArn: loadBalancerArn, port: 80, protocol: "HTTP", defaultActions: [new Action(targetGroupArn: targetGroupArn, type: ActionTypeEnum.Forward, order: 1)]))
-    1 * loadBalancing.describeLoadBalancerAttributes(_) >> [attributes: loadBalancerAttributes]
-    1 * loadBalancing.setIpAddressType(new SetIpAddressTypeRequest (loadBalancerArn: loadBalancerArn, ipAddressType: 'ipv4')) >> new SetIpAddressTypeResult(ipAddressType: 'ipv4')
+    1 * loadBalancing.describeListeners(DescribeListenersRequest.builder().loadBalancerArn(loadBalancerArn).build()) >> DescribeListenersResponse.builder().listeners(existingListeners).build()
+    1 * loadBalancing.createListener(CreateListenerRequest.builder().loadBalancerArn(loadBalancerArn).port(80).protocol("HTTP").defaultActions([Action.builder().targetGroupArn(targetGroupArn).type(ActionTypeEnum.FORWARD).order(1).build()]).build())
+    1 * loadBalancing.describeLoadBalancerAttributes(_) >> DescribeLoadBalancerAttributesResponse.builder().attributes(loadBalancerAttributes).build()
+    1 * loadBalancing.setIpAddressType(SetIpAddressTypeRequest.builder().loadBalancerArn(loadBalancerArn).ipAddressType('ipv4').build()) >> SetIpAddressTypeResponse.builder().ipAddressType('ipv4').build()
     0 * _
   }
 
@@ -554,20 +554,20 @@ class UpsertAmazonLoadBalancerV2AtomicOperationSpec extends Specification {
     operation.operate([])
 
     then:
-    1 * loadBalancing.describeLoadBalancers(new DescribeLoadBalancersRequest(names: ["foo-main-frontend"])) >>
-      new DescribeLoadBalancersResult(loadBalancers: existingLoadBalancers)
-    1 * loadBalancing.setSecurityGroups(new SetSecurityGroupsRequest(
-      loadBalancerArn: loadBalancerArn,
-      securityGroups: ["sg-1234"]
-    ))
-    1 * loadBalancing.describeTargetGroups(new DescribeTargetGroupsRequest(loadBalancerArn: loadBalancerArn)) >> new DescribeTargetGroupsResult(targetGroups: existingTargetGroups)
-    1 * loadBalancing.deleteTargetGroup(new DeleteTargetGroupRequest(targetGroupArn: targetGroupArn))
-    1 * loadBalancing.createTargetGroup(_ as CreateTargetGroupRequest) >> new CreateTargetGroupResult(targetGroups: [targetGroup])
+    1 * loadBalancing.describeLoadBalancers(DescribeLoadBalancersRequest.builder().names(["foo-main-frontend"]).build()) >>
+      DescribeLoadBalancersResponse.builder().loadBalancers(existingLoadBalancers).build()
+    1 * loadBalancing.setSecurityGroups(SetSecurityGroupsRequest.builder()
+      .loadBalancerArn(loadBalancerArn)
+      .securityGroups(["sg-1234"])
+      .build())
+    1 * loadBalancing.describeTargetGroups(DescribeTargetGroupsRequest.builder().loadBalancerArn(loadBalancerArn).build()) >> DescribeTargetGroupsResponse.builder().targetGroups(existingTargetGroups).build()
+    1 * loadBalancing.deleteTargetGroup(DeleteTargetGroupRequest.builder().targetGroupArn(targetGroupArn).build())
+    1 * loadBalancing.createTargetGroup(_ as CreateTargetGroupRequest) >> CreateTargetGroupResponse.builder().targetGroups([targetGroup]).build()
     1 * loadBalancing.modifyTargetGroupAttributes(_ as ModifyTargetGroupAttributesRequest)
-    1 * loadBalancing.describeListeners(new DescribeListenersRequest(loadBalancerArn: loadBalancerArn)) >> new DescribeListenersResult(listeners: existingListeners)
-    1 * loadBalancing.createListener(new CreateListenerRequest(loadBalancerArn: loadBalancerArn, port: 80, protocol: "HTTP", defaultActions: []))
-    1 * loadBalancing.describeLoadBalancerAttributes(_) >> [attributes: loadBalancerAttributes]
-    1 * loadBalancing.setIpAddressType(new SetIpAddressTypeRequest (loadBalancerArn: loadBalancerArn, ipAddressType: 'ipv4')) >> new SetIpAddressTypeResult(ipAddressType: 'ipv4')
+    1 * loadBalancing.describeListeners(DescribeListenersRequest.builder().loadBalancerArn(loadBalancerArn).build()) >> DescribeListenersResponse.builder().listeners(existingListeners).build()
+    1 * loadBalancing.createListener(CreateListenerRequest.builder().loadBalancerArn(loadBalancerArn).port(80).protocol("HTTP").defaultActions([]).build())
+    1 * loadBalancing.describeLoadBalancerAttributes(_) >> DescribeLoadBalancerAttributesResponse.builder().attributes(loadBalancerAttributes).build()
+    1 * loadBalancing.setIpAddressType(SetIpAddressTypeRequest.builder().loadBalancerArn(loadBalancerArn).ipAddressType('ipv4').build()) >> SetIpAddressTypeResponse.builder().ipAddressType('ipv4').build()
     0 * _
     thrown AtomicOperationException
   }
@@ -577,25 +577,25 @@ class UpsertAmazonLoadBalancerV2AtomicOperationSpec extends Specification {
     def listenerArn = "test:listener:arn"
     def existingLoadBalancers = [loadBalancerOld]
     def existingTargetGroups = [targetGroupOld]
-    def existingListeners = [new Listener(listenerArn: listenerArn, defaultActions: [])]
+    def existingListeners = [Listener.builder().listenerArn(listenerArn).defaultActions([]).build()]
 
     when:
     operation.operate([])
 
     then:
-    1 * loadBalancing.describeLoadBalancers(new DescribeLoadBalancersRequest(names: ["foo-main-frontend"])) >>
-      new DescribeLoadBalancersResult(loadBalancers: existingLoadBalancers)
-    1 * loadBalancing.setSecurityGroups(new SetSecurityGroupsRequest(loadBalancerArn: loadBalancerArn, securityGroups: ["sg-1234"]))
-    1 * loadBalancing.describeTargetGroups(new DescribeTargetGroupsRequest(loadBalancerArn: loadBalancerArn)) >> new DescribeTargetGroupsResult(targetGroups: existingTargetGroups)
-    1 * loadBalancing.deleteTargetGroup(new DeleteTargetGroupRequest(targetGroupArn: targetGroupArn))
-    1 * loadBalancing.createTargetGroup(_ as CreateTargetGroupRequest) >> new CreateTargetGroupResult(targetGroups: [targetGroup])
+    1 * loadBalancing.describeLoadBalancers(DescribeLoadBalancersRequest.builder().names(["foo-main-frontend"]).build()) >>
+      DescribeLoadBalancersResponse.builder().loadBalancers(existingLoadBalancers).build()
+    1 * loadBalancing.setSecurityGroups(SetSecurityGroupsRequest.builder().loadBalancerArn(loadBalancerArn).securityGroups(["sg-1234"]).build())
+    1 * loadBalancing.describeTargetGroups(DescribeTargetGroupsRequest.builder().loadBalancerArn(loadBalancerArn).build()) >> DescribeTargetGroupsResponse.builder().targetGroups(existingTargetGroups).build()
+    1 * loadBalancing.deleteTargetGroup(DeleteTargetGroupRequest.builder().targetGroupArn(targetGroupArn).build())
+    1 * loadBalancing.createTargetGroup(_ as CreateTargetGroupRequest) >> CreateTargetGroupResponse.builder().targetGroups([targetGroup]).build()
     1 * loadBalancing.modifyTargetGroupAttributes(_ as ModifyTargetGroupAttributesRequest)
-    1 * loadBalancing.describeListeners(new DescribeListenersRequest(loadBalancerArn: loadBalancerArn)) >> new DescribeListenersResult(listeners: existingListeners)
-    1 * loadBalancing.describeRules(new DescribeRulesRequest(listenerArn: listenerArn)) >> new DescribeRulesResult(rules: [])
-    1 * loadBalancing.deleteListener(new DeleteListenerRequest(listenerArn: listenerArn))
-    1 * loadBalancing.createListener(new CreateListenerRequest(loadBalancerArn: loadBalancerArn, port: 80, protocol: "HTTP", defaultActions: [new Action(targetGroupArn: targetGroupArn, type: ActionTypeEnum.Forward, order: 1)]))
-    1 * loadBalancing.describeLoadBalancerAttributes(_) >> [attributes: loadBalancerAttributes]
-    1 * loadBalancing.setIpAddressType(new SetIpAddressTypeRequest (loadBalancerArn: loadBalancerArn, ipAddressType: 'ipv4')) >> new SetIpAddressTypeResult(ipAddressType: 'ipv4')
+    1 * loadBalancing.describeListeners(DescribeListenersRequest.builder().loadBalancerArn(loadBalancerArn).build()) >> DescribeListenersResponse.builder().listeners(existingListeners).build()
+    1 * loadBalancing.describeRules(DescribeRulesRequest.builder().listenerArn(listenerArn).build()) >> DescribeRulesResponse.builder().rules([]).build()
+    1 * loadBalancing.deleteListener(DeleteListenerRequest.builder().listenerArn(listenerArn).build())
+    1 * loadBalancing.createListener(CreateListenerRequest.builder().loadBalancerArn(loadBalancerArn).port(80).protocol("HTTP").defaultActions([Action.builder().targetGroupArn(targetGroupArn).type(ActionTypeEnum.FORWARD).order(1).build()]).build())
+    1 * loadBalancing.describeLoadBalancerAttributes(_) >> DescribeLoadBalancerAttributesResponse.builder().attributes(loadBalancerAttributes).build()
+    1 * loadBalancing.setIpAddressType(SetIpAddressTypeRequest.builder().loadBalancerArn(loadBalancerArn).ipAddressType('ipv4').build()) >> SetIpAddressTypeResponse.builder().ipAddressType('ipv4').build()
     0 * _
   }
 
@@ -615,30 +615,30 @@ class UpsertAmazonLoadBalancerV2AtomicOperationSpec extends Specification {
     then:
     1 * ingressLoadBalancerBuilder.ingressApplicationLoadBalancerGroup(_, _, _, _, _, _, _) >> new IngressLoadBalancerBuilder.IngressLoadBalancerGroupResult("sg-1234", "foo-elb")
     1 * mockSubnetAnalyzer.getSubnetIdsForZones(['us-east-1a'], 'internet-facing', SubnetTarget.ELB, 1) >> ["subnet-1"]
-    1 * loadBalancing.describeLoadBalancers(new DescribeLoadBalancersRequest(names: ["foo-main-frontend"])) >>
-      new DescribeLoadBalancersResult(loadBalancers: existingLoadBalancers)
-    1 * loadBalancing.setIpAddressType(new SetIpAddressTypeRequest (loadBalancerArn: loadBalancerArn, ipAddressType: 'ipv4')) >> new SetIpAddressTypeResult(ipAddressType: 'ipv4')
-    1 * loadBalancing.createLoadBalancer(new CreateLoadBalancerRequest(
-      ipAddressType: "ipv4",
-      name: "foo-main-frontend",
-      subnets: ["subnet-1"],
-      securityGroups: ["sg-1234"],
-      type: "application"
-    )) >> new CreateLoadBalancerResult(loadBalancers: [new LoadBalancer(dNSName: "dnsName1", loadBalancerArn: loadBalancerArn, type: "application")])
-    1 * loadBalancing.setSecurityGroups(new SetSecurityGroupsRequest(
-      loadBalancerArn: loadBalancerArn,
-      securityGroups: ["sg-1234"]
-    ))
-    1 * loadBalancing.describeTargetGroups(new DescribeTargetGroupsRequest(loadBalancerArn: loadBalancerArn)) >> new DescribeTargetGroupsResult(targetGroups: existingTargetGroups)
-    1 * loadBalancing.createTargetGroup(_ as CreateTargetGroupRequest) >> new CreateTargetGroupResult(targetGroups: [targetGroup])
+    1 * loadBalancing.describeLoadBalancers(DescribeLoadBalancersRequest.builder().names(["foo-main-frontend"]).build()) >>
+      DescribeLoadBalancersResponse.builder().loadBalancers(existingLoadBalancers).build()
+    1 * loadBalancing.setIpAddressType(SetIpAddressTypeRequest.builder().loadBalancerArn(loadBalancerArn).ipAddressType('ipv4').build()) >> SetIpAddressTypeResponse.builder().ipAddressType('ipv4').build()
+    1 * loadBalancing.createLoadBalancer(CreateLoadBalancerRequest.builder()
+      .ipAddressType("ipv4")
+      .name("foo-main-frontend")
+      .subnets(["subnet-1"])
+      .securityGroups(["sg-1234"])
+      .type("application")
+      .build()) >> CreateLoadBalancerResponse.builder().loadBalancers([LoadBalancer.builder().dnsName("dnsName1").loadBalancerArn(loadBalancerArn).type("application").build()]).build()
+    1 * loadBalancing.setSecurityGroups(SetSecurityGroupsRequest.builder()
+      .loadBalancerArn(loadBalancerArn)
+      .securityGroups(["sg-1234"])
+      .build())
+    1 * loadBalancing.describeTargetGroups(DescribeTargetGroupsRequest.builder().loadBalancerArn(loadBalancerArn).build()) >> DescribeTargetGroupsResponse.builder().targetGroups(existingTargetGroups).build()
+    1 * loadBalancing.createTargetGroup(_ as CreateTargetGroupRequest) >> CreateTargetGroupResponse.builder().targetGroups([targetGroup]).build()
     1 * loadBalancing.modifyTargetGroupAttributes(_ as ModifyTargetGroupAttributesRequest)
-    1 * loadBalancing.describeListeners(new DescribeListenersRequest(loadBalancerArn: loadBalancerArn)) >> new DescribeListenersResult(listeners: existingListeners)
-    1 * loadBalancing.createListener(new CreateListenerRequest(loadBalancerArn: loadBalancerArn, port: 80, protocol: "HTTP", defaultActions: [new Action(targetGroupArn: targetGroupArn, type: ActionTypeEnum.Forward, order: 1)]))
-    1 * awsShield.createProtection(new CreateProtectionRequest(
-      name: 'foo-main-frontend',
-      resourceArn: loadBalancerArn
-    ))
-    1 * loadBalancing.describeLoadBalancerAttributes(_) >> [attributes: loadBalancerAttributes]
+    1 * loadBalancing.describeListeners(DescribeListenersRequest.builder().loadBalancerArn(loadBalancerArn).build()) >> DescribeListenersResponse.builder().listeners(existingListeners).build()
+    1 * loadBalancing.createListener(CreateListenerRequest.builder().loadBalancerArn(loadBalancerArn).port(80).protocol("HTTP").defaultActions([Action.builder().targetGroupArn(targetGroupArn).type(ActionTypeEnum.FORWARD).order(1).build()]).build())
+    1 * awsShield.createProtection(CreateProtectionRequest.builder()
+      .name('foo-main-frontend')
+      .resourceArn(loadBalancerArn)
+      .build())
+    1 * loadBalancing.describeLoadBalancerAttributes(_) >> DescribeLoadBalancerAttributesResponse.builder().attributes(loadBalancerAttributes).build()
     0 * _
   }
 }

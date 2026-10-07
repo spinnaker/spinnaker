@@ -17,7 +17,6 @@
 
 package com.netflix.spinnaker.clouddriver.aws.deploy.description;
 
-import com.amazonaws.util.CollectionUtils;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.google.common.collect.ImmutableSet;
 import com.netflix.spinnaker.clouddriver.aws.model.AmazonBlockDevice;
@@ -31,6 +30,7 @@ import java.util.Set;
 import lombok.Getter;
 import lombok.Setter;
 import org.apache.commons.lang3.StringUtils;
+import org.springframework.util.CollectionUtils;
 
 /**
  * Description type that encapsulates properties associated with 1. EC2 launch template
@@ -82,6 +82,18 @@ public class ModifyServerGroupLaunchTemplateDescription extends AbstractAmazonCr
   private Boolean associateIPv6Address;
   private Boolean unlimitedCpuCredits;
   private Boolean enableEnclave;
+
+  /**
+   * Connection tracking idle timeouts (seconds) for the primary network interface. When null, the
+   * value from the source launch template version is kept.
+   *
+   * @see <a
+   *     href="https://docs.aws.amazon.com/AWSEC2/latest/APIReference/API_ConnectionTrackingSpecificationRequest.html">ConnectionTrackingSpecificationRequest</a>
+   */
+  private Integer tcpEstablishedTimeout;
+
+  private Integer udpStreamTimeout;
+  private Integer udpTimeout;
 
   /**
    * Mixed Instances Policy properties.
@@ -154,7 +166,7 @@ public class ModifyServerGroupLaunchTemplateDescription extends AbstractAmazonCr
     if (StringUtils.isNotBlank(this.getInstanceType())) {
       instanceTypes.add(this.getInstanceType());
     }
-    if (!CollectionUtils.isNullOrEmpty(launchTemplateOverridesForInstanceType)) {
+    if (!CollectionUtils.isEmpty(launchTemplateOverridesForInstanceType)) {
       launchTemplateOverridesForInstanceType.forEach(
           override -> instanceTypes.add(override.getInstanceType()));
     }
@@ -190,6 +202,9 @@ public class ModifyServerGroupLaunchTemplateDescription extends AbstractAmazonCr
         .append(", imageId=" + imageId)
         .append(", associateIPv6Address=" + associateIPv6Address)
         .append(", unlimitedCpuCredits=" + unlimitedCpuCredits)
+        .append(", tcpEstablishedTimeout=" + tcpEstablishedTimeout)
+        .append(", udpStreamTimeout=" + udpStreamTimeout)
+        .append(", udpTimeout=" + udpTimeout)
         .append(", onDemandAllocationStrategy=" + onDemandAllocationStrategy)
         .append(", onDemandBaseCapacity=" + onDemandBaseCapacity)
         .append(", onDemandPercentageAboveBaseCapacity=" + onDemandPercentageAboveBaseCapacity)

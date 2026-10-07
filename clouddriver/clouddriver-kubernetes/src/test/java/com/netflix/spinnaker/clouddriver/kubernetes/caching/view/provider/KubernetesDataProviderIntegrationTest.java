@@ -52,10 +52,12 @@ import com.netflix.spinnaker.clouddriver.kubernetes.description.AccountResourceP
 import com.netflix.spinnaker.clouddriver.kubernetes.description.GlobalResourcePropertyRegistry;
 import com.netflix.spinnaker.clouddriver.kubernetes.description.KubernetesCoordinates;
 import com.netflix.spinnaker.clouddriver.kubernetes.description.KubernetesSpinnakerKindMap;
+import com.netflix.spinnaker.clouddriver.kubernetes.description.manifest.KubernetesApiVersion;
 import com.netflix.spinnaker.clouddriver.kubernetes.description.manifest.KubernetesKind;
 import com.netflix.spinnaker.clouddriver.kubernetes.description.manifest.KubernetesManifest;
 import com.netflix.spinnaker.clouddriver.kubernetes.names.KubernetesManifestNamer;
 import com.netflix.spinnaker.clouddriver.kubernetes.names.KubernetesNamerRegistry;
+import com.netflix.spinnaker.clouddriver.kubernetes.op.handler.CustomResourceStatusEvaluator;
 import com.netflix.spinnaker.clouddriver.kubernetes.op.handler.KubernetesDeploymentHandler;
 import com.netflix.spinnaker.clouddriver.kubernetes.op.handler.KubernetesHandler;
 import com.netflix.spinnaker.clouddriver.kubernetes.op.handler.KubernetesPodHandler;
@@ -80,6 +82,7 @@ import com.netflix.spinnaker.kork.artifacts.model.Artifact;
 import com.netflix.spinnaker.kork.configserver.CloudConfigResourceService;
 import com.netflix.spinnaker.kork.configserver.ConfigFileService;
 import java.util.Collection;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -90,6 +93,7 @@ import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.internal.stubbing.defaultanswers.ReturnsSmartNulls;
+import org.mockito.stubbing.Answer;
 
 @ExtendWith(SoftAssertionsExtension.class)
 final class KubernetesDataProviderIntegrationTest {
@@ -110,7 +114,9 @@ final class KubernetesDataProviderIntegrationTest {
           objectMapper, registry, new KubernetesConfigurationProperties(), kindMap, null);
   private static final GlobalResourcePropertyRegistry resourcePropertyRegistry =
       new GlobalResourcePropertyRegistry(
-          handlers, new KubernetesUnregisteredCustomResourceHandler());
+          handlers,
+          new KubernetesUnregisteredCustomResourceHandler(
+              CustomResourceStatusEvaluator.disabled()));
   private static final CredentialsRepository<KubernetesNamedAccountCredentials>
       credentialsRepository =
           new MapBackedCredentialsRepository<>(
@@ -464,9 +470,14 @@ final class KubernetesDataProviderIntegrationTest {
 
   @Test
   void getArtifacts(SoftAssertions softly) {
+    KubernetesManifest manifest =
+        getKubernetesManifest("backend", "backend-ns", KubernetesKind.REPLICA_SET);
     List<Artifact> artifacts =
         artifactProvider.getArtifacts(
-            KubernetesKind.REPLICA_SET, "backend", "backend-ns", credentials.getCredentials());
+            manifest,
+            manifest.getName(),
+            credentials.getCredentials(),
+            new KubernetesSelectorList());
     softly.assertThat(artifacts).hasSize(2);
     softly
         .assertThat(artifacts)
@@ -486,17 +497,21 @@ final class KubernetesDataProviderIntegrationTest {
 
   @Test
   void getArtifactsWrongType(SoftAssertions softly) {
+    KubernetesManifest manifest =
+        getKubernetesManifest("backend", "backend-ns", KubernetesKind.DEPLOYMENT);
     List<Artifact> artifacts =
         artifactProvider.getArtifacts(
-            KubernetesKind.DEPLOYMENT, "backend", "backend-ns", credentials.getCredentials());
+            manifest, "backend", credentials.getCredentials(), new KubernetesSelectorList());
     softly.assertThat(artifacts).isEmpty();
   }
 
   @Test
   void getArtifactsWrongNamespace(SoftAssertions softly) {
+    KubernetesManifest manifest =
+        getKubernetesManifest("backend", "frontend-ns", KubernetesKind.REPLICA_SET);
     List<Artifact> artifacts =
         artifactProvider.getArtifacts(
-            KubernetesKind.REPLICA_SET, "backend", "frontend-ns", credentials.getCredentials());
+            manifest, "backend", credentials.getCredentials(), new KubernetesSelectorList());
     softly.assertThat(artifacts).isEmpty();
   }
 
@@ -576,21 +591,30 @@ final class KubernetesDataProviderIntegrationTest {
 
   private static KubectlJobExecutor getJobExecutor() {
     KubectlJobExecutor jobExecutor = mock(KubectlJobExecutor.class, new ReturnsSmartNulls());
+    Answer<ImmutableList<KubernetesManifest>> listAnswer =
+        invocation ->
+            manifestsByNamespace.get(invocation.getArgument(2, String.class)).stream()
+                .map(
+                    file ->
+                        ManifestFetcher.getManifest(
+                                KubernetesDataProviderIntegrationTest.class, file)
+                            .get(0))
+                .filter(m -> invocation.getArgument(1, List.class).contains(m.getKind()))
+                .collect(toImmutableList());
     when(jobExecutor.list(
             any(KubernetesCredentials.class),
             anyList(),
             any(String.class),
             any(KubernetesSelectorList.class)))
-        .thenAnswer(
-            invocation ->
-                manifestsByNamespace.get(invocation.getArgument(2, String.class)).stream()
-                    .map(
-                        file ->
-                            ManifestFetcher.getManifest(
-                                    KubernetesDataProviderIntegrationTest.class, file)
-                                .get(0))
-                    .filter(m -> invocation.getArgument(1, List.class).contains(m.getKind()))
-                    .collect(toImmutableList()));
+        .thenAnswer(listAnswer);
+    // KubernetesCachingAgent#loadResources calls listAuthoritative, not list, when driving cache
+    // eviction -- see KubectlJobExecutor#listAuthoritative.
+    when(jobExecutor.listAuthoritative(
+            any(KubernetesCredentials.class),
+            anyList(),
+            any(String.class),
+            any(KubernetesSelectorList.class)))
+        .thenAnswer(listAnswer);
     return jobExecutor;
   }
 
@@ -611,7 +635,10 @@ final class KubernetesDataProviderIntegrationTest {
             new KubernetesKindRegistry.Factory(new GlobalKubernetesKindRegistry()),
             kindMap,
             new GlobalResourcePropertyRegistry(
-                ImmutableList.of(), new KubernetesUnregisteredCustomResourceHandler()));
+                ImmutableList.of(),
+                new KubernetesUnregisteredCustomResourceHandler(
+                    CustomResourceStatusEvaluator.disabled())),
+            CustomResourceStatusEvaluator.disabled());
     return new KubernetesNamedAccountCredentials(managedAccount, credentialFactory);
   }
 
@@ -1153,5 +1180,16 @@ final class KubernetesDataProviderIntegrationTest {
     if (clusterNames != null) {
       softly.assertThat(clusterNames).containsExactlyInAnyOrder("replicaSet backend");
     }
+  }
+
+  private KubernetesManifest getKubernetesManifest(
+      String name, String namespace, KubernetesKind kind) {
+    KubernetesManifest manifest = new KubernetesManifest();
+    manifest.put("metadata", new HashMap<>());
+    manifest.setNamespace(namespace);
+    manifest.setKind(kind);
+    manifest.setApiVersion(KubernetesApiVersion.APPS_V1);
+    manifest.setName(name);
+    return manifest;
   }
 }

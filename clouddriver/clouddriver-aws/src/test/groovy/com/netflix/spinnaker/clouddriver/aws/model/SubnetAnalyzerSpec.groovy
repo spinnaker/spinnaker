@@ -15,9 +15,9 @@
  */
 package com.netflix.spinnaker.clouddriver.aws.model
 
-import com.amazonaws.services.ec2.model.SecurityGroup
-import com.amazonaws.services.ec2.model.Subnet
-import com.amazonaws.services.ec2.model.Tag
+import software.amazon.awssdk.services.ec2.model.SecurityGroup
+import software.amazon.awssdk.services.ec2.model.Subnet
+import software.amazon.awssdk.services.ec2.model.Tag
 import com.google.common.collect.ImmutableSet
 import spock.lang.Specification
 
@@ -28,7 +28,7 @@ class SubnetAnalyzerSpec extends Specification {
   }
 
   static SecurityGroup securityGroup(String id, String vpcId = null) {
-    new SecurityGroup(groupId: id, groupName: id, vpcId: vpcId)
+    SecurityGroup.builder().groupId(id).groupName(id).vpcId(vpcId).build()
   }
 
   SubnetAnalyzer subnets
@@ -56,9 +56,7 @@ class SubnetAnalyzerSpec extends Specification {
 
   def 'should create Subnets from AWS objects'() {
     List<Subnet> awsSubnets = [
-      new Subnet(subnetId: 'subnet-e9b0a3a1', state: 'available', vpcId: 'vpc-11112222',
-        cidrBlock: '10.10.1.0/21', availableIpAddressCount: 42, availabilityZone: 'us-east-1a',
-        tags: [new Tag(key: 'immutable_metadata', value: '{"purpose": "internal", "target": "ec2" }')]),
+      Subnet.builder().subnetId('subnet-e9b0a3a1').state('available').vpcId('vpc-11112222').cidrBlock('10.10.1.0/21').availableIpAddressCount(42).availabilityZone('us-east-1a').tags([Tag.builder().key('immutable_metadata').value('{"purpose": "internal", "target": "ec2" }').build()]).build(),
     ]
     Set<SubnetData> expectedSubnets = ImmutableSet.of(
       new SubnetData(subnetId: 'subnet-e9b0a3a1', state: 'available', vpcId: 'vpc-11112222',
@@ -70,9 +68,7 @@ class SubnetAnalyzerSpec extends Specification {
 
   def 'should create subnet without target from AWS object with invalid target'() {
     List<Subnet> awsSubnets = [
-      new Subnet(subnetId: 'subnet-e9b0a3a1', state: 'available', vpcId: 'vpc-11112222',
-        cidrBlock: '10.10.1.0/21', availableIpAddressCount: 42, availabilityZone: 'us-east-1a',
-        tags: [new Tag(key: 'immutable_metadata', value: '{"purpose": "internal", "target": "y2k" }')]),
+      Subnet.builder().subnetId('subnet-e9b0a3a1').state('available').vpcId('vpc-11112222').cidrBlock('10.10.1.0/21').availableIpAddressCount(42).availabilityZone('us-east-1a').tags([Tag.builder().key('immutable_metadata').value('{"purpose": "internal", "target": "y2k" }').build()]).build(),
     ]
     Set<SubnetData> expectedSubnets = ImmutableSet.of(
       new SubnetData(subnetId: 'subnet-e9b0a3a1', state: 'available', vpcId: 'vpc-11112222',
@@ -169,7 +165,7 @@ class SubnetAnalyzerSpec extends Specification {
 
   def 'should not return subnets without purpose'() {
     subnets = SubnetAnalyzer.from([
-      new Subnet(subnetId: 'subnet-e9b0a3a2', availabilityZone: 'us-east-1a'),
+      Subnet.builder().subnetId('subnet-e9b0a3a2').availabilityZone('us-east-1a').build(),
     ])
     expect: subnets.getSubnetIdsForZones(['us-east-1a'], '').isEmpty()
   }
