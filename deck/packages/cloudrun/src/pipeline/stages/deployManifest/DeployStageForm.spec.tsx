@@ -1,11 +1,21 @@
-import { shallow } from 'enzyme';
+import { render, screen, waitFor } from '@testing-library/react';
 import React from 'react';
 
-import { yamlDocumentsToString, YamlEditor } from '@spinnaker/core';
-import { mockHttpClient } from 'core/api/mock/jasmine';
+import { yamlDocumentsToString } from '@spinnaker/core';
+// eslint-disable-next-line @spinnaker/import-from-npm-not-relative
+import { mockHttpClient } from '../../../../../core/src/api/mock/mockHttpSupport';
 
 import { DeployStageForm } from './DeployStageForm';
 import { ManifestSource } from '../../../manifest/ManifestSource';
+
+// CodeMirror does not run under jsdom; a textarea exposes the value the real editor would show.
+vi.mock('@spinnaker/core', async (importOriginal) => {
+  const actual = await importOriginal<typeof import('@spinnaker/core')>();
+  return {
+    ...actual,
+    YamlEditor: ({ value }: { value: string }) => <textarea data-testid="yaml-editor" readOnly value={value} />,
+  };
+});
 
 const encode = (text: string) => btoa(unescape(encodeURIComponent(text)));
 const flushPromises = () => new Promise((resolve) => setTimeout(resolve));
@@ -15,74 +25,72 @@ describe('<DeployStageForm /> stored manifest references', () => {
   const stored = { apiVersion: 'v1', kind: 'ConfigMap', metadata: { name: 'cm', namespace: 'default' } };
   const inline = { apiVersion: 'apps/v1', kind: 'Deployment', metadata: { name: 'web' } };
 
-  let setFieldValue: jasmine.Spy;
+  let setFieldValue: ReturnType<typeof vi.fn>;
 
-  const render = (values: any) => {
-    setFieldValue = jasmine.createSpy('setFieldValue');
+  const renderForm = (values: any) => {
+    setFieldValue = vi.fn();
     const props: any = {
       accounts: [],
       application: { name: 'app' },
       formik: { values, setFieldValue },
       pipeline: {},
     };
-    return shallow(<DeployStageForm {...props} />);
+    return render(<DeployStageForm {...props} />);
   };
 
-  const editorValue = (wrapper: any) => wrapper.update().find(YamlEditor).prop('value');
+  const editorValue = () => (screen.getByTestId('yaml-editor') as HTMLTextAreaElement).value;
 
   it('replaces a stored reference with the manifest YAML and updates the form', async () => {
     const http = mockHttpClient();
     http.expectGET('/artifacts/content-address/app/abc123').respond(200, { reference: encode(JSON.stringify(stored)) });
 
-    const wrapper = render({ source: ManifestSource.TEXT, manifests: [reference] });
+    renderForm({ source: ManifestSource.TEXT, manifests: [reference] });
     await http.flush();
-    await flushPromises();
 
-    expect(setFieldValue).toHaveBeenCalledWith('manifests', [stored]);
-    expect(editorValue(wrapper)).toEqual(yamlDocumentsToString([stored]));
-    expect(editorValue(wrapper)).toContain('kind: ConfigMap');
-    expect(editorValue(wrapper)).not.toContain('ref://');
+    await waitFor(() => expect(setFieldValue).toHaveBeenCalledWith('manifests', [stored]));
+    await waitFor(() => expect(editorValue()).toEqual(yamlDocumentsToString([stored])));
+    expect(editorValue()).toContain('kind: ConfigMap');
+    expect(editorValue()).not.toContain('ref://');
   });
 
   it('resolves only the references when stored and inline manifests are mixed', async () => {
     const http = mockHttpClient();
     http.expectGET('/artifacts/content-address/app/abc123').respond(200, { reference: encode(JSON.stringify(stored)) });
 
-    render({ source: ManifestSource.TEXT, manifests: [inline, reference] });
+    renderForm({ source: ManifestSource.TEXT, manifests: [inline, reference] });
     await http.flush();
-    await flushPromises();
 
-    expect(setFieldValue).toHaveBeenCalledWith('manifests', [inline, stored]);
+    await waitFor(() => expect(setFieldValue).toHaveBeenCalledWith('manifests', [inline, stored]));
   });
 
   it('leaves plain inline manifests untouched and makes no requests', async () => {
     // HTTP is fail-closed in specs, so any fetch here fails the test.
-    const wrapper = render({ source: ManifestSource.TEXT, manifests: [inline] });
+    renderForm({ source: ManifestSource.TEXT, manifests: [inline] });
     await flushPromises();
 
     expect(setFieldValue).not.toHaveBeenCalled();
-    expect(editorValue(wrapper)).toEqual(yamlDocumentsToString([inline]));
+    expect(editorValue()).toEqual(yamlDocumentsToString([inline]));
   });
 
   it('does not touch a manifest that merely looks like a stub but is not an entity-store reference', async () => {
     const lookalike = { type: 'embedded/base64', reference: 'ref://app/abc123', name: 'stored-entity' };
-    const wrapper = render({ source: ManifestSource.TEXT, manifests: [lookalike] });
+    renderForm({ source: ManifestSource.TEXT, manifests: [lookalike] });
     await flushPromises();
 
     expect(setFieldValue).not.toHaveBeenCalled();
-    expect(editorValue(wrapper)).toEqual(yamlDocumentsToString([lookalike]));
+    expect(editorValue()).toEqual(yamlDocumentsToString([lookalike]));
   });
 
   it('does nothing when there are no manifests', async () => {
-    const wrapper = render({ source: ManifestSource.TEXT });
+    renderForm({ source: ManifestSource.TEXT });
     await flushPromises();
 
     expect(setFieldValue).not.toHaveBeenCalled();
-    expect(editorValue(wrapper)).toEqual('');
+    expect(editorValue()).toEqual('');
   });
 
   it('does not resolve references when the manifest source is an artifact', async () => {
-    render({ source: ManifestSource.ARTIFACT, manifests: [reference] });
+    renderForm({ source: ManifestSource.ARTIFACT, manifests: [reference] });
     await flushPromises();
 
     expect(setFieldValue).not.toHaveBeenCalled();
@@ -92,11 +100,11 @@ describe('<DeployStageForm /> stored manifest references', () => {
     const http = mockHttpClient();
     http.expectGET('/artifacts/content-address/app/abc123').respond(404, { message: 'not found' });
 
-    const wrapper = render({ source: ManifestSource.TEXT, manifests: [reference] });
+    renderForm({ source: ManifestSource.TEXT, manifests: [reference] });
     await http.flush();
     await flushPromises();
 
-    expect(editorValue(wrapper)).toEqual(yamlDocumentsToString([reference]));
+    expect(editorValue()).toEqual(yamlDocumentsToString([reference]));
     expect(setFieldValue).not.toHaveBeenCalledWith('manifests', [stored]);
   });
 
@@ -104,8 +112,8 @@ describe('<DeployStageForm /> stored manifest references', () => {
     const http = mockHttpClient();
     http.expectGET('/artifacts/content-address/app/abc123').respond(200, { reference: encode(JSON.stringify(stored)) });
 
-    const wrapper = render({ source: ManifestSource.TEXT, manifests: [reference] });
-    wrapper.unmount();
+    const view = renderForm({ source: ManifestSource.TEXT, manifests: [reference] });
+    view.unmount();
     await http.flush();
     await flushPromises();
 

@@ -17,9 +17,9 @@ describe('storedManifest', () => {
   describe('resolveStoredManifests', () => {
     it('replaces references with the stored manifest and leaves real manifests alone', async () => {
       const stored = { kind: 'ConfigMap', metadata: { name: 'cm' } };
-      const spy = spyOn(ArtifactService, 'getArtifactByContentReference').and.returnValue(
-        Promise.resolve({ reference: encode(JSON.stringify(stored)) }),
-      );
+      const spy = vi.spyOn(ArtifactService, 'getArtifactByContentReference').mockResolvedValue({
+        reference: encode(JSON.stringify(stored)),
+      } as any);
       const inline = { kind: 'Deployment' };
 
       const result = await resolveStoredManifests([reference, inline]);
@@ -29,14 +29,14 @@ describe('storedManifest', () => {
     });
 
     it('parses YAML content', async () => {
-      spyOn(ArtifactService, 'getArtifactByContentReference').and.returnValue(
-        Promise.resolve({ reference: encode('kind: ConfigMap\nmetadata:\n  name: cm\n') }),
-      );
+      vi.spyOn(ArtifactService, 'getArtifactByContentReference').mockResolvedValue({
+        reference: encode('kind: ConfigMap\nmetadata:\n  name: cm\n'),
+      } as any);
       expect(await resolveStoredManifests([reference])).toEqual([{ kind: 'ConfigMap', metadata: { name: 'cm' } }]);
     });
 
     it('keeps the reference when it cannot be fetched', async () => {
-      spyOn(ArtifactService, 'getArtifactByContentReference').and.returnValue(Promise.reject('nope'));
+      vi.spyOn(ArtifactService, 'getArtifactByContentReference').mockRejectedValue('nope');
       expect(await resolveStoredManifests([reference])).toEqual([reference]);
     });
   });
