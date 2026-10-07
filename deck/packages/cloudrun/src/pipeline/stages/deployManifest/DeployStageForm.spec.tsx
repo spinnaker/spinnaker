@@ -13,6 +13,7 @@ vi.mock('@spinnaker/core', async (importOriginal) => {
   const actual = await importOriginal<typeof import('@spinnaker/core')>();
   return {
     ...actual,
+    StageArtifactSelectorDelegate: () => null,
     YamlEditor: ({ value }: { value: string }) => <textarea data-testid="yaml-editor" readOnly value={value} />,
   };
 });
