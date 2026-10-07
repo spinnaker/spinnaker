@@ -188,8 +188,31 @@ class DeleteGoogleHttpLoadBalancerAtomicOperation extends DeleteGoogleLoadBalanc
       registry
     ) as Operation
 
-    googleOperationPoller.waitForGlobalOperation(compute, project, deleteUrlMapOperation.getName(),
-        timeoutSeconds, task, "url map " + urlMapName, BASE_PHASE)
+    if (deleteUrlMapOperation) {
+      googleOperationPoller.waitForGlobalOperation(compute, project, deleteUrlMapOperation.getName(),
+          timeoutSeconds, task, "url map " + urlMapName, BASE_PHASE)
+    } else {
+      // SafeRetry returns null both for 404 and for a URL map another resource still uses.
+      UrlMap remainingUrlMap = safeRetry.doRetry(
+        { timeExecute(
+              compute.urlMaps().get(project, urlMapName),
+              "compute.urlMaps.get",
+              TAG_SCOPE, SCOPE_GLOBAL) },
+        "Url map $urlMapName",
+        task,
+        [400, 403, 412],
+        [404],
+        [action: "get", phase: BASE_PHASE, operation: "compute.urlMaps.get", (TAG_SCOPE): SCOPE_GLOBAL],
+        registry
+      ) as UrlMap
+      if (remainingUrlMap) {
+        String message = "URL map $urlMapName is still used by another resource, such as a target proxy left by an " +
+          "earlier delete, so it was not deleted. Its listeners are already gone. Delete that resource, then URL map " +
+          "$urlMapName, backend services $backendServiceNames and their health checks in $project."
+        task.updateStatus BASE_PHASE, message
+        throw new IllegalStateException(message)
+      }
+    }
 
     // We make a list of the delete operations for backend services.
     List<BackendServiceAsyncDeleteOperation> deleteBackendServiceAsyncOperations =
