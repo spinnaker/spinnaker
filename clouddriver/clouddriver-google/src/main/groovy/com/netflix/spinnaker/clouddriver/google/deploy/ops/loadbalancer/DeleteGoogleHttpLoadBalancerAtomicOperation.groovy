@@ -24,6 +24,7 @@ import com.netflix.spinnaker.clouddriver.google.deploy.GoogleOperationPoller
 import com.netflix.spinnaker.clouddriver.google.deploy.SafeRetry
 import com.netflix.spinnaker.clouddriver.google.deploy.description.DeleteGoogleLoadBalancerDescription
 import com.netflix.spinnaker.clouddriver.google.deploy.exception.GoogleOperationException
+import com.netflix.spinnaker.clouddriver.google.model.callbacks.Utils
 import com.netflix.spinnaker.clouddriver.googlecommon.deploy.GoogleApiException
 import groovy.util.logging.Slf4j
 import org.springframework.beans.factory.annotation.Autowired
@@ -47,16 +48,6 @@ class DeleteGoogleHttpLoadBalancerAtomicOperation extends DeleteGoogleLoadBalanc
 
   private static Task getTask() {
     TaskRepository.threadLocalTask.get()
-  }
-
-  // Used to find all services referenced in a URL map.
-  private static void addServicesFromPathMatchers(List<String> backendServiceUrls, List<PathMatcher> pathMatchers) {
-    for (PathMatcher pathMatcher : pathMatchers) {
-      backendServiceUrls.add(pathMatcher.getDefaultService())
-      for (PathRule pathRule : pathMatcher.getPathRules()) {
-        backendServiceUrls.add(pathRule.getService())
-      }
-    }
   }
 
   @Autowired
@@ -139,17 +130,16 @@ class DeleteGoogleHttpLoadBalancerAtomicOperation extends DeleteGoogleLoadBalanc
     List<UrlMap> projectUrlMaps = mapList.getItems()
 
     UrlMap urlMap = projectUrlMaps.find { it.name == urlMapName }
+    if (!urlMap) {
+      GCEUtil.updateStatusAndThrowNotFoundException("URL map $urlMapName not found for $project", task, BASE_PHASE)
+    }
     projectUrlMaps.removeAll { it.name == urlMapName }
 
-    List<String> backendServiceUrls = new ArrayList<String>()
-    backendServiceUrls.add(urlMap.getDefaultService())
-    addServicesFromPathMatchers(backendServiceUrls, urlMap.getPathMatchers())
-    backendServiceUrls.unique()
+    List<String> backendServiceNames = Utils.getBackendServicesFromUrlMap(urlMap).unique()
 
     // Backend services. Also, get health check URLs.
     List<String> healthCheckUrls = new ArrayList<String>()
-    for (String backendServiceUrl : backendServiceUrls) {
-      def backendServiceName = GCEUtil.getLocalName(backendServiceUrl)
+    for (String backendServiceName : backendServiceNames) {
       task.updateStatus BASE_PHASE, "Retrieving backend service $backendServiceName..."
       BackendService backendService = safeRetry.doRetry(
         { timeExecute(
@@ -168,7 +158,7 @@ class DeleteGoogleHttpLoadBalancerAtomicOperation extends DeleteGoogleLoadBalanc
         throw new IllegalStateException("Server groups still associated with Http(s) load balancer: ${description.loadBalancerName}.")
       }
 
-      healthCheckUrls.addAll(backendService.getHealthChecks())
+      healthCheckUrls.addAll(backendService.getHealthChecks() ?: [])
     }
     healthCheckUrls.unique()
 
@@ -204,8 +194,7 @@ class DeleteGoogleHttpLoadBalancerAtomicOperation extends DeleteGoogleLoadBalanc
     // We make a list of the delete operations for backend services.
     List<BackendServiceAsyncDeleteOperation> deleteBackendServiceAsyncOperations =
         new ArrayList<BackendServiceAsyncDeleteOperation>()
-    for (String backendServiceUrl : backendServiceUrls) {
-      def backendServiceName = GCEUtil.getLocalName(backendServiceUrl)
+    for (String backendServiceName : backendServiceNames) {
       Operation deleteBackendServiceOp = GCEUtil.deleteIfNotInUse(
         { timeExecute(
               compute.backendServices().delete(project, backendServiceName),
