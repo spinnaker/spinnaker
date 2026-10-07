@@ -50,6 +50,26 @@ public abstract class UserInputValidatedArtifactAccount implements ArtifactAccou
     this.permissions = permissions == null ? new Permissions.Builder() : permissions;
   }
 
+  /**
+   * Whether the account is configured to send credentials with its requests. Checked without
+   * reading any credential files so it is cheap to call while configuring the account. Accounts
+   * that authenticate in another way (e.g. a GitHub App) override this.
+   */
+  public boolean hasCredentials() {
+    if (this instanceof BasicAuth) {
+      BasicAuth basicAuth = (BasicAuth) this;
+      if (basicAuth.getUsernamePasswordFile().isPresent()
+          || (basicAuth.getUsername().isPresent() && basicAuth.getPassword().isPresent())) {
+        return true;
+      }
+    }
+    if (this instanceof TokenAuth) {
+      TokenAuth tokenAuth = (TokenAuth) this;
+      return tokenAuth.getToken().isPresent() || tokenAuth.getTokenFile().isPresent();
+    }
+    return false;
+  }
+
   /** Account restrictions as configured, or the defaults when none are configured. */
   protected static UrlRestrictionsProperties orDefault(
       @Nullable UrlRestrictionsProperties urlRestrictions) {

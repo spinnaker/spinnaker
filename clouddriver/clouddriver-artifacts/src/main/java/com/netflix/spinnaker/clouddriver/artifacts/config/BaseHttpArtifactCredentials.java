@@ -51,15 +51,12 @@ public abstract class BaseHttpArtifactCredentials<T extends UserInputValidatedAr
    * that host passes the account's URL restrictions. Without {@code allowedDomains} those only
    * exclude local and internal names, so point operators at the setting that ties the account to
    * its own server.
-   *
-   * <p>TODO: accounts that authenticate in another way (e.g. GitHub App installation tokens) are
-   * not detected here.
    */
   private void warnIfCredentialsAreNotPinnedToHosts(T account) {
     UrlRestrictions restrictions = account.getUrlRestrictions();
     if (restrictions == null
         || !restrictions.getAllowedDomains().isEmpty()
-        || !hasCredentials(account)) {
+        || !account.hasCredentials()) {
       return;
     }
     log.warn(
@@ -67,22 +64,6 @@ public abstract class BaseHttpArtifactCredentials<T extends UserInputValidatedAr
             + "sent to any host that passes the default URL restrictions. Set allowedDomains to the "
             + "host(s) this account should connect to.",
         account.getName());
-  }
-
-  /** Whether the account is configured with credentials, without reading any credentials file. */
-  private static boolean hasCredentials(ArtifactAccount account) {
-    if (account instanceof TokenAuth) {
-      TokenAuth tokenAuth = (TokenAuth) account;
-      if (tokenAuth.getToken().isPresent() || tokenAuth.getTokenFile().isPresent()) {
-        return true;
-      }
-    }
-    if (account instanceof BasicAuth) {
-      BasicAuth basicAuth = (BasicAuth) account;
-      return basicAuth.getUsernamePasswordFile().isPresent()
-          || (basicAuth.getUsername().isPresent() && basicAuth.getPassword().isPresent());
-    }
-    return false;
   }
 
   private Optional<String> getAuthHeader(ArtifactAccount account) {

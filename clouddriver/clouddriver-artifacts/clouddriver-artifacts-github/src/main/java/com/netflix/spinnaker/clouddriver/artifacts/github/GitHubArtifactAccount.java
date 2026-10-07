@@ -81,4 +81,9 @@ public class GitHubArtifactAccount extends UserInputValidatedArtifactAccount
     this.githubAPIVersion = StringUtils.defaultString(githubAPIVersion, "v3");
     this.useContentAPI = useContentAPI;
   }
+
+  @Override
+  public boolean hasCredentials() {
+    return githubApp.isPresent() || super.hasCredentials();
+  }
 }
