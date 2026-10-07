@@ -17,6 +17,13 @@ vi.mock('@spinnaker/core', async (importOriginal) => {
   };
 });
 
+// The form's other children fetch data or need a real Application; only the YAML editor matters here.
+vi.mock('./CopyFromTemplateButton', () => ({ CopyFromTemplateButton: () => null }));
+vi.mock('./ManifestBindArtifactsSelector', () => ({ ManifestBindArtifactsSelector: () => null }));
+vi.mock('./ManifestDeploymentOptions', () => ({ ManifestDeploymentOptions: () => null }));
+vi.mock('./NamespaceSelector', () => ({ NamespaceSelector: () => null }));
+vi.mock('../../../manifest/wizard/BasicSettings', () => ({ ManifestBasicSettings: () => null }));
+
 const encode = (text: string) => btoa(unescape(encodeURIComponent(text)));
 const flushPromises = () => new Promise((resolve) => setTimeout(resolve));
 
