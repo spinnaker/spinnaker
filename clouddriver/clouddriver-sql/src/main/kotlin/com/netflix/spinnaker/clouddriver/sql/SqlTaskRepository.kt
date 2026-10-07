@@ -46,11 +46,12 @@ import org.slf4j.LoggerFactory
  * Tasks created before those columns existed have NULL `seq`/`current_state`. Their rows sort first, in the
  * old `(created_at, id)` order, and their `current_state` is filled in by their next write.
  */
-class SqlTaskRepository(
+class SqlTaskRepository @JvmOverloads constructor(
   private val jooq: DSLContext,
   private val mapper: ObjectMapper,
   private val clock: Clock,
-  private val poolName: String
+  private val poolName: String,
+  private val retries: SqlRetries = SqlRetries()
 ) : TaskRepository {
 
   private val log = LoggerFactory.getLogger(javaClass)
@@ -70,7 +71,7 @@ class SqlTaskRepository(
     val task = SqlTask(ulid.nextULID(), ClouddriverHostname.ID, clientRequestId, clock.millis(), mutableSetOf(), this)
     try {
       withPool(poolName) {
-        jooq.transactional { ctx ->
+        jooq.transactional(retries) { ctx ->
           val pairs = mapOf(
             field("id") to task.id,
             field("owner_id") to task.ownerId,
@@ -99,7 +100,7 @@ class SqlTaskRepository(
 
   fun updateSagaIds(task: Task) {
     return withPool(poolName) {
-      jooq.transactional { ctx ->
+      jooq.transactional(retries) { ctx ->
         ctx.update(tasksTable)
           .set(field("saga_ids"), mapper.writeValueAsString(task.sagaIds))
           .where(field("id").eq(task.id))
@@ -114,7 +115,7 @@ class SqlTaskRepository(
 
   override fun getByClientRequestId(clientRequestId: String): Task? {
     return withPool(poolName) {
-      jooq.read {
+      jooq.read(retries) {
         it.select(field("id"))
           .from(tasksTable)
           .where(field("request_id").eq(clientRequestId))
@@ -128,7 +129,7 @@ class SqlTaskRepository(
 
   override fun list(): MutableList<Task> {
     return withPool(poolName) {
-      jooq.read {
+      jooq.read(retries) {
         runningTaskIds(it, false).let { taskIds ->
           retrieveInternal(field("id").`in`(*taskIds), field("task_id").`in`(*taskIds)).toMutableList()
         }
@@ -138,7 +139,7 @@ class SqlTaskRepository(
 
   override fun listByThisInstance(): MutableList<Task> {
     return withPool(poolName) {
-      jooq.read {
+      jooq.read(retries) {
         runningTaskIds(it, true).let { taskIds ->
           retrieveInternal(field("id").`in`(*taskIds), field("task_id").`in`(*taskIds)).toMutableList()
         }
@@ -148,7 +149,7 @@ class SqlTaskRepository(
 
   internal fun addResultObjects(results: List<Any>, task: Task) {
     withPool(poolName) {
-      jooq.transactional { ctx ->
+      jooq.transactional(retries) { ctx ->
         val row = lockTask(ctx, task.id)
         currentStatus(ctx, task.id, row).ensureUpdateable()
 
@@ -164,7 +165,7 @@ class SqlTaskRepository(
 
   internal fun updateCurrentStatus(task: Task, phase: String, status: String) {
     withPool(poolName) {
-      jooq.transactional { ctx ->
+      jooq.transactional(retries) { ctx ->
         val row = lockTask(ctx, task.id)
         // Throws if the task has already reached a terminal state.
         val updated = currentStatus(ctx, task.id, row).update(phase, status.take(MAX_STATUS_LENGTH))
@@ -176,7 +177,7 @@ class SqlTaskRepository(
 
   internal fun updateState(task: Task, state: TaskState) {
     withPool(poolName) {
-      jooq.transactional { ctx ->
+      jooq.transactional(retries) { ctx ->
         val row = lockTask(ctx, task.id)
         // Throws unless the transition is allowed: nothing leaves a terminal state except retrying a
         // FAILED_RETRYABLE task.
@@ -189,7 +190,7 @@ class SqlTaskRepository(
 
   internal fun updateOutput(taskOutput: TaskOutput, task: Task) {
     withPool(poolName) {
-      jooq.transactional { ctx ->
+      jooq.transactional(retries) { ctx ->
         val row = lockTask(ctx, task.id)
         ctx
           .insertInto(
@@ -225,7 +226,7 @@ class SqlTaskRepository(
 
   fun updateOwnerId(task: Task) {
     return withPool(poolName) {
-      jooq.transactional { ctx ->
+      jooq.transactional(retries) { ctx ->
         ctx.update(tasksTable)
           .set(field("owner_id"), task.ownerId)
           .where(field("id").eq(task.id))
@@ -245,7 +246,7 @@ class SqlTaskRepository(
     //  on every connection acquire - need to change this so running on !aurora will behave consistently.
     //  REPEATABLE_READ is correct here.
     withPool(poolName) {
-      jooq.transactional { ctx ->
+      jooq.transactional(retries) { ctx ->
         // One UNION ALL across the task and its states, results and outputs. Each child row carries its ordering
         // columns (seq, sort_created_at, row_id); TaskMapper sorts each task's rows by them.
         tasks.addAll(

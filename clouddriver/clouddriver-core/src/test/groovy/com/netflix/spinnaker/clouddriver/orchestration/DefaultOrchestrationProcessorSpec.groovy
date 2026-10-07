@@ -30,6 +30,9 @@ import com.netflix.spinnaker.security.AuthenticatedRequest
 import org.slf4j.MDC
 import org.springframework.beans.factory.config.AutowireCapableBeanFactory
 import org.springframework.context.ApplicationContext
+import org.springframework.security.authentication.TestingAuthenticationToken
+import org.springframework.security.core.Authentication
+import org.springframework.security.core.context.SecurityContextHolder
 import spock.lang.Shared
 import spock.lang.Specification
 import spock.lang.Subject
@@ -211,6 +214,30 @@ class DefaultOrchestrationProcessorSpec extends Specification {
     1 * atomicOperation.operate(_)
     task.status.isCompleted()
     !task.status.isFailed()
+  }
+
+  void "runs the operation with the submitting thread's security context"() {
+    given:
+    def task = new DefaultTask("1")
+    def authentication = new TestingAuthenticationToken("alice", "N/A")
+    SecurityContextHolder.getContext().setAuthentication(authentication)
+    Authentication seen = null
+    def atomicOperation = Mock(AtomicOperation) {
+      operate(_) >> {
+        seen = SecurityContextHolder.getContext().getAuthentication()
+        null
+      }
+    }
+
+    when:
+    submitAndWait atomicOperation
+
+    then:
+    1 * taskRepository.create(_, _, taskKey) >> task
+    seen == authentication
+
+    cleanup:
+    SecurityContextHolder.clearContext()
   }
 
   private void submitAndWait(AtomicOperation atomicOp) {
