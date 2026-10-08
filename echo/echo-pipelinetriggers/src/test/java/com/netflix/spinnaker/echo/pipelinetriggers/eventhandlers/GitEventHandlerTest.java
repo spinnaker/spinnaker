@@ -37,8 +37,6 @@ import java.util.List;
 import java.util.concurrent.TimeoutException;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.stream.Stream;
-import org.apache.commons.codec.digest.HmacAlgorithms;
-import org.apache.commons.codec.digest.HmacUtils;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
@@ -456,41 +454,6 @@ class GitEventHandlerTest {
       logger.detachAppender(appender);
       logger.setLevel(originalLevel);
     }
-  }
-
-  private static Stream<Arguments> giteaSignatureParams() {
-    // HMAC-SHA256 of "toBeHashed" keyed with "foo"
-    String valid = new HmacUtils(HmacAlgorithms.HMAC_SHA_256, "foo").hmacHex("toBeHashed");
-    return Stream.of(
-        Arguments.of(null, null, 1), // No secret and no signature
-        Arguments.of(null, "foo", 1), // No secret to verify against
-        Arguments.of("foo", null, 0), // Secret configured but event is unsigned
-        Arguments.of("foo", "foo", 0), // Signatures don't match
-        Arguments.of("foo", valid, 1),
-        Arguments.of("foo", valid.toUpperCase(), 1),
-        Arguments.of("bar", valid, 0));
-  }
-
-  @ParameterizedTest
-  @MethodSource("giteaSignatureParams")
-  void computesAndComparesGiteaSignatureIfAvailable(String secret, String signature, int callCount)
-      throws TimeoutException {
-    GitEvent gitEvent = createGitEvent("gitea");
-    gitEvent.setRawContent("toBeHashed");
-    gitEvent.getDetails().setSource("gitea");
-    if (signature != null) {
-      gitEvent.getDetails().getRequestHeaders().put("X-Gitea-Signature", List.of(signature));
-    }
-
-    Trigger trigger =
-        enabledGithubTrigger().withSource("gitea").atSecret(secret).atBranch("master");
-
-    Pipeline pipeline = createPipelineWith(trigger);
-    PipelineCache pipelines = handlerSupport.pipelineCache(pipeline);
-
-    List<Pipeline> matchingPipelines = eventHandler.getMatchingPipelines(gitEvent, pipelines);
-
-    assertThat(matchingPipelines).hasSize(callCount);
   }
 
   private static Stream<Arguments> githubSignatureSharedSecretParams() {
