@@ -8,12 +8,10 @@ import com.netflix.spinnaker.front50.model.tag.EntityTags;
 import com.netflix.spinnaker.front50.model.tag.EntityTagsDAO;
 import com.netflix.spinnaker.kork.web.exceptions.NotFoundException;
 import jakarta.servlet.http.HttpServletRequest;
-import jakarta.servlet.http.HttpServletResponse;
 import java.util.*;
 import java.util.stream.Collectors;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.util.AntPathMatcher;
 import org.springframework.web.bind.annotation.*;
@@ -75,42 +73,9 @@ public class EntityTagsController {
         .orElseThrow(() -> new NotFoundException(format("No tags found for '%s'", searchTerm)));
   }
 
-  @RequestMapping(method = RequestMethod.POST)
-  public EntityTags create(@RequestBody final EntityTags tag) {
-    return taggedEntityDAO
-        .map(it -> it.create(tag.getId(), tag))
-        .orElseThrow(() -> new BadRequestException("Tagging is not supported"));
-  }
-
-  @RequestMapping(value = "/batchUpdate", method = RequestMethod.POST)
-  public Collection<EntityTags> batchUpdate(@RequestBody final Collection<EntityTags> tags) {
-    return taggedEntityDAO
-        .map(
-            it -> {
-              it.bulkImport(tags);
-              return tags;
-            })
-        .orElseThrow(() -> new BadRequestException("Tagging is not supported"));
-  }
-
-  @RequestMapping(value = "/batchDelete", method = RequestMethod.POST)
-  public void batchDelete(@RequestBody final Collection<String> ids) {
-    if (!taggedEntityDAO.isPresent()) {
-      throw new BadRequestException("Tagging is not supported");
-    }
-    taggedEntityDAO.get().bulkDelete(ids);
-  }
-
-  @RequestMapping(method = RequestMethod.DELETE, value = "/**")
-  public void delete(HttpServletRequest request, HttpServletResponse response) {
-    String pattern = (String) request.getAttribute(HandlerMapping.BEST_MATCHING_PATTERN_ATTRIBUTE);
-    String tagId = new AntPathMatcher().extractPathWithinPattern(pattern, request.getServletPath());
-    if (!taggedEntityDAO.isPresent()) {
-      throw new BadRequestException("Tagging is not supported");
-    }
-    taggedEntityDAO.get().delete(tagId);
-    response.setStatus(HttpStatus.NO_CONTENT.value());
-  }
+  // Write endpoints (POST/DELETE) have been removed. Entity tag storage moved to
+  // clouddriver's SQL provider; these read endpoints remain only to feed the one-shot
+  // Front50→clouddriver migrator and can be removed in a follow-up.
 
   private Set<EntityTags> findAllByIds(Collection<String> ids) {
     return taggedEntityDAO

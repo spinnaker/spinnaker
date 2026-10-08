@@ -15,7 +15,7 @@ dependencies {
   implementation project(":clouddriver-api")
   implementation project(":clouddriver-artifacts")
   implementation project(":clouddriver-core")
-  implementation project(":clouddriver-elasticsearch")
+  implementation project(":clouddriver-entitytags")
   implementation project(":clouddriver-security")
   implementation project(":clouddriver-sql")
 
