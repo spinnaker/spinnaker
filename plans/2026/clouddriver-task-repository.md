@@ -620,7 +620,7 @@ now fixed with a real test in its own PR.
 | Branch / PR | Findings |
 |---|---|
 | #8172 (draft) | S9: cleanup deletes `FAILED_RETRYABLE` tasks after `sql.agent.task-cleanup.failed-retryable-ttl-ms` (7 d), found through `tasks(current_state, completed_at)`. R2 (SQL side): a failed "Orchestration completed." write no longer fails a successful operation. |
-| #8112 (external) | P2 and related performance fixes. It overlaps #8111 and #8130, so it needs a rebase or a close. |
+| #8112 (external) | Does not cover P2. Its SQL retries (S6), running-task query and cleanup index are largely superseded by #8111, #8130 and #8172. Only its Orca changes (`SqlExceptionHandler`, configurable `MonitorKatoTask` not-found retries) are not on `main`. |
 
 ### Backports
 
@@ -638,7 +638,7 @@ Backport status as of 2026-10-08. The `release-2026.2.x` backport of #8130 is in
 
 1. **Review and merge the S9/R2 PR (#8172)**, then decide its backports.
 2. **P3: per-instance leases and reaper** (work-plan PR 9, option A in [P3 options](#p3-options-for-work-lost-when-a-pod-restarts-or-crashes)). Queued dispatch (C) follows once A is stable and the pub/sub work (#8030, #8031) has landed.
-3. **P2** through #8112 or a replacement, and the remaining processor items (atomic "complete if not terminal").
+3. **P2 (bounded executor with 503 + `Retry-After`)**: not covered by any open PR. Plus the remaining processor item, the repository-side atomic "complete if not terminal".
 4. **Redis task repository deprecation (work-plan 3b), only once the above is stable.** In 2026.4.0:
    - `@Deprecated` on `RedisTaskRepository` (selected by `redis.task-repository.enabled`, default `true`);
    - a startup `WARN` when it is in use;
@@ -662,7 +662,7 @@ Postgres (`kork-sql-test`, `--max-workers=1` locally). Update **Status** as PRs 
 | 3b | A: Redis deprecation | Deprecate the Redis task repository: `@Deprecated`, startup `WARN`, migration guide, `CODE_STYLE.md` deprecation table | Phase 3 | 1, 3 | Not started (targets 2026.4.0) |
 | 4 + 5 | B: SQL foundation | **Combined into one PR** (schema commit + code commit): per-task `seq`, `current_state`/`completed_at`, `tasks` indexes, `request_id` dedupe + unique index, Postgres `state` width; row lock, `seq` ordering, terminal immutability, duplicate-safe `create()`, retry rule in `DefaultTaskStatus`, processor stop-after-failure and retry order. No backfill agent: pre-upgrade tasks are handled lazily | S1–S5, S7, S8, S10, S11, P1, P4 | – | Merged: #8130 |
 | 6 | B: SQL foundation | Cleanup driven by `tasks(current_state, completed_at)`, `FAILED_RETRYABLE` TTL (`failed-retryable-ttl-ms`, 7 d); legacy rows fall back to the history lookup | S9 | 4 + 5 | Fixed on branch `taskRepositoryCleanupAndCompletion` |
-| 7 | B: SQL foundation | Processor: progress writes that can't fail a successful operation (done, same branch as PR 6). Bounded executor / 503 (P2) is handled by #8112. Repository-side atomic "complete if not terminal" deferred | P2, R2 (SQL side) | 4 + 5 | R2 fixed on branch; P2 via #8112 |
+| 7 | B: SQL foundation | Processor: progress writes that can't fail a successful operation (done, same branch as PR 6). Bounded executor / 503 (P2) is still open, with no PR. Repository-side atomic "complete if not terminal" deferred | P2, R2 (SQL side) | 4 + 5 | R2 fixed in #8172; P2 open |
 | 8 | C: reads | Version-checked poll cache; optional read-pool routing for task polling | Phase 6 (reads) | 4 + 5 | Not started |
 | 9 | D: task queue | `clouddriver_instances` + per-instance leases, fencing on every write, `progress` checkpoints, reaper, graceful-shutdown release (inline mode) | 5a, P3 | 4 + 5, 2 | Not started |
 | 10 | D: task queue | Refactor: extract the processor's execution body into an executor component (no behaviour change) | 5b prep | 7 | Not started |
