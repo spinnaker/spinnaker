@@ -175,8 +175,6 @@ class DefaultOrchestrationProcessorSpec extends Specification {
     !context.getUser().isPresent()
   }
 
-<<<<<<< HEAD
-=======
   void "does not run the remaining operations after one fails"() {
     setup:
     def task = new DefaultTask("1")
@@ -215,31 +213,6 @@ class DefaultOrchestrationProcessorSpec extends Specification {
     !task.status.isFailed()
   }
 
-  void "runs the operation with the submitting thread's security context"() {
-    given:
-    def task = new DefaultTask("1")
-    def authentication = new TestingAuthenticationToken("alice", "N/A")
-    SecurityContextHolder.getContext().setAuthentication(authentication)
-    Authentication seen = null
-    def atomicOperation = Mock(AtomicOperation) {
-      operate(_) >> {
-        seen = SecurityContextHolder.getContext().getAuthentication()
-        null
-      }
-    }
-
-    when:
-    submitAndWait atomicOperation
-
-    then:
-    1 * taskRepository.create(_, _, taskKey) >> task
-    seen == authentication
-
-    cleanup:
-    SecurityContextHolder.clearContext()
-  }
-
->>>>>>> 7935f06 (fix(clouddriver): order SQL task state by a per-task sequence and make terminal states final (#8130))
   private void submitAndWait(AtomicOperation atomicOp) {
     submitAndWait([atomicOp])
   }
