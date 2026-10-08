@@ -193,11 +193,14 @@ public class GitEventHandler extends BaseTriggerEventHandler<GitEvent> {
 
     String computedDigest = HmacUtils.hmacSha1Hex(secret, gitEvent.getRawContent());
 
-    // TODO: Find constant time comparison algo?
-    boolean digestsMatch = signature.equalsIgnoreCase(computedDigest);
+    // Compare in constant time so the time taken does not depend on how much of the signature
+    // matched. Hex digits are case-insensitive, so normalize the case first.
+    boolean digestsMatch =
+        MessageDigest.isEqual(
+            signature.trim().toLowerCase(Locale.ROOT).getBytes(StandardCharsets.UTF_8),
+            computedDigest.getBytes(StandardCharsets.UTF_8));
     if (!digestsMatch) {
       log.warn("Github Digest mismatch! Pipeline NOT triggered: " + trigger);
-      log.debug("computedDigest: " + computedDigest + ", from GitHub: " + signature);
     }
 
     return digestsMatch;
