@@ -1,8 +1,9 @@
 # Clouddriver task repository: failure modes, fixes, and a SQL task queue
 
-**Status**: In progress. Track A fixes are in review (see the [Work plan](#work-plan)). Focus is the
-SQL task repository and SQL task queue. The Redis task repository gets bridge fixes only, then is
-**deprecated in 2026.4.0** (Phase 3).
+**Status**: In progress. Track A and the SQL ordering rework are merged; the cleanup and completion
+fixes are in review. See [Status and next steps](#status-and-next-steps) and the [Work plan](#work-plan).
+Focus is the SQL task repository and SQL task queue. The Redis task repository gets bridge fixes only,
+then is **deprecated in 2026.4.0** (Phase 3), after the work below is stable.
 
 The phases describe *what* changes. The [Work plan](#work-plan) at the end turns them into an ordered
 PR list. Track status there.
@@ -372,6 +373,48 @@ lease_epoch)` for the reaper.
 Operation descriptions can carry sensitive values (for example manifests). Keep payload rows only
 while needed, delete them on terminal state, and evaluate encrypting `body` at rest before 5b ships.
 
+### P3: options for work lost when a pod restarts or crashes
+
+Today an operation runs on the pod that accepted it. If that pod restarts (after `shutdownWaitSeconds`),
+is OOM-killed or is partitioned, its tasks stay `STARTED` until Orca's `MonitorKatoTask` timeout (1 h).
+Any fix needs two things: **detect** that the pod is gone, and **decide per task** what is safe to do.
+
+| Option | How | Detection | Cost | Verdict |
+|---|---|---|---|---|
+| **A. Per-instance lease + reaper (5a)** | One heartbeat row per pod. Tasks carry `lease_owner`/`lease_epoch`; writes are fenced on both. Any pod's reaper declares an expired instance `DEAD` with a conditional update and resolves its tasks by what was in flight (below). `@PreDestroy` drains and applies the same rules to the pod's own tasks. | About one lease TTL (default 2 min) | About 2–3 writes/s fleet-wide at 50 pods, independent of task count. No change to who runs the work. | **Recommended. Do first.** |
+| B. Per-task heartbeat | Every running task refreshes its own lease. | Seconds | About 200 writes/s at the target scale | Reject: write amplification for no extra safety |
+| **C. Queued dispatch (5b)** | Accepted work is stored as `PENDING` (`task_payloads`) and claimed by any pod, local-first. Work that had not started re-runs on another pod instead of failing. | Same lease as A | Larger change to `OperationsController` and the processor; needs payload storage and claim loop | **Planned after A is stable** |
+| D. Only shorten Orca's timeout | Lower the `MonitorKatoTask` timeout. | Orca-side | None in clouddriver | Reject: a workaround. Orca still learns nothing, and long legitimate operations time out |
+
+What the reaper does with a dead instance's non-terminal tasks (the part that makes A safe):
+
+| In flight when the pod died | Outcome | Why |
+|---|---|---|
+| Nothing started (`progress` shows the next op not begun) | Inline mode: `FAILED` with an explicit reason. Queued mode (C): back to `PENDING`. | Only queued mode has somewhere else to run it |
+| Saga-backed operation | `FAILED_RETRYABLE` | Orca's `MonitorKatoTask` → `:resume` resumes the saga on whichever pod it reaches |
+| Non-saga operation | `FAILED`: "clouddriver instance executing this task stopped before it completed" | The cloud call may have been sent. Never re-run a non-idempotent operation blindly. |
+
+Fencing means a partitioned pod that comes back finds its old-epoch writes rejected and abandons its
+tasks. It cannot recall a cloud API call that was already sent, which is why non-saga work fails
+instead of being re-run.
+
+Not covered by A: a single hung operation on a healthy pod (the lease stays healthy; Orca's stage
+timeout still applies).
+
+**Why C comes later, and the pub/sub link.** A makes failures fast and explicit and needs no new
+infrastructure beyond SQL. C changes how work is dispatched, so it should follow once A's lease and
+fencing have proved stable. kork-pubsub (#8030 broadcast delivery, #8031 Redis Streams) may make both
+better:
+- **Liveness:** a broadcast "instance draining/dead" message lets peers react in seconds instead of waiting
+  for a lease to expire. The lease stays the source of truth; messages are only an accelerator.
+- **Dispatch (5c):** a single-delivery stream could carry claims for queued work, fed by the transactional
+  outbox, so SQL stays the system of record.
+- **Completion events (5d):** Orca could react to a completion message instead of polling. That needs an
+  Orca change.
+
+Re-evaluate the transport choice for C and the optional 5c/5d once #8030 and #8031 land. A does not depend
+on them.
+
 ### 5a: Per-instance leases + reaper (no change to who runs the work)
 
 This alone fixes the worst restart behaviour (P3) without changing dispatch.
@@ -556,6 +599,55 @@ where noted.
 | P2 | Lands with its fix: the concurrency limit it would assert is defined there | – | Fix: work-plan PR 7 |
 | P3 | Lands with its fix: the lease/reaper it would assert doesn't exist yet | – | Fix: work-plan PR 9 (5a) |
 | P4 | TCK `testRetryMovesARetryableFailureBackToStarted`; `DefaultOrchestrationProcessorSpec` "re-runs a task whose failure is retryable" | #8130 | Fixed in review |
+
+## Status and next steps
+
+Last updated 2026-10-08. Tracking issue: spinnaker/spinnaker#8109. This PR holds the plan only. It is
+not intended to be merged, and its known-issue tests were removed because every finding that had one is
+now fixed with a real test in its own PR.
+
+### Merged to `main`
+
+| PR | Findings |
+|---|---|
+| #8110 | R1: unreachable Redis task store returns 503, not 500 |
+| #8111 | S6: SQL retries actually run, and 503 when the database stays unreachable |
+| #8129 | R5–R7: Redis saga IDs persisted, `kato:taskmap` index keys expire, null-safe `list()` |
+| #8130 | S1–S5, S7, S8, S10, S11, P1, P4: per-task sequence ordering, row lock, terminal immutability, duplicate-safe `create()`, Postgres state width, retry order |
+
+### In review
+
+| Branch / PR | Findings |
+|---|---|
+| `taskRepositoryCleanupAndCompletion` (draft PR) | S9: cleanup deletes `FAILED_RETRYABLE` tasks after `sql.agent.task-cleanup.failed-retryable-ttl-ms` (7 d), found through `tasks(current_state, completed_at)`. R2 (SQL side): a failed "Orchestration completed." write no longer fails a successful operation. |
+| #8112 (external) | P2 and related performance fixes. It overlaps #8111 and #8130, so it needs a rebase or a close. |
+
+### Backports
+
+Backport status as found on 2026-10-08. A missing backport is not necessarily a decision: confirm which
+releases need each fix.
+
+| Fix | `release-2026.3.x` | `release-2026.2.x` |
+|---|---|---|
+| #8111 (S6, SQL retries) | #8149 merged | #8150 merged |
+| #8130 (SQL ordering) | #8168 merged | Not found |
+| #8110 (R1, 503) | Not found | Not found |
+| #8129 (R5–R7, Redis) | Not found | Not found |
+| S9 / R2 branch | Not yet a PR | Not yet a PR |
+
+### Next steps
+
+1. **Review and merge the S9/R2 PR**, then decide its backports.
+2. **P3: per-instance leases and reaper** (work-plan PR 9, option A in [P3 options](#p3-options-for-work-lost-when-a-pod-restarts-or-crashes)). Queued dispatch (C) follows once A is stable and the pub/sub work (#8030, #8031) has landed.
+3. **P2** through #8112 or a replacement, and the remaining processor items (atomic "complete if not terminal").
+4. **Redis task repository deprecation (work-plan 3b), only once the above is stable.** In 2026.4.0:
+   - `@Deprecated` on `RedisTaskRepository` (selected by `redis.task-repository.enabled`, default `true`);
+   - a startup `WARN` when it is in use;
+   - a migration guide: enable `sql.task-repository.enabled`, then run `dual-task-repository.enabled` with SQL
+     primary and Redis previous for at least 12 h (the Redis task TTL), then disable the Redis task repository;
+   - an entry in the `CODE_STYLE.md` deprecation table (removal proposed for 2027.0.0, to be confirmed by
+     maintainers).
+   Redis stays supported for caching and as the queue backend.
 
 ## Work plan
 
