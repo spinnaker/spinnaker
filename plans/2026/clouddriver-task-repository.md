@@ -619,25 +619,24 @@ now fixed with a real test in its own PR.
 
 | Branch / PR | Findings |
 |---|---|
-| `taskRepositoryCleanupAndCompletion` (draft PR) | S9: cleanup deletes `FAILED_RETRYABLE` tasks after `sql.agent.task-cleanup.failed-retryable-ttl-ms` (7 d), found through `tasks(current_state, completed_at)`. R2 (SQL side): a failed "Orchestration completed." write no longer fails a successful operation. |
+| #8172 (draft) | S9: cleanup deletes `FAILED_RETRYABLE` tasks after `sql.agent.task-cleanup.failed-retryable-ttl-ms` (7 d), found through `tasks(current_state, completed_at)`. R2 (SQL side): a failed "Orchestration completed." write no longer fails a successful operation. |
 | #8112 (external) | P2 and related performance fixes. It overlaps #8111 and #8130, so it needs a rebase or a close. |
 
 ### Backports
 
-Backport status as found on 2026-10-08. A missing backport is not necessarily a decision: confirm which
-releases need each fix.
+Backport status as of 2026-10-08. The `release-2026.2.x` backport of #8130 is intentionally skipped.
 
 | Fix | `release-2026.3.x` | `release-2026.2.x` |
 |---|---|---|
 | #8111 (S6, SQL retries) | #8149 merged | #8150 merged |
-| #8130 (SQL ordering) | #8168 merged | Not found |
-| #8110 (R1, 503) | Not found | Not found |
-| #8129 (R5–R7, Redis) | Not found | Not found |
-| S9 / R2 branch | Not yet a PR | Not yet a PR |
+| #8130 (SQL ordering) | #8168 merged | Skipped (decision) |
+| #8110 (R1, 503) | Not backporting: Redis-only, and the 500 to 503 change alters what Orca does during an outage | Not backporting |
+| #8129 (R5–R7, Redis) | Not backporting: Redis-only, the repository is being deprecated, and the impact is low (saga resume never worked on Redis, the key leak is slow, the `list()` NPE only happens during shutdown) | Not backporting |
+| S9 / R2 (#8172) | To be decided after review | To be decided after review |
 
 ### Next steps
 
-1. **Review and merge the S9/R2 PR**, then decide its backports.
+1. **Review and merge the S9/R2 PR (#8172)**, then decide its backports.
 2. **P3: per-instance leases and reaper** (work-plan PR 9, option A in [P3 options](#p3-options-for-work-lost-when-a-pod-restarts-or-crashes)). Queued dispatch (C) follows once A is stable and the pub/sub work (#8030, #8031) has landed.
 3. **P2** through #8112 or a replacement, and the remaining processor items (atomic "complete if not terminal").
 4. **Redis task repository deprecation (work-plan 3b), only once the above is stable.** In 2026.4.0:
