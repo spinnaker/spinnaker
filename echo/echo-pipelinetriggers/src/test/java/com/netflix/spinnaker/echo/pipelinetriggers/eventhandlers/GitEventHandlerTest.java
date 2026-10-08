@@ -428,8 +428,6 @@ class GitEventHandlerTest {
     assertThat(matchingPipelines).hasSize(callCount);
   }
 
-<<<<<<< HEAD
-=======
   @Test
   void doesNotLogTheComputedGitHubSignature() throws TimeoutException {
     ch.qos.logback.classic.Logger logger =
@@ -493,7 +491,6 @@ class GitEventHandlerTest {
     assertThat(matchingPipelines).hasSize(callCount);
   }
 
->>>>>>> 6ecbc64 (fix(echo): compare GitHub webhook signatures in constant time (#8162))
   private static Stream<Arguments> githubSignatureSharedSecretParams() {
     return Stream.of(
         Arguments.of(null, null, 1),
