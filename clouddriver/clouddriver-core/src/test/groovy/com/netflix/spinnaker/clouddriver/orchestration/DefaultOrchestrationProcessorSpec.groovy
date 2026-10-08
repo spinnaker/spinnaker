@@ -175,8 +175,77 @@ class DefaultOrchestrationProcessorSpec extends Specification {
     !context.getUser().isPresent()
   }
 
+<<<<<<< HEAD
+=======
+  void "does not run the remaining operations after one fails"() {
+    setup:
+    def task = new DefaultTask("1")
+    def first = Mock(AtomicOperation)
+    def second = Mock(AtomicOperation)
+    def third = Mock(AtomicOperation)
+
+    when:
+    submitAndWait([first, second, third])
+
+    then:
+    1 * taskRepository.create(_, _, taskKey) >> task
+    1 * first.operate(_) >> [result: "first"]
+    1 * second.operate(_) >> { throw new RuntimeException("boom") }
+    0 * third.operate(_)
+    task.status.isFailed()
+    task.resultObjects.find { it.type == "EXCEPTION" }
+    // Results of the operations that succeeded before the failure are kept.
+    task.resultObjects.contains([result: "first"])
+  }
+
+  void "re-runs a task whose failure is retryable"() {
+    setup:
+    def task = new DefaultTask("1")
+    task.fail(true)
+    def atomicOperation = Mock(AtomicOperation)
+
+    when:
+    submitAndWait atomicOperation
+
+    then:
+    taskRepository.getByClientRequestId(taskKey) >> task
+    0 * taskRepository.create(_, _, _)
+    1 * atomicOperation.operate(_)
+    task.status.isCompleted()
+    !task.status.isFailed()
+  }
+
+  void "runs the operation with the submitting thread's security context"() {
+    given:
+    def task = new DefaultTask("1")
+    def authentication = new TestingAuthenticationToken("alice", "N/A")
+    SecurityContextHolder.getContext().setAuthentication(authentication)
+    Authentication seen = null
+    def atomicOperation = Mock(AtomicOperation) {
+      operate(_) >> {
+        seen = SecurityContextHolder.getContext().getAuthentication()
+        null
+      }
+    }
+
+    when:
+    submitAndWait atomicOperation
+
+    then:
+    1 * taskRepository.create(_, _, taskKey) >> task
+    seen == authentication
+
+    cleanup:
+    SecurityContextHolder.clearContext()
+  }
+
+>>>>>>> 7935f06 (fix(clouddriver): order SQL task state by a per-task sequence and make terminal states final (#8130))
   private void submitAndWait(AtomicOperation atomicOp) {
-    processor.process("cloudProvider", [atomicOp], taskKey)
+    submitAndWait([atomicOp])
+  }
+
+  private void submitAndWait(List<AtomicOperation> atomicOps) {
+    processor.process("cloudProvider", atomicOps, taskKey)
     processor.executorService.shutdown()
     processor.executorService.awaitTermination(5, TimeUnit.SECONDS)
   }
