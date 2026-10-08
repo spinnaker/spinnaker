@@ -23,6 +23,8 @@ import com.netflix.spinnaker.echo.model.Trigger;
 import com.netflix.spinnaker.echo.model.trigger.GitEvent;
 import com.netflix.spinnaker.fiat.shared.FiatPermissionEvaluator;
 import com.netflix.spinnaker.kork.artifacts.model.Artifact;
+import java.nio.charset.StandardCharsets;
+import java.security.MessageDigest;
 import java.util.*;
 import java.util.function.Function;
 import java.util.function.Predicate;
@@ -193,11 +195,14 @@ public class GitEventHandler extends BaseTriggerEventHandler<GitEvent> {
 
     String computedDigest = HmacUtils.hmacSha1Hex(secret, gitEvent.getRawContent());
 
-    // TODO: Find constant time comparison algo?
-    boolean digestsMatch = signature.equalsIgnoreCase(computedDigest);
+    // Compare in constant time so the time taken does not depend on how much of the signature
+    // matched. Hex digits are case-insensitive, so normalize the case first.
+    boolean digestsMatch =
+        MessageDigest.isEqual(
+            signature.trim().toLowerCase(Locale.ROOT).getBytes(StandardCharsets.UTF_8),
+            computedDigest.getBytes(StandardCharsets.UTF_8));
     if (!digestsMatch) {
       log.warn("Github Digest mismatch! Pipeline NOT triggered: " + trigger);
-      log.debug("computedDigest: " + computedDigest + ", from GitHub: " + signature);
     }
 
     return digestsMatch;
