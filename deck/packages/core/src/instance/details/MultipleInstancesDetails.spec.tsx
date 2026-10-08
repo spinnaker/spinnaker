@@ -1,15 +1,16 @@
+import { fireEvent, render, screen, within } from '@testing-library/react';
 import { hashLocationPlugin, servicesPlugin, UIRouterContext, UIRouterReact, UIViewContext } from '@uirouter/react';
-import { mount } from 'enzyme';
 import React from 'react';
+import type { Mock } from 'vitest';
 
+import { MultipleInstancesDetails } from './MultipleInstancesDetails';
 import { AccountService } from '../../account';
 import { DeckRuntimeContext } from '../../bootstrap/DeckRuntimeContext';
 import { ProviderSelectionService } from '../../cloudProvider/providerSelection/ProviderSelectionService';
 import { ConfirmationModalService } from '../../confirmationModal';
-import { CollapsibleSection } from '../../presentation';
-import { ClusterState } from '../../state';
 import { InstanceWriter } from '../instance.write.service';
-import { MultipleInstancesDetails } from './MultipleInstancesDetails';
+import { ClusterState } from '../../state';
+import { setupUser } from '../../utils/testUtils';
 
 describe('<MultipleInstancesDetails />', () => {
   const providerServiceDelegate = {} as any;
@@ -35,12 +36,12 @@ describe('<MultipleInstancesDetails />', () => {
           ],
         },
       ],
-      onRefresh: jasmine.createSpy('onRefresh').and.returnValue(() => null),
+      onRefresh: vi.fn().mockReturnValue(() => null),
     },
   } as any;
 
-  const mountDetails = () =>
-    mount(
+  const renderDetails = () =>
+    render(
       <UIRouterContext.Provider value={router}>
         <UIViewContext.Provider
           value={{
@@ -62,9 +63,7 @@ describe('<MultipleInstancesDetails />', () => {
     ['application', 'application.insight', 'application.insight.multipleInstances'].forEach((name) => {
       router.stateRegistry.register({ name, url: `/${name.split('.').pop()}` } as any);
     });
-  });
 
-  beforeEach(() => {
     previousMultiselectModel = ClusterState.multiselectModel;
     ClusterState.multiselectModel = {
       instanceGroups: [],
@@ -72,15 +71,15 @@ describe('<MultipleInstancesDetails />', () => {
       deselectAllInstances: () => null,
     } as any;
 
-    spyOn(AccountService, 'challengeDestructiveActions').and.returnValue(Promise.resolve(false));
-    spyOn(ProviderSelectionService, 'isDisabled').and.returnValue(Promise.resolve(false));
-    spyOn(ConfirmationModalService, 'confirm').and.stub();
-    spyOn(InstanceWriter, 'terminateInstances').and.returnValue(Promise.resolve({}) as any);
-    spyOn(ClusterState.multiselectModel.instancesStream, 'subscribe').and.callFake((callback: any) => {
+    vi.spyOn(AccountService, 'challengeDestructiveActions').mockReturnValue(Promise.resolve(false));
+    vi.spyOn(ProviderSelectionService, 'isDisabled').mockReturnValue(Promise.resolve(false));
+    vi.spyOn(ConfirmationModalService, 'confirm').mockReturnValue(undefined);
+    vi.spyOn(InstanceWriter, 'terminateInstances').mockReturnValue(Promise.resolve({}) as any);
+    vi.spyOn(ClusterState.multiselectModel.instancesStream, 'subscribe').mockImplementation((callback: any) => {
       callback();
-      return { unsubscribe: jasmine.createSpy('unsubscribe') } as any;
+      return { unsubscribe: vi.fn() } as any;
     });
-    spyOn(ClusterState.multiselectModel, 'deselectAllInstances').and.stub();
+    vi.spyOn(ClusterState.multiselectModel, 'deselectAllInstances').mockReturnValue(undefined);
     ClusterState.multiselectModel.instanceGroups = [
       {
         account: 'prod',
@@ -98,95 +97,103 @@ describe('<MultipleInstancesDetails />', () => {
   });
 
   it('renders selected instances grouped by server group', () => {
-    const wrapper = mountDetails();
+    const { container } = renderDetails();
 
-    expect(wrapper.find('.details-panel h3').text()).toContain('1 Instance');
-    expect(wrapper.text()).toContain('app-v001');
-    expect(wrapper.text()).toContain('prod');
-    expect(wrapper.text()).toContain('us-west-2');
-    expect(wrapper.text()).toContain('instance-one');
-
-    wrapper.unmount();
+    expect(screen.getByRole('heading', { name: '1 Instance' })).toBeInTheDocument();
+    expect(screen.getByText('app-v001')).toBeInTheDocument();
+    expect(screen.getByText('prod')).toBeInTheDocument();
+    expect(screen.getByText(/us-west-2/)).toBeInTheDocument();
+    expect(screen.getByText('instance-one')).toBeInTheDocument();
+    expect(container.querySelectorAll('.multiple-instance-server-group')).toHaveLength(1);
   });
 
   it('renders server groups in the shared collapsible section with the legacy wrapper element', () => {
-    const wrapper = mountDetails();
-    const section = wrapper.find(CollapsibleSection);
+    const { container } = renderDetails();
 
-    expect(section.prop('heading')).toBe('Server Groups');
-    expect(section.prop('defaultExpanded')).toBe(true);
-    expect(wrapper.find('.multiple-instance-server-group').length).toBe(1);
-
-    wrapper.unmount();
+    expect(screen.getByText('Server Groups')).toBeInTheDocument();
+    expect(
+      container.querySelectorAll('.collapsible-section .content-body .multiple-instance-server-group'),
+    ).toHaveLength(1);
+    expect(screen.getByText('instance-one')).toBeVisible();
   });
 
-  it('opens terminate confirmation using selected groups', () => {
-    const wrapper = mountDetails();
+  it('opens terminate confirmation using selected groups', async () => {
+    const user = setupUser();
+    renderDetails();
 
-    wrapper.find('button.dropdown-toggle').simulate('click');
-    wrapper
-      .find('a')
-      .filterWhere((node) => node.text() === 'Terminate')
-      .simulate('click');
+    await user.click(screen.getByRole('button', { name: 'Actions' }));
+    await user.click(screen.getByText('Terminate', { selector: 'a' }));
 
     expect(ConfirmationModalService.confirm).toHaveBeenCalledWith(
-      jasmine.objectContaining({
+      expect.objectContaining({
         buttonText: 'Terminate 1 instance',
         textToVerify: '1',
       }),
     );
-    const confirmation = (ConfirmationModalService.confirm as jasmine.Spy).calls.mostRecent().args[0];
+    const confirmation = (ConfirmationModalService.confirm as Mock).mock.lastCall[0];
 
     confirmation.submitMethod();
 
     expect(InstanceWriter.terminateInstances).toHaveBeenCalledWith(
       [
-        jasmine.objectContaining({
+        {
           account: 'prod',
           cloudProvider: 'aws',
           instanceIds: ['i-1'],
           instances: [
-            jasmine.objectContaining({
+            {
               availabilityZone: 'us-west-2a',
+              health: [{ state: 'Up', type: 'Discovery' }],
               healthState: 'Up',
               id: 'i-1',
               name: 'instance-one',
-            }),
+            },
           ],
           loadBalancers: ['lb-a'],
           region: 'us-west-2',
           serverGroup: 'app-v001',
-        }),
+        },
       ],
       app,
       providerServiceDelegate,
     );
-
-    wrapper.unmount();
   });
 
   it('closes the actions dropdown when an action is selected', () => {
-    const wrapper = mountDetails();
+    const { container } = renderDetails();
+    const toggle = screen.getByRole('button', { name: 'Actions' });
 
-    wrapper.find('button.dropdown-toggle').simulate('click');
-    wrapper.update();
-    expect(wrapper.find('.dropdown.open').exists()).toBe(true);
+    // react-overlays' RootCloseWrapper relies on `window.event` to ignore the opening click, which jsdom does not
+    // provide for user-event's pointer sequence, so a single synthetic click is used to open the menu.
+    fireEvent.click(toggle);
+    expect(container.querySelector('.dropdown')).toHaveClass('open');
+    expect(toggle).toHaveAttribute('aria-expanded', 'true');
 
-    wrapper
-      .find('a')
-      .filterWhere((node) => node.text() === 'Terminate')
-      .simulate('click');
-    wrapper.update();
+    fireEvent.click(screen.getByText('Terminate', { selector: 'a' }));
 
-    expect(wrapper.find('.dropdown.open').exists()).toBe(false);
+    expect(container.querySelector('.dropdown')).not.toHaveClass('open');
+    expect(toggle).toHaveAttribute('aria-expanded', 'false');
+  });
 
-    wrapper.unmount();
+  it('renders only actions eligible for the selected instances', async () => {
+    const user = setupUser();
+    renderDetails();
+
+    await user.click(screen.getByRole('button', { name: 'Actions' }));
+    const menu = screen.getByRole('menu');
+
+    expect(within(menu).getByText('Disable in Discovery')).toBeInTheDocument();
+    expect(within(menu).getByText('Register with Load Balancer')).toBeInTheDocument();
+    expect(within(menu).getByText('Reboot')).toBeInTheDocument();
+    expect(within(menu).getByText('Terminate and Shrink Server Groups')).toBeInTheDocument();
+    expect(within(menu).queryByText('Enable in Discovery')).not.toBeInTheDocument();
+    expect(within(menu).queryByText('Deregister from Load Balancer')).not.toBeInTheDocument();
   });
 
   it('clears selected instances on unmount', () => {
-    const wrapper = mountDetails();
+    const { unmount } = renderDetails();
 
-    wrapper.unmount();
+    unmount();
 
     expect(ClusterState.multiselectModel.deselectAllInstances).toHaveBeenCalled();
   });

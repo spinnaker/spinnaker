@@ -29,7 +29,6 @@ import io.cloudevents.CloudEvent
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.http.HttpHeaders
 import org.springframework.http.ResponseEntity
-import org.springframework.util.CollectionUtils
 import org.springframework.web.bind.annotation.*
 
 @RestController
@@ -77,9 +76,10 @@ class WebhooksController {
     if (headers.containsHeader('X-Event-Key')) {
       event.content.event_type = headers['X-Event-Key'][0]
     }
-    Map<String, List<String>> matchingHeaders =
-        headers.headerNames().findAll { headersPredicate(it) }.collectEntries { [(it): headers.get(it)] }
-    def filteredHeaders = CollectionUtils.toMultiValueMap(matchingHeaders)
+    // Build the handler-facing headers with the default (case-insensitive) HttpHeaders: wrapping a
+    // plain map via `new HttpHeaders(map)` makes lookups like getFirst("x-github-event") case-sensitive.
+    HttpHeaders filteredHeaders = new HttpHeaders()
+    headers.headerNames().findAll { headersPredicate(it) }.each { filteredHeaders.addAll(it, headers.get(it)) }
 
     if (type == 'git') {
       GitWebhookHandler handler
@@ -89,7 +89,7 @@ class WebhooksController {
         log.error("Unable to handle SCM source: {}", source)
         throw e
       }
-      handler.handle(event, postedEvent, new HttpHeaders(filteredHeaders))
+      handler.handle(event, postedEvent, filteredHeaders)
       // shouldSendEvent should be called after the event
       // has been processed
       sendEvent = handler.shouldSendEvent(event)
@@ -112,7 +112,7 @@ class WebhooksController {
 
   // If your scm implementation needs access to headers, add them as a clause to this filter predicate
   private static boolean headersPredicate(String headerName) {
-    headerName.toLowerCase().startsWith("x-github")
+    headerName.toLowerCase().startsWith("x-github") || headerName.toLowerCase().startsWith("x-gitea")
   }
 
   // Spring 7's HttpHeaders is no longer a Map: copy into the case-insensitive

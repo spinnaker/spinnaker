@@ -53,6 +53,7 @@ import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.context.ApplicationContext;
+import org.springframework.security.concurrent.DelegatingSecurityContextCallable;
 import tools.jackson.databind.ObjectMapper;
 
 @Slf4j
@@ -286,7 +287,10 @@ public class DefaultOrchestrationProcessor implements OrchestrationProcessor {
         };
 
     TimedCallable<Void> timedCallable =
-        TimedCallable.forCallable(registry, orchestrationsId, propagate(operationClosure, true));
+        TimedCallable.forCallable(
+            registry,
+            orchestrationsId,
+            new DelegatingSecurityContextCallable<>(propagate(operationClosure, true)));
     executorService.submit(timedCallable);
 
     return task;

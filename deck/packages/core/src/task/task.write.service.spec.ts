@@ -1,8 +1,9 @@
-import { mockHttpClient } from '../api/mock/jasmine';
+import type { Mock } from 'vitest';
+import { mockHttpClient } from '../api/mock/mockHttpSupport';
 import { TaskWriter } from './task.write.service';
 
 describe('Service: TaskWriter', () => {
-  let cancelPoll: jasmine.Spy;
+  let cancelPoll: Mock;
   let runNextPoll: () => number;
 
   beforeEach(() => {
@@ -11,7 +12,7 @@ describe('Service: TaskWriter', () => {
     const pollCallbacks: Array<{ callback: () => void; cancelled: boolean; handle: number }> = [];
     const pollsByHandle = new Map<number, { callback: () => void; cancelled: boolean; handle: number }>();
     let nextHandle = -1;
-    spyOn(window, 'setTimeout').and.callFake((callback: TimerHandler, delay?: number, ...args: any[]) => {
+    vi.spyOn(window, 'setTimeout').mockImplementation((callback: TimerHandler, delay?: number, ...args: any[]) => {
       if (delay !== 1000) {
         return nativeSetTimeout.call(window, callback, delay, ...args);
       }
@@ -23,8 +24,8 @@ describe('Service: TaskWriter', () => {
       pollsByHandle.set(poll.handle, poll);
       return poll.handle;
     });
-    cancelPoll = jasmine.createSpy('cancelPoll');
-    spyOn(window, 'clearTimeout').and.callFake((handle) => {
+    cancelPoll = vi.fn();
+    vi.spyOn(window, 'clearTimeout').mockImplementation((handle) => {
       const poll = pollsByHandle.get(handle as number);
       if (poll) {
         poll.cancelled = true;
@@ -68,7 +69,7 @@ describe('Service: TaskWriter', () => {
       await cancellation;
 
       expect(completed).toBe(true);
-      expect(cancelPoll.calls.allArgs()).toEqual([[firstPoll], [secondPoll]]);
+      expect(cancelPoll.mock.calls).toEqual([[firstPoll], [secondPoll]]);
     });
   });
 });

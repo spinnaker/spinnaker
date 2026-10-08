@@ -22,6 +22,8 @@ import com.netflix.spinnaker.echo.model.Trigger;
 import com.netflix.spinnaker.echo.model.trigger.GitEvent;
 import com.netflix.spinnaker.fiat.shared.FiatPermissionEvaluator;
 import com.netflix.spinnaker.kork.artifacts.model.Artifact;
+import java.nio.charset.StandardCharsets;
+import java.security.MessageDigest;
 import java.util.*;
 import java.util.function.Function;
 import java.util.function.Predicate;
@@ -45,6 +47,8 @@ import tools.jackson.databind.ObjectMapper;
 public class GitEventHandler extends BaseTriggerEventHandler<GitEvent> {
   private static final String GIT_TRIGGER_TYPE = "git";
   private static final String GITHUB_SECURE_SIGNATURE_HEADER = "x-hub-signature";
+  private static final String GITEA_SOURCE = "gitea";
+  private static final String GITEA_SECURE_SIGNATURE_HEADER = "x-gitea-signature";
   private static final List<String> supportedTriggerTypes =
       Collections.singletonList(GIT_TRIGGER_TYPE);
 
@@ -105,7 +109,7 @@ public class GitEventHandler extends BaseTriggerEventHandler<GitEvent> {
             && (trigger.getBranch() == null
                 || trigger.getBranch().equals("")
                 || matchesPattern(branch, trigger.getBranch()))
-            && passesGithubAuthenticationCheck(gitEvent, trigger)
+            && passesAuthenticationCheck(gitEvent, trigger)
             && (trigger.getEvents() == null
                 || trigger.getEvents().size() == 0
                 || trigger.getEvents().stream().anyMatch(a -> a.equals(action)));
@@ -149,6 +153,46 @@ public class GitEventHandler extends BaseTriggerEventHandler<GitEvent> {
     Pattern p = Pattern.compile(pattern);
     Matcher m = p.matcher(s);
     return m.matches();
+  }
+
+  private boolean passesAuthenticationCheck(GitEvent gitEvent, Trigger trigger) {
+    if (GITEA_SOURCE.equalsIgnoreCase(gitEvent.getDetails().getSource())) {
+      return passesGiteaAuthenticationCheck(gitEvent, trigger);
+    }
+    return passesGithubAuthenticationCheck(gitEvent, trigger);
+  }
+
+  /**
+   * Gitea signs the raw request body with HMAC-SHA256 and sends the hex digest, without a prefix,
+   * in {@code X-Gitea-Signature}. When neither the trigger nor the shared secret configures a
+   * secret there is nothing to verify against, so the event is accepted.
+   */
+  private boolean passesGiteaAuthenticationCheck(GitEvent gitEvent, Trigger trigger) {
+    String secret = trigger.getSecret();
+    if (StringUtils.isEmpty(secret)) {
+      secret = pipelineTriggerConfiguration.getGitSharedSecret();
+    }
+    if (StringUtils.isEmpty(secret)) {
+      return true;
+    }
+
+    List<String> header =
+        gitEvent.getDetails().getRequestHeaders().get(GITEA_SECURE_SIGNATURE_HEADER);
+    if (header == null || header.isEmpty()) {
+      log.warn(
+          "Received GitEvent from Gitea without a signature for trigger configured with a secret");
+      return false;
+    }
+
+    String computedDigest = HmacUtils.hmacSha256Hex(secret, gitEvent.getRawContent());
+    boolean digestsMatch =
+        MessageDigest.isEqual(
+            header.get(0).trim().toLowerCase(Locale.ROOT).getBytes(StandardCharsets.UTF_8),
+            computedDigest.getBytes(StandardCharsets.UTF_8));
+    if (!digestsMatch) {
+      log.warn("Gitea signature mismatch! Pipeline NOT triggered: " + trigger);
+    }
+    return digestsMatch;
   }
 
   private boolean passesGithubAuthenticationCheck(GitEvent gitEvent, Trigger trigger) {

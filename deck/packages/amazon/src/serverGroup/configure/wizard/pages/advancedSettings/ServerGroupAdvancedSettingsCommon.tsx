@@ -62,7 +62,13 @@ export class ServerGroupAdvancedSettingsCommon extends React.Component<IServerGr
             <b>Cooldown</b>
           </div>
           <div className="col-md-2">
-            <Field type="text" required={true} name="cooldown" className="form-control input-sm no-spel" />
+            <Field
+              type="text"
+              required={true}
+              name="cooldown"
+              aria-label="Cooldown"
+              className="form-control input-sm no-spel"
+            />
           </div>{' '}
           seconds
         </div>

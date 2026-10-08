@@ -26,9 +26,9 @@ function fakeAccount(provider: string): IAccountDetails {
 describe('ProviderSelectionService: API', () => {
   let hasValue: boolean, accounts: IAccountDetails[];
   beforeEach(() => {
-    spyOn(AccountService, 'applicationAccounts').and.callFake(() => Promise.resolve(accounts));
-    spyOn(CloudProviderRegistry, 'hasValue').and.callFake(() => hasValue);
-    spyOn(ProviderSelectionModal, 'show').and.returnValue(Promise.resolve('modalProvider'));
+    vi.spyOn(AccountService, 'applicationAccounts').mockImplementation(() => Promise.resolve(accounts));
+    vi.spyOn(CloudProviderRegistry, 'hasValue').mockImplementation(() => hasValue);
+    vi.spyOn(ProviderSelectionModal, 'show').mockReturnValue(Promise.resolve('modalProvider'));
   });
 
   beforeEach(() => {

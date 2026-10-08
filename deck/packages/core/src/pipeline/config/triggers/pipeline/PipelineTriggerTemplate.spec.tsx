@@ -1,11 +1,13 @@
-import { mount, shallow } from 'enzyme';
+import { render, screen, waitFor } from '@testing-library/react';
 import React from 'react';
+import type { Mock } from 'vitest';
 
 import { PipelineTriggerTemplateComponent } from './PipelineTriggerTemplate';
 import type { DeckRuntimeServices } from '../../../../bootstrap';
 import { SETTINGS } from '../../../../config/settings';
 import type { IExecution, IPipelineCommand, IPipelineTrigger } from '../../../../domain';
 import { ExecutionsTransformer } from '../../../service/ExecutionsTransformer';
+import { setupUser } from '../../../../utils/testUtils/userEvent';
 
 /**
  * PipelineTriggerTemplate - execution selector for pipeline triggers.
@@ -15,10 +17,21 @@ import { ExecutionsTransformer } from '../../../service/ExecutionsTransformer';
  * - Allow user to select which execution to use as the trigger source
  * - Persist selection when unrelated form fields change (Formik creates new object refs)
  * - Extract fields from parentExecution for re-run scenarios
+ *
+ * Migration notes (React Testing Library):
+ * - The component mutates `command.extraFields`/`command.triggerInvalid`/`command.trigger`
+ *   directly as its interface contract with ManualPipelineExecutionModal. The selected
+ *   execution id is written to `command.extraFields.parentPipelineId`, which mirrors the
+ *   component's internal `selectedExecution` state. Tests therefore assert on the command
+ *   object (observable behaviour) rather than reaching into component state.
+ * - Loading/error/empty states are asserted via rendered DOM (spinner element, text).
+ * - Selection changes are driven through the rendered react-select dropdown
+ *   (open the combobox, click an option) rather than by calling private methods.
+ * - Prop updates use the `rerender` helper returned by `render`.
  */
 describe('<PipelineTriggerTemplate />', () => {
-  let getExecutionsForConfigIdsSpy: jasmine.Spy;
-  let addBuildInfoSpy: jasmine.Spy;
+  let getExecutionsForConfigIdsSpy: Mock;
+  let addBuildInfoSpy: Mock;
 
   class PipelineTriggerTemplate extends PipelineTriggerTemplateComponent {
     public static defaultProps = {
@@ -81,101 +94,108 @@ describe('<PipelineTriggerTemplate />', () => {
     pipelineName: 'Test Pipeline',
   });
 
-  const updateCommandSpy = jasmine.createSpy('updateCommand');
+  const updateCommandSpy = vi.fn();
 
   beforeEach(() => {
-    getExecutionsForConfigIdsSpy = jasmine.createSpy('getExecutionsForConfigIds');
-    addBuildInfoSpy = spyOn(ExecutionsTransformer, 'addBuildInfo');
-    updateCommandSpy.calls.reset();
+    getExecutionsForConfigIdsSpy = vi.fn();
+    addBuildInfoSpy = vi.spyOn(ExecutionsTransformer, 'addBuildInfo').mockReturnValue(undefined);
+    updateCommandSpy.mockClear();
   });
 
-  // shallow() renders only the component, not children - faster, good for unit tests
-  // mount() renders full DOM tree - needed when testing interactions or lifecycle
+  // Opens the react-select dropdown and clicks the option at the given index.
+  // The option order matches the loaded executions order, so index N selects
+  // the Nth execution. This replaces direct calls to the private
+  // handleExecutionChanged instance method.
+  // Note: react-select gives the currently-selected value label role="option" too, so we
+  // scope to the menu's `.Select-option` elements (menu items only), which appear in the
+  // same order as the loaded executions.
+  const getMenuOptions = async (user: ReturnType<typeof setupUser>): Promise<HTMLElement[]> => {
+    await user.click(screen.getByRole('combobox'));
+    await waitFor(() => expect(document.querySelectorAll('.Select-option').length).toBeGreaterThan(0));
+    return Array.from(document.querySelectorAll<HTMLElement>('.Select-option'));
+  };
+
+  const selectExecutionByIndex = async (user: ReturnType<typeof setupUser>, index: number) => {
+    const options = await getMenuOptions(user);
+    await user.click(options[index]);
+  };
+
+  const getOptionCount = async (user: ReturnType<typeof setupUser>): Promise<number> => {
+    const options = await getMenuOptions(user);
+    return options.length;
+  };
+
   describe('Component lifecycle', () => {
     it('displays loading spinner while fetching executions', () => {
       // Promise that never resolves keeps component in loading state
-      getExecutionsForConfigIdsSpy.and.returnValue(new Promise(() => {}));
+      getExecutionsForConfigIdsSpy.mockReturnValue(new Promise(() => {}));
 
       const trigger = createPipelineTrigger('source-pipeline-id');
       const command = createCommand(trigger);
 
-      const wrapper = shallow(<PipelineTriggerTemplate command={command} updateCommand={updateCommandSpy} />);
+      const { container } = render(<PipelineTriggerTemplate command={command} updateCommand={updateCommandSpy} />);
 
-      expect(wrapper.find('Spinner').exists()).toBe(true);
+      // Spinner renders a div.load
+      expect(container.querySelector('.load')).not.toBeNull();
     });
 
     it('displays error message on load failure', async () => {
-      getExecutionsForConfigIdsSpy.and.returnValue(Promise.reject(new Error('Load failed')));
+      getExecutionsForConfigIdsSpy.mockReturnValue(Promise.reject(new Error('Load failed')));
 
       const trigger = createPipelineTrigger('source-pipeline-id');
       const command = createCommand(trigger);
 
-      const wrapper = shallow(<PipelineTriggerTemplate command={command} updateCommand={updateCommandSpy} />);
+      render(<PipelineTriggerTemplate command={command} updateCommand={updateCommandSpy} />);
 
-      // await Promise.resolve() flushes the microtask queue, allowing the
-      // component's promise callbacks to execute before we check state
-      await Promise.resolve();
-      wrapper.update(); // sync enzyme wrapper with React component state
-
-      expect(wrapper.text()).toContain('Error loading executions');
+      expect(await screen.findByText(/Error loading executions/)).toBeInTheDocument();
     });
 
     it('displays "No recent executions found" when list is empty', async () => {
-      getExecutionsForConfigIdsSpy.and.returnValue(Promise.resolve([]));
+      getExecutionsForConfigIdsSpy.mockReturnValue(Promise.resolve([]));
 
       const trigger = createPipelineTrigger('source-pipeline-id');
       const command = createCommand(trigger);
 
-      const wrapper = shallow(<PipelineTriggerTemplate command={command} updateCommand={updateCommandSpy} />);
+      render(<PipelineTriggerTemplate command={command} updateCommand={updateCommandSpy} />);
 
-      await Promise.resolve();
-      wrapper.update();
-
-      expect(wrapper.text()).toContain('No recent executions found');
+      expect(await screen.findByText('No recent executions found')).toBeInTheDocument();
     });
 
     it('renders execution dropdown with correct options after load', async () => {
+      const user = setupUser();
       const executions = [execution1, execution2, execution3];
-      getExecutionsForConfigIdsSpy.and.returnValue(Promise.resolve(executions));
+      getExecutionsForConfigIdsSpy.mockReturnValue(Promise.resolve(executions));
 
       const trigger = createPipelineTrigger('source-pipeline-id');
       const command = createCommand(trigger);
 
-      const wrapper = shallow(<PipelineTriggerTemplate command={command} updateCommand={updateCommandSpy} />);
+      render(<PipelineTriggerTemplate command={command} updateCommand={updateCommandSpy} />);
 
-      await Promise.resolve();
-      wrapper.update();
-
-      expect(wrapper.find('TetheredSelect').exists()).toBe(true);
-      const options = wrapper.find('TetheredSelect').prop('options') as Array<{ value: string }>;
-      expect(options.length).toBe(3);
-      expect(options.map((o) => o.value)).toEqual(['exec-1', 'exec-2', 'exec-3']);
+      // Dropdown rendered once executions load
+      expect(await screen.findByRole('combobox')).toBeInTheDocument();
+      // One option per execution, in the loaded order (default selects the first)
+      expect(await getOptionCount(user)).toBe(3);
+      expect(command.extraFields.parentPipelineId).toBe('exec-1');
     });
   });
 
   describe('Execution selection preservation', () => {
     it('preserves selection when command object reference changes but trigger.pipeline is unchanged', async () => {
+      const user = setupUser();
       const executions = [execution1, execution2, execution3];
-      getExecutionsForConfigIdsSpy.and.returnValue(Promise.resolve(executions));
+      getExecutionsForConfigIdsSpy.mockReturnValue(Promise.resolve(executions));
 
       const trigger = createPipelineTrigger('source-pipeline-id');
       const command = createCommand(trigger);
 
-      // mount() needed to access instance methods and component state
-      const wrapper = mount(<PipelineTriggerTemplate command={command} updateCommand={updateCommandSpy} />);
+      const { rerender } = render(<PipelineTriggerTemplate command={command} updateCommand={updateCommandSpy} />);
 
-      await Promise.resolve();
-      wrapper.update();
+      await screen.findByRole('combobox');
+      expect(command.extraFields.parentPipelineId).toBe('exec-1');
 
-      expect(wrapper.state('selectedExecution')).toBe('exec-1');
-
-      // Calling handleExecutionChanged directly instead of simulating DOM events.
-      // Trade-off: faster/simpler tests but doesn't verify event wiring.
-      const instance = wrapper.instance() as PipelineTriggerTemplate;
-      (instance as any).handleExecutionChanged({ value: 'exec-2' });
-      wrapper.update();
-
-      expect(wrapper.state('selectedExecution')).toBe('exec-2');
+      // User selects a different execution through the dropdown
+      await selectExecutionByIndex(user, 1);
+      expect(command.extraFields.parentPipelineId).toBe('exec-2');
 
       // Simulating Formik behavior: when user types in any form field,
       // Formik creates a NEW command object via spread operator.
@@ -185,32 +205,28 @@ describe('<PipelineTriggerTemplate />', () => {
         parameters: { changeNumber: 'CHG000123' },
       };
 
-      getExecutionsForConfigIdsSpy.calls.reset();
-      wrapper.setProps({ command: newCommand });
-      wrapper.update();
+      getExecutionsForConfigIdsSpy.mockClear();
+      rerender(<PipelineTriggerTemplate command={newCommand} updateCommand={updateCommandSpy} />);
 
       // Key assertion: API should NOT be called again since pipeline didn't change
       expect(getExecutionsForConfigIdsSpy).not.toHaveBeenCalled();
-      expect(wrapper.state('selectedExecution')).toBe('exec-2');
+      expect(newCommand.extraFields.parentPipelineId).toBe('exec-2');
     });
 
     it('preserves user selection after initial load completes', async () => {
+      const user = setupUser();
       const executions = [execution1, execution2, execution3];
-      getExecutionsForConfigIdsSpy.and.returnValue(Promise.resolve(executions));
+      getExecutionsForConfigIdsSpy.mockReturnValue(Promise.resolve(executions));
 
       const trigger = createPipelineTrigger('source-pipeline-id');
       const command = createCommand(trigger);
 
-      const wrapper = mount(<PipelineTriggerTemplate command={command} updateCommand={updateCommandSpy} />);
+      render(<PipelineTriggerTemplate command={command} updateCommand={updateCommandSpy} />);
 
-      await Promise.resolve();
-      wrapper.update();
+      await screen.findByRole('combobox');
 
-      const instance = wrapper.instance() as PipelineTriggerTemplate;
-      (instance as any).handleExecutionChanged({ value: 'exec-3' });
-      wrapper.update();
+      await selectExecutionByIndex(user, 2);
 
-      expect(wrapper.state('selectedExecution')).toBe('exec-3');
       expect(command.extraFields.parentPipelineId).toBe('exec-3');
     });
   });
@@ -218,53 +234,50 @@ describe('<PipelineTriggerTemplate />', () => {
   describe('Re-initialization behavior', () => {
     it('refetches executions when trigger.pipeline changes', async () => {
       const executions = [execution1, execution2];
-      getExecutionsForConfigIdsSpy.and.returnValue(Promise.resolve(executions));
+      getExecutionsForConfigIdsSpy.mockReturnValue(Promise.resolve(executions));
 
       const trigger = createPipelineTrigger('source-pipeline-id');
       const command = createCommand(trigger);
 
-      const wrapper = mount(<PipelineTriggerTemplate command={command} updateCommand={updateCommandSpy} />);
+      const { rerender } = render(<PipelineTriggerTemplate command={command} updateCommand={updateCommandSpy} />);
 
-      await Promise.resolve();
-      wrapper.update();
+      await screen.findByRole('combobox');
 
-      getExecutionsForConfigIdsSpy.calls.reset();
+      getExecutionsForConfigIdsSpy.mockClear();
 
       const newTrigger = createPipelineTrigger('different-pipeline-id');
       const newCommand = createCommand(newTrigger);
-      wrapper.setProps({ command: newCommand });
+      rerender(<PipelineTriggerTemplate command={newCommand} updateCommand={updateCommandSpy} />);
 
       expect(getExecutionsForConfigIdsSpy).toHaveBeenCalledWith(['different-pipeline-id'], { limit: 20 });
     });
 
     it('defaults to latest execution when parentPipelineId does not match', async () => {
       const executions = [execution1, execution2, execution3];
-      getExecutionsForConfigIdsSpy.and.returnValue(Promise.resolve(executions));
+      getExecutionsForConfigIdsSpy.mockReturnValue(Promise.resolve(executions));
 
       const trigger = createPipelineTrigger('source-pipeline-id', 'non-existent-id');
       const command = createCommand(trigger);
 
-      const wrapper = shallow(<PipelineTriggerTemplate command={command} updateCommand={updateCommandSpy} />);
+      render(<PipelineTriggerTemplate command={command} updateCommand={updateCommandSpy} />);
 
-      await Promise.resolve();
-      wrapper.update();
+      await screen.findByRole('combobox');
 
-      expect(wrapper.state('selectedExecution')).toBe('exec-1');
+      expect(command.extraFields.parentPipelineId).toBe('exec-1');
     });
 
     it('selects matching execution when parentPipelineId exists in list', async () => {
       const executions = [execution1, execution2, execution3];
-      getExecutionsForConfigIdsSpy.and.returnValue(Promise.resolve(executions));
+      getExecutionsForConfigIdsSpy.mockReturnValue(Promise.resolve(executions));
 
       const trigger = createPipelineTrigger('source-pipeline-id', 'exec-2');
       const command = createCommand(trigger);
 
-      const wrapper = shallow(<PipelineTriggerTemplate command={command} updateCommand={updateCommandSpy} />);
+      render(<PipelineTriggerTemplate command={command} updateCommand={updateCommandSpy} />);
 
-      await Promise.resolve();
-      wrapper.update();
+      await screen.findByRole('combobox');
 
-      expect(wrapper.state('selectedExecution')).toBe('exec-2');
+      expect(command.extraFields.parentPipelineId).toBe('exec-2');
     });
   });
 
@@ -274,7 +287,7 @@ describe('<PipelineTriggerTemplate />', () => {
   describe('Re-run scenario', () => {
     it('extracts fields from parentExecution', async () => {
       const executions = [execution1, execution2];
-      getExecutionsForConfigIdsSpy.and.returnValue(Promise.resolve(executions));
+      getExecutionsForConfigIdsSpy.mockReturnValue(Promise.resolve(executions));
 
       const parentExecution: Partial<IExecution> = {
         id: 'parent-exec-id',
@@ -293,7 +306,7 @@ describe('<PipelineTriggerTemplate />', () => {
 
       const command = createCommand(trigger);
 
-      shallow(<PipelineTriggerTemplate command={command} updateCommand={updateCommandSpy} />);
+      render(<PipelineTriggerTemplate command={command} updateCommand={updateCommandSpy} />);
 
       // The component MUTATES the trigger object to populate these fields
       expect(trigger.application).toBe('parent-app');
@@ -305,22 +318,21 @@ describe('<PipelineTriggerTemplate />', () => {
 
   describe('User interaction', () => {
     it('updates extraFields when user changes execution selection', async () => {
+      const user = setupUser();
       const executions = [execution1, execution2];
-      getExecutionsForConfigIdsSpy.and.returnValue(Promise.resolve(executions));
+      getExecutionsForConfigIdsSpy.mockReturnValue(Promise.resolve(executions));
 
       const trigger = createPipelineTrigger('source-pipeline-id');
       const command = createCommand(trigger);
 
-      const wrapper = mount(<PipelineTriggerTemplate command={command} updateCommand={updateCommandSpy} />);
+      render(<PipelineTriggerTemplate command={command} updateCommand={updateCommandSpy} />);
 
-      await Promise.resolve();
-      wrapper.update();
+      await screen.findByRole('combobox');
 
       expect(command.extraFields.parentPipelineId).toBe('exec-1');
       expect(command.triggerInvalid).toBe(false);
 
-      const instance = wrapper.instance() as PipelineTriggerTemplate;
-      (instance as any).handleExecutionChanged({ value: 'exec-2' });
+      await selectExecutionByIndex(user, 1);
 
       expect(command.extraFields.parentPipelineId).toBe('exec-2');
       expect(command.extraFields.parentPipelineApplication).toBe('test-app');
@@ -328,49 +340,45 @@ describe('<PipelineTriggerTemplate />', () => {
 
     it('sets triggerInvalid to false after successful execution selection', async () => {
       const executions = [execution1];
-      getExecutionsForConfigIdsSpy.and.returnValue(Promise.resolve(executions));
+      getExecutionsForConfigIdsSpy.mockReturnValue(Promise.resolve(executions));
 
       const trigger = createPipelineTrigger('source-pipeline-id');
       const command = createCommand(trigger);
       command.triggerInvalid = true; // Start with invalid
 
-      const wrapper = shallow(<PipelineTriggerTemplate command={command} updateCommand={updateCommandSpy} />);
+      render(<PipelineTriggerTemplate command={command} updateCommand={updateCommandSpy} />);
 
-      await Promise.resolve();
-      wrapper.update();
+      await screen.findByRole('combobox');
 
       // After successful load and selection, trigger should be valid
       expect(command.triggerInvalid).toBe(false);
     });
 
     it('handles multiple rapid selection changes correctly', async () => {
+      const user = setupUser();
       const executions = [execution1, execution2, execution3];
-      getExecutionsForConfigIdsSpy.and.returnValue(Promise.resolve(executions));
+      getExecutionsForConfigIdsSpy.mockReturnValue(Promise.resolve(executions));
 
       const trigger = createPipelineTrigger('source-pipeline-id');
       const command = createCommand(trigger);
 
-      const wrapper = mount(<PipelineTriggerTemplate command={command} updateCommand={updateCommandSpy} />);
+      render(<PipelineTriggerTemplate command={command} updateCommand={updateCommandSpy} />);
 
-      await Promise.resolve();
-      wrapper.update();
-
-      const instance = wrapper.instance() as PipelineTriggerTemplate;
+      await screen.findByRole('combobox');
 
       // Rapidly change selections
-      (instance as any).handleExecutionChanged({ value: 'exec-2' });
-      (instance as any).handleExecutionChanged({ value: 'exec-3' });
-      (instance as any).handleExecutionChanged({ value: 'exec-1' });
+      await selectExecutionByIndex(user, 1); // exec-2
+      await selectExecutionByIndex(user, 2); // exec-3
+      await selectExecutionByIndex(user, 0); // exec-1
 
       // Final selection should be the last one
-      expect(wrapper.state('selectedExecution')).toBe('exec-1');
       expect(command.extraFields.parentPipelineId).toBe('exec-1');
     });
   });
 
   describe('Edge cases', () => {
     it('handles trigger with undefined pipeline gracefully', async () => {
-      getExecutionsForConfigIdsSpy.and.returnValue(Promise.resolve([]));
+      getExecutionsForConfigIdsSpy.mockReturnValue(Promise.resolve([]));
 
       const trigger = ({
         enabled: true,
@@ -383,7 +391,7 @@ describe('<PipelineTriggerTemplate />', () => {
       const command = createCommand(trigger);
 
       expect(() => {
-        shallow(<PipelineTriggerTemplate command={command} updateCommand={updateCommandSpy} />);
+        render(<PipelineTriggerTemplate command={command} updateCommand={updateCommandSpy} />);
       }).not.toThrow();
 
       expect(getExecutionsForConfigIdsSpy).toHaveBeenCalledWith([undefined], { limit: 20 });
@@ -391,62 +399,58 @@ describe('<PipelineTriggerTemplate />', () => {
 
     it('handles trigger type change from pipeline to non-pipeline', async () => {
       const executions = [execution1, execution2];
-      getExecutionsForConfigIdsSpy.and.returnValue(Promise.resolve(executions));
+      getExecutionsForConfigIdsSpy.mockReturnValue(Promise.resolve(executions));
 
       const trigger = createPipelineTrigger('source-pipeline-id');
       const command = createCommand(trigger);
 
-      const wrapper = mount(<PipelineTriggerTemplate command={command} updateCommand={updateCommandSpy} />);
+      const { rerender } = render(<PipelineTriggerTemplate command={command} updateCommand={updateCommandSpy} />);
 
-      await Promise.resolve();
-      wrapper.update();
+      await screen.findByRole('combobox');
 
-      expect(wrapper.state('selectedExecution')).toBe('exec-1');
+      expect(command.extraFields.parentPipelineId).toBe('exec-1');
 
-      getExecutionsForConfigIdsSpy.calls.reset();
+      getExecutionsForConfigIdsSpy.mockClear();
 
       const manualTrigger = { type: 'manual', enabled: true } as any;
       const newCommand = { ...command, trigger: manualTrigger };
-      wrapper.setProps({ command: newCommand });
+      rerender(<PipelineTriggerTemplate command={newCommand} updateCommand={updateCommandSpy} />);
 
       expect(getExecutionsForConfigIdsSpy).not.toHaveBeenCalled();
     });
 
     it('handles empty pipeline ID string', async () => {
-      getExecutionsForConfigIdsSpy.and.returnValue(Promise.resolve([]));
+      getExecutionsForConfigIdsSpy.mockReturnValue(Promise.resolve([]));
 
       const trigger = createPipelineTrigger('');
       const command = createCommand(trigger);
 
-      const wrapper = shallow(<PipelineTriggerTemplate command={command} updateCommand={updateCommandSpy} />);
-
-      await Promise.resolve();
-      wrapper.update();
+      render(<PipelineTriggerTemplate command={command} updateCommand={updateCommandSpy} />);
 
       expect(getExecutionsForConfigIdsSpy).toHaveBeenCalledWith([''], { limit: 20 });
-      expect(wrapper.text()).toContain('No recent executions found');
+      expect(await screen.findByText('No recent executions found')).toBeInTheDocument();
     });
 
     it('handles executions with various status values', async () => {
+      const user = setupUser();
       const successExec = createExecution('exec-success', 1, { status: 'SUCCEEDED' });
       const failedExec = createExecution('exec-failed', 2, { status: 'TERMINAL' });
       const runningExec = createExecution('exec-running', 3, { status: 'RUNNING' });
       const canceledExec = createExecution('exec-canceled', 4, { status: 'CANCELED' });
 
       const executions = [successExec, failedExec, runningExec, canceledExec];
-      getExecutionsForConfigIdsSpy.and.returnValue(Promise.resolve(executions));
+      getExecutionsForConfigIdsSpy.mockReturnValue(Promise.resolve(executions));
 
       const trigger = createPipelineTrigger('source-pipeline-id');
       const command = createCommand(trigger);
 
-      const wrapper = shallow(<PipelineTriggerTemplate command={command} updateCommand={updateCommandSpy} />);
+      render(<PipelineTriggerTemplate command={command} updateCommand={updateCommandSpy} />);
 
-      await Promise.resolve();
-      wrapper.update();
+      await screen.findByRole('combobox');
 
-      const options = wrapper.find('TetheredSelect').prop('options') as Array<{ value: string }>;
-      expect(options.length).toBe(4);
-      expect(options.map((o) => o.value)).toEqual(['exec-success', 'exec-failed', 'exec-running', 'exec-canceled']);
+      // One option per execution (all statuses are listed), default selects the first
+      expect(await getOptionCount(user)).toBe(4);
+      expect(command.extraFields.parentPipelineId).toBe('exec-success');
     });
   });
 
@@ -460,64 +464,66 @@ describe('<PipelineTriggerTemplate />', () => {
     it('defaults to 20 when no override is configured', async () => {
       expect(SETTINGS.maxPipelineTriggerExecutionOptions).toBe(20);
 
-      getExecutionsForConfigIdsSpy.and.returnValue(Promise.resolve([]));
+      getExecutionsForConfigIdsSpy.mockReturnValue(Promise.resolve([]));
 
       const trigger = createPipelineTrigger('source-pipeline-id');
       const command = createCommand(trigger);
 
-      shallow(<PipelineTriggerTemplate command={command} updateCommand={updateCommandSpy} />);
-
-      await Promise.resolve();
+      render(<PipelineTriggerTemplate command={command} updateCommand={updateCommandSpy} />);
 
       expect(getExecutionsForConfigIdsSpy).toHaveBeenCalledWith(['source-pipeline-id'], { limit: 20 });
+      expect(await screen.findByText('No recent executions found')).toBeInTheDocument();
     });
 
     it('passes the configured override through to getExecutionsForConfigIds', async () => {
       SETTINGS.maxPipelineTriggerExecutionOptions = 5;
-      getExecutionsForConfigIdsSpy.and.returnValue(Promise.resolve([]));
+      getExecutionsForConfigIdsSpy.mockReturnValue(Promise.resolve([]));
 
       const trigger = createPipelineTrigger('source-pipeline-id');
       const command = createCommand(trigger);
 
-      shallow(<PipelineTriggerTemplate command={command} updateCommand={updateCommandSpy} />);
-
-      await Promise.resolve();
+      render(<PipelineTriggerTemplate command={command} updateCommand={updateCommandSpy} />);
 
       expect(getExecutionsForConfigIdsSpy).toHaveBeenCalledWith(['source-pipeline-id'], { limit: 5 });
+      expect(await screen.findByText('No recent executions found')).toBeInTheDocument();
     });
 
     it('renders exactly as many dropdown options as executions returned under a custom limit', async () => {
+      const user = setupUser();
       SETTINGS.maxPipelineTriggerExecutionOptions = 2;
       // Simulate the backend honoring the overridden limit by returning only 2 executions,
       // even though 3 exist for this pipeline in these specs (execution1/2/3).
       const executions = [execution1, execution2];
-      getExecutionsForConfigIdsSpy.and.returnValue(Promise.resolve(executions));
+      getExecutionsForConfigIdsSpy.mockReturnValue(Promise.resolve(executions));
 
       const trigger = createPipelineTrigger('source-pipeline-id');
       const command = createCommand(trigger);
 
-      const wrapper = shallow(<PipelineTriggerTemplate command={command} updateCommand={updateCommandSpy} />);
+      render(<PipelineTriggerTemplate command={command} updateCommand={updateCommandSpy} />);
 
-      await Promise.resolve();
-      wrapper.update();
+      await screen.findByRole('combobox');
 
       expect(getExecutionsForConfigIdsSpy).toHaveBeenCalledWith(['source-pipeline-id'], { limit: 2 });
-      const options = wrapper.find('TetheredSelect').prop('options') as Array<{ value: string }>;
-      expect(options.length).toBe(2);
-      expect(options.map((o) => o.value)).toEqual(['exec-1', 'exec-2']);
+      expect(await getOptionCount(user)).toBe(2);
+
+      // Options are listed in the loaded order: exec-1, then exec-2
+      await selectExecutionByIndex(user, 0);
+      expect(command.extraFields.parentPipelineId).toBe('exec-1');
+      await selectExecutionByIndex(user, 1);
+      expect(command.extraFields.parentPipelineId).toBe('exec-2');
     });
 
     it('re-reads the current SETTINGS value on every re-initialization (source pipeline change)', async () => {
-      getExecutionsForConfigIdsSpy.and.returnValue(Promise.resolve([]));
+      getExecutionsForConfigIdsSpy.mockReturnValue(Promise.resolve([]));
 
       const trigger = createPipelineTrigger('source-pipeline-id');
       const command = createCommand(trigger);
 
-      const wrapper = mount(<PipelineTriggerTemplate command={command} updateCommand={updateCommandSpy} />);
-      await Promise.resolve();
+      const { rerender } = render(<PipelineTriggerTemplate command={command} updateCommand={updateCommandSpy} />);
 
       expect(getExecutionsForConfigIdsSpy).toHaveBeenCalledWith(['source-pipeline-id'], { limit: 20 });
-      getExecutionsForConfigIdsSpy.calls.reset();
+      expect(await screen.findByText('No recent executions found')).toBeInTheDocument();
+      getExecutionsForConfigIdsSpy.mockClear();
 
       // Operator changes the setting at runtime (e.g. via settings-local.js hot-reload in dev,
       // or simply because a later test/session picked a different value) - the NEXT fetch
@@ -525,9 +531,10 @@ describe('<PipelineTriggerTemplate />', () => {
       SETTINGS.maxPipelineTriggerExecutionOptions = 7;
       const newTrigger = createPipelineTrigger('different-pipeline-id');
       const newCommand = createCommand(newTrigger);
-      wrapper.setProps({ command: newCommand });
+      rerender(<PipelineTriggerTemplate command={newCommand} updateCommand={updateCommandSpy} />);
 
       expect(getExecutionsForConfigIdsSpy).toHaveBeenCalledWith(['different-pipeline-id'], { limit: 7 });
+      expect(await screen.findByText('No recent executions found')).toBeInTheDocument();
     });
   });
 
@@ -546,35 +553,30 @@ describe('<PipelineTriggerTemplate />', () => {
         resolveSecond = resolve;
       });
 
-      getExecutionsForConfigIdsSpy.and.returnValues(firstPromise, secondPromise);
+      getExecutionsForConfigIdsSpy.mockReturnValueOnce(firstPromise).mockReturnValueOnce(secondPromise);
 
       const trigger = createPipelineTrigger('pipeline-1');
       const command = createCommand(trigger);
 
-      const wrapper = mount(<PipelineTriggerTemplate command={command} updateCommand={updateCommandSpy} />);
+      const { rerender } = render(<PipelineTriggerTemplate command={command} updateCommand={updateCommandSpy} />);
 
       // User switches to pipeline-2 before pipeline-1 request finishes
       const newTrigger = createPipelineTrigger('pipeline-2');
       const newCommand = createCommand(newTrigger);
-      wrapper.setProps({ command: newCommand });
+      rerender(<PipelineTriggerTemplate command={newCommand} updateCommand={updateCommandSpy} />);
 
       // Pipeline-2 response arrives first (as expected)
       const pipeline2Executions = [createExecution('exec-p2-1', 1)];
       resolveSecond(pipeline2Executions);
-      await Promise.resolve();
-      wrapper.update();
-
-      expect(wrapper.state('selectedExecution')).toBe('exec-p2-1');
+      await waitFor(() => expect(newCommand.extraFields.parentPipelineId).toBe('exec-p2-1'));
 
       // Pipeline-1 response arrives late - this is the problem
       const pipeline1Executions = [createExecution('exec-p1-1', 1)];
       resolveFirst(pipeline1Executions);
-      await Promise.resolve();
-      wrapper.update();
 
       // Current behavior: late response overwrites the correct data
       // Expected behavior (when fixed): should still show exec-p2-1
-      expect(wrapper.state('selectedExecution')).toBe('exec-p1-1');
+      await waitFor(() => expect(newCommand.extraFields.parentPipelineId).toBe('exec-p1-1'));
     });
 
     it('maintains loading state until promise resolves', async () => {
@@ -583,36 +585,34 @@ describe('<PipelineTriggerTemplate />', () => {
         resolvePromise = resolve;
       });
 
-      getExecutionsForConfigIdsSpy.and.returnValue(pendingPromise);
+      getExecutionsForConfigIdsSpy.mockReturnValue(pendingPromise);
 
       const trigger = createPipelineTrigger('source-pipeline-id');
       const command = createCommand(trigger);
 
-      const wrapper = shallow(<PipelineTriggerTemplate command={command} updateCommand={updateCommandSpy} />);
+      const { container } = render(<PipelineTriggerTemplate command={command} updateCommand={updateCommandSpy} />);
 
-      expect(wrapper.state('executionsLoading')).toBe(true);
-      expect(wrapper.find('Spinner').exists()).toBe(true);
+      // Spinner shown while loading; no dropdown yet
+      expect(container.querySelector('.load')).not.toBeNull();
+      expect(screen.queryByRole('combobox')).toBeNull();
 
       resolvePromise([execution1]);
-      await Promise.resolve();
-      wrapper.update();
 
-      expect(wrapper.state('executionsLoading')).toBe(false);
-      expect(wrapper.find('Spinner').exists()).toBe(false);
+      // Once resolved, spinner disappears and the dropdown renders
+      expect(await screen.findByRole('combobox')).toBeInTheDocument();
+      expect(container.querySelector('.load')).toBeNull();
     });
 
     it('calls addBuildInfo for each execution after load', async () => {
       const executions = [execution1, execution2, execution3];
-      getExecutionsForConfigIdsSpy.and.returnValue(Promise.resolve(executions));
+      getExecutionsForConfigIdsSpy.mockReturnValue(Promise.resolve(executions));
 
       const trigger = createPipelineTrigger('source-pipeline-id');
       const command = createCommand(trigger);
 
-      shallow(<PipelineTriggerTemplate command={command} updateCommand={updateCommandSpy} />);
+      render(<PipelineTriggerTemplate command={command} updateCommand={updateCommandSpy} />);
 
-      await Promise.resolve();
-
-      expect(addBuildInfoSpy).toHaveBeenCalledTimes(3);
+      await waitFor(() => expect(addBuildInfoSpy).toHaveBeenCalledTimes(3));
       expect(addBuildInfoSpy).toHaveBeenCalledWith(execution1);
       expect(addBuildInfoSpy).toHaveBeenCalledWith(execution2);
       expect(addBuildInfoSpy).toHaveBeenCalledWith(execution3);
@@ -621,36 +621,37 @@ describe('<PipelineTriggerTemplate />', () => {
 
   describe('State consistency', () => {
     it('maintains state after multiple prop updates without pipeline change', async () => {
+      const user = setupUser();
       const executions = [execution1, execution2, execution3];
-      getExecutionsForConfigIdsSpy.and.returnValue(Promise.resolve(executions));
+      getExecutionsForConfigIdsSpy.mockReturnValue(Promise.resolve(executions));
 
       const trigger = createPipelineTrigger('source-pipeline-id');
       const command = createCommand(trigger);
 
-      const wrapper = mount(<PipelineTriggerTemplate command={command} updateCommand={updateCommandSpy} />);
+      const { rerender } = render(<PipelineTriggerTemplate command={command} updateCommand={updateCommandSpy} />);
 
-      await Promise.resolve();
-      wrapper.update();
+      await screen.findByRole('combobox');
 
-      const instance = wrapper.instance() as PipelineTriggerTemplate;
-      (instance as any).handleExecutionChanged({ value: 'exec-2' });
+      await selectExecutionByIndex(user, 1); // exec-2
 
       for (let i = 0; i < 5; i++) {
         const updatedCommand = {
           ...command,
           parameters: { changeNumber: `CHG00${i}` },
         };
-        wrapper.setProps({ command: updatedCommand });
-        wrapper.update();
+        rerender(<PipelineTriggerTemplate command={updatedCommand} updateCommand={updateCommandSpy} />);
       }
 
-      expect(wrapper.state('selectedExecution')).toBe('exec-2');
-      expect(wrapper.state('executions')).toEqual(executions);
-      expect(wrapper.state('executionsLoading')).toBe(false);
-      expect(wrapper.state('loadError')).toBe(false);
+      // Selection preserved, executions still loaded (dropdown present), no error/empty state
+      expect(command.extraFields.parentPipelineId).toBe('exec-2');
+      expect(screen.getByRole('combobox')).toBeInTheDocument();
+      expect(await getOptionCount(user)).toBe(3);
+      expect(screen.queryByText('No recent executions found')).toBeNull();
+      expect(screen.queryByText(/Error loading executions/)).toBeNull();
     });
 
     it('loads new executions when pipeline changes', async () => {
+      const user = setupUser();
       const pipeline1Executions = [createExecution('p1-exec-1', 1), createExecution('p1-exec-2', 2)];
 
       const pipeline2Executions = [
@@ -659,77 +660,69 @@ describe('<PipelineTriggerTemplate />', () => {
         createExecution('p2-exec-3', 3),
       ];
 
-      getExecutionsForConfigIdsSpy.and.returnValues(
-        Promise.resolve(pipeline1Executions),
-        Promise.resolve(pipeline2Executions),
-      );
+      getExecutionsForConfigIdsSpy
+        .mockReturnValueOnce(Promise.resolve(pipeline1Executions))
+        .mockReturnValueOnce(Promise.resolve(pipeline2Executions));
 
       const trigger = createPipelineTrigger('pipeline-1');
       const command = createCommand(trigger);
 
-      const wrapper = mount(<PipelineTriggerTemplate command={command} updateCommand={updateCommandSpy} />);
+      const { rerender } = render(<PipelineTriggerTemplate command={command} updateCommand={updateCommandSpy} />);
 
-      await Promise.resolve();
-      wrapper.update();
+      await screen.findByRole('combobox');
 
-      expect(wrapper.state('selectedExecution')).toBe('p1-exec-1');
-      expect((wrapper.state('executions') as IExecution[]).length).toBe(2);
+      expect(command.extraFields.parentPipelineId).toBe('p1-exec-1');
+      expect(await getOptionCount(user)).toBe(2);
 
-      const instance = wrapper.instance() as PipelineTriggerTemplate;
-      (instance as any).handleExecutionChanged({ value: 'p1-exec-2' });
-      expect(wrapper.state('selectedExecution')).toBe('p1-exec-2');
+      await selectExecutionByIndex(user, 1);
+      expect(command.extraFields.parentPipelineId).toBe('p1-exec-2');
 
       const newTrigger = createPipelineTrigger('pipeline-2');
       const newCommand = createCommand(newTrigger);
-      wrapper.setProps({ command: newCommand });
+      rerender(<PipelineTriggerTemplate command={newCommand} updateCommand={updateCommandSpy} />);
 
-      await Promise.resolve();
-      wrapper.update();
-
-      expect(wrapper.state('selectedExecution')).toBe('p2-exec-1');
-      expect((wrapper.state('executions') as IExecution[]).length).toBe(3);
+      await waitFor(() => expect(newCommand.extraFields.parentPipelineId).toBe('p2-exec-1'));
+      expect(await getOptionCount(user)).toBe(3);
     });
 
     it('clears extraFields when pipeline changes', async () => {
       const executions = [execution1, execution2];
-      getExecutionsForConfigIdsSpy.and.returnValue(Promise.resolve(executions));
+      getExecutionsForConfigIdsSpy.mockReturnValue(Promise.resolve(executions));
 
       const trigger = createPipelineTrigger('pipeline-1');
       const command = createCommand(trigger);
 
-      const wrapper = mount(<PipelineTriggerTemplate command={command} updateCommand={updateCommandSpy} />);
+      const { rerender } = render(<PipelineTriggerTemplate command={command} updateCommand={updateCommandSpy} />);
 
-      await Promise.resolve();
-      wrapper.update();
+      await screen.findByRole('combobox');
 
       expect(command.extraFields.parentPipelineId).toBe('exec-1');
 
       const newTrigger = createPipelineTrigger('pipeline-2');
       const newCommand = createCommand(newTrigger);
-      wrapper.setProps({ command: newCommand });
+      rerender(<PipelineTriggerTemplate command={newCommand} updateCommand={updateCommandSpy} />);
 
+      // initialize() clears extraFields synchronously before the (async) load resolves
       expect(newCommand.extraFields).toEqual({});
     });
   });
 
   describe('Formik integration', () => {
     it('preserves selection through typical form interaction sequence', async () => {
+      const user = setupUser();
       const executions = [execution1, execution2, execution3];
-      getExecutionsForConfigIdsSpy.and.returnValue(Promise.resolve(executions));
+      getExecutionsForConfigIdsSpy.mockReturnValue(Promise.resolve(executions));
 
       const trigger = createPipelineTrigger('source-pipeline-id');
       const command = createCommand(trigger);
 
-      const wrapper = mount(<PipelineTriggerTemplate command={command} updateCommand={updateCommandSpy} />);
+      const { rerender } = render(<PipelineTriggerTemplate command={command} updateCommand={updateCommandSpy} />);
 
-      await Promise.resolve();
-      wrapper.update();
-      expect(wrapper.state('selectedExecution')).toBe('exec-1');
+      await screen.findByRole('combobox');
+      expect(command.extraFields.parentPipelineId).toBe('exec-1');
 
-      const instance = wrapper.instance() as PipelineTriggerTemplate;
-      (instance as any).handleExecutionChanged({ value: 'exec-3' });
-      wrapper.update();
-      expect(wrapper.state('selectedExecution')).toBe('exec-3');
+      await selectExecutionByIndex(user, 2); // exec-3
+      expect(command.extraFields.parentPipelineId).toBe('exec-3');
 
       // Simulate typing "CHG123456" one character at a time.
       // Each keystroke causes Formik to create new objects via spread:
@@ -743,38 +736,35 @@ describe('<PipelineTriggerTemplate />', () => {
           parameters: { changeNumber: changeNumberChars.substring(0, i) },
         };
 
-        getExecutionsForConfigIdsSpy.calls.reset();
-        wrapper.setProps({ command: newCommand });
-        wrapper.update();
+        getExecutionsForConfigIdsSpy.mockClear();
+        rerender(<PipelineTriggerTemplate command={newCommand} updateCommand={updateCommandSpy} />);
 
         expect(getExecutionsForConfigIdsSpy).not.toHaveBeenCalled();
-        expect(wrapper.state('selectedExecution')).toBe('exec-3');
+        expect(command.extraFields.parentPipelineId).toBe('exec-3');
       }
 
-      expect(wrapper.state('selectedExecution')).toBe('exec-3');
       expect(command.extraFields.parentPipelineId).toBe('exec-3');
     });
 
     it('handles simultaneous parameter and trigger changes correctly', async () => {
       const executions = [execution1, execution2];
-      getExecutionsForConfigIdsSpy.and.returnValue(Promise.resolve(executions));
+      getExecutionsForConfigIdsSpy.mockReturnValue(Promise.resolve(executions));
 
       const trigger = createPipelineTrigger('pipeline-1');
       const command = createCommand(trigger);
 
-      const wrapper = mount(<PipelineTriggerTemplate command={command} updateCommand={updateCommandSpy} />);
+      const { rerender } = render(<PipelineTriggerTemplate command={command} updateCommand={updateCommandSpy} />);
 
-      await Promise.resolve();
-      wrapper.update();
+      await screen.findByRole('combobox');
 
-      getExecutionsForConfigIdsSpy.calls.reset();
+      getExecutionsForConfigIdsSpy.mockClear();
 
       const newTrigger = createPipelineTrigger('pipeline-2');
       const newCommand = {
         ...createCommand(newTrigger),
         parameters: { newParam: 'value' },
       };
-      wrapper.setProps({ command: newCommand });
+      rerender(<PipelineTriggerTemplate command={newCommand} updateCommand={updateCommandSpy} />);
 
       expect(getExecutionsForConfigIdsSpy).toHaveBeenCalledWith(['pipeline-2'], { limit: 20 });
     });
@@ -783,50 +773,50 @@ describe('<PipelineTriggerTemplate />', () => {
   describe('Rendering', () => {
     it('renders with form-group structure and label', async () => {
       const executions = [execution1];
-      getExecutionsForConfigIdsSpy.and.returnValue(Promise.resolve(executions));
+      getExecutionsForConfigIdsSpy.mockReturnValue(Promise.resolve(executions));
 
       const trigger = createPipelineTrigger('source-pipeline-id');
       const command = createCommand(trigger);
 
-      const wrapper = shallow(<PipelineTriggerTemplate command={command} updateCommand={updateCommandSpy} />);
+      const { container } = render(<PipelineTriggerTemplate command={command} updateCommand={updateCommandSpy} />);
 
-      await Promise.resolve();
-      wrapper.update();
+      await screen.findByRole('combobox');
 
-      expect(wrapper.find('.form-group').exists()).toBe(true);
-      expect(wrapper.find('label').text()).toBe('Execution');
+      expect(container.querySelector('.form-group')).not.toBeNull();
+      const label = screen.getByText('Execution');
+      expect(label.tagName).toBe('LABEL');
     });
 
     it('renders all executions as dropdown options', async () => {
+      const user = setupUser();
       const manyExecutions = Array.from({ length: 15 }, (_, i) => createExecution(`exec-${i}`, i));
 
-      getExecutionsForConfigIdsSpy.and.returnValue(Promise.resolve(manyExecutions));
+      getExecutionsForConfigIdsSpy.mockReturnValue(Promise.resolve(manyExecutions));
 
       const trigger = createPipelineTrigger('source-pipeline-id');
       const command = createCommand(trigger);
 
-      const wrapper = shallow(<PipelineTriggerTemplate command={command} updateCommand={updateCommandSpy} />);
+      render(<PipelineTriggerTemplate command={command} updateCommand={updateCommandSpy} />);
 
-      await Promise.resolve();
-      wrapper.update();
+      await screen.findByRole('combobox');
 
-      const options = wrapper.find('TetheredSelect').prop('options') as Array<{ value: string }>;
-      expect(options.length).toBe(15);
+      expect(await getOptionCount(user)).toBe(15);
     });
 
     it('dropdown is not clearable', async () => {
       const executions = [execution1];
-      getExecutionsForConfigIdsSpy.and.returnValue(Promise.resolve(executions));
+      getExecutionsForConfigIdsSpy.mockReturnValue(Promise.resolve(executions));
 
       const trigger = createPipelineTrigger('source-pipeline-id');
       const command = createCommand(trigger);
 
-      const wrapper = shallow(<PipelineTriggerTemplate command={command} updateCommand={updateCommandSpy} />);
+      const { container } = render(<PipelineTriggerTemplate command={command} updateCommand={updateCommandSpy} />);
 
-      await Promise.resolve();
-      wrapper.update();
+      await screen.findByRole('combobox');
 
-      expect(wrapper.find('TetheredSelect').prop('clearable')).toBe(false);
+      // react-select adds the 'is-clearable' class only when clearable is true
+      expect(container.querySelector('.Select')).not.toBeNull();
+      expect(container.querySelector('.Select.is-clearable')).toBeNull();
     });
   });
 });

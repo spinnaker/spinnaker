@@ -1,24 +1,27 @@
+import type { Mock } from 'vitest';
 import { SchedulerFactory } from './SchedulerFactory';
+
+const testContext: any = {};
 
 describe('SchedulerFactory browser integration', function () {
   it('uses browser online and offline events', function () {
-    const addEventListener = spyOn(window, 'addEventListener').and.callThrough();
-    const removeEventListener = spyOn(window, 'removeEventListener').and.callThrough();
+    const addEventListener = vi.spyOn(window, 'addEventListener');
+    const removeEventListener = vi.spyOn(window, 'removeEventListener');
 
     const scheduler = SchedulerFactory.createScheduler(25);
     scheduler.unsubscribe();
 
-    expect(addEventListener).toHaveBeenCalledWith('offline', jasmine.any(Function));
-    expect(addEventListener).toHaveBeenCalledWith('online', jasmine.any(Function));
-    expect(removeEventListener).toHaveBeenCalledWith('offline', jasmine.any(Function));
-    expect(removeEventListener).toHaveBeenCalledWith('online', jasmine.any(Function));
+    expect(addEventListener).toHaveBeenCalledWith('offline', expect.any(Function));
+    expect(addEventListener).toHaveBeenCalledWith('online', expect.any(Function));
+    expect(removeEventListener).toHaveBeenCalledWith('offline', expect.any(Function));
+    expect(removeEventListener).toHaveBeenCalledWith('online', expect.any(Function));
   });
 
   describe('#unsubscribe', () => {
     it('stops timer emissions from reaching subscribers', () => {
       let emitTimer: () => void;
       let timerActive = true;
-      spyOn(window, 'setInterval').and.callFake((handler: TimerHandler) => {
+      vi.spyOn(window, 'setInterval').mockImplementation((handler: TimerHandler) => {
         emitTimer = () => {
           if (timerActive && typeof handler === 'function') {
             handler();
@@ -26,8 +29,8 @@ describe('SchedulerFactory browser integration', function () {
         };
         return 1;
       });
-      const clearInterval = spyOn(window, 'clearInterval').and.callFake(() => (timerActive = false));
-      const subscriber = jasmine.createSpy('subscriber');
+      const clearInterval = vi.spyOn(window, 'clearInterval').mockImplementation(() => (timerActive = false));
+      const subscriber = vi.fn();
       const scheduler = SchedulerFactory.createScheduler(25);
       scheduler.subscribe(subscriber);
       emitTimer();
@@ -52,12 +55,12 @@ describe('SchedulerFactory with direct services', function () {
 
   let pendingTimeouts: PendingTimeout[];
   let flushTimeout: () => void;
-  let cancelTimeout: jasmine.Spy;
+  let cancelTimeout: Mock;
 
   beforeEach(function () {
     pendingTimeouts = [];
     let nextHandle = 1;
-    spyOn(window, 'setTimeout').and.callFake((callback: TimerHandler) => {
+    vi.spyOn(window, 'setTimeout').mockImplementation((callback: TimerHandler) => {
       if (typeof callback !== 'function') {
         throw new Error('Expected a timeout callback');
       }
@@ -65,7 +68,7 @@ describe('SchedulerFactory with direct services', function () {
       pendingTimeouts.push(pending);
       return pending.handle;
     });
-    cancelTimeout = spyOn(window, 'clearTimeout').and.callFake((handle?: number) => {
+    cancelTimeout = vi.spyOn(window, 'clearTimeout').mockImplementation((handle?: number) => {
       const pending = pendingTimeouts.find((candidate) => candidate.handle === handle);
       if (pending) {
         pending.cancelled = true;
@@ -80,49 +83,49 @@ describe('SchedulerFactory with direct services', function () {
       activeTimeouts.forEach(({ callback }) => callback());
     };
 
-    this.scheduler = SchedulerFactory.createScheduler(60000);
+    testContext.scheduler = SchedulerFactory.createScheduler(60000);
 
-    this.test = {
+    testContext.test = {
       call: () => undefined,
     };
   });
 
   afterEach(function () {
-    this.scheduler.unsubscribe();
+    testContext.scheduler.unsubscribe();
   });
 
   describe('#scheduleImmediate', function () {
     it('invokes all subscribed callbacks immediately', function () {
       const numSubscribers = 20;
 
-      spyOn(this.test, 'call');
+      vi.spyOn(testContext.test, 'call').mockReturnValue(undefined);
       for (let i = 0; i < numSubscribers; i++) {
-        this.scheduler.subscribe(this.test.call);
+        testContext.scheduler.subscribe(testContext.test.call);
       }
-      const pre = this.test.call.calls.count();
-      this.scheduler.scheduleImmediate();
-      expect(this.test.call.calls.count() - pre).toBe(numSubscribers);
+      const pre = testContext.test.call.mock.calls.length;
+      testContext.scheduler.scheduleImmediate();
+      expect(testContext.test.call.mock.calls.length - pre).toBe(numSubscribers);
     });
 
     it('does not fire next repeatedly when scheduleImmediate is called within the interval window', function () {
-      spyOn(this.test, 'call');
-      this.scheduler.subscribe(this.test.call);
-      this.scheduler.scheduleImmediate();
-      this.scheduler.scheduleImmediate();
-      this.scheduler.scheduleImmediate();
-      this.scheduler.scheduleImmediate();
-      expect(this.test.call.calls.count()).toBe(4);
+      vi.spyOn(testContext.test, 'call').mockReturnValue(undefined);
+      testContext.scheduler.subscribe(testContext.test.call);
+      testContext.scheduler.scheduleImmediate();
+      testContext.scheduler.scheduleImmediate();
+      testContext.scheduler.scheduleImmediate();
+      testContext.scheduler.scheduleImmediate();
+      expect(testContext.test.call.mock.calls.length).toBe(4);
 
       flushTimeout();
-      expect(this.test.call.calls.count()).toBe(5);
+      expect(testContext.test.call.mock.calls.length).toBe(5);
 
       // verify no outstanding timeouts
       expect(flushTimeout).toThrow();
     });
 
     it('does not schedule another run when a subscriber unsubscribes during immediate notification', function () {
-      const scheduler: ReturnType<typeof SchedulerFactory.createScheduler> = this.scheduler;
-      const subscriber = jasmine.createSpy('subscriber').and.callFake(() => scheduler.unsubscribe());
+      const scheduler: ReturnType<typeof SchedulerFactory.createScheduler> = testContext.scheduler;
+      const subscriber = vi.fn().mockImplementation(() => scheduler.unsubscribe());
       scheduler.subscribe(subscriber);
 
       scheduler.scheduleImmediate();
@@ -134,9 +137,9 @@ describe('SchedulerFactory with direct services', function () {
     });
 
     it('stops notifying later subscribers when a subscriber unsubscribes during immediate notification', function () {
-      const scheduler: ReturnType<typeof SchedulerFactory.createScheduler> = this.scheduler;
-      const firstSubscriber = jasmine.createSpy('firstSubscriber').and.callFake(() => scheduler.unsubscribe());
-      const secondSubscriber = jasmine.createSpy('secondSubscriber');
+      const scheduler: ReturnType<typeof SchedulerFactory.createScheduler> = testContext.scheduler;
+      const firstSubscriber = vi.fn().mockImplementation(() => scheduler.unsubscribe());
+      const secondSubscriber = vi.fn();
       scheduler.subscribe(firstSubscriber);
       scheduler.subscribe(secondSubscriber);
 
@@ -151,9 +154,9 @@ describe('SchedulerFactory with direct services', function () {
     });
 
     it('can schedule after a pending timeout fires while the scheduler is suspended', function () {
-      const subscriber = jasmine.createSpy('subscriber');
-      this.scheduler.subscribe(subscriber);
-      this.scheduler.scheduleImmediate();
+      const subscriber = vi.fn();
+      testContext.scheduler.subscribe(subscriber);
+      testContext.scheduler.scheduleImmediate();
       window.dispatchEvent(new Event('offline'));
 
       flushTimeout();
@@ -168,14 +171,14 @@ describe('SchedulerFactory with direct services', function () {
 
   describe('#unsubscribe', function () {
     it('cancels its pending owner timeout once and repeated unsubscribe is harmless', function () {
-      this.scheduler.scheduleImmediate();
+      testContext.scheduler.scheduleImmediate();
       const pendingOwnerTimeout = pendingTimeouts[0];
 
-      this.scheduler.unsubscribe();
-      this.scheduler.unsubscribe();
+      testContext.scheduler.unsubscribe();
+      testContext.scheduler.unsubscribe();
 
       expect(pendingOwnerTimeout.cancelled).toBe(true);
-      expect(cancelTimeout.calls.allArgs().filter(([handle]) => handle === pendingOwnerTimeout.handle).length).toBe(1);
+      expect(cancelTimeout.mock.calls.filter(([handle]) => handle === pendingOwnerTimeout.handle).length).toBe(1);
       expect(flushTimeout).toThrowError('No pending timeouts');
     });
   });
