@@ -180,6 +180,28 @@ class DeleteGoogleTcpLoadBalancerAtomicOperation extends DeleteGoogleLoadBalance
     if (deleteBackendServiceOp) {
       googleOperationPoller.waitForGlobalOperation(compute, project, deleteBackendServiceOp.getName(),
         timeoutSeconds, task, "backend service $backendServiceName", BASE_PHASE)
+    } else {
+      // deleteIfNotInUse returns null both for 404 and for a backend service another resource still uses.
+      // Every listener using it was just deleted, so a remaining user is a leftover, not a sharer.
+      BackendService remainingBackendService = safeRetry.doRetry(
+        { timeExecute(
+              compute.backendServices().get(project, backendServiceName),
+              "compute.backendServices.get",
+              TAG_SCOPE, SCOPE_GLOBAL) },
+        "Backend service $backendServiceName",
+        task,
+        [400, 403, 412],
+        [404],
+        [action: "get", phase: BASE_PHASE, operation: "compute.backendServices.get", (TAG_SCOPE): SCOPE_GLOBAL],
+        registry
+      ) as BackendService
+      if (remainingBackendService) {
+        String message = "Backend service $backendServiceName is still used by another resource, such as a target " +
+          "proxy left by an earlier delete, so it was not deleted. Its listeners are already gone. Delete that " +
+          "resource, then backend service $backendServiceName and health check $healthCheckName in $project."
+        task.updateStatus BASE_PHASE, message
+        throw new IllegalStateException(message)
+      }
     }
 
     if (description.deleteHealthChecks) {
