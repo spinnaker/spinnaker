@@ -39,6 +39,7 @@ public final class Manifest {
   private final ImmutableList<Artifact> artifacts;
   private final Status status;
   private final String name;
+  private final String location;
   private final ImmutableList<String> warnings;
   private final ImmutableList<Object> events;
 
@@ -49,6 +50,7 @@ public final class Manifest {
       List<Artifact> artifacts,
       Status status,
       String name,
+      String location,
       List<String> warnings,
       List<Object> events) {
     this.manifest =
@@ -57,6 +59,7 @@ public final class Manifest {
         Optional.ofNullable(artifacts).map(ImmutableList::copyOf).orElseGet(ImmutableList::of);
     this.status = Optional.ofNullable(status).orElseGet(() -> Status.builder().build());
     this.name = Optional.ofNullable(name).orElse("");
+    this.location = Optional.ofNullable(location).orElse("");
     this.warnings =
         Optional.ofNullable(warnings).map(ImmutableList::copyOf).orElseGet(ImmutableList::of);
     this.events =
