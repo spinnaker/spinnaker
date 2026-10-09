@@ -27,6 +27,7 @@ import com.google.api.services.compute.model.TargetPool
 import com.netflix.spectator.api.DefaultRegistry
 import com.netflix.spinnaker.clouddriver.data.task.Task
 import com.netflix.spinnaker.clouddriver.data.task.TaskRepository
+import com.netflix.spinnaker.clouddriver.google.GoogleApiTestUtils
 import com.netflix.spinnaker.clouddriver.google.config.GoogleConfigurationProperties
 import com.netflix.spinnaker.clouddriver.google.deploy.GoogleOperationPoller
 import com.netflix.spinnaker.clouddriver.google.deploy.SafeRetry
@@ -133,6 +134,79 @@ class DeleteGoogleLoadBalancerAtomicOperationUnitSpec extends Specification {
       1 * computeMock.globalOperations() >> globalOperations
       1 * globalOperations.get(PROJECT_NAME, HEALTH_CHECK_DELETE_OP_NAME) >> healthCheckOperationGet
       1 * healthCheckOperationGet.execute() >> healthChecksDeleteOp
+  }
+
+  void "should #outcome when the #resource delete returns no operation because it is #state"() {
+    setup:
+      def computeMock = Mock(Compute)
+      def forwardingRules = Mock(Compute.ForwardingRules)
+      def forwardingRulesGet = Mock(Compute.ForwardingRules.Get)
+      def forwardingRulesDelete = Mock(Compute.ForwardingRules.Delete)
+      def forwardingRule = new ForwardingRule(target: TARGET_POOL_URL)
+      def targetPools = Mock(Compute.TargetPools)
+      def targetPoolsGet = Mock(Compute.TargetPools.Get)
+      def targetPoolsDelete = Mock(Compute.TargetPools.Delete)
+      def targetPool = new TargetPool(healthChecks: [HEALTH_CHECK_URL])
+      def healthChecks = Mock(Compute.HttpHealthChecks)
+      def healthChecksDelete = Mock(Compute.HttpHealthChecks.Delete)
+      def poller = Mock(GoogleOperationPoller)
+      def noOperation = { throw GoogleApiTestUtils.makeGoogleJsonResponseException(deleteStatus, deleteReason) }
+      def readAgain = { Object current ->
+        if (stillExists) {
+          return current
+        }
+        throw GoogleApiTestUtils.makeGoogleJsonResponseException(404)
+      }
+      def credentials = new GoogleNamedAccountCredentials.Builder().project(PROJECT_NAME).compute(computeMock).build()
+      def description = new DeleteGoogleLoadBalancerDescription(
+          loadBalancerName: LOAD_BALANCER_NAME,
+          region: REGION,
+          accountName: ACCOUNT_NAME,
+          credentials: credentials)
+      @Subject def operation = new DeleteGoogleLoadBalancerAtomicOperation(description)
+      operation.googleOperationPoller = poller
+      operation.registry = registry
+      operation.safeRetry = safeRetry
+      def ruleFails = resource == "forwarding rule"
+
+    when:
+      def error = null
+      try {
+        operation.operate([])
+      } catch (IllegalStateException e) {
+        error = e
+      }
+
+    then:
+      _ * computeMock.forwardingRules() >> forwardingRules
+      (ruleFails ? 2 : 1) * forwardingRules.get(PROJECT_NAME, REGION, LOAD_BALANCER_NAME) >> forwardingRulesGet
+      (ruleFails ? 2 : 1) * forwardingRulesGet.execute() >>> [forwardingRule] >> { readAgain(forwardingRule) }
+      ruleDeletes * forwardingRules.delete(PROJECT_NAME, REGION, LOAD_BALANCER_NAME) >> forwardingRulesDelete
+      ruleDeletes * forwardingRulesDelete.execute() >> {
+        ruleFails ? noOperation() : new Operation(name: FORWARDING_RULE_DELETE_OP_NAME, status: "DONE")
+      }
+
+      _ * computeMock.targetPools() >> targetPools
+      (ruleFails ? 1 : 2) * targetPools.get(PROJECT_NAME, REGION, TARGET_POOL_NAME) >> targetPoolsGet
+      (ruleFails ? 1 : 2) * targetPoolsGet.execute() >>> [targetPool] >> { readAgain(targetPool) }
+      poolDeletes * targetPools.delete(PROJECT_NAME, REGION, TARGET_POOL_NAME) >> targetPoolsDelete
+      poolDeletes * targetPoolsDelete.execute() >> {
+        ruleFails ? new Operation(name: TARGET_POOL_DELETE_OP_NAME, status: "DONE") : noOperation()
+      }
+
+      _ * computeMock.httpHealthChecks() >> healthChecks
+      (stillExists ? 0 : 1) * healthChecks.delete(PROJECT_NAME, HEALTH_CHECK_NAME) >> healthChecksDelete
+      (stillExists ? 0 : 1) * healthChecksDelete.execute() >> new Operation(name: HEALTH_CHECK_DELETE_OP_NAME, status: "DONE")
+
+      stillExists ? error.message.contains(expectedMessage) : error == null
+
+    // An in-use delete is attempted SafeRetry's default 10 times before it gives up.
+    where:
+      resource          | state          | deleteStatus | deleteReason                     | stillExists | ruleDeletes | poolDeletes || outcome                   | expectedMessage
+      "forwarding rule" | "still in use" | 400          | "resourceInUseByAnotherResource" | true        | 10          | 0           || "fail with a clear error" | "Forwarding rule $LOAD_BALANCER_NAME in $REGION is still used by another resource"
+      "forwarding rule" | "already gone" | 404          | null                             | false       | 1           | 1           || "keep deleting"           | null
+      "target pool"     | "still in use" | 400          | "resourceInUseByAnotherResource" | true        | 1           | 10          || "fail with a clear error" | "Target pool $TARGET_POOL_NAME in $REGION is still used by another resource"
+      "target pool"     | "already gone" | 404          | null                             | false       | 1           | 1           || "keep deleting"           | null
   }
 
   void "should delete a Network Load Balancer even if it lacks any health checks"() {

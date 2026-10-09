@@ -86,7 +86,8 @@ class DeleteGoogleRegionalExternalNetworkLoadBalancerAtomicOperation extends Goo
       it.name == forwardingRuleName && GCEUtil.isRegionalExternalNetworkPassthroughForwardingRule(it)
     }
     if (forwardingRule == null) {
-      GCEUtil.updateStatusAndThrowNotFoundException("Regional external network forwarding rule $forwardingRuleName not found in $region for $project",
+      GCEUtil.updateStatusAndThrowNotFoundException("Regional external network forwarding rule $forwardingRuleName not found in $region for $project. " +
+        "If an earlier delete removed it, its backend service and health check may still exist in $region and have to be deleted by hand.",
         task, BASE_PHASE)
     }
 
@@ -132,6 +133,8 @@ class DeleteGoogleRegionalExternalNetworkLoadBalancerAtomicOperation extends Goo
     if (deleteForwardingRuleOp) {
       googleOperationPoller.waitForRegionalOperation(compute, project, region, deleteForwardingRuleOp.getName(),
         timeoutSeconds, task, "Regional forwarding rule $forwardingRuleName", BASE_PHASE)
+    } else {
+      GCEUtil.checkRegionalForwardingRuleDeleted(compute, project, region, forwardingRuleName, BASE_PHASE, task, safeRetry, this)
     }
 
     Operation deleteBackendServiceOp = GCEUtil.deleteIfNotInUse(
