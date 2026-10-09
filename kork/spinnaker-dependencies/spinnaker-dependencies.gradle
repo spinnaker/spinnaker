@@ -7,12 +7,28 @@ javaPlatform {
 ext {
   versions = [
     arrow            : "0.13.2",
+<<<<<<< HEAD
     aws              : "1.12.261",
     awsv2            : "2.23.7",
     bouncycastle     : "1.84", // fixes CVE-2024-34447, CVE-2025-14813
     gcp              : "26.34.0",
     groovy           : "4.0.15",
     jsch             : "0.1.54",
+=======
+    awsv2            : "2.55.1",
+    bouncycastleBom  : "1.86.2",
+    // The legacy BOM's latest release is 1.86, matching jdk18on's PKIX/provider/util.
+    // The jdk18on BOM's 1.86.2 patch applies only to bctls.
+    bouncycastleLegacyBom : "1.86",
+    gcp              : "26.84.0",
+    // Aligned with Spock 2.4-groovy-4.0's required Groovy (4.0.29): keeps the
+    // Groovy 4 line Boot 3 used while staying off Boot 4.1's Groovy 5.0.8,
+    // which Spock 2.4 does not support. Enforced via strictly below.
+    groovy           : "4.0.29",
+    jsch             : "2.28.7",
+    // agentproxy artifacts are only published under com.jcraft (project
+    // ymnk/jsch-agent-proxy); the com.github.mwiede fork provides jsch only.
+>>>>>>> 1afea9c (fix(security): update image packages and shared Java dependencies (#8181))
     jschAgentProxy   : "0.0.9",
     log4j            : "2.26.1", // CVEs regularly released, so patch override spring as needed
     log4jKotlin      : "1.5.0",
@@ -73,6 +89,13 @@ dependencies {
   // constraints{} pin. Declared here, before spring-boot-dependencies, for the same
   // import-order-safety reason as log4j-bom/netty-bom above.
   api(platform("org.apache.httpcomponents.core5:httpcore5-parent:${versions.httpcore5}"))
+  // Use BC's published artifact set (including PKIX, provider, TLS and MLS).
+  // Import before Spring's BOMs so Maven consumers also receive these fixes.
+  api(platform("org.bouncycastle:bc-jdk18on-bom:${versions.bouncycastleBom}"))
+  // oci-java-sdk-common 3.21.0 brings the legacy jdk15to18 PKIX/provider/util jars.
+  // Manage the whole family: pinning only bcprov left PKIX/util on 1.74.
+  // CVE-2026-58062, CVE-2026-59650 and CVE-2026-8763 require bcprov >= 1.85.
+  api(platform("org.bouncycastle:bc-jdk15to18-bom:${versions.bouncycastleLegacyBom}"))
   api(platform("org.springframework.boot:spring-boot-dependencies:${versions.springBoot}"))
   api(platform("com.google.protobuf:protobuf-bom:${versions.protobuf}"))
   api(platform("com.google.cloud:libraries-bom:${versions.gcp}"))
@@ -105,6 +128,9 @@ dependencies {
     //TODO:  jsch moved to com.github.mwiede/jsch
     api("com.jcraft:jsch:${versions.jsch}")
     api("org.elasticsearch:elasticsearch:${versions.elasticsearch}")
+    // CVE-2026-84939: Boot 4.1.1 still manages 2.3.34. This patch stays on 2.3.x.
+    // TODO: Remove the override when the Spring Boot BOM manages 2.3.35 or later.
+    api("org.freemarker:freemarker:2.3.35")
     api("com.jcraft:jsch.agentproxy.connector-factory:${versions.jschAgentProxy}")
     api("com.jcraft:jsch.agentproxy.jsch:${versions.jschAgentProxy}")
 
@@ -163,6 +189,7 @@ dependencies {
     api("org.apache.tomcat.embed:tomcat-embed-websocket:${versions.tomcat}")
     api("org.apache.commons:commons-exec:1.3")
     api("org.apache.logging.log4j:log4j-api-kotlin:${versions.log4jKotlin}")
+<<<<<<< HEAD
     api("org.bitbucket.b_c:jose4j:0.9.6")
     //  from BC 1.71, module names changed from *-jdk15on to *-jdk18on
     // due to this change, some of the modules in downstream services like clouddriver, gate would fall back to
@@ -176,6 +203,12 @@ dependencies {
     api("org.bouncycastle:bcprov-jdk18on:${versions.bouncycastle}")
     api("org.bouncycastle:bcprov-jdk15to18:${versions.bouncycastle}") // CVE-2025-14813: some transitive deps still pull jdk15to18 artifact
     api("org.jetbrains:annotations:19.0.0")
+=======
+    api("org.bitbucket.b_c:jose4j:0.9.7")
+    api('org.mockito.kotlin:mockito-kotlin:5.4.0')
+    api("com.azure:azure-security-keyvault-keys:4.11.1") // CVE-2026-33117
+    api("org.jetbrains:annotations:26.1.0")
+>>>>>>> 1afea9c (fix(security): update image packages and shared Java dependencies (#8181))
     api("org.spekframework.spek2:spek-dsl-jvm:${versions.spek2}")
     api("org.spekframework.spek2:spek-runner-junit5:${versions.spek2}")
     api("org.jetbrains.spek:spek-api:${versions.spek}")
