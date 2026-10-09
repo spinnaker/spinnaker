@@ -56,8 +56,8 @@ class EcsInstanceCacheClientSpec extends Specification {
     def attributes = objectMapper.convertValue(givenInstance, Map)
     def instanceCache = new DefaultCacheData(key, attributes, [:])
 
-    cacheView.filterIdentifiers(INSTANCES.getNs(), _) >> [key]
-    cacheView.getAll(INSTANCES.getNs(), [key]) >> [instanceCache]
+    cacheView.filterIdentifiers(INSTANCES.getNs(), _) >> ([key] as Set)
+    cacheView.getAll(INSTANCES.getNs(), _ as Collection) >> [instanceCache]
 
     when:
     def foundInstances = client.findAll()
