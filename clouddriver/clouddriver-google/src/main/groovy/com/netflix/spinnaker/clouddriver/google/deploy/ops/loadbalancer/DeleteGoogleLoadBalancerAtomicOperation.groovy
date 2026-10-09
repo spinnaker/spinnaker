@@ -155,8 +155,12 @@ class DeleteGoogleLoadBalancerAtomicOperation extends GoogleAtomicOperation<Void
       registry
     ) as Operation
 
-    googleOperationPoller.waitForRegionalOperation(compute, project, region, deleteForwardingRuleOperation.getName(),
-        timeoutSeconds, task, "forwarding rule " + forwardingRuleName, BASE_PHASE)
+    if (deleteForwardingRuleOperation) {
+      googleOperationPoller.waitForRegionalOperation(compute, project, region, deleteForwardingRuleOperation.getName(),
+          timeoutSeconds, task, "forwarding rule " + forwardingRuleName, BASE_PHASE)
+    } else {
+      GCEUtil.checkRegionalForwardingRuleDeleted(compute, project, region, forwardingRuleName, BASE_PHASE, task, safeRetry, this)
+    }
 
     task.updateStatus BASE_PHASE, "Deleting target pool $targetPoolName in $region..."
     Operation deleteTargetPoolOperation = safeRetry.doRetry(
@@ -172,8 +176,30 @@ class DeleteGoogleLoadBalancerAtomicOperation extends GoogleAtomicOperation<Void
       registry
     ) as Operation
 
-    googleOperationPoller.waitForRegionalOperation(compute, project, region, deleteTargetPoolOperation.getName(),
-      timeoutSeconds, task, "target pool " + targetPoolName, BASE_PHASE)
+    if (deleteTargetPoolOperation) {
+      googleOperationPoller.waitForRegionalOperation(compute, project, region, deleteTargetPoolOperation.getName(),
+        timeoutSeconds, task, "target pool " + targetPoolName, BASE_PHASE)
+    } else {
+      // SafeRetry returns null both for 404 and for a target pool another resource still uses.
+      TargetPool remainingTargetPool = safeRetry.doRetry(
+        { timeExecute(
+              compute.targetPools().get(project, region, targetPoolName),
+              "compute.targetPools.get",
+              TAG_SCOPE, SCOPE_REGIONAL, TAG_REGION, region) },
+        "Target pool $targetPoolName",
+        task,
+        [400, 403, 412],
+        [404],
+        [action: "get", phase: BASE_PHASE, operation: "compute.targetPools.get", (TAG_SCOPE): SCOPE_REGIONAL, (TAG_REGION): region],
+        registry
+      ) as TargetPool
+      if (remainingTargetPool) {
+        String message = "Target pool $targetPoolName in $region is still used by another resource, such as a " +
+          "managed instance group, so it and its health checks were not deleted. Its forwarding rule is already gone."
+        task.updateStatus BASE_PHASE, message
+        throw new IllegalStateException(message)
+      }
+    }
 
     // Now make a list of the delete operations for health checks if the description says to do so.
     if (description.deleteHealthChecks) {
