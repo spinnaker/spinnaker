@@ -1994,10 +1994,12 @@ package com.netflix.spinnaker.clouddriver.google.deploy
 
     then:
       _ * compute.globalForwardingRules() >> forwardingRules
-      1 * forwardingRules.get(PROJECT_NAME, "listener") >> forwardingRulesGet
-      1 * forwardingRulesGet.execute() >> new ForwardingRule(
+      2 * forwardingRules.get(PROJECT_NAME, "listener") >> forwardingRulesGet
+      2 * forwardingRulesGet.execute() >>> [new ForwardingRule(
         name: "listener",
-        target: "projects/$PROJECT_NAME/global/targetTcpProxies/listener-proxy")
+        target: "projects/$PROJECT_NAME/global/targetTcpProxies/listener-proxy")] >> {
+        throw GoogleApiTestUtils.makeGoogleJsonResponseException(404)
+      }
       1 * forwardingRules.delete(PROJECT_NAME, "listener") >> forwardingRulesDelete
       1 * forwardingRulesDelete.execute() >> { throw GoogleApiTestUtils.makeGoogleJsonResponseException(404) }
       0 * poller._
@@ -2085,10 +2087,12 @@ package com.netflix.spinnaker.clouddriver.google.deploy
 
     then:
       _ * compute.forwardingRules() >> forwardingRules
-      1 * forwardingRules.get(PROJECT_NAME, REGION, "listener") >> forwardingRulesGet
-      1 * forwardingRulesGet.execute() >> new ForwardingRule(
+      2 * forwardingRules.get(PROJECT_NAME, REGION, "listener") >> forwardingRulesGet
+      2 * forwardingRulesGet.execute() >>> [new ForwardingRule(
         name: "listener",
-        target: "projects/$PROJECT_NAME/regions/$REGION/targetHttpProxies/listener-proxy")
+        target: "projects/$PROJECT_NAME/regions/$REGION/targetHttpProxies/listener-proxy")] >> {
+        throw GoogleApiTestUtils.makeGoogleJsonResponseException(404)
+      }
       1 * forwardingRules.delete(PROJECT_NAME, REGION, "listener") >> forwardingRulesDelete
       1 * forwardingRulesDelete.execute() >> { throw GoogleApiTestUtils.makeGoogleJsonResponseException(404) }
       0 * poller._
@@ -2096,6 +2100,64 @@ package com.netflix.spinnaker.clouddriver.google.deploy
       1 * targetHttpProxies.delete(PROJECT_NAME, REGION, "listener-proxy") >> targetHttpProxiesDelete
       1 * targetHttpProxiesDelete.execute() >> proxyDeleteOp
       result == proxyDeleteOp
+  }
+
+  void "deleteGlobalListener keeps the target proxy when the forwarding rule is still in use"() {
+    setup:
+      def compute = Mock(Compute)
+      def forwardingRules = Mock(Compute.GlobalForwardingRules)
+      def forwardingRulesGet = Mock(Compute.GlobalForwardingRules.Get)
+      def forwardingRulesDelete = Mock(Compute.GlobalForwardingRules.Delete)
+      def poller = Mock(GoogleOperationPoller)
+      def rule = new ForwardingRule(
+        name: "listener",
+        target: "projects/$PROJECT_NAME/global/targetHttpProxies/listener-proxy")
+
+    when:
+      GCEUtil.deleteGlobalListener(
+        compute, PROJECT_NAME, "listener", PHASE, null, taskMock, poller, SafeRetry.withoutDelay(), executor)
+
+    then:
+      _ * compute.globalForwardingRules() >> forwardingRules
+      2 * forwardingRules.get(PROJECT_NAME, "listener") >> forwardingRulesGet
+      2 * forwardingRulesGet.execute() >> rule
+      _ * forwardingRules.delete(PROJECT_NAME, "listener") >> forwardingRulesDelete
+      (1.._) * forwardingRulesDelete.execute() >> {
+        throw GoogleApiTestUtils.makeGoogleJsonResponseException(400, "resourceInUseByAnotherResource")
+      }
+      0 * poller._
+      0 * compute.targetHttpProxies()
+      def e = thrown(IllegalStateException)
+      e.message.contains("Global forwarding rule listener is still used by another resource")
+  }
+
+  void "deleteRegionalListener keeps the target proxy when the forwarding rule is still in use"() {
+    setup:
+      def compute = Mock(Compute)
+      def forwardingRules = Mock(Compute.ForwardingRules)
+      def forwardingRulesGet = Mock(Compute.ForwardingRules.Get)
+      def forwardingRulesDelete = Mock(Compute.ForwardingRules.Delete)
+      def poller = Mock(GoogleOperationPoller)
+      def rule = new ForwardingRule(
+        name: "listener",
+        target: "projects/$PROJECT_NAME/regions/$REGION/targetHttpProxies/listener-proxy")
+
+    when:
+      GCEUtil.deleteRegionalListener(
+        compute, PROJECT_NAME, REGION, "listener", PHASE, null, taskMock, poller, SafeRetry.withoutDelay(), executor)
+
+    then:
+      _ * compute.forwardingRules() >> forwardingRules
+      2 * forwardingRules.get(PROJECT_NAME, REGION, "listener") >> forwardingRulesGet
+      2 * forwardingRulesGet.execute() >> rule
+      _ * forwardingRules.delete(PROJECT_NAME, REGION, "listener") >> forwardingRulesDelete
+      (1.._) * forwardingRulesDelete.execute() >> {
+        throw GoogleApiTestUtils.makeGoogleJsonResponseException(400, "resourceInUseByAnotherResource")
+      }
+      0 * poller._
+      0 * compute.regionTargetHttpProxies()
+      def e = thrown(IllegalStateException)
+      e.message.contains("Forwarding rule listener in $REGION is still used by another resource")
   }
 
   private static InstanceTemplate shieldedInstanceTemplate() {

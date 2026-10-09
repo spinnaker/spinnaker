@@ -513,11 +513,12 @@ class DeleteGoogleInternalHttpLoadBalancerAtomicOperationUnitSpec extends Specif
       operation.operate([])
 
     then:
-      3 * computeMock.forwardingRules() >> regionForwardingRules
+      4 * computeMock.forwardingRules() >> regionForwardingRules
       1 * regionForwardingRules.list(PROJECT_NAME, REGION) >> regionForwardingRulesList
       1 * regionForwardingRulesList.execute() >> [items: [forwardingRule]]
-      1 * regionForwardingRules.get(PROJECT_NAME, REGION, HTTP_LOAD_BALANCER_NAME) >> regionForwardingRulesGet
-      1 * regionForwardingRulesGet.execute() >> forwardingRule
+      // The rule delete returns no operation, so the rule is read again and is gone.
+      2 * regionForwardingRules.get(PROJECT_NAME, REGION, HTTP_LOAD_BALANCER_NAME) >> regionForwardingRulesGet
+      2 * regionForwardingRulesGet.execute() >>> [forwardingRule, null]
       3 * computeMock.regionTargetHttpProxies() >> targetHttpProxies
       2 * targetHttpProxies.get(PROJECT_NAME, REGION, TARGET_HTTP_PROXY_NAME) >> targetHttpProxiesGet
       2 * targetHttpProxiesGet.execute() >> targetHttpProxy
