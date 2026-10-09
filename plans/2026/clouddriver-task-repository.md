@@ -1,7 +1,7 @@
 # Clouddriver task repository: failure modes, fixes, and a SQL task queue
 
-**Status**: In progress. Track A and the SQL ordering rework are merged; the cleanup and completion
-fixes are in review. See [Status and next steps](#status-and-next-steps) and the [Work plan](#work-plan).
+**Status**: In progress. Track A and the SQL ordering rework are merged; the cleanup, completion
+and bounded-executor fixes are merged. P3 is the only open finding. See [Status and next steps](#status-and-next-steps) and the [Work plan](#work-plan).
 Focus is the SQL task repository and SQL task queue. The Redis task repository gets bridge fixes only,
 then is **deprecated in 2026.4.0** (Phase 3), after the work below is stable.
 
@@ -577,32 +577,32 @@ where noted.
 
 | Finding | Test | Where | Status |
 |---|---|---|---|
-| R1 | `OperationsControllerTaskStoreUnavailableTest` (503 through MockMvc and kork's real handler) | #8110 | Fixed in review |
+| R1 | `OperationsControllerTaskStoreUnavailableTest` (503 through MockMvc and kork's real handler) | #8110 | Merged |
 | R2 (Redis) | none | – | Won't fix (Redis deprecated) |
 | R2 (SQL) | `DefaultOrchestrationProcessorTest.failedProgressWriteDoesNotFailASuccessfulOperation` | branch `taskRepositoryCleanupAndCompletion` | Fixed on branch (not yet a PR) |
 | R3, R4, R8, R9 | none | – | Won't fix (Redis deprecated) |
-| R5 | TCK `testSagaIdsPersistence` (all backends) | #8129 | Fixed in review |
-| R6 | `RedisTaskRepositoryTest`: index TTL, expired-index recovery | #8129 | Fixed in review |
-| R7 | `RedisTaskRepositoryTest`: `list()` with expired tasks | #8129 | Fixed in review |
-| S1 | `SqlTaskRepositoryOrderingTck` (MySQL + Postgres); known-issue test removed from #8108 | #8130 | Fixed in review |
-| S2 | `SqlTaskRepositoryOrderingTck`; known-issue test removed from #8108 | #8130 | Fixed in review |
-| S3 | `SqlTaskRepositoryOrderingTck`; known-issue test removed from #8108 | #8130 | Fixed in review |
-| S4 | TCK `testTerminalStateCannotBeChanged`, `testNonRetryableFailureCannotBeRetried` | #8130 | Fixed in review |
-| S5 | `SqlTaskRepositoryOrderingTck.concurrentUpdatesCannotReopenACompletedTask` | #8130 | Fixed in review |
-| S6 | `SqlRetriesTest` (MockConnection: retry, 503, no retry on non-transient) | #8111 | Fixed in review |
-| S7 | `SqlTaskRepositoryOrderingTck.concurrentCreatesWithTheSameRequestIdShareOneTask`; `TaskRequestIdMigrationTest` | #8130 | Fixed in review |
-| S8 | TCK `testResultObjectsCannotBeAddedAfterCompletion` | #8130 | Fixed in review |
+| R5 | TCK `testSagaIdsPersistence` (all backends) | #8129 | Merged |
+| R6 | `RedisTaskRepositoryTest`: index TTL, expired-index recovery | #8129 | Merged |
+| R7 | `RedisTaskRepositoryTest`: `list()` with expired tasks | #8129 | Merged |
+| S1 | `SqlTaskRepositoryOrderingTck` (MySQL + Postgres); known-issue test removed from #8108 | #8130 | Merged |
+| S2 | `SqlTaskRepositoryOrderingTck`; known-issue test removed from #8108 | #8130 | Merged |
+| S3 | `SqlTaskRepositoryOrderingTck`; known-issue test removed from #8108 | #8130 | Merged |
+| S4 | TCK `testTerminalStateCannotBeChanged`, `testNonRetryableFailureCannotBeRetried` | #8130 | Merged |
+| S5 | `SqlTaskRepositoryOrderingTck.concurrentUpdatesCannotReopenACompletedTask` | #8130 | Merged |
+| S6 | `SqlRetriesTest` (MockConnection: retry, 503, no retry on non-transient) | #8111 | Merged |
+| S7 | `SqlTaskRepositoryOrderingTck.concurrentCreatesWithTheSameRequestIdShareOneTask`; `TaskRequestIdMigrationTest` | #8130 | Merged |
+| S8 | TCK `testResultObjectsCannotBeAddedAfterCompletion` | #8130 | Merged |
 | S9 | `SqlTaskCleanupAgentStatesTest` | branch `taskRepositoryCleanupAndCompletion` | Fixed on branch (not yet a PR) |
-| S10 | TCK `testDuplicateCreateLeavesTheExistingTaskUntouched` | #8130 | Fixed in review |
-| S11 | TCK on Postgres (`SqlTaskRepositoryPostgresTest`) | #8130 | Fixed in review |
-| P1 | `DefaultOrchestrationProcessorSpec` "does not run the remaining operations after one fails" | #8130 | Fixed in review |
-| P2 | Lands with its fix: the concurrency limit it would assert is defined there | – | Fix: work-plan PR 7 |
+| S10 | TCK `testDuplicateCreateLeavesTheExistingTaskUntouched` | #8130 | Merged |
+| S11 | TCK on Postgres (`SqlTaskRepositoryPostgresTest`) | #8130 | Merged |
+| P1 | `DefaultOrchestrationProcessorSpec` "does not run the remaining operations after one fails" | #8130 | Merged |
+| P2 | Lands with its fix: the concurrency limit it would assert is defined there | #8173 | Fixed: work-plan PR 7 |
 | P3 | Lands with its fix: the lease/reaper it would assert doesn't exist yet | – | Fix: work-plan PR 9 (5a) |
-| P4 | TCK `testRetryMovesARetryableFailureBackToStarted`; `DefaultOrchestrationProcessorSpec` "re-runs a task whose failure is retryable" | #8130 | Fixed in review |
+| P4 | TCK `testRetryMovesARetryableFailureBackToStarted`; `DefaultOrchestrationProcessorSpec` "re-runs a task whose failure is retryable" | #8130 | Merged |
 
 ## Status and next steps
 
-Last updated 2026-10-08. Tracking issue: spinnaker/spinnaker#8109. This PR holds the plan only. It is
+Last updated 2026-10-09. Tracking issue: spinnaker/spinnaker#8109. This PR holds the plan only. It is
 not intended to be merged, and its known-issue tests were removed because every finding that had one is
 now fixed with a real test in its own PR.
 
@@ -614,17 +614,18 @@ now fixed with a real test in its own PR.
 | #8111 | S6: SQL retries actually run, and 503 when the database stays unreachable |
 | #8129 | R5–R7: Redis saga IDs persisted, `kato:taskmap` index keys expire, null-safe `list()` |
 | #8130 | S1–S5, S7, S8, S10, S11, P1, P4: per-task sequence ordering, row lock, terminal immutability, duplicate-safe `create()`, Postgres state width, retry order |
+| #8172 | S9: cleanup deletes `FAILED_RETRYABLE` tasks after `sql.agent.task-cleanup.failed-retryable-ttl-ms` (7 d), found through `tasks(current_state, completed_at)`. R2 (SQL side): a failed "Orchestration completed." write no longer fails a successful operation. |
+| #8173 | P2: bounded operation executor (`clouddriver.operations.executor.max-threads`, default 500), 503 + `Retry-After` when saturated, `orchestrations.active`/`queued` gauges; auth propagation covered by a test |
 
-### In review
+### Open
 
-| Branch / PR | Findings |
+| PR | Notes |
 |---|---|
-| #8172 (draft) | S9: cleanup deletes `FAILED_RETRYABLE` tasks after `sql.agent.task-cleanup.failed-retryable-ttl-ms` (7 d), found through `tasks(current_state, completed_at)`. R2 (SQL side): a failed "Orchestration completed." write no longer fails a successful operation. |
 | #8112 (external) | Does not cover P2. Its SQL retries (S6), running-task query and cleanup index are largely superseded by #8111, #8130 and #8172. Only its Orca changes (`SqlExceptionHandler`, configurable `MonitorKatoTask` not-found retries) are not on `main`. |
 
 ### Backports
 
-Backport status as of 2026-10-08. The `release-2026.2.x` backport of #8130 is intentionally skipped.
+Backport status as of 2026-10-09. The `release-2026.2.x` backport of #8130 is intentionally skipped. **Policy: no Redis changes and no behavior changes are backported.**
 
 | Fix | `release-2026.3.x` | `release-2026.2.x` |
 |---|---|---|
@@ -632,14 +633,15 @@ Backport status as of 2026-10-08. The `release-2026.2.x` backport of #8130 is in
 | #8130 (SQL ordering) | #8168 merged | Skipped (decision) |
 | #8110 (R1, 503) | Not backporting: Redis-only, and the 500 to 503 change alters what Orca does during an outage | Not backporting |
 | #8129 (R5–R7, Redis) | Not backporting: Redis-only, the repository is being deprecated, and the impact is low (saga resume never worked on Redis, the key leak is slow, the `list()` NPE only happens during shutdown) | Not backporting |
-| S9 / R2 (#8172) | To be decided after review | To be decided after review |
+| S9 / R2 (#8172) | Not backporting: behavior change (new cleanup of retryable tasks) | Not backporting |
+| P2 (#8173) | Not backporting: behavior change (503 when saturated) | Not backporting |
 
 ### Next steps
 
-1. **Review and merge the S9/R2 PR (#8172)**, then decide its backports.
-2. **P3: per-instance leases and reaper** (work-plan PR 9, option A in [P3 options](#p3-options-for-work-lost-when-a-pod-restarts-or-crashes)). Queued dispatch (C) follows once A is stable and the pub/sub work (#8030, #8031) has landed.
-3. **P2 (bounded executor with 503 + `Retry-After`)**: not covered by any open PR. Plus the remaining processor item, the repository-side atomic "complete if not terminal".
-4. **Redis task repository deprecation (work-plan 3b), only once the above is stable.** In 2026.4.0:
+1. **P3: per-instance leases and reaper** (work-plan PR 9, option A in [P3 options](#p3-options-for-work-lost-when-a-pod-restarts-or-crashes)). Lower priority. Suggested split: schema plus registration/heartbeat first, then fencing and the reaper. Queued dispatch (C) follows once A is stable and the pub/sub work (#8030, #8031) has landed.
+2. **Unscheduled processor items:** a repository-side atomic "complete if not terminal" (if the store is down long enough that `complete()` also fails, the task stays `STARTED` until P3), and an audit of the other unbounded pools (`JobExecutorLocal`, Google `ComputeConfiguration`, `KubernetesManifestProvider`).
+3. **#8112:** only its Orca changes remain; disposition is with the author.
+4. **Redis task repository deprecation (work-plan 3b), only once P3 is done and stable.** In 2026.4.0:
    - `@Deprecated` on `RedisTaskRepository` (selected by `redis.task-repository.enabled`, default `true`);
    - a startup `WARN` when it is in use;
    - a migration guide: enable `sql.task-repository.enabled`, then run `dual-task-repository.enabled` with SQL
@@ -661,8 +663,8 @@ Postgres (`kork-sql-test`, `--max-workers=1` locally). Update **Status** as PRs 
 | 3 | A: correctness | Redis: persist saga IDs, TTL on `kato:taskmap:*`, null-safe `list()` | R5, R6, R7 | – | Merged: #8129 |
 | 3b | A: Redis deprecation | Deprecate the Redis task repository: `@Deprecated`, startup `WARN`, migration guide, `CODE_STYLE.md` deprecation table | Phase 3 | 1, 3 | Not started (targets 2026.4.0) |
 | 4 + 5 | B: SQL foundation | **Combined into one PR** (schema commit + code commit): per-task `seq`, `current_state`/`completed_at`, `tasks` indexes, `request_id` dedupe + unique index, Postgres `state` width; row lock, `seq` ordering, terminal immutability, duplicate-safe `create()`, retry rule in `DefaultTaskStatus`, processor stop-after-failure and retry order. No backfill agent: pre-upgrade tasks are handled lazily | S1–S5, S7, S8, S10, S11, P1, P4 | – | Merged: #8130 |
-| 6 | B: SQL foundation | Cleanup driven by `tasks(current_state, completed_at)`, `FAILED_RETRYABLE` TTL (`failed-retryable-ttl-ms`, 7 d); legacy rows fall back to the history lookup | S9 | 4 + 5 | Fixed on branch `taskRepositoryCleanupAndCompletion` |
-| 7 | B: SQL foundation | Processor: progress writes that can't fail a successful operation (done, same branch as PR 6). Bounded executor / 503 (P2) is still open, with no PR. Repository-side atomic "complete if not terminal" deferred | P2, R2 (SQL side) | 4 + 5 | R2 fixed in #8172; P2 open |
+| 6 | B: SQL foundation | Cleanup driven by `tasks(current_state, completed_at)`, `FAILED_RETRYABLE` TTL (`failed-retryable-ttl-ms`, 7 d); legacy rows fall back to the history lookup | S9 | 4 + 5 | Merged: #8172 |
+| 7 | B: SQL foundation | Processor: progress writes that can't fail a successful operation (done, same branch as PR 6). Bounded executor / 503 (P2) in #8173. Repository-side atomic "complete if not terminal" deferred | P2, R2 (SQL side) | 4 + 5 | Merged: #8172 (R2), #8173 (P2) |
 | 8 | C: reads | Version-checked poll cache; optional read-pool routing for task polling | Phase 6 (reads) | 4 + 5 | Not started |
 | 9 | D: task queue | `clouddriver_instances` + per-instance leases, fencing on every write, `progress` checkpoints, reaper, graceful-shutdown release (inline mode) | 5a, P3 | 4 + 5, 2 | Not started |
 | 10 | D: task queue | Refactor: extract the processor's execution body into an executor component (no behaviour change) | 5b prep | 7 | Not started |
