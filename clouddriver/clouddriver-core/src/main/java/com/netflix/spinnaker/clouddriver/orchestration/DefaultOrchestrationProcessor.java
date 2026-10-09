@@ -22,6 +22,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.util.concurrent.ThreadFactoryBuilder;
 import com.netflix.spectator.api.Id;
 import com.netflix.spectator.api.Registry;
+import com.netflix.spinnaker.clouddriver.config.OrchestrationExecutorProperties;
 import com.netflix.spinnaker.clouddriver.core.ClouddriverHostname;
 import com.netflix.spinnaker.clouddriver.data.task.Task;
 import com.netflix.spinnaker.clouddriver.data.task.TaskRepository;
@@ -41,12 +42,15 @@ import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
+import java.util.concurrent.ArrayBlockingQueue;
 import java.util.concurrent.Callable;
 import java.util.concurrent.ExecutorService;
+import java.util.concurrent.RejectedExecutionException;
 import java.util.concurrent.SynchronousQueue;
 import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
+import java.util.function.ToIntFunction;
 import java.util.stream.Collectors;
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
@@ -60,22 +64,9 @@ import org.springframework.security.concurrent.DelegatingSecurityContextCallable
 public class DefaultOrchestrationProcessor implements OrchestrationProcessor {
   private static final String TASK_PHASE = "ORCHESTRATION";
 
-  protected ExecutorService executorService =
-      new ThreadPoolExecutor(
-          0,
-          Integer.MAX_VALUE,
-          60L,
-          TimeUnit.SECONDS,
-          new SynchronousQueue<Runnable>(),
-          new ThreadFactoryBuilder()
-              .setNameFormat(DefaultOrchestrationProcessor.class.getSimpleName() + "-%d")
-              .build()) {
-        @Override
-        protected void afterExecute(Runnable r, Throwable t) {
-          clearRequestContext();
-          super.afterExecute(r, t);
-        }
-      };
+  protected ExecutorService executorService;
+
+  private final OrchestrationExecutorProperties executorProperties;
 
   private final TaskRepository taskRepository;
   private final ApplicationContext applicationContext;
@@ -95,6 +86,28 @@ public class DefaultOrchestrationProcessor implements OrchestrationProcessor {
       ExceptionClassifier exceptionClassifier,
       RequestContextProvider contextProvider,
       ExceptionSummaryService exceptionSummaryService) {
+    this(
+        taskRepository,
+        applicationContext,
+        registry,
+        operationEventHandlers,
+        objectMapper,
+        exceptionClassifier,
+        contextProvider,
+        exceptionSummaryService,
+        new OrchestrationExecutorProperties());
+  }
+
+  public DefaultOrchestrationProcessor(
+      TaskRepository taskRepository,
+      ApplicationContext applicationContext,
+      Registry registry,
+      Optional<Collection<OperationEventHandler>> operationEventHandlers,
+      ObjectMapper objectMapper,
+      ExceptionClassifier exceptionClassifier,
+      RequestContextProvider contextProvider,
+      ExceptionSummaryService exceptionSummaryService,
+      OrchestrationExecutorProperties executorProperties) {
     this.taskRepository = taskRepository;
     this.applicationContext = applicationContext;
     this.registry = registry;
@@ -103,6 +116,66 @@ public class DefaultOrchestrationProcessor implements OrchestrationProcessor {
     this.exceptionClassifier = exceptionClassifier;
     this.contextProvider = contextProvider;
     this.exceptionSummaryService = exceptionSummaryService;
+    this.executorProperties = executorProperties;
+    this.executorService = newExecutor(executorProperties);
+
+    // TODO: report these through Micrometer once this class has a MeterRegistry.
+    registry.gauge(
+        registry.createId("orchestrations.active"),
+        this,
+        p -> p.executorStat(e -> e.getActiveCount()));
+    registry.gauge(
+        registry.createId("orchestrations.queued"),
+        this,
+        p -> p.executorStat(e -> e.getQueue().size()));
+  }
+
+  /**
+   * Runs at most {@code maxThreads} operations at once. Threads are only created on demand and are
+   * released after being idle for a minute, like the unbounded pool this replaces.
+   */
+  private ThreadPoolExecutor newExecutor(OrchestrationExecutorProperties properties) {
+    ThreadPoolExecutor executor =
+        new ThreadPoolExecutor(
+            properties.getMaxThreads(),
+            properties.getMaxThreads(),
+            60L,
+            TimeUnit.SECONDS,
+            properties.getQueueCapacity() > 0
+                ? new ArrayBlockingQueue<>(properties.getQueueCapacity())
+                : new SynchronousQueue<>(),
+            new ThreadFactoryBuilder()
+                .setNameFormat(DefaultOrchestrationProcessor.class.getSimpleName() + "-%d")
+                .build()) {
+          @Override
+          protected void afterExecute(Runnable r, Throwable t) {
+            clearRequestContext();
+            super.afterExecute(r, t);
+          }
+        };
+    executor.allowCoreThreadTimeOut(true);
+    return executor;
+  }
+
+  private double executorStat(ToIntFunction<ThreadPoolExecutor> stat) {
+    return executorService instanceof ThreadPoolExecutor
+        ? stat.applyAsInt((ThreadPoolExecutor) executorService)
+        : 0;
+  }
+
+  /** True when a new operation would be rejected, so callers can refuse it before any writes. */
+  private boolean isSaturated() {
+    if (!(executorService instanceof ThreadPoolExecutor)) {
+      return false;
+    }
+    ThreadPoolExecutor executor = (ThreadPoolExecutor) executorService;
+    return executor.getActiveCount() >= executor.getMaximumPoolSize()
+        && executor.getQueue().remainingCapacity() == 0;
+  }
+
+  private OperationsSaturatedException saturated() {
+    return new OperationsSaturatedException(
+        executorProperties.getMaxThreads(), executorProperties.getRetryAfterSeconds());
   }
 
   @Override
@@ -189,12 +262,23 @@ public class DefaultOrchestrationProcessor implements OrchestrationProcessor {
                                 }
                               }
 
-                              if (task.getStatus() != null && task.getStatus().isFailed()) {
-                                task.updateStatus(
-                                    TASK_PHASE,
-                                    "Orchestration completed with errors, see prior task logs.");
-                              } else {
-                                task.updateStatus(TASK_PHASE, "Orchestration completed.");
+                              // The operation has already succeeded. Failing to record that must
+                              // not
+                              // turn it into a failed task.
+                              try {
+                                if (task.getStatus() != null && task.getStatus().isFailed()) {
+                                  task.updateStatus(
+                                      TASK_PHASE,
+                                      "Orchestration completed with errors, see prior task logs.");
+                                } else {
+                                  task.updateStatus(TASK_PHASE, "Orchestration completed.");
+                                }
+                              } catch (Exception e) {
+                                log.warn(
+                                    "Unable to record completion of operation {} on task {}",
+                                    atomicOperation.getClass().getSimpleName(),
+                                    task.getId(),
+                                    e);
                               }
                               return null;
                             })
@@ -304,7 +388,20 @@ public class DefaultOrchestrationProcessor implements OrchestrationProcessor {
             registry,
             orchestrationsId,
             new DelegatingSecurityContextCallable<>(propagate(operationClosure, true)));
-    executorService.submit(timedCallable);
+    try {
+      executorService.submit(timedCallable);
+    } catch (RejectedExecutionException e) {
+      // Another request took the last thread after the check above. Leave the task retryable so the
+      // caller's retry, which carries the same client request ID, runs it.
+      try {
+        task.updateStatus(TASK_PHASE, "Rejected: clouddriver is running its limit of operations");
+        task.fail(true);
+      } catch (Exception failure) {
+        log.warn("Unable to record that task {} was rejected", task.getId(), failure);
+      }
+      registry.counter(orchestrationsId.withTag("rejected", "true")).increment();
+      throw saturated();
+    }
 
     return task;
   }
@@ -362,12 +459,18 @@ public class DefaultOrchestrationProcessor implements OrchestrationProcessor {
       if (!existingTask.isRetryable()) {
         return new GetTaskResult(existingTask, false);
       }
+      if (isSaturated()) {
+        throw saturated();
+      }
       // Retry first: a FAILED_RETRYABLE task is terminal until retry() moves it back to STARTED.
       existingTask.retry();
       existingTask.updateStatus(
           TASK_PHASE, "Re-initializing Orchestration Task (failure is retryable)");
       existingTask.updateOwnerId(ClouddriverHostname.ID, TASK_PHASE);
       return new GetTaskResult(existingTask, true);
+    }
+    if (isSaturated()) {
+      throw saturated();
     }
     return new GetTaskResult(
         taskRepository.create(TASK_PHASE, "Initializing Orchestration Task", clientRequestId),
