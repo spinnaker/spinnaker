@@ -20,7 +20,6 @@ import static com.github.tomakehurst.wiremock.client.WireMock.*;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
 import com.github.tomakehurst.wiremock.WireMockServer;
 import com.github.tomakehurst.wiremock.client.MappingBuilder;
 import com.netflix.spinnaker.kork.artifacts.model.Artifact;
@@ -40,10 +39,12 @@ import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.ValueSource;
 import org.junitpioneer.jupiter.TempDirectory;
 import ru.lanwen.wiremock.ext.WiremockResolver;
+import tools.jackson.databind.ObjectMapper;
+import tools.jackson.databind.json.JsonMapper;
 
 @ExtendWith({WiremockResolver.class, TempDirectory.class})
 class GiteaArtifactCredentialsTest {
-  private final ObjectMapper objectMapper = new ObjectMapper();
+  private final ObjectMapper objectMapper = JsonMapper.builder().build();
   private final OkHttpClient okHttpClient = new OkHttpClient();
 
   private final String DOWNLOAD_PATH = "/api/v1/repos/spinnaker/testing/raw/manifest.yml";

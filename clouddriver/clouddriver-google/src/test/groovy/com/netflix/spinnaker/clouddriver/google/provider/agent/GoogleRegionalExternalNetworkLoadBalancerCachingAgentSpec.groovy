@@ -16,7 +16,8 @@
 
 package com.netflix.spinnaker.clouddriver.google.provider.agent
 
-import com.fasterxml.jackson.databind.ObjectMapper
+import tools.jackson.databind.ObjectMapper
+import tools.jackson.databind.json.JsonMapper
 import com.google.api.client.googleapis.batch.json.JsonBatchCallback
 import com.google.api.client.googleapis.json.GoogleJsonError
 import com.google.api.client.googleapis.services.AbstractGoogleClientRequest
@@ -325,7 +326,7 @@ class GoogleRegionalExternalNetworkLoadBalancerCachingAgentSpec extends Specific
         .compute(compute)
         .credentials(Mock(GoogleCredentials))
         .build(),
-      new ObjectMapper(),
+      JsonMapper.builder().build(),
       new DefaultRegistry(),
       REGION
     )
@@ -340,7 +341,7 @@ class GoogleRegionalExternalNetworkLoadBalancerCachingAgentSpec extends Specific
         .compute(compute)
         .credentials(Mock(GoogleCredentials))
         .build(),
-      new ObjectMapper(),
+      JsonMapper.builder().build(),
       new DefaultRegistry(),
       REGION
     )

@@ -1,8 +1,8 @@
 package com.netflix.spinnaker.keel.bakery.artifact
 
-import com.fasterxml.jackson.databind.JsonMappingException
-import com.fasterxml.jackson.databind.ObjectMapper
-import com.fasterxml.jackson.module.kotlin.convertValue
+import tools.jackson.databind.DatabindException
+import tools.jackson.databind.ObjectMapper
+import tools.jackson.module.kotlin.convertValue
 import com.netflix.spinnaker.config.BaseUrlConfig
 import com.netflix.spinnaker.config.LifecycleConfig
 import com.netflix.spinnaker.keel.api.TaskStatus.BUFFERED
@@ -122,7 +122,7 @@ class BakeryLifecycleMonitor(
         amiIdsByRegion = details.associate { regionDetail -> regionDetail.region to regionDetail.imageId }
       )
       bakedImageRepository.store(bakedImage)
-    } catch (e: JsonMappingException) {
+    } catch (e: DatabindException) {
       log.error("Error converting bake stage to kotlin object for app ${execution.application} in execution ${execution.id}", e)
     } catch (e: Exception) {
       // if there's an error that's fine, we will move on.

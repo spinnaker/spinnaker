@@ -2,12 +2,12 @@ package com.netflix.spinnaker.orca.clouddriver;
 
 import static com.github.tomakehurst.wiremock.client.WireMock.urlMatching;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
 import com.github.tomakehurst.wiremock.client.WireMock;
 import com.github.tomakehurst.wiremock.core.WireMockConfiguration;
 import com.github.tomakehurst.wiremock.junit5.WireMockExtension;
 import com.netflix.spinnaker.kork.retrofit.ErrorHandlingExecutorCallAdapterFactory;
 import com.netflix.spinnaker.kork.retrofit.Retrofit2SyncCall;
+import com.netflix.spinnaker.kork.retrofit.util.CustomConverterFactory;
 import java.io.IOException;
 import java.util.List;
 import java.util.Map;
@@ -16,7 +16,7 @@ import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.RegisterExtension;
 import retrofit2.Retrofit;
-import retrofit2.converter.jackson.JacksonConverterFactory;
+import tools.jackson.databind.json.JsonMapper;
 
 public class CloudDriverCacheServiceTest {
   @RegisterExtension
@@ -31,7 +31,7 @@ public class CloudDriverCacheServiceTest {
         new Retrofit.Builder()
             .baseUrl(wmCache.baseUrl())
             .client(new OkHttpClient())
-            .addConverterFactory(JacksonConverterFactory.create(new ObjectMapper()))
+            .addConverterFactory(CustomConverterFactory.create(JsonMapper.builder().build()))
             .addCallAdapterFactory(ErrorHandlingExecutorCallAdapterFactory.getInstance())
             .build()
             .create(CloudDriverCacheService.class);

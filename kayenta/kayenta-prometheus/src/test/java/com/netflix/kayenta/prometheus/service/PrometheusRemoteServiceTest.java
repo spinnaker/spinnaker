@@ -21,7 +21,6 @@ import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockserver.model.HttpRequest.request;
 import static org.mockserver.model.HttpResponse.response;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.collect.ImmutableMap;
 import com.netflix.kayenta.prometheus.config.PrometheusResponseConverter;
 import com.netflix.kayenta.prometheus.model.PrometheusResults;
@@ -43,6 +42,8 @@ import org.junit.jupiter.api.Test;
 import org.mockserver.client.MockServerClient;
 import org.mockserver.model.MediaType;
 import org.mockserver.netty.MockServer;
+import tools.jackson.databind.ObjectMapper;
+import tools.jackson.databind.json.JsonMapper;
 
 public class PrometheusRemoteServiceTest {
   public MockServer mockServer;
@@ -50,7 +51,7 @@ public class PrometheusRemoteServiceTest {
   private MockServerClient mockServerClient;
 
   RetrofitClientFactory retrofitClientFactory = new RetrofitClientFactory();
-  ObjectMapper objectMapper = new ObjectMapper();
+  ObjectMapper objectMapper = JsonMapper.builder().build();
   PrometheusResponseConverter prometheusConverter = new PrometheusResponseConverter(objectMapper);
   OkHttpClient okHttpClient = new OkHttpClient();
   PrometheusRemoteService prometheusRemoteService;

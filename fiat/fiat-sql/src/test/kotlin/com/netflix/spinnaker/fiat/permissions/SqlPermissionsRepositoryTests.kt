@@ -16,7 +16,6 @@
 package com.netflix.spinnaker.fiat.permissions
 
 import com.fasterxml.jackson.annotation.JsonInclude
-import com.fasterxml.jackson.databind.ObjectMapper
 import com.netflix.spinnaker.fiat.config.UnrestrictedResourceConfig.UNRESTRICTED_USERNAME
 import com.netflix.spinnaker.fiat.model.Authorization
 import com.netflix.spinnaker.fiat.model.UserPermission
@@ -44,6 +43,8 @@ import java.time.ZoneId
 import java.util.*
 import java.util.concurrent.*
 import kotlin.contracts.ExperimentalContracts
+import tools.jackson.databind.ObjectMapper
+import tools.jackson.databind.json.JsonMapper
 
 @ExperimentalContracts
 internal object SqlPermissionsRepositoryTests : JUnit5Minutests {
@@ -80,7 +81,9 @@ internal object SqlPermissionsRepositoryTests : JUnit5Minutests {
 
         val clock = TestClock()
 
-        val objectMapper = ObjectMapper().setSerializationInclusion(JsonInclude.Include.NON_NULL)
+        val objectMapper = JsonMapper.builder()
+            .changeDefaultPropertyInclusion { value -> value.withValueInclusion(JsonInclude.Include.NON_NULL) }
+            .build()
 
         val extensionResourceType = ResourceType("extension_resource")
 
@@ -242,9 +245,9 @@ internal object SqlPermissionsRepositoryTests : JUnit5Minutests {
                 expectThat(resourceBody(jooq, "testuser", account1.resourceType, account1.name).get())
                     .isEqualTo("""{"name":"account","permissions":{}}""")
                 expectThat(resourceBody(jooq, "testuser", app1.resourceType, app1.name).get())
-                    .isEqualTo("""{"name":"app","permissions":{},"details":{}}""")
+                    .isEqualTo("""{"details":{},"name":"app","permissions":{}}""")
                 expectThat(resourceBody(jooq, "testuser", serviceAccount1.resourceType, serviceAccount1.name.toLowerCase()).get())
-                    .isEqualTo("""{"name":"serviceAccount","memberOf":["role1"]}""")
+                    .isEqualTo("""{"memberOf":["role1"],"name":"serviceAccount"}""")
                 expectThat(resourceBody(jooq, "testuser", role1.resourceType, role1.name).get())
                     .isEqualTo("""{"name":"role1"}""")
             }
@@ -731,7 +734,7 @@ internal object SqlPermissionsRepositoryTests : JUnit5Minutests {
 
                 expectThat(
                         resourceBody(jooq, "testuser", application1.resourceType, application1.name.toLowerCase()).get()
-                ).isEqualTo("""{"name":"APP","permissions":{"EXECUTE":["abc"]},"details":{}}""")
+                ).isEqualTo("""{"details":{},"name":"APP","permissions":{"EXECUTE":["abc"]}}""")
 
                 expectThat(
                         jooq.select(PERMISSION.RESOURCE_TYPE).from(PERMISSION).where(PERMISSION.USER_ID.eq("testuser").and(PERMISSION.RESOURCE_NAME.eq("app"))).count()

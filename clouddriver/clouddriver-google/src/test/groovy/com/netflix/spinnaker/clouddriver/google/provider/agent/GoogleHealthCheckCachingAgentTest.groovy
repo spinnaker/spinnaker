@@ -20,7 +20,7 @@ import com.netflix.spinnaker.clouddriver.google.model.GoogleHealthCheck
 
 import static org.assertj.core.api.Assertions.assertThat
 
-import com.fasterxml.jackson.databind.ObjectMapper
+import tools.jackson.databind.ObjectMapper
 import com.google.api.services.compute.Compute
 import com.google.api.services.compute.model.*
 import com.google.common.collect.ImmutableList
@@ -29,6 +29,7 @@ import com.netflix.spectator.api.DefaultRegistry
 import com.netflix.spinnaker.clouddriver.google.security.GoogleNamedAccountCredentials
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
+import tools.jackson.databind.json.JsonMapper
 
 class GoogleHealthCheckCachingAgentTest {
 
@@ -44,7 +45,7 @@ class GoogleHealthCheckCachingAgentTest {
 
   @BeforeEach
   void createTestObjects() {
-    objectMapper = new ObjectMapper()
+    objectMapper = JsonMapper.builder().build()
 
     Compute compute = new StubComputeFactory().create()
     GoogleNamedAccountCredentials credentials =

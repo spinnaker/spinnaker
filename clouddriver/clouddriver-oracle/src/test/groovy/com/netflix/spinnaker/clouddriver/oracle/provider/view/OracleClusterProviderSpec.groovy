@@ -8,7 +8,7 @@
  */
 package com.netflix.spinnaker.clouddriver.oracle.provider.view
 
-import com.fasterxml.jackson.databind.ObjectMapper
+import tools.jackson.databind.ObjectMapper
 import com.netflix.spinnaker.cats.cache.Cache
 import com.netflix.spinnaker.cats.cache.CacheData
 import com.netflix.spinnaker.clouddriver.oracle.OracleCloudProvider
@@ -17,6 +17,7 @@ import com.netflix.spinnaker.clouddriver.oracle.model.OracleInstance
 import com.netflix.spinnaker.clouddriver.oracle.security.OracleNamedAccountCredentials
 import com.netflix.spinnaker.clouddriver.security.AccountCredentialsProvider
 import spock.lang.Specification
+import tools.jackson.databind.json.JsonMapper
 
 class OracleClusterProviderSpec extends Specification {
 
@@ -25,7 +26,7 @@ class OracleClusterProviderSpec extends Specification {
     def cache = Mock(Cache)
     def ap = Mock(AccountCredentialsProvider)
     ap.getCredentials(_) >> null
-    def clusterProvider = new OracleClusterProvider(null, new ObjectMapper(), ap, cache)
+    def clusterProvider = new OracleClusterProvider(null, JsonMapper.builder().build(), ap, cache)
     def identifiers = Mock(Collection)
     def attributes = ["name": "foo-v001", "targetSize": 5]
     def mockData = Mock(CacheData)
@@ -55,7 +56,7 @@ class OracleClusterProviderSpec extends Specification {
     accountCredentialsProvider.getCredentials(_) >> creds
     def instanceProvider = Mock(OracleInstanceProvider)
     instanceProvider.getInstance(_, _, _) >> new OracleInstance()
-    def clusterProvider = new OracleClusterProvider(instanceProvider, new ObjectMapper(), accountCredentialsProvider, cache)
+    def clusterProvider = new OracleClusterProvider(instanceProvider, JsonMapper.builder().build(), accountCredentialsProvider, cache)
     def attributes = ["name": "foo-test-v001", "targetSize": 5, "instances": [["name": "blah"]]]
     def mockData = Mock(CacheData)
     Collection<CacheData> cacheData = [mockData]

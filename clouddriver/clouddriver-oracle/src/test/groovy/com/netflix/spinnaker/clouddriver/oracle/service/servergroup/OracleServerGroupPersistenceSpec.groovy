@@ -8,7 +8,7 @@
  */
 package com.netflix.spinnaker.clouddriver.oracle.service.servergroup
 
-import com.fasterxml.jackson.databind.ObjectMapper
+import tools.jackson.databind.ObjectMapper
 import com.netflix.spinnaker.clouddriver.oracle.model.OracleServerGroup
 import com.netflix.spinnaker.clouddriver.oracle.security.OracleNamedAccountCredentials
 import com.oracle.bmc.objectstorage.ObjectStorageClient
@@ -18,6 +18,7 @@ import com.oracle.bmc.objectstorage.responses.*
 import spock.lang.Specification
 
 import java.nio.charset.Charset
+import tools.jackson.databind.json.JsonMapper
 
 class OracleServerGroupPersistenceSpec extends Specification {
 
@@ -62,7 +63,7 @@ class OracleServerGroupPersistenceSpec extends Specification {
     creds.getObjectStorageClient() >> Mock(ObjectStorageClient)
     OracleServerGroupPersistence persistence = new OracleServerGroupPersistence()
     def sg = new OracleServerGroup(name: "foo-v001", launchConfig: ["compartmentId": "foo"])
-    def objectMapper = new ObjectMapper();
+    def objectMapper = JsonMapper.builder().build();
     def json = objectMapper.writeValueAsString(sg);
     def is = new ByteArrayInputStream(json.getBytes(Charset.forName("UTF-8")))
     def OraclePersistenceContext ctx = new OraclePersistenceContext(creds)

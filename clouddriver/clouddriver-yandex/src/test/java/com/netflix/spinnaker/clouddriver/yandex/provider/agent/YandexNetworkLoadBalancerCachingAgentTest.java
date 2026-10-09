@@ -26,7 +26,6 @@ import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
 import com.netflix.spectator.api.NoopRegistry;
 import com.netflix.spinnaker.cats.agent.CacheResult;
 import com.netflix.spinnaker.cats.cache.WriteableCache;
@@ -42,6 +41,7 @@ import java.util.HashMap;
 import java.util.Map;
 import org.jetbrains.annotations.NotNull;
 import org.junit.jupiter.api.Test;
+import tools.jackson.databind.json.JsonMapper;
 
 class YandexNetworkLoadBalancerCachingAgentTest {
   private static final String LOADBALANCER_NAME = "loadbalancer-test";
@@ -59,7 +59,7 @@ class YandexNetworkLoadBalancerCachingAgentTest {
     cred.setName(ACCOUNT_NAME);
     YandexNetworkLoadBalancerCachingAgent agent =
         new YandexNetworkLoadBalancerCachingAgent(
-            cred, new ObjectMapper(), new NoopRegistry(), facade);
+            cred, JsonMapper.builder().build(), new NoopRegistry(), facade);
     WriteableCache cache = new InMemoryCache();
     DefaultProviderCache providerCache = new DefaultProviderCache(cache);
     Map<String, Object> params = buildTestRequest(true);
@@ -78,7 +78,7 @@ class YandexNetworkLoadBalancerCachingAgentTest {
     cred.setName(ACCOUNT_NAME);
     YandexNetworkLoadBalancerCachingAgent agent =
         new YandexNetworkLoadBalancerCachingAgent(
-            cred, new ObjectMapper(), new NoopRegistry(), facade);
+            cred, JsonMapper.builder().build(), new NoopRegistry(), facade);
     WriteableCache cache = new InMemoryCache();
     DefaultProviderCache providerCache = new DefaultProviderCache(cache);
     Map<String, Object> params = buildTestRequest(false);
@@ -96,7 +96,7 @@ class YandexNetworkLoadBalancerCachingAgentTest {
     when(facade.getLoadBalancers(any())).thenReturn(Collections.emptyList());
     YandexNetworkLoadBalancerCachingAgent agent =
         new YandexNetworkLoadBalancerCachingAgent(
-            cred, new ObjectMapper(), new NoopRegistry(), facade);
+            cred, JsonMapper.builder().build(), new NoopRegistry(), facade);
     WriteableCache cache = new InMemoryCache();
     DefaultProviderCache providerCache = new DefaultProviderCache(cache);
 

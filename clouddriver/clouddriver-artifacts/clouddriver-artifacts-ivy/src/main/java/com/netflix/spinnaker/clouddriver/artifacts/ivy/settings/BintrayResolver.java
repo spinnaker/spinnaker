@@ -16,10 +16,10 @@
 
 package com.netflix.spinnaker.clouddriver.artifacts.ivy.settings;
 
-import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
 import javax.annotation.Nullable;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
+import tools.jackson.dataformat.xml.annotation.JacksonXmlProperty;
 
 @EqualsAndHashCode(callSuper = true)
 @Data

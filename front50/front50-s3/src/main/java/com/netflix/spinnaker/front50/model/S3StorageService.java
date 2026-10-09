@@ -18,9 +18,6 @@ package com.netflix.spinnaker.front50.model;
 
 import static net.logstash.logback.argument.StructuredArguments.value;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.core.type.TypeReference;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.collect.Lists;
 import com.netflix.spinnaker.front50.api.model.Timestamped;
 import com.netflix.spinnaker.front50.api.model.pipeline.Pipeline;
@@ -61,6 +58,10 @@ import software.amazon.awssdk.services.s3.model.PutBucketVersioningRequest;
 import software.amazon.awssdk.services.s3.model.PutObjectRequest;
 import software.amazon.awssdk.services.s3.model.S3Object;
 import software.amazon.awssdk.services.s3.model.VersioningConfiguration;
+import tools.jackson.core.JacksonException;
+import tools.jackson.core.type.TypeReference;
+import tools.jackson.databind.ObjectMapper;
+import tools.jackson.databind.json.JsonMapper;
 
 /**
  * S3-backed Front50 metadata storage.
@@ -93,9 +94,10 @@ public class S3StorageService implements StorageService {
       Integer maxKeys,
       ServerSideEncryption serverSideEncryption) {
     this.objectMapper =
-        new ObjectMapper()
+        JsonMapper.builder()
             .addMixIn(Timestamped.class, TimestampedMixins.class)
-            .addMixIn(Pipeline.class, PipelineMixins.class);
+            .addMixIn(Pipeline.class, PipelineMixins.class)
+            .build();
     this.s3Client = s3Client;
     this.bucket = bucket;
     this.rootFolder = rootFolder;
@@ -225,7 +227,7 @@ public class S3StorageService implements StorageService {
 
       s3Client.putObject(putReqBuilder.build(), RequestBody.fromBytes(bytes));
       writeLastModified(objectType.group);
-    } catch (JsonProcessingException e) {
+    } catch (JacksonException e) {
       throw new IllegalStateException(e);
     }
   }
@@ -350,7 +352,7 @@ public class S3StorageService implements StorageService {
       setServerSideEncryption(putReqBuilder);
 
       s3Client.putObject(putReqBuilder.build(), RequestBody.fromBytes(bytes));
-    } catch (JsonProcessingException e) {
+    } catch (JacksonException e) {
       throw new IllegalStateException(e);
     }
   }

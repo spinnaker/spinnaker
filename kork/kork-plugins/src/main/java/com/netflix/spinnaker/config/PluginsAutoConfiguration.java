@@ -18,7 +18,6 @@ package com.netflix.spinnaker.config;
 import static com.netflix.spinnaker.kork.plugins.PackageKt.FRAMEWORK_V1;
 import static com.netflix.spinnaker.kork.plugins.PackageKt.FRAMEWORK_V2;
 
-import com.fasterxml.jackson.core.type.TypeReference;
 import com.netflix.spectator.api.Registry;
 import com.netflix.spinnaker.config.PluginsConfigurationProperties.PluginRepositoryProperties;
 import com.netflix.spinnaker.kork.annotations.Beta;
@@ -76,6 +75,7 @@ import org.springframework.context.annotation.Import;
 import org.springframework.context.support.GenericApplicationContext;
 import org.springframework.core.env.ConfigurableEnvironment;
 import org.springframework.core.env.Environment;
+import tools.jackson.core.type.TypeReference;
 
 @Import({Front50PluginsConfiguration.class, RemotePluginsConfiguration.class})
 public class PluginsAutoConfiguration {

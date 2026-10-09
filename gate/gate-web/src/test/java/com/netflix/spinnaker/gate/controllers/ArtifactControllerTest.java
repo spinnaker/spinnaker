@@ -26,7 +26,6 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.request;
 import static org.springframework.test.web.servlet.setup.MockMvcBuilders.webAppContextSetup;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
 import com.netflix.spinnaker.gate.Main;
 import com.netflix.spinnaker.gate.services.ApplicationService;
 import com.netflix.spinnaker.gate.services.internal.ClouddriverService;
@@ -46,6 +45,7 @@ import org.springframework.test.web.servlet.MvcResult;
 import org.springframework.web.context.WebApplicationContext;
 import retrofit2.Response;
 import retrofit2.mock.Calls;
+import tools.jackson.databind.ObjectMapper;
 
 @SpringBootTest(classes = {Main.class})
 @TestPropertySource(properties = {"spring.config.location=classpath:gate-test.yml"})

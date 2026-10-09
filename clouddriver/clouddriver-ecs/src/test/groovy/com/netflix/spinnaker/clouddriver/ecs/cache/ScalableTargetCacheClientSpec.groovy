@@ -16,12 +16,12 @@
 
 package com.netflix.spinnaker.clouddriver.ecs.cache
 
-import com.fasterxml.jackson.databind.DeserializationFeature
-import com.fasterxml.jackson.databind.ObjectMapper
-import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule
+import tools.jackson.databind.DeserializationFeature
+import tools.jackson.databind.ObjectMapper
+import tools.jackson.databind.json.JsonMapper
 import com.netflix.spinnaker.cats.cache.Cache
 import com.netflix.spinnaker.cats.cache.DefaultCacheData
-import com.netflix.spinnaker.clouddriver.aws.jackson.AwsSdkV2Module
+import com.netflix.spinnaker.kork.aws.jackson.AwsSdkV2Module
 import com.netflix.spinnaker.clouddriver.ecs.cache.client.ScalableTargetCacheClient
 import com.netflix.spinnaker.clouddriver.ecs.provider.agent.ScalableTargetsCachingAgent
 import software.amazon.awssdk.services.applicationautoscaling.model.ScalableTarget
@@ -37,10 +37,10 @@ import static com.netflix.spinnaker.clouddriver.ecs.cache.Keys.Namespace.SCALABL
 class ScalableTargetCacheClientSpec extends Specification {
   def cacheView = Mock(Cache)
   // mirrors clouddriver's ObjectMapper: AwsSdkV2Module is registered as a Spring Module bean
-  def objectMapper = new ObjectMapper()
-    .registerModule(new JavaTimeModule())
-    .registerModule(new AwsSdkV2Module())
-    .configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false)
+  def objectMapper = JsonMapper.builder()
+    .addModule(new AwsSdkV2Module())
+    .disable(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES)
+    .build()
 
   @Subject
   ScalableTargetCacheClient client = new ScalableTargetCacheClient(cacheView, objectMapper)

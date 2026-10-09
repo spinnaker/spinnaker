@@ -16,7 +16,6 @@
 
 package com.netflix.spinnaker.echo.pubsub.aws;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
 import com.netflix.spectator.api.Id;
 import com.netflix.spectator.api.Registry;
 import com.netflix.spinnaker.echo.config.AmazonPubsubProperties;
@@ -28,7 +27,6 @@ import com.netflix.spinnaker.echo.pubsub.utils.NodeIdentity;
 import com.netflix.spinnaker.kork.annotations.VisibleForTesting;
 import com.netflix.spinnaker.kork.aws.ARN;
 import com.netflix.spinnaker.kork.pubsub.aws.PubSubUtils;
-import java.io.IOException;
 import java.util.Collections;
 import java.util.Map;
 import java.util.function.Supplier;
@@ -41,6 +39,8 @@ import software.amazon.awssdk.services.sqs.model.Message;
 import software.amazon.awssdk.services.sqs.model.ReceiveMessageRequest;
 import software.amazon.awssdk.services.sqs.model.ReceiveMessageResponse;
 import software.amazon.awssdk.services.sqs.model.SqsException;
+import tools.jackson.core.JacksonException;
+import tools.jackson.databind.ObjectMapper;
 
 /**
  * One subscriber for each subscription. The subscriber makes sure the SQS queue is created,
@@ -225,7 +225,7 @@ public class SQSSubscriber implements Runnable, PubsubSubscriber {
       if (wrapper != null && wrapper.getMessage() != null) {
         messagePayload = wrapper.getMessage();
       }
-    } catch (IOException e) {
+    } catch (JacksonException e) {
       // Try to unwrap a notification message; if that doesn't work,
       // we're dealing with a message we can't parse. The template or
       // the pipeline potentially knows how to deal with it.
@@ -248,7 +248,7 @@ public class SQSSubscriber implements Runnable, PubsubSubscriber {
       if (wrapper != null && wrapper.getMessageAttributes() != null) {
         return wrapper.getMessageAttributes();
       }
-    } catch (IOException e) {
+    } catch (JacksonException e) {
       // Try to unwrap a notification message; if that doesn't work,
       // we're dealing with a message we can't parse. The template or
       // the pipeline potentially knows how to deal with it.

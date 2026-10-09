@@ -16,7 +16,6 @@
 
 package com.netflix.spinnaker.clouddriver.google.security;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
 import com.netflix.spectator.api.Registry;
 import com.netflix.spinnaker.clouddriver.google.compute.GoogleComputeApiFactory;
 import com.netflix.spinnaker.clouddriver.google.config.GoogleConfigurationProperties;
@@ -27,6 +26,7 @@ import com.netflix.spinnaker.kork.client.ServiceClientProvider;
 import java.util.*;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
+import tools.jackson.databind.ObjectMapper;
 
 @Component
 @RequiredArgsConstructor

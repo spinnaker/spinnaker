@@ -21,7 +21,6 @@ import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verifyNoInteractions;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.api.services.compute.Compute;
 import com.google.api.services.compute.model.*;
 import com.netflix.spectator.api.DefaultRegistry;
@@ -34,6 +33,7 @@ import com.netflix.spinnaker.clouddriver.google.security.GoogleNamedAccountCrede
 import java.util.ArrayList;
 import java.util.List;
 import org.junit.jupiter.api.Test;
+import tools.jackson.databind.json.JsonMapper;
 
 public class GoogleInternalHttpLoadBalancerCachingAgentTest {
 
@@ -349,6 +349,10 @@ public class GoogleInternalHttpLoadBalancerCachingAgentTest {
             .credentials(mock(GoogleCredentials.class))
             .build();
     return new GoogleInternalHttpLoadBalancerCachingAgent(
-        "clouddriver", credentials, new ObjectMapper(), new DefaultRegistry(), "us-central1");
+        "clouddriver",
+        credentials,
+        JsonMapper.builder().build(),
+        new DefaultRegistry(),
+        "us-central1");
   }
 }

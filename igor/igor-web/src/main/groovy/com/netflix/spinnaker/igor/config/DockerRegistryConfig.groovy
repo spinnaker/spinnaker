@@ -16,12 +16,12 @@
 
 package com.netflix.spinnaker.igor.config
 
-import com.fasterxml.jackson.databind.ObjectMapper
 import com.netflix.spinnaker.config.OkHttp3ClientConfiguration
 import com.netflix.spinnaker.igor.IgorConfigurationProperties
 import com.netflix.spinnaker.igor.docker.model.DockerRegistryAccounts
 import com.netflix.spinnaker.igor.docker.service.ClouddriverService
 import com.netflix.spinnaker.kork.retrofit.ErrorHandlingExecutorCallAdapterFactory
+import com.netflix.spinnaker.kork.retrofit.util.CustomConverterFactory
 import com.netflix.spinnaker.kork.retrofit.util.RetrofitUtils
 import groovy.transform.CompileStatic
 import org.springframework.boot.context.properties.EnableConfigurationProperties
@@ -29,7 +29,7 @@ import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Conditional
 import org.springframework.context.annotation.Configuration
 import retrofit2.Retrofit
-import retrofit2.converter.jackson.JacksonConverterFactory
+import tools.jackson.databind.ObjectMapper
 
 @Configuration
 @Conditional(DockerRegistryEnabledCondition)
@@ -54,10 +54,9 @@ class DockerRegistryConfig {
         new Retrofit.Builder()
                 .baseUrl(RetrofitUtils.getBaseUrl(address))
                 .client(okHttpClientConfig.createForRetrofit2().build())
-                .addConverterFactory(JacksonConverterFactory.create(objectMapper))
+                .addConverterFactory(CustomConverterFactory.create(objectMapper))
                 .addCallAdapterFactory(ErrorHandlingExecutorCallAdapterFactory.getInstance())
                 .build()
                 .create(ClouddriverService)
     }
 }
-

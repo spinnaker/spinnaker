@@ -23,7 +23,6 @@ import static com.netflix.spinnaker.clouddriver.google.cache.Keys.Namespace.SERV
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.entry;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.api.services.compute.Compute;
 import com.google.api.services.compute.model.AttachedDisk;
 import com.google.api.services.compute.model.AttachedDiskInitializeParams;
@@ -88,6 +87,9 @@ import org.assertj.core.data.Offset;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.Mock;
+import tools.jackson.databind.ObjectMapper;
+import tools.jackson.databind.json.JsonMapper;
+import tools.jackson.databind.jsontype.BasicPolymorphicTypeValidator;
 
 class AbstractGoogleServerGroupCachingAgentTest {
 
@@ -104,7 +106,17 @@ class AbstractGoogleServerGroupCachingAgentTest {
 
   @BeforeEach
   void createTestObjects() {
-    objectMapper = new ObjectMapper();
+    objectMapper =
+        JsonMapper.builder()
+            .polymorphicTypeValidator(
+                BasicPolymorphicTypeValidator.builder()
+                    .allowIfSubType("com.google.api.services.compute.model.")
+                    .allowIfSubType("com.netflix.spinnaker.")
+                    .allowIfSubType(Map.class)
+                    .allowIfSubType(Collection.class)
+                    .allowIfSubType("java.lang.")
+                    .build())
+            .build();
   }
 
   @Test
@@ -1145,7 +1157,7 @@ class AbstractGoogleServerGroupCachingAgentTest {
           computeApiFactory,
           new DefaultRegistry(),
           REGION,
-          new ObjectMapper(),
+          JsonMapper.builder().build(),
           serviceClientProvider);
       this.instanceGroupManagers = instanceGroupManagers;
       this.autoscalers = autoscalers;

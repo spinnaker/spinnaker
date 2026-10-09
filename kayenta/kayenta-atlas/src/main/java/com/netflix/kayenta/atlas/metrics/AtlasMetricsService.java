@@ -18,7 +18,6 @@ package com.netflix.kayenta.atlas.metrics;
 
 import static java.time.temporal.ChronoUnit.SECONDS;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
 import com.netflix.kayenta.atlas.backends.AtlasStorageDatabase;
 import com.netflix.kayenta.atlas.backends.BackendDatabase;
 import com.netflix.kayenta.atlas.canary.AtlasCanaryScope;
@@ -52,6 +51,7 @@ import lombok.Singular;
 import lombok.extern.slf4j.Slf4j;
 import okhttp3.OkHttpClient;
 import org.springframework.beans.factory.annotation.Autowired;
+import tools.jackson.databind.ObjectMapper;
 
 @Builder
 @Slf4j

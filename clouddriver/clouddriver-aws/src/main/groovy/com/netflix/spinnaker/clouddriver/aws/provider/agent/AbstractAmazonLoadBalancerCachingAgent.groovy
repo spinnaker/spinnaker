@@ -18,9 +18,9 @@ package com.netflix.spinnaker.clouddriver.aws.provider.agent
 
 import com.fasterxml.jackson.annotation.JsonCreator
 import com.fasterxml.jackson.annotation.JsonProperty
-import com.fasterxml.jackson.core.type.TypeReference
-import com.fasterxml.jackson.databind.ObjectMapper
-import com.fasterxml.jackson.databind.SerializationFeature
+import tools.jackson.core.type.TypeReference
+import tools.jackson.databind.ObjectMapper
+import tools.jackson.databind.cfg.DateTimeFeature
 import com.netflix.spectator.api.Registry
 import com.netflix.spinnaker.cats.agent.AccountAware
 import com.netflix.spinnaker.cats.agent.AgentDataType
@@ -118,7 +118,7 @@ abstract class AbstractAmazonLoadBalancerCachingAgent implements CachingAgent, O
     this.amazonClientProvider = amazonClientProvider
     this.account = account
     this.region = region
-    this.objectMapper = objectMapper.copy().enable(SerializationFeature.WRITE_DATES_AS_TIMESTAMPS)
+    this.objectMapper = objectMapper.rebuild().enable(DateTimeFeature.WRITE_DATES_AS_TIMESTAMPS).build()
     this.registry = registry
     this.amazonCachingAgentFilter = amazonCachingAgentFilter
     this.metricsSupport = new OnDemandMetricsSupport(registry, this, amazonCloudProvider.id + ":" + "${amazonCloudProvider.id}:${OnDemandType.LoadBalancer}")

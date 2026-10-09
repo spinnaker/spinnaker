@@ -1,10 +1,10 @@
 package com.netflix.spinnaker.keel.serialization;
 
 import com.fasterxml.jackson.annotation.JsonFormat;
-import com.fasterxml.jackson.datatype.jsr310.ser.InstantSerializerBase;
 import java.time.Instant;
 import java.time.format.DateTimeFormatter;
 import java.time.format.DateTimeFormatterBuilder;
+import tools.jackson.databind.ext.javatime.ser.InstantSerializerBase;
 
 /**
  * This class overloads the default Serialization instance in the JavaTimeModule to a precision
@@ -40,7 +40,7 @@ public class PrecisionSqlSerializer extends InstantSerializerBase<Instant> {
 
   @Override
   protected InstantSerializerBase<?> withFormat(
-      Boolean aBoolean, DateTimeFormatter dateTimeFormatter, JsonFormat.Shape shape) {
+      DateTimeFormatter dateTimeFormatter, Boolean useTimestamp, JsonFormat.Shape shape) {
     return this;
   }
 }

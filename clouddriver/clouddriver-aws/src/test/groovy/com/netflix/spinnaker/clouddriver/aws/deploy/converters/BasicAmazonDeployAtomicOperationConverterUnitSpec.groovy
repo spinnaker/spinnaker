@@ -17,7 +17,8 @@
 package com.netflix.spinnaker.clouddriver.aws.deploy.converters
 
 import software.amazon.awssdk.services.ec2.Ec2Client
-import com.fasterxml.jackson.databind.ObjectMapper
+import tools.jackson.databind.ObjectMapper
+import tools.jackson.databind.json.JsonMapper
 import com.netflix.spinnaker.clouddriver.aws.model.SubnetAnalyzer
 import com.netflix.spinnaker.clouddriver.aws.security.NetflixAmazonCredentials
 import com.netflix.spinnaker.clouddriver.aws.services.RegionScopedProviderFactory
@@ -31,7 +32,7 @@ import spock.lang.Specification
 class BasicAmazonDeployAtomicOperationConverterUnitSpec extends Specification {
 
   @Shared
-  ObjectMapper mapper = new ObjectMapper()
+  ObjectMapper mapper = JsonMapper.builder().build()
 
   @Shared
   RegionScopedProviderFactory regionScopedProviderFactory

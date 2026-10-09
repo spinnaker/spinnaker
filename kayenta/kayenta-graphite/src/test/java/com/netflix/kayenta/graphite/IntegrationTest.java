@@ -18,7 +18,6 @@ package com.netflix.kayenta.graphite;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.base.Charsets;
 import com.google.common.collect.Lists;
 import com.netflix.kayenta.canary.CanaryConfig;
@@ -57,6 +56,7 @@ import org.springframework.security.config.annotation.authentication.configurati
 import org.springframework.security.config.annotation.configuration.ObjectPostProcessorConfiguration;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit.jupiter.SpringExtension;
+import tools.jackson.databind.ObjectMapper;
 
 @Configuration
 @ComponentScan({"com.netflix.kayenta.retrofit.config", "com.netflix.spinnaker.config"})
@@ -91,8 +91,11 @@ public class IntegrationTest {
 
   @Autowired ObjectMapper objectMapper;
 
-  private void configureObjectMapper(ObjectMapper objectMapper) {
-    objectMapper.registerSubtypes(GraphiteCanaryMetricSetQueryConfig.class);
+  private ObjectMapper configureObjectMapper(ObjectMapper objectMapper) {
+    return objectMapper
+        .rebuild()
+        .registerSubtypes(GraphiteCanaryMetricSetQueryConfig.class)
+        .build();
   }
 
   private String getFileContent(String filename) throws IOException {
@@ -104,7 +107,7 @@ public class IntegrationTest {
 
   private CanaryConfig getConfig(String filename) throws IOException {
     String contents = getFileContent(filename);
-    configureObjectMapper(objectMapper);
+    objectMapper = configureObjectMapper(objectMapper);
     return objectMapper.readValue(contents, CanaryConfig.class);
   }
 

@@ -17,7 +17,8 @@
 
 package com.netflix.spinnaker.kork.plugins.update.release.source
 
-import com.fasterxml.jackson.module.kotlin.jacksonObjectMapper
+import tools.jackson.databind.json.JsonMapper
+import tools.jackson.module.kotlin.KotlinModule
 import com.netflix.spinnaker.kork.plugins.update.SpinnakerUpdateManager
 import com.netflix.spinnaker.kork.plugins.update.internal.SpinnakerPluginInfo
 import com.netflix.spinnaker.kork.plugins.update.release.PluginInfoRelease
@@ -65,6 +66,8 @@ class LatestPluginInfoReleaseSource(
    * Companion object holding shared Jackson ObjectMapper instance.
    */
   companion object {
-    private val objectMapper = jacksonObjectMapper()
+    private val objectMapper = JsonMapper.builder()
+      .addModule(KotlinModule.Builder().build())
+      .build()
   }
 }

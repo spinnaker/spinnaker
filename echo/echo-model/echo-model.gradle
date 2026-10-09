@@ -15,8 +15,9 @@
  */
 
 dependencies {
-  api project (":echo-api")
-  implementation "io.spinnaker.kork:kork-core"
+   api project (":echo-api")
+   implementation "tools.jackson.core:jackson-databind"
+   implementation "io.spinnaker.kork:kork-core"
   implementation "io.spinnaker.kork:kork-artifacts"
   implementation "org.springframework:spring-web"
 

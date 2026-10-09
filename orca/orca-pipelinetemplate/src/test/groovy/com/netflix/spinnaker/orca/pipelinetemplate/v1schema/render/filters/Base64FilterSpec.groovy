@@ -15,7 +15,7 @@
  */
 package com.netflix.spinnaker.orca.pipelinetemplate.v1schema.render.filters
 
-import com.fasterxml.jackson.databind.ObjectMapper
+import tools.jackson.databind.ObjectMapper
 import com.netflix.spinnaker.orca.front50.Front50Service
 import com.netflix.spinnaker.orca.pipelinetemplate.v1schema.model.PipelineTemplate
 import com.netflix.spinnaker.orca.pipelinetemplate.v1schema.render.DefaultRenderContext
@@ -24,10 +24,11 @@ import com.netflix.spinnaker.orca.pipelinetemplate.v1schema.render.RenderContext
 import com.netflix.spinnaker.orca.pipelinetemplate.v1schema.render.Renderer
 import spock.lang.Specification
 import spock.lang.Unroll
+import tools.jackson.databind.json.JsonMapper
 
 class Base64FilterSpec extends Specification {
 
-  Renderer renderer = new JinjaRenderer(new ObjectMapper(), Mock(Front50Service), [])
+  Renderer renderer = new JinjaRenderer(JsonMapper.builder().build(), Mock(Front50Service), [])
 
   @Unroll
   def "should render variable before encode"() {

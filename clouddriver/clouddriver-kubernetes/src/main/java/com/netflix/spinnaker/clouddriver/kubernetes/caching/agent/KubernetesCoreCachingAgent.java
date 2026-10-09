@@ -20,7 +20,6 @@ package com.netflix.spinnaker.clouddriver.kubernetes.caching.agent;
 import static com.google.common.collect.ImmutableSet.toImmutableSet;
 import static com.netflix.spinnaker.cats.agent.AgentDataType.Authority.AUTHORITATIVE;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
 import com.netflix.spectator.api.Registry;
 import com.netflix.spinnaker.cats.agent.AgentDataType;
 import com.netflix.spinnaker.clouddriver.kubernetes.caching.Keys;
@@ -33,6 +32,7 @@ import java.util.Collection;
 import java.util.List;
 import java.util.stream.Stream;
 import org.springframework.lang.Nullable;
+import tools.jackson.databind.ObjectMapper;
 
 /**
  * Instances of this class cache kubernetes core kinds for one particular account at regular

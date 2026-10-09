@@ -16,7 +16,6 @@
 
 package com.netflix.kayenta.controllers;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
 import com.netflix.kayenta.canary.*;
 import com.netflix.kayenta.security.AccountCredentials;
 import com.netflix.kayenta.security.AccountCredentialsRepository;
@@ -37,6 +36,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
+import tools.jackson.core.JacksonException;
 
 @RestController
 @RequestMapping("/canary")
@@ -79,7 +79,7 @@ public class CanaryController {
       @RequestParam(required = false) final String storageAccountName,
       @Parameter @RequestBody final CanaryExecutionRequest canaryExecutionRequest,
       @PathVariable String canaryConfigId)
-      throws JsonProcessingException {
+      throws JacksonException {
     String resolvedMetricsAccountName =
         accountCredentialsRepository
             .getRequiredOneBy(metricsAccountName, AccountCredentials.Type.METRICS_STORE)
@@ -122,7 +122,7 @@ public class CanaryController {
       @RequestParam(required = false) final String metricsAccountName,
       @RequestParam(required = false) final String storageAccountName,
       @Parameter @RequestBody final CanaryAdhocExecutionRequest canaryAdhocExecutionRequest)
-      throws JsonProcessingException {
+      throws JacksonException {
 
     String resolvedMetricsAccountName =
         accountCredentialsRepository

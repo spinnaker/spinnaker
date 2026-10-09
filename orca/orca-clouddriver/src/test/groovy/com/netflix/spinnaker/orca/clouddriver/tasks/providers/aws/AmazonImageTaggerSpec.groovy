@@ -16,11 +16,11 @@
 
 package com.netflix.spinnaker.orca.clouddriver.tasks.providers.aws
 
-import com.fasterxml.jackson.databind.ObjectMapper
 import com.github.tomakehurst.wiremock.WireMockServer
 import com.github.tomakehurst.wiremock.client.WireMock
 import com.github.tomakehurst.wiremock.core.WireMockConfiguration
 import com.netflix.spinnaker.kork.retrofit.ErrorHandlingExecutorCallAdapterFactory
+import com.netflix.spinnaker.kork.retrofit.util.CustomConverterFactory
 import com.netflix.spinnaker.okhttp.Retrofit2EncodeCorrectionInterceptor
 import com.netflix.spinnaker.orca.clouddriver.OortService
 import com.netflix.spinnaker.orca.clouddriver.tasks.image.ImageTagger
@@ -30,9 +30,10 @@ import com.netflix.spinnaker.orca.pipeline.model.StageExecutionImpl
 import com.netflix.spinnaker.orca.test.model.ExecutionBuilder
 import okhttp3.OkHttpClient
 import retrofit2.Retrofit
-import retrofit2.converter.jackson.JacksonConverterFactory
 import retrofit2.mock.Calls
 import spock.lang.Unroll
+import tools.jackson.databind.ObjectMapper
+import tools.jackson.databind.json.JsonMapper
 
 class AmazonImageTaggerSpec extends ImageTaggerSpec<AmazonImageTagger> {
 
@@ -40,7 +41,7 @@ class AmazonImageTaggerSpec extends ImageTaggerSpec<AmazonImageTagger> {
 
   @Override
   protected AmazonImageTagger subject() {
-    def imageTagger = new AmazonImageTagger(oortService, new ObjectMapper())
+    def imageTagger = new AmazonImageTagger(oortService, JsonMapper.builder().build())
     imageTagger.defaultBakeAccount = "test"
     return imageTagger
   }
@@ -258,7 +259,7 @@ class AmazonImageTaggerSpec extends ImageTaggerSpec<AmazonImageTagger> {
       .client(new OkHttpClient.Builder()
         .addInterceptor(new Retrofit2EncodeCorrectionInterceptor())
         .build())
-      .addConverterFactory(JacksonConverterFactory.create(new ObjectMapper()))
+      .addConverterFactory(CustomConverterFactory.create(JsonMapper.builder().build()))
       .addCallAdapterFactory(ErrorHandlingExecutorCallAdapterFactory.getInstance())
       .build()
 
@@ -266,7 +267,7 @@ class AmazonImageTaggerSpec extends ImageTaggerSpec<AmazonImageTagger> {
     def mockOortService = retrofit.create(OortService)
 
     // Create an ImageTagger with the mocked OortService
-    def testImageTagger = new AmazonImageTagger(mockOortService, new ObjectMapper())
+    def testImageTagger = new AmazonImageTagger(mockOortService, JsonMapper.builder().build())
     testImageTagger.defaultBakeAccount = "test"
 
     // Set up pipeline and stage

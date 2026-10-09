@@ -16,18 +16,40 @@
 
 package com.netflix.spinnaker.orca.validation
 
-import com.fasterxml.jackson.databind.ObjectMapper
+import tools.jackson.databind.ObjectMapper
+import tools.jackson.databind.MapperFeature
 import com.netflix.spinnaker.orca.pipeline.model.PipelineExecutionImpl
 import com.netflix.spinnaker.orca.pipeline.model.StageExecutionImpl
+import com.netflix.spinnaker.orca.validation.exception.StageValidationException
+import tools.jackson.core.JacksonException
 import spock.lang.Specification
 import spock.lang.Subject
 import spock.lang.Unroll
+import tools.jackson.databind.json.JsonMapper
 
 class StageValidatorSpec extends Specification {
-  def objectMapper = new ObjectMapper()
+  def objectMapper = JsonMapper.builder().build().rebuild().enable(MapperFeature.DEFAULT_VIEW_INCLUSION).build()
 
   @Subject
   def stageValidator = new StageValidator(objectMapper)
+
+  void "serialization errors are wrapped as stage validation errors"() {
+    given:
+    def stage = new StageExecutionImpl(PipelineExecutionImpl.newOrchestration("orca"), "bake", [broken: new UnserializableValue()])
+
+    when:
+    stageValidator.isValid(stage)
+
+    then:
+    def error = thrown(StageValidationException)
+    error.cause instanceof JacksonException
+  }
+
+  static class UnserializableValue {
+    String getValue() {
+      throw new IllegalStateException("cannot serialize")
+    }
+  }
 
   @Unroll
   void "should not raise an exception if schema does not exist"() {

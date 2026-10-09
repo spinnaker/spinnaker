@@ -1,7 +1,7 @@
 package com.netflix.spinnaker.keel.export
 
 import com.fasterxml.jackson.annotation.JsonIgnore
-import com.fasterxml.jackson.dataformat.yaml.YAMLMapper
+import tools.jackson.dataformat.yaml.YAMLMapper
 import com.netflix.spinnaker.config.BaseUrlConfig
 import com.netflix.spinnaker.keel.api.Constraint
 import com.netflix.spinnaker.keel.api.Exportable

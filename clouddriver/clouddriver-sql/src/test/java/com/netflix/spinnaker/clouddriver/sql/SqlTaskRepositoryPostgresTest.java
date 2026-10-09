@@ -16,12 +16,12 @@
 
 package com.netflix.spinnaker.clouddriver.sql;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
 import com.netflix.spinnaker.clouddriver.core.test.TaskRepositoryTck;
 import com.netflix.spinnaker.config.ConnectionPools;
 import com.netflix.spinnaker.kork.sql.test.SqlTestUtil;
 import java.time.Clock;
 import org.junit.jupiter.api.AfterEach;
+import tools.jackson.databind.json.JsonMapper;
 
 /** Runs the shared {@link TaskRepositoryTck} against Postgres, alongside the MySQL run. */
 class SqlTaskRepositoryPostgresTest extends TaskRepositoryTck<SqlTaskRepository> {
@@ -33,7 +33,7 @@ class SqlTaskRepositoryPostgresTest extends TaskRepositoryTck<SqlTaskRepository>
     database = SqlTestUtil.initTcPostgresDatabase();
     return new SqlTaskRepository(
         database.context,
-        new ObjectMapper(),
+        JsonMapper.builder().build(),
         Clock.systemDefaultZone(),
         ConnectionPools.TASKS.getValue());
   }

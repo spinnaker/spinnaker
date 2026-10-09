@@ -16,7 +16,6 @@
 
 package com.netflix.spinnaker.orca.q.handler
 
-import com.fasterxml.jackson.databind.ObjectMapper
 import com.netflix.spinnaker.orca.api.pipeline.models.ExecutionStatus.RUNNING
 import com.netflix.spinnaker.orca.api.pipeline.models.PipelineExecution
 import com.netflix.spinnaker.orca.api.pipeline.models.StageExecution
@@ -42,6 +41,7 @@ import com.netflix.spinnaker.q.MessageHandler
 import java.time.Duration
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
+import tools.jackson.databind.ObjectMapper
 
 internal interface OrcaMessageHandler<M : Message> : MessageHandler<M> {
   companion object {

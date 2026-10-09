@@ -16,8 +16,6 @@
 
 package com.netflix.spinnaker.echo.events;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import com.netflix.spectator.api.Registry;
 import com.netflix.spinnaker.echo.api.events.Event;
 import com.netflix.spinnaker.echo.api.events.EventListener;
@@ -36,6 +34,8 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.stereotype.Component;
+import tools.jackson.core.JacksonException;
+import tools.jackson.databind.ObjectMapper;
 
 /** Event listener for echo events */
 @Component
@@ -140,10 +140,10 @@ class RestEventListener implements EventListener {
    * @param event The event to be transformed.
    * @param service The service for which the transformation is done.
    * @return The transformed event as a map.
-   * @throws JsonProcessingException if there is an issue with JSON processing.
+   * @throws JacksonException if there is an issue with JSON processing.
    */
   private Map<String, Object> transformEventToMap(Event event, RestUrls.Service service)
-      throws JsonProcessingException {
+      throws JacksonException {
     Map<String, Object> eventMap = mapper.convertValue(event, Map.class);
 
     if (service.getConfig().getFlatten()) {

@@ -16,12 +16,13 @@
 
 package com.netflix.spinnaker.gate.model.manageddelivery;
 
-import com.fasterxml.jackson.databind.ObjectMapper
+import tools.jackson.databind.ObjectMapper
 import spock.lang.Specification
+import tools.jackson.databind.json.JsonMapper
 
 class DeliveryConfigSpec extends Specification {
 
-  private ObjectMapper mapper = new ObjectMapper()
+  private ObjectMapper mapper = JsonMapper.builder().build()
 
   def "apiVersion is optional"() {
     given:

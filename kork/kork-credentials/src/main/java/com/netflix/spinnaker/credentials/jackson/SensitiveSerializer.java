@@ -16,19 +16,17 @@
 
 package com.netflix.spinnaker.credentials.jackson;
 
-import com.fasterxml.jackson.core.JsonGenerator;
-import com.fasterxml.jackson.databind.BeanProperty;
-import com.fasterxml.jackson.databind.JsonMappingException;
-import com.fasterxml.jackson.databind.JsonSerializer;
-import com.fasterxml.jackson.databind.SerializerProvider;
-import com.fasterxml.jackson.databind.ser.ContextualSerializer;
-import com.fasterxml.jackson.databind.ser.std.StdScalarSerializer;
-import com.fasterxml.jackson.databind.ser.std.StringSerializer;
 import com.netflix.spinnaker.credentials.definition.CredentialsDefinition;
-import java.io.IOException;
 import java.util.regex.Matcher;
 import lombok.extern.log4j.Log4j2;
-import org.springframework.boot.jackson2.JsonComponent;
+import org.springframework.boot.jackson.JacksonComponent;
+import tools.jackson.core.JacksonException;
+import tools.jackson.core.JsonGenerator;
+import tools.jackson.databind.BeanProperty;
+import tools.jackson.databind.SerializationContext;
+import tools.jackson.databind.ValueSerializer;
+import tools.jackson.databind.ser.jdk.StringSerializer;
+import tools.jackson.databind.ser.std.StdScalarSerializer;
 
 /**
  * Sensitive string serializer for Jackson. Used to help prevent accidental leakage of sensitive
@@ -37,11 +35,10 @@ import org.springframework.boot.jackson2.JsonComponent;
  * serialization.
  */
 @Log4j2
-@JsonComponent
-public class SensitiveSerializer extends StdScalarSerializer<String>
-    implements ContextualSerializer {
+@JacksonComponent
+public class SensitiveSerializer extends StdScalarSerializer<String> {
 
-  private final StringSerializer defaultStringSerializer = new StringSerializer();
+  private final ValueSerializer<?> defaultStringSerializer = StringSerializer.instance;
   private final SensitiveProperties properties;
 
   public SensitiveSerializer(SensitiveProperties properties) {
@@ -50,8 +47,7 @@ public class SensitiveSerializer extends StdScalarSerializer<String>
   }
 
   @Override
-  public JsonSerializer<?> createContextual(SerializerProvider prov, BeanProperty property)
-      throws JsonMappingException {
+  public ValueSerializer<?> createContextual(SerializationContext prov, BeanProperty property) {
     if (property == null) {
       return defaultStringSerializer;
     }
@@ -75,8 +71,8 @@ public class SensitiveSerializer extends StdScalarSerializer<String>
   }
 
   @Override
-  public void serialize(String value, JsonGenerator gen, SerializerProvider provider)
-      throws IOException {
+  public void serialize(String value, JsonGenerator gen, SerializationContext provider)
+      throws JacksonException {
     if (value.startsWith("secret://")
         || value.startsWith("encrypted:")
         || value.startsWith("encryptedFile:")) {

@@ -15,8 +15,6 @@
  */
 package com.netflix.spinnaker.orca.clouddriver.tasks.pipeline;
 
-import com.fasterxml.jackson.core.type.TypeReference;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import com.netflix.spinnaker.orca.api.pipeline.Task;
 import com.netflix.spinnaker.orca.api.pipeline.TaskResult;
 import com.netflix.spinnaker.orca.api.pipeline.models.ExecutionStatus;
@@ -27,6 +25,8 @@ import java.util.Map;
 import java.util.Optional;
 import javax.annotation.Nonnull;
 import org.springframework.stereotype.Component;
+import tools.jackson.core.type.TypeReference;
+import tools.jackson.databind.ObjectMapper;
 
 @Component
 public class CheckPipelineResultsTask implements Task {

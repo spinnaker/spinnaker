@@ -20,9 +20,10 @@ import static java.util.Collections.emptySet;
 import static java.util.Collections.singleton;
 import static org.assertj.core.api.Assertions.assertThat;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import org.junit.jupiter.api.Test;
+import tools.jackson.core.JacksonException;
+import tools.jackson.databind.ObjectMapper;
+import tools.jackson.databind.json.JsonMapper;
 
 class CloudFoundryLoadBalancerTest {
   private CloudFoundryOrganization org =
@@ -47,8 +48,8 @@ class CloudFoundryLoadBalancerTest {
           .build();
 
   @Test
-  void serialization() throws JsonProcessingException {
-    ObjectMapper mapper = new ObjectMapper();
+  void serialization() throws JacksonException {
+    ObjectMapper mapper = JsonMapper.builder().build();
     assertThat(mapper.writeValueAsString(loadBalancer)).doesNotContain("mappedApps");
   }
 

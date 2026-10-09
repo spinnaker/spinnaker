@@ -16,7 +16,7 @@
 
 package com.netflix.kayenta.index
 
-import com.fasterxml.jackson.databind.ObjectMapper
+import tools.jackson.databind.ObjectMapper
 import com.netflix.kayenta.canary.CanaryConfig
 import com.netflix.kayenta.index.config.IndexConfigurationProperties
 import com.netflix.kayenta.security.AccountCredentialsRepository
@@ -31,6 +31,7 @@ import redis.clients.jedis.JedisPool
 import spock.lang.*
 
 import static com.netflix.kayenta.index.CanaryConfigIndexingAgent.*
+import tools.jackson.databind.json.JsonMapper
 
 class CanaryConfigIndexingAgentSpec extends Specification {
 
@@ -73,7 +74,7 @@ class CanaryConfigIndexingAgentSpec extends Specification {
     mapByApplicationKey = "kayenta:some-platform:$ACCOUNT_NAME$MAP_BY_APPLICATION_KEY_SUFFIX"
     pendingUpdatesKey = "kayenta:$testCredentials.type:$testCredentials.name$PENDING_UPDATES_KEY_SUFFIX"
     configurationService = Mock(StorageService)
-    objectMapper = new ObjectMapper()
+    objectMapper = JsonMapper.builder().build()
     canaryConfigIndex = new CanaryConfigIndex(jedisPool, objectMapper)
     // We use the current redis time as a baseline to ensure entries aren't inadvertently flushed during testing due to staleness.
     currentTime = canaryConfigIndex.getRedisTime()

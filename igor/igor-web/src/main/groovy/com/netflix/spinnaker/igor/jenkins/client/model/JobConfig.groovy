@@ -16,12 +16,12 @@
 
 package com.netflix.spinnaker.igor.jenkins.client.model
 
-import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlElementWrapper
+import tools.jackson.dataformat.xml.annotation.JacksonXmlElementWrapper
+import tools.jackson.dataformat.xml.annotation.JacksonXmlProperty
 import com.netflix.spinnaker.igor.build.model.JobConfiguration
 
-import javax.xml.bind.annotation.XmlElement
-import javax.xml.bind.annotation.XmlElementWrapper
-import javax.xml.bind.annotation.XmlRootElement
+import jakarta.xml.bind.annotation.XmlElement
+import jakarta.xml.bind.annotation.XmlRootElement
 
 /**
  * Represents the basic Jenkins job configuration information
@@ -46,16 +46,16 @@ class JobConfig implements JobConfiguration {
     @XmlElement
     String url
 
-    @XmlElementWrapper(name = "property")
-    @XmlElement(name = "parameterDefinition", required = false)
+    @JacksonXmlElementWrapper(localName = "property")
+    @JacksonXmlProperty(localName = "parameterDefinition")
     List<ParameterDefinition> parameterDefinitionList
 
     @JacksonXmlElementWrapper(useWrapping = false)
-    @XmlElement(name = "upstreamProject", required = false)
+    @JacksonXmlProperty(localName = "upstreamProject")
     List<UpstreamProject> upstreamProjectList
 
     @JacksonXmlElementWrapper(useWrapping = false)
-    @XmlElement(name = "downstreamProject", required = false)
+    @JacksonXmlProperty(localName = "downstreamProject")
     List<DownstreamProject> downstreamProjectList
 
     @XmlElement

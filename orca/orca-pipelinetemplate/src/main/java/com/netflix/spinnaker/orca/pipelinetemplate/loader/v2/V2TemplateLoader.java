@@ -16,16 +16,16 @@
 
 package com.netflix.spinnaker.orca.pipelinetemplate.loader.v2;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
 import com.netflix.spinnaker.kork.artifacts.model.Artifact;
 import com.netflix.spinnaker.kork.retrofit.Retrofit2SyncCall;
 import com.netflix.spinnaker.orca.clouddriver.OortService;
 import com.netflix.spinnaker.orca.pipelinetemplate.v2schema.model.V2PipelineTemplate;
 import com.netflix.spinnaker.security.AuthenticatedRequest;
-import java.io.IOException;
 import okhttp3.ResponseBody;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
+import tools.jackson.core.JacksonException;
+import tools.jackson.databind.ObjectMapper;
 
 @Component
 public class V2TemplateLoader {
@@ -45,7 +45,7 @@ public class V2TemplateLoader {
         AuthenticatedRequest.allowAnonymous(
             () -> Retrofit2SyncCall.execute(oortService.fetchArtifact(template)))) {
       return objectMapper.readValue(templateContent.byteStream(), V2PipelineTemplate.class);
-    } catch (IOException ioe) {
+    } catch (JacksonException ioe) {
       throw new IllegalArgumentException("Error resolving pipeline template: " + template, ioe);
     }
   }

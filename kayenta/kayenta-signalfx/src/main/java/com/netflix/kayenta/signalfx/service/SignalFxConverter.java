@@ -17,7 +17,6 @@
 
 package com.netflix.kayenta.signalfx.service;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.collect.ImmutableList;
 import com.netflix.kayenta.metrics.ConversionException;
 import com.netflix.kayenta.signalfx.service.signalflow.SignalFlowMessage;
@@ -33,6 +32,8 @@ import okhttp3.RequestBody;
 import okhttp3.ResponseBody;
 import retrofit2.Converter;
 import retrofit2.Retrofit;
+import tools.jackson.databind.ObjectMapper;
+import tools.jackson.databind.json.JsonMapper;
 
 /**
  * The SignalFx SignalFlow api returns Mime-Type: "text/plain" with a custom body with messages in
@@ -41,7 +42,7 @@ import retrofit2.Retrofit;
 @Slf4j
 public class SignalFxConverter extends Converter.Factory {
 
-  private final ObjectMapper objectMapper = new ObjectMapper();
+  private final ObjectMapper objectMapper = JsonMapper.builder().build();
 
   private static final List<Class<?>> CONVERTIBLE_TYPES =
       ImmutableList.of(SignalFlowExecutionResult.class, ErrorResponse.class);

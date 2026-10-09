@@ -16,7 +16,7 @@
 
 package com.netflix.spinnaker.rosco.providers.docker
 
-import com.fasterxml.jackson.databind.ObjectMapper
+import tools.jackson.databind.ObjectMapper
 import com.netflix.spinnaker.rosco.api.Bake
 import com.netflix.spinnaker.rosco.api.BakeRequest
 import com.netflix.spinnaker.rosco.providers.docker.config.RoscoDockerConfiguration
@@ -27,6 +27,7 @@ import com.netflix.spinnaker.rosco.providers.util.TestDefaults
 import spock.lang.Shared
 import spock.lang.Specification
 import spock.lang.Subject
+import tools.jackson.databind.json.JsonMapper
 
 class DockerBakeHandlerSpec extends Specification implements TestDefaults {
 
@@ -72,7 +73,7 @@ class DockerBakeHandlerSpec extends Specification implements TestDefaults {
       ]
     ]
 
-    dockerBakeryDefaults = new ObjectMapper().convertValue(dockerBakeryDefaultsJson, RoscoDockerConfiguration.DockerBakeryDefaults)
+    dockerBakeryDefaults = JsonMapper.builder().build().convertValue(dockerBakeryDefaultsJson, RoscoDockerConfiguration.DockerBakeryDefaults)
   }
 
   void 'can scrape packer logs for image name'() {

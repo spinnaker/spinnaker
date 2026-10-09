@@ -16,8 +16,6 @@
 
 package com.netflix.spinnaker.kork.artifacts.model;
 
-import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
-import com.fasterxml.jackson.databind.annotation.JsonPOJOBuilder;
 import com.google.common.base.Strings;
 import com.netflix.spinnaker.kork.annotations.NonnullByDefault;
 import com.netflix.spinnaker.kork.artifacts.ArtifactTypes;
@@ -29,6 +27,8 @@ import javax.annotation.ParametersAreNullableByDefault;
 import lombok.Builder;
 import lombok.Value;
 import org.apache.commons.lang3.StringUtils;
+import tools.jackson.databind.annotation.JsonDeserialize;
+import tools.jackson.databind.annotation.JsonPOJOBuilder;
 
 @JsonDeserialize(builder = ExpectedArtifact.ExpectedArtifactBuilder.class)
 @NonnullByDefault

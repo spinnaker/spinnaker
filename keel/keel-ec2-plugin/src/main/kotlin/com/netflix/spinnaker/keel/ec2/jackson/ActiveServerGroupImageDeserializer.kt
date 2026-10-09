@@ -1,14 +1,15 @@
 package com.netflix.spinnaker.keel.ec2.jackson
 
-import com.fasterxml.jackson.databind.DeserializationContext
-import com.fasterxml.jackson.databind.JsonNode
-import com.fasterxml.jackson.databind.deser.std.StdNodeBasedDeserializer
-import com.fasterxml.jackson.databind.node.ArrayNode
+import tools.jackson.databind.DeserializationContext
+import tools.jackson.databind.JsonNode
+import tools.jackson.databind.deser.std.StdNodeBasedDeserializer
+import tools.jackson.databind.node.ArrayNode
 import com.netflix.spinnaker.keel.api.ec2.ServerGroup.ActiveServerGroupImage
 import com.netflix.spinnaker.keel.clouddriver.model.extractBaseImageName
-import org.springframework.boot.jackson2.JsonComponent
+import org.springframework.boot.jackson.JacksonComponent
 
-@JsonComponent
+
+@JacksonComponent
 class ActiveServerGroupImageDeserializer :
   StdNodeBasedDeserializer<ActiveServerGroupImage>(ActiveServerGroupImage::class.java) {
   override fun convert(root: JsonNode, ctxt: DeserializationContext): ActiveServerGroupImage {

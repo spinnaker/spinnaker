@@ -22,7 +22,7 @@ import software.amazon.awssdk.services.elasticloadbalancingv2.model.DescribeLoad
 import software.amazon.awssdk.services.elasticloadbalancingv2.model.LoadBalancer
 import software.amazon.awssdk.services.shield.ShieldClient
 import software.amazon.awssdk.services.shield.model.CreateProtectionRequest
-import com.fasterxml.jackson.databind.ObjectMapper
+import tools.jackson.databind.ObjectMapper
 import com.netflix.frigga.Names
 import com.netflix.spinnaker.clouddriver.aws.deploy.description.UpsertAmazonLoadBalancerDescription
 import com.netflix.spinnaker.clouddriver.aws.deploy.description.UpsertAmazonLoadBalancerV2Description
@@ -37,6 +37,7 @@ import com.netflix.spinnaker.clouddriver.orchestration.AtomicOperation
 import com.netflix.spinnaker.config.AwsConfiguration.DeployDefaults
 import groovy.util.logging.Slf4j
 import org.springframework.beans.factory.annotation.Autowired
+import tools.jackson.databind.json.JsonMapper
 
 /**
  * An AtomicOperation for creating an Elastic Load Balancer from the description of {@link UpsertAmazonLoadBalancerV2Description}.
@@ -67,7 +68,7 @@ class UpsertAmazonLoadBalancerV2AtomicOperation implements AtomicOperation<Upser
   DeployDefaults deployDefaults
 
   private final UpsertAmazonLoadBalancerV2Description description
-  ObjectMapper objectMapper = new ObjectMapper()
+  ObjectMapper objectMapper = JsonMapper.builder().build()
 
   UpsertAmazonLoadBalancerV2AtomicOperation(UpsertAmazonLoadBalancerDescription description) {
     this.description = (UpsertAmazonLoadBalancerV2Description) description

@@ -16,9 +16,8 @@
 
 package com.netflix.spinnaker.kork.retrofit.util;
 
-import com.fasterxml.jackson.databind.JavaType;
-import com.fasterxml.jackson.databind.ObjectMapper;
-import io.micrometer.core.instrument.util.IOUtils;
+import com.netflix.spinnaker.kork.jackson.Jackson2AccessorNamingStrategy;
+import java.io.IOException;
 import java.lang.annotation.Annotation;
 import java.lang.reflect.Type;
 import okhttp3.MediaType;
@@ -26,6 +25,12 @@ import okhttp3.RequestBody;
 import okhttp3.ResponseBody;
 import retrofit2.Converter;
 import retrofit2.Retrofit;
+import tools.jackson.core.JacksonException;
+import tools.jackson.core.exc.JacksonIOException;
+import tools.jackson.databind.JavaType;
+import tools.jackson.databind.MapperFeature;
+import tools.jackson.databind.ObjectMapper;
+import tools.jackson.databind.json.JsonMapper;
 
 /**
  * This Factory handles the conversion of concrete objects of an abstract class to the RequestBody.
@@ -37,19 +42,36 @@ import retrofit2.Retrofit;
  */
 public class CustomConverterFactory extends Converter.Factory {
   private final ObjectMapper mapper;
+  private final boolean deserializeStringResponses;
   private static final MediaType DEFAULT_MEDIA_TYPE =
       MediaType.get("application/json; charset=UTF-8");
 
   public static CustomConverterFactory create() {
-    return new CustomConverterFactory(new ObjectMapper());
+    return new CustomConverterFactory(
+        JsonMapper.builder()
+            .accessorNaming(new Jackson2AccessorNamingStrategy.Provider())
+            .disable(MapperFeature.FIX_FIELD_NAME_UPPER_CASE_PREFIX)
+            .build(),
+        false);
   }
 
   public static CustomConverterFactory create(ObjectMapper mapper) {
-    return new CustomConverterFactory(mapper);
+    return new CustomConverterFactory(mapper, false);
   }
 
-  private CustomConverterFactory(ObjectMapper mapper) {
+  /**
+   * Creates a factory with the response behavior used by the standard Retrofit JSON converter.
+   *
+   * <p>Unlike the default factory, a response declared as {@code String} is decoded as JSON rather
+   * than returned as raw text.
+   */
+  public static CustomConverterFactory createWithJsonStringResponses(ObjectMapper mapper) {
+    return new CustomConverterFactory(mapper, true);
+  }
+
+  private CustomConverterFactory(ObjectMapper mapper, boolean deserializeStringResponses) {
     this.mapper = mapper;
+    this.deserializeStringResponses = deserializeStringResponses;
   }
 
   /**
@@ -86,13 +108,19 @@ public class CustomConverterFactory extends Converter.Factory {
             return null;
           };
     }
-    if (type == String.class) {
-      return (Converter<ResponseBody, String>) value -> IOUtils.toString(value.byteStream());
+    if (type == String.class && !deserializeStringResponses) {
+      return (Converter<ResponseBody, String>) ResponseBody::string;
     }
     return (Converter<ResponseBody, Object>)
         value -> {
           JavaType javaType = mapper.getTypeFactory().constructType(type);
-          return mapper.readValue(value.charStream(), javaType);
+          try (value) {
+            return mapper.readValue(value.charStream(), javaType);
+          } catch (JacksonIOException e) {
+            throw e.getCause();
+          } catch (JacksonException e) {
+            throw new IOException("Unable to deserialize response body", e);
+          }
         };
   }
 
@@ -122,8 +150,12 @@ public class CustomConverterFactory extends Converter.Factory {
       Retrofit retrofit) {
     return (Converter<Object, RequestBody>)
         value -> {
-          byte[] jsonValue = mapper.writeValueAsBytes(value);
-          return RequestBody.create(jsonValue, DEFAULT_MEDIA_TYPE);
+          try {
+            byte[] jsonValue = mapper.writeValueAsBytes(value);
+            return RequestBody.create(jsonValue, DEFAULT_MEDIA_TYPE);
+          } catch (JacksonException e) {
+            throw new IOException("Unable to serialize request body", e);
+          }
         };
   }
 }

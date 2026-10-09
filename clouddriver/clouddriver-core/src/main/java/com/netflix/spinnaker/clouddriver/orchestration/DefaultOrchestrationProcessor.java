@@ -18,7 +18,6 @@ package com.netflix.spinnaker.clouddriver.orchestration;
 
 import static com.netflix.spinnaker.security.AuthenticatedRequest.propagate;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.util.concurrent.ThreadFactoryBuilder;
 import com.netflix.spectator.api.Id;
 import com.netflix.spectator.api.Registry;
@@ -55,6 +54,7 @@ import lombok.Data;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.context.ApplicationContext;
 import org.springframework.security.concurrent.DelegatingSecurityContextCallable;
+import tools.jackson.databind.ObjectMapper;
 
 @Slf4j
 public class DefaultOrchestrationProcessor implements OrchestrationProcessor {

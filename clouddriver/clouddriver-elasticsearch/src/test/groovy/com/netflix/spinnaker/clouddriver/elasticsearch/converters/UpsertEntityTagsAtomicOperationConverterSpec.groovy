@@ -17,14 +17,15 @@
 
 package com.netflix.spinnaker.clouddriver.elasticsearch.converters
 
-import com.fasterxml.jackson.databind.ObjectMapper
+import tools.jackson.databind.ObjectMapper
 import com.netflix.spinnaker.clouddriver.model.EntityTags
 import spock.lang.Specification
 import spock.lang.Subject
 import spock.lang.Unroll
+import tools.jackson.databind.json.JsonMapper
 
 class UpsertEntityTagsAtomicOperationConverterSpec extends Specification {
-  def objectMapper = new ObjectMapper()
+  def objectMapper = JsonMapper.builder().build()
 
   @Subject
   def converter = new UpsertEntityTagsAtomicOperationConverter(

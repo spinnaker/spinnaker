@@ -16,11 +16,9 @@
 
 package com.netflix.spinnaker.igor.concourse.client;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
 import com.netflix.spinnaker.config.OkHttp3ClientConfiguration;
 import com.netflix.spinnaker.igor.concourse.client.model.Event;
 import com.netflix.spinnaker.igor.concourse.client.model.Token;
-import java.io.IOException;
 import java.util.function.Supplier;
 import javax.annotation.Nullable;
 import lombok.extern.slf4j.Slf4j;
@@ -34,6 +32,8 @@ import reactor.core.publisher.Flux;
 import reactor.core.publisher.FluxProcessor;
 import reactor.core.publisher.FluxSink;
 import reactor.core.publisher.UnicastProcessor;
+import tools.jackson.core.JacksonException;
+import tools.jackson.databind.ObjectMapper;
 
 @Slf4j
 public class EventService {
@@ -82,7 +82,7 @@ public class EventService {
                           && ev.getData().getMetadata() != null) {
                         sink.next(ev);
                       }
-                    } catch (IOException e) {
+                    } catch (JacksonException e) {
                       log.warn("Unable to read event", e);
                     }
                   }

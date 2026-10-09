@@ -18,14 +18,12 @@ package com.netflix.spinnaker.front50.model;
 
 import static net.logstash.logback.argument.StructuredArguments.value;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
 import com.netflix.spinnaker.front50.api.model.Timestamped;
 import com.netflix.spinnaker.front50.api.model.pipeline.Pipeline;
 import com.netflix.spinnaker.front50.jackson.mixins.PipelineMixins;
 import com.netflix.spinnaker.front50.jackson.mixins.TimestampedMixins;
 import com.netflix.spinnaker.kork.web.exceptions.NotFoundException;
 import java.io.ByteArrayInputStream;
-import java.io.IOException;
 import java.io.InputStream;
 import java.time.Instant;
 import java.time.ZoneOffset;
@@ -49,6 +47,9 @@ import org.openstack4j.model.storage.object.options.ObjectPutOptions;
 import org.openstack4j.openstack.OSFactory;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import tools.jackson.core.JacksonException;
+import tools.jackson.databind.ObjectMapper;
+import tools.jackson.databind.json.JsonMapper;
 
 /**
  * OpenStack Swift-backed Front50 metadata storage.
@@ -62,9 +63,10 @@ public class SwiftStorageService implements StorageService {
 
   private final ObjectStorageService swift;
   private final ObjectMapper objectMapper =
-      new ObjectMapper()
+      JsonMapper.builder()
           .addMixIn(Timestamped.class, TimestampedMixins.class)
-          .addMixIn(Pipeline.class, PipelineMixins.class);
+          .addMixIn(Pipeline.class, PipelineMixins.class)
+          .build();
   private final String containerName;
 
   private Token token = null;
@@ -161,7 +163,7 @@ public class SwiftStorageService implements StorageService {
               objectKey,
               Payloads.create(is),
               ObjectPutOptions.create().path(objectType.group));
-    } catch (IOException e) {
+    } catch (JacksonException e) {
       log.error("failed to write object={}: {}", value("key", objectKey), e);
       throw new IllegalStateException(e);
     }

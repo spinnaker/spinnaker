@@ -15,7 +15,7 @@
  */
 package com.netflix.spinnaker.kork.plugins.sdk.httpclient
 
-import com.fasterxml.jackson.databind.ObjectMapper
+import tools.jackson.databind.ObjectMapper
 import com.netflix.spinnaker.config.OkHttp3ClientConfiguration
 import com.netflix.spinnaker.kork.plugins.sdk.IdResolver
 import com.netflix.spinnaker.kork.plugins.sdk.SdkFactory

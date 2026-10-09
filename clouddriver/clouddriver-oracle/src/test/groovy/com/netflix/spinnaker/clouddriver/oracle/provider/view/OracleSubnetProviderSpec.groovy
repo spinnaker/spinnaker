@@ -8,7 +8,7 @@
  */
 package com.netflix.spinnaker.clouddriver.oracle.provider.view
 
-import com.fasterxml.jackson.databind.ObjectMapper
+import tools.jackson.databind.ObjectMapper
 import com.netflix.spinnaker.cats.cache.Cache
 import com.netflix.spinnaker.cats.cache.CacheData
 import com.netflix.spinnaker.clouddriver.oracle.OracleCloudProvider
@@ -16,13 +16,14 @@ import com.netflix.spinnaker.clouddriver.oracle.cache.Keys
 import spock.lang.Specification
 
 import static com.netflix.spinnaker.clouddriver.oracle.cache.Keys.Namespace.SUBNETS
+import tools.jackson.databind.json.JsonMapper
 
 class OracleSubnetProviderSpec extends Specification {
 
   def "get all subnets from cache"() {
     setup:
     def cache = Mock(Cache)
-    def subnetProvider = new OracleSubnetProvider(cache, new ObjectMapper())
+    def subnetProvider = new OracleSubnetProvider(cache, JsonMapper.builder().build())
     def identifiers = Mock(Collection)
     def attributes = ["displayName": "My Subnet", "id": "ocid.subnet.123", "availabilityDomain": "AD1", "securityListIds": ["ocid.seclist.123"]]
     def mockData = Mock(CacheData)

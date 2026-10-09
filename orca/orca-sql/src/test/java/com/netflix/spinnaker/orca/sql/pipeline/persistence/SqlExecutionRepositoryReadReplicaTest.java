@@ -18,8 +18,6 @@ package com.netflix.spinnaker.orca.sql.pipeline.persistence;
 
 import static org.assertj.core.api.AssertionsForClassTypes.assertThat;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import com.netflix.spinnaker.config.SqlConfiguration;
 import com.netflix.spinnaker.config.okhttp3.OkHttpClientProvider;
 import com.netflix.spinnaker.kork.sql.test.SqlTestUtil;
@@ -42,10 +40,14 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.context.TestConfiguration;
 import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.Primary;
 import org.springframework.test.context.DynamicPropertyRegistry;
 import org.springframework.test.context.DynamicPropertySource;
 import org.springframework.test.context.TestPropertySource;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
+import tools.jackson.core.JacksonException;
+import tools.jackson.databind.ObjectMapper;
+import tools.jackson.databind.json.JsonMapper;
 
 @SpringBootTest(
     classes = {
@@ -104,7 +106,7 @@ public class SqlExecutionRepositoryReadReplicaTest {
       stmt.setLong(5, Instant.now().toEpochMilli());
       stmt.setString(6, defaultPoolBody);
       stmt.executeUpdate();
-    } catch (JsonProcessingException e) {
+    } catch (JacksonException e) {
       throw new RuntimeException(e);
     }
 
@@ -119,7 +121,7 @@ public class SqlExecutionRepositoryReadReplicaTest {
       stmt.setLong(5, Instant.now().toEpochMilli());
       stmt.setString(6, readPoolBody);
       stmt.executeUpdate();
-    } catch (JsonProcessingException e) {
+    } catch (JacksonException e) {
       throw new RuntimeException(e);
     }
   }
@@ -136,9 +138,12 @@ public class SqlExecutionRepositoryReadReplicaTest {
 
   @TestConfiguration
   static class SqlExecutionRepositoryReadReplicaTestConfiguration {
-    @Bean
-    ObjectMapper orcaObjectMapper() {
-      return OrcaObjectMapper.getInstance();
+    @Bean(name = {"mapper", "objectMapper"})
+    @Primary
+    JsonMapper orcaObjectMapper() {
+      // Declared as JsonMapper so Boot's jacksonJsonMapper backs off. An ObjectMapper return type
+      // leaves both beans @Primary and the context fails to start.
+      return (JsonMapper) OrcaObjectMapper.getInstance();
     }
   }
 }

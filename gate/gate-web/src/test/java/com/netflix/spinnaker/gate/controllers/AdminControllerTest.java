@@ -8,8 +8,6 @@ import static org.assertj.core.api.Assertions.entry;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.mockito.Mockito.when;
 
-import com.fasterxml.jackson.core.type.TypeReference;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import com.github.tomakehurst.wiremock.client.WireMock;
 import com.github.tomakehurst.wiremock.http.Body;
 import com.github.tomakehurst.wiremock.http.Fault;
@@ -26,6 +24,9 @@ import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.test.context.DynamicPropertyRegistry;
 import org.springframework.test.context.DynamicPropertySource;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
+import tools.jackson.core.type.TypeReference;
+import tools.jackson.databind.ObjectMapper;
+import tools.jackson.databind.json.JsonMapper;
 
 @SpringBootTest(
     classes = {Main.class, AdminController.class},
@@ -53,7 +54,8 @@ public class AdminControllerTest extends GateBootAuthIntegrationTest {
     HttpResponse<String> response = callGateWithPath("/admin", "GET");
     assertNotNull(response);
     assertThat(response.statusCode()).isEqualTo(200);
-    Map<String, Object> responseData = new ObjectMapper().readValue(response.body(), Map.class);
+    Map<String, Object> responseData =
+        JsonMapper.builder().build().readValue(response.body(), Map.class);
     assertThat(responseData).contains(entry("isAdmin", true), entry("username", "testuser"));
   }
 
@@ -100,7 +102,7 @@ public class AdminControllerTest extends GateBootAuthIntegrationTest {
     assertNotNull(response);
     assertThat(response.statusCode()).isEqualTo(500);
     Map<String, Object> responseBody =
-        new ObjectMapper().readValue(response.body(), new TypeReference<>() {});
+        JsonMapper.builder().build().readValue(response.body(), new TypeReference<>() {});
     assertThat(responseBody.get("exception"))
         .isEqualTo("com.netflix.spinnaker.kork.retrofit.exceptions.SpinnakerNetworkException");
     assertThat(responseBody.get("message"))
@@ -128,7 +130,7 @@ public class AdminControllerTest extends GateBootAuthIntegrationTest {
     assertNotNull(response);
     assertThat(response.statusCode()).isEqualTo(404);
     Map<String, Object> responseBody =
-        new ObjectMapper().readValue(response.body(), new TypeReference<>() {});
+        JsonMapper.builder().build().readValue(response.body(), new TypeReference<>() {});
     assertThat(responseBody.get("exception"))
         .isEqualTo("com.netflix.spinnaker.kork.retrofit.exceptions.SpinnakerHttpException");
     assertThat(responseBody.get("message"))
@@ -149,7 +151,7 @@ public class AdminControllerTest extends GateBootAuthIntegrationTest {
   }
 
   void setupOrcaMock() throws Exception {
-    ObjectMapper objectMapper = new ObjectMapper();
+    ObjectMapper objectMapper = JsonMapper.builder().build();
     wmOrca.stubFor(
         WireMock.post(urlEqualTo("/admin/queue/hydrate?executionId=randomExecutionId&dryRun=false"))
             .willReturn(

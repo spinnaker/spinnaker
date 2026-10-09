@@ -15,7 +15,6 @@
  */
 package com.netflix.spinnaker.igor.gitlabci.client
 
-import com.fasterxml.jackson.databind.ObjectMapper
 import com.netflix.spinnaker.igor.config.GitlabCiConfig
 import com.netflix.spinnaker.igor.gitlabci.client.model.Pipeline
 import com.netflix.spinnaker.igor.gitlabci.client.model.PipelineStatus
@@ -26,8 +25,10 @@ import okhttp3.mockwebserver.MockResponse
 import okhttp3.mockwebserver.MockWebServer
 import spock.lang.Shared
 import spock.lang.Specification
+import tools.jackson.databind.ObjectMapper
 
 import java.text.SimpleDateFormat
+import tools.jackson.databind.json.JsonMapper
 
 class GitlabCiClientSpec extends Specification {
     @Shared
@@ -98,6 +99,6 @@ class GitlabCiClientSpec extends Specification {
                 .setHeader('Content-Type', 'application/json')
         )
         server.start()
-        client = GitlabCiConfig.gitlabCiClient(server.url('/').toString(), 'token', 3000, new ObjectMapper(), TestUtils.makeOkHttpClientConfig())
+        client = GitlabCiConfig.gitlabCiClient(server.url('/').toString(), 'token', 3000, JsonMapper.builder().build(), TestUtils.makeOkHttpClientConfig())
     }
 }

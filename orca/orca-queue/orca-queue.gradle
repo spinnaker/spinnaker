@@ -31,7 +31,7 @@ dependencies {
   implementation("org.springframework:spring-web")
   implementation("net.logstash.logback:logstash-logback-encoder")
   implementation("javax.ws.rs:jsr311-api:1.1.1")
-  implementation("com.fasterxml.jackson.module:jackson-module-kotlin")
+  implementation("tools.jackson.module:jackson-module-kotlin")
   implementation("com.github.ben-manes.caffeine:guava")
 
   testImplementation("io.spinnaker.kork:kork-jedis-test")
@@ -46,7 +46,6 @@ dependencies {
   testImplementation(project(":orca-webhook"))
   testImplementation("org.apache.groovy:groovy")
   testImplementation("org.assertj:assertj-core")
-  testImplementation("com.squareup.retrofit2:converter-jackson")
 }
 
 test {

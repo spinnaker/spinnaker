@@ -15,7 +15,7 @@ import okhttp3.MediaType
 import okhttp3.ResponseBody
 import retrofit2.Retrofit
 import retrofit2.Response
-import retrofit2.converter.jackson.JacksonConverterFactory;
+import com.netflix.spinnaker.kork.retrofit.util.CustomConverterFactory
 
 import java.util.concurrent.atomic.AtomicInteger
 
@@ -66,7 +66,7 @@ trait RetrofitStubs {
     new SpinnakerHttpException(
       Response.error(HTTP_UNAVAILABLE,
         ResponseBody.create("{ \"message\": \"arbitrary message\" }", MediaType.get("application/json"))),
-      new Retrofit.Builder().baseUrl(url).addConverterFactory(JacksonConverterFactory.create()).build()
+      new Retrofit.Builder().baseUrl(url).addConverterFactory(CustomConverterFactory.create()).build()
     )
   }
 

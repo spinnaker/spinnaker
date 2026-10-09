@@ -16,7 +16,6 @@
 
 package com.netflix.spinnaker.gate.controllers;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
 import com.netflix.spinnaker.gate.services.PipelineService;
 import com.netflix.spinnaker.gate.services.TaskService;
 import com.netflix.spinnaker.kork.web.exceptions.InvalidRequestException;
@@ -35,6 +34,7 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RestController;
+import tools.jackson.databind.ObjectMapper;
 
 @Slf4j
 @CompileStatic

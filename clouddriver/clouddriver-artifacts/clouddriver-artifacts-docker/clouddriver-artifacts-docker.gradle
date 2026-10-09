@@ -6,5 +6,4 @@ dependencies {
   implementation "commons-io:commons-io"
 
   testImplementation "org.mockito:mockito-core"
-  testImplementation "com.squareup.retrofit2:converter-jackson"
 }

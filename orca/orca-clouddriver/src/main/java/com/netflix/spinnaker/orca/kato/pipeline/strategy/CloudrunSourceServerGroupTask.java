@@ -16,9 +16,6 @@
 
 package com.netflix.spinnaker.orca.kato.pipeline.strategy;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.dataformat.yaml.YAMLFactory;
 import com.netflix.spinnaker.kork.yaml.YamlHelper;
 import com.netflix.spinnaker.orca.api.pipeline.RetryableTask;
 import com.netflix.spinnaker.orca.api.pipeline.TaskResult;
@@ -30,6 +27,9 @@ import java.util.List;
 import java.util.Map;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
+import tools.jackson.core.JacksonException;
+import tools.jackson.databind.ObjectMapper;
+import tools.jackson.dataformat.yaml.YAMLMapper;
 
 @Component
 @Slf4j
@@ -58,8 +58,7 @@ public class CloudrunSourceServerGroupTask extends DetermineSourceServerGroupTas
 
   private void setRegionInContextFromPayload(StageExecution stage) {
 
-    ObjectMapper yamlReader =
-        new ObjectMapper(YAMLFactory.builder().loaderOptions(yamlHelper.loaderOptions()).build());
+    ObjectMapper yamlReader = YAMLMapper.builder(yamlHelper.yamlFactory()).build();
     if (stage.getContext() != null
         && stage.getContext().get("configFiles") != null
         && (!((List) stage.getContext().get("configFiles")).isEmpty())) {
@@ -81,7 +80,7 @@ public class CloudrunSourceServerGroupTask extends DetermineSourceServerGroupTas
                           ((Map<String, Object>) yamlMap.get("metadata")).get("labels"))
                       .get("cloud.googleapis.com/location"));
         }
-      } catch (JsonProcessingException e) {
+      } catch (JacksonException e) {
         throw new RuntimeException(e);
       }
     }

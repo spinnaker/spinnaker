@@ -16,7 +16,6 @@
 
 package com.netflix.kayenta.canary.orca;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
 import com.netflix.kayenta.canary.*;
 import com.netflix.kayenta.canary.results.CanaryJudgeResult;
 import com.netflix.kayenta.metrics.MetricSetPair;
@@ -36,8 +35,10 @@ import javax.annotation.Nonnull;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Component;
+import tools.jackson.databind.ObjectMapper;
 
 @Slf4j
 @Component
@@ -55,7 +56,7 @@ public class CanaryJudgeTask implements RetryableTask {
       AccountCredentialsRepository accountCredentialsRepository,
       StorageServiceRepository storageServiceRepository,
       List<CanaryJudge> canaryJudges,
-      ObjectMapper kayentaObjectMapper,
+      @Qualifier("kayentaObjectMapper") ObjectMapper kayentaObjectMapper,
       ExecutionMapper executionMapper) {
     this.accountCredentialsRepository = accountCredentialsRepository;
     this.storageServiceRepository = storageServiceRepository;

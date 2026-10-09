@@ -16,7 +16,7 @@
 
 package com.netflix.spinnaker.orca.igor.tasks
 
-import com.fasterxml.jackson.databind.ObjectMapper
+import tools.jackson.databind.ObjectMapper
 import com.netflix.spinnaker.kork.retrofit.exceptions.SpinnakerServerException
 import com.netflix.spinnaker.orca.api.pipeline.models.ExecutionStatus
 import com.netflix.spinnaker.orca.igor.BuildService
@@ -30,6 +30,7 @@ import retrofit2.Response
 import spock.lang.Shared
 import spock.lang.Specification
 import spock.lang.Subject
+import tools.jackson.databind.json.JsonMapper
 
 class StartJenkinsJobTaskSpec extends Specification {
 
@@ -54,7 +55,7 @@ class StartJenkinsJobTaskSpec extends Specification {
         and:
         task.buildService = Stub(BuildService) {
           build(stage.context.master, stage.context.job, stage.context.parameters, stage.startTime.toString()) >>
-              Response.success(200, ResponseBody.create(MediaType.parse("application/json"),new ObjectMapper().writeValueAsString([result: 'SUCCESS', running: true, number: 4])))
+              Response.success(200, ResponseBody.create(MediaType.parse("application/json"),JsonMapper.builder().build().writeValueAsString([result: 'SUCCESS', running: true, number: 4])))
         }
 
         when:
@@ -71,7 +72,7 @@ class StartJenkinsJobTaskSpec extends Specification {
       and:
       task.buildService = Stub(BuildService) {
         build(stage.context.master, stage.context.job, stage.context.parameters, stage.startTime.toString()) >>
-            Response.success(200, ResponseBody.create(MediaType.parse("application/json"),new ObjectMapper().writeValueAsString([result: 'SUCCESS', running: true, number: 4])))
+            Response.success(200, ResponseBody.create(MediaType.parse("application/json"),JsonMapper.builder().build().writeValueAsString([result: 'SUCCESS', running: true, number: 4])))
       }
 
       when:

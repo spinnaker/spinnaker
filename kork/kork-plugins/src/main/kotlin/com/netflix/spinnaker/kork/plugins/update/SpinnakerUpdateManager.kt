@@ -15,7 +15,8 @@
  */
 package com.netflix.spinnaker.kork.plugins.update
 
-import com.fasterxml.jackson.module.kotlin.jacksonObjectMapper
+import tools.jackson.databind.json.JsonMapper
+import tools.jackson.module.kotlin.KotlinModule
 import com.netflix.spinnaker.kork.exceptions.IntegrationException
 import com.netflix.spinnaker.kork.plugins.SpinnakerServiceVersionManager
 import com.netflix.spinnaker.kork.plugins.events.PluginDownloaded
@@ -199,6 +200,8 @@ class SpinnakerUpdateManager(
    * Companion object holding shared Jackson ObjectMapper instance.
    */
   companion object {
-    private val objectMapper = jacksonObjectMapper()
+    private val objectMapper = JsonMapper.builder()
+      .addModule(KotlinModule.Builder().build())
+      .build()
   }
 }

@@ -17,9 +17,6 @@
 
 package com.netflix.spinnaker.clouddriver.aws.utils;
 
-import com.fasterxml.jackson.core.type.TypeReference;
-import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.base.Splitter;
 import java.io.IOException;
 import java.io.InputStream;
@@ -32,6 +29,10 @@ import org.springframework.core.io.DefaultResourceLoader;
 import org.springframework.core.io.Resource;
 import org.springframework.core.io.ResourceLoader;
 import org.springframework.core.io.support.ResourcePatternUtils;
+import tools.jackson.core.type.TypeReference;
+import tools.jackson.databind.JsonNode;
+import tools.jackson.databind.ObjectMapper;
+import tools.jackson.databind.json.JsonMapper;
 
 public class TestUtils {
 
@@ -47,7 +48,7 @@ public class TestUtils {
 
   public static TestResourceFile loadJson(Resource resource) {
     try (InputStream is = resource.getInputStream()) {
-      ObjectMapper objectMapper = new ObjectMapper();
+      ObjectMapper objectMapper = JsonMapper.builder().build();
       JsonNode jsonNode = objectMapper.readTree(is);
       List<Map<String, Object>> content;
 

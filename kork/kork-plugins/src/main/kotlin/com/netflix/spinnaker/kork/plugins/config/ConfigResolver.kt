@@ -15,7 +15,7 @@
  */
 package com.netflix.spinnaker.kork.plugins.config
 
-import com.fasterxml.jackson.core.type.TypeReference
+import tools.jackson.core.type.TypeReference
 import com.netflix.spinnaker.kork.annotations.Beta
 
 /**

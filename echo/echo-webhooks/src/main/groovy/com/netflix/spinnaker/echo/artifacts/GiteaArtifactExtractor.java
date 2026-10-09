@@ -18,7 +18,6 @@ package com.netflix.spinnaker.echo.artifacts;
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonProperty;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import com.netflix.spinnaker.kork.artifacts.model.Artifact;
 import java.net.URI;
 import java.net.URISyntaxException;
@@ -36,6 +35,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 import org.springframework.web.util.UriUtils;
+import tools.jackson.databind.ObjectMapper;
 
 /**
  * Produces {@code gitea/file} artifacts for the files added or modified by a Gitea push. The raw

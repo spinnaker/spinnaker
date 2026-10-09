@@ -17,7 +17,7 @@
 
 package com.netflix.spinnaker.clouddriver.dcos.model
 
-import com.fasterxml.jackson.core.type.TypeReference
+import tools.jackson.core.type.TypeReference
 import com.netflix.spinnaker.clouddriver.model.Application
 
 class DcosApplication implements Application, Serializable {

@@ -16,7 +16,7 @@
 
 package com.netflix.spinnaker.clouddriver.google.deploy.converters
 
-import com.fasterxml.jackson.databind.ObjectMapper
+import tools.jackson.databind.ObjectMapper
 import com.netflix.spinnaker.clouddriver.google.deploy.description.UpsertGoogleLoadBalancerDescription
 import com.netflix.spinnaker.clouddriver.google.deploy.ops.loadbalancer.UpsertGoogleExternalHttpLoadBalancerAtomicOperation
 import com.netflix.spinnaker.clouddriver.google.deploy.ops.loadbalancer.UpsertGoogleHttpLoadBalancerAtomicOperation
@@ -32,6 +32,7 @@ import spock.lang.Shared
 import spock.lang.Specification
 
 import static com.netflix.spinnaker.clouddriver.google.deploy.ops.loadbalancer.UpsertGoogleHttpLoadBalancerTestConstants.*
+import tools.jackson.databind.json.JsonMapper
 
 class UpsertGoogleLoadBalancerAtomicOperationConverterUnitSpec extends Specification {
   private static final LOAD_BALANCER_NAME = "spinnaker-test-v000"
@@ -44,7 +45,7 @@ class UpsertGoogleLoadBalancerAtomicOperationConverterUnitSpec extends Specifica
   private static final PORT_RANGE = "80-82"
 
   @Shared
-  ObjectMapper mapper = new ObjectMapper()
+  ObjectMapper mapper = JsonMapper.builder().build()
 
   @Shared
   UpsertGoogleLoadBalancerAtomicOperationConverter converter

@@ -1,8 +1,9 @@
 package com.netflix.spinnaker.q.sql
 
-import com.fasterxml.jackson.databind.DeserializationFeature
-import com.fasterxml.jackson.databind.ObjectMapper
-import com.fasterxml.jackson.module.kotlin.KotlinModule
+import tools.jackson.databind.DeserializationFeature
+import tools.jackson.databind.ObjectMapper
+import tools.jackson.databind.json.JsonMapper
+import tools.jackson.module.kotlin.KotlinModule
 import com.netflix.spinnaker.kork.sql.config.RetryProperties
 import com.netflix.spinnaker.kork.sql.config.SqlRetryProperties
 import com.netflix.spinnaker.kork.sql.test.SqlTestUtil
@@ -51,17 +52,18 @@ private fun createQueue(clock: Clock,
     jooq = jooq,
     clock = clock,
     lockTtlSeconds = 2,
-    mapper = ObjectMapper().apply {
-      registerModule(KotlinModule.Builder().build())
-      disable(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES)
-
-      registerSubtypes(TestMessage::class.java)
-      registerSubtypes(
-        MaxAttemptsAttribute::class.java,
-        AttemptsAttribute::class.java,
-        AckAttemptsAttribute::class.java
-      )
-    },
+     mapper = JsonMapper.builder()
+       .addModule(KotlinModule.Builder().build())
+       .disable(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES)
+       // Jackson 3 default changed: merge into getter-only collections (message attributes).
+       .enable(tools.jackson.databind.MapperFeature.USE_GETTERS_AS_SETTERS)
+       .registerSubtypes(TestMessage::class.java)
+       .registerSubtypes(
+         MaxAttemptsAttribute::class.java,
+         AttemptsAttribute::class.java,
+         AckAttemptsAttribute::class.java
+       )
+       .build(),
     serializationMigrator = Optional.empty(),
     ackTimeout = Duration.ofSeconds(60),
     deadMessageHandlers = listOf(deadLetterCallback),

@@ -16,7 +16,6 @@
 
 package com.netflix.spinnaker.clouddriver.yandex.provider.view;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
 import com.netflix.spinnaker.cats.cache.Cache;
 import com.netflix.spinnaker.cats.cache.CacheData;
 import com.netflix.spinnaker.cats.cache.CacheFilter;
@@ -29,6 +28,7 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
+import tools.jackson.databind.ObjectMapper;
 
 public class CacheClient<T> {
   private final ObjectMapper objectMapper;

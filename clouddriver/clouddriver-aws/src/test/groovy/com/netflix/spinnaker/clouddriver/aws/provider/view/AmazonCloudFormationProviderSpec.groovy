@@ -16,12 +16,13 @@
 
 package com.netflix.spinnaker.clouddriver.aws.provider.view
 
-import com.fasterxml.jackson.core.type.TypeReference
-import com.fasterxml.jackson.databind.ObjectMapper
 import com.netflix.spinnaker.cats.cache.DefaultCacheData
 import com.netflix.spinnaker.cats.mem.InMemoryCache
 import com.netflix.spinnaker.clouddriver.aws.cache.Keys
 import com.netflix.spinnaker.clouddriver.aws.model.AmazonCloudFormationStack
+import tools.jackson.core.type.TypeReference
+import tools.jackson.databind.ObjectMapper
+import tools.jackson.databind.json.JsonMapper
 import spock.lang.Shared
 import spock.lang.Specification
 import spock.lang.Subject
@@ -35,7 +36,7 @@ class AmazonCloudFormationProviderSpec extends Specification {
   @Subject
   AmazonCloudFormationProvider provider
 
-  ObjectMapper objectMapper = new ObjectMapper()
+  ObjectMapper objectMapper = JsonMapper.builder().build()
 
   def setup() {
     def cache = new InMemoryCache()

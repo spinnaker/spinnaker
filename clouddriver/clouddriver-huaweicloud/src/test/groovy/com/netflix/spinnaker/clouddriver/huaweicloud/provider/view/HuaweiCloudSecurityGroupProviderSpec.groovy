@@ -16,7 +16,7 @@
 
 package com.netflix.spinnaker.clouddriver.huaweicloud.provider.view
 
-import com.fasterxml.jackson.databind.ObjectMapper
+import tools.jackson.databind.ObjectMapper
 import com.huawei.openstack4j.openstack.vpc.v1.domain.SecurityGroup
 import com.huawei.openstack4j.openstack.vpc.v1.domain.SecurityGroupRule
 import com.netflix.spinnaker.cats.cache.CacheData
@@ -33,6 +33,7 @@ import spock.lang.Shared
 import spock.lang.Specification
 import spock.lang.Subject
 import spock.lang.Unroll
+import tools.jackson.databind.json.JsonMapper
 
 class HuaweiCloudSecurityGroupProviderSpec extends Specification {
 
@@ -40,7 +41,7 @@ class HuaweiCloudSecurityGroupProviderSpec extends Specification {
   HuaweiCloudSecurityGroupProvider provider
 
   WriteableCache cache = new InMemoryCache()
-  ObjectMapper mapper = new ObjectMapper()
+  ObjectMapper mapper = JsonMapper.builder().build()
 
   def setup() {
     provider = new HuaweiCloudSecurityGroupProvider(cache, mapper)

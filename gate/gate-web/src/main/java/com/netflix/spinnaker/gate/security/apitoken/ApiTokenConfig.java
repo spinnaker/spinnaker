@@ -16,7 +16,6 @@
 
 package com.netflix.spinnaker.gate.security.apitoken;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
 import com.netflix.spinnaker.fiat.shared.FiatPermissionEvaluator;
 import com.netflix.spinnaker.gate.security.AllowedAccountsSupport;
 import com.netflix.spinnaker.gate.services.PermissionService;
@@ -26,6 +25,7 @@ import org.springframework.boot.web.servlet.FilterRegistrationBean;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import redis.clients.jedis.JedisPool;
+import tools.jackson.databind.ObjectMapper;
 
 /**
  * Registers all API token beans when {@code api-tokens.enabled=true}. All token state is stored in

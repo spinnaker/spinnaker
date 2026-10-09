@@ -16,7 +16,6 @@
 
 package com.netflix.spinnaker.clouddriver.yandex.deploy.converter;
 
-import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.netflix.spinnaker.clouddriver.orchestration.AtomicOperation;
 import com.netflix.spinnaker.clouddriver.security.AbstractAtomicOperationsCredentialsSupport;
 import com.netflix.spinnaker.clouddriver.yandex.deploy.description.CredentialsChangeable;
@@ -24,6 +23,7 @@ import com.netflix.spinnaker.clouddriver.yandex.security.YandexCloudCredentials;
 import java.util.Map;
 import java.util.function.Function;
 import javax.annotation.Nullable;
+import tools.jackson.databind.DeserializationFeature;
 
 public class OperationConverter<T extends CredentialsChangeable, E extends AtomicOperation<?>>
     extends AbstractAtomicOperationsCredentialsSupport {
@@ -67,8 +67,9 @@ public class OperationConverter<T extends CredentialsChangeable, E extends Atomi
     T t =
         credentialsSupport
             .getObjectMapper()
-            .copy()
-            .configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false)
+            .rebuild()
+            .disable(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES)
+            .build()
             .convertValue(input, targetDescriptionType);
     if (credentials instanceof YandexCloudCredentials) {
       t.setCredentials((YandexCloudCredentials) credentials);

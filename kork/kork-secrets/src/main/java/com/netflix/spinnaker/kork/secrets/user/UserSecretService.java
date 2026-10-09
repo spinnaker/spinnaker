@@ -17,8 +17,6 @@
 
 package com.netflix.spinnaker.kork.secrets.user;
 
-import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.netflix.spinnaker.kork.secrets.EncryptedSecret;
 import com.netflix.spinnaker.kork.secrets.InvalidSecretFormatException;
 import com.netflix.spinnaker.kork.secrets.SecretDecryptionException;
@@ -34,6 +32,8 @@ import java.util.Set;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.access.prepost.PostAuthorize;
 import org.springframework.stereotype.Component;
+import tools.jackson.databind.JsonNode;
+import tools.jackson.databind.node.ObjectNode;
 
 @Component
 @RequiredArgsConstructor
@@ -75,7 +75,7 @@ public class UserSecretService {
     List<SecretField<EncryptedSecret>> externalSecretFields = new ArrayList<>();
 
     // first, scan for secret references in top level string fields
-    var iterator = object.fields();
+    var iterator = object.properties().iterator();
     while (iterator.hasNext()) {
       var entry = iterator.next();
       String fieldName = entry.getKey();

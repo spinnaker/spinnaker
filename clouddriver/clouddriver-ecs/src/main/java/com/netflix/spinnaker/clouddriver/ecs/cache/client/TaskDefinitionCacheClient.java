@@ -18,13 +18,13 @@ package com.netflix.spinnaker.clouddriver.ecs.cache.client;
 
 import static com.netflix.spinnaker.clouddriver.ecs.cache.Keys.Namespace.TASK_DEFINITIONS;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
 import com.netflix.spinnaker.cats.cache.Cache;
 import com.netflix.spinnaker.cats.cache.CacheData;
 import java.util.Map;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 import software.amazon.awssdk.services.ecs.model.TaskDefinition;
+import tools.jackson.databind.ObjectMapper;
 
 @Component
 public class TaskDefinitionCacheClient extends AbstractCacheClient<TaskDefinition> {

@@ -17,9 +17,6 @@ package com.netflix.spinnaker.clouddriver.data.task.jedis;
 
 import static java.lang.String.format;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.core.type.TypeReference;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import com.netflix.spinnaker.clouddriver.core.ClouddriverHostname;
 import com.netflix.spinnaker.clouddriver.data.task.DefaultTaskStatus;
 import com.netflix.spinnaker.clouddriver.data.task.SagaId;
@@ -32,7 +29,6 @@ import com.netflix.spinnaker.clouddriver.data.task.TaskRepository;
 import com.netflix.spinnaker.clouddriver.data.task.TaskState;
 import com.netflix.spinnaker.kork.exceptions.SystemException;
 import com.netflix.spinnaker.kork.jedis.RedisClientDelegate;
-import java.io.IOException;
 import java.util.*;
 import java.util.concurrent.TimeUnit;
 import java.util.function.Supplier;
@@ -45,6 +41,12 @@ import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.ResponseStatus;
 import redis.clients.jedis.exceptions.JedisException;
 import redis.clients.jedis.params.SetParams;
+import tools.jackson.core.JacksonException;
+import tools.jackson.core.type.TypeReference;
+import tools.jackson.databind.MapperFeature;
+import tools.jackson.databind.ObjectMapper;
+import tools.jackson.databind.cfg.DateTimeFeature;
+import tools.jackson.databind.json.JsonMapper;
 
 public class RedisTaskRepository implements TaskRepository {
   private static final Logger log = LoggerFactory.getLogger(RedisTaskRepository.class);
@@ -66,7 +68,13 @@ public class RedisTaskRepository implements TaskRepository {
 
   private final RedisClientDelegate redisClientDelegate;
   private final Optional<RedisClientDelegate> redisClientDelegatePrevious;
-  private final ObjectMapper mapper = new ObjectMapper();
+  // Stored in Redis and read back later. Keep Jackson 2 property order and Date format.
+  private final ObjectMapper mapper =
+      JsonMapper.builder()
+          .disable(MapperFeature.SORT_PROPERTIES_ALPHABETICALLY)
+          .disable(MapperFeature.SORT_CREATOR_PROPERTIES_FIRST)
+          .enable(DateTimeFeature.WRITE_DATES_AS_TIMESTAMPS)
+          .build();
 
   public RedisTaskRepository(
       RedisClientDelegate redisClientDelegate,
@@ -164,7 +172,7 @@ public class RedisTaskRepository implements TaskRepository {
       if (taskMap.containsKey("sagaIds")) {
         try {
           sagaIds = mapper.readValue(taskMap.get("sagaIds"), SAGA_IDS_TYPE);
-        } catch (IOException e) {
+        } catch (JacksonException e) {
           throw new SystemException("Could not deserialize sagaIds key", e);
         }
       } else {
@@ -269,7 +277,7 @@ public class RedisTaskRepository implements TaskRepository {
     data.put("ownerId", task.getOwnerId());
     try {
       data.put("sagaIds", mapper.writeValueAsString(task.getSagaIds()));
-    } catch (JsonProcessingException e) {
+    } catch (JacksonException e) {
       throw new SystemException("Failed to serialize saga ids into Task", e);
     }
     retry(
@@ -294,7 +302,7 @@ public class RedisTaskRepository implements TaskRepository {
     String hist;
     try {
       hist = mapper.writeValueAsString(data);
-    } catch (JsonProcessingException e) {
+    } catch (JacksonException e) {
       throw new RuntimeException("Failed converting task history to json", e);
     }
 
@@ -328,7 +336,7 @@ public class RedisTaskRepository implements TaskRepository {
               Map<String, String> history;
               try {
                 history = mapper.readValue(h, HISTORY_TYPE);
-              } catch (IOException e) {
+              } catch (JacksonException e) {
                 throw new RuntimeException("Could not convert history json to type", e);
               }
               return TaskDisplayStatus.create(
@@ -356,7 +364,7 @@ public class RedisTaskRepository implements TaskRepository {
     Map<String, String> history;
     try {
       history = mapper.readValue(state, HISTORY_TYPE);
-    } catch (IOException e) {
+    } catch (JacksonException e) {
       throw new RuntimeException("Failed converting task history json to object", e);
     }
     return DefaultTaskStatus.create(
@@ -371,7 +379,7 @@ public class RedisTaskRepository implements TaskRepository {
                 o -> {
                   try {
                     return mapper.writeValueAsString(o);
-                  } catch (JsonProcessingException e) {
+                  } catch (JacksonException e) {
                     throw new RuntimeException("Failed to convert object to string", e);
                   }
                 })
@@ -405,7 +413,7 @@ public class RedisTaskRepository implements TaskRepository {
             o -> {
               try {
                 return mapper.readValue(o, Map.class);
-              } catch (IOException e) {
+              } catch (JacksonException e) {
                 throw new RuntimeException("Failed to convert result object to map", e);
               }
             })
@@ -424,7 +432,7 @@ public class RedisTaskRepository implements TaskRepository {
     String taskOutput;
     try {
       taskOutput = mapper.writeValueAsString(data);
-    } catch (JsonProcessingException e) {
+    } catch (JacksonException e) {
       throw new RuntimeException(
           "Failed to convert task output: " + output + " to string for task: " + task.getId(), e);
     }
@@ -457,7 +465,7 @@ public class RedisTaskRepository implements TaskRepository {
               Map<String, String> data;
               try {
                 data = mapper.readValue(o, HISTORY_TYPE);
-              } catch (IOException e) {
+              } catch (JacksonException e) {
                 throw new RuntimeException(
                     "Failed to convert task outputs to map for task: " + task.getId(), e);
               }

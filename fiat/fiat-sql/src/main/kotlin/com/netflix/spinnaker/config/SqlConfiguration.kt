@@ -15,7 +15,6 @@
  */
 package com.netflix.spinnaker.config
 
-import com.fasterxml.jackson.databind.ObjectMapper
 import com.netflix.spectator.api.Registry
 import com.netflix.spinnaker.fiat.model.resources.Resource
 import com.netflix.spinnaker.fiat.permissions.PermissionsRepository
@@ -29,6 +28,7 @@ import kotlinx.coroutines.newFixedThreadPoolContext
 import kotlinx.coroutines.slf4j.MDCContext
 import org.jooq.DSLContext
 import org.slf4j.LoggerFactory
+import org.springframework.beans.factory.annotation.Qualifier
 import org.springframework.beans.factory.annotation.Value
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty
 import org.springframework.context.annotation.Bean
@@ -36,6 +36,7 @@ import org.springframework.context.annotation.Configuration
 import org.springframework.context.annotation.Import
 import java.time.Clock
 import kotlin.contracts.ExperimentalContracts
+import tools.jackson.databind.ObjectMapper
 
 const val coroutineThreadPrefix = "sql"
 
@@ -59,7 +60,7 @@ class SqlConfiguration {
     @Bean
     @ObsoleteCoroutinesApi
     fun sqlPermissionsRepository(
-        objectMapper: ObjectMapper,
+        @Qualifier("objectMapper") objectMapper: ObjectMapper,
         registry: Registry,
         jooq: DSLContext,
         sqlProperties: SqlProperties,

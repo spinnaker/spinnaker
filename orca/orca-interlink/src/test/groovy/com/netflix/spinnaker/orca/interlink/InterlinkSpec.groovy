@@ -16,7 +16,7 @@
 
 package com.netflix.spinnaker.orca.interlink
 
-import com.fasterxml.jackson.databind.ObjectMapper
+import tools.jackson.databind.ObjectMapper
 import com.netflix.spinnaker.kork.core.RetrySupport
 import com.netflix.spinnaker.orca.api.pipeline.models.PipelineExecution
 import com.netflix.spinnaker.orca.api.pipeline.models.StageExecution
@@ -35,9 +35,10 @@ import java.time.Instant
 
 import static com.netflix.spinnaker.orca.api.pipeline.models.ExecutionType.ORCHESTRATION
 import static com.netflix.spinnaker.orca.api.pipeline.models.ExecutionType.PIPELINE
+import tools.jackson.databind.json.JsonMapper
 
 class InterlinkSpec extends Specification {
-  ObjectMapper objectMapper = new ObjectMapper()
+  ObjectMapper objectMapper = JsonMapper.builder().build()
   @Shared def cancel = new CancelInterlinkEvent(ORCHESTRATION, "execId", "user", "reason")
   @Shared def pause = new PauseInterlinkEvent(PIPELINE, "execId", "user")
   @Shared def resume = new ResumeInterlinkEvent(PIPELINE, "execId", "user", false).withPartition("partition")
@@ -72,7 +73,7 @@ class InterlinkSpec extends Specification {
     def executionOperator = Mock(CompoundExecutionOperator)
 
     when:
-    event.withObjectMapper(new ObjectMapper()).applyTo(executionOperator)
+    event.withObjectMapper(JsonMapper.builder().build()).applyTo(executionOperator)
 
     then:
     1 * executionOperator."$methodName"(*_)
@@ -103,7 +104,7 @@ class InterlinkSpec extends Specification {
         new RetrySupport(),
         lock
     )
-    def mapper = new ObjectMapper()
+    def mapper = JsonMapper.builder().build()
 
     and:
     def event = new PatchStageInterlinkEvent(ORCHESTRATION, "execId", "stageId",

@@ -16,7 +16,7 @@
 
 package com.netflix.spinnaker.igor.travis.client.logparser
 
-import com.fasterxml.jackson.core.JsonParseException
+import tools.jackson.core.JacksonException
 import spock.lang.Specification
 
 class PropertyParserTest extends Specification {
@@ -68,7 +68,7 @@ class PropertyParserTest extends Specification {
         PropertyParser.extractPropertiesFromLog(buildLog)
 
         then:
-        thrown(JsonParseException)
+        thrown(JacksonException)
     }
 
     def "Do not detect json magic string if it is not first non-whitespace substring in the line"() {

@@ -22,8 +22,6 @@ import static com.github.tomakehurst.wiremock.client.WireMock.putRequestedFor;
 import static com.github.tomakehurst.wiremock.client.WireMock.urlPathEqualTo;
 import static com.github.tomakehurst.wiremock.core.WireMockConfiguration.wireMockConfig;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import com.github.tomakehurst.wiremock.client.WireMock;
 import com.github.tomakehurst.wiremock.junit5.WireMockExtension;
 import com.netflix.spinnaker.echo.api.events.Event;
@@ -32,6 +30,7 @@ import com.netflix.spinnaker.echo.model.pubsub.MessageDescription;
 import com.netflix.spinnaker.echo.services.IgorService;
 import com.netflix.spinnaker.kork.core.RetrySupport;
 import com.netflix.spinnaker.kork.retrofit.ErrorHandlingExecutorCallAdapterFactory;
+import com.netflix.spinnaker.kork.retrofit.util.CustomConverterFactory;
 import com.netflix.spinnaker.kork.retrofit.util.RetrofitUtils;
 import java.util.HashMap;
 import java.util.Map;
@@ -40,7 +39,8 @@ import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.RegisterExtension;
 import retrofit2.Retrofit;
-import retrofit2.converter.jackson.JacksonConverterFactory;
+import tools.jackson.databind.ObjectMapper;
+import tools.jackson.databind.json.JsonMapper;
 
 public class GoogleCloudBuildNotificationAgentTest {
   public static final String ACCOUNT = "my-account";
@@ -52,7 +52,7 @@ public class GoogleCloudBuildNotificationAgentTest {
       WireMockExtension.newInstance().options(wireMockConfig().dynamicPort()).build();
 
   static GoogleCloudBuildNotificationAgent notificationAgent;
-  static ObjectMapper mapper = new ObjectMapper();
+  static ObjectMapper mapper = JsonMapper.builder().build();
 
   @BeforeAll
   public static void setup() {
@@ -62,7 +62,7 @@ public class GoogleCloudBuildNotificationAgentTest {
             .baseUrl(RetrofitUtils.getBaseUrl(wmIgor.baseUrl()))
             .client(new OkHttpClient())
             .addCallAdapterFactory(ErrorHandlingExecutorCallAdapterFactory.getInstance())
-            .addConverterFactory(JacksonConverterFactory.create())
+            .addConverterFactory(CustomConverterFactory.create())
             .build()
             .create(IgorService.class);
 
@@ -70,7 +70,7 @@ public class GoogleCloudBuildNotificationAgentTest {
   }
 
   @Test
-  public void testGoogleCloudBuildNotificationAgent() throws JsonProcessingException {
+  public void testGoogleCloudBuildNotificationAgent() {
     String updateBuildStatusUrl = "/gcb/builds/" + ACCOUNT + "/" + BUILD_ID;
 
     wmIgor.stubFor(
@@ -86,7 +86,7 @@ public class GoogleCloudBuildNotificationAgentTest {
             .withQueryParam("status", equalTo(BUILD_STATUS)));
   }
 
-  private Event createEvent() throws JsonProcessingException {
+  private Event createEvent() {
     MessageDescription messageDescription =
         MessageDescription.builder()
             .subscriptionName(ACCOUNT)

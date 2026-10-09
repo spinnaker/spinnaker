@@ -25,7 +25,6 @@ import static org.junit.jupiter.api.Named.named;
 import static org.junit.jupiter.params.provider.Arguments.arguments;
 
 import ch.qos.logback.classic.Level;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import com.github.tomakehurst.wiremock.client.WireMock;
 import com.github.tomakehurst.wiremock.http.Fault;
 import com.github.tomakehurst.wiremock.http.HttpHeader;
@@ -67,6 +66,8 @@ import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
 import org.junit.jupiter.params.provider.MethodSource;
 import org.springframework.http.HttpStatus;
+import tools.jackson.databind.ObjectMapper;
+import tools.jackson.databind.json.JsonMapper;
 
 public class EvaluateDeploymentHealthTaskTest {
 
@@ -92,7 +93,7 @@ public class EvaluateDeploymentHealthTaskTest {
 
   private static List<DeploymentMonitorDefinition> deploymentMonitorDefinitions;
 
-  private static ObjectMapper objectMapper = new ObjectMapper();
+  private static ObjectMapper objectMapper = JsonMapper.builder().build();
 
   private EvaluateDeploymentHealthTask evaluateDeploymentHealthTask;
 
@@ -134,7 +135,7 @@ public class EvaluateDeploymentHealthTaskTest {
   private static @NotNull DeploymentMonitorServiceProvider getDeploymentMonitorServiceProvider() {
     OkHttpClientProvider okHttpClientProvider = getOkHttpClientProvider();
 
-    ObjectMapper objectMapper = new ObjectMapper();
+    ObjectMapper objectMapper = JsonMapper.builder().build();
     DefaultServiceClientProvider serviceClientProvider =
         new DefaultServiceClientProvider(
             List.of(new Retrofit2ServiceFactory(okHttpClientProvider)), objectMapper);

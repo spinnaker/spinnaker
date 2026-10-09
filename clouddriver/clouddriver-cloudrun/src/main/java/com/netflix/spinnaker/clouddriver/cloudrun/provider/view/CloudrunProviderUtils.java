@@ -16,7 +16,6 @@
 
 package com.netflix.spinnaker.clouddriver.cloudrun.provider.view;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
 import com.netflix.spinnaker.cats.cache.Cache;
 import com.netflix.spinnaker.cats.cache.CacheData;
 import com.netflix.spinnaker.cats.cache.CacheFilter;
@@ -26,6 +25,7 @@ import com.netflix.spinnaker.clouddriver.cloudrun.model.CloudrunServerGroup;
 import java.util.*;
 import java.util.stream.Collectors;
 import lombok.extern.slf4j.Slf4j;
+import tools.jackson.databind.ObjectMapper;
 
 @Slf4j
 public class CloudrunProviderUtils {

@@ -16,7 +16,6 @@
 
 package com.netflix.kayenta.datadog.config;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
 import com.netflix.kayenta.datadog.metrics.DatadogMetricsService;
 import com.netflix.kayenta.datadog.security.DatadogCredentials;
 import com.netflix.kayenta.datadog.security.DatadogNamedAccountCredentials;
@@ -27,6 +26,7 @@ import com.netflix.kayenta.retrofit.config.RetrofitClientFactory;
 import com.netflix.kayenta.security.AccountCredentials;
 import com.netflix.kayenta.security.AccountCredentialsRepository;
 import com.netflix.spinnaker.kork.annotations.VisibleForTesting;
+import com.netflix.spinnaker.kork.retrofit.util.CustomConverterFactory;
 import java.util.List;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
@@ -35,7 +35,7 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.ComponentScan;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.util.CollectionUtils;
-import retrofit2.converter.jackson.JacksonConverterFactory;
+import tools.jackson.databind.ObjectMapper;
 
 @Configuration
 @ConditionalOnProperty("kayenta.datadog.enabled")
@@ -107,6 +107,6 @@ public class DatadogConfiguration {
       RemoteService endpoint) {
 
     return retrofitClientFactory.createClient(
-        DatadogRemoteService.class, JacksonConverterFactory.create(objectMapper), endpoint);
+        DatadogRemoteService.class, CustomConverterFactory.create(objectMapper), endpoint);
   }
 }

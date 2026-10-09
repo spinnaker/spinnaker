@@ -21,7 +21,6 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.*;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
 import com.netflix.spectator.api.Counter;
 import com.netflix.spectator.api.Id;
 import com.netflix.spectator.api.NoopRegistry;
@@ -57,6 +56,8 @@ import org.springframework.boot.context.properties.EnableConfigurationProperties
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.test.context.ContextConfiguration;
+import tools.jackson.databind.ObjectMapper;
+import tools.jackson.databind.json.JsonMapper;
 
 @ExtendWith(MockitoExtension.class)
 @ContextConfiguration(
@@ -91,7 +92,7 @@ public class ExecutionLauncherConfigurationTest extends YamlFileApplicationConte
 
   @BeforeEach
   public void setup() {
-    objectMapper = new ObjectMapper();
+    objectMapper = JsonMapper.builder().build();
     clock = Clock.systemUTC();
     pipelineValidator = Optional.empty();
     registry = new NoopRegistry();

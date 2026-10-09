@@ -30,7 +30,6 @@ dependencies {
   testImplementation("org.assertj:assertj-core")
   testImplementation("org.wiremock:wiremock")
   testImplementation("com.squareup.retrofit2:retrofit-mock")
-  testImplementation("com.squareup.retrofit2:converter-jackson")
   testRuntimeOnly("net.bytebuddy:byte-buddy")
 }
 

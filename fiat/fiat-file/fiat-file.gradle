@@ -17,9 +17,8 @@
 dependencies {
   implementation project(":fiat-roles")
   implementation project(":fiat-core")
-  implementation "com.fasterxml.jackson.core:jackson-core"
-  implementation "com.fasterxml.jackson.core:jackson-databind"
-  implementation "com.fasterxml.jackson.dataformat:jackson-dataformat-yaml"
+  implementation "tools.jackson.core:jackson-databind"
+  implementation "tools.jackson.dataformat:jackson-dataformat-yaml"
   implementation "commons-io:commons-io"
   implementation "org.springframework.boot:spring-boot-autoconfigure"
   implementation "org.slf4j:slf4j-api"

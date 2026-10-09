@@ -166,11 +166,10 @@ configurations {
 
 dependencies {
     implementation project(":kayenta-core")
-    implementation "com.squareup.retrofit2:converter-jackson"
 
     api "org.apache.commons:commons-io:1.3.2"
 
- //   testImplementation "com.fasterxml.jackson.core:jackson-databind"
+ //   testImplementation "tools.jackson.core:jackson-databind"
 
     // Integration Test dependencies
     integrationTestImplementation sourceSets.main.output

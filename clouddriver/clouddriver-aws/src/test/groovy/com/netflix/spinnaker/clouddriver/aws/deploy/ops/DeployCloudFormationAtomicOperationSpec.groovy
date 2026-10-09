@@ -16,7 +16,6 @@
 
 package com.netflix.spinnaker.clouddriver.aws.deploy.ops
 
-import com.fasterxml.jackson.databind.ObjectMapper
 import com.netflix.spinnaker.clouddriver.aws.AwsConfigurationProperties
 import com.netflix.spinnaker.clouddriver.aws.TestCredential
 import com.netflix.spinnaker.clouddriver.aws.deploy.description.DeployCloudFormationDescription
@@ -38,6 +37,7 @@ import software.amazon.awssdk.services.cloudformation.model.Tag
 import software.amazon.awssdk.services.cloudformation.model.UpdateStackRequest
 import software.amazon.awssdk.services.cloudformation.model.UpdateStackResponse
 import software.amazon.awssdk.services.cloudformation.model.ValidateTemplateRequest
+import tools.jackson.databind.json.JsonMapper
 import spock.lang.Specification
 import spock.lang.Unroll
 
@@ -67,7 +67,7 @@ class DeployCloudFormationAtomicOperationSpec extends Specification {
       )
     )
     op.amazonClientProvider = amazonClientProvider
-    op.objectMapper = new ObjectMapper()
+    op.objectMapper = JsonMapper.builder().build()
 
     when:
     op.operate([])
@@ -115,7 +115,7 @@ class DeployCloudFormationAtomicOperationSpec extends Specification {
       )
     )
     op.amazonClientProvider = amazonClientProvider
-    op.objectMapper = new ObjectMapper()
+    op.objectMapper = JsonMapper.builder().build()
 
     when:
     op.operate([])
@@ -171,7 +171,7 @@ class DeployCloudFormationAtomicOperationSpec extends Specification {
     )
     op.amazonClientProvider = amazonClientProvider
     op.awsConfigurationProperties = awsConfigurationProperties
-    op.objectMapper = new ObjectMapper()
+    op.objectMapper = JsonMapper.builder().build()
 
     when:
     op.operate([])
@@ -228,7 +228,7 @@ class DeployCloudFormationAtomicOperationSpec extends Specification {
       )
     )
     op.amazonClientProvider = amazonClientProvider
-    op.objectMapper = new ObjectMapper()
+    op.objectMapper = JsonMapper.builder().build()
 
     when:
     op.operate([])
@@ -265,7 +265,7 @@ class DeployCloudFormationAtomicOperationSpec extends Specification {
       )
     )
     op.amazonClientProvider = amazonClientProvider
-    op.objectMapper = new ObjectMapper()
+    op.objectMapper = JsonMapper.builder().build()
 
     when:
     op.operate([])
@@ -301,7 +301,7 @@ class DeployCloudFormationAtomicOperationSpec extends Specification {
       )
     )
     op.amazonClientProvider = amazonClientProvider
-    op.objectMapper = new ObjectMapper()
+    op.objectMapper = JsonMapper.builder().build()
 
     when:
     op.operate([])

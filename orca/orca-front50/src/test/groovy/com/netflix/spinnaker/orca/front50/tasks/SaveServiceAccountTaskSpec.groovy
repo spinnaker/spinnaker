@@ -16,7 +16,7 @@
 
 package com.netflix.spinnaker.orca.front50.tasks
 
-import com.fasterxml.jackson.databind.ObjectMapper
+import tools.jackson.databind.ObjectMapper
 import com.google.common.collect.ImmutableMap
 import com.google.common.hash.Hashing
 import com.netflix.spinnaker.fiat.model.UserPermission
@@ -34,6 +34,7 @@ import spock.lang.Specification
 import spock.lang.Subject
 
 import static com.netflix.spinnaker.orca.test.model.ExecutionBuilder.stage
+import tools.jackson.databind.json.JsonMapper
 
 class SaveServiceAccountTaskSpec extends Specification {
   Front50Service front50Service = Mock(Front50Service)
@@ -41,7 +42,7 @@ class SaveServiceAccountTaskSpec extends Specification {
   FiatStatus fiatStatus = Mock() {
     _ * isEnabled() >> true
   }
-  ObjectMapper objectMapper = new ObjectMapper()
+  ObjectMapper objectMapper = JsonMapper.builder().build()
   boolean useSharedManagedServiceAccounts = false
 
   @Subject

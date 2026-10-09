@@ -25,8 +25,6 @@ import static org.assertj.core.api.AssertionsForInterfaceTypes.assertThat;
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.anyString;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import com.github.tomakehurst.wiremock.client.WireMock;
 import com.github.tomakehurst.wiremock.junit5.WireMockExtension;
 import com.netflix.spinnaker.kork.client.ServiceClientProvider;
@@ -35,6 +33,7 @@ import com.netflix.spinnaker.kork.docker.model.DockerRegistryCatalog;
 import com.netflix.spinnaker.kork.docker.model.DockerRegistryTags;
 import com.netflix.spinnaker.kork.retrofit.ErrorHandlingExecutorCallAdapterFactory;
 import com.netflix.spinnaker.kork.retrofit.exceptions.SpinnakerHttpException;
+import com.netflix.spinnaker.kork.retrofit.util.CustomConverterFactory;
 import java.util.Arrays;
 import java.util.Map;
 import okhttp3.MediaType;
@@ -51,7 +50,8 @@ import org.springframework.http.HttpStatus;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import retrofit2.Response;
 import retrofit2.Retrofit;
-import retrofit2.converter.jackson.JacksonConverterFactory;
+import tools.jackson.databind.ObjectMapper;
+import tools.jackson.databind.json.JsonMapper;
 
 @SpringBootTest(classes = {DockerBearerTokenService.class})
 public class DockerRegistryClientTest {
@@ -68,7 +68,7 @@ public class DockerRegistryClientTest {
   static DockerRegistryClient dockerRegistryClient;
   static DockerRegistryClient dockerRegistryClient2;
 
-  ObjectMapper objectMapper = new ObjectMapper();
+  ObjectMapper objectMapper = JsonMapper.builder().build();
   Map<String, Object> tagsResponse;
   String tagsResponseString;
   String tagsSecondResponseString;
@@ -79,7 +79,7 @@ public class DockerRegistryClientTest {
   String catalogThirdResponseString;
 
   @BeforeEach
-  public void init() throws JsonProcessingException {
+  public void init() {
     tagsResponse =
         Map.of(
             "name",
@@ -130,7 +130,7 @@ public class DockerRegistryClientTest {
         .baseUrl(baseUrl)
         .client(new OkHttpClient())
         .addCallAdapterFactory(ErrorHandlingExecutorCallAdapterFactory.getInstance())
-        .addConverterFactory(JacksonConverterFactory.create())
+        .addConverterFactory(CustomConverterFactory.create(JsonMapper.builder().build()))
         .build()
         .create(type);
   }
@@ -259,7 +259,7 @@ public class DockerRegistryClientTest {
   }
 
   @Test
-  public void testTagsResponse_With_AdditionalFields() throws JsonProcessingException {
+  public void testTagsResponse_With_AdditionalFields() {
     Map<String, Object> tagsResponse =
         Map.of(
             "child",
@@ -514,7 +514,7 @@ public class DockerRegistryClientTest {
     Retrofit retrofit =
         new Retrofit.Builder()
             .baseUrl(url)
-            .addConverterFactory(JacksonConverterFactory.create())
+            .addConverterFactory(CustomConverterFactory.create(JsonMapper.builder().build()))
             .build();
 
     return new SpinnakerHttpException(retrofit2Response, retrofit);

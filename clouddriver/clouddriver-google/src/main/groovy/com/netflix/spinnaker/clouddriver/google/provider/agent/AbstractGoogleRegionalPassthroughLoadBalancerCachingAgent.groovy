@@ -16,7 +16,8 @@
 
 package com.netflix.spinnaker.clouddriver.google.provider.agent
 
-import com.fasterxml.jackson.databind.ObjectMapper
+import tools.jackson.databind.ObjectMapper
+import tools.jackson.databind.json.JsonMapper
 import com.google.api.client.googleapis.batch.json.JsonBatchCallback
 import com.google.api.client.googleapis.json.GoogleJsonError
 import com.google.api.client.http.HttpHeaders
@@ -181,7 +182,7 @@ abstract class AbstractGoogleRegionalPassthroughLoadBalancerCachingAgent<T exten
       @Override
       void onFailure(GoogleJsonError e, HttpHeaders responseHeaders) throws IOException {
         if (e.code != 404) {
-          def errorJson = new ObjectMapper().writerWithDefaultPrettyPrinter().writeValueAsString(e)
+          def errorJson = JsonMapper.builder().build().writerWithDefaultPrettyPrinter().writeValueAsString(e)
           log.error errorJson
         }
       }

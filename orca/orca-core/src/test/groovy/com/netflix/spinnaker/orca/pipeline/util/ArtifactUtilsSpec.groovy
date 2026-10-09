@@ -17,21 +17,22 @@
 
 package com.netflix.spinnaker.orca.pipeline.util
 
-import com.fasterxml.jackson.core.type.TypeReference
-import com.fasterxml.jackson.databind.ObjectMapper
 import com.netflix.spinnaker.kork.artifacts.model.Artifact
 import com.netflix.spinnaker.kork.artifacts.model.ExpectedArtifact
 import com.netflix.spinnaker.orca.api.pipeline.models.ExecutionStatus
+import com.netflix.spinnaker.orca.jackson.OrcaObjectMapper
 import com.netflix.spinnaker.orca.pipeline.model.DefaultTrigger
 import com.netflix.spinnaker.orca.pipeline.persistence.ExecutionRepository
 import io.reactivex.rxjava3.core.Observable
 import spock.lang.Specification
+import tools.jackson.core.type.TypeReference
+import tools.jackson.databind.ObjectMapper
 
 import static com.netflix.spinnaker.orca.test.model.ExecutionBuilder.pipeline
 import static com.netflix.spinnaker.orca.test.model.ExecutionBuilder.stage
 
 class ArtifactUtilsSpec extends Specification {
-  ObjectMapper objectMapper = new ObjectMapper()
+  ObjectMapper objectMapper = OrcaObjectMapper.newInstance()
 
   def pipelineId = "abc"
 
@@ -53,7 +54,7 @@ class ArtifactUtilsSpec extends Specification {
   }
 
   def makeArtifactUtilsWithStub(ExecutionRepository executionRepositoryStub) {
-    return new ArtifactUtils(new ObjectMapper(), executionRepositoryStub,
+    return new ArtifactUtils(OrcaObjectMapper.newInstance(), executionRepositoryStub,
       new ContextParameterProcessor())
   }
 

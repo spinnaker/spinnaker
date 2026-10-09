@@ -16,19 +16,27 @@
 
 package com.netflix.spinnaker.clouddriver.azure.resources.appgateway.deploy.converters
 
-import com.fasterxml.jackson.databind.ObjectMapper
-import com.fasterxml.jackson.databind.SerializationFeature
+import tools.jackson.databind.MapperFeature
+import tools.jackson.databind.ObjectMapper
+import tools.jackson.databind.SerializationFeature
 import com.netflix.spinnaker.clouddriver.azure.resources.appgateway.model.AzureAppGatewayDescription
 import com.netflix.spinnaker.clouddriver.azure.resources.loadbalancer.ops.converters.UpsertAzureLoadBalancerAtomicOperationConverter
 import com.netflix.spinnaker.clouddriver.azure.security.AzureNamedAccountCredentials
 import com.netflix.spinnaker.clouddriver.security.AccountCredentialsProvider
 import spock.lang.Shared
 import spock.lang.Specification
+import tools.jackson.databind.json.JsonMapper
 
 class UpsertAzureAppGatewayAtomicOperationConverterSpec extends  Specification{
 
   @Shared
-  ObjectMapper mapper = new ObjectMapper()
+  ObjectMapper mapper =
+      JsonMapper.builder()
+          .enable(SerializationFeature.INDENT_OUTPUT)
+          .disable(SerializationFeature.FAIL_ON_EMPTY_BEANS)
+          .disable(MapperFeature.SORT_PROPERTIES_ALPHABETICALLY)
+          .disable(MapperFeature.SORT_CREATOR_PROPERTIES_FIRST)
+          .build()
   @Shared UpsertAzureLoadBalancerAtomicOperationConverter converter
 
   def setupSpec() {
@@ -41,9 +49,6 @@ class UpsertAzureAppGatewayAtomicOperationConverterSpec extends  Specification{
 
   void "Create an AzureAppGatewayDescription from a given input"() {
     setup:
-    mapper.configure(SerializationFeature.INDENT_OUTPUT, true)
-    mapper.configure(SerializationFeature.FAIL_ON_EMPTY_BEANS, false)
-
     when:
     def description = converter.convertDescription(basicGatewayInput)
 
@@ -54,9 +59,6 @@ class UpsertAzureAppGatewayAtomicOperationConverterSpec extends  Specification{
 
   void "Create an AzureAppGatewayDescription from a given input with v2 sku"() {
     setup:
-    mapper.configure(SerializationFeature.INDENT_OUTPUT, true)
-    mapper.configure(SerializationFeature.FAIL_ON_EMPTY_BEANS, false)
-
     def input = basicGatewayInput
     input['sku'] = 'Standard_v2'
     input['tier'] = 'Standard_v2'

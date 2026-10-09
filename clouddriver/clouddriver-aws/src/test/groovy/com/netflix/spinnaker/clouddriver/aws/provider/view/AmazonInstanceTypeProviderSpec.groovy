@@ -16,13 +16,13 @@
 
 package com.netflix.spinnaker.clouddriver.aws.provider.view
 
-import com.fasterxml.jackson.databind.ObjectMapper
 import com.netflix.spinnaker.cats.cache.Cache
 import com.netflix.spinnaker.cats.cache.CacheData
 import com.netflix.spinnaker.cats.cache.CacheFilter
 import com.netflix.spinnaker.cats.cache.DefaultCacheData
 import com.netflix.spinnaker.clouddriver.aws.cache.Keys
 import com.netflix.spinnaker.clouddriver.aws.model.AmazonInstanceType
+import tools.jackson.databind.json.JsonMapper
 import spock.lang.Specification
 import spock.lang.Subject
 
@@ -32,7 +32,7 @@ class AmazonInstanceTypeProviderSpec extends Specification {
   AmazonInstanceTypeProviderConfiguration config = new AmazonInstanceTypeProviderConfiguration()
 
   @Subject
-  AmazonInstanceTypeProvider provider = new AmazonInstanceTypeProvider(cache, new ObjectMapper(), config)
+  AmazonInstanceTypeProvider provider = new AmazonInstanceTypeProvider(cache, JsonMapper.builder().build(), config)
 
   void "should retrieve all instance types"() {
     when:

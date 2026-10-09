@@ -4,8 +4,8 @@ apply from: "$rootDir/gradle/spek.gradle"
 
 dependencies {
   api project(":keiko-core")
-  api "com.fasterxml.jackson.core:jackson-databind"
-  api "com.fasterxml.jackson.module:jackson-module-kotlin"
+  api "tools.jackson.core:jackson-databind"
+  api "tools.jackson.module:jackson-module-kotlin"
   api "io.arrow-kt:arrow-core"
   api "com.github.ben-manes.caffeine:guava"
 

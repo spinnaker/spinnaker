@@ -16,8 +16,6 @@
 
 package com.netflix.spinnaker.orca.clouddriver.tasks.providers.aws.lambda;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import com.netflix.spinnaker.kork.core.RetrySupport;
 import com.netflix.spinnaker.kork.web.exceptions.NotFoundException;
 import com.netflix.spinnaker.orca.api.pipeline.TaskResult;
@@ -40,6 +38,9 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 import org.springframework.util.StringUtils;
+import tools.jackson.core.JacksonException;
+import tools.jackson.databind.ObjectMapper;
+import tools.jackson.databind.json.JsonMapper;
 
 @Component
 public class LambdaCacheRefreshTask implements LambdaStageBaseTask {
@@ -65,7 +66,7 @@ public class LambdaCacheRefreshTask implements LambdaStageBaseTask {
     this.config = config;
   }
 
-  private static final ObjectMapper objectMapper = new ObjectMapper();
+  private static final ObjectMapper objectMapper = JsonMapper.builder().build();
 
   @Nonnull
   @Override
@@ -188,7 +189,7 @@ public class LambdaCacheRefreshTask implements LambdaStageBaseTask {
                 }
                 logger.warn("No on demand cache refresh found for  " + id);
                 throw new RuntimeException("No on demand cache refresh found for " + id);
-              } catch (JsonProcessingException e) {
+              } catch (JacksonException e) {
                 throw new RuntimeException(e);
               }
             },

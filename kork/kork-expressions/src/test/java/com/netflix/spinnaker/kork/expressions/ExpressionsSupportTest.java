@@ -346,4 +346,32 @@ public class ExpressionsSupportTest {
       return builder.build();
     }
   }
+
+  @Test
+  void toJsonKeepsLegacyAcronymPropertyNames() {
+    assertEquals(
+        "{\"oauthScopes\":\"scope\"}",
+        ExpressionsSupport.JsonExpressionFunctionProvider.toJson(new OAuthBean()));
+  }
+
+  static class OAuthBean {
+    private String oAuthScopes = "scope";
+
+    public String getOAuthScopes() {
+      return oAuthScopes;
+    }
+  }
+
+  @Test
+  void toJsonKeepsDeclarationOrderAndEpochDates() {
+    class Bean {
+      public String zeta = "z";
+      public String alpha = "a";
+      public java.util.Date when = new java.util.Date(0);
+    }
+
+    assertEquals(
+        "{\"zeta\":\"z\",\"alpha\":\"a\",\"when\":0}",
+        ExpressionsSupport.JsonExpressionFunctionProvider.toJson(new Bean()));
+  }
 }

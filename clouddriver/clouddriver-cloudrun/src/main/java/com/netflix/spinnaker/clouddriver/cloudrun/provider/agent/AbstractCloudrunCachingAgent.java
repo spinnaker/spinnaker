@@ -1,6 +1,5 @@
 package com.netflix.spinnaker.clouddriver.cloudrun.provider.agent;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.api.client.googleapis.batch.BatchRequest;
 import com.netflix.spinnaker.cats.agent.AccountAware;
 import com.netflix.spinnaker.cats.agent.AgentIntervalAware;
@@ -13,6 +12,7 @@ import java.io.IOException;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.TimeUnit;
+import tools.jackson.databind.ObjectMapper;
 
 public abstract class AbstractCloudrunCachingAgent
     implements CachingAgent, AccountAware, AgentIntervalAware {

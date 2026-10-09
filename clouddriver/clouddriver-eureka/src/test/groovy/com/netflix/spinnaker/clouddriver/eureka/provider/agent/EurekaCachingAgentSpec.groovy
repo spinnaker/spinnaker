@@ -1,6 +1,6 @@
 package com.netflix.spinnaker.clouddriver.eureka.provider.agent
 
-import com.fasterxml.jackson.databind.ObjectMapper
+import tools.jackson.databind.ObjectMapper
 import com.netflix.spinnaker.cats.provider.ProviderCache
 import com.netflix.spinnaker.clouddriver.eureka.api.EurekaApi
 import com.netflix.spinnaker.clouddriver.eureka.model.DataCenterInfo
@@ -14,13 +14,14 @@ import spock.lang.Specification
 
 import static com.netflix.spinnaker.clouddriver.core.provider.agent.Namespace.HEALTH
 import static com.netflix.spinnaker.clouddriver.core.provider.agent.Namespace.INSTANCES
+import tools.jackson.databind.json.JsonMapper
 
 class EurekaCachingAgentSpec extends Specification {
   def providerCache = Stub(ProviderCache)
   def eurekaApi = Stub(EurekaApi)
   def eap = new TestEurekaAwareProvider()
 
-  def agent = new EurekaCachingAgent(eurekaApi, "us-foo-2", new ObjectMapper(), "http://eureka", "true", "eureka-foo", [eap], 0, 0)
+  def agent = new EurekaCachingAgent(eurekaApi, "us-foo-2", JsonMapper.builder().build(), "http://eureka", "true", "eureka-foo", [eap], 0, 0)
 
   def "it should cache instances"() {
     given:

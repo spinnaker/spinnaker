@@ -16,7 +16,6 @@
 
 package com.netflix.spinnaker.cats.redis.cache
 
-import com.fasterxml.jackson.databind.ObjectMapper
 import com.netflix.spinnaker.cats.cache.DefaultCacheData
 import com.netflix.spinnaker.kork.jedis.EmbeddedRedis
 import com.netflix.spinnaker.kork.jedis.JedisClientDelegate
@@ -25,6 +24,7 @@ import redis.clients.jedis.JedisPool
 import spock.lang.AutoCleanup
 import spock.lang.Specification
 import spock.lang.Subject
+import tools.jackson.databind.json.JsonMapper
 
 class RedisNamedCacheFactorySpec extends Specification {
 
@@ -45,7 +45,7 @@ class RedisNamedCacheFactorySpec extends Specification {
             jedis?.close()
         }
 
-        def mapper = new ObjectMapper();
+        def mapper = JsonMapper.builder().build()
         factory = new RedisNamedCacheFactory(new JedisClientDelegate(pool), mapper, RedisCacheOptions.builder().build(), null)
     }
 

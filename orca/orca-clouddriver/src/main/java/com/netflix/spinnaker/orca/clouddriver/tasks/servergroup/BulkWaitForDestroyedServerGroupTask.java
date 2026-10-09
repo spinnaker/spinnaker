@@ -16,7 +16,6 @@
 
 package com.netflix.spinnaker.orca.clouddriver.tasks.servergroup;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
 import com.netflix.spinnaker.kork.retrofit.Retrofit2SyncCall;
 import com.netflix.spinnaker.kork.retrofit.exceptions.SpinnakerHttpException;
 import com.netflix.spinnaker.orca.api.pipeline.RetryableTask;
@@ -30,7 +29,6 @@ import com.netflix.spinnaker.orca.clouddriver.model.ServerGroup;
 import com.netflix.spinnaker.orca.clouddriver.utils.CloudProviderAware;
 import com.netflix.spinnaker.orca.clouddriver.utils.MonikerHelper;
 import com.netflix.spinnaker.orca.retrofit.exceptions.SpinnakerServerExceptionHandler;
-import java.io.IOException;
 import java.util.*;
 import java.util.stream.Collectors;
 import okhttp3.ResponseBody;
@@ -39,6 +37,8 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 import retrofit2.Response;
+import tools.jackson.core.JacksonException;
+import tools.jackson.databind.ObjectMapper;
 
 @Component
 public class BulkWaitForDestroyedServerGroupTask implements CloudProviderAware, RetryableTask {
@@ -97,7 +97,7 @@ public class BulkWaitForDestroyedServerGroupTask implements CloudProviderAware, 
       return TaskResult.builder(ExecutionStatus.RUNNING).context(output).build();
     } catch (SpinnakerHttpException e) {
       return handleSpinnakerHttpException(stage, e);
-    } catch (IOException e) {
+    } catch (JacksonException e) {
       throw new IllegalArgumentException("Failed to fetch cluster details", e);
     }
   }

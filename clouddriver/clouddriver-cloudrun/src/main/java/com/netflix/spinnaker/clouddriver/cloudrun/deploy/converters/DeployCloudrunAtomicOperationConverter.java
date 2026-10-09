@@ -16,7 +16,6 @@
 
 package com.netflix.spinnaker.clouddriver.cloudrun.deploy.converters;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
 import com.netflix.spinnaker.clouddriver.cloudrun.CloudrunOperation;
 import com.netflix.spinnaker.clouddriver.cloudrun.deploy.description.DeployCloudrunDescription;
 import com.netflix.spinnaker.clouddriver.cloudrun.deploy.ops.DeployCloudrunAtomicOperation;
@@ -28,6 +27,7 @@ import groovy.util.logging.Slf4j;
 import java.util.Map;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
+import tools.jackson.databind.ObjectMapper;
 
 @CloudrunOperation(AtomicOperations.CREATE_SERVER_GROUP)
 @Component

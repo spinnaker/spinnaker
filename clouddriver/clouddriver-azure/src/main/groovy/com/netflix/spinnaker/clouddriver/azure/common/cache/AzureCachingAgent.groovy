@@ -16,8 +16,8 @@
 
 package com.netflix.spinnaker.clouddriver.azure.common.cache
 
-import com.fasterxml.jackson.databind.ObjectMapper
-import com.fasterxml.jackson.databind.SerializationFeature
+import tools.jackson.databind.ObjectMapper
+import tools.jackson.databind.SerializationFeature
 import com.netflix.spinnaker.cats.agent.AccountAware
 import com.netflix.spinnaker.cats.agent.AgentDataType
 import com.netflix.spinnaker.cats.agent.CacheResult
@@ -29,6 +29,7 @@ import com.netflix.spinnaker.clouddriver.azure.resources.common.cache.provider.A
 import com.netflix.spinnaker.clouddriver.azure.security.AzureCredentials
 import com.netflix.spinnaker.clouddriver.cache.OnDemandAgent
 import com.netflix.spinnaker.clouddriver.cache.OnDemandType
+import tools.jackson.databind.cfg.DateTimeFeature
 
 abstract class AzureCachingAgent implements CachingAgent, OnDemandAgent, AccountAware {
 
@@ -52,7 +53,7 @@ abstract class AzureCachingAgent implements CachingAgent, OnDemandAgent, Account
     this.accountName = accountName
     this.creds = creds
     this.region = region
-    this.objectMapper = objectMapper.enable(SerializationFeature.WRITE_DATES_AS_TIMESTAMPS)
+    this.objectMapper = objectMapper.rebuild().enable(DateTimeFeature.WRITE_DATES_AS_TIMESTAMPS).build()
 
     types = initializeTypes()
   }

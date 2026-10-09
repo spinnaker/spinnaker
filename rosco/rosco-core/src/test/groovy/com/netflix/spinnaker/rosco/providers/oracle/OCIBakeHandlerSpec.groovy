@@ -9,7 +9,7 @@
 
 package com.netflix.spinnaker.rosco.providers.oracle
 
-import com.fasterxml.jackson.databind.ObjectMapper
+import tools.jackson.databind.ObjectMapper
 import com.netflix.spinnaker.rosco.api.Bake
 import com.netflix.spinnaker.rosco.api.BakeOptions
 import com.netflix.spinnaker.rosco.api.BakeRequest
@@ -21,6 +21,7 @@ import com.netflix.spinnaker.rosco.providers.util.TestDefaults
 import spock.lang.Shared
 import spock.lang.Specification
 import spock.lang.Subject
+import tools.jackson.databind.json.JsonMapper
 
 class OCIBakeHandlerSpec extends Specification implements TestDefaults {
   private static final String ACCOUNT1 = "account1"
@@ -65,7 +66,7 @@ class OCIBakeHandlerSpec extends Specification implements TestDefaults {
       ]
     ]
 
-    oracleBakeryDefaults = new ObjectMapper().convertValue(oracleBakeryDefaultsJson, OracleBakeryDefaults)
+    oracleBakeryDefaults = JsonMapper.builder().build().convertValue(oracleBakeryDefaultsJson, OracleBakeryDefaults)
 
     def oracleConfigurationPropertiesJson = [
       accounts: [
@@ -92,7 +93,7 @@ class OCIBakeHandlerSpec extends Specification implements TestDefaults {
       ]
     ]
 
-    oracleConfigurationProperties = new ObjectMapper().convertValue(oracleConfigurationPropertiesJson, OracleConfigurationProperties)
+    oracleConfigurationProperties = JsonMapper.builder().build().convertValue(oracleConfigurationPropertiesJson, OracleConfigurationProperties)
   }
 
   def private getLogContent(boolean withImageName) {

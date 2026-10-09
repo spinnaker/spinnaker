@@ -15,8 +15,6 @@
  */
 package com.netflix.spinnaker.clouddriver.sql.event
 
-import com.fasterxml.jackson.core.JsonProcessingException
-import com.fasterxml.jackson.databind.ObjectMapper
 import com.netflix.spinnaker.clouddriver.event.Aggregate
 import com.netflix.spinnaker.clouddriver.event.CompositeSpinnakerEvent
 import com.netflix.spinnaker.clouddriver.event.EventMetadata
@@ -28,6 +26,8 @@ import org.jooq.Select
 import org.jooq.SelectConditionStep
 import org.jooq.SelectJoinStep
 import org.jooq.impl.DSL.currentTimestamp
+import tools.jackson.core.JacksonException
+import tools.jackson.databind.ObjectMapper
 
 /**
  * Adds an arbitrary number of [conditions] to a query joined by `AND` operator.
@@ -102,7 +102,7 @@ internal fun Select<out Record>.fetchEvents(objectMapper: ObjectMapper): List<Sp
             }
           }
           add(event)
-        } catch (e: JsonProcessingException) {
+        } catch (e: JacksonException) {
           throw InvalidEventTypeException(e)
         }
       }
