@@ -28,6 +28,7 @@ import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.util.List;
 import java.util.function.Function;
 import okhttp3.OkHttpClient;
 import org.apache.commons.io.Charsets;
@@ -49,7 +50,15 @@ class GitlabArtifactCredentialsTest {
   void downloadWithToken(@WiremockResolver.Wiremock WireMockServer server) throws IOException {
     GitlabArtifactAccount account =
         GitlabArtifactAccount.builder()
+<<<<<<< HEAD
             .urlRestrictions(HttpUrlRestrictions.builder().rejectLocalhost(false).build())
+=======
+            .urlRestrictions(
+                UrlRestrictionsProperties.builder()
+                    .rejectLocalhost(false)
+                    .allowedDomains(List.of("localhost"))
+                    .build())
+>>>>>>> 4d2819f (fix(clouddriver)!: require allowedDomains for artifact accounts that send credentials (#8171))
             .name("my-gitlab-account")
             .token("abc")
             .build();
@@ -67,7 +76,15 @@ class GitlabArtifactCredentialsTest {
     GitlabArtifactAccount account =
         GitlabArtifactAccount.builder()
             .name("my-gitlab-account")
+<<<<<<< HEAD
             .urlRestrictions(HttpUrlRestrictions.builder().rejectLocalhost(false).build())
+=======
+            .urlRestrictions(
+                UrlRestrictionsProperties.builder()
+                    .rejectLocalhost(false)
+                    .allowedDomains(List.of("localhost"))
+                    .build())
+>>>>>>> 4d2819f (fix(clouddriver)!: require allowedDomains for artifact accounts that send credentials (#8171))
             .tokenFile(authFile.toAbsolutePath().toString())
             .build();
 
@@ -78,7 +95,15 @@ class GitlabArtifactCredentialsTest {
   void downloadWithNoAuth(@WiremockResolver.Wiremock WireMockServer server) throws IOException {
     GitlabArtifactAccount account =
         GitlabArtifactAccount.builder()
+<<<<<<< HEAD
             .urlRestrictions(HttpUrlRestrictions.builder().rejectLocalhost(false).build())
+=======
+            .urlRestrictions(
+                UrlRestrictionsProperties.builder()
+                    .rejectLocalhost(false)
+                    .allowedDomains(List.of("localhost"))
+                    .build())
+>>>>>>> 4d2819f (fix(clouddriver)!: require allowedDomains for artifact accounts that send credentials (#8171))
             .name("my-gitlab-account")
             .build();
 

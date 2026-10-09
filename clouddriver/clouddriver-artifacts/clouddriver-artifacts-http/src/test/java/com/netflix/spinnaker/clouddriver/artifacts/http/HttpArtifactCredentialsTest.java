@@ -28,6 +28,7 @@ import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.util.List;
 import java.util.function.Function;
 import okhttp3.OkHttpClient;
 import org.apache.commons.io.Charsets;
@@ -48,7 +49,15 @@ class HttpArtifactCredentialsTest {
   void downloadWithBasicAuth(@WiremockResolver.Wiremock WireMockServer server) throws IOException {
     HttpArtifactAccount account =
         HttpArtifactAccount.builder()
+<<<<<<< HEAD
             .urlRestrictions(HttpUrlRestrictions.builder().rejectLocalhost(false).build())
+=======
+            .urlRestrictions(
+                UrlRestrictionsProperties.builder()
+                    .rejectLocalhost(false)
+                    .allowedDomains(List.of("localhost"))
+                    .build())
+>>>>>>> 4d2819f (fix(clouddriver)!: require allowedDomains for artifact accounts that send credentials (#8171))
             .name("my-http-account")
             .username("user")
             .password("passw0rd")
@@ -66,7 +75,15 @@ class HttpArtifactCredentialsTest {
 
     HttpArtifactAccount account =
         HttpArtifactAccount.builder()
+<<<<<<< HEAD
             .urlRestrictions(HttpUrlRestrictions.builder().rejectLocalhost(false).build())
+=======
+            .urlRestrictions(
+                UrlRestrictionsProperties.builder()
+                    .rejectLocalhost(false)
+                    .allowedDomains(List.of("localhost"))
+                    .build())
+>>>>>>> 4d2819f (fix(clouddriver)!: require allowedDomains for artifact accounts that send credentials (#8171))
             .name("my-http-account")
             .usernamePasswordFile(authFile.toAbsolutePath().toString())
             .build();
@@ -79,7 +96,15 @@ class HttpArtifactCredentialsTest {
     HttpArtifactAccount account =
         HttpArtifactAccount.builder()
             .name("my-http-account")
+<<<<<<< HEAD
             .urlRestrictions(HttpUrlRestrictions.builder().rejectLocalhost(false).build())
+=======
+            .urlRestrictions(
+                UrlRestrictionsProperties.builder()
+                    .rejectLocalhost(false)
+                    .allowedDomains(List.of("localhost"))
+                    .build())
+>>>>>>> 4d2819f (fix(clouddriver)!: require allowedDomains for artifact accounts that send credentials (#8171))
             .build();
 
     runTestCase(server, account, m -> m.withHeader("Authorization", absent()));
@@ -90,7 +115,15 @@ class HttpArtifactCredentialsTest {
     HttpArtifactAccount account =
         HttpArtifactAccount.builder()
             .name("my-http-account")
+<<<<<<< HEAD
             .urlRestrictions(HttpUrlRestrictions.builder().rejectLocalhost(false).build())
+=======
+            .urlRestrictions(
+                UrlRestrictionsProperties.builder()
+                    .rejectLocalhost(false)
+                    .allowedDomains(List.of("localhost"))
+                    .build())
+>>>>>>> 4d2819f (fix(clouddriver)!: require allowedDomains for artifact accounts that send credentials (#8171))
             .build();
     HttpArtifactCredentials credentials = new HttpArtifactCredentials(account, okHttpClient);
     Artifact artifact =

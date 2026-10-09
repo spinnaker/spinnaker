@@ -1,23 +1,21 @@
 /*
- * Copyright 2017 Armory, Inc.
+ * Copyright 2026 spinnaker.io
  *
- * Licensed under the Apache License, Version 2.0 (the "License");
+ * Licensed under the Apache License, Version 2.0 (the "License")
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
  *
- *    http://www.apache.org/licenses/LICENSE-2.0
+ *   http://www.apache.org/licenses/LICENSE-2.0
  *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
  * See the License for the specific language governing permissions and
  * limitations under the License.
- *
  */
 
-package com.netflix.spinnaker.clouddriver.artifacts.github;
+package com.netflix.spinnaker.clouddriver.artifacts.gitea;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
 import com.netflix.spinnaker.credentials.CredentialsTypeProperties;
 import com.netflix.spinnaker.credentials.definition.InvalidCredentialsConfigurationException;
 import lombok.RequiredArgsConstructor;
@@ -29,34 +27,34 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
 @Configuration
-@ConditionalOnProperty("artifacts.github.enabled")
-@EnableConfigurationProperties(GitHubArtifactProviderProperties.class)
+@ConditionalOnProperty("artifacts.gitea.enabled")
+@EnableConfigurationProperties(GiteaArtifactProviderProperties.class)
 @RequiredArgsConstructor
 @Slf4j
-class GitHubArtifactConfiguration {
-  private final GitHubArtifactProviderProperties gitHubArtifactProviderProperties;
+class GiteaArtifactConfiguration {
+  private final GiteaArtifactProviderProperties giteaArtifactProviderProperties;
 
   @Bean
-  OkHttpClient gitHubOkHttpClient() {
+  OkHttpClient giteaOkHttpClient() {
     return new OkHttpClient();
   }
 
   @Bean
-  public CredentialsTypeProperties<GitHubArtifactCredentials, GitHubArtifactAccount>
-      githubCredentialsProperties(OkHttpClient gitHubOkHttpClient, ObjectMapper objectMapper) {
-    return CredentialsTypeProperties.<GitHubArtifactCredentials, GitHubArtifactAccount>builder()
-        .type(GitHubArtifactCredentials.CREDENTIALS_TYPE)
-        .credentialsClass(GitHubArtifactCredentials.class)
-        .credentialsDefinitionClass(GitHubArtifactAccount.class)
-        .defaultCredentialsSource(gitHubArtifactProviderProperties::getAccounts)
+  public CredentialsTypeProperties<GiteaArtifactCredentials, GiteaArtifactAccount>
+      giteaCredentialsProperties(OkHttpClient giteaOkHttpClient) {
+    return CredentialsTypeProperties.<GiteaArtifactCredentials, GiteaArtifactAccount>builder()
+        .type(GiteaArtifactCredentials.CREDENTIALS_TYPE)
+        .credentialsClass(GiteaArtifactCredentials.class)
+        .credentialsDefinitionClass(GiteaArtifactAccount.class)
+        .defaultCredentialsSource(giteaArtifactProviderProperties::getAccounts)
         .credentialsParser(
             a -> {
               try {
-                return new GitHubArtifactCredentials(a, gitHubOkHttpClient, objectMapper);
+                return new GiteaArtifactCredentials(a, giteaOkHttpClient);
               } catch (InvalidCredentialsConfigurationException e) {
                 throw e;
               } catch (Exception e) {
-                log.warn("Failure instantiating GitHub artifact account {}: ", a, e);
+                log.warn("Failure instantiating Gitea artifact account {}: ", a, e);
                 return null;
               }
             })

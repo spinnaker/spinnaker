@@ -17,6 +17,11 @@
 package com.netflix.spinnaker.credentials.definition;
 
 import static org.assertj.core.api.Assertions.assertThat;
+<<<<<<< HEAD
+=======
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
+import static org.mockito.Mockito.doThrow;
+>>>>>>> 4d2819f (fix(clouddriver)!: require allowedDomains for artifact accounts that send credentials (#8171))
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
@@ -72,6 +77,101 @@ public class BasicCredentialsLoaderTest {
     assertThat(repository.getAll()).isEmpty();
   }
 
+<<<<<<< HEAD
+=======
+  @Test
+  public void testFailedSaveIsRetriedOnNextLoad() {
+    CredentialsDefinitionSource<CredentialsDefinition> source =
+        mock(CredentialsDefinitionSource.class);
+    CredentialsLifecycleHandler<FakeCredentials> handler = mock(CredentialsLifecycleHandler.class);
+    CredentialsRepository<FakeCredentials> repository =
+        new MapBackedCredentialsRepository<>(TEST_TYPE, handler);
+
+    BasicCredentialsLoader<CredentialsDefinition, FakeCredentials> loader =
+        new BasicCredentialsLoader<>(
+            source, account -> new FakeCredentials(account.getName()), repository);
+
+    CredentialsDefinition def1 = mock(CredentialsDefinition.class);
+    when(def1.getName()).thenReturn("cred1");
+    when(source.getCredentialsDefinitions()).thenReturn(Arrays.asList(def1));
+
+    // saving the credentials fails transiently (e.g. lifecycle handler error)
+    doThrow(new RuntimeException("transient failure"))
+        .when(handler)
+        .credentialsAdded(org.mockito.ArgumentMatchers.any());
+    loader.load();
+    assertThat(repository.getOne("cred1")).isNull();
+
+    // the account must be retried and loaded on the next run once the failure clears
+    reset(handler);
+    loader.load();
+    assertThat(repository.getOne("cred1")).isNotNull();
+  }
+
+  @Test
+  public void testInvalidConfigurationFailsLoadAfterOtherDefinitionsAreLoaded() {
+    CredentialsDefinitionSource<CredentialsDefinition> source =
+        mock(CredentialsDefinitionSource.class);
+    CredentialsRepository<FakeCredentials> repository =
+        new MapBackedCredentialsRepository<>(TEST_TYPE, null);
+
+    BasicCredentialsLoader<CredentialsDefinition, FakeCredentials> loader =
+        new BasicCredentialsLoader<>(
+            source,
+            account -> {
+              if (account.getName().equals("bad")) {
+                throw new InvalidCredentialsConfigurationException("bad is misconfigured");
+              }
+              return new FakeCredentials(account.getName());
+            },
+            repository);
+
+    CredentialsDefinition bad = mock(CredentialsDefinition.class);
+    when(bad.getName()).thenReturn("bad");
+    CredentialsDefinition good = mock(CredentialsDefinition.class);
+    when(good.getName()).thenReturn("good");
+    when(source.getCredentialsDefinitions()).thenReturn(Arrays.asList(bad, good));
+
+    assertThatThrownBy(loader::load)
+        .isInstanceOf(InvalidCredentialsConfigurationException.class)
+        .hasMessage("bad is misconfigured");
+
+    assertThat(repository.getOne("good")).isNotNull();
+    assertThat(repository.getOne("bad")).isNull();
+  }
+
+  @Test
+  public void testParseFailureDoesNotBlockOtherDefinitions() {
+    CredentialsDefinitionSource<CredentialsDefinition> source =
+        mock(CredentialsDefinitionSource.class);
+    CredentialsRepository<FakeCredentials> repository =
+        new MapBackedCredentialsRepository<>(TEST_TYPE, null);
+
+    BasicCredentialsLoader<CredentialsDefinition, FakeCredentials> loader =
+        new BasicCredentialsLoader<>(
+            source,
+            account -> {
+              if (account.getName().equals("bad")) {
+                throw new RuntimeException("cannot parse this account");
+              }
+              return new FakeCredentials(account.getName());
+            },
+            repository);
+
+    CredentialsDefinition bad = mock(CredentialsDefinition.class);
+    when(bad.getName()).thenReturn("bad");
+    CredentialsDefinition good = mock(CredentialsDefinition.class);
+    when(good.getName()).thenReturn("good");
+
+    when(source.getCredentialsDefinitions()).thenReturn(Arrays.asList(bad, good));
+    loader.load();
+
+    // the definition after the failing one is still loaded
+    assertThat(repository.getOne("bad")).isNull();
+    assertThat(repository.getOne("good")).isNotNull();
+  }
+
+>>>>>>> 4d2819f (fix(clouddriver)!: require allowedDomains for artifact accounts that send credentials (#8171))
   @RequiredArgsConstructor
   private class FakeCredentials implements Credentials {
     @Getter private final String name;
