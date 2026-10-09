@@ -156,7 +156,7 @@ public abstract class AbstractDeleteGoogleRegionalHttpLoadBalancerAtomicOperatio
 
       final String urlMapName = GCEUtil.getLocalName((String) retrievedTargetProxy.get("urlMap"));
 
-      final List<String> listenersToDelete = new ArrayList<String>();
+      final List<ForwardingRule> listenersToDelete = new ArrayList<>();
       for (ForwardingRule rule : projectForwardingRules) {
         if (!getLoadBalancingScheme().equals(rule.getLoadBalancingScheme())) continue;
         GoogleTargetProxyType ruleProxyType = Utils.getTargetProxyType(rule.getTarget());
@@ -178,7 +178,7 @@ public abstract class AbstractDeleteGoogleRegionalHttpLoadBalancerAtomicOperatio
                       AbstractDeleteGoogleRegionalHttpLoadBalancerAtomicOperation.this);
           if (proxy != null
               && urlMapName.equals(GCEUtil.getLocalName((String) proxy.get("urlMap")))) {
-            listenersToDelete.add(rule.getName());
+            listenersToDelete.add(rule);
           }
         } catch (GoogleOperationException e) {
           // 404 is thrown if the target proxy does not exist.
@@ -283,7 +283,8 @@ public abstract class AbstractDeleteGoogleRegionalHttpLoadBalancerAtomicOperatio
 
       final Long timeoutSeconds = description.getDeleteOperationTimeoutSeconds();
 
-      for (String ruleName : listenersToDelete) {
+      for (ForwardingRule rule : listenersToDelete) {
+        String ruleName = rule.getName();
         getTask()
             .updateStatus(
                 getBasePhase(), "Deleting listener " + ruleName + " in " + region + "...");
@@ -293,7 +294,7 @@ public abstract class AbstractDeleteGoogleRegionalHttpLoadBalancerAtomicOperatio
                 compute,
                 project,
                 region,
-                ruleName,
+                rule,
                 getBasePhase(),
                 timeoutSeconds,
                 getTask(),

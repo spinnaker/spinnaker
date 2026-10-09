@@ -101,12 +101,12 @@ class DeleteGoogleHttpLoadBalancerAtomicOperation extends DeleteGoogleLoadBalanc
     }
     def urlMapName = GCEUtil.getLocalName(retrievedTargetProxy.getUrlMap())
 
-    List<String> listenersToDelete = []
+    List<ForwardingRule> listenersToDelete = []
     projectForwardingRules.each { ForwardingRule rule ->
       try {
         def proxy = GCEUtil.getTargetProxyFromRule(compute, project, rule, BASE_PHASE, safeRetry, this)
         if (GCEUtil.getLocalName(proxy?.urlMap) == urlMapName) {
-          listenersToDelete << rule.getName()
+          listenersToDelete << rule
         }
       } catch (GoogleOperationException e) {
         // 404 is thrown if the target proxy does not exist.
@@ -164,9 +164,10 @@ class DeleteGoogleHttpLoadBalancerAtomicOperation extends DeleteGoogleLoadBalanc
 
     def timeoutSeconds = description.deleteOperationTimeoutSeconds
 
-    listenersToDelete.each { String ruleName ->
+    listenersToDelete.each { ForwardingRule rule ->
+      String ruleName = rule.getName()
       task.updateStatus BASE_PHASE, "Deleting listener $ruleName..."
-      Operation operation = GCEUtil.deleteGlobalListener(compute, project, ruleName, BASE_PHASE, timeoutSeconds,
+      Operation operation = GCEUtil.deleteGlobalListener(compute, project, rule, BASE_PHASE, timeoutSeconds,
         task, googleOperationPoller, safeRetry, this)
       if (operation) {
         googleOperationPoller.waitForGlobalOperation(compute, project, operation.getName(),

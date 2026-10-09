@@ -2385,9 +2385,39 @@ class GCEUtil {
                                         GoogleOperationPoller googleOperationPoller,
                                         SafeRetry safeRetry,
                                         GoogleExecutorTraits executor) {
+    return deleteGlobalRuleAndProxy(compute, project, forwardingRuleName, null, phase, timeoutSeconds, task,
+      googleOperationPoller, safeRetry, executor)
+  }
+
+  /**
+   * Same as the name-based overload, for a caller that already listed the rule: if the rule is gone
+   * when it is read again, the target proxy it pointed at is still deleted.
+   */
+  static Operation deleteGlobalListener(Compute compute,
+                                        String project,
+                                        ForwardingRule listedRule,
+                                        String phase,
+                                        Long timeoutSeconds,
+                                        Task task,
+                                        GoogleOperationPoller googleOperationPoller,
+                                        SafeRetry safeRetry,
+                                        GoogleExecutorTraits executor) {
+    return deleteGlobalRuleAndProxy(compute, project, listedRule.getName(), listedRule, phase, timeoutSeconds, task,
+      googleOperationPoller, safeRetry, executor)
+  }
+
+  private static Operation deleteGlobalRuleAndProxy(Compute compute,
+                                                    String project,
+                                                    String forwardingRuleName,
+                                                    ForwardingRule listedRule,
+                                                    String phase,
+                                                    Long timeoutSeconds,
+                                                    Task task,
+                                                    GoogleOperationPoller googleOperationPoller,
+                                                    SafeRetry safeRetry,
+                                                    GoogleExecutorTraits executor) {
     ForwardingRule ruleToDelete = getGlobalForwardingRule(compute, project, forwardingRuleName, phase, safeRetry, executor)
     if (ruleToDelete) {
-      def operation_name
       Operation deleteRuleOp = safeRetry.doRetry(
         { executor.timeExecute(
           compute.globalForwardingRules().delete(project, ruleToDelete.getName()),
@@ -2411,6 +2441,11 @@ class GCEUtil {
         task.updateStatus phase, message
         throw new IllegalStateException(message)
       }
+    } else {
+      ruleToDelete = listedRule
+    }
+    if (ruleToDelete) {
+      def operation_name
       String targetProxyLink = ruleToDelete.getTarget()
       String targetProxyName = getLocalName(targetProxyLink)
       GoogleTargetProxyType targetProxyType = Utils.getTargetProxyType(targetProxyLink)
@@ -2485,9 +2520,41 @@ class GCEUtil {
                                           GoogleOperationPoller googleOperationPoller,
                                           SafeRetry safeRetry,
                                           GoogleExecutorTraits executor) {
+    return deleteRegionalRuleAndProxy(compute, project, region, forwardingRuleName, null, phase, timeoutSeconds, task,
+      googleOperationPoller, safeRetry, executor)
+  }
+
+  /**
+   * Same as the name-based overload, for a caller that already listed the rule: if the rule is gone
+   * when it is read again, the target proxy it pointed at is still deleted.
+   */
+  static Operation deleteRegionalListener(Compute compute,
+                                          String project,
+                                          String region,
+                                          ForwardingRule listedRule,
+                                          String phase,
+                                          Long timeoutSeconds,
+                                          Task task,
+                                          GoogleOperationPoller googleOperationPoller,
+                                          SafeRetry safeRetry,
+                                          GoogleExecutorTraits executor) {
+    return deleteRegionalRuleAndProxy(compute, project, region, listedRule.getName(), listedRule, phase, timeoutSeconds,
+      task, googleOperationPoller, safeRetry, executor)
+  }
+
+  private static Operation deleteRegionalRuleAndProxy(Compute compute,
+                                                      String project,
+                                                      String region,
+                                                      String forwardingRuleName,
+                                                      ForwardingRule listedRule,
+                                                      String phase,
+                                                      Long timeoutSeconds,
+                                                      Task task,
+                                                      GoogleOperationPoller googleOperationPoller,
+                                                      SafeRetry safeRetry,
+                                                      GoogleExecutorTraits executor) {
     ForwardingRule ruleToDelete = getRegionalForwardingRule(compute, project, region, forwardingRuleName, phase, safeRetry, executor)
     if (ruleToDelete) {
-      def operation_name
       Operation deleteRuleOp = safeRetry.doRetry(
         { executor.timeExecute(
           compute.forwardingRules().delete(project, region, ruleToDelete.getName()),
@@ -2511,6 +2578,11 @@ class GCEUtil {
         task.updateStatus phase, message
         throw new IllegalStateException(message)
       }
+    } else {
+      ruleToDelete = listedRule
+    }
+    if (ruleToDelete) {
+      def operation_name
       String targetProxyLink = ruleToDelete.getTarget()
       String targetProxyName = getLocalName(targetProxyLink)
       GoogleTargetProxyType targetProxyType = Utils.getTargetProxyType(targetProxyLink)
