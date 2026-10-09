@@ -128,7 +128,7 @@ class CacheRepositoryTest {
     when(client.getRoutes()).thenReturn(routes);
     when(apps.all(emptyList())).thenReturn(List.of(app, appWithoutInstances));
     when(routes.all(emptyList())).thenReturn(emptyList());
-    when(providerCache.filterIdentifiers(any(), any())).thenReturn(emptyList());
+    when(providerCache.filterIdentifiers(any(), any())).thenReturn(emptySet());
     when(providerCache.getAll(any(), anyCollection())).thenReturn(emptyList());
     when(credentials.getName()).thenReturn("devaccount");
     when(credentials.getClient()).thenReturn(client);

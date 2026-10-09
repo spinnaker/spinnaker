@@ -144,6 +144,7 @@ public class DefaultOrchestrationProcessor implements OrchestrationProcessor {
             }
             TaskRepository.threadLocalTask.set(task);
             List<Object> results = new ArrayList<>();
+            boolean failed = false;
             for (AtomicOperation atomicOperation : atomicOperations) {
               Id thisOp =
                   atomicOperationId.withTag(
@@ -188,12 +189,23 @@ public class DefaultOrchestrationProcessor implements OrchestrationProcessor {
                                 }
                               }
 
-                              if (task.getStatus() != null && task.getStatus().isFailed()) {
-                                task.updateStatus(
-                                    TASK_PHASE,
-                                    "Orchestration completed with errors, see prior task logs.");
-                              } else {
-                                task.updateStatus(TASK_PHASE, "Orchestration completed.");
+                              // The operation has already succeeded. Failing to record that must
+                              // not
+                              // turn it into a failed task.
+                              try {
+                                if (task.getStatus() != null && task.getStatus().isFailed()) {
+                                  task.updateStatus(
+                                      TASK_PHASE,
+                                      "Orchestration completed with errors, see prior task logs.");
+                                } else {
+                                  task.updateStatus(TASK_PHASE, "Orchestration completed.");
+                                }
+                              } catch (Exception e) {
+                                log.warn(
+                                    "Unable to record completion of operation {} on task {}",
+                                    atomicOperation.getClass().getSimpleName(),
+                                    task.getId(),
+                                    e);
                               }
                               return null;
                             })
@@ -214,7 +226,11 @@ public class DefaultOrchestrationProcessor implements OrchestrationProcessor {
                             e,
                             String.join(", ", e.getErrors()),
                             Map.of("operation", atomicOperation.getClass().getSimpleName()))));
+                task.addResultObjects(nonNull(results));
                 failTask(task, e);
+                // Don't run the remaining operations against a failed task.
+                failed = true;
+                break;
               } catch (DuplicateEventAggregateException e) {
                 // In this case, we can safely assume that the atomic operation is being run
                 // elsewhere and can just return the existing task.
@@ -248,13 +264,18 @@ public class DefaultOrchestrationProcessor implements OrchestrationProcessor {
                             Map.of("operation", atomicOperation.getClass().getSimpleName()))));
 
                 log.error(stackTrace);
+                task.addResultObjects(nonNull(results));
                 failTask(task, e);
+                // Don't run the remaining operations against a failed task.
+                failed = true;
+                break;
               }
             }
-            task.addResultObjects(
-                results.stream().filter(Objects::nonNull).collect(Collectors.toList()));
-            if (task.getStatus() == null || !task.getStatus().isCompleted()) {
-              task.complete();
+            if (!failed) {
+              task.addResultObjects(nonNull(results));
+              if (task.getStatus() == null || !task.getStatus().isCompleted()) {
+                task.complete();
+              }
             }
             registry.counter(tasksId.withTag("success", "true")).increment();
           } catch (Exception e) {
@@ -264,7 +285,10 @@ public class DefaultOrchestrationProcessor implements OrchestrationProcessor {
                         .withTag("success", "false")
                         .withTag("cause", e.getClass().getSimpleName()))
                 .increment();
-            if (e instanceof TimeoutException) {
+            if (task.getStatus() != null && task.getStatus().isCompleted()) {
+              // The task already reached a terminal state, which can't be changed.
+              log.error("Orchestration of already finished task {} failed", task.getId(), e);
+            } else if (e instanceof TimeoutException) {
               task.updateStatus("INIT", "Orchestration timed out.");
               task.addResultObjects(
                   List.of(extractExceptionSummary(e, "Orchestration timed out.")));
@@ -349,15 +373,20 @@ public class DefaultOrchestrationProcessor implements OrchestrationProcessor {
       if (!existingTask.isRetryable()) {
         return new GetTaskResult(existingTask, false);
       }
+      // Retry first: a FAILED_RETRYABLE task is terminal until retry() moves it back to STARTED.
+      existingTask.retry();
       existingTask.updateStatus(
           TASK_PHASE, "Re-initializing Orchestration Task (failure is retryable)");
-      existingTask.retry();
       existingTask.updateOwnerId(ClouddriverHostname.ID, TASK_PHASE);
       return new GetTaskResult(existingTask, true);
     }
     return new GetTaskResult(
         taskRepository.create(TASK_PHASE, "Initializing Orchestration Task", clientRequestId),
         true);
+  }
+
+  private static List<Object> nonNull(List<Object> results) {
+    return results.stream().filter(Objects::nonNull).collect(Collectors.toList());
   }
 
   private void failTask(@Nonnull Task task, @Nonnull Exception e) {
