@@ -2645,6 +2645,26 @@ class GCEUtil {
     ) as ForwardingRule
   }
 
+  /**
+   * For a regional forwarding rule delete that returned no operation: SafeRetry returns null both for
+   * 404 and for a rule another resource still uses. Fails if the rule still exists.
+   */
+  static void checkRegionalForwardingRuleDeleted(Compute compute,
+                                                 String project,
+                                                 String region,
+                                                 String forwardingRuleName,
+                                                 String phase,
+                                                 Task task,
+                                                 SafeRetry safeRetry,
+                                                 GoogleExecutorTraits executor) {
+    if (getRegionalForwardingRule(compute, project, region, forwardingRuleName, phase, safeRetry, executor)) {
+      String message = "Forwarding rule $forwardingRuleName in $region is still used by another resource, " +
+        "so it and the resources it uses were not deleted."
+      task.updateStatus phase, message
+      throw new IllegalStateException(message)
+    }
+  }
+
   private static ForwardingRule getRegionalForwardingRule(Compute compute,
                                                           String project,
                                                           String region,

@@ -133,6 +133,8 @@ class DeleteGoogleRegionalExternalNetworkLoadBalancerAtomicOperation extends Goo
     if (deleteForwardingRuleOp) {
       googleOperationPoller.waitForRegionalOperation(compute, project, region, deleteForwardingRuleOp.getName(),
         timeoutSeconds, task, "Regional forwarding rule $forwardingRuleName", BASE_PHASE)
+    } else {
+      GCEUtil.checkRegionalForwardingRuleDeleted(compute, project, region, forwardingRuleName, BASE_PHASE, task, safeRetry, this)
     }
 
     Operation deleteBackendServiceOp = GCEUtil.deleteIfNotInUse(
