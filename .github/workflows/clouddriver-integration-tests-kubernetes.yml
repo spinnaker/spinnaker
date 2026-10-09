@@ -27,38 +27,33 @@ jobs:
   prepare-matrix:
     runs-on: ubuntu-latest
     outputs:
-      matrix: ${{ steps.matrix.outputs.matrix }}
+      matrix: ${{ steps.matrix.outputs.result }}
     steps:
       - uses: actions/checkout@v7
       - name: Read shared Kubernetes versions
         id: matrix
-        run: |
-          python3 - <<'PY'
-          import json
-          import os
+        uses: actions/github-script@v9
+        with:
+          script: |
+            const { versions, defaultMinor, kindVersion, testDefaultAgainstAll } =
+              require('./clouddriver/kubectl-versions.json');
+            const defaultClient = versions[defaultMinor].kubectl;
 
-          with open("clouddriver/kubectl-versions.json") as source:
-              config = json.load(source)
+            const include = Object.entries(versions)
+              .filter(([, version]) => version.kubernetesImage)
+              .flatMap(([minor, version]) => {
+                const clients = new Set([version.kubectl]);
+                if (testDefaultAgainstAll) clients.add(defaultClient);
 
-          default = config["versions"][config["defaultMinor"]]["kubectl"]
-          include = []
-          for minor, version in config["versions"].items():
-              if "kubernetesImage" not in version:
-                  continue
-              clients = [version["kubectl"]]
-              if config["testDefaultAgainstAll"] and default not in clients:
-                  clients.append(default)
-              for client in clients:
-                  include.append({
-                      "kubernetes-version": minor,
-                      "kubernetes-image": version["kubernetesImage"],
-                      "kubectl-version": client,
-                      "kind-version": version.get("kindVersion", config["kindVersion"]),
-                  })
+                return Array.from(clients, kubectl => ({
+                  'kubernetes-version': minor,
+                  'kubernetes-image': version.kubernetesImage,
+                  'kubectl-version': kubectl,
+                  'kind-version': version.kindVersion ?? kindVersion,
+                }));
+              });
 
-          with open(os.environ["GITHUB_OUTPUT"], "a") as output:
-              output.write("matrix=" + json.dumps({"include": include}) + "\n")
-          PY
+            return { include };
 
   it-test-kubernetes:
     needs: prepare-matrix
