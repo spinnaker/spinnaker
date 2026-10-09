@@ -62,7 +62,15 @@ class GithubArtifactCredentialsTest {
     GitHubArtifactAccount account =
         GitHubArtifactAccount.builder()
             .name("my-github-account")
+<<<<<<< HEAD
             .urlRestrictions(HttpUrlRestrictions.builder().rejectLocalhost(false).build())
+=======
+            .urlRestrictions(
+                UrlRestrictionsProperties.builder()
+                    .rejectLocalhost(false)
+                    .allowedDomains(List.of("localhost"))
+                    .build())
+>>>>>>> 4d2819f (fix(clouddriver)!: require allowedDomains for artifact accounts that send credentials (#8171))
             .token("abc")
             .build();
 
@@ -79,7 +87,15 @@ class GithubArtifactCredentialsTest {
     GitHubArtifactAccount account =
         GitHubArtifactAccount.builder()
             .name("my-github-account")
+<<<<<<< HEAD
             .urlRestrictions(HttpUrlRestrictions.builder().rejectLocalhost(false).build())
+=======
+            .urlRestrictions(
+                UrlRestrictionsProperties.builder()
+                    .rejectLocalhost(false)
+                    .allowedDomains(List.of("localhost"))
+                    .build())
+>>>>>>> 4d2819f (fix(clouddriver)!: require allowedDomains for artifact accounts that send credentials (#8171))
             .tokenFile(authFile.toAbsolutePath().toString())
             .build();
 
@@ -96,7 +112,15 @@ class GithubArtifactCredentialsTest {
     GitHubArtifactAccount account =
         GitHubArtifactAccount.builder()
             .name("my-github-account")
+<<<<<<< HEAD
             .urlRestrictions(HttpUrlRestrictions.builder().rejectLocalhost(false).build())
+=======
+            .urlRestrictions(
+                UrlRestrictionsProperties.builder()
+                    .rejectLocalhost(false)
+                    .allowedDomains(List.of("localhost"))
+                    .build())
+>>>>>>> 4d2819f (fix(clouddriver)!: require allowedDomains for artifact accounts that send credentials (#8171))
             .tokenFile(authFile.toAbsolutePath().toString())
             .build();
 
@@ -307,7 +331,15 @@ class GithubArtifactCredentialsTest {
     GitHubArtifactAccount account =
         GitHubArtifactAccount.builder()
             .name("my-github-account")
+<<<<<<< HEAD
             .urlRestrictions(HttpUrlRestrictions.builder().rejectLocalhost(false).build())
+=======
+            .urlRestrictions(
+                UrlRestrictionsProperties.builder()
+                    .rejectLocalhost(false)
+                    .allowedDomains(List.of("localhost"))
+                    .build())
+>>>>>>> 4d2819f (fix(clouddriver)!: require allowedDomains for artifact accounts that send credentials (#8171))
             .username("user")
             .password("passw0rd")
             .build();
@@ -325,7 +357,15 @@ class GithubArtifactCredentialsTest {
     GitHubArtifactAccount account =
         GitHubArtifactAccount.builder()
             .name("my-github-account")
+<<<<<<< HEAD
             .urlRestrictions(HttpUrlRestrictions.builder().rejectLocalhost(false).build())
+=======
+            .urlRestrictions(
+                UrlRestrictionsProperties.builder()
+                    .rejectLocalhost(false)
+                    .allowedDomains(List.of("localhost"))
+                    .build())
+>>>>>>> 4d2819f (fix(clouddriver)!: require allowedDomains for artifact accounts that send credentials (#8171))
             .usernamePasswordFile(authFile.toAbsolutePath().toString())
             .build();
 
@@ -337,7 +377,15 @@ class GithubArtifactCredentialsTest {
     GitHubArtifactAccount account =
         GitHubArtifactAccount.builder()
             .name("my-github-account")
+<<<<<<< HEAD
             .urlRestrictions(HttpUrlRestrictions.builder().rejectLocalhost(false).build())
+=======
+            .urlRestrictions(
+                UrlRestrictionsProperties.builder()
+                    .rejectLocalhost(false)
+                    .allowedDomains(List.of("localhost"))
+                    .build())
+>>>>>>> 4d2819f (fix(clouddriver)!: require allowedDomains for artifact accounts that send credentials (#8171))
             .build();
 
     runTestCase(server, account, m -> m.withHeader("Authorization", absent()));
@@ -348,7 +396,15 @@ class GithubArtifactCredentialsTest {
     GitHubArtifactAccount account =
         GitHubArtifactAccount.builder()
             .name("my-github-account")
+<<<<<<< HEAD
             .urlRestrictions(HttpUrlRestrictions.builder().rejectLocalhost(false).build())
+=======
+            .urlRestrictions(
+                UrlRestrictionsProperties.builder()
+                    .rejectLocalhost(false)
+                    .allowedDomains(List.of("localhost"))
+                    .build())
+>>>>>>> 4d2819f (fix(clouddriver)!: require allowedDomains for artifact accounts that send credentials (#8171))
             .token("zzz")
             .useContentAPI(true)
             .build();
@@ -367,7 +423,15 @@ class GithubArtifactCredentialsTest {
     GitHubArtifactAccount account =
         GitHubArtifactAccount.builder()
             .name("my-github-account")
+<<<<<<< HEAD
             .urlRestrictions(HttpUrlRestrictions.builder().rejectLocalhost(false).build())
+=======
+            .urlRestrictions(
+                UrlRestrictionsProperties.builder()
+                    .rejectLocalhost(false)
+                    .allowedDomains(List.of("localhost"))
+                    .build())
+>>>>>>> 4d2819f (fix(clouddriver)!: require allowedDomains for artifact accounts that send credentials (#8171))
             .token("zzz")
             .useContentAPI(true)
             .githubAPIVersion("v10")
@@ -468,7 +532,15 @@ class GithubArtifactCredentialsTest {
         new GitHubAppCredentials("12345", "/path/to/key.pem", "67890", apiBaseUrl);
     return GitHubArtifactAccount.builder()
         .name("my-github-account")
+<<<<<<< HEAD
         .urlRestrictions(HttpUrlRestrictions.builder().rejectLocalhost(false).build())
+=======
+        .urlRestrictions(
+            UrlRestrictionsProperties.builder()
+                .rejectLocalhost(false)
+                .allowedDomains(List.of("localhost"))
+                .build())
+>>>>>>> 4d2819f (fix(clouddriver)!: require allowedDomains for artifact accounts that send credentials (#8171))
         .githubApp(githubApp);
   }
 

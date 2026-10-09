@@ -17,7 +17,9 @@
 package com.netflix.spinnaker.clouddriver.artifacts.config;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.netflix.spinnaker.credentials.definition.InvalidCredentialsConfigurationException;
 import com.netflix.spinnaker.kork.annotations.VisibleForTesting;
+import com.netflix.spinnaker.kork.web.url.UrlRestrictions;
 import java.io.IOException;
 import java.util.Optional;
 import lombok.Getter;
@@ -35,11 +37,38 @@ public abstract class BaseHttpArtifactCredentials<T extends UserInputValidatedAr
   @Getter @VisibleForTesting @JsonIgnore private final T account;
 
   protected BaseHttpArtifactCredentials(OkHttpClient okHttpClient, T account) {
+<<<<<<< HEAD
+=======
+    super(account);
+    requireAllowedDomainsForCredentials(account);
+>>>>>>> 4d2819f (fix(clouddriver)!: require allowedDomains for artifact accounts that send credentials (#8171))
     this.account = account;
     // Disable automatic redirects to prevent SSRF via unvalidated redirect chains.
     // We manually follow redirects, validating each Location header when restrictions are set.
     this.okHttpClient =
         okHttpClient.newBuilder().followRedirects(false).followSslRedirects(false).build();
+  }
+
+  /**
+   * The default restrictions only exclude local and internal names, so an account that sends
+   * credentials has to say which hosts those credentials may go to. Use {@code ".*"} to explicitly
+   * allow any host that passes the other restrictions.
+   *
+   * <p>Accounts without restrictions only fetch from URLs in their own configuration.
+   */
+  private static void requireAllowedDomainsForCredentials(
+      UserInputValidatedArtifactAccount account) {
+    UrlRestrictions restrictions = account.getUrlRestrictions();
+    if (restrictions != null
+        && account.hasCredentials()
+        && restrictions.getAllowedDomains().isEmpty()) {
+      throw new InvalidCredentialsConfigurationException(
+          String.format(
+              "Artifact account '%s' sends credentials but has no urlRestrictions.allowedDomains."
+                  + " Set it to the hosts the credentials may be sent to (entries are regular"
+                  + " expressions, e.g. 'github\\.com'), or to '.*' to not restrict the hosts further.",
+              account.getName()));
+    }
   }
 
   private Optional<String> getAuthHeader(ArtifactAccount account) {
