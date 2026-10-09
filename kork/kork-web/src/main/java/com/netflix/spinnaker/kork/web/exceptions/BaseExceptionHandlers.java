@@ -56,11 +56,16 @@ public class BaseExceptionHandlers extends ResponseEntityExceptionHandler {
     HttpStatusCode statusCode = e.getStatusCode();
     String reason = StringUtils.hasText(e.getReason()) ? e.getReason() : e.getMessage();
     if (statusCode.is5xxServerError()) {
-      logger.error(reason, e);
+      logger.error("{} ({})", reason, describe(request), e);
     } else if (statusCode != HttpStatus.NOT_FOUND) {
-      logger.error("{}: {}", reason, e.toString());
+      logger.error("{} ({}): {}", reason, describe(request), e.toString());
     }
     response.sendError(statusCode.value(), exceptionMessageDecorator.decorate(e, reason));
+  }
+
+  /** The query string is left out because it can carry credentials. */
+  protected static String describe(HttpServletRequest request) {
+    return request.getMethod() + " " + request.getRequestURI();
   }
 
   protected void storeException(
