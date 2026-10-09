@@ -3,9 +3,6 @@ LABEL maintainer="sig-platform@spinnaker.io"
 ARG TARGETARCH
 ENV GOOGLE_CLOUD_SDK_VERSION=575.0.1
 ENV PATH="$PATH:/opt/google-cloud-sdk/bin/"
-# Include every EKS standard/extended-support minor, plus 1.30 for compatibility.
-ENV KUBECTL_DEFAULT_RELEASE=1.36.5
-ENV KUBECTL_RELEASES="${KUBECTL_DEFAULT_RELEASE} 1.30.14 1.31.14 1.32.13 1.33.13 1.34.12 1.35.9 1.37.1"
 ENV AWS_CLI_VERSION=2.35.22
 ENV AWS_AIM_AUTHENTICATOR_VERSION=0.7.18
 
@@ -33,7 +30,10 @@ RUN if [ "${TARGETARCH}" = "arm64" ]; then \
   rm -rf ./awscliv2.zip ./aws
 
 # kubectl + AWS IAM authenticator
+COPY kubectl-versions.json /tmp/kubectl-versions.json
 RUN set -eu; \
+    KUBECTL_DEFAULT_RELEASE="$(python3 -c 'import json; config = json.load(open("/tmp/kubectl-versions.json")); print(config["versions"][config["defaultMinor"]]["kubectl"])')"; \
+    KUBECTL_RELEASES="$(python3 -c 'import json; config = json.load(open("/tmp/kubectl-versions.json")); print(" ".join(version["kubectl"] for version in config["versions"].values()))')"; \
     for version in $KUBECTL_RELEASES; do \
       release_version="${version%.*}"; \
       curl --fail --location --silent --show-error --output "/usr/local/bin/kubectl-${release_version}" \
@@ -43,7 +43,7 @@ RUN set -eu; \
       echo "$(cat /tmp/kubectl.sha512)  /usr/local/bin/kubectl-${release_version}" | sha512sum -c; \
       chmod +x "/usr/local/bin/kubectl-${release_version}"; \
     done; \
-    rm -f /tmp/kubectl.sha512; \
+    rm -f /tmp/kubectl.sha512 /tmp/kubectl-versions.json; \
     ln -sf "/usr/local/bin/kubectl-${KUBECTL_DEFAULT_RELEASE%.*}" /usr/local/bin/kubectl; \
     wget -nv -O aws-iam-authenticator https://github.com/kubernetes-sigs/aws-iam-authenticator/releases/download/v${AWS_AIM_AUTHENTICATOR_VERSION}/aws-iam-authenticator_${AWS_AIM_AUTHENTICATOR_VERSION}_linux_${TARGETARCH} \
   && chmod +x ./aws-iam-authenticator \
