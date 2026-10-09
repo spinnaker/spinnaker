@@ -19,6 +19,8 @@ package com.netflix.kayenta.controllers;
 import com.netflix.kayenta.canary.CanaryConfig;
 import com.netflix.kayenta.canary.CanaryConfigUpdateResponse;
 import com.netflix.kayenta.canary.CanaryMetricConfig;
+import com.netflix.kayenta.canary.CanaryMetricSetQueryConfig;
+import com.netflix.kayenta.canary.providers.metrics.AbstractCanaryMetricSetQueryConfig;
 import com.netflix.kayenta.security.AccountCredentials;
 import com.netflix.kayenta.security.AccountCredentialsRepository;
 import com.netflix.kayenta.storage.ObjectType;
@@ -29,6 +31,7 @@ import io.swagger.v3.oas.annotations.Operation;
 import jakarta.servlet.http.HttpServletResponse;
 import java.io.IOException;
 import java.time.Instant;
+import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
@@ -82,8 +85,11 @@ public class CanaryConfigController {
     StorageService configurationService =
         storageServiceRepository.getRequiredOne(resolvedConfigurationAccountName);
 
-    return configurationService.loadObject(
-        resolvedConfigurationAccountName, ObjectType.CANARY_CONFIG, canaryConfigId);
+    CanaryConfig canaryConfig =
+        configurationService.loadObject(
+            resolvedConfigurationAccountName, ObjectType.CANARY_CONFIG, canaryConfigId);
+
+    return normalizeMetricTemplates(canaryConfig);
   }
 
   @Operation(summary = "Write a canary config to object storage")
@@ -119,6 +125,7 @@ public class CanaryConfigController {
 
     String canaryConfigId = canaryConfig.getId();
 
+    canaryConfig = normalizeMetricTemplates(canaryConfig);
     validateNameAndApplicationAttributes(canaryConfig);
     validateMetricConfigNames(canaryConfig);
 
@@ -161,6 +168,7 @@ public class CanaryConfigController {
     canaryConfig.setUpdatedTimestampIso(
         Instant.ofEpochMilli(canaryConfig.getUpdatedTimestamp()).toString());
 
+    canaryConfig = normalizeMetricTemplates(canaryConfig);
     validateNameAndApplicationAttributes(canaryConfig);
     validateMetricConfigNames(canaryConfig);
 
@@ -230,6 +238,58 @@ public class CanaryConfigController {
         metricNameSet.add(metricName);
       }
     }
+  }
+
+  /**
+   * Normalizes legacy metric query configs so the {@code template} field is populated wherever a
+   * usable template can be resolved -- whether it was already stored under the legacy {@code
+   * customInlineTemplate} JSON key (handled transparently via {@code @JsonAlias} at deserialization
+   * time, so this is mostly a no-op for that case) or only reachable via a legacy {@code
+   * customFilterTemplate} name into the top-level {@code templates} map (which does require this
+   * rewrite, since that indirection is being retired). The {@code templates} map itself is
+   * deliberately left untouched -- only per-metric pointers into it are cleared once resolved.
+   *
+   * <p>{@code CanaryMetricConfig} and {@code CanaryConfig} are immutable value objects (Lombok
+   * {@code @Builder(toBuilder = true)}, no setters for these fields), so this rebuilds the metrics
+   * list and the containing config rather than mutating in place; when nothing needs to change the
+   * original instance is returned as-is.
+   */
+  private CanaryConfig normalizeMetricTemplates(CanaryConfig canaryConfig) {
+    if (CollectionUtils.isEmpty(canaryConfig.getMetrics())) {
+      return canaryConfig;
+    }
+
+    boolean changed = false;
+    List<CanaryMetricConfig> normalizedMetrics = new ArrayList<>(canaryConfig.getMetrics().size());
+
+    for (CanaryMetricConfig metric : canaryConfig.getMetrics()) {
+      CanaryMetricSetQueryConfig query = metric.getQuery();
+
+      if (!(query instanceof AbstractCanaryMetricSetQueryConfig)) {
+        normalizedMetrics.add(metric);
+        continue;
+      }
+
+      AbstractCanaryMetricSetQueryConfig abstractQuery = (AbstractCanaryMetricSetQueryConfig) query;
+      String resolved = abstractQuery.getTemplate(canaryConfig);
+
+      if (resolved != null && StringUtils.isEmpty(abstractQuery.getTemplate())) {
+        changed = true;
+
+        CanaryMetricSetQueryConfig normalizedQuery =
+            abstractQuery.toBuilder().template(resolved).customFilterTemplate(null).build();
+
+        normalizedMetrics.add(metric.toBuilder().query(normalizedQuery).build());
+      } else {
+        normalizedMetrics.add(metric);
+      }
+    }
+
+    if (!changed) {
+      return canaryConfig;
+    }
+
+    return canaryConfig.toBuilder().clearMetrics().metrics(normalizedMetrics).build();
   }
 
   @Operation(summary = "Delete a canary config")

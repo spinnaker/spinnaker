@@ -71,6 +71,7 @@ public class PrometheusMetricsService implements MetricsService {
     return accountNames.contains(accountName);
   }
 
+  @SuppressWarnings("deprecation")
   private StringBuilder addScopeFilter(
       StringBuilder queryBuilder,
       PrometheusCanaryScope prometheusCanaryScope,
@@ -163,6 +164,7 @@ public class PrometheusMetricsService implements MetricsService {
     return queryBuilder.insert(0, "avg(").append(")");
   }
 
+  @SuppressWarnings("deprecation")
   private static StringBuilder addGroupByQuery(
       StringBuilder queryBuilder, PrometheusCanaryMetricSetQueryConfig queryConfig) {
     List<String> groupByFields = queryConfig.getGroupByFields();
@@ -181,6 +183,7 @@ public class PrometheusMetricsService implements MetricsService {
   }
 
   @Override
+  @SuppressWarnings("deprecation")
   public String buildQuery(
       String metricsAccountName,
       CanaryConfig canaryConfig,

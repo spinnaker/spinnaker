@@ -16,28 +16,37 @@
 package com.netflix.kayenta.canary.providers.metrics;
 
 import com.fasterxml.jackson.annotation.JsonTypeName;
-import com.netflix.kayenta.canary.CanaryMetricSetQueryConfig;
 import jakarta.validation.constraints.NotNull;
-import lombok.AllArgsConstructor;
-import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.ToString;
+import lombok.experimental.SuperBuilder;
 
-@Builder
+@SuperBuilder(toBuilder = true)
 @ToString
 @NoArgsConstructor
-@AllArgsConstructor
 @JsonTypeName("wavefront")
-public class WavefrontCanaryMetricSetQueryConfig implements CanaryMetricSetQueryConfig {
+public class WavefrontCanaryMetricSetQueryConfig extends AbstractCanaryMetricSetQueryConfig {
 
   public static final String SERVICE_TYPE = "wavefront";
 
-  @NotNull @Getter private String metricName;
+  /**
+   * @deprecated use {@link #getCustomInlineTemplate()} or {@link #getCustomFilterTemplate()}
+   *     instead; planned for removal in a future release
+   */
+  @Deprecated @NotNull @Getter private String metricName;
 
-  @NotNull @Getter private String summarization;
+  /**
+   * @deprecated use {@link #getCustomInlineTemplate()} or {@link #getCustomFilterTemplate()}
+   *     instead; planned for removal in a future release
+   */
+  @Deprecated @NotNull @Getter private String summarization;
 
-  @NotNull @Getter private String aggregate;
+  /**
+   * @deprecated use {@link #getCustomInlineTemplate()} or {@link #getCustomFilterTemplate()}
+   *     instead; planned for removal in a future release
+   */
+  @Deprecated @NotNull @Getter private String aggregate;
 
   @Override
   public String getServiceType() {

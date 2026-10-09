@@ -73,6 +73,7 @@ public class DatadogMetricsService implements MetricsService {
   }
 
   @Override
+  @SuppressWarnings("deprecation")
   public String buildQuery(
       String metricsAccountName,
       CanaryConfig canaryConfig,

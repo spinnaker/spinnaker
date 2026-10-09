@@ -99,12 +99,6 @@ export const loadMetricSetPairSuccess = createAction<{ metricSetPair: IMetricSet
   Actions.LOAD_METRIC_SET_PAIR_SUCCESS,
 );
 export const loadMetricSetPairFailure = createAction<{ error: Error }>(Actions.LOAD_METRIC_SET_PAIR_FAILURE);
-export const addTemplate = createAction(Actions.ADD_TEMPLATE);
-export const editTemplateBegin = createAction<{ name: string; value: string }>(Actions.EDIT_TEMPLATE_BEGIN);
-export const editTemplateConfirm = createAction(Actions.EDIT_TEMPLATE_CONFIRM);
-export const editTemplateCancel = createAction(Actions.EDIT_TEMPLATE_CANCEL);
-export const editTemplateName = createAction<{ name: string }>(Actions.EDIT_TEMPLATE_NAME);
-export const editTemplateValue = createAction<{ value: string }>(Actions.EDIT_TEMPLATE_VALUE);
 export const editInlineTemplate = createAction<{ value: string }>(Actions.EDIT_INLINE_TEMPLATE);
 export const updatePrometheusLabelBindings = createAction<IUpdateListPayload>(Actions.UPDATE_PROMETHEUS_LABEL_BINDINGS);
 export const updatePrometheusGroupBy = createAction<IUpdateListPayload>(Actions.UPDATE_PROMETHEUS_GROUP_BY_FIELDS);
@@ -113,8 +107,6 @@ export const updatePrometheusMetricQueryField = createAction<{
   value: IPrometheusCanaryMetricSetQueryConfig[keyof IPrometheusCanaryMetricSetQueryConfig];
 }>(Actions.UPDATE_PROMETHEUS_METRIC_QUERY_FIELD);
 export const updateStackdriverGroupBy = createAction<IUpdateListPayload>(Actions.UPDATE_STACKDRIVER_GROUP_BY_FIELDS);
-export const deleteTemplate = createAction<{ name: string }>(Actions.DELETE_TEMPLATE);
-export const selectTemplate = createAction<{ name: string }>(Actions.SELECT_TEMPLATE);
 export const changeMetricGroup = createAction<{ id: string }>(Actions.CHANGE_METRIC_GROUP);
 export const loadMetricsServiceMetadataRequest = createAction<{ filter: string; metricsAccountName: string }>(
   Actions.LOAD_METRICS_SERVICE_METADATA_REQUEST,

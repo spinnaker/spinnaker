@@ -148,7 +148,7 @@ class NewRelicQueryBuilderServiceSpec extends Specification {
         .select(select as String)
         .q(q as String)
         .customFilterTemplate(customFilterTemplate as String)
-        .customInlineTemplate(customInlineTemplate as String)
+        .template(customInlineTemplate as String)
         .build()
     CanaryMetricConfig canaryMetricConfig =
       CanaryMetricConfig.builder()

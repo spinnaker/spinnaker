@@ -3,11 +3,16 @@ import { get } from 'lodash';
 import * as React from 'react';
 import * as ReactDOM from 'react-dom';
 import { connect } from 'react-redux';
-import type { Action } from 'redux';
+import type { Action, Dispatch } from 'redux';
 
 import { UPDATE_ATLAS_QUERY } from '../../actions/index';
 import { CanarySettings } from '../../canary.settings';
 import type { ICanaryMetricConfig } from '../../domain/ICanaryConfig';
+import { MetricConfigMode } from '../../domain/IMetricConfigMode';
+import MetricConfigModeToggle from '../../edit/metricConfigModeToggle';
+import MetricQueryTemplateEditor from '../../edit/metricQueryTemplateEditor';
+import { templateProviderVariables } from '../../edit/templateProviderVariables';
+import { clearTemplateState, useMetricConfigMode } from '../../edit/useMetricConfigMode';
 import type { ICanaryState } from '../../reducers/index';
 
 interface IAtlasMetricConfigurerStateProps {
@@ -16,11 +21,12 @@ interface IAtlasMetricConfigurerStateProps {
 
 interface IAtlasMetricConfigurerDispatchProps {
   updateQuery: (event: any) => void;
+  clearTemplateState: () => void;
 }
 
 type IAtlasMetricConfigurerProps = IAtlasMetricConfigurerStateProps & IAtlasMetricConfigurerDispatchProps;
 
-interface IAtlasMetricConfigurerState {
+interface IAtlasGuidedQuerySelectorState {
   webComponent: Element;
 }
 
@@ -66,11 +72,16 @@ declare global {
 const queryFinder = (metric: ICanaryMetricConfig) => get(metric, 'query.q', '');
 
 /*
- * Component for configuring an Atlas metric via the <atlas-query-selector> web component.
+ * Guided form for configuring an Atlas metric via the <atlas-query-selector> web component. Split
+ * out from AtlasMetricConfigurer so the mode toggle only mounts (and only downloads/registers the
+ * web component) when Guided mode is actually shown.
  */
 @autoBindMethods
-class AtlasMetricConfigurer extends React.Component<IAtlasMetricConfigurerProps, IAtlasMetricConfigurerState> {
-  constructor(props: IAtlasMetricConfigurerProps) {
+class AtlasGuidedQuerySelector extends React.Component<
+  { editingMetric: ICanaryMetricConfig; updateQuery: (event: any) => void },
+  IAtlasGuidedQuerySelectorState
+> {
+  constructor(props: { editingMetric: ICanaryMetricConfig; updateQuery: (event: any) => void }) {
     super(props);
     this.state = { webComponent: null };
   }
@@ -108,6 +119,37 @@ class AtlasMetricConfigurer extends React.Component<IAtlasMetricConfigurerProps,
   }
 }
 
+/*
+ * Component for configuring an Atlas metric: either the Guided <atlas-query-selector> web
+ * component form, or the unified query Template editor.
+ */
+function AtlasMetricConfigurer({
+  editingMetric,
+  updateQuery,
+  clearTemplateState: onClearTemplateState,
+}: IAtlasMetricConfigurerProps) {
+  const hasTemplateData = Boolean(get(editingMetric, 'query.template'));
+  const hasGuidedData = Boolean(queryFinder(editingMetric));
+  const [mode, setMode] = useMetricConfigMode(editingMetric.id, hasTemplateData, hasGuidedData);
+
+  const handleModeChange = (newMode: MetricConfigMode) => {
+    setMode(newMode);
+    onClearTemplateState();
+  };
+
+  return (
+    <>
+      <MetricConfigModeToggle mode={mode} onChange={handleModeChange} />
+      {mode === MetricConfigMode.GUIDED && (
+        <AtlasGuidedQuerySelector editingMetric={editingMetric} updateQuery={updateQuery} />
+      )}
+      {mode === MetricConfigMode.TEMPLATE && (
+        <MetricQueryTemplateEditor providerVariableHints={templateProviderVariables.atlas} />
+      )}
+    </>
+  );
+}
+
 function mapStateToProps(state: ICanaryState): IAtlasMetricConfigurerStateProps {
   return {
     editingMetric: state.selectedConfig.editingMetric,
@@ -122,6 +164,7 @@ function mapDispatchToProps(dispatch: (action: Action & any) => void): IAtlasMet
         query,
       });
     },
+    clearTemplateState: () => clearTemplateState(dispatch as Dispatch<any>),
   };
 }
 
