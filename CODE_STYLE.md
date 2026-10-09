@@ -321,7 +321,7 @@ Deprecated and **on a removal timeline** — prefer the replacement, don't exten
 
 | Deprecated | Replacement | Removed in |
 |-----------|-------------|-----------|
-| Spectator metrics | Micrometer (native Spring metrics) | 2027.0.0 (stackdriver feeds 2026.4.0) |
+| Spectator metrics | Micrometer (native Spring metrics) | 2027.0.0 |
 | Redis storage for Orca **executions** | SQL | 2027.0.0 |
 | Non-SQL Front50 storage (S3/GCS/blob) for pipelines/templates | SQL | 2027.0.0 |
 | Kustomize 3 | Kustomize 4 or 5 | 2027.0.0 |
