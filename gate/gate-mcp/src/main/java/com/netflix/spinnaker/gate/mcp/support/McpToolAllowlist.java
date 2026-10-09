@@ -98,14 +98,16 @@ public class McpToolAllowlist implements BeanPostProcessor, SmartInitializingSin
   }
 
   private static String toolName(Object specification) {
-    McpSchema.Tool tool =
-        switch (specification) {
-          case McpServerFeatures.SyncToolSpecification s -> s.tool();
-          case McpServerFeatures.AsyncToolSpecification s -> s.tool();
-          case McpStatelessServerFeatures.SyncToolSpecification s -> s.tool();
-          case McpStatelessServerFeatures.AsyncToolSpecification s -> s.tool();
-          case null, default -> null;
-        };
+    McpSchema.Tool tool = null;
+    if (specification instanceof McpServerFeatures.SyncToolSpecification s) {
+      tool = s.tool();
+    } else if (specification instanceof McpServerFeatures.AsyncToolSpecification s) {
+      tool = s.tool();
+    } else if (specification instanceof McpStatelessServerFeatures.SyncToolSpecification s) {
+      tool = s.tool();
+    } else if (specification instanceof McpStatelessServerFeatures.AsyncToolSpecification s) {
+      tool = s.tool();
+    }
     return tool == null ? null : tool.name();
   }
 }
