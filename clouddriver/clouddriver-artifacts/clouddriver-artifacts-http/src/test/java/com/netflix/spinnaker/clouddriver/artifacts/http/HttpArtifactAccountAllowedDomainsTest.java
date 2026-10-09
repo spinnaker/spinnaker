@@ -20,6 +20,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatCode;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
+import com.netflix.spinnaker.credentials.definition.InvalidCredentialsConfigurationException;
 import com.netflix.spinnaker.kork.web.url.UrlRestrictionsProperties;
 import java.util.List;
 import okhttp3.OkHttpClient;
@@ -38,7 +39,7 @@ class HttpArtifactAccountAllowedDomainsTest {
   @Test
   void refusesCredentialsWithoutAllowedDomains() {
     assertThatThrownBy(() -> create(withCredentials().build()))
-        .isInstanceOf(IllegalStateException.class)
+        .isInstanceOf(InvalidCredentialsConfigurationException.class)
         .hasMessageContaining("my-account")
         .hasMessageContaining("allowedDomains");
   }
@@ -51,7 +52,16 @@ class HttpArtifactAccountAllowedDomainsTest {
                     withCredentials()
                         .urlRestrictions(UrlRestrictionsProperties.builder().build())
                         .build()))
-        .isInstanceOf(IllegalStateException.class);
+        .isInstanceOf(InvalidCredentialsConfigurationException.class);
+  }
+
+  @Test
+  void credentialsParserDoesNotSwallowTheMisconfiguration() {
+    var configuration = new HttpArtifactConfiguration(new HttpArtifactProviderProperties());
+    var parser = configuration.httpCredentialsProperties(new OkHttpClient()).getCredentialsParser();
+
+    assertThatThrownBy(() -> parser.parse(withCredentials().build()))
+        .isInstanceOf(InvalidCredentialsConfigurationException.class);
   }
 
   @Test

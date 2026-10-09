@@ -17,6 +17,7 @@
 package com.netflix.spinnaker.clouddriver.artifacts.config;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.netflix.spinnaker.credentials.definition.InvalidCredentialsConfigurationException;
 import com.netflix.spinnaker.kork.annotations.VisibleForTesting;
 import com.netflix.spinnaker.kork.web.url.UrlRestrictions;
 import java.io.IOException;
@@ -59,7 +60,7 @@ public abstract class BaseHttpArtifactCredentials<T extends UserInputValidatedAr
     if (restrictions != null
         && account.hasCredentials()
         && restrictions.getAllowedDomains().isEmpty()) {
-      throw new IllegalStateException(
+      throw new InvalidCredentialsConfigurationException(
           String.format(
               "Artifact account '%s' sends credentials but has no urlRestrictions.allowedDomains."
                   + " Set it to the hosts the credentials may be sent to (entries are regular"
