@@ -30,6 +30,7 @@ import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.util.List;
 import java.util.function.Function;
 import okhttp3.OkHttpClient;
 import org.junit.jupiter.api.Assertions;
@@ -51,7 +52,11 @@ class BitbucketArtifactCredentialsTest {
     BitbucketArtifactAccount account =
         BitbucketArtifactAccount.builder()
             .name("my-bitbucket-account")
-            .urlRestrictions(UrlRestrictionsProperties.builder().rejectLocalhost(false).build())
+            .urlRestrictions(
+                UrlRestrictionsProperties.builder()
+                    .rejectLocalhost(false)
+                    .allowedDomains(List.of("localhost"))
+                    .build())
             .token("abc")
             .build();
 
@@ -73,7 +78,11 @@ class BitbucketArtifactCredentialsTest {
     BitbucketArtifactAccount account =
         BitbucketArtifactAccount.builder()
             .name("my-bitbucket-account")
-            .urlRestrictions(UrlRestrictionsProperties.builder().rejectLocalhost(false).build())
+            .urlRestrictions(
+                UrlRestrictionsProperties.builder()
+                    .rejectLocalhost(false)
+                    .allowedDomains(List.of("localhost"))
+                    .build())
             .tokenFile(authFile.toAbsolutePath().toString())
             .build();
 
@@ -95,7 +104,11 @@ class BitbucketArtifactCredentialsTest {
     BitbucketArtifactAccount account =
         BitbucketArtifactAccount.builder()
             .name("my-bitbucket-account")
-            .urlRestrictions(UrlRestrictionsProperties.builder().rejectLocalhost(false).build())
+            .urlRestrictions(
+                UrlRestrictionsProperties.builder()
+                    .rejectLocalhost(false)
+                    .allowedDomains(List.of("localhost"))
+                    .build())
             .tokenFile(authFile.toAbsolutePath().toString())
             .build();
 
@@ -120,7 +133,11 @@ class BitbucketArtifactCredentialsTest {
   void downloadWithBasicAuth(@WiremockResolver.Wiremock WireMockServer server) throws IOException {
     BitbucketArtifactAccount account =
         BitbucketArtifactAccount.builder()
-            .urlRestrictions(UrlRestrictionsProperties.builder().rejectLocalhost(false).build())
+            .urlRestrictions(
+                UrlRestrictionsProperties.builder()
+                    .rejectLocalhost(false)
+                    .allowedDomains(List.of("localhost"))
+                    .build())
             .name("my-bitbucket-account")
             .username("user")
             .password("passw0rd")
@@ -138,7 +155,11 @@ class BitbucketArtifactCredentialsTest {
 
     BitbucketArtifactAccount account =
         BitbucketArtifactAccount.builder()
-            .urlRestrictions(UrlRestrictionsProperties.builder().rejectLocalhost(false).build())
+            .urlRestrictions(
+                UrlRestrictionsProperties.builder()
+                    .rejectLocalhost(false)
+                    .allowedDomains(List.of("localhost"))
+                    .build())
             .name("my-bitbucket-account")
             .usernamePasswordFile(authFile.toAbsolutePath().toString())
             .build();
@@ -151,7 +172,11 @@ class BitbucketArtifactCredentialsTest {
     BitbucketArtifactAccount account =
         BitbucketArtifactAccount.builder()
             .name("my-bitbucket-account")
-            .urlRestrictions(UrlRestrictionsProperties.builder().rejectLocalhost(false).build())
+            .urlRestrictions(
+                UrlRestrictionsProperties.builder()
+                    .rejectLocalhost(false)
+                    .allowedDomains(List.of("localhost"))
+                    .build())
             .build();
 
     runTestCase(server, account, m -> m.withHeader(AUTHORIZATION, absent()));
