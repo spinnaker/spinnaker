@@ -88,6 +88,7 @@ runs:
       with:
         context: ${{ inputs.project }}
         file: ${{ inputs.project }}/Dockerfile
+        pull: true
         platforms: linux/amd64,linux/arm64
         push: ${{ inputs.push == 'true' }}
         build-args: ${{ inputs.build-args }}
@@ -114,6 +115,7 @@ runs:
       with:
         context: ${{ inputs.project }}
         file: ${{ inputs.project }}/Dockerfile.slim
+        pull: true
         platforms: linux/amd64,linux/arm64
         push: ${{ inputs.push == 'true' }}
         build-args: ${{ inputs.build-args }}
@@ -141,6 +143,7 @@ runs:
       with:
         context: ${{ inputs.project }}
         file: ${{ inputs.project }}/Dockerfile.ubuntu
+        pull: true
         platforms: linux/amd64,linux/arm64
         push: ${{ inputs.push == 'true' }}
         build-args: ${{ inputs.build-args }}

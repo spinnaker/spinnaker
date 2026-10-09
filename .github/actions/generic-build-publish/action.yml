@@ -115,6 +115,7 @@ runs:
       with:
         context: ${{ inputs.project }}
         file: ${{ inputs.project }}/Dockerfile.slim
+        pull: true
         platforms: local
         load: true
         build-args: ${{ inputs.docker-build-args }}
