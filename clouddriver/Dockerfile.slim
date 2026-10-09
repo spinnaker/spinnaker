@@ -1,4 +1,4 @@
-FROM python:3.14-alpine3.24
+FROM python:3.14.8-alpine3.24
 LABEL maintainer="sig-platform@spinnaker.io"
 ARG TARGETARCH
 
@@ -23,7 +23,8 @@ RUN apk update \
     unzip
 
 # AWS CLI 2
-RUN apk add aws-cli
+# CVE-2026-19445 also affects Alpine's Python interpreter used by AWS CLI.
+RUN apk add --no-cache aws-cli 'python3>=3.14.8-r0'
 
 # Google cloud SDK
 RUN [ $TARGETARCH == 'amd64' ] &&  export GCP_ARCH="x86_64" || export GCP_ARCH="arm"  \
