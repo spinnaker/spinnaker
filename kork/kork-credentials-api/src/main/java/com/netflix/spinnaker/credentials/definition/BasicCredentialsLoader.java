@@ -79,6 +79,7 @@ public class BasicCredentialsLoader<T extends CredentialsDefinition, U extends C
         .peek(loadedDefinitions::remove)
         .forEach(credentialsRepository::delete);
 
+<<<<<<< HEAD
     List<U> toApply = new ArrayList<>();
 
     for (T definition : definitions) {
@@ -94,11 +95,57 @@ public class BasicCredentialsLoader<T extends CredentialsDefinition, U extends C
         if (cred != null) {
           toApply.add(cred);
           loadedDefinitions.put(definition.getName(), definition);
+=======
+    List<Map.Entry<T, U>> toApply = new ArrayList<>();
+    InvalidCredentialsConfigurationException invalidConfiguration = null;
+
+    for (T definition : definitions) {
+      T loadedDefinition = loadedDefinitions.get(definition.getName());
+      if (loadedDefinition == null || !loadedDefinition.equals(definition)) {
+        try {
+          U cred = parser.parse(definition);
+          if (cred != null) {
+            toApply.add(Map.entry(definition, cred));
+          }
+        } catch (InvalidCredentialsConfigurationException e) {
+          log.error("Invalid credentials definition '{}'", definition.getName(), e);
+          if (invalidConfiguration == null) {
+            invalidConfiguration = e;
+          } else {
+            invalidConfiguration.addSuppressed(e);
+          }
+        } catch (RuntimeException e) {
+          log.error(
+              "Error parsing credentials definition '{}'; will retry on next load",
+              definition.getName(),
+              e);
+>>>>>>> 4d2819f (fix(clouddriver)!: require allowedDomains for artifact accounts that send credentials (#8171))
         }
       }
     }
 
+<<<<<<< HEAD
     Stream<U> stream = parallel ? toApply.parallelStream() : toApply.stream();
     stream.forEach(credentialsRepository::save);
+=======
+    Stream<Map.Entry<T, U>> stream = parallel ? toApply.parallelStream() : toApply.stream();
+    stream.forEach(
+        entry -> {
+          T definition = entry.getKey();
+          try {
+            credentialsRepository.save(entry.getValue());
+            // Only mark the definition as loaded once it has been stored in the repository;
+            // otherwise a failed save would never be retried on subsequent loads
+            loadedDefinitions.put(definition.getName(), definition);
+          } catch (RuntimeException e) {
+            log.error(
+                "Error saving credentials '{}'; will retry on next load", definition.getName(), e);
+          }
+        });
+
+    if (invalidConfiguration != null) {
+      throw invalidConfiguration;
+    }
+>>>>>>> 4d2819f (fix(clouddriver)!: require allowedDomains for artifact accounts that send credentials (#8171))
   }
 }
