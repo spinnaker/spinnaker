@@ -363,6 +363,26 @@ class SqlExecutionRepository(
     }
   }
 
+  override fun updateStatusIfExpected(execution: PipelineExecution, expectedStatus: ExecutionStatus): Boolean {
+    var updated = false
+    withPool(poolName) {
+      jooq.transactional { ctx ->
+        updated = false
+        val storedStatus = ctx.select(field("status"))
+          .from(execution.type.tableName)
+          .where(execution.id.toWhereCondition())
+          .forUpdate()
+          .fetchOne(field("status"), String::class.java)
+        val statusMatches = storedStatus == expectedStatus.toString()
+        if (statusMatches) {
+          storeExecutionInternal(ctx, execution)
+          updated = true
+        }
+      }
+    }
+    return updated
+  }
+
   override fun updateStatus(type: ExecutionType, id: String, status: ExecutionStatus) {
     withPool(poolName) {
       jooq.transactional {

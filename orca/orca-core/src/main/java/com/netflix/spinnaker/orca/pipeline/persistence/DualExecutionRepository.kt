@@ -156,6 +156,10 @@ class DualExecutionRepository(
     select(type, id).updateStatus(type, id, status)
   }
 
+  override fun updateStatusIfExpected(execution: PipelineExecution, expectedStatus: ExecutionStatus): Boolean {
+    return select(execution.type, execution.id).updateStatusIfExpected(execution, expectedStatus)
+  }
+
   override fun retrieve(type: ExecutionType, id: String): PipelineExecution {
     return select(type, id).retrieve(type, id)
   }

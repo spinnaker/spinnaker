@@ -24,6 +24,7 @@ import com.netflix.spinnaker.orca.api.pipeline.models.PipelineExecution
 import com.netflix.spinnaker.orca.events.ExecutionComplete
 import com.netflix.spinnaker.orca.events.ExecutionStarted
 import com.netflix.spinnaker.orca.ext.initialStages
+import com.netflix.spinnaker.orca.pipeline.persistence.ExecutionNotFoundException
 import com.netflix.spinnaker.orca.pipeline.persistence.ExecutionRepository
 import com.netflix.spinnaker.orca.q.CancelExecution
 import com.netflix.spinnaker.orca.q.StartExecution
@@ -96,7 +97,19 @@ class StartExecutionHandler(
         publisher.publishEvent(ExecutionComplete(this, execution))
       } else {
         execution.updateStatus(RUNNING)
-        repository.updateStatus(execution)
+        // The same StartExecution message can be delivered to another worker (for example when
+        // handling it exceeds the queue's ack timeout). Only move the execution to RUNNING if it
+        // is still NOT_STARTED, so a stale copy can't overwrite a newer, possibly terminal, state.
+        if (!repository.updateStatusIfExpected(execution, NOT_STARTED)) {
+          log.warn(
+            "Not starting execution (type ${execution.type}, id {}, application: {}): {}." +
+              " Ignoring StartExecution message.",
+            value("executionId", execution.id),
+            value("application", execution.application),
+            describeStoredStatus(execution)
+          )
+          return
+        }
         try {
           initialStages.forEach { queue.push(StartStage(it)) }
         } catch (e: Exception) {
@@ -126,6 +139,19 @@ class StartExecutionHandler(
       )
     }
   }
+
+  /**
+   * Explains why the conditional update to RUNNING was rejected. Only called on that rare path, so
+   * the extra read is cheap and makes the log say what actually happened.
+   */
+  private fun describeStoredStatus(execution: PipelineExecution): String =
+    try {
+      "its stored status is ${repository.retrieve(execution.type, execution.id, true).status}"
+    } catch (e: ExecutionNotFoundException) {
+      "it no longer exists"
+    } catch (e: Exception) {
+      "its stored status is no longer NOT_STARTED (it may have been started by another worker, canceled or deleted)"
+    }
 
   private fun PipelineExecution.isAfterStartTimeExpiry() =
     startTimeExpiry

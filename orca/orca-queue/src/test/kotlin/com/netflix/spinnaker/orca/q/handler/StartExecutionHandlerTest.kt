@@ -19,12 +19,15 @@ package com.netflix.spinnaker.orca.q.handler
 import com.netflix.spinnaker.orca.api.pipeline.models.ExecutionStatus.CANCELED
 import com.netflix.spinnaker.orca.api.pipeline.models.ExecutionStatus.NOT_STARTED
 import com.netflix.spinnaker.orca.api.pipeline.models.ExecutionStatus.RUNNING
+import com.netflix.spinnaker.orca.api.pipeline.models.ExecutionStatus.SUCCEEDED
 import com.netflix.spinnaker.orca.api.pipeline.models.ExecutionStatus.TERMINAL
 import com.netflix.spinnaker.orca.api.pipeline.models.ExecutionType.PIPELINE
+import com.netflix.spinnaker.orca.api.pipeline.models.PipelineExecution
 import com.netflix.spinnaker.orca.api.test.pipeline
 import com.netflix.spinnaker.orca.api.test.stage
 import com.netflix.spinnaker.orca.events.ExecutionComplete
 import com.netflix.spinnaker.orca.events.ExecutionStarted
+import com.netflix.spinnaker.orca.pipeline.persistence.ExecutionNotFoundException
 import com.netflix.spinnaker.orca.pipeline.persistence.ExecutionRepository
 import com.netflix.spinnaker.orca.q.CancelExecution
 import com.netflix.spinnaker.orca.q.StartExecution
@@ -73,7 +76,16 @@ object StartExecutionHandlerTest : SubjectSpek<StartExecutionHandler>({
     StartExecutionHandler(queue, repository, pendingExecutionService, publisher, clock)
   }
 
-  fun resetMocks() = reset(queue, repository, publisher)
+  fun stubConditionalStatusUpdate() {
+    whenever(repository.updateStatusIfExpected(any(), any())) doReturn true
+  }
+
+  fun resetMocks() {
+    reset(queue, repository, publisher)
+    stubConditionalStatusUpdate()
+  }
+
+  stubConditionalStatusUpdate()
 
   describe("starting an execution") {
     given("a pipeline with a single initial stage") {
@@ -96,7 +108,7 @@ object StartExecutionHandlerTest : SubjectSpek<StartExecutionHandler>({
 
       it("marks the execution as running") {
         assertThat(pipeline.status).isEqualTo(RUNNING)
-        verify(repository).updateStatus(pipeline)
+        verify(repository).updateStatusIfExpected(pipeline, NOT_STARTED)
       }
 
       it("starts the first stage") {
@@ -353,7 +365,7 @@ object StartExecutionHandlerTest : SubjectSpek<StartExecutionHandler>({
 
         it("does not start the new pipeline") {
           assertThat(pipeline.status).isNotEqualTo(RUNNING)
-          verify(repository, never()).updateStatus(pipeline)
+          verify(repository, never()).updateStatusIfExpected(any(), any())
           verify(queue, never()).push(isA<StartStage>())
         }
 
@@ -388,7 +400,7 @@ object StartExecutionHandlerTest : SubjectSpek<StartExecutionHandler>({
 
         it("starts the new pipeline") {
           assertThat(pipeline.status).isEqualTo(RUNNING)
-          verify(repository).updateStatus(pipeline)
+          verify(repository).updateStatusIfExpected(pipeline, NOT_STARTED)
           verify(queue).push(isA<StartStage>())
         }
       }
@@ -416,7 +428,7 @@ object StartExecutionHandlerTest : SubjectSpek<StartExecutionHandler>({
 
         it("starts the new pipeline") {
           assertThat(pipeline.status).isEqualTo(RUNNING)
-          verify(repository).updateStatus(pipeline)
+          verify(repository).updateStatusIfExpected(pipeline, NOT_STARTED)
           verify(queue).push(isA<StartStage>())
         }
       }
@@ -487,7 +499,7 @@ object StartExecutionHandlerTest : SubjectSpek<StartExecutionHandler>({
 
         it("starts the new pipeline") {
           assertThat(pipeline.status).isEqualTo(RUNNING)
-          verify(repository).updateStatus(pipeline)
+          verify(repository).updateStatusIfExpected(pipeline, NOT_STARTED)
           verify(queue).push(isA<StartStage>())
         }
       }
@@ -513,7 +525,7 @@ object StartExecutionHandlerTest : SubjectSpek<StartExecutionHandler>({
 
         it("starts the new pipeline") {
           assertThat(pipeline.status).isEqualTo(RUNNING)
-          verify(repository).updateStatus(pipeline)
+          verify(repository).updateStatusIfExpected(pipeline, NOT_STARTED)
           verify(queue).push(isA<StartStage>())
         }
       }
@@ -539,7 +551,7 @@ object StartExecutionHandlerTest : SubjectSpek<StartExecutionHandler>({
 
         it("starts the new pipeline") {
           assertThat(pipeline.status).isEqualTo(RUNNING)
-          verify(repository).updateStatus(pipeline)
+          verify(repository).updateStatusIfExpected(pipeline, NOT_STARTED)
           verify(queue).push(isA<StartStage>())
         }
       }
@@ -565,7 +577,7 @@ object StartExecutionHandlerTest : SubjectSpek<StartExecutionHandler>({
 
         it("does not start the new pipeline") {
           assertThat(pipeline.status).isNotEqualTo(RUNNING)
-          verify(repository, never()).updateStatus(pipeline)
+          verify(repository, never()).updateStatusIfExpected(any(), any())
           verify(queue, never()).push(isA<StartStage>())
         }
 
@@ -578,6 +590,83 @@ object StartExecutionHandlerTest : SubjectSpek<StartExecutionHandler>({
         }
       }
 
+    }
+
+    given("another worker already started the execution from a duplicate message") {
+      val pipeline = pipeline {
+        stage {
+          type = singleTaskStage.type
+        }
+      }
+      val message = StartExecution(pipeline)
+
+      beforeGroup {
+        // this worker loaded the execution while it was still NOT_STARTED, but by the time it
+        // writes RUNNING the stored execution has been started (and possibly completed) already
+        whenever(repository.retrieve(message.executionType, message.executionId)) doReturn pipeline
+        whenever(repository.updateStatusIfExpected(pipeline, NOT_STARTED)) doReturn false
+        whenever(repository.retrieve(message.executionType, message.executionId, true)) doReturn
+          pipeline { status = SUCCEEDED }
+      }
+
+      afterGroup(::resetMocks)
+
+      on("receiving a message") {
+        subject.handle(message)
+      }
+
+      it("only attempts a conditional status update") {
+        verify(repository).updateStatusIfExpected(pipeline, NOT_STARTED)
+        verify(repository, never()).updateStatus(any<PipelineExecution>())
+      }
+
+      it("does not start the first stage again") {
+        verify(queue, never()).push(isA<StartStage>())
+      }
+
+      it("does not publish an event") {
+        verify(publisher, never()).publishEvent(isA<ExecutionStarted>())
+      }
+
+      it("reads the stored status to explain why it did not start the execution") {
+        verify(repository).retrieve(message.executionType, message.executionId, true)
+      }
+    }
+
+    given("the execution was deleted before it could be started") {
+      val pipeline = pipeline {
+        stage {
+          type = singleTaskStage.type
+        }
+      }
+      val message = StartExecution(pipeline)
+
+      beforeGroup {
+        whenever(repository.retrieve(message.executionType, message.executionId)) doReturn pipeline
+        whenever(repository.updateStatusIfExpected(pipeline, NOT_STARTED)) doReturn false
+        whenever(repository.retrieve(message.executionType, message.executionId, true)) doThrow
+          ExecutionNotFoundException("No ${message.executionType} found for ${message.executionId}")
+      }
+
+      afterGroup(::resetMocks)
+
+      var thrownException: Exception? = null
+
+      on("receiving a message") {
+        try {
+          subject.handle(message)
+        } catch (e: Exception) {
+          thrownException = e
+        }
+      }
+
+      it("does not fail") {
+        assertThat(thrownException).isNull()
+      }
+
+      it("does not start the first stage") {
+        verify(queue, never()).push(isA<StartStage>())
+      }
     }
   }
 
