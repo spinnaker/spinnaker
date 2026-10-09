@@ -1,4 +1,9 @@
+set -e
+
 apt-get update
+# TODO: Upgrade Apache to >=2.4.69 and curl to >=8.22 when Debian stable
+# publishes fixed packages; CVE-2026-95210 still needs a GnuTLS fix.
+apt-get upgrade -y
 apt-get install apache2 brotli gzip -y
 rm -rf /var/lib/apt/lists/*
 
