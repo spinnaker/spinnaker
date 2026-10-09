@@ -262,12 +262,23 @@ public class DefaultOrchestrationProcessor implements OrchestrationProcessor {
                                 }
                               }
 
-                              if (task.getStatus() != null && task.getStatus().isFailed()) {
-                                task.updateStatus(
-                                    TASK_PHASE,
-                                    "Orchestration completed with errors, see prior task logs.");
-                              } else {
-                                task.updateStatus(TASK_PHASE, "Orchestration completed.");
+                              // The operation has already succeeded. Failing to record that must
+                              // not
+                              // turn it into a failed task.
+                              try {
+                                if (task.getStatus() != null && task.getStatus().isFailed()) {
+                                  task.updateStatus(
+                                      TASK_PHASE,
+                                      "Orchestration completed with errors, see prior task logs.");
+                                } else {
+                                  task.updateStatus(TASK_PHASE, "Orchestration completed.");
+                                }
+                              } catch (Exception e) {
+                                log.warn(
+                                    "Unable to record completion of operation {} on task {}",
+                                    atomicOperation.getClass().getSimpleName(),
+                                    task.getId(),
+                                    e);
                               }
                               return null;
                             })
