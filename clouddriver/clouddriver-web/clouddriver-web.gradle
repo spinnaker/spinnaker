@@ -52,6 +52,7 @@ dependencies {
     runtimeOnly project(":clouddriver-configserver")
   }
 
+  testImplementation "io.spinnaker.kork:kork-jedis"
   testImplementation "io.spinnaker.kork:kork-test"
   testImplementation "org.springframework.boot:spring-boot-starter-test"
   testImplementation "org.springframework.boot:spring-boot-starter-webmvc-test"
