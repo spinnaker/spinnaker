@@ -10,5 +10,6 @@
 
   <Directory "/opt/deck/html/">
     Require all granted
+    Include /opt/deck/docker/compression.conf
   </Directory>
 </VirtualHost>
