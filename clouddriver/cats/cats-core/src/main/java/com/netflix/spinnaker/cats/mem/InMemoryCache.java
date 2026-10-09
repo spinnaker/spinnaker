@@ -121,17 +121,17 @@ public class InMemoryCache implements WriteableCache {
   }
 
   @Override
-  public Collection<String> existingIdentifiers(String type, Collection<String> ids) {
+  public Set<String> existingIdentifiers(String type, Collection<String> ids) {
     Set<String> existing = new HashSet<>(ids);
     existing.retainAll(getTypeMap(type).keySet());
     return existing;
   }
 
-  public Collection<String> getIdentifiers(String type) {
+  public Set<String> getIdentifiers(String type) {
     return new HashSet<>(getTypeMap(type).keySet());
   }
 
-  public Collection<String> filterIdentifiers(String type, String glob) {
+  public Set<String> filterIdentifiers(String type, String glob) {
     final Pattern pattern = new Glob(glob).toPattern();
     final HashSet<String> matches = new HashSet<>();
     for (String key : getTypeMap(type).keySet()) {
