@@ -71,6 +71,12 @@ class WebhooksController {
       log.error("Failed to parse payload: {}", rawPayload, e);
       throw e
     }
+    // The artifacts of a git webhook are derived from its payload by the artifact extractors, so an
+    // `artifacts` key in the body is ignored.
+    if (type == 'git' && postedEvent.containsKey('artifacts')) {
+      log.warn("Ignoring artifacts supplied in the payload of webhook ${type}:${source}")
+      postedEvent.remove('artifacts')
+    }
     event.content = postedEvent
     event.payload = new HashMap(postedEvent)
     if (headers.containsHeader('X-Event-Key')) {
