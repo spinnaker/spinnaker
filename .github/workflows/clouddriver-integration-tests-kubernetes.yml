@@ -24,34 +24,43 @@ env:
   GRADLE_OPTS: -Dorg.gradle.daemon=false -Xmx12g -Xms12g
 
 jobs:
+  prepare-matrix:
+    runs-on: ubuntu-latest
+    outputs:
+      matrix: ${{ steps.matrix.outputs.result }}
+    steps:
+      - uses: actions/checkout@v7
+      - name: Read shared Kubernetes versions
+        id: matrix
+        uses: actions/github-script@v9
+        with:
+          script: |
+            const { versions, defaultMinor, kindVersion, testDefaultAgainstAll } =
+              require('./clouddriver/kubectl-versions.json');
+            const defaultClient = versions[defaultMinor].kubectl;
+
+            const include = Object.entries(versions)
+              .filter(([, version]) => version.kubernetesImage)
+              .flatMap(([minor, version]) => {
+                const clients = new Set([version.kubectl]);
+                if (testDefaultAgainstAll) clients.add(defaultClient);
+
+                return Array.from(clients, kubectl => ({
+                  'kubernetes-version': minor,
+                  'kubernetes-image': version.kubernetesImage,
+                  'kubectl-version': kubectl,
+                  'kind-version': version.kindVersion ?? kindVersion,
+                }));
+              });
+
+            return { include };
+
   it-test-kubernetes:
+    needs: prepare-matrix
+    name: Kubernetes ${{ matrix.kubernetes-version }} / kubectl ${{ matrix.kubectl-version }}
     strategy:
       fail-fast: false
-      matrix:
-        # Node images are the ones shipped with kind v0.31.0 (see KIND_VERSION in
-        # clouddriver-kubernetes KubernetesCluster.java); kubectl is the latest patch
-        # release of the matching minor version.
-        #
-        # The base kubectl-version entry runs the oldest supported kubectl against
-        # every cluster version to cover version skew; the include entries add a
-        # job per cluster version with its matching kubectl.
-        kubectl-version:
-          - 1.31.14
-        kubernetes-image:
-          - "kindest/node:v1.35.0@sha256:452d707d4862f52530247495d180205e029056831160e22870e37e3f6c1ac31f"
-          - "kindest/node:v1.34.3@sha256:08497ee19eace7b4b5348db5c6a1591d7752b164530a36f855cb0f2bdcbadd48"
-          - "kindest/node:v1.33.7@sha256:d26ef333bdb2cbe9862a0f7c3803ecc7b4303d8cea8e814b481b09949d353040"
-          - "kindest/node:v1.32.11@sha256:5fc52d52a7b9574015299724bd68f183702956aa4a2116ae75a63cb574b35af8"
-          - "kindest/node:v1.31.14@sha256:6f86cf509dbb42767b6e79debc3f2c32e4ee01386f0489b3b2be24b0a55aac2b"
-        include:
-          - kubectl-version: 1.35.6
-            kubernetes-image: "kindest/node:v1.35.0@sha256:452d707d4862f52530247495d180205e029056831160e22870e37e3f6c1ac31f"
-          - kubectl-version: 1.34.9
-            kubernetes-image: "kindest/node:v1.34.3@sha256:08497ee19eace7b4b5348db5c6a1591d7752b164530a36f855cb0f2bdcbadd48"
-          - kubectl-version: 1.33.13
-            kubernetes-image: "kindest/node:v1.33.7@sha256:d26ef333bdb2cbe9862a0f7c3803ecc7b4303d8cea8e814b481b09949d353040"
-          - kubectl-version: 1.32.13
-            kubernetes-image: "kindest/node:v1.32.11@sha256:5fc52d52a7b9574015299724bd68f183702956aa4a2116ae75a63cb574b35af8"
+      matrix: ${{ fromJSON(needs.prepare-matrix.outputs.matrix) }}
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v7
@@ -81,5 +90,11 @@ jobs:
             ${{ runner.os }}-cd-it-${{ github.event.before }}
 
       - name: Kubernetes Provider Integration Tests
+        env:
+          KUBERNETES_IMAGE: ${{ matrix.kubernetes-image }}
+          KUBECTL_VERSION: ${{ matrix.kubectl-version }}
+          KIND_VERSION: ${{ matrix.kind-version }}
         run: |
-          ./gradlew --build-cache :clouddriver:clouddriver-kubernetes:integrationTest -Pkubernetes-image=${{ matrix.kubernetes-image }} -Pkubectl-version=${{ matrix.kubectl-version }}
+          ./gradlew --build-cache :clouddriver:clouddriver-kubernetes:integrationTest \
+            -Pkubernetes-image="$KUBERNETES_IMAGE" -Pkubectl-version="$KUBECTL_VERSION" \
+            -Pkind-version="$KIND_VERSION"

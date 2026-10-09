@@ -48,11 +48,12 @@ public class KubernetesCluster {
 
   private static KubernetesCluster INSTANCE;
   private static final String IMAGE = System.getenv("IMAGE");
-  private static final String KIND_VERSION = "0.31.0";
+  private static final String KIND_VERSION = System.getenv("KIND_VERSION");
   private static final String KUBECTL_VERSION = System.getenv("KUBECTL_VERSION");
   private static final Path IT_BUILD_HOME = Paths.get(System.getenv("IT_BUILD_HOME"));
   private static final Path KUBECFG_PATH = Paths.get(IT_BUILD_HOME.toString(), "kubecfg.yml");
-  private static final Path KUBECTL_PATH = Paths.get(IT_BUILD_HOME.toString(), "kubectl");
+  private static final Path KIND_PATH = IT_BUILD_HOME.resolve("kind-" + KIND_VERSION);
+  private static final Path KUBECTL_PATH = IT_BUILD_HOME.resolve("kubectl-" + KUBECTL_VERSION);
 
   private final Map<String, List<String>> namespacesByAccount = new HashMap<>();
 
@@ -151,23 +152,21 @@ public class KubernetesCluster {
     }
     System.out.println("Detected os: " + os + " arch: " + arch);
 
-    Path kind = Paths.get(IT_BUILD_HOME.toString(), "kind");
-    if (!kind.toFile().exists()) {
+    if (!KIND_PATH.toFile().exists()) {
       String url =
           String.format(
               "https://github.com/kubernetes-sigs/kind/releases/download/v%s/kind-%s-%s",
               KIND_VERSION, os, arch);
       System.out.println("Downloading kind from " + url);
-      downloadFile(kind, url);
+      downloadFile(KIND_PATH, url);
     }
 
-    Path kubectl = Paths.get(IT_BUILD_HOME.toString(), "kubectl");
-    if (!kubectl.toFile().exists()) {
+    if (!KUBECTL_PATH.toFile().exists()) {
       String url =
           String.format(
               "https://dl.k8s.io/release/v%s/bin/%s/%s/kubectl", KUBECTL_VERSION, os, arch);
       System.out.println("Downloading kubectl from " + url);
-      downloadFile(kubectl, url);
+      downloadFile(KUBECTL_PATH, url);
     }
   }
 
@@ -199,7 +198,7 @@ public class KubernetesCluster {
     List<String> cmd = new ArrayList<>();
     cmd.add("sh");
     cmd.add("-c");
-    cmd.add(Paths.get(IT_BUILD_HOME.toString(), "kind") + " " + args);
+    cmd.add(KIND_PATH + " " + args);
     builder.command(cmd);
     builder.redirectErrorStream(true);
     Process process = builder.start();
