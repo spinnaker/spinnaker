@@ -21,6 +21,9 @@ import com.netflix.spinnaker.config.CompressionType
 import com.netflix.spinnaker.config.ExecutionCompressionProperties
 import com.netflix.spinnaker.kork.sql.config.RetryProperties
 import com.netflix.spinnaker.kork.sql.test.SqlTestUtil
+import com.netflix.spinnaker.orca.api.pipeline.models.ExecutionStatus.NOT_STARTED
+import com.netflix.spinnaker.orca.api.pipeline.models.ExecutionStatus.RUNNING
+import com.netflix.spinnaker.orca.api.pipeline.models.ExecutionStatus.SUCCEEDED
 import com.netflix.spinnaker.orca.api.pipeline.models.ExecutionType
 import com.netflix.spinnaker.orca.api.pipeline.models.PipelineExecution
 import com.netflix.spinnaker.orca.api.pipeline.models.StageExecution
@@ -299,6 +302,48 @@ class SqlExecutionRepositoryTest : JUnit5Minutests {
 
         val actualPipelineExecution = sqlExecutionRepositoryReadOnly.retrieve(testType, pipelineId)
         assertThat(actualPipelineExecution).isEqualTo(pipelineExecution)
+      }
+    }
+
+    context("conditional status update") {
+      val testType = ExecutionType.PIPELINE
+
+      test("a stale copy cannot move a completed execution back to RUNNING") {
+        val pipelineExecution = PipelineExecutionImpl(testType, "test-application").apply {
+          stage {}
+        }
+        sqlExecutionRepositoryNoCompression.store(pipelineExecution)
+
+        // two workers load the execution while it is still NOT_STARTED
+        val firstCopy = sqlExecutionRepositoryNoCompression.retrieve(testType, pipelineExecution.id)
+        val staleCopy = sqlExecutionRepositoryNoCompression.retrieve(testType, pipelineExecution.id)
+
+        // the first worker starts it and the execution completes
+        firstCopy.updateStatus(RUNNING)
+        assertThat(sqlExecutionRepositoryNoCompression.updateStatusIfExpected(firstCopy, NOT_STARTED)).isTrue()
+        firstCopy.updateStatus(SUCCEEDED)
+        sqlExecutionRepositoryNoCompression.updateStatus(firstCopy)
+
+        // the second worker then tries to start its stale copy
+        staleCopy.updateStatus(RUNNING)
+        assertThat(sqlExecutionRepositoryNoCompression.updateStatusIfExpected(staleCopy, NOT_STARTED)).isFalse()
+
+        assertThat(sqlExecutionRepositoryNoCompression.retrieve(testType, pipelineExecution.id).status)
+          .isEqualTo(SUCCEEDED)
+      }
+
+      test("updates the execution when the stored status matches") {
+        val pipelineExecution = PipelineExecutionImpl(testType, "test-application").apply {
+          stage {}
+        }
+        sqlExecutionRepositoryNoCompression.store(pipelineExecution)
+
+        pipelineExecution.updateStatus(RUNNING)
+        assertThat(sqlExecutionRepositoryNoCompression.updateStatusIfExpected(pipelineExecution, NOT_STARTED)).isTrue()
+
+        val stored = sqlExecutionRepositoryNoCompression.retrieve(testType, pipelineExecution.id)
+        assertThat(stored.status).isEqualTo(RUNNING)
+        assertThat(stored.startTime).isEqualTo(pipelineExecution.startTime)
       }
     }
 
