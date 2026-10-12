@@ -60,6 +60,22 @@ describe('ecsServerGroupTransformer', () => {
       transformed = transformer.convertServerGroupCommandToDeployConfiguration(command);
       expect(transformed.subnetType).toBe('internal');
     });
+
+    it('defaults cloudProvider to ecs', () => {
+      const command: any = { viewState: { mode: 'create' }, application: { name: 'theApp' } };
+      const transformed = transformer.convertServerGroupCommandToDeployConfiguration(command);
+      expect(transformed.cloudProvider).toBe('ecs');
+    });
+
+    it('preserves cloudProvider ecs-native when the native deployment toggle is set', () => {
+      const command: any = {
+        viewState: { mode: 'create' },
+        application: { name: 'theApp' },
+        cloudProvider: 'ecs-native',
+      };
+      const transformed = transformer.convertServerGroupCommandToDeployConfiguration(command);
+      expect(transformed.cloudProvider).toBe('ecs-native');
+    });
   });
 
   describe('normalize server group details', () => {
