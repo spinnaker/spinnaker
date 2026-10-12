@@ -21,6 +21,7 @@ import software.amazon.awssdk.services.ec2.model.GroupIdentifier
 import software.amazon.awssdk.services.ec2.model.Instance
 import software.amazon.awssdk.services.ec2.model.Placement
 import software.amazon.awssdk.services.ecs.model.AwsVpcConfiguration
+import software.amazon.awssdk.services.ecs.model.Deployment
 import software.amazon.awssdk.services.ecs.model.DeploymentConfiguration
 import software.amazon.awssdk.services.ecs.model.NetworkConfiguration
 import java.time.Instant
@@ -40,11 +41,14 @@ import com.netflix.spinnaker.clouddriver.ecs.cache.model.EcsLoadBalancerCache
 import com.netflix.spinnaker.clouddriver.ecs.model.EcsServerCluster
 import com.netflix.spinnaker.clouddriver.ecs.model.EcsServerGroup
 import com.netflix.spinnaker.clouddriver.ecs.model.EcsTask
+import com.netflix.spinnaker.clouddriver.ecs.model.EcsTaskDefinitionRevision
+import com.netflix.spinnaker.clouddriver.ecs.EcsNativeServiceTag
 import com.netflix.spinnaker.clouddriver.ecs.provider.agent.ServiceCachingAgent
 import com.netflix.spinnaker.clouddriver.ecs.provider.agent.TaskCachingAgent
 import com.netflix.spinnaker.clouddriver.ecs.security.NetflixECSCredentials
 import com.netflix.spinnaker.clouddriver.ecs.provider.agent.TestServiceCachingAgentFactory
 import com.netflix.spinnaker.clouddriver.ecs.services.ContainerInformationService
+import com.netflix.spinnaker.clouddriver.ecs.services.EcsTaskDefinitionRevisionService
 import com.netflix.spinnaker.clouddriver.ecs.services.SubnetSelector
 import com.netflix.spinnaker.clouddriver.model.ServerGroup
 import com.netflix.spinnaker.credentials.CredentialsRepository
@@ -67,6 +71,7 @@ class EcsServerClusterProviderSpec extends Specification {
   def credentialsRepository = Mock(CredentialsRepository)
   def containerInformationService = Mock(ContainerInformationService)
   def subnetSelector =  Mock(SubnetSelector)
+  def ecsTaskDefinitionRevisionService = Mock(EcsTaskDefinitionRevisionService)
 
   @Subject
   def provider = new EcsServerClusterProvider(credentialsRepository,
@@ -77,7 +82,8 @@ class EcsServerClusterProviderSpec extends Specification {
     scalableTargetCacheClient,
     ecsLoadbalancerCacheClient,
     taskDefinitionCacheClient,
-    ecsCloudWatchAlarmCacheClient)
+    ecsCloudWatchAlarmCacheClient,
+    ecsTaskDefinitionRevisionService)
 
   software.amazon.awssdk.services.ecs.model.Service cachedService
   TaskDefinition cachedTaskDefinition
@@ -88,6 +94,8 @@ class EcsServerClusterProviderSpec extends Specification {
   private static final FAMILY_NAME = 'myapp-kcats-liated'
   private static final CREDS_NAME = 'test'
   private static final CREDS_NAME_2 = 'test2'
+  private static final REQUESTED_ARN = 'arn:aws:ecs:us-east-1:123456789012:task-definition/myapp-kcats-liated:3'
+  private static final SIBLING_ARN = 'arn:aws:ecs:us-east-1:123456789012:task-definition/myapp-sibling:5'
 
   def setup() {
     def taskId = 'task-id'
@@ -393,6 +401,130 @@ class EcsServerClusterProviderSpec extends Specification {
 
     then:
     retrievedClusters.sort() == [expectedCluster, expectedCluster2].sort()
+  }
+
+  def 'should surface the task definition revision and ECS rollout state on the server group'() {
+    given: 'a cached service with a PRIMARY deployment and a task-definition ARN carrying a revision'
+    def creds = Mock(NetflixECSCredentials)
+    creds.getCloudProvider() >> 'ecs'
+    creds.getName() >> CREDS_NAME
+    creds.getRegions() >> [new AmazonCredentials.AWSRegion('us-east-1', ['us-east-1b', 'us-east-1c', 'us-east-1d']),
+                           new AmazonCredentials.AWSRegion('us-west-1', ['us-west-1b', 'us-west-1c', 'us-west-1d'])]
+
+    def serviceWithDeployment = cachedService.toBuilder()
+      .deployments(
+        Deployment.builder()
+          .status('PRIMARY')
+          .id('ecs-svc/9876543210')
+          .rolloutState('IN_PROGRESS')
+          .rolloutStateReason('ECS deployment is in progress.')
+          .build())
+      .build()
+
+    def serviceAttributes = TestServiceCachingAgentFactory.create(creds, creds.getRegions()[0].getName()).convertServiceToAttributes(serviceWithDeployment)
+    def serviceCacheData = new DefaultCacheData('', serviceAttributes, [:])
+
+    cachedTaskDefinition = TaskDefinition.builder()
+      .taskDefinitionArn('arn:aws:ecs:us-west-1:123456789012:task-definition/myapp-stack-detail:42')
+      .containerDefinitions(
+        ContainerDefinition.builder()
+          .image('my-image')
+          .memoryReservation(256)
+          .cpu(123)
+          .environment([])
+          .portMappings(PortMapping.builder().containerPort(1337).build())
+          .build())
+      .build()
+
+    when:
+    def retrievedCluster = provider.getCluster("myapp", CREDS_NAME, FAMILY_NAME)
+
+    then:
+    cacheView.getAll(Keys.Namespace.SERVICES.ns, _) >> [serviceCacheData]
+    taskDefinitionCacheClient.get(_) >> cachedTaskDefinition
+    def serverGroup = retrievedCluster.serverGroups.iterator().next() as EcsServerGroup
+    serverGroup.taskDefinitionRevision == 42
+    serverGroup.deploymentId == 'ecs-svc/9876543210'
+    serverGroup.rolloutState == 'IN_PROGRESS'
+    serverGroup.rolloutStateReason == 'ECS deployment is in progress.'
+    // The fixture service has no ecs-native ownership tag, so it is treated as external/classic
+    // regardless of its versioned name.
+    serverGroup.getIsNative() == null
+  }
+
+  def 'resolves the ECS account by exact name for server-group lookups'() {
+    when:
+    def serverGroup = provider.getServerGroup('TEST', 'us-east-1', 'myapp-kcats-liated-v007', true)
+
+    then: 'classic ecs keeps CredentialsRepository#getOne exact-match semantics'
+    serverGroup == null
+    0 * credentialsRepository.getAll()
+  }
+
+  def 'attaches task-definition revisions only to the requested native server group (includeDetails=#includeDetails)'() {
+    given: 'two ecs-native services in the same application'
+    def requested = nativeServiceCacheData("${FAMILY_NAME}-v007", REQUESTED_ARN)
+    def sibling = nativeServiceCacheData('myapp-sibling', SIBLING_ARN)
+    def revisions = [EcsTaskDefinitionRevision.builder().taskDefinitionArn(REQUESTED_ARN).revision(3).current(true).build()]
+
+    when:
+    def serverGroup = provider.getServerGroup(CREDS_NAME, 'us-east-1', "${FAMILY_NAME}-v007", includeDetails) as EcsServerGroup
+
+    then:
+    cacheView.getAll(Keys.Namespace.SERVICES.ns, _) >> [requested, sibling]
+    cacheView.get(Keys.Namespace.SERVICES.ns, Keys.getServiceKey(CREDS_NAME, 'us-east-1', "${FAMILY_NAME}-v007")) >> requested
+    // Exactly one live call, for the requested service in the requested region: none for the
+    // sibling service or for the same service in the account's other region.
+    1 * ecsTaskDefinitionRevisionService.listRevisions(_, 'us-east-1', REQUESTED_ARN) >> revisions
+    0 * ecsTaskDefinitionRevisionService._
+    serverGroup.getIsNative()
+    serverGroup.taskDefinitionRevisions == revisions
+    serverGroup.extraAttributes.taskDefinitionRevisions == revisions
+
+    where:
+    // Deck's details pane (the rollback picker's data source) requests includeDetails=false, so
+    // the revisions must be attached either way.
+    includeDetails << [true, false]
+  }
+
+  def 'does not list task-definition revisions for cluster or application listings'() {
+    given:
+    def requested = nativeServiceCacheData("${FAMILY_NAME}-v007", REQUESTED_ARN)
+    def sibling = nativeServiceCacheData('myapp-sibling', SIBLING_ARN)
+
+    when:
+    def cluster = provider.getCluster('myapp', CREDS_NAME, FAMILY_NAME)
+    def accountClusters = provider.getClusters('myapp', CREDS_NAME)
+    def details = provider.getClusterDetails('myapp')
+
+    then:
+    cacheView.getAll(Keys.Namespace.SERVICES.ns, _) >> [requested, sibling]
+    0 * ecsTaskDefinitionRevisionService._
+    cluster.serverGroups.every { (it as EcsServerGroup).getIsNative() && it.taskDefinitionRevisions == null }
+    accountClusters.serverGroups.flatten().every { it.taskDefinitionRevisions == null }
+    details.values().flatten().serverGroups.flatten().every { it.taskDefinitionRevisions == null }
+  }
+
+  def 'does not list task-definition revisions for a classic server group'() {
+    when:
+    def serverGroup = provider.getServerGroup(CREDS_NAME, 'us-east-1', "${FAMILY_NAME}-v007", true) as EcsServerGroup
+
+    then:
+    0 * ecsTaskDefinitionRevisionService._
+    serverGroup.getIsNative() == null
+    serverGroup.taskDefinitionRevisions == null
+  }
+
+  private DefaultCacheData nativeServiceCacheData(String serviceName, String taskDefinitionArn) {
+    def creds = Mock(NetflixECSCredentials)
+    creds.getName() >> CREDS_NAME
+    def service = cachedService.toBuilder()
+      .serviceName(serviceName)
+      .taskDefinition(taskDefinitionArn)
+      .tags(EcsNativeServiceTag.tag())
+      .build()
+    def attributes = TestServiceCachingAgentFactory.create(creds, 'us-east-1').convertServiceToAttributes(service)
+    return new DefaultCacheData('', attributes, [:])
   }
 
   def makeEcsServerGroup(String serviceName, String region, long startTime, String taskId, Map healthStatus, String ip) {
