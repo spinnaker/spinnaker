@@ -15,6 +15,7 @@
  */
 package com.netflix.spinnaker.gate.security.oauth2.provider;
 
+import com.netflix.spinnaker.kork.annotations.VisibleForTesting;
 import java.util.List;
 import java.util.Map;
 import lombok.Data;
@@ -43,6 +44,13 @@ public class GithubProviderTokenServices implements SpinnakerProviderTokenServic
 
   @Autowired private GithubRequirements requirements;
 
+  private RestTemplate restTemplate = new RestTemplate();
+
+  @VisibleForTesting
+  void setRestTemplate(RestTemplate restTemplate) {
+    this.restTemplate = restTemplate;
+  }
+
   private boolean githubOrganizationMember(
       String organization, List<Map<String, String>> organizations) {
     for (Map<String, String> org : organizations) {
@@ -57,8 +65,6 @@ public class GithubProviderTokenServices implements SpinnakerProviderTokenServic
       String accessToken, String organizationsUrl, String organization) {
     try {
       log.debug("Getting user organizations from URL {}", organizationsUrl);
-      RestTemplate restTemplate = new RestTemplate();
-
       HttpHeaders headers = new HttpHeaders();
       headers.set("Authorization", "Bearer " + accessToken);
       headers.set("Accept", MediaType.APPLICATION_JSON_VALUE);
