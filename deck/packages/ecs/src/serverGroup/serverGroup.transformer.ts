@@ -89,7 +89,11 @@ export class EcsServerGroupTransformer {
   public convertServerGroupCommandToDeployConfiguration(base: any): any {
     // use _.defaults to avoid copying the backingData, which is huge and expensive to copy over
     const command = defaults({ backingData: [], viewState: [] }, base);
-    command.cloudProvider = 'ecs';
+    // The "Use native ECS deployment" toggle (Native ECS Deployment wizard page) sets
+    // base.cloudProvider to 'ecs-native' directly; everything else about the account,
+    // cluster, and networking is identical, so preserve that choice here rather than
+    // always forcing 'ecs'.
+    command.cloudProvider = base.cloudProvider === 'ecs-native' ? 'ecs-native' : 'ecs';
     command.availabilityZones = {};
     command.availabilityZones[command.region] = base.availabilityZones;
     command.loadBalancers = (base.loadBalancers || []).concat(base.vpcLoadBalancers || []);

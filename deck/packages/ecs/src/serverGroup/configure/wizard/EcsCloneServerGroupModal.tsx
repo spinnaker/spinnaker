@@ -18,6 +18,7 @@ import {
   ReactModal,
   REST,
   TaskMonitor,
+  ValidationMessage,
   withRouter,
   WizardModal,
   WizardPage,
@@ -32,6 +33,7 @@ import { BasicSettings } from './pages/BasicSettings';
 import { ContainerSettings } from './pages/ContainerSettings';
 import { HorizontalScalingSettings } from './pages/HorizontalScalingSettings';
 import { LoggingSettings } from './pages/LoggingSettings';
+import { NativeDeploymentSettings } from './pages/NativeDeploymentSettings';
 import { NetworkingSettings } from './pages/NetworkingSettings';
 import { ServiceDiscoverySettings } from './pages/ServiceDiscoverySettings';
 import { TaskDefinitionSettings } from './pages/TaskDefinitionSettings';
@@ -40,6 +42,7 @@ import {
   validateEcsBasicSettings,
   validateEcsCapacity,
   validateEcsContainer,
+  validateEcsNativeDeployment,
   validateEcsServerGroup,
   validateEcsServiceDiscovery,
   validateEcsTaskDefinition,
@@ -367,6 +370,21 @@ const EcsServerGroupWizardPages = ({
           configureCommand={configureCommand}
           onFieldChange={onFieldChange}
         />
+      )}
+      wizard={wizard}
+    />
+    <WizardPage
+      label="Native ECS Deployment"
+      order={nextIdx()}
+      render={({ innerRef }) => (
+        <EcsWizardPageValidation ref={innerRef} validator={validateEcsNativeDeployment}>
+          <NativeDeploymentSettings
+            application={application}
+            command={formik.values}
+            configureCommand={configureCommand}
+            onFieldChange={onFieldChange}
+          />
+        </EcsWizardPageValidation>
       )}
       wizard={wizard}
     />
@@ -763,6 +781,30 @@ export class EcsCloneServerGroupModalComponent extends React.Component<
           onDismiss={dismissModal}
           onTemplateSelected={this.templateSelected}
         />
+      );
+    }
+
+    // Only a real clone (details page, no pipeline context) is unsupported for ecs-native. Editing or
+    // creating a cluster inside a pipeline deploy stage just returns the command to the stage.
+    const pipelineMode = command.viewState?.mode === 'editPipeline' || command.viewState?.mode === 'createPipeline';
+    if (command.cloudProvider === 'ecs-native' && !pipelineMode) {
+      return (
+        <div className="modal-content">
+          <div className="modal-header">
+            <h4>Clone server group unavailable</h4>
+          </div>
+          <div className="modal-body">
+            <ValidationMessage
+              message="Cloning an ecs-native server group is unavailable because no safe durable-service deployment path is modeled. Use a createServerGroup stage instead."
+              type="warning"
+            />
+          </div>
+          <div className="modal-footer">
+            <button className="btn btn-default" onClick={dismissModal} type="button">
+              Close
+            </button>
+          </div>
+        </div>
       );
     }
 
