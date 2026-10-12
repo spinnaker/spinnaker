@@ -33,6 +33,7 @@ import com.netflix.spinnaker.orca.clouddriver.pipeline.servergroup.strategies.Ab
 import com.netflix.spinnaker.orca.clouddriver.tasks.MonitorKatoTask
 import com.netflix.spinnaker.orca.clouddriver.tasks.instance.WaitForUpInstancesTask
 import com.netflix.spinnaker.orca.clouddriver.tasks.servergroup.AddServerGroupEntityTagsTask
+import com.netflix.spinnaker.orca.clouddriver.tasks.providers.ecs.WaitForEcsNativeServiceDeploymentTask
 import com.netflix.spinnaker.orca.clouddriver.tasks.servergroup.CreateServerGroupTask
 import com.netflix.spinnaker.orca.clouddriver.tasks.servergroup.ServerGroupCacheForceRefreshTask
 import com.netflix.spinnaker.orca.clouddriver.utils.MonikerHelper
@@ -46,6 +47,7 @@ import static java.util.concurrent.TimeUnit.MINUTES
 @Component
 class CreateServerGroupStage extends AbstractDeployStrategyStage implements ForceCacheRefreshAware {
   public static final String PIPELINE_CONFIG_TYPE = "createServerGroup"
+  private static final String ECS_NATIVE_CLOUD_PROVIDER = "ecs-native"
 
   private FeaturesService featuresService
   private RollbackClusterStage rollbackClusterStage
@@ -80,6 +82,43 @@ class CreateServerGroupStage extends AbstractDeployStrategyStage implements Forc
 
     if (taggingEnabled) {
       tasks << TaskNode.task("tagServerGroup", AddServerGroupEntityTagsTask)
+    }
+
+    // For ecs-native, waitForUpInstances alone is not a real gate on the new revision: the provider
+    // keeps a single durable ECS service updated in place, so its desiredCount is trivially satisfied
+    // by the still-RUNNING old-revision task while the new revision is mid-rollout (and an ECS task
+    // counts as "up" on lastStatus==RUNNING, before ALB registration). Wait on the exact ECS service
+    // deployment this stage started (pinned by the ARN clouddriver returned), so the stage only
+    // proceeds once that deployment's status is SUCCESSFUL -- or, for BLUE_GREEN with a lifecycle
+    // pause, once its PAUSE hook is AWAITING_ACTION -- and fails if it was rolled back, stopped or
+    // failed. Gated to ecs-native so classic ecs and every other provider are unaffected.
+    //
+    // Ordering matters: this wait runs before waitForUpInstances and the trailing forceCacheRefresh.
+    // That places the final forceCacheRefresh after ECS has settled, so the refresh pulls
+    // the settled deployment state into clouddriver's cache immediately instead of leaving the
+    // clusters-view card header stale at IN_PROGRESS until the next scheduled caching cycle. It also relies on
+    // deploy.server.groups (set by createServerGroup) being present for the task's
+    // account/region/serverGroupName resolution, which it is by this point.
+    if (ECS_NATIVE_CLOUD_PROVIDER == getCloudProvider(stage)) {
+      if ('BLUE_GREEN' == stage.context.deploymentStrategy?.toString()?.toUpperCase()
+          && stage.context.lifecyclePauseStage) {
+        stage.context.ecsNativeWaitForLifecycleGate = true
+      }
+      // ecs-native deploys to a single durable ECS service in place and lets ECS's own deployment
+      // strategy (ROLLING / BLUE_GREEN) drive the rollout. A Spinnaker red/black-style strategy
+      // would try to create a new versioned server group and disable/destroy the old one, which
+      // either collides with the fixed service name or runs as inert no-ops. Deck's ecs-native
+      // server group wizard validation rejects any Spinnaker strategy other than "None"; this is the
+      // server-side guard for pipelines that bypass the wizard (hand-edited JSON, API callers).
+      Strategy strategy = Strategy.fromStrategyKey(stage.context.strategy as String)
+      if (strategy != Strategy.NONE) {
+        throw new IllegalStateException(
+          "ecs-native deploys must use the 'None' deployment strategy (ECS's own ROLLING/BLUE_GREEN " +
+            "strategy drives the rollout); got '${strategy.key}'. Remove the Spinnaker deployment strategy " +
+            "from this stage, or use the classic 'ecs' provider for red/black deploys.")
+      }
+
+      tasks << TaskNode.task("waitForEcsNativeServiceDeployment", WaitForEcsNativeServiceDeploymentTask)
     }
 
     tasks << TaskNode.task("waitForUpInstances", WaitForUpInstancesTask)
