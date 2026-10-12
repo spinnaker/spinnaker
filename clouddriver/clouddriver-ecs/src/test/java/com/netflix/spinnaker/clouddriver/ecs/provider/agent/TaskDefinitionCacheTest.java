@@ -77,7 +77,7 @@ public class TaskDefinitionCacheTest extends CommonCachingAgent {
             DescribeTaskDefinitionResponse.builder().taskDefinition(taskDefinition).build());
     when(providerCache.filterIdentifiers(
             SERVICES.toString(), "ecs;services;test-account;us-west-2;*"))
-        .thenReturn(Collections.singletonList("test-service"));
+        .thenReturn(Collections.singleton("test-service"));
     when(providerCache.getAll(anyString(), any(Set.class)))
         .thenReturn(Collections.singletonList(serviceCache));
 

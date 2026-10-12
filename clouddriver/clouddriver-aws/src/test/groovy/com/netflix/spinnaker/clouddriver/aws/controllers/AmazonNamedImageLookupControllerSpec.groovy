@@ -120,14 +120,14 @@ class AmazonNamedImageLookupControllerSpec extends Specification {
     0 * cacheView.filterIdentifiers(NAMED_IMAGES.ns, _)
 
     // Expect to lookup image identifiers
-    1 * cacheView.filterIdentifiers(IMAGES.ns, _) >> [amiId]
+    1 * cacheView.filterIdentifiers(IMAGES.ns, _) >> ([amiId] as Set)
 
     // Expect a lookup by name, but with no items to look in since we query for
     // an AMI id
     1 * cacheView.getAll(NAMED_IMAGES.ns, [], _) >> []
 
     // Expect a lookup by image
-    1 * cacheView.getAll(IMAGES.ns, _) >> imageCacheData
+    1 * cacheView.getAll(IMAGES.ns, { it instanceof Collection }) >> imageCacheData
 
     // And then in render, expect another image lookup, this time with no images
     // to look in because we're not querying by name.
@@ -179,14 +179,14 @@ class AmazonNamedImageLookupControllerSpec extends Specification {
 
     then:
     // Expect an identifier lookup by name
-    1 * cacheView.filterIdentifiers(NAMED_IMAGES.ns, _) >> [amiName]
+    1 * cacheView.filterIdentifiers(NAMED_IMAGES.ns, _) >> ([amiName] as Set)
 
     // Expect no image identifiers since the identifier lookup by name returned
     // something
     0 * cacheView.filterIdentifiers(IMAGES.ns, _)
 
     // Expect a lookup by name, with the one available name
-    1 * cacheView.getAll(NAMED_IMAGES.ns, [amiName], _) >> namedImageCacheData
+    1 * cacheView.getAll(NAMED_IMAGES.ns, { it instanceof Set }, _) >> namedImageCacheData
 
     // Expect a lookup by image, but with no items to look in since the
     // identifier lookup by name returned something
@@ -286,7 +286,7 @@ class AmazonNamedImageLookupControllerSpec extends Specification {
     0 * cacheView.filterIdentifiers(IMAGES.ns, _)
 
     // Expect a lookup by name, with the given identifiers
-    1 * cacheView.getAll(NAMED_IMAGES.ns, namedImageIdentifiers, _) >> namedImageCacheData
+    1 * cacheView.getAll(NAMED_IMAGES.ns, _ as Set, _) >> namedImageCacheData
 
     // Expect a lookup by image, but with no items to look in since the
     // identifier lookup by name returned something
@@ -355,14 +355,14 @@ class AmazonNamedImageLookupControllerSpec extends Specification {
 
     then:
     // Expect an identifier lookup by name
-    1 * cacheView.filterIdentifiers(NAMED_IMAGES.ns, _) >> [amiName]
+    1 * cacheView.filterIdentifiers(NAMED_IMAGES.ns, _) >> ([amiName] as Set)
 
     // Expect no image identifiers since the identifier lookup by name returned
     // something
     0 * cacheView.filterIdentifiers(IMAGES.ns, _)
 
     // Expect a lookup by name, with the one available name
-    1 * cacheView.getAll(NAMED_IMAGES.ns, [amiName], _) >> namedImageCacheData
+    1 * cacheView.getAll(NAMED_IMAGES.ns, { it instanceof Set }, _) >> namedImageCacheData
 
     // Expect a lookup by image, but with no items to look in since the
     // identifier lookup by name returned something
@@ -432,14 +432,14 @@ class AmazonNamedImageLookupControllerSpec extends Specification {
 
     then:
     // Expect an identifier lookup by name
-    1 * cacheView.filterIdentifiers(NAMED_IMAGES.ns, _) >> [amiName]
+    1 * cacheView.filterIdentifiers(NAMED_IMAGES.ns, _) >> ([amiName] as Set)
 
     // Expect no image identifiers since the identifier lookup by name returned
     // something
     0 * cacheView.filterIdentifiers(IMAGES.ns, _)
 
     // Expect a lookup by name, with the one available name
-    1 * cacheView.getAll(NAMED_IMAGES.ns, [amiName], _) >> namedImageCacheData
+    1 * cacheView.getAll(NAMED_IMAGES.ns, { it instanceof Set }, _) >> namedImageCacheData
 
     // Expect a lookup by image, but with no items to look in since the
     // identifier lookup by name returned something
@@ -517,7 +517,7 @@ class AmazonNamedImageLookupControllerSpec extends Specification {
 
     then:
     // Expect an identifier lookup by name
-    1 * cacheView.filterIdentifiers(NAMED_IMAGES.ns, _) >> [amiName]
+    1 * cacheView.filterIdentifiers(NAMED_IMAGES.ns, _) >> ([amiName] as Set)
 
     // Expect no image identifiers since the identifier lookup by name returned
     // something
@@ -525,7 +525,7 @@ class AmazonNamedImageLookupControllerSpec extends Specification {
 
     // Expect a lookup by name, with the one available name, and return the ami
     // from each account
-    1 * cacheView.getAll(NAMED_IMAGES.ns, [amiName], _) >> namedImageCacheData
+    1 * cacheView.getAll(NAMED_IMAGES.ns, { it instanceof Set }, _) >> namedImageCacheData
 
     // Expect a lookup by image, but with no items to look in since the
     // identifier lookup by name returned something
@@ -533,7 +533,7 @@ class AmazonNamedImageLookupControllerSpec extends Specification {
 
     // And then in render, expect another image lookup, this time with an image
     // id because our named images are related to at least one "real" image.
-    1 * cacheView.getAll(IMAGES.ns, [imageIdOne, imageIdTwo]) >> imageCacheData
+    1 * cacheView.getAll(IMAGES.ns, { it instanceof Collection }) >> imageCacheData
 
     and:
     results.size() == 1
@@ -604,7 +604,7 @@ class AmazonNamedImageLookupControllerSpec extends Specification {
 
     then:
     // Expect an identifier lookup by name
-    1 * cacheView.filterIdentifiers(NAMED_IMAGES.ns, _) >> [amiName]
+    1 * cacheView.filterIdentifiers(NAMED_IMAGES.ns, _) >> ([amiName] as Set)
 
     // Expect no image identifiers since the identifier lookup by name returned
     // something
@@ -612,7 +612,7 @@ class AmazonNamedImageLookupControllerSpec extends Specification {
 
     // Expect a lookup by name, with the one available name, and return the ami
     // from each account
-    1 * cacheView.getAll(NAMED_IMAGES.ns, [amiName], _) >> namedImageCacheData
+    1 * cacheView.getAll(NAMED_IMAGES.ns, { it instanceof Set }, _) >> namedImageCacheData
 
     // Expect a lookup by image, but with no items to look in since the
     // identifier lookup by name returned something
@@ -620,7 +620,7 @@ class AmazonNamedImageLookupControllerSpec extends Specification {
 
     // And then in render, expect another image lookup, this time with an image
     // id because our named images are related to at least one "real" image.
-    1 * cacheView.getAll(IMAGES.ns, [imageIdOne, imageIdTwo]) >> imageCacheData
+    1 * cacheView.getAll(IMAGES.ns, { it instanceof Collection }) >> imageCacheData
 
     and:
     results.size() == 1
@@ -707,7 +707,7 @@ class AmazonNamedImageLookupControllerSpec extends Specification {
     1 * cacheView.getAll(NAMED_IMAGES.ns, [], _) >> []
 
     // list() - Expect a lookup by queried image id.
-    1 * cacheView.getAll(IMAGES.ns, [amiId]) >> imageCacheData
+    1 * cacheView.getAll(IMAGES.ns, [amiId] as Set) >> imageCacheData
 
     // render() - Expect a look up by image id but with an empty set of ids.
     // images has been passed in but not namedImages, and ids are stripped from namedImages.
@@ -781,7 +781,7 @@ class AmazonNamedImageLookupControllerSpec extends Specification {
 
     then:
     // Expect an identifier lookup by name
-    1 * cacheView.filterIdentifiers(NAMED_IMAGES.ns, _) >> [amiName]
+    1 * cacheView.filterIdentifiers(NAMED_IMAGES.ns, _) >> ([amiName] as Set)
 
     // Expect no image identifiers since the identifier lookup by name returned
     // something
@@ -789,7 +789,7 @@ class AmazonNamedImageLookupControllerSpec extends Specification {
 
     // Expect a lookup by name, with the one available name, and return the ami
     // from each account
-    1 * cacheView.getAll(NAMED_IMAGES.ns, [amiName], _) >> namedImageCacheData
+    1 * cacheView.getAll(NAMED_IMAGES.ns, { it instanceof Set }, _) >> namedImageCacheData
 
     // Expect a lookup by image, but with no items to look in since the
     // identifier lookup by name returned something
@@ -797,7 +797,7 @@ class AmazonNamedImageLookupControllerSpec extends Specification {
 
     // And then in render, expect another image lookup, this time with an image
     // id because our named images are related to at least one "real" image.
-    1 * cacheView.getAll(IMAGES.ns, [imageIdOne, imageIdTwo]) >> imageCacheData
+    1 * cacheView.getAll(IMAGES.ns, { it instanceof Collection }) >> imageCacheData
 
     and:
     results.size() == 1
@@ -892,7 +892,7 @@ class AmazonNamedImageLookupControllerSpec extends Specification {
     1 * cacheView.getAll(NAMED_IMAGES.ns, [], _) >> []
 
     // list() - Expect a lookup by queried image id.
-    1 * cacheView.getAll(IMAGES.ns, [amiId]) >> imageCacheData
+    1 * cacheView.getAll(IMAGES.ns, [amiId] as Set) >> imageCacheData
 
     // render() - Expect a look up by image id but with an empty set of ids.
     // images has been passed in but not namedImages, and ids are stripped from namedImages.
@@ -969,7 +969,7 @@ class AmazonNamedImageLookupControllerSpec extends Specification {
 
     then:
     // Expect an identifier lookup by name
-    1 * cacheView.filterIdentifiers(NAMED_IMAGES.ns, _) >> [amiName]
+    1 * cacheView.filterIdentifiers(NAMED_IMAGES.ns, _) >> ([amiName] as Set)
 
     // Expect no image identifiers since the identifier lookup by name returned
     // something
@@ -977,7 +977,7 @@ class AmazonNamedImageLookupControllerSpec extends Specification {
 
     // Expect a lookup by name, with the one available name, and return the ami
     // from each account
-    1 * cacheView.getAll(NAMED_IMAGES.ns, [amiName], _) >> namedImageCacheData
+    1 * cacheView.getAll(NAMED_IMAGES.ns, { it instanceof Set }, _) >> namedImageCacheData
 
     // Expect a lookup by image, but with no items to look in since the
     // identifier lookup by name returned something
@@ -985,7 +985,7 @@ class AmazonNamedImageLookupControllerSpec extends Specification {
 
     // And then in render, expect another image lookup, this time with an image
     // id because our named images are related to at least one "real" image.
-    1 * cacheView.getAll(IMAGES.ns, [imageIdOne, imageIdTwo]) >> imageCacheData
+    1 * cacheView.getAll(IMAGES.ns, { it instanceof Collection }) >> imageCacheData
 
     and:
     results.size() == 1
@@ -1057,7 +1057,7 @@ class AmazonNamedImageLookupControllerSpec extends Specification {
 
     then:
     // Expect an identifier lookup by name
-    1 * cacheView.filterIdentifiers(NAMED_IMAGES.ns, _) >> [amiName]
+    1 * cacheView.filterIdentifiers(NAMED_IMAGES.ns, _) >> ([amiName] as Set)
 
     // Expect no image identifiers since the identifier lookup by name returned
     // something
@@ -1065,7 +1065,7 @@ class AmazonNamedImageLookupControllerSpec extends Specification {
 
     // Expect a lookup by name, with the one available name, and return the ami
     // from each account
-    1 * cacheView.getAll(NAMED_IMAGES.ns, [amiName], _) >> namedImageCacheData
+    1 * cacheView.getAll(NAMED_IMAGES.ns, { it instanceof Set }, _) >> namedImageCacheData
 
     // Expect a lookup by image, but with no items to look in since the
     // identifier lookup by name returned something
@@ -1073,7 +1073,7 @@ class AmazonNamedImageLookupControllerSpec extends Specification {
 
     // And then in render, expect another image lookup, this time with an image
     // id because our named images are related to at least one "real" image.
-    1 * cacheView.getAll(IMAGES.ns, [imageIdOne, imageIdTwo]) >> imageCacheData
+    1 * cacheView.getAll(IMAGES.ns, { it instanceof Collection }) >> imageCacheData
 
     and:
     // Nothing should match. There are images with queried name, but none have tags.
@@ -1132,7 +1132,7 @@ class AmazonNamedImageLookupControllerSpec extends Specification {
 
     then:
     // Expect an identifier lookup by name
-    1 * cacheView.filterIdentifiers(NAMED_IMAGES.ns, _) >> [amiName]
+    1 * cacheView.filterIdentifiers(NAMED_IMAGES.ns, _) >> ([amiName] as Set)
 
     // Expect no image identifiers since the identifier lookup by name returned
     // something
@@ -1140,7 +1140,7 @@ class AmazonNamedImageLookupControllerSpec extends Specification {
 
     // Expect a lookup by name, with the one available name, and return the ami
     // from each account
-    1 * cacheView.getAll(NAMED_IMAGES.ns, [amiName], _) >> namedImageCacheData
+    1 * cacheView.getAll(NAMED_IMAGES.ns, { it instanceof Set }, _) >> namedImageCacheData
 
     // Expect a lookup by image, but with no items to look in since the
     // identifier lookup by name returned something
@@ -1148,7 +1148,7 @@ class AmazonNamedImageLookupControllerSpec extends Specification {
 
     // And then in render, expect another image lookup, this time with an image
     // id because our named images are related to at least one "real" image.
-    1 * cacheView.getAll(IMAGES.ns, [imageIdOne, imageIdTwo]) >> imageCacheData
+    1 * cacheView.getAll(IMAGES.ns, { it instanceof Collection }) >> imageCacheData
 
     and:
     results.size() == 1
@@ -1220,7 +1220,7 @@ class AmazonNamedImageLookupControllerSpec extends Specification {
 
     then:
     // Expect an identifier lookup by name
-    1 * cacheView.filterIdentifiers(NAMED_IMAGES.ns, _) >> [amiName]
+    1 * cacheView.filterIdentifiers(NAMED_IMAGES.ns, _) >> ([amiName] as Set)
 
     // Expect no image identifiers since the identifier lookup by name returned
     // something
@@ -1228,7 +1228,7 @@ class AmazonNamedImageLookupControllerSpec extends Specification {
 
     // Expect a lookup by name, with the one available name, and return the ami
     // from each account
-    1 * cacheView.getAll(NAMED_IMAGES.ns, [amiName], _) >> namedImageCacheData
+    1 * cacheView.getAll(NAMED_IMAGES.ns, { it instanceof Set }, _) >> namedImageCacheData
 
     // Expect a lookup by image, but with no items to look in since the
     // identifier lookup by name returned something
@@ -1236,7 +1236,7 @@ class AmazonNamedImageLookupControllerSpec extends Specification {
 
     // And then in render, expect another image lookup, this time with an image
     // id because our named images are related to at least one "real" image.
-    1 * cacheView.getAll(IMAGES.ns, [imageIdOne, imageIdTwo]) >> imageCacheData
+    1 * cacheView.getAll(IMAGES.ns, { it instanceof Collection }) >> imageCacheData
 
     and:
     results.size() == 1
@@ -1307,7 +1307,7 @@ class AmazonNamedImageLookupControllerSpec extends Specification {
 
     then:
     // Expect an identifier lookup by name
-    1 * cacheView.filterIdentifiers(NAMED_IMAGES.ns, _) >> [amiName]
+    1 * cacheView.filterIdentifiers(NAMED_IMAGES.ns, _) >> ([amiName] as Set)
 
     // Expect no image identifiers since the identifier lookup by name returned
     // something
@@ -1315,7 +1315,7 @@ class AmazonNamedImageLookupControllerSpec extends Specification {
 
     // Expect a lookup by name, with the one available name, and return the ami
     // from each account
-    1 * cacheView.getAll(NAMED_IMAGES.ns, [amiName], _) >> namedImageCacheData
+    1 * cacheView.getAll(NAMED_IMAGES.ns, { it instanceof Set }, _) >> namedImageCacheData
 
     // Expect a lookup by image, but with no items to look in since the
     // identifier lookup by name returned something
@@ -1323,7 +1323,7 @@ class AmazonNamedImageLookupControllerSpec extends Specification {
 
     // And then in render, expect another image lookup, this time with an image
     // id because our named images are related to at least one "real" image.
-    1 * cacheView.getAll(IMAGES.ns, [imageIdOne, imageIdTwo]) >> imageCacheData
+    1 * cacheView.getAll(IMAGES.ns, { it instanceof Collection }) >> imageCacheData
 
     and:
     results.size() == 1
@@ -1396,7 +1396,7 @@ class AmazonNamedImageLookupControllerSpec extends Specification {
 
     then:
     // Expect an identifier lookup by name
-    1 * cacheView.filterIdentifiers(NAMED_IMAGES.ns, _) >> [amiName]
+    1 * cacheView.filterIdentifiers(NAMED_IMAGES.ns, _) >> ([amiName] as Set)
 
     // Expect no image identifiers since the identifier lookup by name returned
     // something
@@ -1404,7 +1404,7 @@ class AmazonNamedImageLookupControllerSpec extends Specification {
 
     // Expect a lookup by name, with the one available name, and return the ami
     // from each account
-    1 * cacheView.getAll(NAMED_IMAGES.ns, [amiName], _) >> namedImageCacheData
+    1 * cacheView.getAll(NAMED_IMAGES.ns, { it instanceof Set }, _) >> namedImageCacheData
 
     // Expect a lookup by image, but with no items to look in since the
     // identifier lookup by name returned something
@@ -1412,7 +1412,7 @@ class AmazonNamedImageLookupControllerSpec extends Specification {
 
     // And then in render, expect another image lookup, this time with an image
     // id because our named images are related to at least one "real" image.
-    1 * cacheView.getAll(IMAGES.ns, [imageIdOne, imageIdTwo]) >> imageCacheData
+    1 * cacheView.getAll(IMAGES.ns, { it instanceof Collection }) >> imageCacheData
 
     and:
     results.size() == 1

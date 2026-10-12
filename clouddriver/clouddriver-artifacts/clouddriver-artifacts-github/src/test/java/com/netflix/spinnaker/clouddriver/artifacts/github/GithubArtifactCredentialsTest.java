@@ -62,7 +62,11 @@ class GithubArtifactCredentialsTest {
     GitHubArtifactAccount account =
         GitHubArtifactAccount.builder()
             .name("my-github-account")
-            .urlRestrictions(UrlRestrictionsProperties.builder().rejectLocalhost(false).build())
+            .urlRestrictions(
+                UrlRestrictionsProperties.builder()
+                    .rejectLocalhost(false)
+                    .allowedDomains(List.of("localhost"))
+                    .build())
             .token("abc")
             .build();
 
@@ -79,7 +83,11 @@ class GithubArtifactCredentialsTest {
     GitHubArtifactAccount account =
         GitHubArtifactAccount.builder()
             .name("my-github-account")
-            .urlRestrictions(UrlRestrictionsProperties.builder().rejectLocalhost(false).build())
+            .urlRestrictions(
+                UrlRestrictionsProperties.builder()
+                    .rejectLocalhost(false)
+                    .allowedDomains(List.of("localhost"))
+                    .build())
             .tokenFile(authFile.toAbsolutePath().toString())
             .build();
 
@@ -96,7 +104,11 @@ class GithubArtifactCredentialsTest {
     GitHubArtifactAccount account =
         GitHubArtifactAccount.builder()
             .name("my-github-account")
-            .urlRestrictions(UrlRestrictionsProperties.builder().rejectLocalhost(false).build())
+            .urlRestrictions(
+                UrlRestrictionsProperties.builder()
+                    .rejectLocalhost(false)
+                    .allowedDomains(List.of("localhost"))
+                    .build())
             .tokenFile(authFile.toAbsolutePath().toString())
             .build();
 
@@ -307,7 +319,11 @@ class GithubArtifactCredentialsTest {
     GitHubArtifactAccount account =
         GitHubArtifactAccount.builder()
             .name("my-github-account")
-            .urlRestrictions(UrlRestrictionsProperties.builder().rejectLocalhost(false).build())
+            .urlRestrictions(
+                UrlRestrictionsProperties.builder()
+                    .rejectLocalhost(false)
+                    .allowedDomains(List.of("localhost"))
+                    .build())
             .username("user")
             .password("passw0rd")
             .build();
@@ -325,7 +341,11 @@ class GithubArtifactCredentialsTest {
     GitHubArtifactAccount account =
         GitHubArtifactAccount.builder()
             .name("my-github-account")
-            .urlRestrictions(UrlRestrictionsProperties.builder().rejectLocalhost(false).build())
+            .urlRestrictions(
+                UrlRestrictionsProperties.builder()
+                    .rejectLocalhost(false)
+                    .allowedDomains(List.of("localhost"))
+                    .build())
             .usernamePasswordFile(authFile.toAbsolutePath().toString())
             .build();
 
@@ -337,7 +357,11 @@ class GithubArtifactCredentialsTest {
     GitHubArtifactAccount account =
         GitHubArtifactAccount.builder()
             .name("my-github-account")
-            .urlRestrictions(UrlRestrictionsProperties.builder().rejectLocalhost(false).build())
+            .urlRestrictions(
+                UrlRestrictionsProperties.builder()
+                    .rejectLocalhost(false)
+                    .allowedDomains(List.of("localhost"))
+                    .build())
             .build();
 
     runTestCase(server, account, m -> m.withHeader("Authorization", absent()));
@@ -348,7 +372,11 @@ class GithubArtifactCredentialsTest {
     GitHubArtifactAccount account =
         GitHubArtifactAccount.builder()
             .name("my-github-account")
-            .urlRestrictions(UrlRestrictionsProperties.builder().rejectLocalhost(false).build())
+            .urlRestrictions(
+                UrlRestrictionsProperties.builder()
+                    .rejectLocalhost(false)
+                    .allowedDomains(List.of("localhost"))
+                    .build())
             .token("zzz")
             .useContentAPI(true)
             .build();
@@ -367,7 +395,11 @@ class GithubArtifactCredentialsTest {
     GitHubArtifactAccount account =
         GitHubArtifactAccount.builder()
             .name("my-github-account")
-            .urlRestrictions(UrlRestrictionsProperties.builder().rejectLocalhost(false).build())
+            .urlRestrictions(
+                UrlRestrictionsProperties.builder()
+                    .rejectLocalhost(false)
+                    .allowedDomains(List.of("localhost"))
+                    .build())
             .token("zzz")
             .useContentAPI(true)
             .githubAPIVersion("v10")
@@ -468,7 +500,11 @@ class GithubArtifactCredentialsTest {
         new GitHubAppCredentials("12345", "/path/to/key.pem", "67890", apiBaseUrl);
     return GitHubArtifactAccount.builder()
         .name("my-github-account")
-        .urlRestrictions(UrlRestrictionsProperties.builder().rejectLocalhost(false).build())
+        .urlRestrictions(
+            UrlRestrictionsProperties.builder()
+                .rejectLocalhost(false)
+                .allowedDomains(List.of("localhost"))
+                .build())
         .githubApp(githubApp);
   }
 

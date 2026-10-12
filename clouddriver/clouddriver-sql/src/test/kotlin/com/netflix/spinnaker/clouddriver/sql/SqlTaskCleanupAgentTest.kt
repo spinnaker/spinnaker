@@ -28,6 +28,7 @@ import dev.minutest.junit.JUnit5Minutests
 import dev.minutest.rootContext
 import io.mockk.every
 import io.mockk.mockk
+import org.jooq.impl.DSL.field
 import strikt.api.expectThat
 import strikt.assertions.isEqualTo
 import java.sql.Timestamp
@@ -51,9 +52,10 @@ class SqlTaskCleanupAgentTest : JUnit5Minutests {
       ).forEachIndexed { i, ts ->
         database.context
           .insertInto(tasksTable)
+          .columns(field("id"), field("request_id"), field("owner_id"), field("created_at"), field("saga_ids"))
           .values(
             "myid$i",
-            "7b96fe8de1e5e8e8620036480771195b8e25c583c9f4f0098a23e97bf2ba013b",
+            "7b96fe8de1e5e8e8620036480771195b8e25c583c9f4f0098a23e97bf2ba013b-$i",
             "95637b33-6699-4abf-b1ab-d4077e1cf867@spin-clouddriver-7847bc646b-hgkfd",
             ts.toEpochMilli(),
             objectMapper.writeValueAsString(mutableListOf<String>())
@@ -62,6 +64,7 @@ class SqlTaskCleanupAgentTest : JUnit5Minutests {
 
         database.context
           .insertInto(taskResultsTable)
+          .columns(field("id"), field("task_id"), field("body"))
           .values(
             "$i",
             "myid$i",
@@ -71,6 +74,7 @@ class SqlTaskCleanupAgentTest : JUnit5Minutests {
 
         database.context
           .insertInto(taskStatesTable)
+          .columns(field("id"), field("task_id"), field("created_at"), field("state"), field("phase"), field("status"))
           .values(
             "$i",
             "myid$i",
@@ -83,6 +87,15 @@ class SqlTaskCleanupAgentTest : JUnit5Minutests {
 
         database.context
           .insertInto(taskOutputsTable)
+          .columns(
+            field("id"),
+            field("task_id"),
+            field("created_at"),
+            field("manifest"),
+            field("phase"),
+            field("std_out"),
+            field("std_error")
+          )
           .values(
             "$i",
             "myid$i",
