@@ -18,6 +18,8 @@ package com.netflix.kayenta.canary;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonTypeInfo;
+import com.netflix.kayenta.canary.providers.metrics.QueryConfigUtils;
+import java.util.Map;
 import lombok.NonNull;
 
 @JsonTypeInfo(use = JsonTypeInfo.Id.NAME, include = JsonTypeInfo.As.PROPERTY, property = "type")
@@ -60,8 +62,17 @@ public interface CanaryMetricSetQueryConfig {
     return null;
   }
 
-  default CanaryMetricSetQueryConfig cloneWithEscapedTemplate() {
+  /**
+   * @deprecated renamed to {@link #cloneWithEscapedTemplate()}; retained so implementations outside
+   *     this repo that only override this method keep escaping their inline template.
+   */
+  @Deprecated
+  default CanaryMetricSetQueryConfig cloneWithEscapedInlineTemplate() {
     return this;
+  }
+
+  default CanaryMetricSetQueryConfig cloneWithEscapedTemplate() {
+    return cloneWithEscapedInlineTemplate();
   }
 
   /**
@@ -69,9 +80,30 @@ public interface CanaryMetricSetQueryConfig {
    * template} (formerly {@code customInlineTemplate}) vs. {@code customFilterTemplate} precedence
    * and named-template-map lookup, and unescaping the result. Returns {@code null} when neither
    * field is set, or when a {@code customFilterTemplate} name doesn't resolve against {@code
-   * canaryConfig}'s {@link CanaryConfig#getTemplates()} map.
+   * canaryConfig}'s {@link CanaryConfig#getTemplates()} map (callers on the execution path use
+   * {@link QueryConfigUtils#expandCustomFilter} which fails loudly in that case).
+   *
+   * <p>The default resolves through {@link #getCustomInlineTemplate()} and {@link
+   * #getCustomFilterTemplate()} so implementations that predate the single {@code template} field
+   * keep working unchanged.
    */
   default String getTemplate(CanaryConfig canaryConfig) {
+    String inline = getCustomInlineTemplate();
+
+    if (inline != null && !inline.isEmpty()) {
+      return QueryConfigUtils.unescapeTemplate(inline);
+    }
+
+    String name = getCustomFilterTemplate();
+
+    if (name != null && !name.isEmpty() && canaryConfig != null) {
+      Map<String, String> templates = canaryConfig.getTemplates();
+
+      if (templates != null && templates.get(name) != null) {
+        return QueryConfigUtils.unescapeTemplate(templates.get(name));
+      }
+    }
+
     return null;
   }
 

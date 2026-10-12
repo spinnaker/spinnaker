@@ -45,13 +45,11 @@ const toReactSelectOptions = (values: string[]): Array<Option<string>> =>
 /*
  * Component for configuring a Prometheus metric.
  *
- * Prometheus used to have its own bespoke Default/PromQL toggle (backed by a client-only
- * "PromQL:" string prefix on the inline template, used to distinguish PromQL-mode templates from
- * plain custom filters). That toggle is now just an instance of the generic Guided/Template mode
- * toggle shared by every provider, and the "PromQL:" prefix trick was retired entirely -- nothing
- * server-side (PrometheusMetricsService.java / PrometheusCanaryMetricSetQueryConfig.java) ever
- * parsed for that prefix, so it was purely client-side dead weight once the template editor
- * became available unconditionally rather than being gated behind selecting "PromQL".
+ * Prometheus used to have its own bespoke Default/PromQL toggle (backed by a "PromQL:" string
+ * prefix on the inline template). That toggle is now just an instance of the generic
+ * Guided/Template mode toggle shared by every provider. In Template mode the template is always a
+ * complete PromQL expression; the backend still accepts (and strips) a leading "PromQL:" for
+ * configs that have it.
  * */
 function PrometheusMetricConfigurer({
   editingMetric,
@@ -68,6 +66,11 @@ function PrometheusMetricConfigurer({
   const handleModeChange = (newMode: MetricConfigMode) => {
     setMode(newMode);
     onClearTemplateState();
+    if (newMode === MetricConfigMode.TEMPLATE) {
+      // A template is a complete PromQL expression, but the backend treats an un-prefixed template
+      // alongside a guided metric name as legacy label matchers. Drop the stale guided metric name.
+      updatePrometheusMetricQueryField('metricName', undefined);
+    }
   };
 
   return (

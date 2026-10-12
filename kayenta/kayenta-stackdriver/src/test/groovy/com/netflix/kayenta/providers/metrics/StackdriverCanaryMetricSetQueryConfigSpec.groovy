@@ -95,21 +95,21 @@ class StackdriverCanaryMetricSetQueryConfigSpec extends Specification {
                                                                                           key4: "value-4"]
   }
 
-  // AbstractCanaryMetricSetQueryConfig#getTemplate(CanaryConfig) -- which now encapsulates the
-  // customFilterTemplate-vs-template precedence and named-template-map lookup that
-  // QueryConfigUtils#expandCustomFilter delegates to -- resolves an unresolvable
-  // customFilterTemplate (missing map, or name not found) to null rather than throwing, so
-  // expandCustomFilter now simply returns null for these cases instead of raising.
+  // An unresolvable customFilterTemplate (missing map, or name not found) is a misconfiguration
+  // and fails loudly rather than silently dropping the user's filter.
   @Unroll
-  void "Missing template or no templates returns null instead of expanding"() {
+  void "Missing template or no templates throws instead of silently expanding to nothing"() {
     given:
     CanaryConfig canaryConfig = CanaryConfig.builder().templates(templates).build()
     StackdriverCanaryMetricSetQueryConfig stackdriverCanaryMetricSetQueryConfig =
       StackdriverCanaryMetricSetQueryConfig.builder().customFilterTemplate(customFilterTemplate).build()
     StackdriverCanaryScope stackdriverCanaryScope = new StackdriverCanaryScope(extendedScopeParams: scopeParams)
 
-    expect:
-    QueryConfigUtils.expandCustomFilter(canaryConfig, stackdriverCanaryMetricSetQueryConfig, stackdriverCanaryScope) == null
+    when:
+    QueryConfigUtils.expandCustomFilter(canaryConfig, stackdriverCanaryMetricSetQueryConfig, stackdriverCanaryScope)
+
+    then:
+    thrown(IllegalArgumentException)
 
     where:
     templates                                                 | customFilterTemplate | scopeParams

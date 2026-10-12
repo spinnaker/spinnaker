@@ -98,7 +98,8 @@ public class CanaryConfigControllerTest extends BaseControllerTest {
   }
 
   @Test
-  public void getCanaryConfig_normalizesLegacyCustomFilterTemplateIntoTemplate() throws Exception {
+  public void getCanaryConfig_normalizesLegacyCustomFilterTemplateIntoTemplateKeepingPointer()
+      throws Exception {
     AtlasCanaryMetricSetQueryConfig legacyQuery =
         AtlasCanaryMetricSetQueryConfig.builder().customFilterTemplate("named-template").build();
     CanaryMetricConfig legacyMetric =
@@ -122,7 +123,8 @@ public class CanaryConfigControllerTest extends BaseControllerTest {
         .andExpect(status().isOk())
         .andExpect(content().contentType("application/json"))
         .andExpect(jsonPath("$.metrics[0].query.template").value(is("name,requestsPerSecond,:eq")))
-        .andExpect(jsonPath("$.metrics[0].query.customFilterTemplate").doesNotExist());
+        .andExpect(jsonPath("$.metrics[0].query.customFilterTemplate").value(is("named-template")))
+        .andExpect(jsonPath("$.templates.named-template").value(is("name,requestsPerSecond,:eq")));
   }
 
   // These two tests exercise storeCanaryConfig() by calling the controller bean directly rather
@@ -179,7 +181,10 @@ public class CanaryConfigControllerTest extends BaseControllerTest {
         (AtlasCanaryMetricSetQueryConfig) captor.getValue().getMetrics().get(0).getQuery();
 
     assertThat(persistedQuery.getTemplate()).isEqualTo("name,requestsPerSecond,:eq");
-    assertThat(persistedQuery.getCustomFilterTemplate()).isNull();
+    // The pointer and the templates map are kept so a rollback still finds the query.
+    assertThat(persistedQuery.getCustomFilterTemplate()).isEqualTo("named-template");
+    assertThat(captor.getValue().getTemplates())
+        .containsEntry("named-template", "name,requestsPerSecond,:eq");
   }
 
   @Test

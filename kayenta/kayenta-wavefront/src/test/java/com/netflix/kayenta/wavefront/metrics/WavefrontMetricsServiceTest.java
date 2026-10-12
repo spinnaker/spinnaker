@@ -113,4 +113,21 @@ public class WavefrontMetricsServiceTest {
     canaryScope.setScope(scope);
     return canaryScope;
   }
+
+  @Test
+  public void testBuildQuery_deckStarterExample() {
+    // Starter example shown in Deck; must match the example in
+    // deck/packages/kayenta/src/kayenta/edit/templateProviderVariables.ts
+    String example = "avg(ts(requests.count, autoscaling_group=${scope}))";
+    CanaryMetricConfig canaryMetricConfig =
+        CanaryMetricConfig.builder()
+            .query(WavefrontCanaryMetricSetQueryConfig.builder().template(example).build())
+            .build();
+
+    String query =
+        wavefrontMetricsService.buildQuery(
+            "", CanaryConfig.builder().build(), canaryMetricConfig, createScope(SCOPE));
+
+    assertThat(query).isEqualTo("avg(ts(requests.count, autoscaling_group=" + SCOPE + "))");
+  }
 }

@@ -4,6 +4,10 @@
  * available for that provider's `query.template`, plus a short illustrative (not necessarily
  * byte-perfect) example query.
  *
+ * The `example` is the single source of truth for starter text: it is the editor placeholder and is
+ * also rendered into the help popovers (canary.help.ts). Each provider's backend module has a test
+ * that runs its example through the real query builder, so keep them in sync.
+ *
  * These come from each provider's backend `*MetricsService.java` (or equivalent) call to
  * `QueryConfigUtils.expandCustomFilter(canaryConfig, queryConfig, canaryScope, baseScopeAttributes)`
  * — `baseScopeAttributes` is the authoritative source of truth for a provider's variable names.
@@ -32,8 +36,8 @@ export const templateProviderVariables: { [serviceType: string]: ITemplateProvid
   prometheus: {
     serviceType: 'prometheus',
     // kayenta-prometheus/.../PrometheusMetricsService.java uses the same expandCustomFilter helper.
-    variables: ['scope', 'location'],
-    example: 'rate(http_requests_total{service="${scope}", region="${location}"}[5m])',
+    variables: ['project', 'resourceType', 'scope', 'location'],
+    example: 'sum(rate(http_requests_total{autoscaling_group="${scope}"}[5m]))',
   },
   stackdriver: {
     serviceType: 'stackdriver',
@@ -41,7 +45,7 @@ export const templateProviderVariables: { [serviceType: string]: ITemplateProvid
     // baseScopeAttributes = {"project", "resourceType", "scope", "location"}
     variables: ['project', 'resourceType', 'scope', 'location'],
     example:
-      'metric.type="compute.googleapis.com/instance/cpu/utilization" AND resource.type="${resourceType}" AND resource.label.project_id="${project}"',
+      'metadata.user_labels."spinnaker-server-group"=${scope} AND metadata.user_labels."spinnaker-region"=${location}',
   },
   signalfx: {
     serviceType: 'signalfx',
@@ -54,28 +58,29 @@ export const templateProviderVariables: { [serviceType: string]: ITemplateProvid
     serviceType: 'newrelic',
     // kayenta-newrelic-insights/.../NewRelicQueryBuilderService.java:
     // baseScopeAttributes = {"scope", "location", "step"}
-    variables: ['scope', 'location', 'step'],
-    example: "SELECT average(duration) FROM Transaction WHERE appName = '${scope}' SINCE ${step} minutes ago",
+    variables: ['scope', 'location', 'step', 'startEpochSeconds', 'endEpochSeconds'],
+    example:
+      "SELECT count(*) FROM Transaction TIMESERIES 60 seconds SINCE ${startEpochSeconds} UNTIL ${endEpochSeconds} WHERE autoScalingGroupName LIKE '${scope}' AND region LIKE '${location}'",
   },
   atlas: {
     serviceType: 'atlas',
     // kayenta-atlas/.../AtlasMetricsService.java:
     // baseScopeAttributes = {"type", "deployment", "dataset", "environment", "accountId", "scope", "location"}
     variables: ['type', 'deployment', 'dataset', 'environment', 'accountId', 'scope', 'location'],
-    example: 'name,requestLatency,:eq,nf.cluster,${scope},:eq,:and,nf.account,${accountId},:eq,:and',
+    example: 'name,requestsPerSecond,:eq,:list,(,nf.cluster,${scope},:eq,:cq,),:each',
   },
   graphite: {
     serviceType: 'graphite',
     // kayenta-graphite/.../GraphiteMetricsService.java: baseScopeAttributes = {"scope", "location"}
     variables: ['scope', 'location'],
-    example: 'summarize(scaleToSeconds(stats.${scope}.${location}.request.count, 1), "5min", "sum")',
+    example: 'servers.${scope}.cpu',
   },
   wavefront: {
     serviceType: 'wavefront',
     // kayenta-wavefront/.../WavefrontMetricsService.java:
     // baseScopeAttributes = {"scope", "location", "granularity"}
     variables: ['scope', 'location', 'granularity'],
-    example: 'ts(request.count, source=${scope} and region=${location}), ${granularity}',
+    example: 'avg(ts(requests.count, autoscaling_group=${scope}))',
   },
   influxdb: {
     serviceType: 'influxdb',
@@ -85,7 +90,7 @@ export const templateProviderVariables: { [serviceType: string]: ITemplateProvid
     variables: ['timeFilter', 'scope', 'step'],
     note:
       'InfluxDB uses a fixed, different variable vocabulary than every other provider (whose variables are arbitrary CanaryScope bean-property names) — its query engine is bespoke, not the shared QueryConfigUtils-based one.',
-    example: 'SELECT mean("value") FROM "cpu" WHERE ${timeFilter} AND "host" = \'${scope}\' GROUP BY time(${step})',
+    example: 'SELECT sum(count) FROM web_requests WHERE ${scope} AND ${timeFilter} GROUP BY time(${step})',
   },
 };
 

@@ -18,6 +18,7 @@ package com.netflix.kayenta.canary.providers.metrics;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
+import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.netflix.kayenta.canary.CanaryConfig;
 import java.util.Collections;
@@ -39,16 +40,34 @@ public class AbstractCanaryMetricSetQueryConfigTest {
   }
 
   @Test
-  public void serialization_writesNewTemplateKeyNotLegacyCustomInlineTemplateKey()
-      throws Exception {
+  public void deserialization_acceptsTemplateKey() throws Exception {
+    ObjectMapper objectMapper = new ObjectMapper();
+    String json = "{\"type\":\"test-concrete\",\"template\":\"new text\"}";
+
+    TestConcreteCanaryMetricSetQueryConfig deserialized =
+        objectMapper.readValue(json, TestConcreteCanaryMetricSetQueryConfig.class);
+
+    assertThat(deserialized.getTemplate()).isEqualTo("new text");
+  }
+
+  @Test
+  public void serialization_writesBothTemplateAndLegacyCustomInlineTemplateKeys() throws Exception {
     ObjectMapper objectMapper = new ObjectMapper();
     TestConcreteCanaryMetricSetQueryConfig query =
         TestConcreteCanaryMetricSetQueryConfig.builder().template("some text").build();
 
     String json = objectMapper.writeValueAsString(query);
 
+    // the production mapper ignores unknown properties (e.g. the polymorphic "serviceType")
+    objectMapper.configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
+
     assertThat(json).contains("\"template\":\"some text\"");
-    assertThat(json).doesNotContain("customInlineTemplate");
+    assertThat(json).contains("\"customInlineTemplate\":\"some text\"");
+
+    // and the dual-written form round-trips
+    TestConcreteCanaryMetricSetQueryConfig roundTripped =
+        objectMapper.readValue(json, TestConcreteCanaryMetricSetQueryConfig.class);
+    assertThat(roundTripped.getTemplate()).isEqualTo("some text");
   }
 
   @Test

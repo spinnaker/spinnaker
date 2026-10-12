@@ -108,43 +108,46 @@ function StackdriverMetricConfigurer({
   return (
     <>
       <MetricConfigModeToggle mode={mode} onChange={handleModeChange} />
-      {mode === MetricConfigMode.GUIDED && (
-        <>
-          <FormRow label="Resource Type" helpId={`${STACKDRIVER_HELP_ID_PREFIX}.resourceType`} inputOnly={true}>
-            <DisableableReactSelect
-              value={get(editingMetric, 'query.resourceType')}
-              options={toReactSelectOptions(RESOURCE_TYPES)}
-              onChange={(option: Option<string>) => updateStackdriverQueryField('resourceType', option)}
-              disabledStateKeys={[DISABLE_EDIT_CONFIG]}
-            />
-          </FormRow>
-          <FormRow label="Metric Type" helpId={`${STACKDRIVER_HELP_ID_PREFIX}.metricType`} inputOnly={true}>
-            <StackdriverMetricTypeSelector
-              value={get(editingMetric, 'query.metricType', '')}
-              onChange={(option: Option<string>) => updateStackdriverQueryField('metricType', option)}
-            />
-          </FormRow>
-          <FormRow label="Group By" helpId={`${STACKDRIVER_HELP_ID_PREFIX}.groupBy`}>
-            <List list={editingMetric.query.groupByFields || []} actionCreator={updateGroupBy} />
-          </FormRow>
-          <FormRow label="Aligner" helpId={`${STACKDRIVER_HELP_ID_PREFIX}.perSeriesAligner`} inputOnly={true}>
-            <DisableableReactSelect
-              value={get(editingMetric, 'query.perSeriesAligner')}
-              options={toReactSelectOptions(PER_SERIES_ALIGNERS)}
-              onChange={(option: Option<string>) => updateStackdriverQueryField('perSeriesAligner', option)}
-              disabledStateKeys={[DISABLE_EDIT_CONFIG]}
-            />
-          </FormRow>
-          <FormRow label="Reducer" helpId={`${STACKDRIVER_HELP_ID_PREFIX}.crossSeriesReducer`} inputOnly={true}>
-            <DisableableReactSelect
-              value={get(editingMetric, 'query.crossSeriesReducer')}
-              options={toReactSelectOptions(CROSS_SERIES_REDUCERS)}
-              onChange={(option: Option<string>) => updateStackdriverQueryField('crossSeriesReducer', option)}
-              disabledStateKeys={[DISABLE_EDIT_CONFIG]}
-            />
-          </FormRow>
-        </>
-      )}
+      {/*
+        Unlike other providers, Stackdriver's backend always builds the mandatory
+        metric.type="..." AND resource.type=... base filter and aggregation from these fields, and
+        only ANDs the template onto it. They therefore stay visible (and required) in Template mode.
+      */}
+      <>
+        <FormRow label="Resource Type" helpId={`${STACKDRIVER_HELP_ID_PREFIX}.resourceType`} inputOnly={true}>
+          <DisableableReactSelect
+            value={get(editingMetric, 'query.resourceType')}
+            options={toReactSelectOptions(RESOURCE_TYPES)}
+            onChange={(option: Option<string>) => updateStackdriverQueryField('resourceType', option)}
+            disabledStateKeys={[DISABLE_EDIT_CONFIG]}
+          />
+        </FormRow>
+        <FormRow label="Metric Type" helpId={`${STACKDRIVER_HELP_ID_PREFIX}.metricType`} inputOnly={true}>
+          <StackdriverMetricTypeSelector
+            value={get(editingMetric, 'query.metricType', '')}
+            onChange={(option: Option<string>) => updateStackdriverQueryField('metricType', option)}
+          />
+        </FormRow>
+        <FormRow label="Group By" helpId={`${STACKDRIVER_HELP_ID_PREFIX}.groupBy`}>
+          <List list={editingMetric.query.groupByFields || []} actionCreator={updateGroupBy} />
+        </FormRow>
+        <FormRow label="Aligner" helpId={`${STACKDRIVER_HELP_ID_PREFIX}.perSeriesAligner`} inputOnly={true}>
+          <DisableableReactSelect
+            value={get(editingMetric, 'query.perSeriesAligner')}
+            options={toReactSelectOptions(PER_SERIES_ALIGNERS)}
+            onChange={(option: Option<string>) => updateStackdriverQueryField('perSeriesAligner', option)}
+            disabledStateKeys={[DISABLE_EDIT_CONFIG]}
+          />
+        </FormRow>
+        <FormRow label="Reducer" helpId={`${STACKDRIVER_HELP_ID_PREFIX}.crossSeriesReducer`} inputOnly={true}>
+          <DisableableReactSelect
+            value={get(editingMetric, 'query.crossSeriesReducer')}
+            options={toReactSelectOptions(CROSS_SERIES_REDUCERS)}
+            onChange={(option: Option<string>) => updateStackdriverQueryField('crossSeriesReducer', option)}
+            disabledStateKeys={[DISABLE_EDIT_CONFIG]}
+          />
+        </FormRow>
+      </>
       {mode === MetricConfigMode.TEMPLATE && (
         <MetricQueryTemplateEditor providerVariableHints={templateProviderVariables.stackdriver} />
       )}

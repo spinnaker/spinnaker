@@ -217,4 +217,24 @@ public class InfluxdbQueryBuilderTest {
         IllegalArgumentException.class,
         () -> queryBuilder.build(canaryConfigWithoutTemplate, namedQueryConfig, canaryScope));
   }
+
+  @Test
+  public void testBuild_deckStarterExample() {
+    // Starter example shown in Deck; must match the example in
+    // deck/packages/kayenta/src/kayenta/edit/templateProviderVariables.ts
+    // Templates are persisted with "${" escaped as "$\\{" (see QueryConfigUtils.escapeTemplates).
+    String example =
+        "SELECT sum(count) FROM web_requests WHERE ${scope} AND ${timeFilter} GROUP BY time(${step})"
+            .replace("${", "$\\{");
+
+    InfluxDbCanaryScope canaryScope = createScope();
+    canaryScope.setScope("server:myapp-prod-v002");
+    canaryScope.setStep(60L);
+    String query =
+        queryBuilder.build(canaryConfig(null), queryConfig(null, null, example), canaryScope);
+
+    assertThat(query)
+        .isEqualTo(
+            "SELECT sum(count) FROM web_requests WHERE server = 'myapp-prod-v002' AND time >= '2010-01-01T12:00:00Z' AND time < '2010-01-01T12:01:40Z' GROUP BY time(60s)");
+  }
 }

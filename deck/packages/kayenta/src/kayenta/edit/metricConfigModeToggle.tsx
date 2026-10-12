@@ -13,11 +13,10 @@ export interface IMetricConfigModeToggleProps {
 }
 
 /*
- * Small stateless toggle between a provider's structured "Guided" form (soft-deprecated, kept
- * fully functional) and the unified "Template" experience (the default for new metrics).
+ * Small stateless toggle between a provider's structured "Guided" form .
  *
- * When the `templatesEnabled` ops kill-switch (CanarySettings.templatesEnabled) is off, this
- * renders nothing at all -- providers stay in Guided-only mode in that case.
+ * Templates are on by default. When an operator sets `canary.templatesEnabled` to `false` this
+ * renders nothing at all -- providers stay in Guided-only mode.
  */
 export default function MetricConfigModeToggle({ mode, onChange }: IMetricConfigModeToggleProps) {
   if (CanarySettings.templatesEnabled === false) {

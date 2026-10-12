@@ -86,4 +86,24 @@ public class GraphiteMetricsServiceTest {
     canaryScope.setLocation(location);
     return canaryScope;
   }
+
+  @Test
+  public void testBuildQuery_deckStarterExample() {
+    // Starter example shown in Deck; must match the example in
+    // deck/packages/kayenta/src/kayenta/edit/templateProviderVariables.ts
+    String example = "servers.${scope}.cpu";
+    CanaryMetricConfig canaryMetricConfig =
+        CanaryMetricConfig.builder()
+            .query(GraphiteCanaryMetricSetQueryConfig.builder().template(example).build())
+            .build();
+
+    String query =
+        graphiteMetricsService.buildQuery(
+            "account",
+            CanaryConfig.builder().build(),
+            canaryMetricConfig,
+            createScope("myapp-prod-v002", "us-east-1"));
+
+    assertThat(query).isEqualTo("servers.myapp-prod-v002.cpu");
+  }
 }

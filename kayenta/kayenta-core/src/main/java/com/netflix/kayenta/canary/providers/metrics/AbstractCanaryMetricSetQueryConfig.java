@@ -17,7 +17,7 @@
 package com.netflix.kayenta.canary.providers.metrics;
 
 import com.fasterxml.jackson.annotation.JsonAlias;
-import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.fasterxml.jackson.annotation.JsonProperty;
 import com.netflix.kayenta.canary.CanaryConfig;
 import com.netflix.kayenta.canary.CanaryMetricSetQueryConfig;
 import lombok.Getter;
@@ -38,7 +38,9 @@ public abstract class AbstractCanaryMetricSetQueryConfig implements CanaryMetric
    * Single per-metric query template. Replaces the old two-field {@code
    * customInlineTemplate}/{@code customFilterTemplate} split. {@code @JsonAlias} allows existing
    * stored JSON still using the legacy {@code customInlineTemplate} key to deserialize into this
-   * field automatically; new writes always serialize under {@code template}.
+   * field. Writes carry the value under both {@code template} and the legacy {@code
+   * customInlineTemplate} key (see {@link #getCustomInlineTemplate()}) so older Kayenta versions,
+   * e.g. during a rolling deploy or a rollback, still find the query.
    */
   @Getter
   @JsonAlias("customInlineTemplate")
@@ -46,19 +48,18 @@ public abstract class AbstractCanaryMetricSetQueryConfig implements CanaryMetric
 
   /**
    * @deprecated superseded by {@link #template}; refers by name to an entry in the canary config's
-   *     top-level {@code templates} map. Retained only for backward-compatible reads of existing
-   *     configs -- see {@link #getTemplate(CanaryConfig)}.
+   *     top-level {@code templates} map. Retained for backward-compatible reads of existing configs
+   *     -- see {@link #getTemplate(CanaryConfig)}.
    */
   @Deprecated @Getter private String customFilterTemplate;
 
   /**
-   * @deprecated use {@link #getTemplate()} instead; retained for backward-compatible reads of
-   *     existing configs, and because some call sites still invoke this directly rather than
-   *     through JSON deserialization. {@code @JsonIgnore}d so new writes serialize only under
-   *     {@code template}, never duplicating the value under the legacy key.
+   * @deprecated use {@link #getTemplate()} instead. Still serialized (mirroring {@code template})
+   *     for compatibility with older Kayenta versions that only know this key; planned for removal
+   *     after at least one release.
    */
   @Deprecated
-  @JsonIgnore
+  @JsonProperty(value = "customInlineTemplate", access = JsonProperty.Access.READ_ONLY)
   public String getCustomInlineTemplate() {
     return template;
   }

@@ -59,6 +59,7 @@ describe('EditMetricModal', () => {
         name: 'Test Metric',
         query: {
           serviceType: 'prometheus',
+          template: 'up',
         },
         groups: ['Group 1'],
       },

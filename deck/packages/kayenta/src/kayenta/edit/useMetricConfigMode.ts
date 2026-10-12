@@ -31,8 +31,8 @@ export function deriveMetricConfigMode(hasTemplateData: boolean, hasGuidedData: 
  * guided and template fields are empty, so a click needs somewhere to record intent that isn't
  * itself data. The mode re-derives from data whenever a different metric (by id) is loaded.
  *
- * When `CanarySettings.templatesEnabled` (the ops kill-switch) is off, the mode is pinned to
- * Guided and cannot be changed.
+ * Templates are on by default; operators can opt out by setting `CanarySettings.templatesEnabled` to
+ * `false`, which pins the mode to Guided and cannot be changed.
  */
 export function useMetricConfigMode(
   metricId: string,

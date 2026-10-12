@@ -57,7 +57,25 @@ public class QueryConfigUtils {
     log.debug("templateToExpand={}", templateToExpand);
 
     if (StringUtils.isEmpty(templateToExpand)) {
-      return null;
+      String customFilterTemplate = metricSetQuery.getCustomFilterTemplate();
+
+      if (StringUtils.isEmpty(customFilterTemplate)) {
+        return null;
+      }
+
+      // A named template was referenced but didn't resolve. Fail rather than silently falling back
+      // to the guided query, which could run an unscoped query for both control and experiment.
+      // TODO(duftler): Handle this as a config validation step instead.
+      if (canaryConfig == null || CollectionUtils.isEmpty(canaryConfig.getTemplates())) {
+        throw new IllegalArgumentException(
+            "Custom filter template '"
+                + customFilterTemplate
+                + "' was referenced, "
+                + "but no templates were defined.");
+      }
+
+      throw new IllegalArgumentException(
+          "Custom filter template '" + customFilterTemplate + "' was not found.");
     }
 
     log.debug("extendedScopeParams={}", canaryScope.getExtendedScopeParams());

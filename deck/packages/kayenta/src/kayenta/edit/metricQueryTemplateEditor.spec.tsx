@@ -34,9 +34,15 @@ describe('MetricQueryTemplateEditor', () => {
     return { editInlineTemplate };
   };
 
-  it('pre-fills the textarea with the provider example when the metric has no template yet', () => {
+  it('shows the provider example as a placeholder, not a value, when the metric has no template yet', () => {
     buildComponent({ inlineTemplateValue: '' });
-    expect(screen.getByRole('textbox')).toHaveValue(providerVariableHints.example);
+    expect(screen.getByRole('textbox')).toHaveValue('');
+    expect(screen.getByRole('textbox')).toHaveAttribute('placeholder', providerVariableHints.example);
+  });
+
+  it('flags the template as required while only the example placeholder is showing', () => {
+    buildComponent({ inlineTemplateValue: '' });
+    expect(screen.getByText(/Template is required/)).toBeVisible();
   });
 
   it('does not dispatch anything just from rendering with an empty template', () => {

@@ -246,8 +246,10 @@ public class CanaryConfigController {
    * customInlineTemplate} JSON key (handled transparently via {@code @JsonAlias} at deserialization
    * time, so this is mostly a no-op for that case) or only reachable via a legacy {@code
    * customFilterTemplate} name into the top-level {@code templates} map (which does require this
-   * rewrite, since that indirection is being retired). The {@code templates} map itself is
-   * deliberately left untouched -- only per-metric pointers into it are cleared once resolved.
+   * rewrite, since that indirection is being retired). Both the {@code templates} map and the
+   * per-metric {@code customFilterTemplate} pointer are deliberately left untouched so the stored
+   * config still works if Kayenta is rolled back; the resolved text is only copied into {@code
+   * template}, which takes precedence from then on.
    *
    * <p>{@code CanaryMetricConfig} and {@code CanaryConfig} are immutable value objects (Lombok
    * {@code @Builder(toBuilder = true)}, no setters for these fields), so this rebuilds the metrics
@@ -277,7 +279,7 @@ public class CanaryConfigController {
         changed = true;
 
         CanaryMetricSetQueryConfig normalizedQuery =
-            abstractQuery.toBuilder().template(resolved).customFilterTemplate(null).build();
+            abstractQuery.toBuilder().template(resolved).build();
 
         normalizedMetrics.add(metric.toBuilder().query(normalizedQuery).build());
       } else {

@@ -1,6 +1,5 @@
 import { isEmpty } from 'lodash';
 import * as React from 'react';
-import { useState } from 'react';
 import { connect } from 'react-redux';
 import type { Dispatch } from 'redux';
 
@@ -38,11 +37,9 @@ export type IMetricQueryTemplateEditorProps = IMetricQueryTemplateEditorOwnProps
  * separate "saved/named template" concept any more -- every metric just has its own template
  * text.
  *
- * When the textarea would otherwise render empty (a new metric, or an existing one with no
- * template yet), it's pre-filled with the provider's illustrative example query so the user has
- * real starter text to edit instead of a blank box. That pre-fill is purely local/display-only
- * until the user actually types into the field -- it is never dispatched to redux on its own, so
- * an untouched metric never silently ends up with the example text saved as its real template.
+ * The provider's illustrative example is shown as the textarea's placeholder, never as its value,
+ * so an untouched metric has an empty template and is flagged as required (and blocked from being
+ * confirmed) rather than silently saving the example text or an empty query.
  */
 export function MetricQueryTemplateEditor({
   providerVariableHints,
@@ -50,17 +47,7 @@ export function MetricQueryTemplateEditor({
   transformValueForSave,
   editInlineTemplate,
 }: IMetricQueryTemplateEditorProps) {
-  // Becomes true the first time the user edits the textarea. Until then, an empty redux value is
-  // shown with the provider's example text as local-only starter content.
-  const [touched, setTouched] = useState(false);
-
-  const exampleText = (providerVariableHints && providerVariableHints.example) || '';
-  const displayValue = touched || !isEmpty(inlineTemplateValue) ? inlineTemplateValue || '' : exampleText;
-
   const handleTextareaChange = (e: any) => {
-    if (!touched) {
-      setTouched(true);
-    }
     editInlineTemplate(transformValueForSave(e.target.value));
   };
 
@@ -73,7 +60,7 @@ export function MetricQueryTemplateEditor({
       label="Query Template"
       helpId={helpId}
       inputOnly={true}
-      error={isEmpty(displayValue) && 'Template is required'}
+      error={isEmpty(inlineTemplateValue) && 'Template is required'}
     >
       {providerVariableHints && (
         <div className="body-small color-text-caption template-variable-hint" style={{ marginBottom: '5px' }}>
@@ -86,7 +73,8 @@ export function MetricQueryTemplateEditor({
         disabledStateKeys={[DISABLE_EDIT_CONFIG]}
         disabled={CanarySettings.disableConfigEdit}
         onChange={handleTextareaChange}
-        value={displayValue}
+        placeholder={providerVariableHints?.example}
+        value={inlineTemplateValue || ''}
       />
     </FormRow>
   );

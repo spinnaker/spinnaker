@@ -1,5 +1,12 @@
 import { HelpContentsRegistry } from '@spinnaker/core';
 
+import { templateProviderVariables } from './edit/templateProviderVariables';
+
+// Renders a provider's starter example (the single source of truth in templateProviderVariables.ts)
+// as HTML-escaped text for the help popovers.
+export const templateExample = (serviceType: string): string =>
+  templateProviderVariables[serviceType].example.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+
 const helpContents: { [key: string]: string } = {
   'pipeline.config.canary.analysisType': `
     <p>
@@ -87,54 +94,54 @@ const helpContents: { [key: string]: string } = {
   'canary.config.template.datadog': `
     <p>Write your own Datadog query. <strong>\${scope}</strong> and <strong>\${location}</strong> are implicitly available, plus any <code>extendedScopeParams</code> you supply.</p>
     <p><strong>Example:</strong></p>
-    <pre>avg:system.cpu.user{autoscaling_group:\${scope}}</pre>
+    <pre>${templateExample('datadog')}</pre>
   `,
   'canary.config.template.prometheus': `
     <p>Write your own PromQL query. <strong>\${project}</strong>, <strong>\${resourceType}</strong>, <strong>\${scope}</strong>, and <strong>\${location}</strong> are implicitly available, plus any <code>extendedScopeParams</code> you supply.</p>
-    <p>Prefix the result with <code>PromQL:</code> to use it as a complete PromQL expression verbatim.</p>
+    <p>The expanded result is used verbatim as a complete PromQL expression.</p>
     <p><strong>Example:</strong></p>
-    <pre>PromQL:sum(rate(http_requests_total{autoscaling_group="\${scope}"}[5m]))</pre>
+    <pre>${templateExample('prometheus')}</pre>
   `,
   'canary.config.template.stackdriver': `
     <p>Write your own Stackdriver monitoring filter. <strong>\${project}</strong>, <strong>\${resourceType}</strong>, <strong>\${scope}</strong>, and <strong>\${location}</strong> are implicitly available, plus any <code>extendedScopeParams</code> you supply.</p>
     <p>The expanded result is <strong>ANDed onto</strong> the mandatory <code>metric.type="..." AND resource.type=...</code> base filter — you're extending the base filter, not replacing it.</p>
     <p><strong>Example:</strong></p>
-    <pre>metadata.user_labels."spinnaker-server-group"=\${scope} AND metadata.user_labels."spinnaker-region"=\${location}</pre>
+    <pre>${templateExample('stackdriver')}</pre>
   `,
   'canary.config.template.signalfx': `
     <p>Write your own SignalFlow program. <strong>\${scope}</strong> and <strong>\${location}</strong> are implicitly available, plus any <code>extendedScopeParams</code> you supply.</p>
     <p><strong>Example:</strong></p>
-    <pre>data('request.count', filters=filter('cluster', '\${scope}') and filter('region', '\${location}')).sum().publish()</pre>
+    <pre>${templateExample('signalfx')}</pre>
   `,
   'canary.config.template.newrelic': `
     <p>Write your own NRQL query — it must use the <code>TIMESERIES</code> keyword. <strong>\${scope}</strong>, <strong>\${location}</strong>, <strong>\${startEpochSeconds}</strong>, and <strong>\${endEpochSeconds}</strong> are implicitly available, plus any <code>extendedScopeParams</code> you supply.</p>
     <p><strong>Example:</strong></p>
-    <pre>SELECT count(*) FROM Transaction TIMESERIES 60 seconds SINCE \${startEpochSeconds} UNTIL \${endEpochSeconds} WHERE autoScalingGroupName LIKE '\${scope}' AND region LIKE '\${location}'</pre>
+    <pre>${templateExample('newrelic')}</pre>
   `,
   'canary.config.template.atlas': `
     <p>Write a complete Atlas Stack Language query. <strong>\${type}</strong>, <strong>\${deployment}</strong>, <strong>\${dataset}</strong>, <strong>\${environment}</strong>, <strong>\${accountId}</strong>, <strong>\${scope}</strong>, and <strong>\${location}</strong> are implicitly available, plus any <code>extendedScopeParams</code> you supply.</p>
     <p>This replaces the legacy <code>q</code> + scope composition entirely — there's no separate mandatory filter it gets ANDed onto.</p>
     <p><strong>Example:</strong></p>
-    <pre>name,requestsPerSecond,:eq,:list,(,nf.cluster,\${scope},:eq,:cq,),:each</pre>
+    <pre>${templateExample('atlas')}</pre>
   `,
   'canary.config.template.graphite': `
     <p>Write your own Graphite target path. <strong>\${scope}</strong> and <strong>\${location}</strong> are implicitly available, plus any <code>extendedScopeParams</code> you supply.</p>
     <p><strong>Example:</strong></p>
-    <pre>servers.\${scope}.cpu</pre>
+    <pre>${templateExample('graphite')}</pre>
   `,
   'canary.config.template.wavefront': `
     <p>Write your own Wavefront query. <strong>\${scope}</strong>, <strong>\${location}</strong>, and <strong>\${granularity}</strong> are implicitly available, plus any <code>extendedScopeParams</code> you supply.</p>
     <p>This replaces the legacy <code>ts(...)</code>/<code>aggregate(...)</code> composition entirely — there's no separate mandatory filter it gets ANDed onto.</p>
     <p><strong>Example:</strong></p>
-    <pre>avg(ts(requests.count, autoscaling_group=\${scope}))</pre>
+    <pre>${templateExample('wavefront')}</pre>
   `,
   'canary.config.template.influxdb': `
     <p><strong>InfluxDB has a fixed, different variable vocabulary than every other provider</strong> — its query engine doesn't use arbitrary canary-scope properties, only these three tokens: <strong>\${timeFilter}</strong> and <strong>\${scope}</strong> (both required in every template) and <strong>\${step}</strong> (optional).</p>
     <p><strong>Example:</strong></p>
-    <pre>SELECT sum(count) FROM cpu WHERE host = 'value1' AND \${scope} AND \${timeFilter} GROUP BY time(1m)</pre>
+    <pre>${templateExample('influxdb')}</pre>
   `,
   'canary.config.guidedModeDeprecated': `
-    <p>The structured "Guided" form remains fully supported for existing metric configs, but it is <strong>deprecated</strong>: it is no longer the default for new metrics, new providers are not gaining guided forms, and it is planned for removal in a future release.</p>
+    <p>The structured "Guided" form remains fully supported for existing metric configs, but it is <strong>deprecated</strong>: when templates are enabled it is no longer the default for new metrics, and new providers are not gaining guided forms. Guided mode will be removed after the 2027.1.x release.</p>
     <p>Consider migrating this metric to a query <strong>Template</strong> when convenient.</p>
   `,
   'canary.config.signalFx.queryPairs': `

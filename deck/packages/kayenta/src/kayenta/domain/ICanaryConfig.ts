@@ -32,10 +32,10 @@ export interface ICanaryMetricSetQueryConfig {
   type: string;
   serviceType: string;
   template?: string;
-  // Legacy field from the old named/saved-template mechanism. The backend normalizes this into
-  // `template` on read (via QueryConfigUtils), so nothing in the frontend sets or reads it
-  // anymore -- it's kept here only because the raw JSON for a config the backend hasn't
-  // rewritten in place yet may still carry it.
+  // Legacy pointer into the config's top-level `templates` map. Kayenta copies the referenced text
+  // into `template` when it reads or writes a config but leaves this pointer in place (so a Kayenta
+  // rollback still works), so Deck never sets it. Deck only reads `template`, which means it must
+  // be upgraded together with Kayenta: an older Kayenta returns `customInlineTemplate` instead.
   customFilterTemplate?: string;
 }
 

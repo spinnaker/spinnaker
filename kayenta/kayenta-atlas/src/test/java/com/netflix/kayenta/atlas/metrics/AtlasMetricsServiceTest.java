@@ -95,4 +95,22 @@ public class AtlasMetricsServiceTest {
     canaryScope.setEnvironment("prod");
     return canaryScope;
   }
+
+  @Test
+  public void testBuildQuery_deckStarterExample() {
+    // Starter example shown in Deck; must match the example in
+    // deck/packages/kayenta/src/kayenta/edit/templateProviderVariables.ts
+    String example = "name,requestsPerSecond,:eq,:list,(,nf.cluster,${scope},:eq,:cq,),:each";
+    CanaryMetricConfig canaryMetricConfig =
+        CanaryMetricConfig.builder()
+            .query(AtlasCanaryMetricSetQueryConfig.builder().template(example).build())
+            .build();
+
+    String query =
+        atlasMetricsService.buildQuery(
+            "account", CanaryConfig.builder().build(), canaryMetricConfig, createScope());
+
+    assertThat(query)
+        .isEqualTo("name,requestsPerSecond,:eq,:list,(,nf.cluster,myapp-prod-v002,:eq,:cq,),:each");
+  }
 }
