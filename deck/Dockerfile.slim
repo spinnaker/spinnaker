@@ -6,7 +6,8 @@ COPY docker        /opt/deck/docker
 RUN docker/setup-apache2.sh
 
 COPY packages/app/dist /opt/deck/html
-RUN chown -R www-data:www-data /opt/deck
+RUN docker/compress-assets.sh /opt/deck/html \
+    && chown -R www-data:www-data /opt/deck
 USER www-data
 
 CMD docker/run-apache2.sh
