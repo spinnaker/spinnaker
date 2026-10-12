@@ -23,6 +23,7 @@ import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
+import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
 import org.junit.jupiter.api.BeforeEach;
@@ -30,6 +31,9 @@ import org.junit.jupiter.api.Test;
 import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpMethod;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.oauth2.client.registration.ClientRegistration;
+import org.springframework.security.oauth2.client.registration.InMemoryClientRegistrationRepository;
+import org.springframework.security.oauth2.core.AuthorizationGrantType;
 import org.springframework.test.util.ReflectionTestUtils;
 import org.springframework.web.client.RestClientException;
 import org.springframework.web.client.RestTemplate;
@@ -38,6 +42,8 @@ class GithubProviderTokenServicesTest {
   private static final String USER_ORGS_URL = "https://api.github.com/users/octocat/orgs";
   private static final String AUTHENTICATED_ORGS_URL =
       "https://api.github.com/user/orgs?per_page=100";
+  private static final Map<String, Object> DETAILS =
+      Map.of("login", "octocat", "organizations_url", USER_ORGS_URL);
 
   private final RestTemplate restTemplate = mock(RestTemplate.class);
   private GithubProviderTokenServices services;
@@ -49,6 +55,7 @@ class GithubProviderTokenServicesTest {
 
     services = new GithubProviderTokenServices();
     ReflectionTestUtils.setField(services, "requirements", requirements);
+    useUserInfoUri("https://api.github.com/user");
     services.setRestTemplate(restTemplate);
   }
 
@@ -83,6 +90,89 @@ class GithubProviderTokenServicesTest {
             services.hasAllProviderRequirements(
                 "token", Map.of("organizations_url", USER_ORGS_URL)))
         .isFalse();
+  }
+
+  @Test
+  void derivesOrganizationsEndpointFromUserInfoUri() {
+    useUserInfoUri("https://ghe.example.com/api/v3/user");
+    respond(
+        "https://ghe.example.com/api/v3/user/orgs?per_page=100",
+        List.of(Map.of("login", "example-org")));
+
+    assertThat(services.hasAllProviderRequirements("token", Map.of("login", "octocat"))).isTrue();
+  }
+
+  @Test
+  void checksOrganizationWithoutOrganizationsUrlInUserInfo() {
+    respond(AUTHENTICATED_ORGS_URL, List.of(Map.of("login", "SomeOtherOrg")));
+
+    assertThat(services.hasAllProviderRequirements("token", Map.of("login", "octocat"))).isFalse();
+  }
+
+  @Test
+  void acceptsAnyUserWithoutOrganizationRequirement() {
+    ReflectionTestUtils.setField(
+        services, "requirements", new GithubProviderTokenServices.GithubRequirements());
+
+    assertThat(
+            services.hasAllProviderRequirements(
+                "token", Map.of("organizations_url", USER_ORGS_URL)))
+        .isTrue();
+    verify(restTemplate, never()).exchange(any(String.class), any(), any(), eq(List.class));
+  }
+
+  @Test
+  void rejectsWhenGithubRegistrationIsMissing() {
+    useRegistration("other", "https://other.example.com/user");
+
+    assertThat(services.hasAllProviderRequirements("token", DETAILS)).isFalse();
+    verify(restTemplate, never()).exchange(any(String.class), any(), any(), eq(List.class));
+  }
+
+  @Test
+  void rejectsWhenUserInfoUriIsNotConfigured() {
+    useUserInfoUri(null);
+
+    assertThat(services.hasAllProviderRequirements("token", DETAILS)).isFalse();
+    verify(restTemplate, never()).exchange(any(String.class), any(), any(), eq(List.class));
+  }
+
+  @Test
+  void rejectsWhenResponseHasNoBody() {
+    when(restTemplate.exchange(
+            eq(AUTHENTICATED_ORGS_URL), eq(HttpMethod.GET), any(HttpEntity.class), eq(List.class)))
+        .thenReturn(ResponseEntity.ok().build());
+
+    assertThat(services.hasAllProviderRequirements("token", DETAILS)).isFalse();
+  }
+
+  @Test
+  void ignoresNullOrganizationEntries() {
+    respond(
+        AUTHENTICATED_ORGS_URL,
+        Arrays.asList(null, Map.of("login", "SomeOtherOrg"), Map.of("login", "example-org")));
+
+    assertThat(services.hasAllProviderRequirements("token", DETAILS)).isTrue();
+  }
+
+  private void useUserInfoUri(String userInfoUri) {
+    useRegistration("github", userInfoUri);
+  }
+
+  private void useRegistration(String registrationId, String userInfoUri) {
+    var registration =
+        ClientRegistration.withRegistrationId(registrationId)
+            .clientId("client-id")
+            .authorizationGrantType(AuthorizationGrantType.AUTHORIZATION_CODE)
+            .redirectUri("https://gate.example.com/login/oauth2/code/github")
+            .authorizationUri("https://github.com/login/oauth/authorize")
+            .tokenUri("https://github.com/login/oauth/access_token")
+            .userInfoUri(userInfoUri)
+            .build();
+    ReflectionTestUtils.setField(
+        services,
+        "clientRegistrationRepository",
+        new InMemoryClientRegistrationRepository(registration));
   }
 
   private void respond(String url, List<Map<String, String>> body) {

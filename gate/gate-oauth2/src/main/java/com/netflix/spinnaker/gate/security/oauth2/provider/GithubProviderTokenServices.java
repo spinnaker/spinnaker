@@ -28,8 +28,11 @@ import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpMethod;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.oauth2.client.registration.ClientRegistration;
+import org.springframework.security.oauth2.client.registration.ClientRegistrationRepository;
 import org.springframework.stereotype.Component;
 import org.springframework.web.client.RestTemplate;
+import org.springframework.web.util.UriComponentsBuilder;
 
 /**
  * This class implements {@link SpinnakerProviderTokenServices} to verify if a user meets the
@@ -42,7 +45,11 @@ import org.springframework.web.client.RestTemplate;
 @ConditionalOnProperty(name = "spring.security.oauth2.client.registration.github.client-id")
 public class GithubProviderTokenServices implements SpinnakerProviderTokenServices {
 
+  private static final String REGISTRATION_ID = "github";
+  private static final int PAGE_SIZE = 100;
+
   @Autowired private GithubRequirements requirements;
+  @Autowired private ClientRegistrationRepository clientRegistrationRepository;
 
   private RestTemplate restTemplate = new RestTemplate();
 
@@ -54,27 +61,48 @@ public class GithubProviderTokenServices implements SpinnakerProviderTokenServic
   private boolean githubOrganizationMember(
       String organization, List<Map<String, String>> organizations) {
     for (Map<String, String> org : organizations) {
-      if (organization.equals(org.get("login"))) {
+      if (org != null && organization.equals(org.get("login"))) {
         return true;
       }
     }
     return false;
   }
 
-  private boolean checkOrganization(
-      String accessToken, String organizationsUrl, String organization) {
+  private String organizationsUrl() {
+    ClientRegistration registration =
+        clientRegistrationRepository.findByRegistrationId(REGISTRATION_ID);
+    if (registration == null) {
+      log.warn("No client registration found for registrationId: {}", REGISTRATION_ID);
+      return null;
+    }
+    String userInfoUri = registration.getProviderDetails().getUserInfoEndpoint().getUri();
+    if (userInfoUri == null || userInfoUri.isEmpty()) {
+      log.warn("No user-info-uri configured for registrationId: {}", REGISTRATION_ID);
+      return null;
+    }
+    return UriComponentsBuilder.fromUriString(userInfoUri)
+        .path("/orgs")
+        .queryParam("per_page", PAGE_SIZE)
+        .toUriString();
+  }
+
+  private boolean checkOrganization(String accessToken, String organization) {
     try {
-      log.debug("Getting user organizations from URL {}", organizationsUrl);
+      String url = organizationsUrl();
+      if (url == null) {
+        return false;
+      }
+      log.debug("Getting user organizations from URL {}", url);
+
       HttpHeaders headers = new HttpHeaders();
       headers.set("Authorization", "Bearer " + accessToken);
       headers.set("Accept", MediaType.APPLICATION_JSON_VALUE);
 
       ResponseEntity<List> response =
-          restTemplate.exchange(
-              organizationsUrl, HttpMethod.GET, new HttpEntity<>(headers), List.class);
+          restTemplate.exchange(url, HttpMethod.GET, new HttpEntity<>(headers), List.class);
 
       List<Map<String, String>> organizations = response.getBody();
-      return githubOrganizationMember(organization, organizations);
+      return organizations != null && githubOrganizationMember(organization, organizations);
     } catch (Exception e) {
       log.warn("Could not fetch user organizations", e);
       return false;
@@ -82,17 +110,15 @@ public class GithubProviderTokenServices implements SpinnakerProviderTokenServic
   }
 
   public boolean hasAllProviderRequirements(String token, Map details) {
-    boolean hasRequirements = true;
-    if (requirements.getOrganization() != null && details.containsKey("organizations_url")) {
-      boolean orgMatch =
-          checkOrganization(
-              token, (String) details.get("organizations_url"), requirements.getOrganization());
-      if (!orgMatch) {
-        log.debug("User does not include required organization {}", requirements.getOrganization());
-        hasRequirements = false;
-      }
+    String organization = requirements.getOrganization();
+    if (organization == null) {
+      return true;
     }
-    return hasRequirements;
+    boolean orgMatch = checkOrganization(token, organization);
+    if (!orgMatch) {
+      log.debug("User does not include required organization {}", organization);
+    }
+    return orgMatch;
   }
 
   @Component
