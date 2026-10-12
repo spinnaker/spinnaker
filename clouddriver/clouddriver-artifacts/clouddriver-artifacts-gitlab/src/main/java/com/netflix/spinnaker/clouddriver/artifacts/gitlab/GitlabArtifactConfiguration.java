@@ -17,6 +17,7 @@
 package com.netflix.spinnaker.clouddriver.artifacts.gitlab;
 
 import com.netflix.spinnaker.credentials.CredentialsTypeProperties;
+import com.netflix.spinnaker.credentials.definition.InvalidCredentialsConfigurationException;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import okhttp3.OkHttpClient;
@@ -50,6 +51,8 @@ class GitlabArtifactConfiguration {
             a -> {
               try {
                 return new GitlabArtifactCredentials(a, gitlabOkHttpClient);
+              } catch (InvalidCredentialsConfigurationException e) {
+                throw e;
               } catch (Exception e) {
                 log.warn("Failure instantiating Gitlab artifact account {}: ", a, e);
                 return null;

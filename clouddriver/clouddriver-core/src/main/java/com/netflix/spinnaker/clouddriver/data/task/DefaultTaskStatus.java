@@ -72,8 +72,14 @@ public class DefaultTaskStatus implements Status {
     return new DefaultTaskStatus(phase, status, state);
   }
 
+  /**
+   * A task can't change state once it is terminal, with one exception: a retryable failure can be
+   * retried, moving it from {@link TaskState#FAILED_RETRYABLE} back to {@link TaskState#STARTED}.
+   */
   public DefaultTaskStatus update(TaskState state) {
-    ensureUpdateable();
+    if (!(this.state.isRetryable() && state == TaskState.STARTED)) {
+      ensureUpdateable();
+    }
     return new DefaultTaskStatus(phase, status, state);
   }
 

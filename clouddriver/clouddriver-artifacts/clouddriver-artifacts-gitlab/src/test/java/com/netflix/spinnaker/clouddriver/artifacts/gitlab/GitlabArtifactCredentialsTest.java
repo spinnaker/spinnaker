@@ -28,6 +28,7 @@ import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.util.List;
 import java.util.function.Function;
 import okhttp3.OkHttpClient;
 import org.apache.commons.io.Charsets;
@@ -49,7 +50,11 @@ class GitlabArtifactCredentialsTest {
   void downloadWithToken(@WiremockResolver.Wiremock WireMockServer server) throws IOException {
     GitlabArtifactAccount account =
         GitlabArtifactAccount.builder()
-            .urlRestrictions(UrlRestrictionsProperties.builder().rejectLocalhost(false).build())
+            .urlRestrictions(
+                UrlRestrictionsProperties.builder()
+                    .rejectLocalhost(false)
+                    .allowedDomains(List.of("localhost"))
+                    .build())
             .name("my-gitlab-account")
             .token("abc")
             .build();
@@ -67,7 +72,11 @@ class GitlabArtifactCredentialsTest {
     GitlabArtifactAccount account =
         GitlabArtifactAccount.builder()
             .name("my-gitlab-account")
-            .urlRestrictions(UrlRestrictionsProperties.builder().rejectLocalhost(false).build())
+            .urlRestrictions(
+                UrlRestrictionsProperties.builder()
+                    .rejectLocalhost(false)
+                    .allowedDomains(List.of("localhost"))
+                    .build())
             .tokenFile(authFile.toAbsolutePath().toString())
             .build();
 
@@ -78,7 +87,11 @@ class GitlabArtifactCredentialsTest {
   void downloadWithNoAuth(@WiremockResolver.Wiremock WireMockServer server) throws IOException {
     GitlabArtifactAccount account =
         GitlabArtifactAccount.builder()
-            .urlRestrictions(UrlRestrictionsProperties.builder().rejectLocalhost(false).build())
+            .urlRestrictions(
+                UrlRestrictionsProperties.builder()
+                    .rejectLocalhost(false)
+                    .allowedDomains(List.of("localhost"))
+                    .build())
             .name("my-gitlab-account")
             .build();
 

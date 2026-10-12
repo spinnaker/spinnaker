@@ -22,6 +22,7 @@ import org.springframework.web.bind.annotation.RequestParam
 import org.springframework.web.bind.annotation.RestController
 import org.springframework.web.servlet.config.annotation.WebMvcConfigurer
 import spock.lang.Specification
+import spock.lang.Unroll
 
 @AutoConfigureTestRestTemplate
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT, classes = TestControllersConfiguration)
@@ -91,6 +92,24 @@ class GenericExceptionHandlersMvcSpec extends Specification {
     memoryAppender.countEventsForLevel(Level.WARN) == 0
   }
 
+  @Unroll
+  def "should log an unhandled #path failure once, naming the request"() {
+    when:
+    def entity = restTemplate.getForEntity("http://localhost:$port/test-controller/$path?token=secret", HashMap.class)
+
+    then: "status is 500"
+    entity.statusCode == HttpStatus.INTERNAL_SERVER_ERROR
+
+    and: "a single error names the method and path, without the query string"
+    memoryAppender.countEventsForLevel(Level.ERROR) == 1
+    memoryAppender.countEventsForLevel(Level.WARN) == 0
+    memoryAppender.search("GET /test-controller/$path", Level.ERROR).size() == 1
+    memoryAppender.search("secret", Level.ERROR).isEmpty()
+
+    where:
+    path << ["runtimeException", "linkageError"]
+  }
+
   @Import(ErrorConfiguration)
   @Configuration
   @EnableAutoConfiguration
@@ -135,6 +154,19 @@ class GenericExceptionHandlersMvcSpec extends Specification {
     @GetMapping("/illegalStateException")
     void illegalStateException() {
       throw new IllegalStateException()
+    }
+
+    @GetMapping("/runtimeException")
+    void runtimeException() {
+      throw new NullPointerException("It's an NPE!")
+    }
+
+    // DispatcherServlet wraps an Error in a ServletException, the shape a Spring 6-compiled
+    // ResponseEntity produces on Spring 7.
+    @GetMapping("/linkageError")
+    void linkageError() {
+      throw new IncompatibleClassChangeError(
+        "Class org.springframework.http.HttpHeaders does not implement the requested interface org.springframework.util.MultiValueMap")
     }
   }
 }
