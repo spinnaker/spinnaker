@@ -301,7 +301,7 @@ public class PipelineExecutionImpl implements PipelineExecution, Serializable {
     this.origin = origin;
   }
 
-  private Trigger trigger = NO_TRIGGER;
+  private Trigger trigger = new DefaultTrigger("none");
 
   public @Nonnull Trigger getTrigger() {
     return trigger;
