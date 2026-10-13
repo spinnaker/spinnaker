@@ -20,15 +20,23 @@ import com.netflix.spinnaker.kork.pubsub.PubsubPublishers;
 import com.netflix.spinnaker.kork.pubsub.PubsubSubscribers;
 import com.netflix.spinnaker.kork.pubsub.redis.RedisPubsub;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
-import org.springframework.boot.data.redis.autoconfigure.DataRedisAutoConfiguration;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Import;
 import org.springframework.data.redis.core.StringRedisTemplate;
 
-/** Explicitly imported by applications requiring Redis; local queues do not import this config. */
+/**
+ * Configuration for Redis Streams messaging.
+ *
+ * <p>Explicitly imported by applications requiring Redis pubsub. This configuration uses an
+ * application-supplied {@link StringRedisTemplate} (for example, provided by the application's own
+ * Spring Boot Redis auto-configuration or custom bean definition) and imports {@link PubsubConfig}.
+ * It does not import Redis auto-configuration directly to avoid activating Redis connections or
+ * health indicators in applications or modules that only use local queues or other pubsub
+ * transports.
+ */
 @Configuration
-@Import({PubsubConfig.class, DataRedisAutoConfiguration.class})
+@Import(PubsubConfig.class)
 public class RedisPubsubConfig {
   @Bean
   @ConditionalOnMissingBean

@@ -25,14 +25,21 @@ import com.netflix.spinnaker.kork.pubsub.redis.RedisPubsub;
 import org.springframework.beans.factory.ObjectProvider;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnExpression;
+import org.springframework.boot.data.redis.autoconfigure.DataRedisAutoConfiguration;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Import;
 
-/** Broadcast refresh is opt-in and only replaces polling when SQL account storage is enabled. */
+/**
+ * Broadcast refresh is opt-in and only replaces polling when SQL account storage is enabled.
+ *
+ * <p>Explicitly imports DataRedisAutoConfiguration alongside RedisPubsubConfig because
+ * Clouddriver's Main excludes Redis auto-configuration and RedisPubsubConfig relies on an
+ * application-supplied StringRedisTemplate.
+ */
 @Configuration
 @ConditionalOnExpression(AccountDefinitionPubsubConfiguration.ENABLED)
-@Import(RedisPubsubConfig.class)
+@Import({RedisPubsubConfig.class, DataRedisAutoConfiguration.class})
 public class AccountDefinitionPubsubConfiguration {
   public static final String ENABLED =
       "${sql.enabled:false} && ${account.storage.enabled:true} && ${account.storage.pubsub.enabled:false}";

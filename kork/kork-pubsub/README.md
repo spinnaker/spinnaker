@@ -95,8 +95,12 @@ continue to work. Redis channels and subscriptions register with `PubsubPublishe
 | Distributed targeted | `redisPubsub.targeted("work", "blue")` | One competing consumer in `blue` receives each message during normal operation. Other groups have separate streams and receive none. |
 | Distributed broadcast | `redisPubsub.broadcast("changes")` | Each active subscription gets every new message through its own uniquely named consumer group, even when multiple instances have the same subscriber name. |
 
-Import `RedisPubsubConfig` in applications using Redis and include a Redis client, for example
-`spring-boot-starter-data-redis`. Configure the connection through `spring.data.redis.*`.
+Import `RedisPubsubConfig` in applications using Redis and supply a `StringRedisTemplate` bean,
+for example via application-owned Spring Boot auto-configuration (`DataRedisAutoConfiguration`)
+or a starter such as `spring-boot-starter-data-redis`. Configure the connection through
+`spring.data.redis.*`. `RedisPubsubConfig` does not import Redis auto-configuration directly to
+avoid activating Redis connections or health indicators in applications using local queues or
+other pubsub transports.
 Local queues need neither this import nor a Redis server. Local publishers can be added to the
 existing registry with `publishers.putAll(List.of(channel))`.
 
