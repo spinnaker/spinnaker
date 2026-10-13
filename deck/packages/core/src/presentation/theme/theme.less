@@ -440,3 +440,66 @@
     color: #ff8a8f;
   }
 }
+
+/* Pagination, primary buttons and instance health pods: compiled Bootstrap/styleguide colors ignore the tokens. */
+:root[data-theme='dark'] {
+  .pagination {
+    > li > a,
+    > li > span {
+      background-color: var(--color-surface-raised);
+      border-color: var(--color-divider);
+      color: var(--color-text-primary);
+    }
+
+    > li > a:hover,
+    > li > a:focus,
+    > li > span:hover {
+      background-color: var(--color-nav-active);
+      border-color: var(--color-divider);
+      color: var(--color-text-primary);
+    }
+
+    > .active > a,
+    > .active > a:hover,
+    > .active > a:focus,
+    > .active > span {
+      background-color: #1e8fc0;
+      border-color: #1e8fc0;
+      color: #04121f;
+      font-weight: 600;
+    }
+
+    > .disabled > a,
+    > .disabled > a:hover,
+    > .disabled > span {
+      background-color: var(--color-surface);
+      border-color: var(--color-divider);
+      color: var(--color-titanium);
+    }
+  }
+
+  button.primary,
+  a.button.primary,
+  .btn-primary {
+    background-color: #1e8fc0;
+    border-color: #1e8fc0;
+    color: #04121f;
+
+    &:hover:not(:disabled) {
+      background-color: #09c2de;
+      border-color: #09c2de;
+      color: #04121f;
+    }
+  }
+
+  /* Instance health squares: the dark-green "light" fill vanishes against the navy card, so use bright greens. */
+  a.instance {
+    &.health-status-Up {
+      background-color: #3fb860;
+    }
+    &.active.health-status-Up,
+    &:hover.health-status-Up {
+      background-color: #7ee59a;
+    }
+  }
+}
