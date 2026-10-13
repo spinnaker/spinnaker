@@ -38,9 +38,25 @@ class SqlAccountDefinitionRepository @JvmOverloads constructor(
   private val mapper: AccountDefinitionMapper,
   private val clock: Clock,
   private val poolName: String,
-  private val retries: SqlRetries = SqlRetries(),
-  private val notifications: SqlAccountDefinitionNotifications? = null
+  private val retries: SqlRetries = SqlRetries()
 ) : AccountDefinitionRepository {
+
+  private var notifications: SqlAccountDefinitionNotifications? = null
+
+  /**
+   * Constructs a notification-enabled repository. The five-parameter primary constructor is
+   * preserved for binary compatibility with existing Kotlin and Java callers.
+   */
+  constructor(
+    jooq: DSLContext,
+    mapper: AccountDefinitionMapper,
+    clock: Clock,
+    poolName: String,
+    retries: SqlRetries,
+    notifications: SqlAccountDefinitionNotifications?
+  ) : this(jooq, mapper, clock, poolName, retries) {
+    this.notifications = notifications
+  }
 
   override fun getByName(name: String): CredentialsDefinition? =
     withPool(poolName) {
