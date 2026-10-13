@@ -10,6 +10,14 @@
   --color-surface: var(--color-white);
   --color-surface-raised: var(--color-white);
   --color-field: var(--color-white);
+  --color-nav-active: #bbdee8;
+
+  /* Neutral grays used as fills (usually under white text). The dark theme can't reuse the inverted text values. */
+  --color-fill-dovegray: var(--color-dovegray);
+  --color-fill-concrete: var(--color-concrete);
+  --color-fill-titanium: var(--color-titanium);
+  --color-fill-mineshaft: var(--color-mineshaft);
+  --color-fill-black: var(--color-black);
 }
 
 :root[data-theme='dark'] {
@@ -18,6 +26,13 @@
   --color-surface: #0e1830;
   --color-surface-raised: #14213f;
   --color-field: #09152a;
+  --color-nav-active: #1a4a63;
+
+  --color-fill-dovegray: #4a6285;
+  --color-fill-concrete: #3f5578;
+  --color-fill-titanium: #3a5070;
+  --color-fill-mineshaft: #1b2c52;
+  --color-fill-black: #060b16;
 
   /* Brand / chrome */
   --color-primary: #0e1830;
@@ -34,14 +49,14 @@
   --color-accessory-light: #3a5070;
 
   /* Semantic colors; the "-light" variants are used as tinted backgrounds so they become dark tints. */
-  --color-success: #6fcf8a;
+  --color-success: #3d9a52;
   --color-success-light: #17361f;
-  --color-danger: #ff8080;
+  --color-danger: #d64550;
   --color-danger-medium: #d06060;
   --color-danger-light: #451f2b;
   --color-warning: #eebb3c;
   --color-warning-light: #43391a;
-  --color-alert: #e8a050;
+  --color-alert: #d9822b;
   --color-alert-light: #46301a;
 
   --color-validation-error: #ff8080;
@@ -292,5 +307,118 @@
 
   .modal-backdrop {
     background-color: #000;
+  }
+}
+
+/* @spinnaker/styleguide form controls and pods hardcode white. */
+:root[data-theme='dark'] {
+  --button-default-background-color: var(--color-surface-raised);
+  --button-passive-hover-bg: var(--color-primary-g1);
+
+  .sp-form input[type='text'],
+  .sp-form input[type='password'],
+  .sp-form input[type='search'],
+  .sp-form input[type='tel'],
+  .sp-form input[type='time'],
+  .sp-form input[type='file'],
+  .sp-form input[type='url'],
+  .sp-form textarea,
+  .sp-form select {
+    background: var(--color-field);
+    border-color: var(--color-seashell);
+    color: var(--color-text-primary);
+  }
+  .sp-form input:focus,
+  .sp-form textarea:focus {
+    background: var(--color-field);
+    border-color: var(--color-accent);
+    color: var(--color-text-primary);
+  }
+
+  .pod > .contents {
+    background-color: var(--color-surface);
+  }
+
+  textarea,
+  textarea.form-control,
+  textarea.code {
+    background-color: var(--color-field);
+    color: var(--color-text-primary);
+  }
+
+  /* Cluster/pod title bars: light text on the dark accent tint for contrast. */
+  .rollup-title-cell {
+    color: var(--color-text-primary);
+
+    .pod-center {
+      background-color: var(--color-accent-g2);
+      color: #ffffff;
+    }
+  }
+}
+
+/* Ace editor (JSON/YAML editors) ships a white "textmate" theme. */
+:root[data-theme='dark'] {
+  .ace_editor,
+  .ace-tm {
+    background-color: var(--color-field);
+    color: var(--color-text-primary);
+  }
+  .ace-tm .ace_gutter {
+    background: var(--color-surface);
+    color: var(--color-text-caption);
+  }
+  .ace-tm .ace_gutter-active-line {
+    background-color: var(--color-primary-g1);
+  }
+  .ace-tm .ace_print-margin {
+    background: var(--color-divider);
+  }
+  .ace-tm .ace_cursor {
+    color: var(--color-text-primary);
+  }
+  .ace-tm .ace_marker-layer .ace_active-line {
+    background: rgba(93, 178, 214, 0.1);
+  }
+  .ace-tm .ace_marker-layer .ace_selection {
+    background: rgba(9, 194, 222, 0.3);
+  }
+  .ace-tm .ace_marker-layer .ace_bracket {
+    border-color: var(--color-concrete);
+  }
+  .ace-tm .ace_invisible {
+    color: var(--color-silver);
+  }
+  .ace-tm .ace_fold {
+    background-color: var(--color-accent);
+    border-color: var(--color-text-primary);
+  }
+  .ace-tm .ace_keyword,
+  .ace-tm .ace_storage {
+    color: #5db2d6;
+  }
+  .ace-tm .ace_string {
+    color: #a5e6a0;
+  }
+  .ace-tm .ace_constant.ace_numeric,
+  .ace-tm .ace_constant.ace_language,
+  .ace-tm .ace_constant.ace_buildin {
+    color: #f0b36b;
+  }
+  .ace-tm .ace_variable,
+  .ace-tm .ace_support.ace_function {
+    color: #09c2de;
+  }
+  .ace-tm .ace_comment {
+    color: var(--color-concrete);
+  }
+  .ace-tm .ace_entity.ace_name.ace_tag,
+  .ace-tm .ace_entity.ace_other.ace_attribute-name,
+  .ace-tm .ace_meta.ace_tag {
+    color: #e2a6ff;
+  }
+  .ace-tm .ace_indent-guide {
+    background: none;
+    box-shadow: inset -1px 0 0 var(--color-divider);
   }
 }
