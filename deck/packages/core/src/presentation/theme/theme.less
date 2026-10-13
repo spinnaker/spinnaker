@@ -503,3 +503,40 @@
     }
   }
 }
+
+/* Pipeline graph: the light-theme "alto" gray becomes navy in dark mode, which hides idle nodes and links. */
+:root[data-theme='dark'] .pipeline-graph svg {
+  path.link {
+    stroke: #c4cdd9;
+    stroke-opacity: 0.55;
+
+    &.active,
+    &.highlighted {
+      stroke-opacity: 1;
+    }
+
+    &.not_started,
+    &.suspended,
+    &.canceled,
+    &.unknown {
+      stroke: #c4cdd9;
+    }
+  }
+
+  g:not(.active):not(.highlighted) rect {
+    fill: #c4cdd9;
+  }
+
+  g.warning:not(.active):not(.highlighted) rect {
+    fill: var(--color-danger);
+  }
+}
+
+/* Idle (unstatused / not started) stage markers use the same off-white; status colors are untouched. */
+:root[data-theme='dark'] .execution-marker {
+  &,
+  &.execution-marker-not_started,
+  &.execution-marker-canceled {
+    fill: #c4cdd9;
+  }
+}
