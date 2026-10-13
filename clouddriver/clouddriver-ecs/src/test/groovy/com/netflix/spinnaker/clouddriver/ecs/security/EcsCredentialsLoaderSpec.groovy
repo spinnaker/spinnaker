@@ -35,7 +35,9 @@ class EcsCredentialsLoaderSpec extends Specification {
     getCredentialsDefinitions() >> [account]
   }
   def parser = Mock(CredentialsParser)
-  def repository = Mock(CredentialsRepository)
+  def repository = Mock(CredentialsRepository) {
+    getAll() >> []
+  }
   def compositeCredentialsRepository = Mock(CompositeCredentialsRepository)
   def ecsCredentials = Mock(NetflixECSCredentials)
 
@@ -46,13 +48,13 @@ class EcsCredentialsLoaderSpec extends Specification {
     def awsCredsV1 = TestCredential.named("one")
     def awsCredsV2 = TestCredential.named("one") // a distinct instance, e.g. after a new region is added
     compositeCredentialsRepository.getCredentials("one", AmazonCloudProvider.ID) >>> [awsCredsV1, awsCredsV1, awsCredsV2]
-    parser.parse(account) >> ecsCredentials
 
     when: "loaded for the first time"
     loader.load()
 
     then:
-    1 * parser.parse(account)
+    1 * parser.parse(account) >> ecsCredentials
+    1 * repository.save(ecsCredentials)
 
     when: "loaded again while the backing AWS account is unchanged"
     loader.load()
@@ -64,6 +66,6 @@ class EcsCredentialsLoaderSpec extends Specification {
     loader.load()
 
     then: "the ECS account is re-parsed even though its own definition is unchanged"
-    1 * parser.parse(account)
+    1 * parser.parse(account) >> ecsCredentials
   }
 }

@@ -33,9 +33,9 @@ import lombok.extern.slf4j.Slf4j;
  * ECSCredentialsConfig.Account only identifies which AWS account an ECS account is backed by; it
  * doesn't change when that AWS account's own definition changes (e.g. a new region is added).
  * BasicCredentialsLoader only re-parses a definition when it differs from what it last loaded, so
- * without this check an ECS account would never pick up changes to its underlying AWS account
- * until clouddriver is restarted. This loader additionally tracks the AWS credentials instance
- * backing each ECS account and forces a re-parse whenever that instance has been replaced.
+ * without this check an ECS account would never pick up changes to its underlying AWS account until
+ * clouddriver is restarted. This loader additionally tracks the AWS credentials instance backing
+ * each ECS account and forces a re-parse whenever that instance has been replaced.
  */
 @Slf4j
 public class EcsCredentialsLoader
@@ -73,7 +73,8 @@ public class EcsCredentialsLoader
 
       AccountCredentials previouslyLoadedAwsCredentials =
           loadedAwsCredentials.put(definition.getName(), awsCredentials);
-      if (previouslyLoadedAwsCredentials != null && previouslyLoadedAwsCredentials != awsCredentials) {
+      if (previouslyLoadedAwsCredentials != null
+          && previouslyLoadedAwsCredentials != awsCredentials) {
         log.info(
             "AWS account '{}' backing ECS account '{}' changed; forcing a re-parse",
             definition.getAwsAccount(),

@@ -86,10 +86,7 @@ public class EcsCredentialsInitializer {
       ecsCredentialsSource = ecsCredentialsConfig::getAccounts;
     }
     return new EcsCredentialsLoader(
-        ecsCredentialsSource,
-        amazonCredentialsParser,
-        repository,
-        compositeCredentialsRepository);
+        ecsCredentialsSource, amazonCredentialsParser, repository, compositeCredentialsRepository);
   }
 
   @Bean
