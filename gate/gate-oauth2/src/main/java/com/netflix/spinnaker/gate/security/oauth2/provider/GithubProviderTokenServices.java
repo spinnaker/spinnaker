@@ -16,13 +16,14 @@
 package com.netflix.spinnaker.gate.security.oauth2.provider;
 
 import com.netflix.spinnaker.kork.annotations.VisibleForTesting;
-import java.util.List;
+import java.time.Duration;
 import java.util.Map;
 import lombok.Data;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.boot.context.properties.ConfigurationProperties;
+import org.springframework.boot.restclient.RestTemplateBuilder;
 import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpMethod;
@@ -31,6 +32,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.oauth2.client.registration.ClientRegistration;
 import org.springframework.security.oauth2.client.registration.ClientRegistrationRepository;
 import org.springframework.stereotype.Component;
+import org.springframework.web.client.HttpClientErrorException;
 import org.springframework.web.client.RestTemplate;
 import org.springframework.web.util.UriComponentsBuilder;
 
@@ -46,29 +48,60 @@ import org.springframework.web.util.UriComponentsBuilder;
 public class GithubProviderTokenServices implements SpinnakerProviderTokenServices {
 
   private static final String REGISTRATION_ID = "github";
-  private static final int PAGE_SIZE = 100;
 
   @Autowired private GithubRequirements requirements;
   @Autowired private ClientRegistrationRepository clientRegistrationRepository;
 
-  private RestTemplate restTemplate = new RestTemplate();
+  private RestTemplate restTemplate =
+      new RestTemplateBuilder()
+          .connectTimeout(Duration.ofSeconds(10))
+          .readTimeout(Duration.ofSeconds(10))
+          .build();
 
   @VisibleForTesting
   void setRestTemplate(RestTemplate restTemplate) {
     this.restTemplate = restTemplate;
   }
 
-  private boolean githubOrganizationMember(
-      String organization, List<Map<String, String>> organizations) {
-    for (Map<String, String> org : organizations) {
-      if (org != null && organization.equals(org.get("login"))) {
-        return true;
-      }
+  public boolean hasAllProviderRequirements(String token, Map details) {
+    String organization = requirements.getOrganization();
+    if (organization == null) {
+      return true;
     }
-    return false;
+    boolean orgMatch = checkMembership(token, organization);
+    if (!orgMatch) {
+      log.debug("User does not include required organization {}", organization);
+    }
+    return orgMatch;
   }
 
-  private String organizationsUrl() {
+  private boolean checkMembership(String accessToken, String organization) {
+    try {
+      String url = membershipUrl(organization);
+      if (url == null) {
+        return false;
+      }
+      log.debug("Getting user membership of organization from URL {}", url);
+
+      HttpHeaders headers = new HttpHeaders();
+      headers.set("Authorization", "Bearer " + accessToken);
+      headers.set("Accept", MediaType.APPLICATION_JSON_VALUE);
+
+      ResponseEntity<Map> response =
+          restTemplate.exchange(url, HttpMethod.GET, new HttpEntity<>(headers), Map.class);
+
+      Map<?, ?> membership = response.getBody();
+      return membership != null && "active".equals(membership.get("state"));
+    } catch (HttpClientErrorException.NotFound e) {
+      log.debug("User is not a member of organization {}", organization);
+      return false;
+    } catch (Exception e) {
+      log.warn("Could not fetch user organization membership", e);
+      return false;
+    }
+  }
+
+  private String membershipUrl(String organization) {
     ClientRegistration registration =
         clientRegistrationRepository.findByRegistrationId(REGISTRATION_ID);
     if (registration == null) {
@@ -81,44 +114,8 @@ public class GithubProviderTokenServices implements SpinnakerProviderTokenServic
       return null;
     }
     return UriComponentsBuilder.fromUriString(userInfoUri)
-        .path("/orgs")
-        .queryParam("per_page", PAGE_SIZE)
+        .pathSegment("memberships", "orgs", organization)
         .toUriString();
-  }
-
-  private boolean checkOrganization(String accessToken, String organization) {
-    try {
-      String url = organizationsUrl();
-      if (url == null) {
-        return false;
-      }
-      log.debug("Getting user organizations from URL {}", url);
-
-      HttpHeaders headers = new HttpHeaders();
-      headers.set("Authorization", "Bearer " + accessToken);
-      headers.set("Accept", MediaType.APPLICATION_JSON_VALUE);
-
-      ResponseEntity<List> response =
-          restTemplate.exchange(url, HttpMethod.GET, new HttpEntity<>(headers), List.class);
-
-      List<Map<String, String>> organizations = response.getBody();
-      return organizations != null && githubOrganizationMember(organization, organizations);
-    } catch (Exception e) {
-      log.warn("Could not fetch user organizations", e);
-      return false;
-    }
-  }
-
-  public boolean hasAllProviderRequirements(String token, Map details) {
-    String organization = requirements.getOrganization();
-    if (organization == null) {
-      return true;
-    }
-    boolean orgMatch = checkOrganization(token, organization);
-    if (!orgMatch) {
-      log.debug("User does not include required organization {}", organization);
-    }
-    return orgMatch;
   }
 
   @Component
