@@ -1184,6 +1184,52 @@ class UpsertGoogleLoadBalancerDescriptionValidatorSpec extends Specification {
       "backendService.healthCheck.port" | "upsertGoogleLoadBalancerDescription.healthCheck.port.invalid"                  | { it.backendService.healthCheck.port = 0 }
   }
 
+  @Unroll
+  void "#type rejects a request without #field"() {
+    setup:
+      def description = singleBackendServiceDescription(type)
+      mutation(description)
+      def errors = Mock(ValidationErrors)
+
+    when:
+      validator.validate([], description, errors)
+
+    then:
+      1 * errors.rejectValue(field, code)
+      0 * errors._
+
+    where:
+      type                                             | field                             | code                                                                        | mutation
+      GoogleLoadBalancerType.INTERNAL                  | "backendService"                  | "upsertGoogleLoadBalancerDescription.backendServiceRequired"                | { it.backendService = null }
+      GoogleLoadBalancerType.INTERNAL                  | "backendService.name"             | "upsertGoogleLoadBalancerDescription.backendService.name.empty"             | { it.backendService.name = null }
+      GoogleLoadBalancerType.INTERNAL                  | "backendService.healthCheck.name" | "upsertGoogleLoadBalancerDescription.backendService.healthCheck.name.empty" | { it.backendService.healthCheck.name = null }
+      GoogleLoadBalancerType.REGIONAL_EXTERNAL_NETWORK | "backendService.name"             | "upsertGoogleLoadBalancerDescription.backendService.name.empty"             | { it.backendService.name = null }
+      GoogleLoadBalancerType.REGIONAL_EXTERNAL_NETWORK | "backendService.healthCheck.name" | "upsertGoogleLoadBalancerDescription.backendService.healthCheck.name.empty" | { it.backendService.healthCheck.name = null }
+      GoogleLoadBalancerType.SSL                       | "backendService.name"             | "upsertGoogleLoadBalancerDescription.backendService.name.empty"             | { it.backendService.name = null }
+      GoogleLoadBalancerType.SSL                       | "backendService.healthCheck.name" | "upsertGoogleLoadBalancerDescription.backendService.healthCheck.name.empty" | { it.backendService.healthCheck.name = null }
+      GoogleLoadBalancerType.TCP                       | "backendService.name"             | "upsertGoogleLoadBalancerDescription.backendService.name.empty"             | { it.backendService.name = null }
+      GoogleLoadBalancerType.TCP                       | "backendService.healthCheck.name" | "upsertGoogleLoadBalancerDescription.backendService.healthCheck.name.empty" | { it.backendService.healthCheck.name = null }
+  }
+
+  // Each type ignores the fields only the others validate.
+  private static UpsertGoogleLoadBalancerDescription singleBackendServiceDescription(GoogleLoadBalancerType type) {
+    if (type == GoogleLoadBalancerType.REGIONAL_EXTERNAL_NETWORK) {
+      return regionalExternalNetworkDescription()
+    }
+    new UpsertGoogleLoadBalancerDescription(
+      loadBalancerType: type,
+      loadBalancerName: LOAD_BALANCER_NAME,
+      region: REGION,
+      accountName: ACCOUNT_NAME,
+      network: "default",
+      subnet: "default",
+      portRange: SSL_PROXY_PORT_RANGE,
+      certificate: CERTIFICATE,
+      backendService: new GoogleBackendService(
+        name: DEFAULT_SERVICE,
+        healthCheck: new GoogleHealthCheck(name: "health-check", port: 80)))
+  }
+
   private static UpsertGoogleLoadBalancerDescription regionalExternalNetworkDescription() {
     new UpsertGoogleLoadBalancerDescription(
       loadBalancerType: GoogleLoadBalancerType.REGIONAL_EXTERNAL_NETWORK,

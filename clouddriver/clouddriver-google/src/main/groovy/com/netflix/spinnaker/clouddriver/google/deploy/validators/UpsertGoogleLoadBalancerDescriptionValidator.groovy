@@ -241,17 +241,7 @@ class UpsertGoogleLoadBalancerDescriptionValidator extends
             "upsertGoogleLoadBalancerDescription.ipProtocol.notSupported")
         }
 
-        def bs = description.backendService
-        if (!bs) {
-          errors.rejectValue("backendService",
-            "upsertGoogleLoadBalancerDescription.backendServiceRequired")
-        }
-
-        def hc = bs.healthCheck
-        if (!hc) {
-          errors.rejectValue("backendService.healthCheck",
-            "upsertGoogleLoadBalancerDescription.backendService.healthCheckRequired")
-        }
+        validateBackendService(description, helper, errors)
 
         if (!description.network || !description.subnet) {
           errors.rejectValue("network OR subnet",
@@ -266,14 +256,7 @@ class UpsertGoogleLoadBalancerDescriptionValidator extends
             "upsertGoogleLoadBalancerDescription.ipProtocol.notSupported")
         }
 
-        def bs = description.backendService
-        if (!bs) {
-          errors.rejectValue("backendService",
-            "upsertGoogleLoadBalancerDescription.backendServiceRequired")
-        } else if (!bs.healthCheck) {
-          errors.rejectValue("backendService.healthCheck",
-            "upsertGoogleLoadBalancerDescription.backendService.healthCheckRequired")
-        }
+        validateBackendService(description, helper, errors)
 
         // GCP accepts at most five entries in a forwarding rule's ports list. This type writes
         // ports only, so portRange is rejected below rather than silently ignored.
@@ -318,17 +301,7 @@ class UpsertGoogleLoadBalancerDescriptionValidator extends
           errors.rejectValue("certificateMap",
             "upsertGoogleLoadBalancerDescription.certificateMap.notSupported")
         }
-        def bs = description.backendService
-        if (!bs) {
-          errors.rejectValue("backendService",
-            "upsertGoogleLoadBalancerDescription.backendServiceRequired")
-        } else {
-          def hc = bs.healthCheck
-          if (!hc) {
-            errors.rejectValue("backendService.healthCheck",
-              "upsertGoogleLoadBalancerDescription.backendService.healthCheckRequired")
-          }
-        }
+        validateBackendService(description, helper, errors)
 
         try {
           def pr = Integer.parseInt(description.portRange)
@@ -347,17 +320,7 @@ class UpsertGoogleLoadBalancerDescriptionValidator extends
         }
         break
       case GoogleLoadBalancerType.TCP:
-        def bs = description.backendService
-        if (!bs) {
-          errors.rejectValue("backendService",
-            "upsertGoogleLoadBalancerDescription.backendServiceRequired")
-        } else {
-          def hc = bs.healthCheck
-          if (!hc) {
-            errors.rejectValue("backendService.healthCheck",
-              "upsertGoogleLoadBalancerDescription.backendService.healthCheckRequired")
-          }
-        }
+        validateBackendService(description, helper, errors)
 
         try {
           def pr = Integer.parseInt(description.portRange)
@@ -390,6 +353,25 @@ class UpsertGoogleLoadBalancerDescriptionValidator extends
         errors.rejectValue("${fieldPrefix}.healthCheck.port",
           "upsertGoogleLoadBalancerDescription.healthCheck.port.invalid")
       }
+    }
+  }
+
+  private static void validateBackendService(
+    UpsertGoogleLoadBalancerDescription description,
+    StandardGceAttributeValidator helper,
+    ValidationErrors errors) {
+    def bs = description.backendService
+    if (!bs) {
+      errors.rejectValue("backendService",
+        "upsertGoogleLoadBalancerDescription.backendServiceRequired")
+      return
+    }
+    helper.validateName(bs.name, "backendService.name")
+    if (!bs.healthCheck) {
+      errors.rejectValue("backendService.healthCheck",
+        "upsertGoogleLoadBalancerDescription.backendService.healthCheckRequired")
+    } else {
+      helper.validateName(bs.healthCheck.name, "backendService.healthCheck.name")
     }
   }
 
