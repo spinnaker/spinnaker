@@ -38,7 +38,8 @@ class SqlAccountDefinitionRepository @JvmOverloads constructor(
   private val mapper: AccountDefinitionMapper,
   private val clock: Clock,
   private val poolName: String,
-  private val retries: SqlRetries = SqlRetries()
+  private val retries: SqlRetries = SqlRetries(),
+  private val notifications: SqlAccountDefinitionNotifications? = null
 ) : AccountDefinitionRepository {
 
   override fun getByName(name: String): CredentialsDefinition? =
@@ -129,11 +130,11 @@ class SqlAccountDefinitionRepository @JvmOverloads constructor(
             .set(lastModifiedColumn, timestamp)
             .set(versionColumn, findLatestVersion(name))
             .execute()
+          notifications?.record(ctx)
         }
       } catch (e: DataAccessException) {
         throw SqlAccountDefinitionException("Cannot create account with definition $body", e)
       }
-      // TODO(jvz): CredentialsDefinitionNotifier::definitionChanged for https://github.com/spinnaker/kork/pull/958
     }
   }
 
@@ -169,11 +170,11 @@ class SqlAccountDefinitionRepository @JvmOverloads constructor(
             .set(lastModifiedColumn, timestamp)
             .set(versionColumn, findLatestVersion(name))
             .execute()
+          notifications?.record(ctx)
         }
       } catch (e: DataAccessException) {
         throw SqlAccountDefinitionException("Cannot save account with definition $body", e)
       }
-      // TODO(jvz): CredentialsDefinitionNotifier::definitionChanged for https://github.com/spinnaker/kork/pull/958
     }
   }
 
@@ -203,17 +204,17 @@ class SqlAccountDefinitionRepository @JvmOverloads constructor(
             .set(lastModifiedColumn, timestamp)
             .set(versionColumn, findLatestVersion(name))
             .execute()
+          notifications?.record(ctx)
         }
       } catch (e: DataAccessException) {
         throw SqlAccountDefinitionException("Cannot update account with definition $body", e)
       }
-      // TODO(jvz): CredentialsDefinitionNotifier::definitionChanged for https://github.com/spinnaker/kork/pull/958
     }
   }
 
   override fun delete(name: String) {
     withPool(poolName) {
-      val typeName = jooq.read(retries) { ctx ->
+      jooq.read(retries) { ctx ->
         ctx.select(typeColumn)
           .from(accountsTable)
           .where(idColumn.eq(name))
@@ -230,11 +231,11 @@ class SqlAccountDefinitionRepository @JvmOverloads constructor(
           ctx.deleteFrom(accountsTable)
             .where(idColumn.eq(name))
             .execute()
+          notifications?.record(ctx)
         }
       } catch (e: DataAccessException) {
         throw SqlAccountDefinitionException("Cannot delete account with name $name", e)
       }
-      // TODO(jvz): CredentialsDefinitionNotifier::definitionRemoved for https://github.com/spinnaker/kork/pull/958
     }
   }
 

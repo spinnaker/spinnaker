@@ -8,39 +8,28 @@ import com.netflix.spinnaker.cats.cluster.NodeStatusProvider;
 import com.netflix.spinnaker.cats.provider.ProviderRegistry;
 import com.netflix.spinnaker.clouddriver.config.PubSubSchedulerProperties;
 import com.netflix.spinnaker.kork.annotations.Alpha;
+import com.netflix.spinnaker.kork.pubsub.model.MessageChannel;
+import com.netflix.spinnaker.kork.pubsub.model.MessageSubscription;
+import com.netflix.spinnaker.kork.pubsub.model.PubsubMessage;
 import io.micrometer.core.instrument.MeterRegistry;
 import io.micrometer.core.instrument.Tag;
-import java.net.InetAddress;
-import java.net.UnknownHostException;
 import java.time.Duration;
 import java.util.Collection;
 import java.util.List;
 import java.util.Set;
-import java.util.UUID;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
+import java.util.concurrent.RejectedExecutionException;
 import java.util.concurrent.Semaphore;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
 import lombok.extern.log4j.Log4j2;
 import org.springframework.beans.factory.DisposableBean;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.boot.context.event.ApplicationReadyEvent;
 import org.springframework.context.ApplicationListener;
-import org.springframework.core.task.SimpleAsyncTaskExecutor;
-import org.springframework.data.domain.Range;
-import org.springframework.data.redis.connection.RedisConnectionFactory;
-import org.springframework.data.redis.connection.stream.Consumer;
-import org.springframework.data.redis.connection.stream.MapRecord;
-import org.springframework.data.redis.connection.stream.PendingMessage;
-import org.springframework.data.redis.connection.stream.PendingMessages;
-import org.springframework.data.redis.connection.stream.ReadOffset;
-import org.springframework.data.redis.connection.stream.RecordId;
-import org.springframework.data.redis.connection.stream.StreamOffset;
-import org.springframework.data.redis.core.StringRedisTemplate;
-import org.springframework.data.redis.stream.StreamMessageListenerContainer;
-import org.springframework.data.redis.stream.StreamMessageListenerContainer.StreamReadRequest;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
 import org.springframework.util.StopWatch;
@@ -48,12 +37,12 @@ import org.springframework.util.StopWatch;
 /**
  * Pulls agent execution requests from a redis stream consumer group and runs them.
  *
- * <p>Record delivery is handled by Spring Data Redis' {@link StreamMessageListenerContainer}, which
- * owns the poll loop, connection management, and subscription lifecycle. This class supplies the
- * pieces the container doesn't: concurrency limiting (a semaphore-gated worker pool - the container
- * invokes the listener on its single poll thread, so blocking that thread until a worker is free is
- * exactly the backpressure we want), reclaim of records abandoned by dead consumers, and pausing
- * consumption while the node is disabled in discovery.
+ * <p>Record delivery is handled by Kork's Redis Streams subscription, which owns the poll loop,
+ * connection management, and subscription lifecycle. This class supplies the pieces the container
+ * doesn't: concurrency limiting (a semaphore-gated worker pool - the container invokes the listener
+ * on its single poll thread, so blocking that thread until a worker is free is exactly the
+ * backpressure we want), reclaim of records abandoned by dead consumers, and pausing consumption
+ * while the node is disabled in discovery.
  *
  * <p>Concurrency is still ultimately governed by the SQL state machine: the PENDING->RUNNING
  * conditional transition is the mutex that guarantees single execution, and its sweeps
@@ -69,7 +58,6 @@ public class PubSubAgentRunner
     implements ApplicationListener<ApplicationReadyEvent>, DisposableBean {
   public static final String CONSUMER_GROUP = "agent-runners";
 
-  private static final Duration POLL_TIMEOUT = Duration.ofSeconds(2);
   private static final int RECLAIM_SCAN_LIMIT = 100;
 
   // States a runner is allowed to claim work from.  The scheduler always transitions an agent to
@@ -82,8 +70,10 @@ public class PubSubAgentRunner
   @Autowired StateMachine stateMachine;
   @Autowired MeterRegistry meterRegistry;
   @Autowired PubSubSchedulerProperties properties;
-  @Autowired StringRedisTemplate redisTemplate;
-  @Autowired RedisConnectionFactory redisConnectionFactory;
+
+  @Autowired
+  @Qualifier("agentExecutionChannel")
+  MessageChannel messageChannel;
 
   @Autowired(required = false)
   Collection<ExecutionInstrumentation> executionInstrumentations = List.of();
@@ -93,8 +83,7 @@ public class PubSubAgentRunner
   @Autowired(required = false)
   NodeStatusProvider nodeStatusProvider;
 
-  private final String consumerName = resolveConsumerName();
-  private StreamMessageListenerContainer<String, MapRecord<String, String, String>> container;
+  private MessageSubscription subscription;
   private ExecutorService workers;
   private Semaphore inFlight;
 
@@ -106,10 +95,9 @@ public class PubSubAgentRunner
    */
   @Override
   public synchronized void onApplicationEvent(ApplicationReadyEvent event) {
-    if (container != null) {
+    if (subscription != null) {
       return;
     }
-    ensureConsumerGroup();
     int concurrency = properties.getMaxConcurrentAgents();
     inFlight = new Semaphore(concurrency);
     AtomicInteger threadNumber = new AtomicInteger();
@@ -122,46 +110,28 @@ public class PubSubAgentRunner
               thread.setDaemon(true);
               return thread;
             });
-    container =
-        StreamMessageListenerContainer.create(
-            redisConnectionFactory,
-            StreamMessageListenerContainer.StreamMessageListenerContainerOptions.builder()
-                .pollTimeout(POLL_TIMEOUT)
-                .batchSize(concurrency)
-                .executor(new SimpleAsyncTaskExecutor("pubsub-agent-dispatcher-"))
-                .build());
-    subscribeAndStart();
+    subscription =
+        messageChannel.subscribe(
+            "agent-runner",
+            concurrency,
+            this::dispatch,
+            error -> {
+              meterRegistry.counter("cats.pubsub.stream.poll.errors").increment();
+              log.error("Error polling the agent stream; the subscription will retry", error);
+            });
+    if (nodeStatusProvider == null || nodeStatusProvider.isNodeEnabled()) {
+      subscription.start();
+    }
     log.info(
-        "Started stream consumer {} in group {} on stream {} with {} worker threads",
-        consumerName,
+        "Started agent subscription in group {} with {} worker threads",
         CONSUMER_GROUP,
-        PubSubAgentScheduler.STREAM_KEY,
         concurrency);
-  }
-
-  private void subscribeAndStart() {
-    container.register(
-        StreamReadRequest.builder(
-                StreamOffset.create(PubSubAgentScheduler.STREAM_KEY, ReadOffset.lastConsumed()))
-            .consumer(Consumer.from(CONSUMER_GROUP, consumerName))
-            .autoAcknowledge(false)
-            // NEVER cancel the subscription on poll errors (the default!) - a transient redis
-            // hiccup must not permanently stop this replica from consuming.
-            .cancelOnError(t -> false)
-            .errorHandler(
-                t -> {
-                  meterRegistry.counter("cats.pubsub.stream.poll.errors").increment();
-                  log.error("Error polling the agent stream; the container will retry", t);
-                })
-            .build(),
-        record -> dispatch(record));
-    container.start();
   }
 
   @Override
   public synchronized void destroy() {
-    if (container != null) {
-      container.stop();
+    if (subscription != null) {
+      subscription.close();
     }
     if (workers != null) {
       workers.shutdown();
@@ -176,36 +146,23 @@ public class PubSubAgentRunner
    */
   @Scheduled(fixedDelay = 60_000)
   synchronized void maintain() {
-    if (container == null) {
+    if (subscription == null) {
       return; // application not fully started yet
     }
     boolean nodeEnabled = nodeStatusProvider == null || nodeStatusProvider.isNodeEnabled();
     if (!nodeEnabled) {
-      if (container.isRunning()) {
+      if (subscription.isRunning()) {
         log.info("Node is disabled (draining or out of discovery); pausing stream consumption");
-        // stop() cancels the subscription, so resuming requires a re-register (see below).
-        container.stop();
+        // The shared subscription re-registers its poll loop on resume.
+        subscription.stop();
       }
       return;
     }
-    if (!container.isRunning()) {
+    if (!subscription.isRunning()) {
       log.info("Node is enabled again; resuming stream consumption");
-      subscribeAndStart();
+      subscription.start();
     }
     reclaimAbandonedRecords();
-  }
-
-  private void ensureConsumerGroup() {
-    try {
-      // From "0" so entries added before the first consumer came up are still delivered.
-      redisTemplate
-          .opsForStream()
-          .createGroup(PubSubAgentScheduler.STREAM_KEY, ReadOffset.from("0"), CONSUMER_GROUP);
-      log.info("Created consumer group {} on {}", CONSUMER_GROUP, PubSubAgentScheduler.STREAM_KEY);
-    } catch (Exception e) {
-      // BUSYGROUP - another replica created it first.  Expected on every startup but the first.
-      log.debug("Consumer group {} already exists: {}", CONSUMER_GROUP, e.getMessage());
-    }
   }
 
   /**
@@ -213,59 +170,44 @@ public class PubSubAgentRunner
    * busy, the acquire blocks that thread, which stops the container from reading more records -
    * that IS the backpressure, so work queues durably in redis instead of in process memory.
    */
-  private void dispatch(MapRecord<String, ?, ?> record) {
+  private void dispatch(PubsubMessage record) {
     try {
       inFlight.acquire();
     } catch (InterruptedException e) {
       Thread.currentThread().interrupt();
       return;
     }
-    workers.execute(
-        () -> {
-          try {
-            processRecord(record);
-          } finally {
-            inFlight.release();
-          }
-        });
+    try {
+      workers.execute(
+          () -> {
+            try {
+              processRecord(record);
+            } finally {
+              inFlight.release();
+            }
+          });
+    } catch (RejectedExecutionException e) {
+      inFlight.release();
+      // Leave pending for another replica if shutdown raced with dispatch.
+      log.debug("Worker pool stopped before dispatch", e);
+    }
   }
 
   private void reclaimAbandonedRecords() {
     try {
       Duration minIdle = Duration.ofMinutes(properties.getMinutesBeforeReQueueOfAgents());
-      PendingMessages pending =
-          redisTemplate
-              .opsForStream()
-              .pending(
-                  PubSubAgentScheduler.STREAM_KEY,
-                  CONSUMER_GROUP,
-                  Range.unbounded(),
-                  RECLAIM_SCAN_LIMIT);
-      RecordId[] abandoned =
-          pending.stream()
-              .filter(message -> message.getElapsedTimeSinceLastDelivery().compareTo(minIdle) > 0)
-              .map(PendingMessage::getId)
-              .toArray(RecordId[]::new);
-      if (abandoned.length == 0) {
-        return;
-      }
-      log.warn(
-          "Reclaiming {} stream records abandoned by dead or stalled consumers", abandoned.length);
-      meterRegistry.counter("cats.pubsub.stream.reclaimed").increment(abandoned.length);
-      redisTemplate
-          .opsForStream()
-          .claim(PubSubAgentScheduler.STREAM_KEY, CONSUMER_GROUP, consumerName, minIdle, abandoned)
-          .forEach(this::dispatch);
+      long reclaimed = subscription.reclaim(minIdle, RECLAIM_SCAN_LIMIT);
+      meterRegistry.counter("cats.pubsub.stream.reclaimed").increment(reclaimed);
     } catch (Exception e) {
       log.warn("Unable to scan for abandoned stream records", e);
     }
   }
 
-  private void processRecord(MapRecord<String, ?, ?> record) {
-    Object agentType = record.getValue().get(PubSubAgentScheduler.AGENT_TYPE_FIELD);
+  private void processRecord(PubsubMessage record) {
+    Object agentType = record.attributes().get(PubSubAgentScheduler.AGENT_TYPE_FIELD);
     try {
       if (agentType == null) {
-        log.warn("Dropping malformed stream record {} with no agentType field", record.getId());
+        log.warn("Dropping malformed stream record {} with no agentType field", record.id());
         return;
       }
       runAgent(agentType.toString());
@@ -277,11 +219,9 @@ public class PubSubAgentRunner
       // records.  Redelivering this record could never execute anyway - the agent's state row is
       // no longer PENDING.
       try {
-        redisTemplate
-            .opsForStream()
-            .acknowledge(PubSubAgentScheduler.STREAM_KEY, CONSUMER_GROUP, record.getId());
+        subscription.ack(record);
       } catch (Exception e) {
-        log.warn("Failed to acknowledge stream record {}", record.getId(), e);
+        log.warn("Failed to acknowledge stream record {}", record.id(), e);
       }
     }
   }
@@ -398,13 +338,5 @@ public class PubSubAgentRunner
         "Agent {} failed to run due to an exception.  Setting state to FAILED; the scheduler will retry it after the error interval elapses.",
         agentType,
         cause);
-  }
-
-  private static String resolveConsumerName() {
-    try {
-      return InetAddress.getLocalHost().getHostName();
-    } catch (UnknownHostException e) {
-      return "runner-" + UUID.randomUUID();
-    }
   }
 }

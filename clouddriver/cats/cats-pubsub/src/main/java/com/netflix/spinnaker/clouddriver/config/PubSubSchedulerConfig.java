@@ -1,33 +1,36 @@
 package com.netflix.spinnaker.clouddriver.config;
 
+import com.netflix.spinnaker.cats.pubsub.PubSubAgentRunner;
+import com.netflix.spinnaker.cats.pubsub.PubSubAgentScheduler;
 import com.netflix.spinnaker.kork.annotations.Alpha;
+import com.netflix.spinnaker.kork.pubsub.config.RedisPubsubConfig;
+import com.netflix.spinnaker.kork.pubsub.model.MessageChannel;
+import com.netflix.spinnaker.kork.pubsub.redis.RedisPubsub;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
-import org.springframework.boot.data.redis.autoconfigure.DataRedisAutoConfiguration;
-import org.springframework.boot.data.redis.autoconfigure.DataRedisRepositoriesAutoConfiguration;
+import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.ComponentScan;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Import;
 
 /**
- * Wires up the stream-based agent scheduler. All the moving parts (scheduler, runner, state
- * machine, admin controller) are components discovered by the scan; this class exists to activate
- * the scan and pull in Spring Boot's redis autoconfiguration, which supplies the
- * RedisConnectionFactory (configured via spring.data.redis.*) and StringRedisTemplate the scheduler
- * and runner inject - clouddriver at large talks to redis through raw jedis (kork-jedis), so those
- * beans exist nowhere else. The runner manages its own consumer threads via
- * StreamMessageListenerContainer - there is no distributed lock: record delivery is handled by the
- * redis stream consumer group, and execution mutual exclusion by the SQL state machine's
- * conditional transitions.
+ * Wires the scheduler to Kork's Redis Streams transport. The existing stream key and consumer group
+ * remain stable across upgrades. Agent execution and its SQL mutex remain in Clouddriver.
  *
- * <p>This must be a plain {@code @Import}, NOT {@code @ImportAutoConfiguration}: clouddriver's Main
- * excludes RedisAutoConfiguration via {@code @EnableAutoConfiguration(exclude=...)}, and Spring
- * Boot merges exclusions across the whole auto-configuration import group - an
- * {@code @ImportAutoConfiguration} of an excluded class is silently dropped. A direct import
- * bypasses the group (the conditions inside the imported classes still apply).
+ * <p>RedisPubsubConfig explicitly imports Redis configuration because Clouddriver's Main excludes
+ * Redis auto-configuration. Redis uses spring.data.redis.*; subscription lifecycle and recovery are
+ * supplied by Kork, while the runner supplies execution concurrency and discovery pausing.
  */
 @Configuration
 @ComponentScan(basePackages = "com.netflix.spinnaker.cats.pubsub")
 @ConditionalOnProperty("cats.pubsub.enabled")
-@Import({DataRedisAutoConfiguration.class, DataRedisRepositoriesAutoConfiguration.class})
+@Import(RedisPubsubConfig.class)
 @Alpha
-public class PubSubSchedulerConfig {}
+public class PubSubSchedulerConfig {
+  @Bean
+  public MessageChannel agentExecutionChannel(RedisPubsub pubsub) {
+    return pubsub.bindTargetedStream(
+        PubSubAgentScheduler.STREAM_KEY,
+        PubSubAgentRunner.CONSUMER_GROUP,
+        PubSubAgentScheduler.STREAM_KEY);
+  }
+}
