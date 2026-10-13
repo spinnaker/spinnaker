@@ -540,3 +540,95 @@
     fill: #c4cdd9;
   }
 }
+
+/* Alerts, labels, badges and pills: compiled Bootstrap/styleguide pastel fills ignore the tokens. */
+:root[data-theme='dark'] {
+  .alert-danger,
+  .alert-danger pre,
+  .alert-danger h4 {
+    background-color: #3a1a26;
+    border-color: #8a3445;
+    color: #ffd2d6;
+  }
+
+  .alert-warning,
+  .alert-warning pre,
+  .alert-warning h4 {
+    background-color: #3a2f14;
+    border-color: #7a6120;
+    color: #ffe3a3;
+  }
+
+  .alert-success,
+  .alert-success pre,
+  .alert-success h4 {
+    background-color: #14301d;
+    border-color: #2f7a47;
+    color: #c2f0cf;
+  }
+
+  .alert-info,
+  .alert-info pre,
+  .alert-info h4 {
+    background-color: #0f2a3f;
+    border-color: #1e5a7d;
+    color: #c2e8f6;
+  }
+
+  .alert-danger pre,
+  .alert-warning pre,
+  .alert-success pre,
+  .alert-info pre {
+    background-color: transparent;
+  }
+
+  .alert a,
+  .alert-link {
+    color: inherit;
+    text-decoration: underline;
+  }
+
+  .label-default,
+  .badge {
+    background-color: #4a6285;
+    color: #ffffff;
+  }
+
+  .label-primary,
+  .label-info {
+    background-color: #1b7a99;
+    color: #ffffff;
+  }
+
+  .label-success {
+    background-color: #2a7d40;
+    color: #ffffff;
+  }
+
+  .label-warning {
+    background-color: #eebb3c;
+    color: #1a1405;
+  }
+
+  .label-danger {
+    background-color: #c0394a;
+    color: #ffffff;
+  }
+
+  .pill.info,
+  .pill.info *,
+  .pill.category,
+  .sp-badge.info,
+  .sp-badge.info *,
+  .sp-badge.category,
+  .sp-counter.info {
+    background-color: var(--color-accent-g1);
+    color: #bfeaf4;
+  }
+
+  .pill.category > *:first-child,
+  .sp-badge.category > *:first-child {
+    background-color: var(--color-primary-g2);
+    color: #e9f1fb;
+  }
+}
