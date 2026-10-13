@@ -41,6 +41,8 @@ import retrofit2.Converter;
 import retrofit2.Retrofit;
 import tools.jackson.core.JacksonException;
 import tools.jackson.core.type.TypeReference;
+import tools.jackson.databind.MapperFeature;
+import tools.jackson.databind.cfg.DateTimeFeature;
 import tools.jackson.databind.json.JsonMapper;
 
 class CustomConverterFactoryTest {
@@ -74,6 +76,24 @@ class CustomConverterFactoryTest {
     assertEquals("{\"zebra\":\"first\",\"created\":0}", bytes.readUtf8());
   }
 
+  @SuppressWarnings("unchecked")
+  @Test
+  void suppliedMapperPreservesCustomPropertyOrderAndDateFormat() throws IOException {
+    Converter<WireFormatPayload, RequestBody> converter =
+        (Converter<WireFormatPayload, RequestBody>)
+            CustomConverterFactory.create(
+                    JsonMapper.builder()
+                        .enable(MapperFeature.SORT_PROPERTIES_ALPHABETICALLY)
+                        .disable(DateTimeFeature.WRITE_DATES_AS_TIMESTAMPS)
+                        .build())
+                .requestBodyConverter(
+                    WireFormatPayload.class, NO_ANNOTATIONS, NO_ANNOTATIONS, null);
+    Buffer bytes = new Buffer();
+    converter.convert(new WireFormatPayload("first", new Date(0))).writeTo(bytes);
+    assertEquals(
+        "{\"created\":\"1970-01-01T00:00:00.000Z\",\"zebra\":\"first\"}", bytes.readUtf8());
+  }
+
   @Test
   void defaultFactoryReadsLegacyResponsePropertyNames() throws IOException {
     Converter<ResponseBody, ?> converter =
@@ -103,17 +123,9 @@ class CustomConverterFactoryTest {
     public String zebra;
     public Date created;
 
-    public WireFormatPayload(String zebra, Date created) {
+    WireFormatPayload(String zebra, Date created) {
       this.zebra = zebra;
       this.created = created;
-    }
-
-    public String getZebra() {
-      return zebra;
-    }
-
-    public Date getCreated() {
-      return created;
     }
   }
 
