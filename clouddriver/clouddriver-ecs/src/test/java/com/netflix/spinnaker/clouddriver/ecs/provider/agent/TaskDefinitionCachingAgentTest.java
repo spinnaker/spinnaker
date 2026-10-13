@@ -70,7 +70,7 @@ public class TaskDefinitionCachingAgentTest extends CommonCachingAgent {
         new DefaultCacheData("test-service", serviceAttr, Collections.emptyMap());
     when(providerCache.filterIdentifiers(
             SERVICES.toString(), "ecs;services;test-account;us-west-2;*"))
-        .thenReturn(Collections.singletonList("test-service"));
+        .thenReturn(Set.of("test-service"));
     when(providerCache.getAll(anyString(), any(Set.class)))
         .thenReturn(Collections.singletonList(serviceCache));
 
@@ -243,7 +243,7 @@ public class TaskDefinitionCachingAgentTest extends CommonCachingAgent {
         new DefaultCacheData("test-service", serviceAttr, Collections.emptyMap());
     when(providerCache.filterIdentifiers(
             SERVICES.toString(), "ecs;services;test-account;us-west-2;*"))
-        .thenReturn(Collections.singletonList("test-service"));
+        .thenReturn(Collections.singleton("test-service"));
     when(providerCache.getAll(anyString(), any(Set.class)))
         .thenReturn(Collections.singletonList(serviceCache));
   }
@@ -282,7 +282,7 @@ public class TaskDefinitionCachingAgentTest extends CommonCachingAgent {
         new DefaultCacheData("test-service", serviceAttr, Collections.emptyMap());
     when(providerCache.filterIdentifiers(
             SERVICES.toString(), "ecs;services;test-account;us-west-2;*"))
-        .thenReturn(Collections.singletonList("test-service"));
+        .thenReturn(Collections.singleton("test-service"));
     when(providerCache.getAll(anyString(), any(Set.class)))
         .thenReturn(Collections.singletonList(serviceCache));
 

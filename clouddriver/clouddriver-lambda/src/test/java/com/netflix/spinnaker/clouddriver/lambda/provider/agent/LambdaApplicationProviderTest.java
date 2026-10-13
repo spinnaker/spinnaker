@@ -17,6 +17,8 @@
 package com.netflix.spinnaker.clouddriver.lambda.provider.agent;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.*;
 
 import com.google.common.collect.ImmutableMap;
@@ -44,7 +46,7 @@ public class LambdaApplicationProviderTest {
 
     when(cache.filterIdentifiers(
             eq(Keys.Namespace.LAMBDA_APPLICATIONS.ns), eq("aws:lambdaApplications:*")))
-        .thenReturn(List.of(appKey1, appKey2));
+        .thenReturn(Set.of(appKey1, appKey2));
 
     CacheData cacheData1 =
         new DefaultCacheData(
@@ -53,7 +55,7 @@ public class LambdaApplicationProviderTest {
         new DefaultCacheData(
             appKey2, ImmutableMap.of("attribute2", "value2"), Collections.emptyMap());
 
-    when(cache.getAll(Keys.Namespace.LAMBDA_APPLICATIONS.ns, List.of(appKey1, appKey2)))
+    when(cache.getAll(eq(Keys.Namespace.LAMBDA_APPLICATIONS.ns), any(Collection.class)))
         .thenReturn(List.of(cacheData1, cacheData2));
 
     LambdaApplicationProvider provider = new LambdaApplicationProvider(cache);
@@ -65,7 +67,7 @@ public class LambdaApplicationProviderTest {
 
     verify(cache)
         .filterIdentifiers(Keys.Namespace.LAMBDA_APPLICATIONS.ns, "aws:lambdaApplications:*");
-    verify(cache).getAll(Keys.Namespace.LAMBDA_APPLICATIONS.ns, List.of(appKey1, appKey2));
+    verify(cache).getAll(eq(Keys.Namespace.LAMBDA_APPLICATIONS.ns), any(Collection.class));
   }
 
   @Test
@@ -74,7 +76,7 @@ public class LambdaApplicationProviderTest {
 
     when(cache.filterIdentifiers(
             eq(Keys.Namespace.LAMBDA_APPLICATIONS.ns), eq("aws:lambdaApplications:*")))
-        .thenReturn(Collections.emptyList());
+        .thenReturn(Collections.emptySet());
 
     when(cache.getAll(eq(Keys.Namespace.LAMBDA_APPLICATIONS.ns), any(Collection.class)))
         .thenReturn(Collections.emptyList());

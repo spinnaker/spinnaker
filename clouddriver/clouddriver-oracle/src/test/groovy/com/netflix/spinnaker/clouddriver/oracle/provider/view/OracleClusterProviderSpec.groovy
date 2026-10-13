@@ -27,7 +27,6 @@ class OracleClusterProviderSpec extends Specification {
     def ap = Mock(AccountCredentialsProvider)
     ap.getCredentials(_) >> null
     def clusterProvider = new OracleClusterProvider(null, JsonMapper.builder().build(), ap, cache)
-    def identifiers = Mock(Collection)
     def attributes = ["name": "foo-v001", "targetSize": 5]
     def mockData = Mock(CacheData)
     Collection<CacheData> cacheData = [mockData]
@@ -37,8 +36,8 @@ class OracleClusterProviderSpec extends Specification {
     def serverGroup = clusterProvider.getServerGroup("account1", "us-phoenix-1", "foo-test-v001")
 
     then:
-    1 * cache.filterIdentifiers(Keys.Namespace.SERVER_GROUPS.ns, id) >> identifiers
-    1 * cache.getAll(Keys.Namespace.SERVER_GROUPS.ns, identifiers, _) >> cacheData
+    1 * cache.filterIdentifiers(Keys.Namespace.SERVER_GROUPS.ns, _) >> ([id] as Set)
+    1 * cache.getAll(Keys.Namespace.SERVER_GROUPS.ns, _ as Collection, _) >> cacheData
     1 * mockData.attributes >> attributes
     1 * mockData.id >> id
     serverGroup.name == attributes["name"]
@@ -66,8 +65,8 @@ class OracleClusterProviderSpec extends Specification {
     def cluster = clusterProvider.getCluster("foo", "account1", "foo-test")
 
     then:
-    1 * cache.getIdentifiers(Keys.Namespace.SERVER_GROUPS.ns) >> [id]
-    1 * cache.getAll(Keys.Namespace.SERVER_GROUPS.ns, [id], _) >> cacheData
+    1 * cache.getIdentifiers(Keys.Namespace.SERVER_GROUPS.ns) >> ([id] as Set)
+    1 * cache.getAll(Keys.Namespace.SERVER_GROUPS.ns, _ as Collection, _) >> cacheData
     1 * mockData.attributes >> attributes
     mockData.id >> id
     cluster.name == "foo-test"

@@ -23,7 +23,6 @@ class OracleImageProviderSpec extends Specification {
     setup:
     def cache = Mock(Cache)
     def imageProvider = new OracleImageProvider(cache, JsonMapper.builder().build())
-    def identifiers = Mock(Collection)
     def attributes = ["displayName": "My Image", "id": "ocid.image.123", "compatibleShapes": ["small"]]
     def mockData = Mock(CacheData)
     Collection<CacheData> cacheData = [mockData]
@@ -33,8 +32,8 @@ class OracleImageProviderSpec extends Specification {
     def results = imageProvider.getAll()
 
     then:
-    1 * cache.filterIdentifiers(IMAGES.ns, "${OracleCloudProvider.ID}:$IMAGES:*:*:*") >> identifiers
-    1 * cache.getAll(IMAGES.ns, identifiers, _) >> cacheData
+    1 * cache.filterIdentifiers(IMAGES.ns, _) >> ([id] as Set)
+    1 * cache.getAll(IMAGES.ns, _ as Collection, _) >> cacheData
     1 * mockData.id >> id
     mockData.attributes >> attributes
     results?.first()?.name == attributes["displayName"]

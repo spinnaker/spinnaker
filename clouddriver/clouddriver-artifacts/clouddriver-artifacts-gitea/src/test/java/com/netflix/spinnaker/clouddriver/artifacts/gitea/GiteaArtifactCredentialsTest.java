@@ -54,7 +54,11 @@ class GiteaArtifactCredentialsTest {
   void downloadWithToken(@WiremockResolver.Wiremock WireMockServer server) throws IOException {
     GiteaArtifactAccount account =
         GiteaArtifactAccount.builder()
-            .urlRestrictions(UrlRestrictionsProperties.builder().rejectLocalhost(false).build())
+            .urlRestrictions(
+                UrlRestrictionsProperties.builder()
+                    .rejectLocalhost(false)
+                    .allowedDomains(List.of("localhost"))
+                    .build())
             .name("my-gitea-account")
             .token("abc")
             .build();
@@ -72,7 +76,11 @@ class GiteaArtifactCredentialsTest {
     GiteaArtifactAccount account =
         GiteaArtifactAccount.builder()
             .name("my-gitea-account")
-            .urlRestrictions(UrlRestrictionsProperties.builder().rejectLocalhost(false).build())
+            .urlRestrictions(
+                UrlRestrictionsProperties.builder()
+                    .rejectLocalhost(false)
+                    .allowedDomains(List.of("localhost"))
+                    .build())
             .tokenFile(authFile.toAbsolutePath().toString())
             .build();
 
@@ -83,7 +91,11 @@ class GiteaArtifactCredentialsTest {
   void downloadWithNoAuth(@WiremockResolver.Wiremock WireMockServer server) throws IOException {
     GiteaArtifactAccount account =
         GiteaArtifactAccount.builder()
-            .urlRestrictions(UrlRestrictionsProperties.builder().rejectLocalhost(false).build())
+            .urlRestrictions(
+                UrlRestrictionsProperties.builder()
+                    .rejectLocalhost(false)
+                    .allowedDomains(List.of("localhost"))
+                    .build())
             .name("my-gitea-account")
             .build();
 
@@ -95,7 +107,11 @@ class GiteaArtifactCredentialsTest {
       throws IOException {
     GiteaArtifactAccount account =
         GiteaArtifactAccount.builder()
-            .urlRestrictions(UrlRestrictionsProperties.builder().rejectLocalhost(false).build())
+            .urlRestrictions(
+                UrlRestrictionsProperties.builder()
+                    .rejectLocalhost(false)
+                    .allowedDomains(List.of("localhost"))
+                    .build())
             .name("my-gitea-account")
             .build();
     GiteaArtifactCredentials credentials = new GiteaArtifactCredentials(account, okHttpClient);
@@ -121,7 +137,11 @@ class GiteaArtifactCredentialsTest {
       @WiremockResolver.Wiremock WireMockServer server) throws IOException {
     GiteaArtifactAccount account =
         GiteaArtifactAccount.builder()
-            .urlRestrictions(UrlRestrictionsProperties.builder().rejectLocalhost(false).build())
+            .urlRestrictions(
+                UrlRestrictionsProperties.builder()
+                    .rejectLocalhost(false)
+                    .allowedDomains(List.of("localhost"))
+                    .build())
             .name("my-gitea-account")
             .build();
     GiteaArtifactCredentials credentials = new GiteaArtifactCredentials(account, okHttpClient);
@@ -155,7 +175,11 @@ class GiteaArtifactCredentialsTest {
   void rejectsReferencesThatAreNotRawFileUrls(String path) {
     GiteaArtifactAccount account =
         GiteaArtifactAccount.builder()
-            .urlRestrictions(UrlRestrictionsProperties.builder().rejectLocalhost(false).build())
+            .urlRestrictions(
+                UrlRestrictionsProperties.builder()
+                    .rejectLocalhost(false)
+                    .allowedDomains(List.of("localhost"))
+                    .build())
             .name("my-gitea-account")
             .token("abc")
             .build();
@@ -176,7 +200,11 @@ class GiteaArtifactCredentialsTest {
       throws IOException {
     GiteaArtifactAccount account =
         GiteaArtifactAccount.builder()
-            .urlRestrictions(UrlRestrictionsProperties.builder().rejectLocalhost(false).build())
+            .urlRestrictions(
+                UrlRestrictionsProperties.builder()
+                    .rejectLocalhost(false)
+                    .allowedDomains(List.of("localhost"))
+                    .build())
             .name("my-gitea-account")
             .build();
     GiteaArtifactCredentials credentials = new GiteaArtifactCredentials(account, okHttpClient);

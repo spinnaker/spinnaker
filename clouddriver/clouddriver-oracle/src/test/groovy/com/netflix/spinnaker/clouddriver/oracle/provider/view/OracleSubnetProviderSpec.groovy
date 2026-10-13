@@ -24,7 +24,6 @@ class OracleSubnetProviderSpec extends Specification {
     setup:
     def cache = Mock(Cache)
     def subnetProvider = new OracleSubnetProvider(cache, JsonMapper.builder().build())
-    def identifiers = Mock(Collection)
     def attributes = ["displayName": "My Subnet", "id": "ocid.subnet.123", "availabilityDomain": "AD1", "securityListIds": ["ocid.seclist.123"]]
     def mockData = Mock(CacheData)
     Collection<CacheData> cacheData = [mockData]
@@ -34,8 +33,8 @@ class OracleSubnetProviderSpec extends Specification {
     def results = subnetProvider.getAll()
 
     then:
-    1 * cache.filterIdentifiers(SUBNETS.ns, "${OracleCloudProvider.ID}:$SUBNETS:*:*:*") >> identifiers
-    1 * cache.getAll(SUBNETS.ns, identifiers, _) >> cacheData
+    1 * cache.filterIdentifiers(SUBNETS.ns, _) >> ([id] as Set)
+    1 * cache.getAll(SUBNETS.ns, _ as Collection, _) >> cacheData
     1 * mockData.attributes >> attributes
     1 * mockData.id >> id
     results?.first()?.name == attributes["displayName"]

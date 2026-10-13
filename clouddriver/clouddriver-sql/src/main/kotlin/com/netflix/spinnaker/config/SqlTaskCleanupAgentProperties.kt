@@ -21,5 +21,10 @@ import org.springframework.boot.context.properties.ConfigurationProperties
 @ConfigurationProperties("sql.agent.task-cleanup")
 class SqlTaskCleanupAgentProperties {
   var completedTtlMs: Long = TimeUnit.DAYS.toMillis(4)
+  /**
+   * How long a FAILED_RETRYABLE task is kept for Orca to resume it. Longer than [completedTtlMs] because a
+   * retryable task is expected to be picked up again.
+   */
+  var failedRetryableTtlMs: Long = TimeUnit.DAYS.toMillis(7)
   var batchSize: Int = 100
 }
