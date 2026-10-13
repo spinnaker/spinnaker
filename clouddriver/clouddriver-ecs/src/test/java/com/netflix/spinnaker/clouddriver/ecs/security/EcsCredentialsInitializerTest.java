@@ -31,7 +31,6 @@ import com.netflix.spinnaker.credentials.CredentialsLifecycleHandler;
 import com.netflix.spinnaker.credentials.CredentialsRepository;
 import com.netflix.spinnaker.credentials.MapBackedCredentialsRepository;
 import com.netflix.spinnaker.credentials.definition.AbstractCredentialsLoader;
-import com.netflix.spinnaker.credentials.definition.BasicCredentialsLoader;
 import com.netflix.spinnaker.credentials.definition.CredentialsDefinitionSource;
 import com.netflix.spinnaker.credentials.definition.CredentialsParser;
 import org.junit.jupiter.api.BeforeEach;
@@ -94,13 +93,19 @@ public class EcsCredentialsInitializerTest {
     ECSCredentialsConfig ecsCredentialsConfig = mock(ECSCredentialsConfig.class);
     CredentialsDefinitionSource<ECSCredentialsConfig.Account> ecsCredentialsSource =
         mock(CredentialsDefinitionSource.class);
+    CompositeCredentialsRepository<AccountCredentials> compositeCredentialsRepository =
+        mock(CompositeCredentialsRepository.class);
 
     AbstractCredentialsLoader<NetflixECSCredentials> loader =
         initializer.ecsCredentialsLoader(
-            credentialsParser, repository, ecsCredentialsConfig, ecsCredentialsSource);
+            credentialsParser,
+            repository,
+            ecsCredentialsConfig,
+            ecsCredentialsSource,
+            compositeCredentialsRepository);
 
     assertThat(loader).isNotNull();
-    assertThat(loader).isInstanceOf(BasicCredentialsLoader.class);
+    assertThat(loader).isInstanceOf(EcsCredentialsLoader.class);
   }
 
   @Test
