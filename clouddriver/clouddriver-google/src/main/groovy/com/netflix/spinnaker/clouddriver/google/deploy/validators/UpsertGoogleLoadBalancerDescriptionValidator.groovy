@@ -129,6 +129,8 @@ class UpsertGoogleLoadBalancerDescriptionValidator extends
         }
         break
       case GoogleLoadBalancerType.INTERNAL_MANAGED:
+        helper.validateRegion(description.region, description.credentials)
+
         if (description.certificate && description.certificateMap) {
           errors.rejectValue("certificate OR certificateMap",
             "upsertGoogleLoadBalancerDescription.certificateAndCertificateMap.mutuallyExclusive")
