@@ -27,6 +27,7 @@ import java.io.InputStream;
 import java.lang.annotation.Annotation;
 import java.lang.reflect.Type;
 import java.net.SocketTimeoutException;
+import java.util.Date;
 import java.util.List;
 import java.util.concurrent.atomic.AtomicBoolean;
 import okhttp3.MediaType;
@@ -60,6 +61,19 @@ class CustomConverterFactoryTest {
     assertEquals("{\"oauthScopes\":\"scope\"}", bytes.readUtf8());
   }
 
+  @SuppressWarnings("unchecked")
+  @Test
+  void defaultFactoryPreservesPropertyOrderAndDateTimestamps() throws IOException {
+    Converter<WireFormatPayload, RequestBody> converter =
+        (Converter<WireFormatPayload, RequestBody>)
+            CustomConverterFactory.create()
+                .requestBodyConverter(
+                    WireFormatPayload.class, NO_ANNOTATIONS, NO_ANNOTATIONS, null);
+    Buffer bytes = new Buffer();
+    converter.convert(new WireFormatPayload("first", new Date(0))).writeTo(bytes);
+    assertEquals("{\"zebra\":\"first\",\"created\":0}", bytes.readUtf8());
+  }
+
   @Test
   void defaultFactoryReadsLegacyResponsePropertyNames() throws IOException {
     Converter<ResponseBody, ?> converter =
@@ -82,6 +96,24 @@ class CustomConverterFactoryTest {
 
     public void setOAuthScopes(String value) {
       oAuthScopes = value;
+    }
+  }
+
+  static class WireFormatPayload {
+    public String zebra;
+    public Date created;
+
+    public WireFormatPayload(String zebra, Date created) {
+      this.zebra = zebra;
+      this.created = created;
+    }
+
+    public String getZebra() {
+      return zebra;
+    }
+
+    public Date getCreated() {
+      return created;
     }
   }
 

@@ -30,6 +30,7 @@ import tools.jackson.core.exc.JacksonIOException;
 import tools.jackson.databind.JavaType;
 import tools.jackson.databind.MapperFeature;
 import tools.jackson.databind.ObjectMapper;
+import tools.jackson.databind.cfg.DateTimeFeature;
 import tools.jackson.databind.json.JsonMapper;
 
 /**
@@ -51,6 +52,9 @@ public class CustomConverterFactory extends Converter.Factory {
         JsonMapper.builder()
             .accessorNaming(new Jackson2AccessorNamingStrategy.Provider())
             .disable(MapperFeature.FIX_FIELD_NAME_UPPER_CASE_PREFIX)
+            .disable(MapperFeature.SORT_PROPERTIES_ALPHABETICALLY)
+            .disable(MapperFeature.SORT_CREATOR_PROPERTIES_FIRST)
+            .enable(DateTimeFeature.WRITE_DATES_AS_TIMESTAMPS)
             .build(),
         false);
   }
