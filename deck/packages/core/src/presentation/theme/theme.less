@@ -26,7 +26,7 @@
   --color-surface: #0e1830;
   --color-surface-raised: #14213f;
   --color-field: #09152a;
-  --color-nav-active: #1a4a63;
+  --color-nav-active: #15405a;
 
   --color-fill-dovegray: #4a6285;
   --color-fill-concrete: #3f5578;
@@ -40,23 +40,23 @@
   --color-primary-g2: #263a58;
 
   --color-accent: #09c2de;
-  --color-accent-g1: #1a4a63;
+  --color-accent-g1: #15405a;
   --color-accent-g2: #123349;
   --color-accent-g3: #0f2a3f;
   --color-accent-g4: #0c2236;
   --color-accent-g5: #0a1b2d;
-  --color-accessory: #8ba1bf;
+  --color-accessory: #a3b6d0;
   --color-accessory-light: #3a5070;
 
   /* Semantic colors; the "-light" variants are used as tinted backgrounds so they become dark tints. */
-  --color-success: #3d9a52;
+  --color-success: #2f8a47;
   --color-success-light: #17361f;
   --color-danger: #d64550;
   --color-danger-medium: #d06060;
   --color-danger-light: #451f2b;
   --color-warning: #eebb3c;
   --color-warning-light: #43391a;
-  --color-alert: #d9822b;
+  --color-alert: #c46a1c;
   --color-alert-light: #46301a;
 
   --color-validation-error: #ff8080;
@@ -93,9 +93,9 @@
   --color-mineshaft: #dbe6f5;
   --color-charcoal: #c3d3e8;
   --color-dovegray: #a9bbd2;
-  --color-nobel: #8ba1bf;
-  --color-concrete: #8ba1bf;
-  --color-titanium: #6d85a8;
+  --color-nobel: #a3b6d0;
+  --color-concrete: #a3b6d0;
+  --color-titanium: #8097b8;
   --color-silver: #4a6285;
   --color-porcelain: #314869;
   --color-alto: #263a58;
@@ -110,8 +110,8 @@
   --color-text-primary: #e9f1fb;
   --color-text-secondary: #c3d3e8;
   --color-text-accent: #09c2de;
-  --color-text-caption: #8ba1bf;
-  --color-text-link: #5db2d6;
+  --color-text-caption: #a3b6d0;
+  --color-text-link: #8cc9e6;
   --color-text-link-g1: #09c2de;
 
   --color-github-history-add: #17361f;
@@ -420,5 +420,23 @@
   .ace-tm .ace_indent-guide {
     background: none;
     box-shadow: inset -1px 0 0 var(--color-divider);
+  }
+}
+
+/* Lighter cyan for navigation text and red for error text, to clear 4.5:1 on the tinted dark backgrounds. */
+:root[data-theme='dark'] {
+  .vertical-navigation .nav-section {
+    .nav-category,
+    .page-category {
+      color: #7fdcec;
+    }
+    .active.nav-category {
+      color: var(--color-text-primary);
+    }
+  }
+
+  .text-danger,
+  .warning-text {
+    color: #ff8a8f;
   }
 }
