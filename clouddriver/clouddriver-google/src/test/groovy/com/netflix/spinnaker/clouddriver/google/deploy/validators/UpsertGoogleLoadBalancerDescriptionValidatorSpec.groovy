@@ -494,6 +494,85 @@ class UpsertGoogleLoadBalancerDescriptionValidatorSpec extends Specification {
       0 * errors._
   }
 
+  @Unroll
+  void "#type rejects a URL map entry without a backend service name at #field"() {
+    setup:
+      def service = [name: DEFAULT_SERVICE, backends: [], healthCheck: hc]
+      def nameless = [backends: [], healthCheck: hc]
+      def input = [
+        accountName       : ACCOUNT_NAME,
+        loadBalancerType  : type,
+        region            : REGION,
+        network           : "default",
+        "loadBalancerName": LOAD_BALANCER_NAME,
+        "portRange"       : PORT_RANGE,
+        "defaultService"  : missingAt == "default" ? null : service,
+        "hostRules"       : [[
+          hostPatterns: ["*"],
+          pathMatcher : [
+            defaultService: missingAt == "pathMatcher" ? null : service,
+            pathRules     : [[paths: ["/api/*"], backendService: missingAt == "pathRule" ? nameless : service]],
+          ],
+        ]],
+      ]
+      def description = converter.convertDescription(input)
+      def errors = Mock(ValidationErrors)
+
+    when:
+      validator.validate([], description, errors)
+
+    then:
+      1 * errors.rejectValue(field, "upsertGoogleLoadBalancerDescription.backendServiceRequired")
+      0 * errors._
+
+    where:
+      type                                    | missingAt     || field
+      GoogleLoadBalancerType.INTERNAL_MANAGED | "default"     || "defaultService"
+      GoogleLoadBalancerType.INTERNAL_MANAGED | "pathMatcher" || "hostRules.pathMatcher.defaultService"
+      GoogleLoadBalancerType.INTERNAL_MANAGED | "pathRule"    || "hostRules.pathMatcher.pathRules.backendService"
+      GoogleLoadBalancerType.EXTERNAL_MANAGED | "pathMatcher" || "hostRules.pathMatcher.defaultService"
+      GoogleLoadBalancerType.EXTERNAL_MANAGED | "pathRule"    || "hostRules.pathMatcher.pathRules.backendService"
+  }
+
+  @Unroll
+  void "#type rejects a #shape at #field"() {
+    setup:
+      def service = [name: DEFAULT_SERVICE, backends: [], healthCheck: hc]
+      def hostRules = [
+        "null host rule"   : [null],
+        "null path matcher": [[hostPatterns: ["*"], pathMatcher: null]],
+        "null path rule"   : [[hostPatterns: ["*"], pathMatcher: [defaultService: service, pathRules: [null]]]],
+      ][shape]
+      def input = [
+        accountName       : ACCOUNT_NAME,
+        loadBalancerType  : type,
+        region            : REGION,
+        network           : "default",
+        "loadBalancerName": LOAD_BALANCER_NAME,
+        "portRange"       : PORT_RANGE,
+        "defaultService"  : service,
+        "hostRules"       : hostRules,
+      ]
+      def description = converter.convertDescription(input)
+      def errors = Mock(ValidationErrors)
+
+    when:
+      validator.validate([], description, errors)
+
+    then:
+      1 * errors.rejectValue(field, "upsertGoogleLoadBalancerDescription.backendServiceRequired")
+      0 * errors._
+
+    where:
+      type                                    | shape               || field
+      GoogleLoadBalancerType.INTERNAL_MANAGED | "null host rule"    || "hostRules.pathMatcher.defaultService"
+      GoogleLoadBalancerType.INTERNAL_MANAGED | "null path matcher" || "hostRules.pathMatcher.defaultService"
+      GoogleLoadBalancerType.INTERNAL_MANAGED | "null path rule"    || "hostRules.pathMatcher.pathRules.backendService"
+      GoogleLoadBalancerType.EXTERNAL_MANAGED | "null host rule"    || "hostRules.pathMatcher.defaultService"
+      GoogleLoadBalancerType.EXTERNAL_MANAGED | "null path matcher" || "hostRules.pathMatcher.defaultService"
+      GoogleLoadBalancerType.EXTERNAL_MANAGED | "null path rule"    || "hostRules.pathMatcher.pathRules.backendService"
+  }
+
   void "pass validation when regional external network optional address and networkTier are omitted"() {
     setup:
       def description = regionalExternalNetworkDescription()

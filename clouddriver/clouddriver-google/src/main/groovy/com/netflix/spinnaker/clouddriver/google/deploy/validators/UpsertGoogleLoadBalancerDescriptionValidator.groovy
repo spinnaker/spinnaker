@@ -24,9 +24,11 @@ import com.netflix.spinnaker.clouddriver.google.deploy.description.UpsertGoogleL
 import com.netflix.spinnaker.clouddriver.google.model.callbacks.Utils
 import com.netflix.spinnaker.clouddriver.google.model.loadbalancing.GoogleBackendService
 import com.netflix.spinnaker.clouddriver.google.model.loadbalancing.GoogleExternalHttpLoadBalancer
+import com.netflix.spinnaker.clouddriver.google.model.loadbalancing.GoogleHostRule
 import com.netflix.spinnaker.clouddriver.google.model.loadbalancing.GoogleHttpLoadBalancer
 import com.netflix.spinnaker.clouddriver.google.model.loadbalancing.GoogleInternalHttpLoadBalancer
 import com.netflix.spinnaker.clouddriver.google.model.loadbalancing.GoogleLoadBalancerType
+import com.netflix.spinnaker.clouddriver.google.model.loadbalancing.GooglePathRule
 import com.netflix.spinnaker.clouddriver.google.model.loadbalancing.GoogleSessionAffinity
 import com.netflix.spinnaker.clouddriver.google.security.GoogleNamedAccountCredentials
 import com.netflix.spinnaker.clouddriver.orchestration.AtomicOperations
@@ -170,6 +172,7 @@ class UpsertGoogleLoadBalancerDescriptionValidator extends
               "upsertGoogleLoadBalancerDescription.backendServices.healthCheckRequired")
           }
         }
+        validateManagedUrlMapServices(description, errors)
         break
       case GoogleLoadBalancerType.EXTERNAL_MANAGED:
         helper.validateRegion(description.region, description.credentials)
@@ -206,11 +209,7 @@ class UpsertGoogleLoadBalancerDescriptionValidator extends
         }
 
         validatePort(description.portRange, "portRange", errors)
-
-        if (!description.defaultService) {
-          errors.rejectValue("defaultService",
-            "upsertGoogleLoadBalancerDescription.backendServiceRequired")
-        }
+        validateManagedUrlMapServices(description, errors)
 
         // Each backend service must have a health check.
         def googleExternalHttpLoadBalancer = new GoogleExternalHttpLoadBalancer(
@@ -336,6 +335,28 @@ class UpsertGoogleLoadBalancerDescriptionValidator extends
       default:
         // TODO(jacobkiefer): Fail here once frontend calls are modified.
         break
+    }
+  }
+
+  // The regional upsert writes each URL map entry as a backend service URL and can't write a redirect.
+  private static void validateManagedUrlMapServices(
+    UpsertGoogleLoadBalancerDescription description,
+    ValidationErrors errors) {
+    if (!description.defaultService?.name) {
+      errors.rejectValue("defaultService",
+        "upsertGoogleLoadBalancerDescription.backendServiceRequired")
+    }
+    description.hostRules?.each { GoogleHostRule hostRule ->
+      if (!hostRule?.pathMatcher?.defaultService?.name) {
+        errors.rejectValue("hostRules.pathMatcher.defaultService",
+          "upsertGoogleLoadBalancerDescription.backendServiceRequired")
+      }
+      hostRule?.pathMatcher?.pathRules?.each { GooglePathRule pathRule ->
+        if (!pathRule?.backendService?.name) {
+          errors.rejectValue("hostRules.pathMatcher.pathRules.backendService",
+            "upsertGoogleLoadBalancerDescription.backendServiceRequired")
+        }
+      }
     }
   }
 
