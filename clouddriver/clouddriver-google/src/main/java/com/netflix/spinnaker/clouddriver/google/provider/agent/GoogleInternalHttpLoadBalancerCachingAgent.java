@@ -12,12 +12,11 @@ import com.netflix.spinnaker.clouddriver.google.model.loadbalancing.GoogleLoadBa
 import com.netflix.spinnaker.clouddriver.google.security.GoogleNamedAccountCredentials;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.NoSuchElementException;
 
 /**
  * Caches regional internal HTTP(S) ({@code INTERNAL_MANAGED}) Application Load Balancers. A thin
  * subclass over {@link AbstractGoogleRegionalHttpLoadBalancerCachingAgent} that supplies the
- * internal-managed scheme predicate, model factory, and fail-fast missing-resource policy.
+ * internal-managed scheme predicate and model factory.
  */
 public class GoogleInternalHttpLoadBalancerCachingAgent
     extends AbstractGoogleRegionalHttpLoadBalancerCachingAgent<GoogleInternalHttpLoadBalancer> {
@@ -85,25 +84,5 @@ public class GoogleInternalHttpLoadBalancerCachingAgent
   protected List<GoogleBackendService> getBackendServicesFromView(
       GoogleInternalHttpLoadBalancer loadBalancer) {
     return Utils.getBackendServicesFromInternalHttpLoadBalancerView(loadBalancer.getView());
-  }
-
-  @Override
-  protected void handleMissingBackendService(
-      String backendServiceName, GoogleInternalHttpLoadBalancer loadBalancer) {
-    throw new NoSuchElementException(
-        "Could not find regional backend service "
-            + backendServiceName
-            + " for "
-            + loadBalancer.getName());
-  }
-
-  @Override
-  protected void handleMissingHealthCheck(
-      String healthCheckName, GoogleInternalHttpLoadBalancer loadBalancer) {
-    throw new NoSuchElementException(
-        "Could not find regional health check "
-            + healthCheckName
-            + " for "
-            + loadBalancer.getName());
   }
 }

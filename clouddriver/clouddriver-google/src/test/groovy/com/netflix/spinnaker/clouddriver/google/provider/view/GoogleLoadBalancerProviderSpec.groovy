@@ -170,6 +170,41 @@ class GoogleLoadBalancerProviderSpec extends Specification {
       details[0].backendServiceHealthChecks == ["external-backend-service": null]
   }
 
+  void "lists and describes a cached internal managed HTTP load balancer that redirects and has no cached health check"() {
+    given:
+      def objectMapper = new ObjectMapper()
+      def loadBalancer = new GoogleInternalHttpLoadBalancer(
+        name: LOAD_BALANCER_NAME,
+        account: ACCOUNT_NAME,
+        region: REGION_EUROPE,
+        portRange: "80",
+        urlMapName: "internal-url-map",
+        defaultService: null,
+        hostRules: [new GoogleHostRule(
+          hostPatterns: ["*"],
+          pathMatcher: new GooglePathMatcher(
+            defaultService: new GoogleBackendService(name: "internal-backend-service"),
+            pathRules: [new GooglePathRule(paths: ["/old/*"], backendService: null)]))])
+      def loadBalancerCacheData = Mock(CacheData)
+      // Converted the way the caching agent writes a load balancer row.
+      loadBalancerCacheData.getAttributes() >> objectMapper.convertValue(loadBalancer, Map)
+      loadBalancerCacheData.getRelationships() >> [(SERVER_GROUPS.ns): []]
+      def cacheView = Mock(Cache)
+      cacheView.filterIdentifiers(LOAD_BALANCERS.ns, _) >> ["internal_lb_identifier"]
+      cacheView.filterIdentifiers(SERVER_GROUPS.ns, _) >> []
+      cacheView.getAll(SERVER_GROUPS.ns, _) >> []
+      cacheView.getAll(LOAD_BALANCERS.ns, _, _) >> [loadBalancerCacheData]
+      @Subject def provider = new GoogleLoadBalancerProvider(cacheView: cacheView, objectMapper: objectMapper)
+
+    when:
+      def summaries = provider.list()*.mappedAccounts*.get(ACCOUNT_NAME)*.mappedRegions*.get(REGION_EUROPE)*.loadBalancers.flatten()
+      def details = provider.byAccountAndRegionAndName(ACCOUNT_NAME, REGION_EUROPE, LOAD_BALANCER_NAME)
+
+    then:
+      summaries*.backendServices == [["internal-backend-service"]]
+      details*.backendServiceHealthChecks == [["internal-backend-service": null]]
+  }
+
   void "should deserialize regional external network load balancer details"() {
     setup:
       def cacheView = Mock(Cache)
