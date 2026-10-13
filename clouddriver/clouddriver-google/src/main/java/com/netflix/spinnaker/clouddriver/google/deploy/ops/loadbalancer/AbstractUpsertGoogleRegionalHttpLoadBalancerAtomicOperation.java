@@ -1272,9 +1272,6 @@ public abstract class AbstractUpsertGoogleRegionalHttpLoadBalancerAtomicOperatio
       throw new GoogleOperationException(
           "Listener " + forwardingRuleName + " does not target a regional HTTP(S) proxy.");
     }
-    if (!isExternalManaged()) {
-      return true;
-    }
 
     GenericJson targetProxy;
     String targetProxyName = GCEUtil.getLocalName(forwardingRule.getTarget());
@@ -1355,9 +1352,6 @@ public abstract class AbstractUpsertGoogleRegionalHttpLoadBalancerAtomicOperatio
     return true;
   }
 
-  // Both schemes delete only their own scheme's listeners that target a regional HTTP(S) proxy.
-  // Every other listener guard, including the URL map ownership check, applies to the external
-  // scheme only, so INTERNAL_MANAGED keeps its historical upsert contract.
   private boolean isExternalManaged() {
     return "EXTERNAL_MANAGED".equals(getLoadBalancingScheme());
   }
