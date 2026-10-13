@@ -68,8 +68,7 @@ import org.springframework.beans.factory.annotation.Autowired;
  * <p>Subclasses supply the scheme, network/subnet placement, certificate handling and forwarding
  * rule shape. Behavior added for the external scheme (immutable listener checks, the defaulted URL
  * map name comparison, and the regional-external metadata tag) is keyed off {@code
- * isExternalManaged()}. Apart from the scheme-ownership checks both schemes share, {@code
- * INTERNAL_MANAGED} behaves as it did before the external scheme was added.
+ * isExternalManaged()}.
  */
 public abstract class AbstractUpsertGoogleRegionalHttpLoadBalancerAtomicOperation
     extends UpsertGoogleLoadBalancerAtomicOperation {
@@ -674,11 +673,7 @@ public abstract class AbstractUpsertGoogleRegionalHttpLoadBalancerAtomicOperatio
           String pathMatcherName = PATH_MATCHER_PREFIX + "-" + UUID.randomUUID().toString();
           GooglePathMatcher pathMatcher = hostRule.getPathMatcher();
           PathMatcher matcher = new PathMatcher();
-          // The host rule below refers to this matcher by name. INTERNAL_MANAGED's create path has
-          // never set it, and that behavior is kept unchanged; the update path names it for both.
-          if (isExternalManaged()) {
-            matcher.setName(pathMatcherName);
-          }
+          matcher.setName(pathMatcherName);
           matcher.setDefaultService(
               GCEUtil.buildRegionBackendServiceUrl(
                   project, region, pathMatcher.getDefaultService().getName()));

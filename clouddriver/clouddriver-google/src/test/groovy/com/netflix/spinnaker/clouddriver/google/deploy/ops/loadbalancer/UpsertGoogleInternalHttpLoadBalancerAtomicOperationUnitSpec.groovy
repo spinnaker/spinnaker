@@ -145,6 +145,7 @@ class UpsertGoogleInternalHttpLoadBalancerAtomicOperationUnitSpec extends Specif
           targetLink: "url-map",
           name: URL_MAP_OP_NAME,
           status: DONE)
+      UrlMap insertedUrlMap = null
 
       def targetHttpProxies = Mock(Compute.RegionTargetHttpProxies)
       def targetHttpProxiesInsert = Mock(Compute.RegionTargetHttpProxies.Insert)
@@ -243,7 +244,10 @@ class UpsertGoogleInternalHttpLoadBalancerAtomicOperationUnitSpec extends Specif
       2 * computeMock.regionUrlMaps() >> urlMaps
       1 * urlMaps.get(PROJECT_NAME, REGION, description.loadBalancerName) >> urlMapsGet
       1 * urlMapsGet.execute() >> null
-      1 * urlMaps.insert(PROJECT_NAME, REGION, _) >> urlMapsInsert
+      1 * urlMaps.insert(PROJECT_NAME, REGION, _) >> { project, region, UrlMap urlMap ->
+        insertedUrlMap = urlMap
+        urlMapsInsert
+      }
       1 * urlMapsInsert.execute() >> urlMapsInsertOp
 
       1 * computeMock.regionTargetHttpProxies() >> targetHttpProxies
@@ -267,6 +271,10 @@ class UpsertGoogleInternalHttpLoadBalancerAtomicOperationUnitSpec extends Specif
       1 * targetHttpProxyOperationGet.execute() >> healthChecksInsertOp
       1 * regionOperations.get(PROJECT_NAME, REGION, LOAD_BALANCER_NAME) >> forwardingRuleOperationGet
       1 * forwardingRuleOperationGet.execute() >> forwardingRuleInsertOp
+
+    and:
+      insertedUrlMap.pathMatchers*.name.every()
+      insertedUrlMap.hostRules*.pathMatcher == insertedUrlMap.pathMatchers*.name
   }
 
   void "should create an Internal HTTP Load Balancer with minimal description"() {
