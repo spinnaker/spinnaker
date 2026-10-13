@@ -381,6 +381,34 @@ class UpsertGoogleLoadBalancerDescriptionValidatorSpec extends Specification {
         "upsertGoogleLoadBalancerDescription.certificateMap.internalManagedNotSupported")
   }
 
+  @Unroll
+  void "internal managed HTTP upsert requires a region (region: #region)"() {
+    setup:
+      def description = new UpsertGoogleLoadBalancerDescription(
+        loadBalancerType: GoogleLoadBalancerType.INTERNAL_MANAGED,
+        loadBalancerName: LOAD_BALANCER_NAME,
+        region: region,
+        accountName: ACCOUNT_NAME,
+        portRange: PORT_RANGE,
+        defaultService: new GoogleBackendService(
+          name: DEFAULT_SERVICE,
+          healthCheck: new GoogleHealthCheck(name: "health-check", port: 80)),
+        hostRules: [])
+      def errors = Mock(ValidationErrors)
+
+    when:
+      validator.validate([], description, errors)
+
+    then:
+      rejections * errors.rejectValue("region", "upsertGoogleLoadBalancerDescription.region.empty")
+      0 * errors._
+
+    where:
+      region | rejections
+      REGION | 0
+      null   | 1
+  }
+
   void "pass validation with proper external managed HTTP inputs"() {
     setup:
       def input = [
