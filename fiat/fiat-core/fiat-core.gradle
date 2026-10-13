@@ -1,14 +1,4 @@
+// Compatibility artifact: classes are owned and published by Kork.
 dependencies {
-
-  api "org.springframework.security:spring-security-core"
-
-  implementation "com.fasterxml.jackson.core:jackson-annotations"
-  implementation "com.google.code.findbugs:jsr305"
-  implementation "io.spinnaker.kork:kork-retrofit"
-  implementation "org.slf4j:slf4j-api"
-  implementation "org.springframework:spring-core"
-  implementation "org.springframework.boot:spring-boot-starter-web"
-
-  testImplementation "org.springframework.boot:spring-boot"
-  testImplementation "com.fasterxml.jackson.core:jackson-databind"
+  api "io.spinnaker.kork:kork-authz-api"
 }
