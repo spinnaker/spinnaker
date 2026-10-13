@@ -7,7 +7,7 @@ This module enables config-driven Pub/Sub support for multiple underlying system
 To enable Pub/Sub support, client code needs to:
 
 1. `@Import(PubsubConfig.class)` from a `@Configuration` class
-1. import the system-specific config class that is going to be used, e.g. `@Import(AmazonPubsubConfig.class)` from `kork-aws-pubsub`
+1. import the system-specific config class that is going to be used, e.g. `@Import(AmazonPubsubConfig.class)` from `kork-pubsub-aws`
 1. enable pubsub properties (see example below) and define one or more subscriptions
 1. provide system-specific message handler beans, e.g. an implementation of `AmazonPubsubMessageHandlerFactory`
 1. for each subscription defined in the Spring configuration, kork will:
