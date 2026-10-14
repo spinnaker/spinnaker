@@ -26,6 +26,7 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.netflix.spectator.api.DefaultRegistry;
 import com.netflix.spectator.api.NoopRegistry;
 import com.netflix.spinnaker.echo.jackson.EchoObjectMapper;
 import com.netflix.spinnaker.echo.model.Pipeline;
@@ -38,6 +39,7 @@ import java.net.HttpURLConnection;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeoutException;
 import okhttp3.MediaType;
@@ -208,6 +210,39 @@ public class PipelineCacheTest {
     // we recover after a failed poll: we return the updated value
     pipelineCache.pollPipelineConfigs();
     assertThat(pipelineCache.getPipelines()).containsExactly(pipeline);
+  }
+
+  @Test
+  void keepsPollingIfReadingFront50sResponseThrowsAnError() throws TimeoutException {
+    Map<String, Object> pipelineMap =
+        Map.of("application", "application", "name", "Pipeline", "id", "P1");
+    Pipeline pipeline =
+        Pipeline.builder().application("application").name("Pipeline").id("P1").build();
+
+    when(front50.getPipelines())
+        .thenReturn(Calls.failure(new OutOfMemoryError("Java heap space")))
+        .thenAnswer(invocation -> Calls.response(List.of(pipelineMap)));
+
+    DefaultRegistry defaultRegistry = new DefaultRegistry();
+    PipelineCache scheduledPipelineCache =
+        new PipelineCache(
+            Executors.newSingleThreadScheduledExecutor(),
+            1,
+            SLEEP_MS,
+            pipelineCacheConfigurationProperties,
+            objectMapper,
+            front50,
+            orca,
+            defaultRegistry,
+            List.of());
+
+    scheduledPipelineCache.start();
+    try {
+      assertThat(scheduledPipelineCache.getPipelinesSync(5000)).containsExactly(pipeline);
+      assertThat(defaultRegistry.counter("front50.errors").count()).isEqualTo(1);
+    } finally {
+      scheduledPipelineCache.stop();
+    }
   }
 
   @ParameterizedTest(name = "filters front50 pipelines when configured to do so ({0})")
