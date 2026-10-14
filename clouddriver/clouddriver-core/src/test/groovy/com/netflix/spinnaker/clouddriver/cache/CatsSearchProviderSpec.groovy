@@ -75,6 +75,18 @@ class CatsSearchProviderSpec extends Specification {
     ]
   }
 
+  def "should not let an error escape a scheduled refresh"() {
+    given:
+    cache.getIdentifiers("instances") >> { throw new OutOfMemoryError("Java heap space") }
+
+    when:
+    catsSearchProvider.run()
+
+    then:
+    noExceptionThrown()
+    catsSearchProvider.cachedIdentifiersByType.get() == [:]
+  }
+
   def "should handle unparseable instance identifiers"() {
     when:
     providers.clear()
