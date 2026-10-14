@@ -3,6 +3,8 @@ import React from 'react';
 import { useRecoilState } from 'recoil';
 
 import { Icon } from '@spinnaker/presentation';
+
+import { ThemeMenu } from './ThemeMenu';
 import { verticalNavExpandedAtom } from '../application/nav/navAtoms';
 import { UserMenu } from '../authentication/userMenu/UserMenu';
 import { GlobalBannerDisplay } from '../banner/global/GlobalBannerDisplay';
@@ -105,6 +107,7 @@ export const SpinnakerHeaderContent = () => {
             </ul>
             <ul className="nav nav-items">
               <UserMenu />
+              <ThemeMenu />
               <HelpMenu />
             </ul>
           </div>
