@@ -17,48 +17,47 @@
 package com.netflix.kayenta.canary.providers.metrics;
 
 import com.fasterxml.jackson.annotation.JsonTypeName;
-import com.netflix.kayenta.canary.CanaryMetricSetQueryConfig;
 import jakarta.validation.constraints.NotNull;
 import java.util.List;
 import lombok.*;
-import org.springframework.util.StringUtils;
+import lombok.experimental.SuperBuilder;
 
-@Builder(toBuilder = true)
+@SuperBuilder(toBuilder = true)
 @ToString
 @NoArgsConstructor
-@AllArgsConstructor
 @JsonTypeName("prometheus")
-public class PrometheusCanaryMetricSetQueryConfig implements CanaryMetricSetQueryConfig {
+public class PrometheusCanaryMetricSetQueryConfig extends AbstractCanaryMetricSetQueryConfig {
 
   public static final String SERVICE_TYPE = "prometheus";
 
-  @Getter private String resourceType;
+  /**
+   * @deprecated use {@link #getCustomInlineTemplate()} or {@link #getCustomFilterTemplate()}
+   *     instead; planned for removal in a future release
+   */
+  @Deprecated @Getter private String resourceType;
 
-  @NotNull @Getter private String metricName;
+  /**
+   * @deprecated use {@link #getCustomInlineTemplate()} or {@link #getCustomFilterTemplate()}
+   *     instead; planned for removal in a future release
+   */
+  @Deprecated @NotNull @Getter private String metricName;
 
-  @Getter private List<String> labelBindings;
+  /**
+   * @deprecated use {@link #getCustomInlineTemplate()} or {@link #getCustomFilterTemplate()}
+   *     instead; planned for removal in a future release
+   */
+  @Deprecated @Getter private List<String> labelBindings;
 
-  @Getter private List<String> groupByFields;
+  /**
+   * @deprecated use {@link #getCustomInlineTemplate()} or {@link #getCustomFilterTemplate()}
+   *     instead; planned for removal in a future release
+   */
+  @Deprecated @Getter private List<String> groupByFields;
 
   /**
    * @deprecated Use customInlineTemplate instead.
    */
   @Deprecated @Getter private String customFilter;
-
-  @Getter private String customInlineTemplate;
-
-  @Getter private String customFilterTemplate;
-
-  @Override
-  public CanaryMetricSetQueryConfig cloneWithEscapedInlineTemplate() {
-    if (StringUtils.isEmpty(customInlineTemplate)) {
-      return this;
-    } else {
-      return this.toBuilder()
-          .customInlineTemplate(customInlineTemplate.replace("${", "$\\{"))
-          .build();
-    }
-  }
 
   @Override
   public String getServiceType() {
