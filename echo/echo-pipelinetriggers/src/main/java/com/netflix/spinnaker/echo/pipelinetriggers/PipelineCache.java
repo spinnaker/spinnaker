@@ -272,8 +272,7 @@ public class PipelineCache implements MonitoredPoller {
                       .collect(toList()))
           .get();
     } catch (InterruptedException | ExecutionException e) {
-      log.error("Error hydrating pipelines", e);
-      return Collections.emptyList();
+      throw new IllegalStateException("Error hydrating pipelines", e);
     } finally {
       forkJoinPool.shutdown();
     }

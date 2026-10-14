@@ -213,6 +213,34 @@ public class PipelineCacheTest {
   }
 
   @Test
+  void keepsThePreviousPipelinesIfHydratingPipelinesThrowsAnError() {
+    Map<String, Object> pipelineMap =
+        Map.of("application", "application", "name", "Pipeline", "id", "P1");
+    Map<String, Object> templatedPipelineMap =
+        Map.of(
+            "application", "application",
+            "name", "Templated",
+            "id", "P2",
+            "type", "templatedPipeline",
+            "schema", "v2");
+    Pipeline pipeline =
+        Pipeline.builder().application("application").name("Pipeline").id("P1").build();
+
+    when(front50.getPipelines())
+        .thenReturn(Calls.response(List.of(pipelineMap)))
+        .thenReturn(Calls.response(List.of(pipelineMap, templatedPipelineMap)));
+    when(orca.v2Plan(any())).thenThrow(new OutOfMemoryError("Java heap space"));
+
+    pipelineCache.start();
+    pipelineCache.pollPipelineConfigs();
+    assertThat(pipelineCache.getPipelines()).containsExactly(pipeline);
+
+    // planning the templated pipeline fails: we keep the pipelines from the last successful poll
+    pipelineCache.pollPipelineConfigs();
+    assertThat(pipelineCache.getPipelines()).containsExactly(pipeline);
+  }
+
+  @Test
   void keepsPollingIfReadingFront50sResponseThrowsAnError() throws TimeoutException {
     Map<String, Object> pipelineMap =
         Map.of("application", "application", "name", "Pipeline", "id", "P1");
