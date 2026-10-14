@@ -7,10 +7,28 @@
     <meta name="viewport" content="width=device-width" />
     <link rel="icon" href="./favicon.ico" />
 
+    <!-- Apply the saved theme before first paint; keep in sync with presentation/theme/theme.ts -->
+    <script>
+      (function () {
+        try {
+          var pref = localStorage.getItem('spinnaker.theme');
+          var dark =
+            pref === 'dark' ||
+            (pref === 'system' && window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches);
+          document.documentElement.setAttribute('data-theme', dark ? 'dark' : 'light');
+        } catch (e) {}
+      })();
+    </script>
+
     <!-- Sample loading styles -->
     <style>
       body {
         margin: 0;
+      }
+
+      html[data-theme='dark'] .loading-placeholder {
+        background-color: #070d1b;
+        color: #09c2de;
       }
 
       .loading-placeholder {
@@ -265,6 +283,20 @@
     <script src="https://code.jquery.com/ui/1.14.2/jquery-ui.min.js"></script>
     <script src="./settings.js" vite-ignore></script>
     <script src="./settings-local.js" vite-ignore></script>
+    <script>
+      // Operator default (settings.js defaultTheme) for users who haven't picked a theme; see presentation/theme/theme.ts
+      (function () {
+        try {
+          var defaultTheme = window.spinnakerSettings && window.spinnakerSettings.defaultTheme;
+          if (localStorage.getItem('spinnaker.theme') || (defaultTheme !== 'dark' && defaultTheme !== 'system')) {
+            return;
+          }
+          var dark =
+            defaultTheme === 'dark' || (window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches);
+          document.documentElement.setAttribute('data-theme', dark ? 'dark' : 'light');
+        } catch (e) {}
+      })();
+    </script>
     <script type="module" src="/src/app.ts"></script>
   </body>
 </html>
