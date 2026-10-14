@@ -107,6 +107,7 @@ window.spinnakerSettings = {
     'oracle',
     'tencentcloud',
   ],
+  defaultTheme: process.env.DEFAULT_THEME || 'light', // 'light' | 'dark' | 'system'; users can override from the header menu
   defaultTimeZone: process.env.TIMEZONE || 'America/Los_Angeles', // see http://momentjs.com/timezone/docs/#/data-utilities/
   disabledImages: [],
   entityTags: {

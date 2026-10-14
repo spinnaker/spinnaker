@@ -1,0 +1,634 @@
+/*
+ * Themes are CSS variable overrides keyed on <html data-theme="...">, applied by ./theme.ts.
+ * The light theme is the unmodified @spinnaker/styleguide token set; only variables that are
+ * not defined there are given a light default below.
+ *
+ * The dark palette is modeled on the Gate sign-in page (gate-core login/styles.css).
+ */
+:root {
+  /* Raised surfaces: cards, modals, panels, table rows. */
+  --color-surface: var(--color-white);
+  --color-surface-raised: var(--color-white);
+  --color-field: var(--color-white);
+  --color-nav-active: #bbdee8;
+
+  /* Neutral grays used as fills (usually under white text). The dark theme can't reuse the inverted text values. */
+  --color-fill-dovegray: var(--color-dovegray);
+  --color-fill-concrete: var(--color-concrete);
+  --color-fill-titanium: var(--color-titanium);
+  --color-fill-mineshaft: var(--color-mineshaft);
+  --color-fill-black: var(--color-black);
+}
+
+:root[data-theme='dark'] {
+  color-scheme: dark;
+
+  --color-surface: #0e1830;
+  --color-surface-raised: #14213f;
+  --color-field: #09152a;
+  --color-nav-active: #15405a;
+
+  --color-fill-dovegray: #4a6285;
+  --color-fill-concrete: #3f5578;
+  --color-fill-titanium: #3a5070;
+  --color-fill-mineshaft: #1b2c52;
+  --color-fill-black: #060b16;
+
+  /* Brand / chrome */
+  --color-primary: #0e1830;
+  --color-primary-g1: #1b2c52;
+  --color-primary-g2: #263a58;
+
+  --color-accent: #09c2de;
+  --color-accent-g1: #15405a;
+  --color-accent-g2: #123349;
+  --color-accent-g3: #0f2a3f;
+  --color-accent-g4: #0c2236;
+  --color-accent-g5: #0a1b2d;
+  --color-accessory: #a3b6d0;
+  --color-accessory-light: #3a5070;
+
+  /* Semantic colors; the "-light" variants are used as tinted backgrounds so they become dark tints. */
+  --color-success: #2f8a47;
+  --color-success-light: #17361f;
+  --color-danger: #d64550;
+  --color-danger-medium: #d06060;
+  --color-danger-light: #451f2b;
+  --color-warning: #eebb3c;
+  --color-warning-light: #43391a;
+  --color-alert: #c46a1c;
+  --color-alert-light: #46301a;
+
+  --color-validation-error: #ff8080;
+  --color-validation-error-light: #3d1f2a;
+  --color-validation-info: #5db2d6;
+  --color-validation-info-light: #123349;
+  --color-validation-success: #6fcf8a;
+  --color-validation-success-light: #15352a;
+  --color-validation-warning: #f7ce00;
+  --color-validation-warning-light: #43391a;
+
+  --color-status-inactive: #6d85a8;
+  --color-status-neutral: #3a5070;
+  --color-status-info: #1e8fc0;
+  --color-status-progress: #1e8fc0;
+  --color-status-success: #4fae5f;
+  --color-status-warning: #d9901a;
+  --color-status-error: #e0525a;
+  --color-status-archived: #6b5d55;
+
+  --color-status-neutral-light: #1b2c52;
+  --color-status-info-light: #123349;
+  --color-status-progress-light: #123349;
+  --color-status-success-light: #17361f;
+  --color-status-warning-light: #43391a;
+  --color-status-error-light: #451f2b;
+  --color-status-archived-light: #2b2a2e;
+
+  --color-icon-neutral: rgba(233, 241, 251, 0.6);
+  --color-icon-dark: #e9f1fb;
+
+  /* Neutrals are inverted; names are the light theme's, values are the dark theme's equivalent. */
+  --color-black: #e9f1fb;
+  --color-mineshaft: #dbe6f5;
+  --color-charcoal: #c3d3e8;
+  --color-dovegray: #a9bbd2;
+  --color-nobel: #a3b6d0;
+  --color-concrete: #a3b6d0;
+  --color-titanium: #8097b8;
+  --color-silver: #4a6285;
+  --color-porcelain: #314869;
+  --color-alto: #263a58;
+  --color-seashell: #1f3050;
+  --color-cirrus: #162340;
+  --color-smoke: #0b1426;
+  --color-alabaster: #070d1b;
+  --color-blumine: #5db2d6;
+  --color-regal: #9fc9e0;
+  --color-divider: #263a58;
+
+  --color-text-primary: #e9f1fb;
+  --color-text-secondary: #c3d3e8;
+  --color-text-accent: #09c2de;
+  --color-text-caption: #a3b6d0;
+  --color-text-link: #8cc9e6;
+  --color-text-link-g1: #09c2de;
+
+  --color-github-history-add: #17361f;
+  --color-github-history-remove: #451f2b;
+}
+
+/*
+ * Bootstrap 3 and a few vendored components bake light colors into compiled CSS rather than
+ * reading the variables above, so they need explicit overrides.
+ */
+:root[data-theme='dark'] body {
+  color: var(--color-text-primary);
+  background-color: var(--color-alabaster);
+}
+
+:root[data-theme='dark'] {
+  a {
+    color: var(--color-text-link);
+  }
+
+  h1,
+  h2,
+  h3,
+  h4,
+  h5,
+  h6,
+  .h1,
+  .h2,
+  .h3,
+  .h4,
+  .h5,
+  .h6,
+  label,
+  legend {
+    color: inherit;
+  }
+
+  hr {
+    border-top-color: var(--color-divider);
+  }
+
+  .text-muted {
+    color: var(--color-text-caption);
+  }
+
+  .panel,
+  .well,
+  .modal-content,
+  .popover,
+  .list-group-item,
+  .dropdown-menu,
+  .jumbotron {
+    background-color: var(--color-surface);
+    border-color: var(--color-divider);
+    color: var(--color-text-primary);
+  }
+
+  .panel-default > .panel-heading,
+  .panel-footer,
+  .modal-header,
+  .modal-footer {
+    background-color: var(--color-surface-raised);
+    border-color: var(--color-divider);
+    color: var(--color-text-primary);
+  }
+
+  .popover.top > .arrow::after {
+    border-top-color: var(--color-surface);
+  }
+  .popover.bottom > .arrow::after {
+    border-bottom-color: var(--color-surface);
+  }
+  .popover.left > .arrow::after {
+    border-left-color: var(--color-surface);
+  }
+  .popover.right > .arrow::after {
+    border-right-color: var(--color-surface);
+  }
+
+  .dropdown-menu > li > a {
+    color: var(--color-text-secondary);
+  }
+  .dropdown-menu > li > a:hover,
+  .dropdown-menu > li > a:focus,
+  .dropdown-menu > .active > a,
+  .dropdown-menu > .active > a:hover,
+  .dropdown-menu > .active > a:focus {
+    background-color: var(--color-primary-g1);
+    color: var(--color-text-primary);
+  }
+  .dropdown-menu .divider {
+    background-color: var(--color-divider);
+  }
+
+  .form-control,
+  .input-group-addon,
+  input[type='text'],
+  input[type='password'],
+  input[type='number'],
+  input[type='search'],
+  textarea,
+  select,
+  .Select-control,
+  .Select-menu-outer {
+    background-color: var(--color-field);
+    border-color: var(--color-seashell);
+    color: var(--color-text-primary);
+  }
+  .form-control:focus,
+  .Select.is-focused > .Select-control {
+    border-color: var(--color-accent);
+    box-shadow: 0 0 0 3px rgba(9, 194, 222, 0.18);
+  }
+  .form-control[disabled],
+  .form-control[readonly],
+  fieldset[disabled] .form-control {
+    background-color: var(--color-cirrus);
+  }
+  .Select-menu-outer .Select-option {
+    background-color: var(--color-field);
+    color: var(--color-text-secondary);
+  }
+  .Select-menu-outer .Select-option.is-focused {
+    background-color: var(--color-primary-g1);
+  }
+  .Select-value-label,
+  .Select-input > input {
+    color: var(--color-text-primary) !important;
+  }
+  ::placeholder {
+    color: #5c7496;
+  }
+
+  .btn-default {
+    background-color: var(--color-surface-raised);
+    border-color: var(--color-seashell);
+    color: var(--color-text-primary);
+  }
+  .btn-default:hover,
+  .btn-default:focus,
+  .btn-default:active,
+  .btn-default.active,
+  .open > .dropdown-toggle.btn-default {
+    background-color: var(--color-primary-g1);
+    border-color: var(--color-primary-g2);
+    color: var(--color-text-primary);
+  }
+
+  .table {
+    color: var(--color-text-primary);
+  }
+  .table > thead > tr > th,
+  .table > tbody > tr > th,
+  .table > tbody > tr > td,
+  .table > tfoot > tr > td,
+  .table-bordered,
+  .table-bordered > thead > tr > th,
+  .table-bordered > tbody > tr > td {
+    border-color: var(--color-divider);
+  }
+  .table-striped > tbody > tr:nth-of-type(odd),
+  .table-hover > tbody > tr:hover {
+    background-color: var(--color-cirrus);
+  }
+
+  .nav-tabs {
+    border-bottom-color: var(--color-divider);
+  }
+  .nav-tabs > li > a:hover {
+    background-color: var(--color-cirrus);
+    border-color: var(--color-divider);
+  }
+  .nav-tabs > li.active > a,
+  .nav-tabs > li.active > a:hover,
+  .nav-tabs > li.active > a:focus {
+    background-color: var(--color-surface);
+    border-color: var(--color-divider);
+    border-bottom-color: transparent;
+    color: var(--color-text-primary);
+  }
+
+  pre,
+  code {
+    background-color: var(--color-smoke);
+    border-color: var(--color-divider);
+    color: var(--color-text-secondary);
+  }
+
+  .close {
+    color: var(--color-text-primary);
+    text-shadow: none;
+  }
+
+  .modal-backdrop {
+    background-color: #000;
+  }
+}
+
+/* @spinnaker/styleguide form controls and pods hardcode white. */
+:root[data-theme='dark'] {
+  --button-default-background-color: var(--color-surface-raised);
+  --button-passive-hover-bg: var(--color-primary-g1);
+
+  .sp-form input[type='text'],
+  .sp-form input[type='password'],
+  .sp-form input[type='search'],
+  .sp-form input[type='tel'],
+  .sp-form input[type='time'],
+  .sp-form input[type='file'],
+  .sp-form input[type='url'],
+  .sp-form textarea,
+  .sp-form select {
+    background: var(--color-field);
+    border-color: var(--color-seashell);
+    color: var(--color-text-primary);
+  }
+  .sp-form input:focus,
+  .sp-form textarea:focus {
+    background: var(--color-field);
+    border-color: var(--color-accent);
+    color: var(--color-text-primary);
+  }
+
+  .pod > .contents {
+    background-color: var(--color-surface);
+  }
+
+  textarea,
+  textarea.form-control,
+  textarea.code {
+    background-color: var(--color-field);
+    color: var(--color-text-primary);
+  }
+
+  /* Cluster/pod title bars: light text on the dark accent tint for contrast. */
+  .rollup-title-cell {
+    color: var(--color-text-primary);
+
+    .pod-center {
+      background-color: var(--color-accent-g2);
+      color: #ffffff;
+    }
+  }
+}
+
+/* Ace editor (JSON/YAML editors) ships a white "textmate" theme. */
+:root[data-theme='dark'] {
+  .ace_editor,
+  .ace-tm {
+    background-color: var(--color-field);
+    color: var(--color-text-primary);
+  }
+  .ace-tm .ace_gutter {
+    background: var(--color-surface);
+    color: var(--color-text-caption);
+  }
+  .ace-tm .ace_gutter-active-line {
+    background-color: var(--color-primary-g1);
+  }
+  .ace-tm .ace_print-margin {
+    background: var(--color-divider);
+  }
+  .ace-tm .ace_cursor {
+    color: var(--color-text-primary);
+  }
+  .ace-tm .ace_marker-layer .ace_active-line {
+    background: rgba(93, 178, 214, 0.1);
+  }
+  .ace-tm .ace_marker-layer .ace_selection {
+    background: rgba(9, 194, 222, 0.3);
+  }
+  .ace-tm .ace_marker-layer .ace_bracket {
+    border-color: var(--color-concrete);
+  }
+  .ace-tm .ace_invisible {
+    color: var(--color-silver);
+  }
+  .ace-tm .ace_fold {
+    background-color: var(--color-accent);
+    border-color: var(--color-text-primary);
+  }
+  .ace-tm .ace_keyword,
+  .ace-tm .ace_storage {
+    color: #5db2d6;
+  }
+  .ace-tm .ace_string {
+    color: #a5e6a0;
+  }
+  .ace-tm .ace_constant.ace_numeric,
+  .ace-tm .ace_constant.ace_language,
+  .ace-tm .ace_constant.ace_buildin {
+    color: #f0b36b;
+  }
+  .ace-tm .ace_variable,
+  .ace-tm .ace_support.ace_function {
+    color: #09c2de;
+  }
+  .ace-tm .ace_comment {
+    color: var(--color-concrete);
+  }
+  .ace-tm .ace_entity.ace_name.ace_tag,
+  .ace-tm .ace_entity.ace_other.ace_attribute-name,
+  .ace-tm .ace_meta.ace_tag {
+    color: #e2a6ff;
+  }
+  .ace-tm .ace_indent-guide {
+    background: none;
+    box-shadow: inset -1px 0 0 var(--color-divider);
+  }
+}
+
+/* Lighter cyan for navigation text and red for error text, to clear 4.5:1 on the tinted dark backgrounds. */
+:root[data-theme='dark'] {
+  .vertical-navigation .nav-section {
+    .nav-category,
+    .page-category {
+      color: #7fdcec;
+    }
+    .active.nav-category {
+      color: var(--color-text-primary);
+    }
+  }
+
+  .text-danger,
+  .warning-text {
+    color: #ff8a8f;
+  }
+}
+
+/* Pagination, primary buttons and instance health pods: compiled Bootstrap/styleguide colors ignore the tokens. */
+:root[data-theme='dark'] {
+  .pagination {
+    > li > a,
+    > li > span {
+      background-color: var(--color-surface-raised);
+      border-color: var(--color-divider);
+      color: var(--color-text-primary);
+    }
+
+    > li > a:hover,
+    > li > a:focus,
+    > li > span:hover {
+      background-color: var(--color-nav-active);
+      border-color: var(--color-divider);
+      color: var(--color-text-primary);
+    }
+
+    > .active > a,
+    > .active > a:hover,
+    > .active > a:focus,
+    > .active > span {
+      background-color: #1e8fc0;
+      border-color: #1e8fc0;
+      color: #04121f;
+      font-weight: 600;
+    }
+
+    > .disabled > a,
+    > .disabled > a:hover,
+    > .disabled > span {
+      background-color: var(--color-surface);
+      border-color: var(--color-divider);
+      color: var(--color-titanium);
+    }
+  }
+
+  button.primary,
+  a.button.primary,
+  .btn-primary {
+    background-color: #1e8fc0;
+    border-color: #1e8fc0;
+    color: #04121f;
+
+    &:hover:not(:disabled) {
+      background-color: #09c2de;
+      border-color: #09c2de;
+      color: #04121f;
+    }
+  }
+
+  /* Instance health squares: the dark-green "light" fill vanishes against the navy card, so use bright greens. */
+  a.instance {
+    &.health-status-Up {
+      background-color: #3fb860;
+    }
+    &.active.health-status-Up,
+    &:hover.health-status-Up {
+      background-color: #7ee59a;
+    }
+  }
+}
+
+/* Pipeline graph: the light-theme "alto" gray becomes navy in dark mode, which hides idle nodes and links. */
+:root[data-theme='dark'] .pipeline-graph svg {
+  path.link {
+    stroke: #c4cdd9;
+    stroke-opacity: 0.55;
+
+    &.active,
+    &.highlighted {
+      stroke-opacity: 1;
+    }
+
+    &.not_started,
+    &.suspended,
+    &.canceled,
+    &.unknown {
+      stroke: #c4cdd9;
+    }
+  }
+
+  g:not(.active):not(.highlighted) rect {
+    fill: #c4cdd9;
+  }
+
+  g.warning:not(.active):not(.highlighted) rect {
+    fill: var(--color-danger);
+  }
+}
+
+/* Idle (unstatused / not started) stage markers use the same off-white; status colors are untouched. */
+:root[data-theme='dark'] .execution-marker {
+  &,
+  &.execution-marker-not_started,
+  &.execution-marker-canceled {
+    fill: #c4cdd9;
+  }
+}
+
+/* Alerts, labels, badges and pills: compiled Bootstrap/styleguide pastel fills ignore the tokens. */
+:root[data-theme='dark'] {
+  .alert-danger,
+  .alert-danger pre,
+  .alert-danger h4 {
+    background-color: #3a1a26;
+    border-color: #8a3445;
+    color: #ffd2d6;
+  }
+
+  .alert-warning,
+  .alert-warning pre,
+  .alert-warning h4 {
+    background-color: #3a2f14;
+    border-color: #7a6120;
+    color: #ffe3a3;
+  }
+
+  .alert-success,
+  .alert-success pre,
+  .alert-success h4 {
+    background-color: #14301d;
+    border-color: #2f7a47;
+    color: #c2f0cf;
+  }
+
+  .alert-info,
+  .alert-info pre,
+  .alert-info h4 {
+    background-color: #0f2a3f;
+    border-color: #1e5a7d;
+    color: #c2e8f6;
+  }
+
+  .alert-danger pre,
+  .alert-warning pre,
+  .alert-success pre,
+  .alert-info pre {
+    background-color: transparent;
+  }
+
+  .alert a,
+  .alert-link {
+    color: inherit;
+    text-decoration: underline;
+  }
+
+  .label-default,
+  .badge {
+    background-color: #4a6285;
+    color: #ffffff;
+  }
+
+  .label-primary,
+  .label-info {
+    background-color: #1b7a99;
+    color: #ffffff;
+  }
+
+  .label-success {
+    background-color: #2a7d40;
+    color: #ffffff;
+  }
+
+  .label-warning {
+    background-color: #eebb3c;
+    color: #1a1405;
+  }
+
+  .label-danger {
+    background-color: #c0394a;
+    color: #ffffff;
+  }
+
+  .pill.info,
+  .pill.info *,
+  .pill.category,
+  .sp-badge.info,
+  .sp-badge.info *,
+  .sp-badge.category,
+  .sp-counter.info {
+    background-color: var(--color-accent-g1);
+    color: #bfeaf4;
+  }
+
+  .pill.category > *:first-child,
+  .sp-badge.category > *:first-child {
+    background-color: var(--color-primary-g2);
+    color: #e9f1fb;
+  }
+}
