@@ -16,7 +16,6 @@
 
 package com.netflix.kayenta.canary.providers.metrics;
 
-import com.fasterxml.jackson.annotation.JsonAlias;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.netflix.kayenta.canary.CanaryConfig;
 import com.netflix.kayenta.canary.CanaryMetricSetQueryConfig;
@@ -36,15 +35,15 @@ public abstract class AbstractCanaryMetricSetQueryConfig implements CanaryMetric
 
   /**
    * Single per-metric query template. Replaces the old two-field {@code
-   * customInlineTemplate}/{@code customFilterTemplate} split. {@code @JsonAlias} allows existing
-   * stored JSON still using the legacy {@code customInlineTemplate} key to deserialize into this
-   * field. Writes carry the value under both {@code template} and the legacy {@code
-   * customInlineTemplate} key (see {@link #getCustomInlineTemplate()}) so older Kayenta versions,
-   * e.g. during a rolling deploy or a rollback, still find the query.
+   * customInlineTemplate}/{@code customFilterTemplate} split. Existing stored JSON still using the
+   * legacy {@code customInlineTemplate} key deserializes into this field via {@link
+   * #setLegacyCustomInlineTemplate(String)}, which never overrides an explicit {@code template} (so
+   * a client that edits only {@code template} and echoes back the stale legacy key still wins,
+   * whatever the key order). Writes carry the value under both {@code template} and the legacy
+   * {@code customInlineTemplate} key (see {@link #getCustomInlineTemplate()}) so older Kayenta
+   * versions, e.g. during a rolling deploy or a rollback, still find the query.
    */
-  @Getter
-  @JsonAlias("customInlineTemplate")
-  private String template;
+  @Getter private String template;
 
   /**
    * @deprecated superseded by {@link #template}; refers by name to an entry in the canary config's
@@ -59,9 +58,17 @@ public abstract class AbstractCanaryMetricSetQueryConfig implements CanaryMetric
    *     after at least one release.
    */
   @Deprecated
-  @JsonProperty(value = "customInlineTemplate", access = JsonProperty.Access.READ_ONLY)
+  @JsonProperty("customInlineTemplate")
   public String getCustomInlineTemplate() {
     return template;
+  }
+
+  /** Legacy key: only used when {@code template} itself is absent, so {@code template} wins. */
+  @JsonProperty("customInlineTemplate")
+  private void setLegacyCustomInlineTemplate(String value) {
+    if (StringUtils.isEmpty(template)) {
+      template = value;
+    }
   }
 
   // Lombok's @SuperBuilder does not generate builder()/toBuilder() convenience methods on

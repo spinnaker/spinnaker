@@ -51,6 +51,49 @@ public class AbstractCanaryMetricSetQueryConfigTest {
   }
 
   @Test
+  public void deserialization_templateWinsOverLegacyKeyInEitherOrder() throws Exception {
+    ObjectMapper objectMapper = new ObjectMapper();
+
+    String templateFirst =
+        "{\"type\":\"test-concrete\",\"template\":\"edited\",\"customInlineTemplate\":\"stale\"}";
+    String legacyFirst =
+        "{\"type\":\"test-concrete\",\"customInlineTemplate\":\"stale\",\"template\":\"edited\"}";
+
+    assertThat(
+            objectMapper
+                .readValue(templateFirst, TestConcreteCanaryMetricSetQueryConfig.class)
+                .getTemplate())
+        .isEqualTo("edited");
+    assertThat(
+            objectMapper
+                .readValue(legacyFirst, TestConcreteCanaryMetricSetQueryConfig.class)
+                .getTemplate())
+        .isEqualTo("edited");
+  }
+
+  @Test
+  public void getEditTemplatePut_keepsEditedTemplateWhenStaleLegacyKeyIsEchoedBack()
+      throws Exception {
+    // Kayenta's mapper ignores unknown properties (e.g. the serialized serviceType).
+    ObjectMapper objectMapper =
+        new ObjectMapper()
+            .configure(
+                com.fasterxml.jackson.databind.DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES,
+                false);
+    TestConcreteCanaryMetricSetQueryConfig original =
+        TestConcreteCanaryMetricSetQueryConfig.builder().template("ORIGINAL").build();
+
+    com.fasterxml.jackson.databind.node.ObjectNode tree =
+        (com.fasterxml.jackson.databind.node.ObjectNode) objectMapper.valueToTree(original);
+    tree.put("template", "EDITED");
+
+    TestConcreteCanaryMetricSetQueryConfig result =
+        objectMapper.treeToValue(tree, TestConcreteCanaryMetricSetQueryConfig.class);
+
+    assertThat(result.getTemplate()).isEqualTo("EDITED");
+  }
+
+  @Test
   public void serialization_writesBothTemplateAndLegacyCustomInlineTemplateKeys() throws Exception {
     ObjectMapper objectMapper = new ObjectMapper();
     TestConcreteCanaryMetricSetQueryConfig query =
