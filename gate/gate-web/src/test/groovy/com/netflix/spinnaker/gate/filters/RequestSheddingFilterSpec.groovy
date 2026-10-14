@@ -66,6 +66,19 @@ class RequestSheddingFilterSpec extends Specification {
     0 * _
   }
 
+  def "should keep the last path patterns when a scheduled refresh throws an error"() {
+    given:
+    configService.getConfig(String, PATHS_KEY, "") >>> ["/foo"] >> { throw new OutOfMemoryError("Java heap space") }
+    subject.compilePatterns()
+
+    when:
+    subject.compilePatterns()
+
+    then:
+    noExceptionThrown()
+    subject.pathPatterns*.pattern() == ["/foo"]
+  }
+
   @Unroll
   def "should allow requests not matching paths"() {
     when:
