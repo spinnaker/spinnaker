@@ -62,8 +62,8 @@ public abstract class AbstractPollingNotificationAgent
             if (tryAcquireLock()) {
               tick();
             }
-          } catch (Exception e) {
-            log.error("Error running agent tick", e);
+          } catch (Throwable t) {
+            log.error("Error running agent tick", t);
           } finally {
             MDC.remove(AGENT_MDC_KEY);
           }
