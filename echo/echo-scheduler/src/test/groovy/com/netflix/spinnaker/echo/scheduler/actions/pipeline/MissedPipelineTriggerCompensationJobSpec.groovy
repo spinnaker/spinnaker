@@ -135,11 +135,14 @@ class MissedPipelineTriggerCompensationJobSpec extends Specification {
     noExceptionThrown()
   }
 
-  def 'should not let an invalid cron expression escape the recurring job'() {
-    given: 'a five-field Unix cron expression, which Quartz does not accept'
+  def 'should skip cron triggers with an invalid expression'() {
+    given: 'a five-field Unix cron expression, which Quartz does not accept, and a valid trigger in window'
     def pipelines = [
       pipelineBuilder('1').disabled(false).triggers([
         new Trigger.TriggerBuilder().id('1').type(Trigger.Type.CRON.toString()).cronExpression('0 0 * * *').enabled(true).build()
+      ]).build(),
+      pipelineBuilder('2').disabled(false).triggers([
+        new Trigger.TriggerBuilder().id('2').type(Trigger.Type.CRON.toString()).cronExpression('* 5 * * * ? *').enabled(true).build()
       ]).build()
     ]
 
@@ -149,11 +152,11 @@ class MissedPipelineTriggerCompensationJobSpec extends Specification {
       'America/Los_Angeles', true, 900000, 20, stubDateContext(0, 10))
 
     when:
-    compensationJob.triggerMissedExecutions()
+    compensationJob.triggerMissedExecutions(pipelines)
 
     then:
-    1 * pipelineCache.getPipelinesSync() >> pipelines
-    noExceptionThrown()
+    1 * orcaService.getLatestPipelineExecutions(['2'], _) >> Calls.response([])
+    0 * orcaService._
   }
 
   @Unroll

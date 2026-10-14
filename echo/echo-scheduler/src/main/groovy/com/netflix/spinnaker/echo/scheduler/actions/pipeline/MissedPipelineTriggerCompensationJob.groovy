@@ -178,7 +178,14 @@ class MissedPipelineTriggerCompensationJob implements ApplicationListener<Contex
   }
 
   private List<Trigger> getWithValidTimeInWindow(List<Trigger> triggers) {
-    return triggers.findAll({ trigger -> getLastValidTimeInWindow(trigger, dateContext) != null })
+    return triggers.findAll({ trigger ->
+      try {
+        return getLastValidTimeInWindow(trigger, dateContext) != null
+      } catch (Exception e) {
+        log.warn("Skipping cron trigger ${trigger.id} with an invalid expression (${trigger.cronExpression})", e)
+        return false
+      }
+    })
   }
 
   private Date getLastExecutionOrNull(List<Date> executions) {
