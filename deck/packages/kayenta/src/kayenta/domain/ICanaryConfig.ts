@@ -31,7 +31,11 @@ export interface ICanaryMetricConfig<T extends ICanaryMetricSetQueryConfig = any
 export interface ICanaryMetricSetQueryConfig {
   type: string;
   serviceType: string;
-  customInlineTemplate?: string;
+  template?: string;
+  // Legacy pointer into the config's top-level `templates` map. Kayenta copies the referenced text
+  // into `template` when it reads or writes a config but leaves this pointer in place (so a Kayenta
+  // rollback still works), so Deck never sets it. Deck only reads `template`, which means it must
+  // be upgraded together with Kayenta: an older Kayenta returns `customInlineTemplate` instead.
   customFilterTemplate?: string;
 }
 
