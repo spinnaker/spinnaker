@@ -27,21 +27,31 @@ import com.netflix.spinnaker.credentials.MapBackedCredentialsRepository
 import com.netflix.spinnaker.credentials.NoopCredentialsLifecycleHandler
 import spock.lang.Shared
 import spock.lang.Specification
+import spock.lang.Unroll
 
 class DeleteGoogleLoadBalancerDescriptionValidatorSpec extends Specification {
   private static final Long TIMEOUT_SECONDS = 5
   private static final LOAD_BALANCER_NAME = "spinnaker-test-v000"
   private static final REGION = "us-central1"
+  private static final UNMANAGED_REGION = "us-east1"
   private static final ACCOUNT_NAME = "auto"
 
   @Shared
   DeleteGoogleLoadBalancerDescriptionValidator validator
 
+  @Shared
+  GoogleNamedAccountCredentials credentials
+
   void setupSpec() {
     validator = new DeleteGoogleLoadBalancerDescriptionValidator()
     def credentialsRepo = new MapBackedCredentialsRepository(GoogleNamedAccountCredentials.CREDENTIALS_TYPE,
       new NoopCredentialsLifecycleHandler<>())
-    def credentials = new GoogleNamedAccountCredentials.Builder().name(ACCOUNT_NAME).credentials(new FakeGoogleCredentials()).build()
+    credentials = new GoogleNamedAccountCredentials.Builder()
+      .name(ACCOUNT_NAME)
+      .credentials(new FakeGoogleCredentials())
+      .regionsToManage([REGION], [])
+      .regionToZonesMap([(REGION): ["us-central1-a"], (UNMANAGED_REGION): ["us-east1-b"]])
+      .build()
     credentialsRepo.save(credentials)
     validator.credentialsRepository = credentialsRepo
   }
@@ -130,21 +140,31 @@ class DeleteGoogleLoadBalancerDescriptionValidatorSpec extends Specification {
       1 * errors.rejectValue("region", _)
   }
 
-  void "fail validation with internal managed missing region"() {
+  @Unroll
+  void "internal managed delete validates its region (region: #region)"() {
     setup:
       def description = new DeleteGoogleLoadBalancerDescription(
           deleteOperationTimeoutSeconds: TIMEOUT_SECONDS,
           loadBalancerName: LOAD_BALANCER_NAME,
-          region: null,
+          region: region,
           loadBalancerType: GoogleLoadBalancerType.INTERNAL_MANAGED,
-          accountName: ACCOUNT_NAME)
+          accountName: ACCOUNT_NAME,
+          credentials: credentials)
       def errors = Mock(ValidationErrors)
 
     when:
       validator.validate([], description, errors)
 
     then:
-      1 * errors.rejectValue("region", _)
+      (code ? 1 : 0) * errors.rejectValue("region", code)
+      0 * errors._
+
+    where:
+      region           | code
+      REGION           | null
+      null             | "deleteGoogleLoadBalancerDescription.region.empty"
+      "us-nowhere1"    | "deleteGoogleLoadBalancerDescription.region.invalid"
+      UNMANAGED_REGION | "deleteGoogleLoadBalancerDescription.region.unconfigured"
   }
 
   void "pass validation with regional external network description input"() {
