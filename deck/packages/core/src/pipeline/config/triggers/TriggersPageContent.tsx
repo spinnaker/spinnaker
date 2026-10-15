@@ -24,12 +24,15 @@ export function TriggersPageContent(props: ITriggersPageContentProps) {
   const { pipeline, application, updatePipelineConfig } = props;
   const expectedArtifacts = pipeline?.expectedArtifacts ?? [];
   const triggers = pipeline?.triggers ?? [];
-  // KLUDGE: because we don't have a stable identifier to use for each trigger object, we need to reset the keys
-  // used for each trigger in the list when a delete happens (because the array of triggers shifts by one).
-  // For now, we do this by incrementing a counter every time a delete happens, and sticking that number
-  // into the key of each trigger before its index value. Ideally, we should generate stable UUIDs for
-  // each trigger object that we can use instead of relying on index keys.
-  const [deleteCount, setDeleteCount] = useState(0);
+  // Each trigger object gets its own form, so replacing a trigger remounts it.
+  // The key follows a trigger through its form's own edits.
+  const [triggerKeys] = useState(() => ({ ids: new WeakMap<ITrigger, number>(), next: 0 }));
+  const getTriggerKey = (trigger: ITrigger) => {
+    if (!triggerKeys.ids.has(trigger)) {
+      triggerKeys.ids.set(trigger, triggerKeys.next++);
+    }
+    return triggerKeys.ids.get(trigger);
+  };
 
   function updateRoles(roles: any[]): void {
     updatePipelineConfig({ roles });
@@ -72,7 +75,6 @@ export function TriggersPageContent(props: ITriggersPageContentProps) {
     }
 
     updatePipelineConfig(pipelineUpdate);
-    setDeleteCount(deleteCount + 1);
   }
 
   /**
@@ -82,6 +84,7 @@ export function TriggersPageContent(props: ITriggersPageContentProps) {
    * @param updatedTrigger The updated trigger
    */
   function updateTrigger(indexToUpdate: number, updatedTrigger: ITrigger): void {
+    triggerKeys.ids.set(updatedTrigger, getTriggerKey(triggers[indexToUpdate]));
     PipelineConfigValidator.validatePipeline(pipeline);
     updatePipelineConfig({
       triggers: triggers.map((trigger, index) => {
@@ -181,7 +184,7 @@ export function TriggersPageContent(props: ITriggersPageContentProps) {
         </div>
       )}
       {triggers.map((trigger, index) => (
-        <div className="trigger-config" key={`${deleteCount}:${index}`}>
+        <div className="trigger-config" key={getTriggerKey(trigger)}>
           <Trigger
             application={application}
             index={index}
