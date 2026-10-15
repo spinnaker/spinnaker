@@ -69,7 +69,6 @@ interface IPipelineConfigViewState {
   section: string;
   stageIndex: number;
   loading?: boolean;
-  revertCount: number;
   original?: string;
   originalRenderablePipeline?: string;
   isDirty?: boolean;
@@ -152,10 +151,21 @@ function getInitialViewState(
     section,
     stageIndex: hasStage ? stageIndex : 0,
     loading: false,
-    revertCount: 0,
     original: toJson(pipeline),
     originalRenderablePipeline: toJson(renderablePipeline),
     isDirty: false,
+  };
+}
+
+// Keeps the stage selection in range after the stages are replaced
+function selectionInRange(
+  viewState: IPipelineConfigViewState,
+  renderablePipeline: IPipeline,
+): Pick<IPipelineConfigViewState, 'section' | 'stageIndex'> {
+  const lastStageIndex = (renderablePipeline.stages || []).length - 1;
+  return {
+    section: viewState.section === 'stage' && lastStageIndex < 0 ? 'triggers' : viewState.section,
+    stageIndex: Math.max(0, Math.min(viewState.stageIndex, lastStageIndex)),
   };
 }
 
@@ -314,9 +324,9 @@ interface IPipelineStageConfigProps {
   application: Application;
   pipeline: IPipeline;
   stage: IStage;
-  updateStageDependencies: (dependencies: string[]) => void;
   updateStageField: (changes: Partial<IStage>) => void;
   stageFieldUpdated: () => void;
+  replaceStage: (stage: IStage) => void;
   removeStage: (stage: IStage) => void;
 }
 
@@ -328,25 +338,36 @@ function PipelineStageConfig({
   removeStage,
   stage,
   stageFieldUpdated,
-  updateStageDependencies,
+  replaceStage,
   updateStageField,
 }: IPipelineStageConfigProps) {
   const [providerSelectionError, setProviderSelectionError] = React.useState('');
   const [stageRoleOptions, setStageRoleOptions] = React.useState<any[]>([]);
   const lastAppliedDefaultsKey = React.useRef<string>();
   const canResolveStageTypes = accounts !== null && accounts.length > 0 && !accountLoadError;
-  const configurableStageTypes = canResolveStageTypes
-    ? Registry.pipeline
-        .getConfigurableStageTypes(accounts)
-        .filter((type) => !pipeline.strategy || type.strategy)
-        .sort((a, b) => a.label.localeCompare(b.label))
-    : [];
-  const providerConfigs = stage.type ? Registry.pipeline.getProvidersFor(stage.type) : [];
+  // Registry lookups copy every stage type, so only repeat them when their inputs change
+  const configurableStageTypes = React.useMemo(
+    () =>
+      canResolveStageTypes
+        ? Registry.pipeline
+            .getConfigurableStageTypes(accounts)
+            .filter((type) => !pipeline.strategy || type.strategy)
+            .sort((a, b) => a.label.localeCompare(b.label))
+        : [],
+    [accounts, canResolveStageTypes, pipeline.strategy],
+  );
+  const providerConfigs = React.useMemo(() => (stage.type ? Registry.pipeline.getProvidersFor(stage.type) : []), [
+    stage.type,
+  ]);
   const baseStageType = providerConfigs[0]?.provides || stage.type;
   const selectedStageType = configurableStageTypes.find((type) => type.key === baseStageType);
-  const baseStageConfig = Registry.pipeline
-    .getStageTypes()
-    .find((type) => type.key === baseStageType && type.useBaseProvider && !type.provides);
+  const baseStageConfig = React.useMemo(
+    () =>
+      Registry.pipeline
+        .getStageTypes()
+        .find((type) => type.key === baseStageType && type.useBaseProvider && !type.provides),
+    [baseStageType],
+  );
   const availableProviders = selectedStageType?.cloudProviders || [];
   const selectedProvider = stage.cloudProvider || stage.cloudProviderType;
   const providerFieldsIncoherent =
@@ -506,7 +527,7 @@ function PipelineStageConfig({
 
   const editStageJson = () => {
     ReactModal.show(EditStageJsonModal, { stage } as any, { dialogClassName: 'modal-lg modal-fullscreen' })
-      .then(stageFieldUpdated)
+      .then(() => replaceStage(stage))
       .catch(() => {});
   };
 
@@ -635,7 +656,7 @@ function PipelineStageConfig({
               inputClassName="pipeline-stage-dependency-select"
               multi={true}
               name="requisiteStageRefIds"
-              onChange={(event) => updateStageDependencies(event.target.value || [])}
+              onChange={(event) => updateReservedStageField({ requisiteStageRefIds: event.target.value || [] })}
               options={stageDependencyOptions}
               value={(stage.requisiteStageRefIds || []).map(String)}
               valueRenderer={(option: any) => option.name}
@@ -787,6 +808,9 @@ export function PipelineConfigPageComponent({
   const currentPipelineId = React.useRef(pipelineId);
   const pipelineLoadGeneration = React.useRef(0);
   const templateModalInvocation = React.useRef(0);
+  const [stageEditorKeys] = React.useState(() => ({ ids: new WeakMap<IStage, number>(), next: 0 }));
+  const latestModel = React.useRef(model);
+  latestModel.current = model;
   currentPipelineId.current = pipelineId;
 
   React.useEffect(
@@ -836,7 +860,12 @@ export function PipelineConfigPageComponent({
             renderablePipeline: { ...current.renderablePipeline, ...cloneDeep(plan) },
           };
         });
-        setViewState((current) => (isCurrentInvocation() ? { ...current, isDirty: true, loading: false } : current));
+        const nextRenderablePipeline = { ...latestModel.current.renderablePipeline, ...plan };
+        setViewState((current) =>
+          isCurrentInvocation()
+            ? { ...current, ...selectionInRange(current, nextRenderablePipeline), isDirty: true, loading: false }
+            : current,
+        );
       })
       .catch(() => {})
       .finally(() => {
@@ -979,25 +1008,48 @@ export function PipelineConfigPageComponent({
   };
 
   const updateModel = (nextModel: IPipelineConfigModel, shouldMarkDirty = true) => {
+    // Callbacks that run before the next render read this model
+    latestModel.current = nextModel;
     setModel(nextModel);
     if (shouldMarkDirty) {
       markDirty(nextModel.pipeline);
     }
   };
 
+  // Each stage object gets its own editor, so replacing a stage remounts it with the new values
+  const getStageEditorKey = (stage: IStage) => {
+    if (!stageEditorKeys.ids.has(stage)) {
+      stageEditorKeys.ids.set(stage, stageEditorKeys.next++);
+    }
+    return stageEditorKeys.ids.get(stage);
+  };
+
+  // Stage edits are made in place, so the stage objects and their editors are kept
   const stageFieldUpdated = () => {
     setRevision((current) => current + 1);
-    const nextRenderablePipeline = cloneDeep(model.renderablePipeline);
+    const nextRenderablePipeline = { ...model.renderablePipeline };
     const nextPipeline = model.isTemplatedPipeline ? model.pipeline : nextRenderablePipeline;
     updateModel({ ...model, pipeline: nextPipeline, renderablePipeline: nextRenderablePipeline });
   };
 
+  // Reads the latest model, which may be newer than this render's
+  const replaceStage = (stageToReplace: IStage) => {
+    const latest = latestModel.current;
+    setRevision((current) => current + 1);
+    const nextRenderablePipeline = {
+      ...latest.renderablePipeline,
+      stages: latest.renderablePipeline.stages.map((stage) => (stage === stageToReplace ? { ...stage } : stage)),
+    };
+    const nextPipeline = latest.isTemplatedPipeline ? latest.pipeline : nextRenderablePipeline;
+    updateModel({ ...latest, pipeline: nextPipeline, renderablePipeline: nextRenderablePipeline });
+  };
+
+  // Shallow copy, so unchanged objects keep their identity
   const updatePipelineConfig = (changes: Partial<IPipeline>) => {
-    const nextPipeline = cloneDeep(model.pipeline);
     const nextChanges = model.isV2TemplatedPipeline
       ? (PipelineTemplateV2Service.filterInheritedConfig(cloneDeep(changes)) as Partial<IPipeline>)
       : changes;
-    Object.assign(nextPipeline, nextChanges);
+    const nextPipeline = { ...model.pipeline, ...nextChanges };
 
     let nextRenderablePipeline = model.renderablePipeline;
     if (model.isV2TemplatedPipeline) {
@@ -1026,7 +1078,9 @@ export function PipelineConfigPageComponent({
   };
 
   const addStage = (newStage: Partial<IStage> = { isNew: true }) => {
-    const nextRenderablePipeline = cloneDeep(model.renderablePipeline);
+    // Reads the latest model, which may be newer than this render's
+    const latest = latestModel.current;
+    const nextRenderablePipeline = cloneDeep(latest.renderablePipeline);
     const stages = nextRenderablePipeline.stages || [];
     const stageToAdd = newStage as IStage;
     stageToAdd.refId = String(Math.max(0, ...stages.map((stage) => Number(stage.refId) || 0)) + 1);
@@ -1038,8 +1092,8 @@ export function PipelineConfigPageComponent({
     }
     stages.push(stageToAdd);
     nextRenderablePipeline.stages = stages;
-    const nextPipeline = model.isTemplatedPipeline ? model.pipeline : nextRenderablePipeline;
-    updateModel({ ...model, pipeline: nextPipeline, renderablePipeline: nextRenderablePipeline });
+    const nextPipeline = latest.isTemplatedPipeline ? latest.pipeline : nextRenderablePipeline;
+    updateModel({ ...latest, pipeline: nextPipeline, renderablePipeline: nextRenderablePipeline });
     setViewState((current) => ({ ...current, section: 'stage', stageIndex: stages.length - 1 }));
   };
 
@@ -1067,12 +1121,7 @@ export function PipelineConfigPageComponent({
     });
     const nextPipeline = model.isTemplatedPipeline ? model.pipeline : nextRenderablePipeline;
     updateModel({ ...model, pipeline: nextPipeline, renderablePipeline: nextRenderablePipeline });
-    const lastStageIndex = nextRenderablePipeline.stages.length - 1;
-    setViewState((current) => ({
-      ...current,
-      section: lastStageIndex < 0 ? 'triggers' : current.section,
-      stageIndex: Math.max(0, Math.min(current.stageIndex, lastStageIndex)),
-    }));
+    setViewState((current) => ({ ...current, ...selectionInRange(current, nextRenderablePipeline) }));
   };
 
   const updateStageField = (stage: IStage, changes: Partial<IStage>) => {
@@ -1088,32 +1137,12 @@ export function PipelineConfigPageComponent({
     }
   };
 
-  const updateStageDependencies = (stageToUpdate: IStage, dependencies: string[]) => {
-    const nextRenderablePipeline = cloneDeep(model.renderablePipeline);
-    const nextStage = nextRenderablePipeline.stages.find((stage) => stage.refId === stageToUpdate.refId);
-    if (!nextStage) {
-      return;
-    }
-    nextStage.requisiteStageRefIds = dependencies;
-    const nextPipeline = model.isTemplatedPipeline ? model.pipeline : nextRenderablePipeline;
-    updateModel({ ...model, pipeline: nextPipeline, renderablePipeline: nextRenderablePipeline });
-  };
-
   const revertPipelineChanges = () => {
     const original = fromJson<IPipeline>(viewState.original);
     const originalRenderablePipeline = fromJson<IPipeline>(viewState.originalRenderablePipeline);
     const nextRenderablePipeline = model.isTemplatedPipeline ? originalRenderablePipeline : original;
     updateModel({ ...model, pipeline: original, renderablePipeline: nextRenderablePipeline }, false);
-    setViewState((current) => {
-      const lastStageIndex = nextRenderablePipeline.stages.length - 1;
-      return {
-        ...current,
-        section: current.section === 'stage' && lastStageIndex < 0 ? 'triggers' : current.section,
-        stageIndex: Math.max(0, Math.min(current.stageIndex, lastStageIndex)),
-        revertCount: (current.revertCount || 0) + 1,
-        isDirty: false,
-      };
-    });
+    setViewState((current) => ({ ...current, ...selectionInRange(current, nextRenderablePipeline), isDirty: false }));
   };
 
   const applyUpdateTs = (toSave: IPipeline) => {
@@ -1122,9 +1151,16 @@ export function PipelineConfigPageComponent({
       if (latestFromServer?.updateTs) {
         toSave.updateTs = latestFromServer.updateTs;
       }
-      const nextRenderablePipeline = model.isTemplatedPipeline ? model.renderablePipeline : toSave;
-      updateModel({ ...model, pipeline: toSave, renderablePipeline: nextRenderablePipeline }, false);
-      setOriginal(toSave, nextRenderablePipeline);
+      // Keep the current stage objects, so their editors stay mounted and edits made during the save are kept
+      const current = latestModel.current;
+      const pipeline = { ...current.pipeline };
+      if (latestFromServer?.updateTs) {
+        pipeline.updateTs = latestFromServer.updateTs;
+      }
+      const renderablePipeline = current.isTemplatedPipeline ? current.renderablePipeline : pipeline;
+      updateModel({ ...current, pipeline, renderablePipeline }, false);
+      setOriginal(toSave, current.isTemplatedPipeline ? current.renderablePipeline : toSave);
+      markDirty(pipeline);
     });
   };
 
@@ -1149,27 +1185,33 @@ export function PipelineConfigPageComponent({
   const renamePipeline = () => {
     ReactModal.show(RenamePipelineModal, { pipeline: model.pipeline, application: app } as any)
       .then((pipelineName: string) => {
-        const nextPipeline = { ...model.pipeline, name: pipelineName };
-        const nextRenderablePipeline = model.isTemplatedPipeline ? model.renderablePipeline : nextPipeline;
-        updateModel({ ...model, pipeline: nextPipeline, renderablePipeline: nextRenderablePipeline }, false);
-        return applyUpdateTs(nextPipeline);
+        const latest = latestModel.current;
+        const nextPipeline = { ...latest.pipeline, name: pipelineName };
+        const nextRenderablePipeline = latest.isTemplatedPipeline ? latest.renderablePipeline : nextPipeline;
+        updateModel({ ...latest, pipeline: nextPipeline, renderablePipeline: nextRenderablePipeline }, false);
+        return applyUpdateTs(cloneDeep(nextPipeline));
       })
       .catch(() => {});
   };
 
   const editPipelineJson = () => {
+    const editedPipeline = model.pipeline;
+    const openedUpdateTs = editedPipeline.updateTs;
     ReactModal.show(
       EditPipelineJsonModal,
-      { pipeline: model.pipeline, plan: model.isTemplatedPipeline ? model.renderablePipeline : null } as any,
+      { pipeline: editedPipeline, plan: model.isTemplatedPipeline ? model.renderablePipeline : null } as any,
       { dialogClassName: 'modal-lg modal-fullscreen' },
     )
       .then(() => {
-        const nextPipeline = cloneDeep(model.pipeline);
-        updateModel({
-          ...model,
-          pipeline: nextPipeline,
-          renderablePipeline: model.isTemplatedPipeline ? model.renderablePipeline : nextPipeline,
-        });
+        // The modal edits the pipeline it was given, but a save may have finished while it was open
+        const latest = latestModel.current;
+        const nextPipeline = cloneDeep(editedPipeline);
+        if (nextPipeline.updateTs === openedUpdateTs) {
+          nextPipeline.updateTs = latest.pipeline.updateTs;
+        }
+        const nextRenderablePipeline = latest.isTemplatedPipeline ? latest.renderablePipeline : nextPipeline;
+        updateModel({ ...latest, pipeline: nextPipeline, renderablePipeline: nextRenderablePipeline });
+        setViewState((current) => ({ ...current, ...selectionInRange(current, nextRenderablePipeline) }));
       })
       .catch(() => {});
   };
@@ -1178,34 +1220,38 @@ export function PipelineConfigPageComponent({
     ReactModal.show(DeletePipelineModal, { pipeline: model.pipeline, application: app } as any).catch(() => {});
   };
 
-  const disableToggled = (isDisabled: boolean) => {
-    const nextPipeline = { ...model.pipeline, disabled: isDisabled };
-    const nextRenderablePipeline = model.isTemplatedPipeline ? model.renderablePipeline : nextPipeline;
-    updateModel({ ...model, pipeline: nextPipeline, renderablePipeline: nextRenderablePipeline }, false);
-    const original = fromJson<IPipeline>(viewState.original);
-    original.disabled = isDisabled;
-    setOriginal(original, nextRenderablePipeline);
+  // Only the disabled flag was saved, so other pending changes stay unsaved
+  const disableToggled = (isDisabled: boolean, original: IPipeline) => {
+    const latest = latestModel.current;
+    const nextPipeline = { ...latest.pipeline, disabled: isDisabled };
+    const nextRenderablePipeline = latest.isTemplatedPipeline ? latest.renderablePipeline : nextPipeline;
+    updateModel({ ...latest, pipeline: nextPipeline, renderablePipeline: nextRenderablePipeline }, false);
+    return applyUpdateTs({ ...original, disabled: isDisabled });
   };
 
   const enablePipeline = () => {
-    ReactModal.show(EnablePipelineModal, { pipeline: fromJson<IPipeline>(viewState.original) } as any)
-      .then(() => disableToggled(false))
+    const original = fromJson<IPipeline>(viewState.original);
+    ReactModal.show(EnablePipelineModal, { pipeline: original } as any)
+      .then(() => disableToggled(false, original))
       .catch(() => {});
   };
 
   const disablePipeline = () => {
-    ReactModal.show(DisablePipelineModal, { pipeline: fromJson<IPipeline>(viewState.original) } as any)
-      .then(() => disableToggled(true))
+    const original = fromJson<IPipeline>(viewState.original);
+    ReactModal.show(DisablePipelineModal, { pipeline: original } as any)
+      .then(() => disableToggled(true, original))
       .catch(() => {});
   };
 
   const lockPipeline = () => {
     ReactModal.show(LockPipelineModal, { pipeline: model.pipeline } as any)
       .then((pipeline: IPipeline) => {
-        const nextPipeline = { ...model.pipeline, locked: pipeline.locked };
-        const nextRenderablePipeline = model.isTemplatedPipeline ? model.renderablePipeline : nextPipeline;
-        updateModel({ ...model, pipeline: nextPipeline, renderablePipeline: nextRenderablePipeline }, false);
-        setOriginal(nextPipeline, nextRenderablePipeline);
+        const latest = latestModel.current;
+        const nextPipeline = { ...latest.pipeline, locked: pipeline.locked };
+        const nextRenderablePipeline = latest.isTemplatedPipeline ? latest.renderablePipeline : nextPipeline;
+        updateModel({ ...latest, pipeline: nextPipeline, renderablePipeline: nextRenderablePipeline }, false);
+        // The modal saved the pipeline
+        return applyUpdateTs(cloneDeep(nextPipeline));
       })
       .catch(() => {});
   };
@@ -1213,11 +1259,13 @@ export function PipelineConfigPageComponent({
   const unlockPipeline = () => {
     ReactModal.show(UnlockPipelineModal, { pipeline: model.pipeline } as any)
       .then(() => {
-        const nextPipeline = cloneDeep(model.pipeline);
+        const latest = latestModel.current;
+        const nextPipeline = { ...latest.pipeline };
         delete nextPipeline.locked;
-        const nextRenderablePipeline = model.isTemplatedPipeline ? model.renderablePipeline : nextPipeline;
-        updateModel({ ...model, pipeline: nextPipeline, renderablePipeline: nextRenderablePipeline }, false);
-        setOriginal(nextPipeline, nextRenderablePipeline);
+        const nextRenderablePipeline = latest.isTemplatedPipeline ? latest.renderablePipeline : nextPipeline;
+        updateModel({ ...latest, pipeline: nextPipeline, renderablePipeline: nextRenderablePipeline }, false);
+        // The modal saved the pipeline
+        return applyUpdateTs(cloneDeep(nextPipeline));
       })
       .catch(() => {});
   };
@@ -1229,7 +1277,8 @@ export function PipelineConfigPageComponent({
       currentConfig: viewState.isDirty ? cloneDeep(model.pipeline) : null,
     } as any)
       .then((newConfig: IPipeline) => {
-        updateModel({ ...model, pipeline: newConfig, renderablePipeline: newConfig });
+        updateModel({ ...latestModel.current, pipeline: newConfig, renderablePipeline: newConfig });
+        setViewState((current) => ({ ...current, ...selectionInRange(current, newConfig) }));
         savePipeline(newConfig);
       })
       .catch(() => {});
@@ -1386,18 +1435,18 @@ export function PipelineConfigPageComponent({
                         pipeline={renderablePipeline}
                         fieldUpdated={stageFieldUpdated}
                         updatePipelineConfig={updatePipelineConfig}
-                        revertCount={viewState.revertCount}
                       />
                     )}
                     {viewState.section === 'stage' && selectedStage && (
                       <PipelineStageConfig
+                        key={getStageEditorKey(selectedStage)}
                         accounts={accounts}
                         accountLoadError={accountLoadError}
                         application={app}
                         pipeline={renderablePipeline}
                         stage={selectedStage}
                         stageFieldUpdated={stageFieldUpdated}
-                        updateStageDependencies={(dependencies) => updateStageDependencies(selectedStage, dependencies)}
+                        replaceStage={replaceStage}
                         updateStageField={(changes) => updateStageField(selectedStage, changes)}
                         removeStage={removeStage}
                       />

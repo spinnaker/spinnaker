@@ -45,7 +45,7 @@ export const GraphiteMetricTypeSelector = ({
       }}
       defaultInputValue={value}
       renderMenuItemChildren={(option) => (
-        <a style={{ pointerEvents: 'all', textDecoration: 'none', color: '#000000' }}>{option}</a>
+        <a style={{ pointerEvents: 'all', textDecoration: 'none', color: 'var(--color-black)' }}>{option}</a>
       )}
       placeholder={'Enter at least three characters to search.'}
       onInputChange={(input) => {
