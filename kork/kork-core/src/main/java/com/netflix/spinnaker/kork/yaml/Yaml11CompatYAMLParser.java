@@ -44,27 +44,16 @@ class Yaml11CompatYAMLParser extends YAMLParser {
   @Override
   protected JsonToken _decodeScalar(ScalarEvent event) throws JacksonException {
     if (event.isPlain() && event.getTag().isEmpty()) {
-      String normalized;
+      ScalarEvent normalized;
       try {
-        normalized = Yaml11Scalars.normalize(event.getValue(), streamReadConstraints());
+        normalized = Yaml11Scalars.normalize(event);
       } catch (NumberFormatException e) {
         throw _constructReadException("Invalid YAML numeric scalar: " + event.getValue());
       }
-      if (normalized != null) {
-        JsonToken token =
-            super._decodeScalar(
-                new ScalarEvent(
-                    event.getAnchor(),
-                    event.getTag(),
-                    event.getImplicit(),
-                    normalized,
-                    event.getScalarStyle(),
-                    event.getStartMark(),
-                    event.getEndMark()));
-        // Numeric decoding uses _cleanedTextValue; string coercion must retain the YAML spelling.
-        _textValue = event.getValue();
-        return token;
-      }
+      JsonToken token = super._decodeScalar(normalized);
+      // Numeric decoding uses _cleanedTextValue; string coercion must retain the YAML spelling.
+      _textValue = event.getValue();
+      return token;
     }
     return super._decodeScalar(event);
   }

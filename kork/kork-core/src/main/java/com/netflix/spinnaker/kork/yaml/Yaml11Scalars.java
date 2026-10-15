@@ -15,33 +15,15 @@
  */
 package com.netflix.spinnaker.kork.yaml;
 
-import java.math.BigInteger;
 import java.util.Map;
-import java.util.regex.Pattern;
-import javax.annotation.Nullable;
-import tools.jackson.core.StreamReadConstraints;
+import java.util.Optional;
+import org.snakeyaml.engine.v2.events.ScalarEvent;
+import org.yaml.snakeyaml.nodes.NodeId;
+import org.yaml.snakeyaml.nodes.Tag;
+import org.yaml.snakeyaml.resolver.Resolver;
 
-/**
- * Rewrites the plain YAML scalars that Jackson 2's YAML module read as booleans, nulls and numbers
- * but Jackson 3's (YAML 1.2, JSON schema) leaves as strings, into text Jackson 3 decodes the same
- * way. Quoted and tagged scalars never reach this class.
- *
- * <p>The rules were derived from, and are tested against, the output of a stock Jackson 2.21 {@code
- * YAMLMapper}: {@code yes/no/on/off}, {@code True/TRUE/False/FALSE}, {@code ~/Null/NULL},
- * leading-zero octal ({@code 0644}), {@code 0x}/{@code 0b} integers, underscores in numbers, a
- * leading {@code +}, and floats such as {@code .5}.
- */
 final class Yaml11Scalars {
-
-  private static final Pattern HEX = Pattern.compile("[-+]?0x[0-9a-fA-F_]+");
-  private static final Pattern BINARY = Pattern.compile("[-+]?0b[01_]+");
-  private static final Pattern OCTAL = Pattern.compile("[-+]?0[0-7_]+");
-  private static final Pattern NUMBER =
-      Pattern.compile("[-+]?(?:[0-9][0-9_]*(?:\\.[0-9_]*)?|\\.[0-9_]+)(?:[eE][-+]?[0-9]+)?");
-
-  /** What the Jackson 3 scalar resolver already decodes as an int or a float. */
-  private static final Pattern JACKSON_NUMBER =
-      Pattern.compile("-?(?:0|[1-9][0-9]*)(?:\\.[0-9]*)?(?:[eE][-+]?[0-9]+)?");
+  private static final Resolver RESOLVER = new Resolver();
 
   private static final Map<String, String> LITERALS =
       Map.ofEntries(
@@ -67,73 +49,36 @@ final class Yaml11Scalars {
 
   private Yaml11Scalars() {}
 
-  /**
-   * @return replacement text, or null when the scalar should be decoded as is
-   */
-  @Nullable
-  static String normalize(String value, StreamReadConstraints constraints) {
-    String literal = LITERALS.get(value);
-    if (literal != null) {
-      return literal;
-    }
-    return normalizeNumber(value, constraints);
-  }
-
-  @Nullable
-  private static String normalizeNumber(String value, StreamReadConstraints constraints) {
+  static ScalarEvent normalize(ScalarEvent event) {
+    String value = event.getValue();
     if (value.isEmpty()) {
-      return null;
+      return event;
     }
-    char first = value.charAt(0);
-    if (!(Character.isDigit(first) || first == '+' || first == '-' || first == '.')) {
-      return null;
+    Tag tag = RESOLVER.resolve(NodeId.scalar, value, event.getImplicit().canOmitTagInPlainScalar());
+    if (Tag.FLOAT.equals(tag)) {
+      validateFraction(value);
     }
-    if (HEX.matcher(value).matches()) {
-      return integer(value, 2, 16, constraints);
-    }
-    if (BINARY.matcher(value).matches()) {
-      return integer(value, 2, 2, constraints);
-    }
-    if (OCTAL.matcher(value).matches()) {
-      return hasDigitAfterZero(value) ? integer(value, 1, 8, constraints) : null;
-    }
-    return normalizeDecimal(value);
+    return new ScalarEvent(
+        event.getAnchor(),
+        Optional.of(tag.getValue()),
+        event.getImplicit(),
+        LITERALS.getOrDefault(value, value),
+        event.getScalarStyle(),
+        event.getStartMark(),
+        event.getEndMark());
   }
 
-  @Nullable
-  private static String normalizeDecimal(String value) {
-    if (!NUMBER.matcher(value).matches()) {
-      return null;
-    }
+  private static void validateFraction(String value) {
     String cleaned = value.replace("_", "");
-    if (cleaned.startsWith("+")) {
-      cleaned = cleaned.substring(1);
+    int start = cleaned.startsWith("-") || cleaned.startsWith("+") ? 1 : 0;
+    if (cleaned.charAt(start) != '.') {
+      return;
     }
-    cleaned = cleaned.replaceFirst("^(-?)0+(?=[0-9]+[.eE])", "$1");
-    cleaned = cleaned.replaceFirst("^(-?)\\.", "$1" + "0.");
-    return !cleaned.equals(value) && JACKSON_NUMBER.matcher(cleaned).matches() ? cleaned : null;
-  }
-
-  private static boolean hasDigitAfterZero(String value) {
-    int zero = value.indexOf('0');
-    for (int i = zero + 1; i < value.length(); i++) {
-      if (value.charAt(i) != '_') {
-        return true;
-      }
+    int fraction = start + 1;
+    if (fraction == cleaned.length()
+        || cleaned.charAt(fraction) == 'e'
+        || cleaned.charAt(fraction) == 'E') {
+      throw new NumberFormatException(value);
     }
-    return false;
-  }
-
-  private static String integer(
-      String value, int prefixLength, int radix, StreamReadConstraints constraints) {
-    boolean negative = value.charAt(0) == '-';
-    int start = (value.charAt(0) == '-' || value.charAt(0) == '+') ? 1 : 0;
-    String digits = value.substring(start + prefixLength).replace("_", "");
-    if (radix == 8) {
-      digits = value.substring(start).replace("_", "");
-    }
-    constraints.validateIntegerLength(digits.length());
-    BigInteger parsed = new BigInteger(digits, radix);
-    return (negative ? parsed.negate() : parsed).toString();
   }
 }

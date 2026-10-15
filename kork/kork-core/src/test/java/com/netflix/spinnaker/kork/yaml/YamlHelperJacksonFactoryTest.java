@@ -17,12 +17,14 @@ package com.netflix.spinnaker.kork.yaml;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
+import static org.junit.jupiter.api.Assertions.assertTimeoutPreemptively;
 
 import java.io.BufferedReader;
 import java.io.ByteArrayInputStream;
 import java.io.InputStreamReader;
 import java.io.StringReader;
 import java.nio.charset.StandardCharsets;
+import java.time.Duration;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
@@ -31,6 +33,7 @@ import org.snakeyaml.engine.v2.api.LoadSettings;
 import tools.jackson.core.JacksonException;
 import tools.jackson.core.StreamReadConstraints;
 import tools.jackson.databind.ObjectMapper;
+import tools.jackson.databind.ObjectReader;
 import tools.jackson.dataformat.yaml.YAMLFactory;
 import tools.jackson.dataformat.yaml.YAMLMapper;
 
@@ -163,17 +166,12 @@ class YamlHelperJacksonFactoryTest {
   void numericFormsMatchJackson2AcrossFactoriesAndInputSources() throws Exception {
     com.fasterxml.jackson.dataformat.yaml.YAMLMapper jackson2 =
         new com.fasterxml.jackson.dataformat.yaml.YAMLMapper();
-    List<ObjectMapper> mappers =
-        List.of(
-            helperMapper,
-            helperMapper.rebuild().build(),
-            YAMLMapper.builder(YamlHelper.newYamlFactory()).build());
     for (String scalar :
         List.of("+1.", "-1.", "01e3", "+01e3", "-01e-3", "1e_3", "1.5e1_0", ".5e_3")) {
       String doc = "v: " + scalar;
       Map<?, ?> expected = jackson2.readValue(doc, Map.class);
       byte[] bytes = doc.getBytes(StandardCharsets.UTF_8);
-      for (ObjectMapper mapper : mappers) {
+      for (ObjectMapper mapper : compatibilityMappers()) {
         assertThat(mapper.readValue(doc, Map.class)).as(scalar).isEqualTo(expected);
         assertThat(mapper.readValue(new StringReader(doc), Map.class))
             .as(scalar)
@@ -200,6 +198,8 @@ class YamlHelperJacksonFactoryTest {
     assertThat(read(helperMapper, "v: \"0644\"")).isEqualTo("{v=0644}");
     assertThat(read(helperMapper, "v: !!str ~")).isEqualTo("{v=~}");
     assertThat(read(helperMapper, "yes: x")).isEqualTo("{yes=x}");
+    assertThat(read(helperMapper, "v: '._'")).isEqualTo("{v=._}");
+    assertThat(read(helperMapper, "v: !!str ._")).isEqualTo("{v=._}");
   }
 
   @Test
@@ -251,11 +251,144 @@ class YamlHelperJacksonFactoryTest {
   }
 
   @Test
-  void invalidRadixNumbersRemainJacksonParsingFailures() {
-    for (String scalar : List.of("0x_", "0b_")) {
-      assertThatThrownBy(() -> helperMapper.readValue("v: " + scalar, Object.class))
-          .isInstanceOf(JacksonException.class);
+  void numericConstraintsUseTheOriginalRepresentation() throws Exception {
+    com.fasterxml.jackson.dataformat.yaml.YAMLMapper jackson2 =
+        new com.fasterxml.jackson.dataformat.yaml.YAMLMapper(
+            com.fasterxml.jackson.dataformat.yaml.YAMLFactory.builder()
+                .streamReadConstraints(
+                    com.fasterxml.jackson.core.StreamReadConstraints.builder()
+                        .maxNumberLength(16)
+                        .build())
+                .build());
+    ObjectMapper limited =
+        YAMLMapper.builder(
+                new Yaml11CompatYAMLFactory(
+                    YAMLFactory.builder()
+                        .streamReadConstraints(
+                            StreamReadConstraints.builder().maxNumberLength(16).build())))
+            .build();
+    for (String scalar :
+        List.of("0x" + "f".repeat(16), "0b" + "1".repeat(16), "0" + "7".repeat(16))) {
+      String doc = "v: " + scalar;
+      Object expected = jackson2.readValue(doc, Map.class).get("v");
+      assertScalarInputs(limited, scalar, expected, jackson2.readValue(doc, StringValue.class).v);
     }
+    String doc = "v: " + "0".repeat(16) + ".5";
+    assertThatThrownBy(() -> jackson2.readValue(doc, Map.class))
+        .isInstanceOf(com.fasterxml.jackson.core.JsonProcessingException.class);
+    assertRejectedInputs(limited.readerFor(Map.class), doc);
+  }
+
+  @Test
+  void radixAndFractionBoundariesMatchJackson2AcrossInputSources() throws Exception {
+    com.fasterxml.jackson.dataformat.yaml.YAMLMapper jackson2 =
+        new com.fasterxml.jackson.dataformat.yaml.YAMLMapper();
+    for (String scalar :
+        List.of(
+            "0x_", "+0x__", "-0x___", "0b_", "+0b__", "-0b___", "0x_1", "+0b_1", "._5", "-._0")) {
+      String doc = "v: " + scalar;
+      Object expected = jackson2.readValue(doc, Map.class).get("v");
+      String text = jackson2.readValue(doc, StringValue.class).v;
+      for (ObjectMapper mapper : compatibilityMappers()) {
+        assertScalarInputs(mapper, scalar, expected, text);
+      }
+    }
+  }
+
+  @Test
+  void invalidFractionsFailForUntypedAndStringReadsAcrossInputSources() {
+    com.fasterxml.jackson.dataformat.yaml.YAMLMapper jackson2 =
+        new com.fasterxml.jackson.dataformat.yaml.YAMLMapper();
+    for (String scalar : List.of("._", "+._e3", "-.__E03")) {
+      String doc = "v: " + scalar;
+      assertThatThrownBy(() -> jackson2.readValue(doc, Map.class))
+          .isInstanceOf(com.fasterxml.jackson.core.JsonProcessingException.class);
+      assertThatThrownBy(() -> jackson2.readValue(doc, StringValue.class))
+          .isInstanceOf(com.fasterxml.jackson.core.JsonProcessingException.class);
+      for (ObjectMapper mapper : compatibilityMappers()) {
+        assertRejectedInputs(mapper.readerFor(Map.class), doc);
+        assertRejectedInputs(mapper.readerFor(StringValue.class), doc);
+      }
+    }
+  }
+
+  @Test
+  void longNonOctalStringsParseWithinTheRuntimeBudget() {
+    String scalar = "0".repeat(100_000) + "8";
+    List<ObjectMapper> mappers = compatibilityMappers();
+    assertTimeoutPreemptively(
+        Duration.ofSeconds(10),
+        () -> {
+          for (ObjectMapper mapper : mappers) {
+            assertScalarInputs(mapper, scalar, scalar, scalar);
+          }
+        });
+  }
+
+  @Test
+  void implicitScalarResolutionRetainsTheJackson2LengthBoundary() throws Exception {
+    com.fasterxml.jackson.dataformat.yaml.YAMLMapper jackson2 =
+        new com.fasterxml.jackson.dataformat.yaml.YAMLMapper();
+    for (String scalar :
+        List.of(
+            "0" + "_".repeat(1021) + "1",
+            "0" + "_".repeat(1022) + "1",
+            "0" + "_".repeat(1023) + "1",
+            "0".repeat(1023) + ".5",
+            "+" + "0".repeat(1022) + "e3",
+            "1".repeat(1025),
+            "1".repeat(1023) + ".5",
+            "0x" + "f".repeat(1023),
+            "0b" + "1".repeat(1023),
+            "." + "_".repeat(1024))) {
+      String doc = "v: " + scalar;
+      Object expected = jackson2.readValue(doc, Map.class).get("v");
+      String text = jackson2.readValue(doc, StringValue.class).v;
+      for (ObjectMapper mapper : compatibilityMappers()) {
+        assertScalarInputs(mapper, scalar, expected, text);
+      }
+    }
+  }
+
+  private List<ObjectMapper> compatibilityMappers() {
+    return List.of(
+        helperMapper,
+        helperMapper.rebuild().build(),
+        YAMLMapper.builder(YamlHelper.newYamlFactory()).build());
+  }
+
+  private static void assertScalarInputs(
+      ObjectMapper mapper, String scalar, Object expected, String text) throws Exception {
+    String doc = "v: " + scalar;
+    byte[] bytes = doc.getBytes(StandardCharsets.UTF_8);
+    assertThat(mapper.readValue(doc, Map.class).get("v")).as(scalar).isEqualTo(expected);
+    assertThat(mapper.readValue(new StringReader(doc), Map.class).get("v"))
+        .as(scalar)
+        .isEqualTo(expected);
+    assertThat(mapper.readValue(bytes, Map.class).get("v")).as(scalar).isEqualTo(expected);
+    assertThat(mapper.readValue(new ByteArrayInputStream(bytes), Map.class).get("v"))
+        .as(scalar)
+        .isEqualTo(expected);
+    assertThat(mapper.readValue(doc, StringValue.class).v).as(scalar).isEqualTo(text);
+    assertThat(mapper.readValue(new StringReader(doc), StringValue.class).v)
+        .as(scalar)
+        .isEqualTo(text);
+    assertThat(mapper.readValue(bytes, StringValue.class).v).as(scalar).isEqualTo(text);
+    assertThat(mapper.readValue(new ByteArrayInputStream(bytes), StringValue.class).v)
+        .as(scalar)
+        .isEqualTo(text);
+  }
+
+  private static void assertRejectedInputs(ObjectReader reader, String doc) {
+    byte[] bytes = doc.getBytes(StandardCharsets.UTF_8);
+    assertThatThrownBy(() -> reader.readValue(doc)).as(doc).isInstanceOf(JacksonException.class);
+    assertThatThrownBy(() -> reader.readValue(new StringReader(doc)))
+        .as(doc)
+        .isInstanceOf(JacksonException.class);
+    assertThatThrownBy(() -> reader.readValue(bytes)).as(doc).isInstanceOf(JacksonException.class);
+    assertThatThrownBy(() -> reader.readValue(new ByteArrayInputStream(bytes)))
+        .as(doc)
+        .isInstanceOf(JacksonException.class);
   }
 
   static class StringValue {
