@@ -15,14 +15,10 @@ export interface ITriggersProps {
   pipelineConfig?: IPipeline;
   fieldUpdated: () => void;
   updatePipelineConfig: (changes: Partial<IPipeline>) => void;
-  revertCount: number;
 }
 
 export function Triggers(props: ITriggersProps) {
   const pipeline = props.pipeline;
-  // KLUDGE: This value is used as a React key when rendering the Triggers.
-  // Whenever the pipeline is reverted, this causes the Triggers to remount and reset formik state.
-  const revertCountKLUDGE = props.revertCount;
 
   return (
     <PageNavigator scrollableContainer=".pipeline-config-page">
@@ -35,7 +31,7 @@ export function Triggers(props: ITriggersProps) {
         badge={pipeline.triggers ? pipeline.triggers.length.toString() : '0'}
         noWrapper={true}
       >
-        <TriggersPageContent {...props} key={revertCountKLUDGE} />
+        <TriggersPageContent {...props} />
       </PageSection>
       <PageSection
         pageKey="parameters"
@@ -57,7 +53,6 @@ export function Triggers(props: ITriggersProps) {
         <MetadataPageContent
           pipeline={props.pipelineConfig || props.pipeline}
           updatePipelineConfig={props.updatePipelineConfig}
-          key={revertCountKLUDGE}
         />
       </PageSection>
     </PageNavigator>
