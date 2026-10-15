@@ -18,6 +18,7 @@ package com.netflix.spinnaker.kork.aws.jackson;
 
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import tools.jackson.databind.JacksonModule;
 
 /**
  * Spring Boot configuration that registers the AWS SDK v2 Jackson 3 module as a bean. Any Jackson 3
@@ -27,12 +28,7 @@ import org.springframework.context.annotation.Configuration;
 public class AwsSdkV2JacksonConfiguration {
 
   @Bean
-  tools.jackson.databind.JacksonModule awsSdkV2Module() {
+  JacksonModule awsSdkV2Module() {
     return new AwsSdkV2Module();
-  }
-
-  @Bean
-  tools.jackson.databind.JacksonModule awsSdkV2Jackson3Module() {
-    return new AwsSdkV2Jackson3Module();
   }
 }
