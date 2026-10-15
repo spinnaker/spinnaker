@@ -29,7 +29,7 @@ import javax.annotation.Nonnull
 
 @Slf4j
 @Component
-class StopJenkinsJobTask implements Task {
+class StopBuildJobTask implements Task {
 
   @Autowired
   BuildService buildService
