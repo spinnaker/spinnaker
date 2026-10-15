@@ -115,8 +115,7 @@ public class UserSecretSerdeTest {
   void yamlPreservesLegacyScalarValuesForCustomSecretTypes() {
     var metadata = UserSecretMetadata.builder().type("scalar-test").encoding("yaml").build();
     var serde =
-        new SecretConfiguration()
-            .userSecretSerde(List.of(() -> Stream.of(ScalarSecretData.class)));
+        new SecretConfiguration().userSecretSerde(List.of(() -> Stream.of(ScalarSecretData.class)));
     var bytes =
         ("mode: 0644\nenabled: yes\nquoted: \"0644\"\ntagged: !!str yes\n")
             .getBytes(StandardCharsets.UTF_8);
@@ -125,11 +124,14 @@ public class UserSecretSerdeTest {
     assertThat(
         secret.getSecretString(UserSecretReference.parse("secret://mock?k=mode")), equalTo("420"));
     assertThat(
-        secret.getSecretString(UserSecretReference.parse("secret://mock?k=enabled")), equalTo("true"));
+        secret.getSecretString(UserSecretReference.parse("secret://mock?k=enabled")),
+        equalTo("true"));
     assertThat(
-        secret.getSecretString(UserSecretReference.parse("secret://mock?k=quoted")), equalTo("0644"));
+        secret.getSecretString(UserSecretReference.parse("secret://mock?k=quoted")),
+        equalTo("0644"));
     assertThat(
-        secret.getSecretString(UserSecretReference.parse("secret://mock?k=tagged")), equalTo("yes"));
+        secret.getSecretString(UserSecretReference.parse("secret://mock?k=tagged")),
+        equalTo("yes"));
   }
 
   @Test
@@ -151,8 +153,14 @@ public class UserSecretSerdeTest {
     @Override
     public String getSecretString(String key) {
       return Map.of(
-              "mode", Integer.toString(mode), "enabled", Boolean.toString(enabled),
-              "quoted", quoted, "tagged", tagged)
+              "mode",
+              Integer.toString(mode),
+              "enabled",
+              Boolean.toString(enabled),
+              "quoted",
+              quoted,
+              "tagged",
+              tagged)
           .get(key);
     }
   }

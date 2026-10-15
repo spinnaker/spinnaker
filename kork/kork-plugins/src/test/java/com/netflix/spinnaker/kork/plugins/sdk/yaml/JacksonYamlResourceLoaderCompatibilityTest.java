@@ -64,8 +64,7 @@ class JacksonYamlResourceLoaderCompatibilityTest {
 
     assertEquals("hello", loader.loadResource("yaml/test.yml", Map.class).get("name"));
     assertThrows(
-        JacksonException.class,
-        () -> loader.loadResource("yaml/legacy-scalars.yml", Map.class));
+        JacksonException.class, () -> loader.loadResource("yaml/legacy-scalars.yml", Map.class));
   }
 
   public static class StringValue {
