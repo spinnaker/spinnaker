@@ -32,7 +32,7 @@ import java.util.concurrent.TimeUnit
 
 @Slf4j
 @Component
-class MonitorJenkinsJobTask implements OverridableTimeoutRetryableTask {
+class MonitorBuildJobTask implements OverridableTimeoutRetryableTask {
 
   long backoffPeriod = 10000
   long timeout = TimeUnit.HOURS.toMillis(2)
@@ -65,19 +65,25 @@ class MonitorJenkinsJobTask implements OverridableTimeoutRetryableTask {
       outputs.buildInfo = build
 
       def jobStatus = Optional.ofNullable(result)
-          .map { Enums.getIfPresent(JenkinsJobStatus.class, it).orNull() }
+          .map { Enums.getIfPresent(BuildJobStatus.class, it).orNull() }
           .orElse(null)
       if (jobStatus == null) {
         return TaskResult.builder(ExecutionStatus.RUNNING).context([buildInfo: build]).build()
       }
 
       ExecutionStatus taskStatus = jobStatus.executionStatusEquivalent
-      if (jobStatus == JenkinsJobStatus.UNSTABLE && stage.context.markUnstableAsSuccessful) {
-        taskStatus = JenkinsJobStatus.SUCCESS.executionStatusEquivalent
+      if (jobStatus == BuildJobStatus.UNSTABLE && stage.context.markUnstableAsSuccessful) {
+        taskStatus = BuildJobStatus.SUCCESS.executionStatusEquivalent
       }
 
       if (jobStatus.errorBreadcrumb != null) {
-        stage.appendErrorMessage(jobStatus.errorBreadcrumb)
+        String breadcrumb = jobStatus.errorBreadcrumb
+        if (build.url) {
+          breadcrumb += " (see ${build.url})"
+        } else {
+          breadcrumb += " (see the build on master=$master)"
+        }
+        stage.appendErrorMessage(breadcrumb)
       }
 
       return TaskResult.builder(taskStatus).context(outputs).outputs(outputs).build()
@@ -92,11 +98,11 @@ class MonitorJenkinsJobTask implements OverridableTimeoutRetryableTask {
   }
 
   /**
-   * Maps Jenkins job statuses to {@link ExecutionStatus}
+   * Maps CI job statuses to {@link ExecutionStatus}
    */
-  static enum JenkinsJobStatus {
-    ABORTED(ExecutionStatus.CANCELED, "Job was aborted (see Jenkins)"),
-    FAILURE(ExecutionStatus.TERMINAL, "Job failed (see Jenkins)"),
+  static enum BuildJobStatus {
+    ABORTED(ExecutionStatus.CANCELED, "Job was aborted"),
+    FAILURE(ExecutionStatus.TERMINAL, "Job failed"),
     SUCCESS(ExecutionStatus.SUCCEEDED, null),
     UNSTABLE(ExecutionStatus.TERMINAL, "Job is unstable")
 
@@ -106,11 +112,11 @@ class MonitorJenkinsJobTask implements OverridableTimeoutRetryableTask {
     ExecutionStatus executionStatusEquivalent
 
     /**
-     * An optional error message breadcrumb that is surfaced to users when the jenkins job fails.
+     * An optional error message breadcrumb that is surfaced to users when the build job fails.
      */
     String errorBreadcrumb
 
-    JenkinsJobStatus(ExecutionStatus executionStatusEquivalent, String errorBreadcrumb) {
+    BuildJobStatus(ExecutionStatus executionStatusEquivalent, String errorBreadcrumb) {
       this.executionStatusEquivalent = executionStatusEquivalent
       this.errorBreadcrumb = errorBreadcrumb
     }
