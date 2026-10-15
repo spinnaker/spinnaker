@@ -121,6 +121,44 @@ class MissedPipelineTriggerCompensationJobSpec extends Specification {
     0 * _
   }
 
+  def 'should not let an error from the pipeline cache escape the recurring job'() {
+    given:
+    def compensationJob = new MissedPipelineTriggerCompensationJob(pipelineCache, orcaService,
+      pipelineInitiator, registry, quietPeriodIndicator, 30000L, 2000L,
+      'America/Los_Angeles', true, 900000, 20, stubDateContext(0, 10))
+
+    when:
+    compensationJob.triggerMissedExecutions()
+
+    then:
+    1 * pipelineCache.getPipelinesSync() >> { throw new OutOfMemoryError('Java heap space') }
+    noExceptionThrown()
+  }
+
+  def 'should skip cron triggers with an invalid expression'() {
+    given: 'a five-field Unix cron expression, which Quartz does not accept, and a valid trigger in window'
+    def pipelines = [
+      pipelineBuilder('1').disabled(false).triggers([
+        new Trigger.TriggerBuilder().id('1').type(Trigger.Type.CRON.toString()).cronExpression('0 0 * * *').enabled(true).build()
+      ]).build(),
+      pipelineBuilder('2').disabled(false).triggers([
+        new Trigger.TriggerBuilder().id('2').type(Trigger.Type.CRON.toString()).cronExpression('* 5 * * * ? *').enabled(true).build()
+      ]).build()
+    ]
+
+    and:
+    def compensationJob = new MissedPipelineTriggerCompensationJob(pipelineCache, orcaService,
+      pipelineInitiator, registry, quietPeriodIndicator, 30000L, 2000L,
+      'America/Los_Angeles', true, 900000, 20, stubDateContext(0, 10))
+
+    when:
+    compensationJob.triggerMissedExecutions(pipelines)
+
+    then:
+    1 * orcaService.getLatestPipelineExecutions(['2'], _) >> Calls.response([])
+    0 * orcaService._
+  }
+
   @Unroll
   def 'should only look up execution history for pipelines that have an eligible trigger in window [#floorOffset, #ceilingOffset]'() {
     given:
