@@ -39,16 +39,7 @@ public class KayentaJacksonMessageConverterConfiguration implements WebMvcConfig
 
   public KayentaJacksonMessageConverterConfiguration(
       @Qualifier("kayentaObjectMapper") ObjectMapper kayentaObjectMapper) {
-    var builder = ((JsonMapper) kayentaObjectMapper).rebuild();
-    for (String[] subtype : KayentaConfiguration.metricQuerySubtypes()) {
-      try {
-        builder.registerSubtypes(
-            new tools.jackson.databind.jsontype.NamedType(Class.forName(subtype[0]), subtype[1]));
-      } catch (ClassNotFoundException ignored) {
-        // Provider module not on this classpath.
-      }
-    }
-    this.kayentaObjectMapper = builder.build();
+    this.kayentaObjectMapper = (JsonMapper) kayentaObjectMapper;
   }
 
   @Override

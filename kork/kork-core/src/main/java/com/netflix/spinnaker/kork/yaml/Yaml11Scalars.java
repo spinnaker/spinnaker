@@ -37,11 +37,11 @@ final class Yaml11Scalars {
   private static final Pattern BINARY = Pattern.compile("[-+]?0b[01_]+");
   private static final Pattern OCTAL = Pattern.compile("[-+]?0[0-7_]+");
   private static final Pattern NUMBER =
-      Pattern.compile("[-+]?(?:[0-9][0-9_]*(?:\\.[0-9_]*)?|\\.[0-9_]+)(?:[eE][-+]?[0-9_]+)?");
+      Pattern.compile("[-+]?(?:[0-9][0-9_]*(?:\\.[0-9_]*)?|\\.[0-9_]+)(?:[eE][-+]?[0-9]+)?");
 
   /** What the Jackson 3 scalar resolver already decodes as an int or a float. */
   private static final Pattern JACKSON_NUMBER =
-      Pattern.compile("-?(?:0|[1-9][0-9]*)(?:\\.[0-9]+)?(?:[eE][-+]?[0-9]+)?");
+      Pattern.compile("-?(?:0|[1-9][0-9]*)(?:\\.[0-9]*)?(?:[eE][-+]?[0-9]+)?");
 
   private static final Map<String, String> LITERALS =
       Map.ofEntries(
@@ -109,8 +109,7 @@ final class Yaml11Scalars {
     if (cleaned.startsWith("+")) {
       cleaned = cleaned.substring(1);
     }
-    // 00.5 and .5 are floats to Jackson 2; leading zeros before a point are dropped.
-    cleaned = cleaned.replaceFirst("^(-?)0*(?=[0-9]*\\.)", "$1");
+    cleaned = cleaned.replaceFirst("^(-?)0+(?=[0-9]+[.eE])", "$1");
     cleaned = cleaned.replaceFirst("^(-?)\\.", "$1" + "0.");
     return !cleaned.equals(value) && JACKSON_NUMBER.matcher(cleaned).matches() ? cleaned : null;
   }

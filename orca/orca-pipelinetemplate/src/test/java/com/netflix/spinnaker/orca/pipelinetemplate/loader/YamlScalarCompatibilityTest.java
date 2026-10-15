@@ -20,6 +20,7 @@ import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 import com.netflix.spinnaker.kork.yaml.YamlHelper;
 import com.netflix.spinnaker.kork.yaml.YamlParserProperties;
+import java.util.List;
 import java.util.Map;
 import org.junit.jupiter.api.Test;
 import tools.jackson.core.JacksonException;
@@ -74,6 +75,24 @@ class YamlScalarCompatibilityTest {
     assertThat(scalar("0xFF")).isEqualTo(255);
     assertThat(scalar("1_000")).isEqualTo(1000);
     assertThat(scalar("'yes'")).isEqualTo("yes");
+  }
+
+  @Test
+  void numericTemplateDefaultsRetainJackson2TypesAndValues() throws Exception {
+    String doc =
+        "variables:\n"
+            + "- name: trailingDot\n  default: +1.\n"
+            + "- name: leadingZero\n  default: 01e3\n"
+            + "- name: exponentUnderscore\n  default: 1e_3\n";
+    List<Map<String, Object>> expected =
+        List.of(
+            Map.of("name", "trailingDot", "default", 1.0),
+            Map.of("name", "leadingZero", "default", 1000.0),
+            Map.of("name", "exponentUnderscore", "default", "1e_3"));
+
+    for (ObjectMapper mapper : List.of(yaml(), YamlObjectMapperFactory.create(source))) {
+      assertThat(mapper.readValue(doc, MAP).get("variables")).isEqualTo(expected);
+    }
   }
 
   /**

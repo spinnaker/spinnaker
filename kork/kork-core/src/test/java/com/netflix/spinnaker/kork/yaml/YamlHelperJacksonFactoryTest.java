@@ -144,6 +144,49 @@ class YamlHelperJacksonFactoryTest {
   }
 
   @Test
+  void goldenScalarsMatchTheJackson2ReferenceMapper() throws Exception {
+    com.fasterxml.jackson.dataformat.yaml.YAMLMapper jackson2 =
+        new com.fasterxml.jackson.dataformat.yaml.YAMLMapper();
+    for (String[] row : jackson2Golden()) {
+      String actual;
+      try {
+        Object value = jackson2.readValue("v: " + row[0], Map.class).get("v");
+        actual = value == null ? "null" : value.getClass().getSimpleName() + ":" + value;
+      } catch (com.fasterxml.jackson.core.JsonProcessingException e) {
+        actual = "ERR";
+      }
+      assertThat(actual).as(row[0]).isEqualTo(row[1]);
+    }
+  }
+
+  @Test
+  void numericFormsMatchJackson2AcrossFactoriesAndInputSources() throws Exception {
+    com.fasterxml.jackson.dataformat.yaml.YAMLMapper jackson2 =
+        new com.fasterxml.jackson.dataformat.yaml.YAMLMapper();
+    List<ObjectMapper> mappers =
+        List.of(
+            helperMapper,
+            helperMapper.rebuild().build(),
+            YAMLMapper.builder(YamlHelper.newYamlFactory()).build());
+    for (String scalar :
+        List.of("+1.", "-1.", "01e3", "+01e3", "-01e-3", "1e_3", "1.5e1_0", ".5e_3")) {
+      String doc = "v: " + scalar;
+      Map<?, ?> expected = jackson2.readValue(doc, Map.class);
+      byte[] bytes = doc.getBytes(StandardCharsets.UTF_8);
+      for (ObjectMapper mapper : mappers) {
+        assertThat(mapper.readValue(doc, Map.class)).as(scalar).isEqualTo(expected);
+        assertThat(mapper.readValue(new StringReader(doc), Map.class))
+            .as(scalar)
+            .isEqualTo(expected);
+        assertThat(mapper.readValue(bytes, Map.class)).as(scalar).isEqualTo(expected);
+        assertThat(mapper.readValue(new ByteArrayInputStream(bytes), Map.class))
+            .as(scalar)
+            .isEqualTo(expected);
+      }
+    }
+  }
+
+  @Test
   void jackson3AloneDisagreesWithJackson2OnMany() throws Exception {
     long different =
         jackson2Golden().stream().filter(r -> !describe(plainMapper, r[0]).equals(r[1])).count();
@@ -164,7 +207,18 @@ class YamlHelperJacksonFactoryTest {
     com.fasterxml.jackson.dataformat.yaml.YAMLMapper jackson2 =
         new com.fasterxml.jackson.dataformat.yaml.YAMLMapper();
     for (String scalar :
-        List.of("yes", "True", "0644", "0xFF", ".5", "+1", "1_000", "07777777777777777777777")) {
+        List.of(
+            "yes",
+            "True",
+            "0644",
+            "0xFF",
+            ".5",
+            "+1",
+            "1_000",
+            "07777777777777777777777",
+            "+1.",
+            "01e3",
+            "1e_3")) {
       String doc = "v: " + scalar;
       assertThat(helperMapper.readValue(doc, StringValue.class).v)
           .as(scalar)
@@ -206,14 +260,5 @@ class YamlHelperJacksonFactoryTest {
 
   static class StringValue {
     public String v;
-  }
-
-  @Test
-  void yaml11ScalarsCanBeDisabled() {
-    YamlParserProperties props = new YamlParserProperties();
-    props.setYaml11Scalars(false);
-    ObjectMapper yaml12 = YAMLMapper.builder(new YamlHelper(props).yamlFactory()).build();
-
-    assertThat(read(yaml12, "v: yes")).isEqualTo("{v=yes}");
   }
 }

@@ -156,8 +156,7 @@ public class YamlHelper {
             .build();
     YAMLFactoryBuilder builder =
         YAMLFactory.builder().loadSettings(settings).enable(YAMLReadFeature.EMPTY_STRING_AS_NULL);
-    boolean yaml11Scalars = props == null || !Boolean.FALSE.equals(props.getYaml11Scalars());
-    return yaml11Scalars ? new Yaml11CompatYAMLFactory(builder) : builder.build();
+    return new Yaml11CompatYAMLFactory(builder);
   }
 
   // ---------------------------------------------------------------------------
