@@ -31,7 +31,6 @@ describe('<Triggers />', () => {
       application: ApplicationModelBuilder.createApplicationForTests('products'),
       fieldUpdated: jasmine.createSpy('fieldUpdated'),
       updatePipelineConfig: jasmine.createSpy('updatePipelineConfig'),
-      revertCount: 0,
     };
   });
 
