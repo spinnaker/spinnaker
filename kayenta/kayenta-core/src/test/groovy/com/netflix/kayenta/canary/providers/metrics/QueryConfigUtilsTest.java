@@ -47,7 +47,7 @@ public class QueryConfigUtilsTest {
       expandCustomFilter_returnsExpandedTemplateWithExtractedBaseScopeAttributesFromFilterTemplate() {
     CanaryConfig canaryConfig = CanaryConfig.builder().build();
     TestCanaryMetricSetQueryConfig metricSetQuery = new TestCanaryMetricSetQueryConfig();
-    metricSetQuery.setCustomInlineTemplate(
+    metricSetQuery.setTemplate(
         "test template ${p1} ${p2} ${scope} ${location} ${serviceType} $\\{p1} $\\{p2}");
     metricSetQuery.setServiceType("my-service-type");
     CanaryScope canaryScope =
@@ -84,7 +84,11 @@ public class QueryConfigUtilsTest {
     CanaryScope canaryScope =
         CanaryScope.builder().extendedScopeParam("p1", "v1").extendedScopeParam("p2", "v2").build();
     String[] baseScopeAttribute = {};
-    when(metricSetQuery.getCustomFilterTemplate()).thenReturn("test-template");
+    // The mock stands in for AbstractCanaryMetricSetQueryConfig#getTemplate(CanaryConfig), which
+    // is responsible for resolving customFilterTemplate against canaryConfig.getTemplates() and
+    // unescaping the result -- so the stub returns the already-resolved/unescaped text directly.
+    when(metricSetQuery.getTemplate(canaryConfig))
+        .thenReturn("test template ${p1} ${p2} ${p1} ${p2}");
 
     String actual =
         QueryConfigUtils.expandCustomFilter(
@@ -101,8 +105,8 @@ public class QueryConfigUtilsTest {
     CanaryScope canaryScope =
         CanaryScope.builder().extendedScopeParam("p1", "v1").extendedScopeParam("p2", "v2").build();
     String[] baseScopeAttribute = {};
-    when(metricSetQuery.getCustomInlineTemplate())
-        .thenReturn("test template ${p1} ${p2} $\\{p1} $\\{p2}");
+    when(metricSetQuery.getTemplate(canaryConfig))
+        .thenReturn("test template ${p1} ${p2} ${p1} ${p2}");
 
     String actual =
         QueryConfigUtils.expandCustomFilter(
@@ -118,7 +122,7 @@ public class QueryConfigUtilsTest {
     CanaryScope canaryScope =
         CanaryScope.builder().extendedScopeParam("p1", "v1").extendedScopeParam("p2", "v2").build();
     String[] baseScopeAttribute = {};
-    when(metricSetQuery.getCustomInlineTemplate())
+    when(metricSetQuery.getTemplate(canaryConfig))
         .thenReturn("test template ${unknown-param} ${p2}");
 
     assertThatThrownBy(
