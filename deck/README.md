@@ -59,6 +59,16 @@ API_HOST=http://localhost:8084 pnpm start
 To build the application, run `pnpm modules && pnpm typecheck && pnpm build`.
 The packaged application is written to `packages/app/dist`.
 
+### Container assets
+
+Both `Dockerfile.slim` (Debian) and `Dockerfile.ubuntu` pre-compress JavaScript and CSS with Brotli and gzip when
+building the image. Apache serves the compressed sibling accepted by the browser, preferring Brotli, over HTTP
+and HTTPS. Clients that do not accept either encoding receive the original file. Responses include
+`Vary: Accept-Encoding`, and assets with Vite content hashes are cached for one year.
+
+Runtime-injected `settings*.js` files and source maps are excluded from pre-compression. Settings retain their
+original names and are read from `/opt/spinnaker/config` at startup as usual.
+
 ## Graphql
 
 the `core` package is using graphql queries and mutation to interact with the backend (currently, only the `managed` components).

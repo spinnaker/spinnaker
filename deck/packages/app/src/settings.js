@@ -59,7 +59,10 @@ const multiBlockFailureMessagesEnabled =
 const onDemandClusterThreshold =
   import.meta.env.VITE_ON_DEMAND_CLUSTER_THRESHOLD || process.env.ON_DEMAND_CLUSTER_THRESHOLD || '350';
 const reduxLoggerEnabled = import.meta.env.VITE_REDUX_LOGGER === 'true' || process.env.REDUX_LOGGER === 'true';
-const templatesEnabled = import.meta.env.VITE_TEMPLATES_ENABLED === 'true' || process.env.TEMPLATES_ENABLED === 'true';
+// On by default; set TEMPLATES_ENABLED=false to keep showing only the deprecated Guided forms.
+const templatesEnabled = !(
+  import.meta.env.VITE_TEMPLATES_ENABLED === 'false' || process.env.TEMPLATES_ENABLED === 'false'
+);
 const useClassicFirewallLabels =
   import.meta.env.VITE_USE_CLASSIC_FIREWALL_LABELS === 'true' || process.env.USE_CLASSIC_FIREWALL_LABELS === 'true';
 const helmApiVersionsEnabled =
@@ -107,6 +110,7 @@ window.spinnakerSettings = {
     'oracle',
     'tencentcloud',
   ],
+  defaultTheme: process.env.DEFAULT_THEME || 'light', // 'light' | 'dark' | 'system'; users can override from the header menu
   defaultTimeZone: process.env.TIMEZONE || 'America/Los_Angeles', // see http://momentjs.com/timezone/docs/#/data-utilities/
   disabledImages: [],
   entityTags: {

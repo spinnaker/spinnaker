@@ -56,6 +56,21 @@ describe('Execution Options Page Content', () => {
         expect(pipeline.keepWaitingPipelines).toBeTruthy();
       });
 
+      it('enables limitConcurrent and keepWaitingPipelines in one update', async () => {
+        const user = setupUser();
+        setPipeline();
+        const rendered = pipeline;
+        // Like the pipeline editor, each update starts from the pipeline of the last render
+        const updateFromRender = (changes: any) => {
+          pipeline = { ...rendered, ...changes };
+        };
+        render(<ExecutionOptionsPageContent pipeline={rendered} updatePipelineConfig={updateFromRender} />);
+        await user.click(screen.getByRole('checkbox', { name: /Disable concurrent pipeline executions/ }));
+        expect(pipeline.limitConcurrent).toBe(true);
+        expect(pipeline.keepWaitingPipelines).toBe(true);
+        expect(rendered.keepWaitingPipelines).toBe(false);
+      });
+
       it('defaults the max concurrent value to 0', async () => {
         const user = setupUser();
         setPipeline();
@@ -79,6 +94,42 @@ describe('Execution Options Page Content', () => {
       render(<ExecutionOptionsPageContent pipeline={pipeline} updatePipelineConfig={update} />);
       fireEvent.change(screen.getByRole('spinbutton'), { target: { value } });
       expect(pipeline.maxConcurrentExecutions).toEqual(3);
+    });
+
+    it('stores 0 when the max concurrent input is cleared', () => {
+      setPipeline({ maxConcurrentExecutions: 4 });
+      render(<ExecutionOptionsPageContent pipeline={pipeline} updatePipelineConfig={update} />);
+      fireEvent.change(screen.getByRole('spinbutton'), { target: { value: '' } });
+      expect(pipeline.maxConcurrentExecutions).toEqual(0);
+    });
+
+    it('follows max concurrent changes made outside the input', () => {
+      setPipeline({ maxConcurrentExecutions: 2 });
+      const { rerender } = render(<ExecutionOptionsPageContent pipeline={pipeline} updatePipelineConfig={update} />);
+      rerender(
+        <ExecutionOptionsPageContent
+          pipeline={{ ...pipeline, maxConcurrentExecutions: 5 }}
+          updatePipelineConfig={update}
+        />,
+      );
+      expect(screen.getByRole('spinbutton')).toHaveValue(5);
+    });
+
+    it('keeps the typed max concurrent value when the pipeline prop is not updated', () => {
+      setPipeline({ maxConcurrentExecutions: 2 });
+      render(<ExecutionOptionsPageContent pipeline={pipeline} updatePipelineConfig={update} />);
+      fireEvent.change(screen.getByRole('spinbutton'), { target: { value: 7 } });
+      expect(screen.getByRole('spinbutton')).toHaveValue(7);
+    });
+
+    it('shows the pipeline value when the pipeline is replaced with the same value', () => {
+      setPipeline({ maxConcurrentExecutions: 2 });
+      const replacement = { ...pipeline };
+      const { rerender } = render(<ExecutionOptionsPageContent pipeline={pipeline} updatePipelineConfig={update} />);
+      fireEvent.change(screen.getByRole('spinbutton'), { target: { value: 7 } });
+      // Like a revert in a templated pipeline, whose pipeline prop never had the typed value
+      rerender(<ExecutionOptionsPageContent pipeline={replacement} updatePipelineConfig={update} />);
+      expect(screen.getByRole('spinbutton')).toHaveValue(2);
     });
   });
 });
