@@ -20,6 +20,10 @@ import tools.jackson.databind.node.JsonNodeFactory
 import tools.jackson.databind.json.JsonMapper
 import tools.jackson.databind.module.SimpleModule
 import com.netflix.spinnaker.orca.api.pipeline.models.Trigger
+import com.netflix.spinnaker.orca.api.pipeline.models.ExecutionType
+import com.netflix.spinnaker.orca.jackson.OrcaObjectMapper
+import com.netflix.spinnaker.orca.pipeline.model.PipelineExecutionImpl
+import com.netflix.spinnaker.orca.pipeline.model.PipelineTrigger
 import com.netflix.spinnaker.orca.pipeline.model.support.TriggerDeserializer
 import com.netflix.spinnaker.orca.sql.pipeline.persistence.PipelineRefTrigger
 import dev.minutest.junit.JUnit5Minutests
@@ -27,8 +31,84 @@ import dev.minutest.rootContext
 import org.junit.jupiter.api.Assertions.assertTrue
 import org.junit.jupiter.api.Assertions.assertFalse
 import org.junit.jupiter.api.Assertions.assertEquals
+import org.junit.jupiter.api.Test
+import org.junit.jupiter.params.ParameterizedTest
+import org.junit.jupiter.params.provider.ValueSource
+import tools.jackson.databind.ObjectMapper
+import tools.jackson.databind.node.ObjectNode
 
 class PipelineRefTriggerDeserializerSupplierTest : JUnit5Minutests {
+
+  @ParameterizedTest
+  @ValueSource(booleans = [false, true])
+  fun `production mapper preserves flattened reference metadata across stores`(enabled: Boolean) {
+    withProductionMapper(enabled) { mapper ->
+      val metadata = mapOf("extra1" to "value1", "details" to mapOf("count" to 2))
+      var trigger: Trigger = PipelineRefTrigger(
+        user = "test-user",
+        parameters = mutableMapOf("parameter" to "value"),
+        parentExecutionId = "parent-execution-id",
+        parentPipelineStageId = "parent-stage-id"
+      ).apply { metadata.forEach { (key, value) -> setOther(key, value) } }
+
+      repeat(2) {
+        trigger = mapper.convertValue(trigger, Trigger::class.java)
+        assertEquals(metadata, trigger.other)
+        val stored = mapper.writeValueAsString(trigger)
+        assertFalse(mapper.readTree(stored).has("other"))
+        trigger = mapper.readValue(stored, Trigger::class.java)
+        assertEquals(metadata, trigger.other)
+      }
+
+      assertEquals("parent-execution-id", (trigger as PipelineRefTrigger).parentExecutionId)
+      assertEquals("parent-stage-id", (trigger as PipelineRefTrigger).parentPipelineStageId)
+      assertEquals("test-user", trigger.user)
+      assertEquals(mapOf("parameter" to "value"), trigger.parameters)
+    }
+  }
+
+  @Test
+  fun `production mapper preserves metadata when converting a pipeline to a reference`() {
+    withProductionMapper(true) { mapper ->
+      val parent = PipelineExecutionImpl(ExecutionType.PIPELINE, "test-application")
+      val trigger = PipelineTrigger(parentExecution = parent).apply {
+        setOther("extra1", "value1")
+      }
+
+      val reference = mapper.convertValue(trigger, Trigger::class.java) as PipelineRefTrigger
+      assertEquals(parent.id, reference.parentExecutionId)
+      assertEquals(mapOf("extra1" to "value1"), reference.other)
+      val stored = mapper.writeValueAsString(reference)
+      assertFalse(mapper.readTree(stored).has("parentExecution"))
+      val loaded = mapper.readValue(stored, Trigger::class.java) as PipelineRefTrigger
+      assertEquals(mapOf("extra1" to "value1"), loaded.toPipelineTrigger(parent).other)
+    }
+  }
+
+  @ParameterizedTest
+  @ValueSource(booleans = [false, true])
+  fun `production mapper merges legacy nested metadata with flattened fields`(enabled: Boolean) {
+    withProductionMapper(enabled) { mapper ->
+      val node = mapper.valueToTree<ObjectNode>(PipelineRefTrigger(parentExecutionId = "parent"))
+      node.putObject("other").put("legacy", "value").put("shared", "nested")
+      node.put("shared", "flattened")
+      node.putNull("nullExtra")
+
+      val trigger = mapper.treeToValue(node, Trigger::class.java) as PipelineRefTrigger
+      assertEquals(mapOf("legacy" to "value", "shared" to "flattened", "nullExtra" to null), trigger.other)
+      assertEquals("parent", trigger.parentExecutionId)
+    }
+  }
+
+  private fun withProductionMapper(enabled: Boolean, action: (ObjectMapper) -> Unit) {
+    val supplier = PipelineRefTriggerDeserializerSupplier(enabled)
+    TriggerDeserializer.customTriggerSuppliers.add(supplier)
+    try {
+      action(OrcaObjectMapper.newInstance())
+    } finally {
+      TriggerDeserializer.customTriggerSuppliers.remove(supplier)
+    }
+  }
 
   fun tests() = rootContext {
     context("pipelineRef feature is disabled") {
