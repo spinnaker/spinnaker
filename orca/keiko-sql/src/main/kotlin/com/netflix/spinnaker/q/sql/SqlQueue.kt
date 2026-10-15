@@ -61,6 +61,7 @@ import org.slf4j.LoggerFactory
 import org.springframework.scheduling.annotation.Scheduled
 import tools.jackson.databind.ObjectMapper
 import tools.jackson.databind.SerializationFeature
+import tools.jackson.databind.cfg.EnumFeature
 import tools.jackson.databind.json.JsonMapper
 import tools.jackson.module.kotlin.readValue
 
@@ -96,6 +97,7 @@ class SqlQueue(
 
     private val hashObjectMapper = JsonMapper.builder()
       .enable(SerializationFeature.ORDER_MAP_ENTRIES_BY_KEYS)
+      .disable(EnumFeature.WRITE_ENUMS_USING_TO_STRING)
       .build()
 
     private val lockedAtRegex =

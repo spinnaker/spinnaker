@@ -19,6 +19,7 @@ import redis.clients.jedis.exceptions.JedisException
 import redis.clients.jedis.commands.JedisCommands
 import tools.jackson.databind.ObjectMapper
 import tools.jackson.databind.SerializationFeature
+import tools.jackson.databind.cfg.EnumFeature
 import tools.jackson.databind.json.JsonMapper
 
 abstract class AbstractRedisQueue(
@@ -44,6 +45,7 @@ abstract class AbstractRedisQueue(
   // Internal ObjectMapper that enforces deterministic property ordering for use only in hashing.
   private val hashObjectMapper = JsonMapper.builder()
     .enable(SerializationFeature.ORDER_MAP_ENTRIES_BY_KEYS)
+    .disable(EnumFeature.WRITE_ENUMS_USING_TO_STRING)
     .build()
 
   abstract fun cacheScript()

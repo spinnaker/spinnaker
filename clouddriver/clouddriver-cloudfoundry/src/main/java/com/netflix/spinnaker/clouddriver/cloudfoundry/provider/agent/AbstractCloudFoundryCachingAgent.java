@@ -50,7 +50,10 @@ abstract class AbstractCloudFoundryCachingAgent
     implements CachingAgent, OnDemandAgent, AccountAware {
   private final String providerName = CloudFoundryProvider.class.getName();
   private static final ObjectMapper cacheViewMapper =
-      JsonMapper.builder().disable(MapperFeature.DEFAULT_VIEW_INCLUSION).build();
+      JsonMapper.builder()
+          .disable(MapperFeature.DEFAULT_VIEW_INCLUSION)
+          .defaultSerializationView(Views.Cache.class)
+          .build();
 
   private final OnDemandMetricsSupport metricsSupport;
   private final Clock internalClock;

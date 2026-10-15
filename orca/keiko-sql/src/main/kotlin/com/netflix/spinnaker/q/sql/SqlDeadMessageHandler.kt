@@ -23,6 +23,7 @@ import org.jooq.util.mysql.MySQLDSL
 import org.slf4j.LoggerFactory
 import tools.jackson.databind.ObjectMapper
 import tools.jackson.databind.SerializationFeature
+import tools.jackson.databind.cfg.EnumFeature
 import tools.jackson.databind.json.JsonMapper
 
 class SqlDeadMessageHandler(
@@ -38,6 +39,7 @@ class SqlDeadMessageHandler(
     @Suppress("UnstableApiUsage")
     private val hashObjectMapper = JsonMapper.builder()
       .enable(SerializationFeature.ORDER_MAP_ENTRIES_BY_KEYS)
+      .disable(EnumFeature.WRITE_ENUMS_USING_TO_STRING)
       .build()
 
     private val nameSanitization =

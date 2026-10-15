@@ -21,22 +21,35 @@ class SecurityGroupSpecDeserializer : StdNodeBasedDeserializer<SecurityGroupSpec
       context.readTreeAsValue<SimpleLocations>(it, SimpleLocations::class.java)
     } ?: context.findInjectableValue("locations")
 
+    val previousName = context.getAttribute("name")
+    val previousLocations = context.getAttribute("locations")
     context.setAttribute("name", moniker.name)
     context.setAttribute("locations", locations)
 
-    val inboundRules: Set<SecurityGroupRule> = root.get("inboundRules")?.let {
-      context.readTreeAsValue<Set<SecurityGroupRule>>(it, context.typeFactory.constructType(object : TypeReference<Set<SecurityGroupRule>>() {}))
-    } ?: emptySet()
-    val overrides: Map<String, SecurityGroupOverride> = root.get("overrides")?.let {
-      context.readTreeAsValue<Map<String, SecurityGroupOverride>>(it, context.typeFactory.constructType(object : TypeReference<Map<String, SecurityGroupOverride>>() {}))
-    } ?: emptyMap()
+    return try {
+      val inboundRules: Set<SecurityGroupRule> = root.get("inboundRules")?.let {
+        context.readTreeAsValue<Set<SecurityGroupRule>>(
+          it,
+          context.typeFactory.constructType(object : TypeReference<Set<SecurityGroupRule>>() {})
+        )
+      } ?: emptySet()
+      val overrides: Map<String, SecurityGroupOverride> = root.get("overrides")?.let {
+        context.readTreeAsValue<Map<String, SecurityGroupOverride>>(
+          it,
+          context.typeFactory.constructType(object : TypeReference<Map<String, SecurityGroupOverride>>() {})
+        )
+      } ?: emptyMap()
 
-    return SecurityGroupSpec(
-      moniker = moniker,
-      locations = locations,
-      description = root.get("description")?.textValue(),
-      inboundRules = inboundRules,
-      overrides = overrides
-    )
+      SecurityGroupSpec(
+        moniker = moniker,
+        locations = locations,
+        description = root.get("description")?.textValue(),
+        inboundRules = inboundRules,
+        overrides = overrides
+      )
+    } finally {
+      context.setAttribute("name", previousName)
+      context.setAttribute("locations", previousLocations)
+    }
   }
 }
