@@ -32,28 +32,28 @@ import org.springframework.stereotype.Component
 
 @Slf4j
 @Component
-class MonitorQueuedJenkinsJobTask implements OverridableTimeoutRetryableTask {
+class MonitorQueuedBuildJobTask implements OverridableTimeoutRetryableTask {
   private final BuildService buildService
   private final String wwwBaseUrl
 
   @Autowired
-  MonitorQueuedJenkinsJobTask(BuildService buildService, @Value("\${spinnaker.base-url.www:}") String wwwBaseUrl) {
+  MonitorQueuedBuildJobTask(BuildService buildService, @Value("\${spinnaker.base-url.www:}") String wwwBaseUrl) {
     this.buildService = buildService
     this.wwwBaseUrl = wwwBaseUrl
   }
 
   @Override
   TaskResult execute(StageExecution stage) {
-    String jenkinsController = stage.context.master
+    String master = stage.context.master
     String jobName = stage.context.job
     String queuedBuild = stage.context.queuedBuild
 
     try {
-      Map<String, Object> build = buildService.queuedBuild(jenkinsController, queuedBuild)
+      Map<String, Object> build = buildService.queuedBuild(master, queuedBuild)
       if (build?.number == null) {
         return TaskResult.ofStatus(ExecutionStatus.RUNNING)
       } else {
-        createBacklink(stage, jenkinsController, jobName, build.number as Integer)
+        createBacklink(stage, master, jobName, build.number as Integer)
         return TaskResult.builder(ExecutionStatus.SUCCEEDED).context([buildNumber: build.number]).build()
       }
     } catch (SpinnakerHttpException e) {
@@ -76,23 +76,23 @@ class MonitorQueuedJenkinsJobTask implements OverridableTimeoutRetryableTask {
   }
 
   /**
-   * Update the description of a running Jenkins build and provide a deep link back to the particular execution in
-   * Spinnaker.
+   * Update the description of a running CI build and provide a deep link back to the particular
+   * execution in Spinnaker.
    *
    * Requires that `wwwHost` be specified _and_ that the build is running (vs. queued).
    */
   private void createBacklink(StageExecution stageExecution,
-                              String jenkinsController,
+                              String master,
                               String jobName,
                               Integer buildNumber) {
     if (wwwBaseUrl == null || wwwBaseUrl.isEmpty()) {
-      log.info("Not creating backlink from Jenkins to Spinnaker, see https://spinnaker.io/setup/ci/jenkins/ for more info")
+      log.info("Not creating backlink to Spinnaker, see https://spinnaker.io/docs/setup/other_config/ci/ for more info")
       return
     }
 
     try {
       buildService.updateBuild(
-          jenkinsController,
+          master,
           jobName,
           buildNumber,
           new IgorService.UpdatedBuild(
@@ -106,7 +106,7 @@ class MonitorQueuedJenkinsJobTask implements OverridableTimeoutRetryableTask {
           )
       )
     } catch (Exception e) {
-      log.warn("Unable to update build description on {}:{}:{}", jenkinsController, jobName, buildNumber, e)
+      log.warn("Unable to update build description on {}:{}:{}", master, jobName, buildNumber, e)
     }
   }
 }
