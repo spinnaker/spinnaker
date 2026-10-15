@@ -182,7 +182,8 @@ class MissedPipelineTriggerCompensationJob implements ApplicationListener<Contex
       try {
         return getLastValidTimeInWindow(trigger, dateContext) != null
       } catch (Exception e) {
-        log.warn("Skipping cron trigger ${trigger.id} with an invalid expression (${trigger.cronExpression})", e)
+        log.warn("Skipping cron trigger ${trigger.id} for pipeline ${trigger.parent?.application}:${trigger.parent?.name} (${trigger.parent?.id}). " +
+          "Its CRON expression '${trigger.cronExpression}' can't be evaluated", e)
         return false
       }
     })
