@@ -139,6 +139,7 @@ public class StageExecutionImpl implements StageExecution, Serializable {
     this.requisiteStageRefIds =
         Optional.ofNullable((Collection<String>) context.remove("requisiteStageRefIds"))
             .orElse(emptySet());
+    this.additionalMetricTags = (Map<String, String>) context.remove("additionalMetricTags");
 
     this.context.putAll(context);
   }
