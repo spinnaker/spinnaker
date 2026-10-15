@@ -31,9 +31,9 @@ import spock.lang.Specification
 import spock.lang.Subject
 import spock.lang.Unroll
 
-class MonitorJenkinsJobTaskSpec extends Specification {
+class MonitorBuildJobTaskSpec extends Specification {
   @Subject
-  MonitorJenkinsJobTask task = new MonitorJenkinsJobTask()
+  MonitorBuildJobTask task = new MonitorBuildJobTask()
 
   @Shared
   def pipeline = PipelineExecutionImpl.newPipeline("orca")
@@ -178,11 +178,11 @@ class MonitorJenkinsJobTaskSpec extends Specification {
     }
 
     where:
-    jobState                                        || expectedErrorMessage
-    MonitorJenkinsJobTask.JenkinsJobStatus.ABORTED  || "Job was aborted (see Jenkins)"
-    MonitorJenkinsJobTask.JenkinsJobStatus.FAILURE  || "Job failed (see Jenkins)"
-    MonitorJenkinsJobTask.JenkinsJobStatus.SUCCESS  || false
-    MonitorJenkinsJobTask.JenkinsJobStatus.UNSTABLE || "Job is unstable"
+    jobState                                      || expectedErrorMessage
+    MonitorBuildJobTask.BuildJobStatus.ABORTED  || "Job was aborted"
+    MonitorBuildJobTask.BuildJobStatus.FAILURE  || "Job failed"
+    MonitorBuildJobTask.BuildJobStatus.SUCCESS  || false
+    MonitorBuildJobTask.BuildJobStatus.UNSTABLE || "Job is unstable"
   }
 
   static SpinnakerHttpException makeSpinnakerHttpException(int status) {

@@ -37,7 +37,7 @@ import javax.annotation.Nonnull
 import java.time.Duration
 
 @Component
-class StartJenkinsJobTask implements RetryableTask {
+class StartBuildJobTask implements RetryableTask {
   private final Logger log = LoggerFactory.getLogger(getClass())
 
   @Autowired
@@ -73,16 +73,16 @@ class StartJenkinsJobTask implements RetryableTask {
     }
     catch (SpinnakerServerException e){
       // This igor call is idempotent so we can retry despite it being PUT/POST
-      ExceptionHandler.Response exceptionResponse = spinnakerServerExceptionHandler.handle("StartJenkinsJob", e)
+      ExceptionHandler.Response exceptionResponse = spinnakerServerExceptionHandler.handle("StartBuildJob", e)
 
       if (exceptionResponse.shouldRetry) {
-        log.warn("Failure communicating with igor to start a jenkins job, will retry", e)
+        log.warn("Failure communicating with igor to start build job=$job on master=$master, will retry", e)
         return TaskResult.RUNNING
       }
       throw e
     }
 
-    throw new SystemException("Failure starting jenkins job")
+    throw new SystemException("Failure starting build job=$job on master=$master")
   }
 
   @Override

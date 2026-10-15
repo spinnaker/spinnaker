@@ -32,10 +32,10 @@ import spock.lang.Specification
 import spock.lang.Subject
 import tools.jackson.databind.json.JsonMapper
 
-class StartJenkinsJobTaskSpec extends Specification {
+class StartBuildJobTaskSpec extends Specification {
 
   @Subject
-  StartJenkinsJobTask task = new StartJenkinsJobTask()
+  StartBuildJobTask task = new StartBuildJobTask()
 
   void setup(){
     task.objectMapper = Mock(ObjectMapper) {
