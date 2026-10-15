@@ -23,6 +23,7 @@ dependencies {
   implementation "com.fasterxml.jackson.core:jackson-databind"
   implementation "io.micrometer:micrometer-core"
   implementation "io.spinnaker.kork:kork-core"
+  implementation "io.spinnaker.kork:kork-pubsub"
   implementation "org.jooq:jooq"
   implementation "org.springframework.boot:spring-boot-starter-web"
   implementation "io.spinnaker.kork:kork-jedis"
@@ -34,6 +35,9 @@ dependencies {
   testImplementation "com.h2database:h2"
   testImplementation "org.assertj:assertj-core"
   testImplementation "org.junit.jupiter:junit-jupiter-api"
+  testImplementation "org.mockito:mockito-core"
+  testImplementation "org.springframework:spring-test"
+  testImplementation "org.awaitility:awaitility"
 }
 
 test {

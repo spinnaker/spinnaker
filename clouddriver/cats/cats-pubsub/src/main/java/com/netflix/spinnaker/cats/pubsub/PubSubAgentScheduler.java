@@ -10,6 +10,7 @@ import com.netflix.spinnaker.cats.module.CatsModuleAware;
 import com.netflix.spinnaker.cats.provider.ProviderRegistry;
 import com.netflix.spinnaker.clouddriver.config.PubSubSchedulerProperties;
 import com.netflix.spinnaker.kork.annotations.Alpha;
+import com.netflix.spinnaker.kork.pubsub.model.MessageChannel;
 import io.micrometer.core.instrument.MeterRegistry;
 import io.micrometer.core.instrument.Tag;
 import io.micrometer.core.instrument.Tags;
@@ -23,10 +24,9 @@ import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicLong;
 import lombok.extern.log4j.Log4j2;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.context.annotation.Lazy;
-import org.springframework.data.redis.connection.stream.StreamInfo;
-import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
 import org.springframework.util.StopWatch;
@@ -43,9 +43,9 @@ import org.springframework.util.StopWatch;
  * will ALSO update the state.
  *
  * <p>This implementation publishes execution requests to a redis STREAM consumed through a consumer
- * group ({@link PubSubAgentRunner#CONSUMER_GROUP}): each record is delivered to exactly one
- * consumer, records are durable across replica restarts, and runners pull work only when they have
- * free capacity.
+ * group ({@link PubSubAgentRunner#CONSUMER_GROUP}): each record is delivered to one competing
+ * consumer during normal operation, with redelivery possible after consumer failure; records are
+ * durable across replica restarts, and runners pull work only when they have free capacity.
  *
  * <p>Coordination notes: EVERY replica runs this poller (there is no leader election). Correctness
  * relies on the conditional state transitions in {@link StateMachine#tryTransition}: a record is
@@ -67,7 +67,11 @@ public class PubSubAgentScheduler extends CatsModuleAware implements Runnable, A
   @Autowired private StateMachine stateMachine;
   @Autowired private AgentIntervalProvider intervalProvider;
   @Autowired @Lazy public ProviderRegistry providerRegistry;
-  @Autowired StringRedisTemplate redisTemplate;
+
+  @Autowired
+  @Qualifier("agentExecutionChannel")
+  MessageChannel messageChannel;
+
   @Autowired PubSubSchedulerProperties properties;
   @Autowired MeterRegistry meterRegistry;
 
@@ -335,7 +339,7 @@ public class PubSubAgentScheduler extends CatsModuleAware implements Runnable, A
 
   /** Publish an execution request for an agent onto the stream. */
   private void enqueue(String agentType) {
-    redisTemplate.opsForStream().add(STREAM_KEY, Map.of(AGENT_TYPE_FIELD, agentType));
+    messageChannel.publish("", Map.of(AGENT_TYPE_FIELD, agentType));
   }
 
   /**
@@ -346,7 +350,7 @@ public class PubSubAgentScheduler extends CatsModuleAware implements Runnable, A
    */
   private void trimStream() {
     try {
-      redisTemplate.opsForStream().trim(STREAM_KEY, properties.getStreamMaxLength(), true);
+      messageChannel.trim(properties.getStreamMaxLength());
     } catch (Exception e) {
       log.warn("Unable to trim the agent stream", e);
     }
@@ -389,19 +393,10 @@ public class PubSubAgentScheduler extends CatsModuleAware implements Runnable, A
    */
   private void publishStreamGauges() {
     try {
-      Long depth = redisTemplate.opsForStream().size(STREAM_KEY);
-      streamGauge("stream-depth", "cats.pubsub.stream.depth").set(depth == null ? 0 : depth);
-      StreamInfo.XInfoGroups groups = redisTemplate.opsForStream().groups(STREAM_KEY);
-      groups.stream()
-          .filter(group -> PubSubAgentRunner.CONSUMER_GROUP.equals(group.groupName()))
-          .findFirst()
-          .ifPresent(
-              group -> {
-                streamGauge("stream-pending", "cats.pubsub.stream.pending")
-                    .set(group.pendingCount());
-                streamGauge("stream-consumers", "cats.pubsub.stream.consumers")
-                    .set(group.consumerCount());
-              });
+      MessageChannel.Statistics statistics = messageChannel.statistics();
+      streamGauge("stream-depth", "cats.pubsub.stream.depth").set(statistics.depth());
+      streamGauge("stream-pending", "cats.pubsub.stream.pending").set(statistics.pending());
+      streamGauge("stream-consumers", "cats.pubsub.stream.consumers").set(statistics.consumers());
     } catch (Exception e) {
       // Expected until the stream and consumer group exist (first startup).
       log.debug("Unable to publish stream gauges: {}", e.getMessage());

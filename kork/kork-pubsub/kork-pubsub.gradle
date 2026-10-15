@@ -19,4 +19,11 @@ dependencies {
   api(platform(project(":spinnaker-dependencies")))
 
   implementation project(':kork-core')
+  api 'org.springframework.data:spring-data-redis'
+
+  testImplementation 'org.springframework.boot:spring-boot-starter-data-redis'
+  testImplementation 'org.junit.jupiter:junit-jupiter-api'
+  testImplementation 'org.assertj:assertj-core'
+  testImplementation 'org.testcontainers:testcontainers'
+  testImplementation 'org.awaitility:awaitility'
 }

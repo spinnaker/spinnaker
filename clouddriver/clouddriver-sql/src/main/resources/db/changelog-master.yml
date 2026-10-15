@@ -35,3 +35,6 @@ databaseChangeLog:
 - include:
     file: changelog/20261001-task-ordering.yml
     relativeToChangelogFile: true
+- include:
+    file: changelog/20261013-account-notifications.yml
+    relativeToChangelogFile: true

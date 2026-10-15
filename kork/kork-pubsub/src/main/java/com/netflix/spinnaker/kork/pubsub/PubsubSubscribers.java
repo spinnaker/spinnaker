@@ -17,16 +17,20 @@
 package com.netflix.spinnaker.kork.pubsub;
 
 import com.netflix.spinnaker.kork.pubsub.model.PubsubSubscriber;
-import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
+import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.stream.Collectors;
 
 public class PubsubSubscribers {
-  private List<PubsubSubscriber> subscribers = new ArrayList<>();
+  private List<PubsubSubscriber> subscribers = new CopyOnWriteArrayList<>();
 
   public void putAll(List<PubsubSubscriber> newEntries) {
     subscribers.addAll(newEntries);
+  }
+
+  public void remove(PubsubSubscriber subscriber) {
+    subscribers.remove(subscriber);
   }
 
   public List<PubsubSubscriber> getAll() {

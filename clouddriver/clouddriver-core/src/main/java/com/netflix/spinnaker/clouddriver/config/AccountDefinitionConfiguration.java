@@ -199,11 +199,18 @@ public class AccountDefinitionConfiguration {
      */
     private List<String> additionalScanPackages = List.of();
 
-    // TODO(jvz): accounts pubsub config for https://github.com/spinnaker/kork/pull/958
-    //  - @Import(PubsubConfig.class)
-    //  - CredentialsDefinitionNotifier bean
-    //  - AccountDefinitionProcessor bean
-    //  - account.storage.topic property for accounts pubsub topic
-    //  - @CredentialsType javadoc
+    private Pubsub pubsub = new Pubsub();
+
+    @Data
+    public static class Pubsub {
+      /** Opt in to Redis broadcast refresh instead of periodic credential polling. Requires SQL. */
+      private boolean enabled;
+
+      /** All Clouddriver replicas sharing the account database must use the same topic. */
+      private String topic = "clouddriver-account-definitions";
+
+      private long reclaimIdleMs = 60_000;
+      private long streamMaxLength = 100_000;
+    }
   }
 }

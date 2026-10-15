@@ -1,0 +1,17 @@
+databaseChangeLog:
+- changeSet:
+    id: account-notifications-outbox
+    author: spinnaker.io
+    changes:
+    - createTable:
+        tableName: account_notifications
+        columns:
+        - column:
+            name: id
+            type: varchar(36)
+            constraints:
+              primaryKey: true
+              nullable: false
+    rollback:
+    - dropTable:
+        tableName: account_notifications

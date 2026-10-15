@@ -23,6 +23,7 @@ dependencies {
   implementation project(":clouddriver-event")
 
   implementation "io.spinnaker.kork:kork-core"
+  implementation "io.spinnaker.kork:kork-pubsub"
   implementation "io.spinnaker.kork:kork-secrets"
   implementation "io.spinnaker.kork:kork-sql"
   implementation "io.spinnaker.kork:kork-telemetry"
@@ -37,6 +38,8 @@ dependencies {
   testImplementation project(":clouddriver-core-tck")
 
   testImplementation "io.spinnaker.kork:kork-sql-test"
+  testImplementation "org.springframework.boot:spring-boot-starter-data-redis"
+  testImplementation "org.awaitility:awaitility"
   testImplementation "io.spinnaker.kork:kork-web"
   testImplementation "org.testcontainers:testcontainers-mysql"
   testImplementation "com.mysql:mysql-connector-j"
