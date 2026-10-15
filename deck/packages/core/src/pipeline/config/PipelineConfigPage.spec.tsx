@@ -3,6 +3,7 @@ import { hashLocationPlugin, servicesPlugin, UIRouterContext, UIRouterReact } fr
 import { act, cleanup, fireEvent, render, screen, waitFor, within } from '@testing-library/react';
 import type { RenderResult } from '@testing-library/react';
 import { setupUser } from '../../utils/testUtils/userEvent';
+import ace from 'ace-builds';
 import $ from 'jquery';
 import { cloneDeep } from 'lodash';
 import React from 'react';
@@ -17,7 +18,7 @@ import { createDeckRuntime } from '../../bootstrap/DeckRuntime';
 import { DeckRuntimeContext } from '../../bootstrap/DeckRuntimeContext';
 import { ViewStateCache } from '../../cache';
 import { SETTINGS } from '../../config';
-import type { IPipeline, IStage, IStageTypeConfig } from '../../domain';
+import type { IPipeline, IStage, IStageTypeConfig, ITriggerTypeConfig } from '../../domain';
 import { ReactModal } from '../../presentation/ReactModal';
 import { Registry } from '../../registry';
 import { getFormGroupByLabel } from '../../utils/testUtils/rtl';
@@ -28,6 +29,7 @@ import {
   STAGE_IDENTITY_FIELDS,
 } from './PipelineConfigPage';
 import { PipelineConfigService } from './services/PipelineConfigService';
+import { ScriptStageConfig, validate as validateScriptStage } from './stages/script/ScriptStageConfig';
 import { ConfigurePipelineTemplateModal } from './templates/ConfigurePipelineTemplateModal';
 import { PipelineTemplateReader } from './templates/PipelineTemplateReader';
 
@@ -280,6 +282,153 @@ describe('PipelineConfigPage', () => {
     await waitFor(() => expect(savePipeline).toHaveBeenCalledTimes(1));
     return savePipeline.mock.calls[0][0];
   };
+
+  // Renders each modal the page opens, and settles the page's promise when the modal closes
+  const renderModals = () =>
+    vi.spyOn(ReactModal, 'show').mockImplementation(
+      ((ModalComponent: React.ComponentType<any>, props: any) =>
+        new Promise((resolve, reject) => {
+          const modal = render(
+            <ModalComponent
+              {...props}
+              closeModal={(result?: any) => {
+                modal.unmount();
+                resolve(result);
+              }}
+              dismissModal={(reason?: any) => {
+                modal.unmount();
+                reject(reason);
+              }}
+            />,
+          );
+        })) as any,
+    );
+
+  const setJsonEditorValue = (update: (json: any) => any) => {
+    const editor = ace.edit(document.querySelector('.ace-editor') as HTMLElement);
+    act(() => {
+      editor.setValue(JSON.stringify(update(JSON.parse(editor.getValue()))));
+    });
+  };
+
+  // Like Formik-based editors, captures the stage when it mounts
+  const MountedStageConfig = ({ stage }: { stage: any }) => {
+    const [value] = React.useState(stage.value);
+    return <div className="mounted-stage-config">{value}</div>;
+  };
+
+  const registerMountedStage = () =>
+    Registry.pipeline.registerStage({
+      key: 'mounted',
+      label: 'Mounted',
+      component: MountedStageConfig,
+    } as IStageTypeConfig);
+
+  const mountedStageValue = () => document.querySelector('.mounted-stage-config')?.textContent;
+
+  const jsonEditorValue = () => JSON.parse(ace.edit(document.querySelector('.ace-editor') as HTMLElement).getValue());
+
+  const openPipelineAction = async (user: ReturnType<typeof setupUser>, action: string) => {
+    await user.click(screen.getByRole('button', { name: 'Pipeline Actions' }));
+    await user.click(screen.getByText(action, { selector: 'a' }));
+  };
+
+  const editPipelineJson = async (user: ReturnType<typeof setupUser>, update: (json: any) => any) => {
+    await openPipelineAction(user, 'Edit as JSON');
+    setJsonEditorValue(update);
+    await user.click(screen.getByRole('button', { name: /Update Pipeline/ }));
+  };
+
+  const EditingStageConfig = ({ updateStageField }: { updateStageField: (changes: any) => void }) => (
+    <button onClick={() => updateStageField({ value: 'edited' })}>Edit value</button>
+  );
+
+  let localStageMounts = 0;
+
+  // Like Formik-based editors, keeps its own copy of the stage
+  const LocalStateStageConfig = ({
+    stage,
+    updateStageField,
+  }: {
+    stage: any;
+    updateStageField: (changes: any) => void;
+  }) => {
+    const [value, setValue] = React.useState(stage.value);
+    React.useEffect(() => {
+      localStageMounts++;
+    }, []);
+    return (
+      <input
+        aria-label="Local value"
+        value={value}
+        onChange={(event) => {
+          setValue(event.target.value);
+          updateStageField({ value: event.target.value });
+        }}
+      />
+    );
+  };
+
+  const registerLocalStage = () => {
+    localStageMounts = 0;
+    Registry.pipeline.registerStage({
+      key: 'local',
+      label: 'Local',
+      component: LocalStateStageConfig,
+    } as IStageTypeConfig);
+  };
+
+  const localStageInput = () => screen.queryByRole('textbox', { name: 'Local value' }) as HTMLInputElement;
+
+  const typeLocalValue = async (user: ReturnType<typeof setupUser>, value: string) => {
+    await user.clear(localStageInput());
+    await user.type(localStageInput(), value);
+  };
+
+  const executionOptions = () => screen.queryByText(/Disable concurrent pipeline executions/);
+
+  // Like Front50 with stale checks enabled: rejects a save with a stale updateTs, and stores a new updateTs for
+  // each accepted save
+  const staleCheckingSave = (stored: IPipeline) => {
+    const staleSaves: IPipeline[] = [];
+    const submittedUpdateTs: number[] = [];
+    const savePipeline = vi.spyOn(PipelineConfigService, 'savePipeline').mockImplementation((toSave: IPipeline) => {
+      submittedUpdateTs.push(toSave.updateTs);
+      if (toSave.updateTs !== stored.updateTs) {
+        staleSaves.push(toSave);
+        return Promise.reject({ data: { message: 'The submitted pipeline is stale.' } });
+      }
+      stored.updateTs += 1;
+      return Promise.resolve();
+    });
+    return { savePipeline, staleSaves, submittedUpdateTs };
+  };
+
+  const maxConcurrentInput = () => screen.getByRole('spinbutton');
+
+  // Keeps its value in the trigger form's Formik state, and counts its mounts
+  const registerTestTrigger = () => {
+    const mounts = { count: 0 };
+    const TestTrigger = ({ formik }: { formik: any }) => {
+      React.useEffect(() => {
+        mounts.count++;
+      }, []);
+      return (
+        <input
+          aria-label="Test trigger value"
+          value={formik.values.value || ''}
+          onChange={(event) => formik.setFieldValue('value', event.target.value)}
+        />
+      );
+    };
+    // Registered under a key allowed by SETTINGS.triggerTypes
+    Registry.pipeline.registerTrigger({ key: 'webhook', label: 'Test', component: TestTrigger } as ITriggerTypeConfig);
+    return mounts;
+  };
+
+  const testTriggerInputs = () => screen.getAllByRole('textbox', { name: 'Test trigger value' }) as HTMLInputElement[];
+
+  const testTriggerValues = () => testTriggerInputs().map((input) => input.value);
 
   it('defines distinct minimal retention policies for stage type and provider changes', () => {
     expect(STAGE_IDENTITY_FIELDS).toEqual(['requisiteStageRefIds', 'refId', 'isNew', 'name', 'type']);
@@ -1478,5 +1627,915 @@ describe('PipelineConfigPage', () => {
 
     expect(await screen.findByText('No pipeline found with that name.')).toBeVisible();
     expect(document.querySelector('.pipeline-configurer')).not.toBeInTheDocument();
+  });
+
+  it('applies stage JSON edits to the stage editor and the pipeline', async () => {
+    const user = setupUser();
+    registerMountedStage();
+    const requested = pipeline('target-id', 'Requested Pipeline');
+    requested.stages = [
+      { refId: '1', name: 'Bake', type: 'mounted', value: 'before', requisiteStageRefIds: [] } as any,
+    ];
+    const app = createApp([requested]);
+    $stateParams.pipelineId = requested.id;
+    showStageConfig(requested.id);
+    renderModals();
+
+    renderPage(app);
+    await waitForPipeline('Requested Pipeline');
+    expect(mountedStageValue()).toBe('before');
+
+    await user.click(screen.getByRole('button', { name: /Edit stage as JSON/ }));
+    setJsonEditorValue((stage) => ({ ...stage, value: 'after' }));
+    await user.click(screen.getByRole('button', { name: /Update Stage/ }));
+
+    await waitFor(() => expect(mountedStageValue()).toBe('after'));
+    await user.click(screen.getByRole('button', { name: /Revert/ }));
+    await waitFor(() => expect(mountedStageValue()).toBe('before'));
+
+    await user.click(screen.getByRole('button', { name: /Edit stage as JSON/ }));
+    setJsonEditorValue((stage) => ({ ...stage, value: 'after' }));
+    await user.click(screen.getByRole('button', { name: /Update Stage/ }));
+
+    const saved = await saveAndGetPipeline(user);
+    expect(saved.stages[0].value).toBe('after');
+  });
+
+  it('mounts a new stage editor when selecting another stage of the same type', async () => {
+    const user = setupUser();
+    registerMountedStage();
+    const requested = pipeline('target-id', 'Requested Pipeline');
+    requested.stages = [
+      { refId: '1', name: 'First', type: 'mounted', value: 'first', requisiteStageRefIds: [] } as any,
+      { refId: '2', name: 'Second', type: 'mounted', value: 'second', requisiteStageRefIds: ['1'] } as any,
+    ];
+    const app = createApp([requested]);
+    $stateParams.pipelineId = requested.id;
+    showStageConfig(requested.id, 0);
+
+    renderPage(app);
+    await waitForPipeline('Requested Pipeline');
+    expect(mountedStageValue()).toBe('first');
+
+    await user.click(graphLabel('Second'));
+
+    await waitFor(() => expect(mountedStageValue()).toBe('second'));
+  });
+
+  it('does not repeat stage type lookups when a stage field changes', async () => {
+    const user = setupUser();
+    registerStageTypes();
+    const requested = pipeline('target-id', 'Requested Pipeline');
+    requested.stages = [{ refId: '1', name: 'Build', type: 'wait', requisiteStageRefIds: [] } as any];
+    const app = createApp([requested]);
+    $stateParams.pipelineId = requested.id;
+    showStageConfig(requested.id);
+
+    renderPage(app);
+    await waitForPipeline('Requested Pipeline');
+    await flush();
+
+    const getConfigurableStageTypes = vi.spyOn(Registry.pipeline, 'getConfigurableStageTypes');
+    const getProvidersFor = vi.spyOn(Registry.pipeline, 'getProvidersFor');
+    const stageName = within(field('Stage Name')).getByRole('textbox');
+    await user.clear(stageName);
+    await user.type(stageName, 'Bake');
+
+    await waitFor(() => expect(graphLabel('Bake')).toBeVisible());
+    expect(getConfigurableStageTypes).not.toHaveBeenCalled();
+    expect(getProvidersFor).not.toHaveBeenCalled();
+  });
+
+  it('applies pipeline JSON edits to the stage editor', async () => {
+    const user = setupUser();
+    registerMountedStage();
+    const requested = pipeline('target-id', 'Requested Pipeline');
+    requested.stages = [
+      { refId: '1', name: 'Bake', type: 'mounted', value: 'before', requisiteStageRefIds: [] } as any,
+    ];
+    const app = createApp([requested]);
+    $stateParams.pipelineId = requested.id;
+    showStageConfig(requested.id);
+    renderModals();
+
+    renderPage(app);
+    await waitForPipeline('Requested Pipeline');
+
+    await openPipelineAction(user, 'Edit as JSON');
+    setJsonEditorValue((json) => ({ ...json, stages: [{ ...json.stages[0], value: 'after' }] }));
+    await user.click(screen.getByRole('button', { name: /Update Pipeline/ }));
+
+    await waitFor(() => expect(mountedStageValue()).toBe('after'));
+    expect(screen.getByRole('button', { name: /Save Changes/ })).toBeVisible();
+    const saved = await saveAndGetPipeline(user);
+    expect(saved.stages[0].value).toBe('after');
+  });
+
+  it('shows stage editor changes in the stage and pipeline JSON views', async () => {
+    const user = setupUser();
+    Registry.pipeline.registerStage({
+      key: 'editing',
+      label: 'Editing',
+      component: EditingStageConfig,
+    } as IStageTypeConfig);
+    const requested = pipeline('target-id', 'Requested Pipeline');
+    requested.stages = [
+      { refId: '1', name: 'Bake', type: 'editing', value: 'before', requisiteStageRefIds: [] } as any,
+    ];
+    const app = createApp([requested]);
+    $stateParams.pipelineId = requested.id;
+    showStageConfig(requested.id);
+    renderModals();
+
+    renderPage(app);
+    await waitForPipeline('Requested Pipeline');
+    await user.click(screen.getByRole('button', { name: 'Edit value' }));
+
+    await user.click(screen.getByRole('button', { name: /Edit stage as JSON/ }));
+    expect(jsonEditorValue().value).toBe('edited');
+
+    await user.click(screen.getByRole('button', { name: 'Cancel' }));
+    await openPipelineAction(user, 'Edit as JSON');
+    expect(jsonEditorValue().stages[0].value).toBe('edited');
+  });
+
+  it('keeps the stage editor mounted while its stage is edited', async () => {
+    const user = setupUser();
+    let mounts = 0;
+    const MountCountingStageConfig = (props: { updateStageField: (changes: any) => void }) => {
+      React.useEffect(() => {
+        mounts++;
+      }, []);
+      return <EditingStageConfig {...props} />;
+    };
+    Registry.pipeline.registerStage({
+      key: 'editing',
+      label: 'Editing',
+      component: MountCountingStageConfig,
+    } as IStageTypeConfig);
+    const requested = pipeline('target-id', 'Requested Pipeline');
+    requested.stages = [
+      { refId: '1', name: 'Build', type: 'editing', requisiteStageRefIds: [] } as any,
+      { refId: '2', name: 'Bake', type: 'editing', value: 'before', requisiteStageRefIds: [] } as any,
+    ];
+    const app = createApp([requested]);
+    $stateParams.pipelineId = requested.id;
+    showStageConfig(requested.id, 1);
+
+    renderPage(app);
+    await waitForPipeline('Requested Pipeline');
+
+    await user.click(screen.getByRole('button', { name: 'Edit value' }));
+    const stageName = within(field('Stage Name')).getByRole('textbox');
+    await user.clear(stageName);
+    await user.type(stageName, 'Package');
+    await choose(user, 'Depends On', 'Build');
+
+    const saved = await saveAndGetPipeline(user);
+    expect(saved.stages[1]).toEqual(
+      expect.objectContaining({ value: 'edited', name: 'Package', requisiteStageRefIds: ['1'] }),
+    );
+    expect(mounts).toBe(1);
+  });
+
+  it("resets an editor's own state when changes are reverted", async () => {
+    const user = setupUser();
+    // Like Formik-based editors, keeps its own copy of the stage
+    const LocalStateStageConfig = ({
+      stage,
+      updateStageField,
+    }: {
+      stage: any;
+      updateStageField: (changes: any) => void;
+    }) => {
+      const [value, setValue] = React.useState(stage.value);
+      return (
+        <input
+          aria-label="Local value"
+          value={value}
+          onChange={(event) => {
+            setValue(event.target.value);
+            updateStageField({ value: event.target.value });
+          }}
+        />
+      );
+    };
+    Registry.pipeline.registerStage({
+      key: 'local',
+      label: 'Local',
+      component: LocalStateStageConfig,
+    } as IStageTypeConfig);
+    const requested = pipeline('target-id', 'Requested Pipeline');
+    requested.stages = [{ refId: '1', name: 'Bake', type: 'local', value: 'before', requisiteStageRefIds: [] } as any];
+    const app = createApp([requested]);
+    $stateParams.pipelineId = requested.id;
+    showStageConfig(requested.id, 0);
+    renderModals();
+
+    renderPage(app);
+    await waitForPipeline('Requested Pipeline');
+
+    const localValue = screen.getByRole('textbox', { name: 'Local value' });
+    await user.clear(localValue);
+    await user.type(localValue, 'edited');
+    expect(localValue).toHaveValue('edited');
+
+    await user.click(screen.getByRole('button', { name: /Revert/ }));
+
+    await waitFor(() => expect(screen.getByRole('textbox', { name: 'Local value' })).toHaveValue('before'));
+    await openPipelineAction(user, 'Edit as JSON');
+    expect(jsonEditorValue().stages[0].value).toBe('before');
+  });
+
+  it("mounts the next stage's editor when the selected stage is removed", async () => {
+    const user = setupUser();
+    registerLocalStage();
+    const requested = pipeline('target-id', 'Requested Pipeline');
+    requested.stages = [
+      { refId: '1', name: 'Bake A', type: 'local', value: 'a', requisiteStageRefIds: [] } as any,
+      { refId: '2', name: 'Bake B', type: 'local', value: 'b', requisiteStageRefIds: ['1'] } as any,
+    ];
+    const app = createApp([requested]);
+    $stateParams.pipelineId = requested.id;
+    showStageConfig(requested.id, 0);
+
+    renderPage(app);
+    await waitForPipeline('Requested Pipeline');
+    expect(localStageInput()).toHaveValue('a');
+
+    await user.click(screen.getByRole('button', { name: /Remove stage/ }));
+
+    await waitFor(() => expect(localStageInput()).toHaveValue('b'));
+    expect(within(graph()).queryByText('Bake A', { selector: '.label-body a' })).not.toBeInTheDocument();
+    expect(graphLabel('Bake B')).toBeVisible();
+    const saved = await saveAndGetPipeline(user);
+    expect(saved.stages.map((stage: IStage) => stage.refId)).toEqual(['2']);
+  });
+
+  it('keeps the editor and its state when the selected stage is selected again', async () => {
+    const user = setupUser();
+    registerLocalStage();
+    const requested = pipeline('target-id', 'Requested Pipeline');
+    requested.stages = [{ refId: '1', name: 'Bake', type: 'local', value: 'before', requisiteStageRefIds: [] } as any];
+    const app = createApp([requested]);
+    $stateParams.pipelineId = requested.id;
+    showStageConfig(requested.id, 0);
+
+    renderPage(app);
+    await waitForPipeline('Requested Pipeline');
+    await typeLocalValue(user, 'edited');
+    await user.click(graphLabel('Bake'));
+
+    expect(localStageInput()).toHaveValue('edited');
+    expect(localStageMounts).toBe(1);
+  });
+
+  it("keeps each stage's edits when switching between stages of the same type", async () => {
+    const user = setupUser();
+    registerLocalStage();
+    const requested = pipeline('target-id', 'Requested Pipeline');
+    requested.stages = [
+      { refId: '1', name: 'Bake A', type: 'local', value: 'a', requisiteStageRefIds: [] } as any,
+      { refId: '2', name: 'Bake B', type: 'local', value: 'b', requisiteStageRefIds: ['1'] } as any,
+    ];
+    const app = createApp([requested]);
+    $stateParams.pipelineId = requested.id;
+    showStageConfig(requested.id, 1);
+
+    renderPage(app);
+    await waitForPipeline('Requested Pipeline');
+    await typeLocalValue(user, 'b-edited');
+
+    await user.click(graphLabel('Bake A'));
+    await waitFor(() => expect(localStageInput()).toHaveValue('a'));
+
+    await user.click(graphLabel('Bake B'));
+    await waitFor(() => expect(localStageInput()).toHaveValue('b-edited'));
+    const saved = await saveAndGetPipeline(user);
+    expect(saved.stages.map((stage: IStage) => stage.value)).toEqual(['a', 'b-edited']);
+  });
+
+  it('shows edits after leaving the stage and coming back', async () => {
+    const user = setupUser();
+    registerLocalStage();
+    const requested = pipeline('target-id', 'Requested Pipeline');
+    requested.stages = [{ refId: '1', name: 'Bake', type: 'local', value: 'before', requisiteStageRefIds: [] } as any];
+    const app = createApp([requested]);
+    $stateParams.pipelineId = requested.id;
+    showStageConfig(requested.id, 0);
+
+    renderPage(app);
+    await waitForPipeline('Requested Pipeline');
+    await typeLocalValue(user, 'edited');
+
+    await user.click(graphLabel('Configuration'));
+    await waitFor(() => expect(localStageInput()).not.toBeInTheDocument());
+
+    await user.click(graphLabel('Bake'));
+    await waitFor(() => expect(localStageInput()).toHaveValue('edited'));
+  });
+
+  it("mounts the new type's editor and redraws the graph when stage JSON changes the type", async () => {
+    const user = setupUser();
+    registerLocalStage();
+    Registry.pipeline.registerStage({
+      key: 'other',
+      label: 'Other',
+      component: () => <div className="other-stage-config">Other stage config</div>,
+    } as IStageTypeConfig);
+    const requested = pipeline('target-id', 'Requested Pipeline');
+    requested.stages = [{ refId: '1', name: 'Bake', type: 'local', value: 'before', requisiteStageRefIds: [] } as any];
+    const app = createApp([requested]);
+    $stateParams.pipelineId = requested.id;
+    showStageConfig(requested.id, 0);
+    renderModals();
+
+    renderPage(app);
+    await waitForPipeline('Requested Pipeline');
+
+    await user.click(screen.getByRole('button', { name: /Edit stage as JSON/ }));
+    setJsonEditorValue((stage) => ({ ...stage, type: 'other', name: 'Renamed' }));
+    await user.click(screen.getByRole('button', { name: /Update Stage/ }));
+
+    expect(await screen.findByText('Other stage config')).toBeVisible();
+    expect(localStageInput()).not.toBeInTheDocument();
+    await waitFor(() => expect(graphLabel('Renamed')).toBeVisible());
+  });
+
+  it('keeps the editor and the clean state when JSON edits are cancelled', async () => {
+    const user = setupUser();
+    registerLocalStage();
+    const requested = pipeline('target-id', 'Requested Pipeline');
+    requested.stages = [{ refId: '1', name: 'Bake', type: 'local', value: 'before', requisiteStageRefIds: [] } as any];
+    const app = createApp([requested]);
+    $stateParams.pipelineId = requested.id;
+    showStageConfig(requested.id, 0);
+    renderModals();
+
+    renderPage(app);
+    await waitForPipeline('Requested Pipeline');
+
+    await user.click(screen.getByRole('button', { name: /Edit stage as JSON/ }));
+    await user.click(screen.getByRole('button', { name: 'Cancel' }));
+    await user.click(screen.getByRole('button', { name: 'Pipeline Actions' }));
+    await user.click(screen.getByText('Edit as JSON'));
+    await user.click(screen.getByRole('button', { name: 'Cancel' }));
+    await flush();
+
+    expect(localStageMounts).toBe(1);
+    expect(localStageInput()).toHaveValue('before');
+    expect(screen.queryByRole('button', { name: /Save Changes/ })).not.toBeInTheDocument();
+  });
+
+  it('handles a pipeline JSON edit that removes the selected stage', async () => {
+    const user = setupUser();
+    registerLocalStage();
+    const requested = pipeline('target-id', 'Requested Pipeline');
+    requested.stages = [{ refId: '1', name: 'Bake', type: 'local', value: 'before', requisiteStageRefIds: [] } as any];
+    const app = createApp([requested]);
+    $stateParams.pipelineId = requested.id;
+    showStageConfig(requested.id, 0);
+    renderModals();
+
+    renderPage(app);
+    await waitForPipeline('Requested Pipeline');
+    expect(localStageInput()).toHaveValue('before');
+
+    await editPipelineJson(user, (json) => ({ ...json, stages: [] }));
+
+    await waitFor(() => expect(localStageInput()).not.toBeInTheDocument());
+    expect(within(graph()).queryByText('Bake', { selector: '.label-body a' })).not.toBeInTheDocument();
+    expect(executionOptions()).toBeVisible();
+    const saved = await saveAndGetPipeline(user);
+    expect(saved.stages).toEqual([]);
+  });
+
+  it('selects the last remaining stage when a pipeline JSON edit removes the selected stage', async () => {
+    const user = setupUser();
+    registerLocalStage();
+    const requested = pipeline('target-id', 'Requested Pipeline');
+    requested.stages = [
+      { refId: '1', name: 'Bake A', type: 'local', value: 'a', requisiteStageRefIds: [] } as any,
+      { refId: '2', name: 'Bake B', type: 'local', value: 'b', requisiteStageRefIds: ['1'] } as any,
+    ];
+    const app = createApp([requested]);
+    $stateParams.pipelineId = requested.id;
+    showStageConfig(requested.id, 1);
+    renderModals();
+
+    renderPage(app);
+    await waitForPipeline('Requested Pipeline');
+    expect(localStageInput()).toHaveValue('b');
+
+    await editPipelineJson(user, (json) => ({ ...json, stages: json.stages.slice(0, 1) }));
+
+    await waitFor(() => expect(localStageInput()).toHaveValue('a'));
+  });
+
+  it('shows the triggers when a restored history revision has no stages', async () => {
+    const user = setupUser();
+    registerLocalStage();
+    const requested = pipeline('target-id', 'Requested Pipeline');
+    requested.stages = [
+      { refId: '1', name: 'Bake A', type: 'local', value: 'a', requisiteStageRefIds: [] } as any,
+      { refId: '2', name: 'Bake B', type: 'local', value: 'b', requisiteStageRefIds: ['1'] } as any,
+    ];
+    const restored = { ...pipeline('target-id', 'Requested Pipeline'), stages: [] as any[] };
+    const app = createApp([requested]);
+    $stateParams.pipelineId = requested.id;
+    showStageConfig(requested.id, 1);
+    vi.spyOn(ReactModal, 'show').mockResolvedValue(restored);
+    vi.spyOn(PipelineConfigService, 'savePipeline').mockResolvedValue();
+
+    renderPage(app);
+    await waitForPipeline('Requested Pipeline');
+    expect(localStageInput()).toHaveValue('b');
+
+    await user.click(screen.getByRole('button', { name: 'Pipeline Actions' }));
+    await user.click(screen.getByText('Show Revision History'));
+
+    await waitFor(() => expect(localStageInput()).not.toBeInTheDocument());
+    expect(executionOptions()).toBeVisible();
+  });
+
+  it('selects the last remaining stage when template configuration removes the selected stage', async () => {
+    const user = setupUser();
+    registerLocalStage();
+    const requested = templatedV1();
+    const originalPlan = {
+      ...pipeline(requested.id, requested.name),
+      stages: [
+        { refId: '1', name: 'Bake A', type: 'local', value: 'a', requisiteStageRefIds: [] } as any,
+        { refId: '2', name: 'Bake B', type: 'local', value: 'b', requisiteStageRefIds: ['1'] } as any,
+      ],
+    } as IPipeline;
+    const app = createApp([requested]);
+    $stateParams.pipelineId = requested.id;
+    showStageConfig(requested.id, 1);
+    vi.spyOn(PipelineTemplateReader, 'getPipelinePlan').mockResolvedValue(originalPlan);
+    const modalResult = deferred<{ plan: IPipeline; config: IPipeline }>();
+    vi.spyOn(ReactModal, 'show').mockReturnValue(modalResult.promise);
+
+    renderPage(app);
+    await waitFor(() => expect(localStageInput()).toHaveValue('b'));
+
+    await user.click(screen.getByRole('button', { name: /Configure Template/ }));
+    modalResult.resolve({ plan: { ...originalPlan, stages: originalPlan.stages.slice(0, 1) }, config: requested });
+
+    await waitFor(() => expect(localStageInput()).toHaveValue('a'));
+  });
+
+  it('gives a copied stage its own editor and values', async () => {
+    const user = setupUser();
+    registerLocalStage();
+    const requested = pipeline('target-id', 'Requested Pipeline');
+    requested.stages = [{ refId: '1', name: 'Bake', type: 'local', value: 'before', requisiteStageRefIds: [] } as any];
+    const app = createApp([requested]);
+    $stateParams.pipelineId = requested.id;
+    showStageConfig(requested.id, 0);
+    vi.spyOn(ReactModal, 'show').mockResolvedValue({
+      refId: '9',
+      name: 'Bake',
+      type: 'local',
+      value: 'before',
+      requisiteStageRefIds: [],
+    });
+
+    renderPage(app);
+    await waitForPipeline('Requested Pipeline');
+    await typeLocalValue(user, 'original-edited');
+
+    await user.click(screen.getByRole('button', { name: /Copy an existing stage/ }));
+
+    await waitFor(() => expect(localStageInput()).toHaveValue('before'));
+    await typeLocalValue(user, 'copy-edited');
+
+    const saved = await saveAndGetPipeline(user);
+    expect(saved.stages.map((stage: any) => stage.value)).toEqual(['original-edited', 'copy-edited']);
+  });
+
+  it('keeps the stage editor mounted through a save, and later edits still apply', async () => {
+    const user = setupUser();
+    registerLocalStage();
+    const requested = pipeline('target-id', 'Requested Pipeline');
+    requested.stages = [{ refId: '1', name: 'Bake', type: 'local', value: 'before', requisiteStageRefIds: [] } as any];
+    const app = createApp([requested]);
+    $stateParams.pipelineId = requested.id;
+    showStageConfig(requested.id);
+    const savePipeline = vi.spyOn(PipelineConfigService, 'savePipeline').mockResolvedValue();
+
+    renderPage(app);
+    await waitForPipeline('Requested Pipeline');
+    await typeLocalValue(user, 'edited');
+    await user.click(screen.getByRole('button', { name: /Save Changes/ }));
+
+    await waitFor(() => expect(screen.queryByRole('button', { name: /Save Changes/ })).not.toBeInTheDocument());
+    expect(savePipeline).toHaveBeenCalledWith(
+      expect.objectContaining({ stages: [expect.objectContaining({ value: 'edited' })] }),
+    );
+    expect(localStageInput()).toHaveValue('edited');
+    expect(localStageMounts).toBe(1);
+
+    await typeLocalValue(user, 'edited again');
+
+    expect(screen.getByRole('button', { name: /Save Changes/ })).toBeVisible();
+    expect(localStageMounts).toBe(1);
+    await user.click(screen.getByRole('button', { name: /Save Changes/ }));
+    await waitFor(() => expect(savePipeline).toHaveBeenCalledTimes(2));
+    expect(savePipeline.mock.lastCall[0].stages[0].value).toBe('edited again');
+  });
+
+  it('keeps and flags edits made while a save is in progress', async () => {
+    const user = setupUser();
+    registerLocalStage();
+    const requested = pipeline('target-id', 'Requested Pipeline');
+    requested.stages = [{ refId: '1', name: 'Bake', type: 'local', value: 'before', requisiteStageRefIds: [] } as any];
+    const app = createApp([requested]);
+    $stateParams.pipelineId = requested.id;
+    showStageConfig(requested.id);
+    const saveResult = deferred<void>();
+    const savePipeline = vi.spyOn(PipelineConfigService, 'savePipeline').mockReturnValue(saveResult.promise);
+
+    renderPage(app);
+    await waitForPipeline('Requested Pipeline');
+    await typeLocalValue(user, 'edited');
+    await user.click(screen.getByRole('button', { name: /Save Changes/ }));
+    await typeLocalValue(user, 'during save');
+    await act(async () => {
+      saveResult.resolve();
+      await flush();
+    });
+
+    expect(savePipeline).toHaveBeenCalledWith(
+      expect.objectContaining({ stages: [expect.objectContaining({ value: 'edited' })] }),
+    );
+    expect(localStageInput()).toHaveValue('during save');
+    expect(screen.getByRole('button', { name: /Save Changes/ })).toBeVisible();
+    savePipeline.mockResolvedValue();
+    await user.click(screen.getByRole('button', { name: /Save Changes/ }));
+    await waitFor(() => expect(savePipeline).toHaveBeenCalledTimes(2));
+    expect(savePipeline.mock.lastCall[0].stages[0].value).toBe('during save');
+  });
+
+  it('keeps the new updateTs when a save finishes while the stage JSON modal is open', async () => {
+    const user = setupUser();
+    registerLocalStage();
+    const requested = { ...pipeline('target-id', 'Requested Pipeline'), updateTs: 1 };
+    requested.stages = [{ refId: '1', name: 'Bake', type: 'local', value: 'before', requisiteStageRefIds: [] } as any];
+    const app = createApp([requested]);
+    $stateParams.pipelineId = requested.id;
+    showStageConfig(requested.id);
+    const saveResult = deferred<void>();
+    // A save updates the submitted pipeline's updateTs, so record it when it is submitted
+    const submittedUpdateTs: number[] = [];
+    const savePipeline = vi.spyOn(PipelineConfigService, 'savePipeline').mockImplementation((toSave: IPipeline) => {
+      submittedUpdateTs.push(toSave.updateTs);
+      return saveResult.promise;
+    });
+    renderModals();
+
+    renderPage(app);
+    await waitForPipeline('Requested Pipeline');
+    await typeLocalValue(user, 'edited');
+    await user.click(screen.getByRole('button', { name: /Save Changes/ }));
+    await user.click(screen.getByRole('button', { name: /Edit stage as JSON/ }));
+    // The server stores a new updateTs while the modal is open
+    requested.updateTs = 2;
+    saveResult.resolve();
+    await screen.findByText('In sync with server');
+    setJsonEditorValue((stage) => ({ ...stage, value: 'from json' }));
+    await user.click(screen.getByRole('button', { name: /Update Stage/ }));
+
+    await user.click(await screen.findByRole('button', { name: /Save Changes/ }));
+    await waitFor(() => expect(savePipeline).toHaveBeenCalledTimes(2));
+    expect(submittedUpdateTs).toEqual([1, 2]);
+    expect(savePipeline.mock.lastCall[0].stages).toEqual([expect.objectContaining({ value: 'from json' })]);
+  });
+
+  it('keeps the new updateTs when a save finishes while the pipeline JSON modal is open', async () => {
+    const user = setupUser();
+    registerLocalStage();
+    const requested = { ...pipeline('target-id', 'Requested Pipeline'), updateTs: 1 };
+    requested.stages = [{ refId: '1', name: 'Bake', type: 'local', value: 'before', requisiteStageRefIds: [] } as any];
+    const app = createApp([requested]);
+    $stateParams.pipelineId = requested.id;
+    showStageConfig(requested.id);
+    const saveResult = deferred<void>();
+    // A save updates the submitted pipeline's updateTs, so record it when it is submitted
+    const submittedUpdateTs: number[] = [];
+    const savePipeline = vi.spyOn(PipelineConfigService, 'savePipeline').mockImplementation((toSave: IPipeline) => {
+      submittedUpdateTs.push(toSave.updateTs);
+      return saveResult.promise;
+    });
+    renderModals();
+
+    renderPage(app);
+    await waitForPipeline('Requested Pipeline');
+    await typeLocalValue(user, 'edited');
+    await user.click(screen.getByRole('button', { name: /Save Changes/ }));
+    await openPipelineAction(user, 'Edit as JSON');
+
+    expect(jsonEditorValue().updateTs).toBe(1);
+
+    // The server stores a new updateTs while the modal is open
+    requested.updateTs = 2;
+    saveResult.resolve();
+    await screen.findByText('In sync with server');
+    setJsonEditorValue((json) => ({ ...json, description: 'From JSON' }));
+    await user.click(screen.getByRole('button', { name: /Update Pipeline/ }));
+
+    await user.click(await screen.findByRole('button', { name: /Save Changes/ }));
+    await waitFor(() => expect(savePipeline).toHaveBeenCalledTimes(2));
+    expect(submittedUpdateTs).toEqual([1, 2]);
+    expect(savePipeline.mock.lastCall[0].description).toBe('From JSON');
+  });
+
+  it('keeps pending changes marked unsaved after enabling the pipeline', async () => {
+    const user = setupUser();
+    registerLocalStage();
+    const requested = { ...pipeline('target-id', 'Requested Pipeline'), disabled: true };
+    requested.stages = [{ refId: '1', name: 'Bake', type: 'local', value: 'before', requisiteStageRefIds: [] } as any];
+    const app = createApp([requested]);
+    $stateParams.pipelineId = requested.id;
+    showStageConfig(requested.id);
+    const savePipeline = vi.spyOn(PipelineConfigService, 'savePipeline').mockResolvedValue();
+    renderModals();
+
+    renderPage(app);
+    const heading = await waitForPipeline('Requested Pipeline');
+    expect(heading).toHaveTextContent('(disabled)');
+    await typeLocalValue(user, 'edited');
+    await openPipelineAction(user, 'Enable');
+    await user.click(screen.getByRole('button', { name: 'Enable pipeline' }));
+
+    await waitFor(() => expect(heading).not.toHaveTextContent('(disabled)'));
+    expect(savePipeline).toHaveBeenCalledWith(
+      expect.objectContaining({ disabled: false, stages: [expect.objectContaining({ value: 'before' })] }),
+    );
+    expect(screen.getByRole('textbox', { name: 'Local value' })).toHaveValue('edited');
+    expect(screen.getByRole('button', { name: /Save Changes/ })).toBeVisible();
+
+    await user.click(screen.getByRole('button', { name: /Save Changes/ }));
+    await waitFor(() => expect(savePipeline).toHaveBeenCalledTimes(2));
+    expect(savePipeline.mock.lastCall[0]).toEqual(
+      expect.objectContaining({ disabled: false, stages: [expect.objectContaining({ value: 'edited' })] }),
+    );
+  });
+
+  it('saves without a stale updateTs after the pipeline is locked and unlocked', async () => {
+    const user = setupUser();
+    registerLocalStage();
+    const requested = { ...pipeline('target-id', 'Requested Pipeline'), updateTs: 1 };
+    requested.stages = [{ refId: '1', name: 'Bake', type: 'local', value: 'before', requisiteStageRefIds: [] } as any];
+    const app = createApp([requested]);
+    $stateParams.pipelineId = requested.id;
+    showStageConfig(requested.id);
+    const { savePipeline, staleSaves, submittedUpdateTs } = staleCheckingSave(requested);
+    renderModals();
+
+    renderPage(app);
+    await waitForPipeline('Requested Pipeline');
+    await openPipelineAction(user, 'Lock');
+    await user.click(screen.getByRole('button', { name: 'Lock pipeline' }));
+    await screen.findByText('Pipeline is locked');
+    await openPipelineAction(user, 'Unlock');
+    await user.click(screen.getByRole('button', { name: 'Unlock pipeline' }));
+    await screen.findByText('In sync with server');
+    await typeLocalValue(user, 'edited');
+    await user.click(screen.getByRole('button', { name: /Save Changes/ }));
+
+    await waitFor(() => expect(savePipeline).toHaveBeenCalledTimes(3));
+    await screen.findByText('In sync with server');
+    expect(staleSaves).toEqual([]);
+    expect(submittedUpdateTs).toEqual([1, 2, 3]);
+    expect(savePipeline.mock.lastCall[0]).toEqual(
+      expect.objectContaining({ stages: [expect.objectContaining({ value: 'edited' })] }),
+    );
+    expect(screen.queryByRole('button', { name: /Save Changes/ })).not.toBeInTheDocument();
+  });
+
+  it('saves without a stale updateTs after the pipeline is disabled and enabled', async () => {
+    const user = setupUser();
+    registerLocalStage();
+    const requested = { ...pipeline('target-id', 'Requested Pipeline'), updateTs: 1 };
+    requested.stages = [{ refId: '1', name: 'Bake', type: 'local', value: 'before', requisiteStageRefIds: [] } as any];
+    const app = createApp([requested]);
+    $stateParams.pipelineId = requested.id;
+    showStageConfig(requested.id);
+    const { savePipeline, staleSaves, submittedUpdateTs } = staleCheckingSave(requested);
+    renderModals();
+
+    renderPage(app);
+    const heading = await waitForPipeline('Requested Pipeline');
+    await openPipelineAction(user, 'Disable');
+    await user.click(screen.getByRole('button', { name: 'Disable pipeline' }));
+    await waitFor(() => expect(heading).toHaveTextContent('(disabled)'));
+    await typeLocalValue(user, 'disabled edit');
+    await user.click(screen.getByRole('button', { name: /Save Changes/ }));
+    await waitFor(() => expect(savePipeline).toHaveBeenCalledTimes(2));
+    await screen.findByText('In sync with server');
+    await openPipelineAction(user, 'Enable');
+    await user.click(screen.getByRole('button', { name: 'Enable pipeline' }));
+    await waitFor(() => expect(heading).not.toHaveTextContent('(disabled)'));
+    await typeLocalValue(user, 'enabled edit');
+    await user.click(screen.getByRole('button', { name: /Save Changes/ }));
+
+    await waitFor(() => expect(savePipeline).toHaveBeenCalledTimes(4));
+    await screen.findByText('In sync with server');
+    expect(staleSaves).toEqual([]);
+    expect(submittedUpdateTs).toEqual([1, 2, 3, 4]);
+    expect(savePipeline.mock.lastCall[0]).toEqual(
+      expect.objectContaining({ disabled: false, stages: [expect.objectContaining({ value: 'enabled edit' })] }),
+    );
+    expect(screen.queryByRole('button', { name: /Save Changes/ })).not.toBeInTheDocument();
+  });
+
+  it('keeps an execution option change after more edits in a Formik stage form', async () => {
+    const user = setupUser();
+    Registry.pipeline.registerStage({
+      label: 'Script',
+      key: 'script',
+      defaults: { waitForCompletion: true, failPipeline: true },
+      component: ScriptStageConfig,
+      validateFn: validateScriptStage,
+    } as IStageTypeConfig);
+    const requested = pipeline('target-id', 'Requested Pipeline');
+    requested.stages = [
+      {
+        refId: '1',
+        name: 'Script',
+        type: 'script',
+        command: 'echo 1',
+        failPipeline: true,
+        continuePipeline: false,
+        requisiteStageRefIds: [],
+      } as any,
+    ];
+    const app = createApp([requested]);
+    $stateParams.pipelineId = requested.id;
+    showStageConfig(requested.id);
+
+    renderPage(app);
+    await waitForPipeline('Requested Pipeline');
+    const command = screen.getByDisplayValue('echo 1');
+    const ignoreFailure = within(field('If stage fails')).getByRole('radio', { name: /ignore the failure/ });
+
+    // The first edit gives the form its own copy of the stage
+    fireEvent.change(command, { target: { value: 'echo 2' } });
+    await user.click(ignoreFailure);
+    fireEvent.change(command, { target: { value: 'echo 3' } });
+
+    await waitFor(() => expect(ignoreFailure).toBeChecked());
+    const saved = await saveAndGetPipeline(user);
+    expect(saved.stages[0]).toEqual(
+      expect.objectContaining({ command: 'echo 3', failPipeline: false, continuePipeline: true }),
+    );
+  });
+
+  it('remounts the stage editor with a restored history revision', async () => {
+    const user = setupUser();
+    registerMountedStage();
+    const requested = pipeline('target-id', 'Requested Pipeline');
+    requested.stages = [
+      { refId: '1', name: 'Bake', type: 'mounted', value: 'before', requisiteStageRefIds: [] } as any,
+    ];
+    const restored = {
+      ...pipeline('target-id', 'Requested Pipeline'),
+      stages: [{ refId: '1', name: 'Bake', type: 'mounted', value: 'restored', requisiteStageRefIds: [] } as any],
+    };
+    const app = createApp([requested]);
+    $stateParams.pipelineId = requested.id;
+    showStageConfig(requested.id);
+    vi.spyOn(ReactModal, 'show').mockResolvedValue(restored);
+    vi.spyOn(PipelineConfigService, 'savePipeline').mockResolvedValue();
+
+    renderPage(app);
+    await waitForPipeline('Requested Pipeline');
+    expect(mountedStageValue()).toBe('before');
+
+    await openPipelineAction(user, 'Show Revision History');
+
+    await waitFor(() => expect(mountedStageValue()).toBe('restored'));
+  });
+
+  it('applies pipeline JSON edits to the execution options', async () => {
+    const user = setupUser();
+    const requested = pipeline('target-id', 'Requested Pipeline');
+    requested.limitConcurrent = false;
+    requested.maxConcurrentExecutions = 2;
+    const app = createApp([requested]);
+    $stateParams.pipelineId = requested.id;
+    renderModals();
+
+    renderPage(app);
+    await waitForPipeline('Requested Pipeline');
+    expect(maxConcurrentInput()).toHaveValue(2);
+
+    await openPipelineAction(user, 'Edit as JSON');
+    setJsonEditorValue((json) => ({ ...json, maxConcurrentExecutions: 5 }));
+    await user.click(screen.getByRole('button', { name: /Update Pipeline/ }));
+
+    await waitFor(() => expect(maxConcurrentInput()).toHaveValue(5));
+  });
+
+  it('updates the execution options when the template is configured', async () => {
+    const user = setupUser();
+    const requested = templatedV1();
+    const originalPlan = {
+      ...pipeline(requested.id, requested.name),
+      stages: [],
+      limitConcurrent: false,
+      maxConcurrentExecutions: 2,
+    } as IPipeline;
+    const app = createApp([requested]);
+    $stateParams.pipelineId = requested.id;
+    vi.spyOn(PipelineTemplateReader, 'getPipelinePlan').mockResolvedValue(originalPlan);
+    const modalResult = deferred<{ plan: IPipeline; config: IPipeline }>();
+    vi.spyOn(ReactModal, 'show').mockReturnValue(modalResult.promise);
+
+    renderPage(app);
+    const configure = await screen.findByRole('button', { name: /Configure Template/ });
+    expect(maxConcurrentInput()).toHaveValue(2);
+
+    await user.click(configure);
+    modalResult.resolve({ plan: { ...originalPlan, maxConcurrentExecutions: 5 }, config: requested });
+
+    await waitFor(() => expect(maxConcurrentInput()).toHaveValue(5));
+  });
+
+  it('keeps a trigger form mounted while triggers and other pipeline fields are edited', async () => {
+    const user = setupUser();
+    const testTrigger = registerTestTrigger();
+    const requested = pipeline('target-id', 'Requested Pipeline');
+    requested.triggers = [{ type: 'webhook', enabled: true, value: 'first' } as any];
+    const app = createApp([requested]);
+    $stateParams.pipelineId = requested.id;
+
+    renderPage(app);
+    await waitForPipeline('Requested Pipeline');
+
+    const [triggerValue] = testTriggerInputs();
+    await user.clear(triggerValue);
+    await user.type(triggerValue, 'edited');
+    await user.type(screen.getByPlaceholderText(/explain the purpose of this pipeline/), 'Described');
+
+    expect(testTriggerValues()).toEqual(['edited']);
+    expect(testTrigger.count).toBe(1);
+    const saved = await saveAndGetPipeline(user);
+    expect(saved.triggers[0]).toEqual(expect.objectContaining({ value: 'edited' }));
+    expect(saved.description).toBe('Described');
+  });
+
+  it('keeps the other trigger forms mounted when a trigger is removed', async () => {
+    const user = setupUser();
+    const testTrigger = registerTestTrigger();
+    const requested = pipeline('target-id', 'Requested Pipeline');
+    requested.triggers = [
+      { type: 'webhook', enabled: true, value: 'first' } as any,
+      { type: 'webhook', enabled: true, value: 'second' } as any,
+    ];
+    const app = createApp([requested]);
+    $stateParams.pipelineId = requested.id;
+
+    renderPage(app);
+    await waitForPipeline('Requested Pipeline');
+    expect(testTrigger.count).toBe(2);
+
+    await user.click(screen.getAllByRole('button', { name: 'Remove trigger' })[0]);
+
+    await waitFor(() => expect(testTriggerValues()).toEqual(['second']));
+    expect(testTrigger.count).toBe(2);
+    const saved = await saveAndGetPipeline(user);
+    expect(saved.triggers.map((trigger: any) => trigger.value)).toEqual(['second']);
+  });
+
+  it('resets trigger forms when the pipeline is edited as JSON or reverted', async () => {
+    const user = setupUser();
+    registerTestTrigger();
+    const requested = pipeline('target-id', 'Requested Pipeline');
+    requested.triggers = [{ type: 'webhook', enabled: true, value: 'first' } as any];
+    const app = createApp([requested]);
+    $stateParams.pipelineId = requested.id;
+    renderModals();
+
+    renderPage(app);
+    await waitForPipeline('Requested Pipeline');
+
+    const [triggerValue] = testTriggerInputs();
+    await user.clear(triggerValue);
+    await user.type(triggerValue, 'edited');
+    await openPipelineAction(user, 'Edit as JSON');
+    expect(jsonEditorValue().triggers[0].value).toBe('edited');
+    setJsonEditorValue((json) => ({ ...json, triggers: [{ ...json.triggers[0], value: 'from json' }] }));
+    await user.click(screen.getByRole('button', { name: /Update Pipeline/ }));
+
+    await waitFor(() => expect(testTriggerValues()).toEqual(['from json']));
+
+    await user.click(screen.getByRole('button', { name: /Revert/ }));
+
+    await waitFor(() => expect(testTriggerValues()).toEqual(['first']));
+    await openPipelineAction(user, 'Edit as JSON');
+    expect(jsonEditorValue().triggers[0]).toEqual(expect.objectContaining({ value: 'first' }));
+    await user.click(screen.getByRole('button', { name: 'Cancel' }));
   });
 });
