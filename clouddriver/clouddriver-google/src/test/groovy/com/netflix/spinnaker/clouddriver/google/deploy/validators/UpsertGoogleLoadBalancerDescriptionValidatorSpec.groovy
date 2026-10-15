@@ -40,6 +40,7 @@ import static com.netflix.spinnaker.clouddriver.google.deploy.ops.loadbalancer.U
 class UpsertGoogleLoadBalancerDescriptionValidatorSpec extends Specification {
   private static final LOAD_BALANCER_NAME = "spinnaker-test-v000"
   private static final REGION = "us-central1"
+  private static final UNMANAGED_REGION = "us-east1"
   private static final ACCOUNT_NAME = "auto"
   private static final INSTANCE = "inst"
 
@@ -62,7 +63,7 @@ class UpsertGoogleLoadBalancerDescriptionValidatorSpec extends Specification {
       .credentials(new FakeGoogleCredentials())
       .compute(compute)
       .regionsToManage([REGION], [])
-      .regionToZonesMap(["us-central1": ["us-central1-a"]])
+      .regionToZonesMap(["us-central1": ["us-central1-a"], (UNMANAGED_REGION): ["us-east1-b"]])
       .build()
     credentialsRepo.save(credentials)
     validator.credentialsRepository = credentialsRepo
@@ -382,31 +383,37 @@ class UpsertGoogleLoadBalancerDescriptionValidatorSpec extends Specification {
   }
 
   @Unroll
-  void "internal managed HTTP upsert requires a region (region: #region)"() {
+  void "internal managed HTTP upsert validates its region (region: #region)"() {
     setup:
-      def description = new UpsertGoogleLoadBalancerDescription(
-        loadBalancerType: GoogleLoadBalancerType.INTERNAL_MANAGED,
-        loadBalancerName: LOAD_BALANCER_NAME,
-        region: region,
-        accountName: ACCOUNT_NAME,
-        portRange: PORT_RANGE,
-        defaultService: new GoogleBackendService(
-          name: DEFAULT_SERVICE,
-          healthCheck: new GoogleHealthCheck(name: "health-check", port: 80)),
-        hostRules: [])
+      def input = [
+        accountName       : ACCOUNT_NAME,
+        loadBalancerType  : GoogleLoadBalancerType.INTERNAL_MANAGED,
+        "loadBalancerName": LOAD_BALANCER_NAME,
+        "region"          : region,
+        "portRange"       : PORT_RANGE,
+        "defaultService"  : [
+          "name"       : DEFAULT_SERVICE,
+          "backends"   : [],
+          "healthCheck": hc,
+        ],
+        "hostRules"       : null,
+      ]
+      def description = converter.convertDescription(input)
       def errors = Mock(ValidationErrors)
 
     when:
       validator.validate([], description, errors)
 
     then:
-      rejections * errors.rejectValue("region", "upsertGoogleLoadBalancerDescription.region.empty")
+      (code ? 1 : 0) * errors.rejectValue("region", code)
       0 * errors._
 
     where:
-      region | rejections
-      REGION | 0
-      null   | 1
+      region           | code
+      REGION           | null
+      null             | "upsertGoogleLoadBalancerDescription.region.empty"
+      "us-nowhere1"    | "upsertGoogleLoadBalancerDescription.region.invalid"
+      UNMANAGED_REGION | "upsertGoogleLoadBalancerDescription.region.unconfigured"
   }
 
   void "pass validation with proper external managed HTTP inputs"() {
@@ -1203,6 +1210,8 @@ class UpsertGoogleLoadBalancerDescriptionValidatorSpec extends Specification {
       GoogleLoadBalancerType.INTERNAL                  | "backendService"                  | "upsertGoogleLoadBalancerDescription.backendServiceRequired"                | { it.backendService = null }
       GoogleLoadBalancerType.INTERNAL                  | "backendService.name"             | "upsertGoogleLoadBalancerDescription.backendService.name.empty"             | { it.backendService.name = null }
       GoogleLoadBalancerType.INTERNAL                  | "backendService.healthCheck.name" | "upsertGoogleLoadBalancerDescription.backendService.healthCheck.name.empty" | { it.backendService.healthCheck.name = null }
+      GoogleLoadBalancerType.INTERNAL                  | "backendService.name"             | "upsertGoogleLoadBalancerDescription.backendService.name.empty"             | { it.backendService.name = "" }
+      GoogleLoadBalancerType.INTERNAL                  | "backendService.healthCheck.name" | "upsertGoogleLoadBalancerDescription.backendService.healthCheck.name.empty" | { it.backendService.healthCheck.name = "" }
       GoogleLoadBalancerType.REGIONAL_EXTERNAL_NETWORK | "backendService.name"             | "upsertGoogleLoadBalancerDescription.backendService.name.empty"             | { it.backendService.name = null }
       GoogleLoadBalancerType.REGIONAL_EXTERNAL_NETWORK | "backendService.healthCheck.name" | "upsertGoogleLoadBalancerDescription.backendService.healthCheck.name.empty" | { it.backendService.healthCheck.name = null }
       GoogleLoadBalancerType.SSL                       | "backendService.name"             | "upsertGoogleLoadBalancerDescription.backendService.name.empty"             | { it.backendService.name = null }
