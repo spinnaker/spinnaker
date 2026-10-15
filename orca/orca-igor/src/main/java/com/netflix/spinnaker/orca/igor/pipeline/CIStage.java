@@ -34,18 +34,18 @@ import org.apache.commons.lang3.StringUtils;
 @RequiredArgsConstructor
 @Slf4j
 public abstract class CIStage implements StageDefinitionBuilder, CancellableStage {
-  private final StopJenkinsJobTask stopJenkinsJobTask;
+  private final StopBuildJobTask stopBuildJobTask;
 
   @Override
   public void taskGraph(@Nonnull StageExecution stage, @Nonnull TaskNode.Builder builder) {
     CIStageDefinition stageDefinition = stage.mapTo(CIStageDefinition.class);
     String jobType = StringUtils.capitalize(getType());
     builder
-        .withTask(String.format("start%sJob", jobType), StartJenkinsJobTask.class)
+        .withTask(String.format("start%sJob", jobType), StartBuildJobTask.class)
         .withTask(String.format("waitFor%sJobStart", jobType), waitForJobStartTaskClass());
 
     if (stageDefinition.isWaitForCompletion()) {
-      builder.withTask(String.format("monitor%sJob", jobType), MonitorJenkinsJobTask.class);
+      builder.withTask(String.format("monitor%sJob", jobType), MonitorBuildJobTask.class);
       builder.withTask("getBuildProperties", GetBuildPropertiesTask.class);
       builder.withTask("getBuildArtifacts", GetBuildArtifactsTask.class);
     }
@@ -55,7 +55,7 @@ public abstract class CIStage implements StageDefinitionBuilder, CancellableStag
   }
 
   protected Class<? extends Task> waitForJobStartTaskClass() {
-    return MonitorQueuedJenkinsJobTask.class;
+    return MonitorQueuedBuildJobTask.class;
   }
 
   @Override
@@ -83,7 +83,7 @@ public abstract class CIStage implements StageDefinitionBuilder, CancellableStag
             stage.getId(), stage.getExecution().getId(), stage.getContext()));
 
     try {
-      stopJenkinsJobTask.execute(stage);
+      stopBuildJobTask.execute(stage);
     } catch (Exception e) {
       log.error(
           String.format(

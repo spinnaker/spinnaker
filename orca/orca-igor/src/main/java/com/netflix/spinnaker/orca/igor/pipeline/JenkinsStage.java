@@ -15,12 +15,12 @@
  */
 package com.netflix.spinnaker.orca.igor.pipeline;
 
-import com.netflix.spinnaker.orca.igor.tasks.StopJenkinsJobTask;
+import com.netflix.spinnaker.orca.igor.tasks.StopBuildJobTask;
 import org.springframework.stereotype.Component;
 
 @Component
 public class JenkinsStage extends CIStage {
-  public JenkinsStage(StopJenkinsJobTask stopJenkinsJobTask) {
-    super(stopJenkinsJobTask);
+  public JenkinsStage(StopBuildJobTask stopBuildJobTask) {
+    super(stopBuildJobTask);
   }
 }
