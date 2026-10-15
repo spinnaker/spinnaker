@@ -66,6 +66,28 @@ class FileBasedUserRolesProviderSpec extends Specification {
     provider.multiLoadRoles([externalUser("batman")]) == [:]
   }
 
+  def "should preserve scalar spelling in user names and roles"() {
+    setup:
+    URI uri = Resources.getResource("fiat-scalar-permissions.yml").toURI()
+    configProps.path = new File(uri).absolutePath
+    FileBasedUserRolesProvider provider = new FileBasedUserRolesProvider(configProps: configProps)
+
+    expect:
+    provider.loadRoles(externalUser("0644"))*.name == ["012", "yes", "off"]
+    provider.multiLoadRoles([externalUser("0644")])["0644"]*.name == ["012", "yes", "off"]
+  }
+
+  def "should reject malformed legacy numeric scalars in either role loading path"() {
+    setup:
+    URI uri = Resources.getResource("fiat-invalid-scalar-permissions.yml").toURI()
+    configProps.path = new File(uri).absolutePath
+    FileBasedUserRolesProvider provider = new FileBasedUserRolesProvider(configProps: configProps)
+
+    expect:
+    provider.loadRoles(externalUser("batman")) == []
+    provider.multiLoadRoles([externalUser("batman")]) == [:]
+  }
+
   private static ExternalUser externalUser(String id) {
     return new ExternalUser().setId(id)
   }

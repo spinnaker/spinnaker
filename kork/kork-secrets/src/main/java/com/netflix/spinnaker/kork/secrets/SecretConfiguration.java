@@ -22,6 +22,7 @@ import com.netflix.spinnaker.kork.secrets.user.UserSecretSerde;
 import com.netflix.spinnaker.kork.secrets.user.UserSecretSerdeFactory;
 import com.netflix.spinnaker.kork.secrets.user.UserSecretType;
 import com.netflix.spinnaker.kork.secrets.user.UserSecretTypeProvider;
+import com.netflix.spinnaker.kork.yaml.YamlHelper;
 import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
@@ -53,7 +54,7 @@ public class SecretConfiguration {
     List<ObjectMapper> mappers =
         List.of(
             jsonMapper(),
-            YAMLMapper.builder()
+            YAMLMapper.builder(YamlHelper.newYamlFactory())
                 .disable(MapperFeature.SORT_PROPERTIES_ALPHABETICALLY)
                 .disable(MapperFeature.SORT_CREATOR_PROPERTIES_FIRST)
                 .enable(DateTimeFeature.WRITE_DATES_AS_TIMESTAMPS)

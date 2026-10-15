@@ -16,6 +16,7 @@
 
 package com.netflix.spinnaker.kork.plugins.sdk.yaml
 
+import com.netflix.spinnaker.kork.yaml.YamlHelper
 import tools.jackson.databind.DeserializationFeature
 import tools.jackson.databind.ObjectMapper
 import tools.jackson.dataformat.yaml.YAMLMapper
@@ -28,7 +29,7 @@ class JacksonYamlResourceLoader(
   private val pluginClass: Class<*>
 ) : YamlResourceLoader {
 
-  private val mapper: ObjectMapper = YAMLMapper.builder()
+  private val mapper: ObjectMapper = YAMLMapper.builder(YamlHelper.newYamlFactory())
     .disable(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES)
     .build()
 

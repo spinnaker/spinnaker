@@ -19,6 +19,7 @@ package com.netflix.spinnaker.fiat.roles.file;
 import com.netflix.spinnaker.fiat.model.resources.Role;
 import com.netflix.spinnaker.fiat.permissions.ExternalUser;
 import com.netflix.spinnaker.fiat.roles.UserRolesProvider;
+import com.netflix.spinnaker.kork.yaml.YamlHelper;
 import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileReader;
@@ -49,7 +50,7 @@ public class FileBasedUserRolesProvider implements UserRolesProvider {
   }
 
   private Map<String, List<Role>> parse(Reader source) throws IOException {
-    ObjectMapper mapper = YAMLMapper.builder().build();
+    ObjectMapper mapper = YAMLMapper.builder(YamlHelper.newYamlFactory()).build();
     return mapper.readValue(source, UserRolesMapping.class).toMap();
   }
 

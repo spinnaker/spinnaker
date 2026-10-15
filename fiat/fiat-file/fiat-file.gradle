@@ -17,6 +17,7 @@
 dependencies {
   implementation project(":fiat-roles")
   implementation project(":fiat-core")
+  implementation "io.spinnaker.kork:kork-core"
   implementation "tools.jackson.core:jackson-databind"
   implementation "tools.jackson.dataformat:jackson-dataformat-yaml"
   implementation "commons-io:commons-io"

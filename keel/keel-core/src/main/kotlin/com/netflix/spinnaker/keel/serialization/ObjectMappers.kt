@@ -1,5 +1,6 @@
 package com.netflix.spinnaker.keel.serialization
 
+import com.netflix.spinnaker.kork.yaml.YamlHelper
 import com.fasterxml.jackson.annotation.JsonInclude.Include.NON_NULL
 import com.netflix.spinnaker.keel.jackson.ExtensionSubtypeModule
 import com.netflix.spinnaker.keel.jackson.KeelApiModule
@@ -37,7 +38,7 @@ fun configuredObjectMapper(): JsonMapper = JsonMapper.builder()
 /**
  * Factory method for [YAMLMapper]s configured how we like 'em.
  */
-fun configuredYamlMapper(): YAMLMapper = YAMLMapper.builder()
+fun configuredYamlMapper(): YAMLMapper = YAMLMapper.builder(YamlHelper.newYamlFactory())
   .configureForKeel()
   .disable(USE_NATIVE_TYPE_ID)
   .build()
