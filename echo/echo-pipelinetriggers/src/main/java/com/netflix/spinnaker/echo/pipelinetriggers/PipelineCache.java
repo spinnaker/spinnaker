@@ -241,6 +241,16 @@ public class PipelineCache implements MonitoredPoller {
         .findFirst();
   }
 
+  /** Like {@link #process}, but returns empty if it throws, so that the pipeline is skipped. */
+  private Optional<Pipeline> processOrSkip(Map<String, Object> rawPipeline) {
+    try {
+      return process(rawPipeline);
+    } catch (Exception e) {
+      log.warn("Pipeline failed to be processed: {}", rawPipeline, e);
+      return Optional.empty();
+    }
+  }
+
   private List<Map<String, Object>> fetchRawPipelines() {
     List<Map<String, Object>> rawPipelines =
         AuthenticatedRequest.allowAnonymous(
@@ -266,7 +276,7 @@ public class PipelineCache implements MonitoredPoller {
           .submit(
               () ->
                   rawPipelines.parallelStream()
-                      .map(this::process)
+                      .map(this::processOrSkip)
                       .filter(Optional::isPresent)
                       .map(Optional::get)
                       .collect(toList()))

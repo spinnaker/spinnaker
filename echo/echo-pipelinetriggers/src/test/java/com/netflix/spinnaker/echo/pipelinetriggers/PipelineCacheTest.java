@@ -36,6 +36,7 @@ import com.netflix.spinnaker.echo.pipelinetriggers.orca.OrcaService;
 import com.netflix.spinnaker.echo.services.Front50Service;
 import com.netflix.spinnaker.kork.retrofit.exceptions.SpinnakerHttpException;
 import java.net.HttpURLConnection;
+import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -237,6 +238,28 @@ public class PipelineCacheTest {
 
     // planning the templated pipeline fails: we keep the pipelines from the last successful poll
     pipelineCache.pollPipelineConfigs();
+    assertThat(pipelineCache.getPipelines()).containsExactly(pipeline);
+  }
+
+  @Test
+  void skipsAPipelineThatFailsToBeProcessed() {
+    Map<String, Object> pipelineMap =
+        Map.of("application", "application", "name", "Pipeline", "id", "P1");
+    Map<String, Object> nullTriggerPipelineMap =
+        Map.of(
+            "application", "application",
+            "name", "Null trigger",
+            "id", "P2",
+            "triggers", Collections.singletonList(null));
+    Pipeline pipeline =
+        Pipeline.builder().application("application").name("Pipeline").id("P1").build();
+
+    when(front50.getPipelines())
+        .thenReturn(Calls.response(List.of(pipelineMap, nullTriggerPipelineMap)));
+
+    pipelineCache.start();
+    pipelineCache.pollPipelineConfigs();
+
     assertThat(pipelineCache.getPipelines()).containsExactly(pipeline);
   }
 
