@@ -149,6 +149,7 @@ class CloudFoundryCacheViewTest {
 
   @SuppressWarnings("unchecked")
   private static Map<String, Object> projection(Object resource) {
-    return (Map<String, Object>) AbstractCloudFoundryCachingAgent.cacheView(resource).get("resource");
+    return (Map<String, Object>)
+        AbstractCloudFoundryCachingAgent.cacheView(resource).get("resource");
   }
 }
