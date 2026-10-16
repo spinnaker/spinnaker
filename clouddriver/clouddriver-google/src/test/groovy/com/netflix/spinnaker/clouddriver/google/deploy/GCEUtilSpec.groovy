@@ -29,6 +29,7 @@ package com.netflix.spinnaker.clouddriver.google.deploy
   import com.netflix.spectator.api.Registry
   import com.netflix.spinnaker.clouddriver.data.task.Task
   import com.netflix.spinnaker.clouddriver.data.task.TaskRepository
+  import com.netflix.spinnaker.clouddriver.google.GoogleApiTestUtils
   import com.netflix.spinnaker.clouddriver.google.GoogleExecutorTraits
   import com.netflix.spinnaker.clouddriver.google.batch.GoogleBatchRequest
   import com.netflix.spinnaker.clouddriver.google.deploy.description.BasicGoogleDeployDescription
@@ -1940,6 +1941,281 @@ package com.netflix.spinnaker.clouddriver.google.deploy
       description.enableSecureBoot
       !description.enableVtpm
       description.enableIntegrityMonitoring
+  }
+
+  void "deleteGlobalListener waits for the forwarding rule delete before deleting the target proxy"() {
+    setup:
+      def compute = Mock(Compute)
+      def forwardingRules = Mock(Compute.GlobalForwardingRules)
+      def forwardingRulesGet = Mock(Compute.GlobalForwardingRules.Get)
+      def forwardingRulesDelete = Mock(Compute.GlobalForwardingRules.Delete)
+      def targetHttpProxies = Mock(Compute.TargetHttpProxies)
+      def targetHttpProxiesDelete = Mock(Compute.TargetHttpProxies.Delete)
+      def poller = Mock(GoogleOperationPoller)
+      def proxyDeleteOp = new Operation(name: "proxy-delete")
+
+    when:
+      def result = GCEUtil.deleteGlobalListener(
+        compute, PROJECT_NAME, "listener", PHASE, 42L, taskMock, poller, SafeRetry.withoutDelay(), executor)
+
+    then:
+      _ * compute.globalForwardingRules() >> forwardingRules
+      1 * forwardingRules.get(PROJECT_NAME, "listener") >> forwardingRulesGet
+      1 * forwardingRulesGet.execute() >> new ForwardingRule(
+        name: "listener",
+        target: "projects/$PROJECT_NAME/global/targetHttpProxies/listener-proxy")
+      1 * forwardingRules.delete(PROJECT_NAME, "listener") >> forwardingRulesDelete
+      1 * forwardingRulesDelete.execute() >> new Operation(name: "rule-delete")
+
+    then:
+      1 * poller.waitForGlobalOperation(compute, PROJECT_NAME, "rule-delete", 42L, taskMock, _, PHASE)
+
+    then:
+      _ * compute.targetHttpProxies() >> targetHttpProxies
+      1 * targetHttpProxies.delete(PROJECT_NAME, "listener-proxy") >> targetHttpProxiesDelete
+      1 * targetHttpProxiesDelete.execute() >> proxyDeleteOp
+      result == proxyDeleteOp
+  }
+
+  void "deleteGlobalListener deletes the target proxy when the forwarding rule is already gone"() {
+    setup:
+      def compute = Mock(Compute)
+      def forwardingRules = Mock(Compute.GlobalForwardingRules)
+      def forwardingRulesGet = Mock(Compute.GlobalForwardingRules.Get)
+      def forwardingRulesDelete = Mock(Compute.GlobalForwardingRules.Delete)
+      def targetTcpProxies = Mock(Compute.TargetTcpProxies)
+      def targetTcpProxiesDelete = Mock(Compute.TargetTcpProxies.Delete)
+      def poller = Mock(GoogleOperationPoller)
+      def proxyDeleteOp = new Operation(name: "proxy-delete")
+
+    when:
+      def result = GCEUtil.deleteGlobalListener(
+        compute, PROJECT_NAME, "listener", PHASE, null, taskMock, poller, SafeRetry.withoutDelay(), executor)
+
+    then:
+      _ * compute.globalForwardingRules() >> forwardingRules
+      2 * forwardingRules.get(PROJECT_NAME, "listener") >> forwardingRulesGet
+      2 * forwardingRulesGet.execute() >>> [new ForwardingRule(
+        name: "listener",
+        target: "projects/$PROJECT_NAME/global/targetTcpProxies/listener-proxy")] >> {
+        throw GoogleApiTestUtils.makeGoogleJsonResponseException(404)
+      }
+      1 * forwardingRules.delete(PROJECT_NAME, "listener") >> forwardingRulesDelete
+      1 * forwardingRulesDelete.execute() >> { throw GoogleApiTestUtils.makeGoogleJsonResponseException(404) }
+      0 * poller._
+      _ * compute.targetTcpProxies() >> targetTcpProxies
+      1 * targetTcpProxies.delete(PROJECT_NAME, "listener-proxy") >> targetTcpProxiesDelete
+      1 * targetTcpProxiesDelete.execute() >> proxyDeleteOp
+      result == proxyDeleteOp
+  }
+
+  void "deleteRegionalListener waits for the forwarding rule delete before deleting the target proxy"() {
+    setup:
+      def compute = Mock(Compute)
+      def forwardingRules = Mock(Compute.ForwardingRules)
+      def forwardingRulesGet = Mock(Compute.ForwardingRules.Get)
+      def forwardingRulesDelete = Mock(Compute.ForwardingRules.Delete)
+      def targetHttpsProxies = Mock(Compute.RegionTargetHttpsProxies)
+      def targetHttpsProxiesDelete = Mock(Compute.RegionTargetHttpsProxies.Delete)
+      def poller = Mock(GoogleOperationPoller)
+      def proxyDeleteOp = new Operation(name: "proxy-delete")
+
+    when:
+      def result = GCEUtil.deleteRegionalListener(
+        compute, PROJECT_NAME, REGION, "listener", PHASE, 42L, taskMock, poller, SafeRetry.withoutDelay(), executor)
+
+    then:
+      _ * compute.forwardingRules() >> forwardingRules
+      1 * forwardingRules.get(PROJECT_NAME, REGION, "listener") >> forwardingRulesGet
+      1 * forwardingRulesGet.execute() >> new ForwardingRule(
+        name: "listener",
+        target: "projects/$PROJECT_NAME/regions/$REGION/targetHttpsProxies/listener-proxy")
+      1 * forwardingRules.delete(PROJECT_NAME, REGION, "listener") >> forwardingRulesDelete
+      1 * forwardingRulesDelete.execute() >> new Operation(name: "rule-delete")
+
+    then:
+      1 * poller.waitForRegionalOperation(compute, PROJECT_NAME, REGION, "rule-delete", 42L, taskMock, _, PHASE)
+
+    then:
+      _ * compute.regionTargetHttpsProxies() >> targetHttpsProxies
+      1 * targetHttpsProxies.delete(PROJECT_NAME, REGION, "listener-proxy") >> targetHttpsProxiesDelete
+      1 * targetHttpsProxiesDelete.execute() >> proxyDeleteOp
+      result == proxyDeleteOp
+  }
+
+  void "deleteRegionalListener keeps the target proxy when the forwarding rule delete fails"() {
+    setup:
+      def compute = Mock(Compute)
+      def forwardingRules = Mock(Compute.ForwardingRules)
+      def forwardingRulesGet = Mock(Compute.ForwardingRules.Get)
+      def forwardingRulesDelete = Mock(Compute.ForwardingRules.Delete)
+      def poller = Mock(GoogleOperationPoller)
+
+    when:
+      GCEUtil.deleteRegionalListener(
+        compute, PROJECT_NAME, REGION, "listener", PHASE, null, taskMock, poller, SafeRetry.withoutDelay(), executor)
+
+    then:
+      _ * compute.forwardingRules() >> forwardingRules
+      1 * forwardingRules.get(PROJECT_NAME, REGION, "listener") >> forwardingRulesGet
+      1 * forwardingRulesGet.execute() >> new ForwardingRule(
+        name: "listener",
+        target: "projects/$PROJECT_NAME/regions/$REGION/targetHttpProxies/listener-proxy")
+      1 * forwardingRules.delete(PROJECT_NAME, REGION, "listener") >> forwardingRulesDelete
+      1 * forwardingRulesDelete.execute() >> new Operation(name: "rule-delete")
+      1 * poller.waitForRegionalOperation(compute, PROJECT_NAME, REGION, "rule-delete", null, taskMock, _, PHASE) >> {
+        throw new GoogleOperationException("Failed to complete operation")
+      }
+      0 * compute.regionTargetHttpProxies()
+      thrown(GoogleOperationException)
+  }
+
+  void "deleteRegionalListener deletes the target proxy when the forwarding rule is already gone"() {
+    setup:
+      def compute = Mock(Compute)
+      def forwardingRules = Mock(Compute.ForwardingRules)
+      def forwardingRulesGet = Mock(Compute.ForwardingRules.Get)
+      def forwardingRulesDelete = Mock(Compute.ForwardingRules.Delete)
+      def targetHttpProxies = Mock(Compute.RegionTargetHttpProxies)
+      def targetHttpProxiesDelete = Mock(Compute.RegionTargetHttpProxies.Delete)
+      def poller = Mock(GoogleOperationPoller)
+      def proxyDeleteOp = new Operation(name: "proxy-delete")
+
+    when:
+      def result = GCEUtil.deleteRegionalListener(
+        compute, PROJECT_NAME, REGION, "listener", PHASE, null, taskMock, poller, SafeRetry.withoutDelay(), executor)
+
+    then:
+      _ * compute.forwardingRules() >> forwardingRules
+      2 * forwardingRules.get(PROJECT_NAME, REGION, "listener") >> forwardingRulesGet
+      2 * forwardingRulesGet.execute() >>> [new ForwardingRule(
+        name: "listener",
+        target: "projects/$PROJECT_NAME/regions/$REGION/targetHttpProxies/listener-proxy")] >> {
+        throw GoogleApiTestUtils.makeGoogleJsonResponseException(404)
+      }
+      1 * forwardingRules.delete(PROJECT_NAME, REGION, "listener") >> forwardingRulesDelete
+      1 * forwardingRulesDelete.execute() >> { throw GoogleApiTestUtils.makeGoogleJsonResponseException(404) }
+      0 * poller._
+      _ * compute.regionTargetHttpProxies() >> targetHttpProxies
+      1 * targetHttpProxies.delete(PROJECT_NAME, REGION, "listener-proxy") >> targetHttpProxiesDelete
+      1 * targetHttpProxiesDelete.execute() >> proxyDeleteOp
+      result == proxyDeleteOp
+  }
+
+  void "deleteGlobalListener deletes a listed rule's target proxy when the rule is gone before it is read"() {
+    setup:
+      def compute = Mock(Compute)
+      def forwardingRules = Mock(Compute.GlobalForwardingRules)
+      def forwardingRulesGet = Mock(Compute.GlobalForwardingRules.Get)
+      def targetSslProxies = Mock(Compute.TargetSslProxies)
+      def targetSslProxiesDelete = Mock(Compute.TargetSslProxies.Delete)
+      def poller = Mock(GoogleOperationPoller)
+      def proxyDeleteOp = new Operation(name: "proxy-delete")
+      def listedRule = new ForwardingRule(
+        name: "listener",
+        target: "projects/$PROJECT_NAME/global/targetSslProxies/listener-proxy")
+
+    when:
+      def result = GCEUtil.deleteGlobalListener(
+        compute, PROJECT_NAME, listedRule, PHASE, null, taskMock, poller, SafeRetry.withoutDelay(), executor)
+
+    then:
+      _ * compute.globalForwardingRules() >> forwardingRules
+      1 * forwardingRules.get(PROJECT_NAME, "listener") >> forwardingRulesGet
+      1 * forwardingRulesGet.execute() >> { throw GoogleApiTestUtils.makeGoogleJsonResponseException(404) }
+      0 * forwardingRules.delete(*_)
+      0 * poller._
+      _ * compute.targetSslProxies() >> targetSslProxies
+      1 * targetSslProxies.delete(PROJECT_NAME, "listener-proxy") >> targetSslProxiesDelete
+      1 * targetSslProxiesDelete.execute() >> proxyDeleteOp
+      result == proxyDeleteOp
+  }
+
+  void "deleteRegionalListener deletes a listed rule's target proxy when the rule is gone before it is read"() {
+    setup:
+      def compute = Mock(Compute)
+      def forwardingRules = Mock(Compute.ForwardingRules)
+      def forwardingRulesGet = Mock(Compute.ForwardingRules.Get)
+      def targetHttpProxies = Mock(Compute.RegionTargetHttpProxies)
+      def targetHttpProxiesDelete = Mock(Compute.RegionTargetHttpProxies.Delete)
+      def poller = Mock(GoogleOperationPoller)
+      def proxyDeleteOp = new Operation(name: "proxy-delete")
+      def listedRule = new ForwardingRule(
+        name: "listener",
+        target: "projects/$PROJECT_NAME/regions/$REGION/targetHttpProxies/listener-proxy")
+
+    when:
+      def result = GCEUtil.deleteRegionalListener(
+        compute, PROJECT_NAME, REGION, listedRule, PHASE, null, taskMock, poller, SafeRetry.withoutDelay(), executor)
+
+    then:
+      _ * compute.forwardingRules() >> forwardingRules
+      1 * forwardingRules.get(PROJECT_NAME, REGION, "listener") >> forwardingRulesGet
+      1 * forwardingRulesGet.execute() >> { throw GoogleApiTestUtils.makeGoogleJsonResponseException(404) }
+      0 * forwardingRules.delete(*_)
+      0 * poller._
+      _ * compute.regionTargetHttpProxies() >> targetHttpProxies
+      1 * targetHttpProxies.delete(PROJECT_NAME, REGION, "listener-proxy") >> targetHttpProxiesDelete
+      1 * targetHttpProxiesDelete.execute() >> proxyDeleteOp
+      result == proxyDeleteOp
+  }
+
+  void "deleteGlobalListener keeps the target proxy when the forwarding rule is still in use"() {
+    setup:
+      def compute = Mock(Compute)
+      def forwardingRules = Mock(Compute.GlobalForwardingRules)
+      def forwardingRulesGet = Mock(Compute.GlobalForwardingRules.Get)
+      def forwardingRulesDelete = Mock(Compute.GlobalForwardingRules.Delete)
+      def poller = Mock(GoogleOperationPoller)
+      def rule = new ForwardingRule(
+        name: "listener",
+        target: "projects/$PROJECT_NAME/global/targetHttpProxies/listener-proxy")
+
+    when:
+      GCEUtil.deleteGlobalListener(
+        compute, PROJECT_NAME, "listener", PHASE, null, taskMock, poller, SafeRetry.withoutDelay(), executor)
+
+    then:
+      _ * compute.globalForwardingRules() >> forwardingRules
+      2 * forwardingRules.get(PROJECT_NAME, "listener") >> forwardingRulesGet
+      2 * forwardingRulesGet.execute() >> rule
+      _ * forwardingRules.delete(PROJECT_NAME, "listener") >> forwardingRulesDelete
+      (1.._) * forwardingRulesDelete.execute() >> {
+        throw GoogleApiTestUtils.makeGoogleJsonResponseException(400, "resourceInUseByAnotherResource")
+      }
+      0 * poller._
+      0 * compute.targetHttpProxies()
+      def e = thrown(IllegalStateException)
+      e.message.contains("Global forwarding rule listener is still used by another resource")
+  }
+
+  void "deleteRegionalListener keeps the target proxy when the forwarding rule is still in use"() {
+    setup:
+      def compute = Mock(Compute)
+      def forwardingRules = Mock(Compute.ForwardingRules)
+      def forwardingRulesGet = Mock(Compute.ForwardingRules.Get)
+      def forwardingRulesDelete = Mock(Compute.ForwardingRules.Delete)
+      def poller = Mock(GoogleOperationPoller)
+      def rule = new ForwardingRule(
+        name: "listener",
+        target: "projects/$PROJECT_NAME/regions/$REGION/targetHttpProxies/listener-proxy")
+
+    when:
+      GCEUtil.deleteRegionalListener(
+        compute, PROJECT_NAME, REGION, "listener", PHASE, null, taskMock, poller, SafeRetry.withoutDelay(), executor)
+
+    then:
+      _ * compute.forwardingRules() >> forwardingRules
+      2 * forwardingRules.get(PROJECT_NAME, REGION, "listener") >> forwardingRulesGet
+      2 * forwardingRulesGet.execute() >> rule
+      _ * forwardingRules.delete(PROJECT_NAME, REGION, "listener") >> forwardingRulesDelete
+      (1.._) * forwardingRulesDelete.execute() >> {
+        throw GoogleApiTestUtils.makeGoogleJsonResponseException(400, "resourceInUseByAnotherResource")
+      }
+      0 * poller._
+      0 * compute.regionTargetHttpProxies()
+      def e = thrown(IllegalStateException)
+      e.message.contains("Forwarding rule listener in $REGION is still used by another resource")
   }
 
   private static InstanceTemplate shieldedInstanceTemplate() {
