@@ -46,6 +46,11 @@ this via `getDeliveryGuarantee()`:
   separate consumer group per listening instance on a durable log), which not every
   implementation offers.
 
+Broadcast handlers should return quickly. An implementation may deliver a subscription's messages
+one at a time, so a slow handler delays the messages behind it, and an `AT_MOST_ONCE`
+implementation may drop (and should count) messages rather than buffer without bound once a handler
+falls too far behind.
+
 An implementation may also implement `PubsubPublisher`/`PubsubSubscriber` alongside the broadcast
 interfaces, so that generic tooling built against the competing-consumer contract can still
 discover it.

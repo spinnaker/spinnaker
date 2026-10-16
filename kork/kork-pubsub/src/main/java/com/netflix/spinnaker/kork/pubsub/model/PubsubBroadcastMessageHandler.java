@@ -23,6 +23,11 @@ package com.netflix.spinnaker.kork.pubsub.model;
  * DeliveryGuarantee#AT_MOST_ONCE} implementation there is nothing to redeliver, and for an {@link
  * DeliveryGuarantee#AT_LEAST_ONCE} implementation redelivery policy is that implementation's own
  * concern, not this handler's.
+ *
+ * <p>Handlers should return quickly: an implementation may deliver a subscription's messages one at
+ * a time, so a slow handler delays the messages behind it. An {@link
+ * DeliveryGuarantee#AT_MOST_ONCE} implementation may drop messages (and should count them) rather
+ * than buffer without bound once a handler falls too far behind.
  */
 public interface PubsubBroadcastMessageHandler {
   void handleMessage(BroadcastMessage message);
