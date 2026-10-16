@@ -21,8 +21,7 @@ import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.netflix.spinnaker.kork.exceptions.ConstraintViolationException;
 import com.netflix.spinnaker.kork.exceptions.SystemException;
-import java.net.InetAddress;
-import java.net.UnknownHostException;
+import com.netflix.spinnaker.kork.instance.InstanceIdentity;
 import java.time.Duration;
 import java.util.*;
 import java.util.concurrent.Callable;
@@ -50,15 +49,9 @@ public interface LockManager {
   // VisibleForTesting
   Lock tryCreateLock(final LockOptions lockOptions);
 
-  String NAME_FALLBACK = UUID.randomUUID().toString();
-
   /** Used only if an ownerName is not provided in the constructor. */
   default String getOwnerName() {
-    try {
-      return InetAddress.getLocalHost().getHostName();
-    } catch (UnknownHostException e) {
-      return NAME_FALLBACK;
-    }
+    return InstanceIdentity.getLocalInstanceId();
   }
 
   default String lockKey(String name) {
