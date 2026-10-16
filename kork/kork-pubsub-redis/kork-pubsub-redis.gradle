@@ -44,6 +44,7 @@ dependencies {
 
   testImplementation project(':kork-jedis-test')
   testImplementation 'org.springframework.boot:spring-boot-test'
+  testImplementation 'org.springframework.boot:spring-boot-starter-validation'
   testImplementation 'org.testcontainers:testcontainers'
   testImplementation 'org.testcontainers:junit-jupiter'
   testImplementation 'org.assertj:assertj-core'

@@ -27,9 +27,15 @@ import com.netflix.spinnaker.kork.pubsub.model.PubsubSubscriber;
 import com.netflix.spinnaker.kork.pubsub.redis.broadcast.api.RedisBroadcastMessageHandlerFactory;
 import com.netflix.spinnaker.kork.pubsub.redis.config.RedisPubsubProperties;
 import io.micrometer.core.instrument.MeterRegistry;
+import io.micrometer.core.instrument.Tag;
 import jakarta.annotation.PostConstruct;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.concurrent.ArrayBlockingQueue;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.ThreadPoolExecutor;
+import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicInteger;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.DisposableBean;
@@ -73,6 +79,7 @@ public class RedisBroadcastProvider implements DisposableBean {
   private final MeterRegistry meterRegistry;
 
   private final List<RedisNativePubsubSubscriber> subscribers = new ArrayList<>();
+  private final List<ExecutorService> executors = new ArrayList<>();
 
   @Autowired
   public RedisBroadcastProvider(
@@ -125,6 +132,7 @@ public class RedisBroadcastProvider implements DisposableBean {
                   new RedisInboundChannelAdapter(redisConnectionFactory);
               adapter.setSerializer(StringRedisSerializer.UTF_8);
               adapter.setTopics(subscription.getChannel());
+              adapter.setTaskExecutor(newExecutor(subscription));
 
               RedisNativePubsubSubscriber subscriber =
                   new RedisNativePubsubSubscriber(
@@ -134,7 +142,6 @@ public class RedisBroadcastProvider implements DisposableBean {
                       meterRegistry);
               adapter.setBeanFactory(applicationContext);
               adapter.afterPropertiesSet();
-              subscriber.start();
 
               subscribers.add(subscriber);
               broadcastSubscribers.add(subscriber);
@@ -145,10 +152,55 @@ public class RedisBroadcastProvider implements DisposableBean {
     pubsubBroadcastSubscribers.putAll(broadcastSubscribers);
     pubsubPublishers.putAll(publishers);
     pubsubSubscribers.putAll(subscriberRegistrations);
+
+    // Only start listening once everything is registered.
+    subscribers.forEach(RedisNativePubsubSubscriber::start);
+  }
+
+  /**
+   * The adapter's listener container runs both its (blocking) subscription loop and every message
+   * handler on this executor; without one it spawns a thread per message. Two threads - one parked
+   * on the subscription, one running handlers - keep messages in order, and a bounded queue sheds
+   * load when handlers fall behind, which at-most-once delivery permits.
+   */
+  private ExecutorService newExecutor(
+      RedisPubsubProperties.RedisBroadcastSubscription subscription) {
+    AtomicInteger threadNumber = new AtomicInteger();
+    ThreadPoolExecutor executor =
+        new ThreadPoolExecutor(
+            2,
+            2,
+            0L,
+            TimeUnit.MILLISECONDS,
+            new ArrayBlockingQueue<>(subscription.getQueueCapacity()),
+            runnable -> {
+              Thread thread =
+                  new Thread(
+                      runnable,
+                      "pubsub-redis-broadcast-"
+                          + subscription.getName()
+                          + "-"
+                          + threadNumber.incrementAndGet());
+              thread.setDaemon(true);
+              return thread;
+            },
+            (runnable, pool) -> {
+              meterRegistry
+                  .counter(
+                      "pubsub.redis.broadcastDropped",
+                      List.of(Tag.of("subscription", subscription.getName())))
+                  .increment();
+              log.warn(
+                  "Broadcast handler for {} is falling behind; dropping a message",
+                  subscription.getName());
+            });
+    executors.add(executor);
+    return executor;
   }
 
   @Override
   public void destroy() {
     subscribers.forEach(RedisNativePubsubSubscriber::stop);
+    executors.forEach(ExecutorService::shutdownNow);
   }
 }

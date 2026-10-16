@@ -17,14 +17,20 @@
 package com.netflix.spinnaker.kork.pubsub.redis.config;
 
 import jakarta.validation.Valid;
+import jakarta.validation.constraints.AssertTrue;
+import jakarta.validation.constraints.Min;
 import jakarta.validation.constraints.NotEmpty;
+import jakarta.validation.constraints.NotNull;
 import java.time.Duration;
 import java.util.Collections;
 import java.util.List;
+import java.util.Objects;
 import lombok.Data;
 import org.springframework.boot.context.properties.ConfigurationProperties;
+import org.springframework.validation.annotation.Validated;
 
 @Data
+@Validated
 @ConfigurationProperties(prefix = "pubsub.redis")
 public class RedisPubsubProperties {
   /**
@@ -34,6 +40,36 @@ public class RedisPubsubProperties {
 
   /** Broadcast subscriptions, backed by native Redis Pub/Sub. */
   @Valid private List<RedisBroadcastSubscription> broadcasts = Collections.emptyList();
+
+  /**
+   * Subscription names key the per-subscription workers, handlers, and metrics, so a duplicate
+   * would silently overwrite its twin.
+   */
+  @AssertTrue(message = "pubsub.redis.subscriptions[].name must be unique")
+  public boolean isSubscriptionNamesUnique() {
+    return subscriptions.stream()
+            .map(RedisStreamSubscription::getName)
+            .filter(Objects::nonNull)
+            .distinct()
+            .count()
+        == subscriptions.stream()
+            .map(RedisStreamSubscription::getName)
+            .filter(Objects::nonNull)
+            .count();
+  }
+
+  @AssertTrue(message = "pubsub.redis.broadcasts[].name must be unique")
+  public boolean isBroadcastNamesUnique() {
+    return broadcasts.stream()
+            .map(RedisBroadcastSubscription::getName)
+            .filter(Objects::nonNull)
+            .distinct()
+            .count()
+        == broadcasts.stream()
+            .map(RedisBroadcastSubscription::getName)
+            .filter(Objects::nonNull)
+            .count();
+  }
 
   @Data
   public static class RedisStreamSubscription {
@@ -48,7 +84,12 @@ public class RedisPubsubProperties {
      */
     private String consumerGroup;
 
-    /** Maximum records read from the stream per poll, and the concurrency of the worker pool. */
+    /**
+     * Maximum records read from the stream per poll, and the concurrency of the worker pool. This
+     * also bounds the records this instance holds at once: polling pauses while every worker is
+     * busy.
+     */
+    @Min(1)
     private int maxNumberOfMessages = 10;
 
     /**
@@ -57,12 +98,34 @@ public class RedisPubsubProperties {
      * (unlike SQS's single visibility timeout), so this should be tuned well above realistic
      * handler runtime to avoid a window where two consumers could both believe they own a record.
      */
-    private Duration minIdleTimeForClaim = Duration.ofMinutes(5);
+    @NotNull private Duration minIdleTimeForClaim = Duration.ofMinutes(5);
 
+    @Min(1)
     private int reclaimIntervalSeconds = 60;
 
-    /** Approximate cap on stream length, trimmed on every publish via {@code XADD ... MAXLEN ~}. */
+    /**
+     * Approximate cap on stream length, trimmed on every publish via {@code XADD ... MAXLEN ~}.
+     * Trimming ignores consumer groups, so this must comfortably exceed the number of records that
+     * can be published while consumers are down or lagging; a record trimmed before it is consumed
+     * is lost.
+     */
+    @Min(1)
     private long streamMaxLength = 10_000;
+
+    /**
+     * How many times a record may be delivered before it is considered a poison message and moved
+     * to the dead-letter stream instead of being redelivered again. A record's delivery count
+     * increases on every delivery, including each reclaim after a failed or abandoned attempt.
+     */
+    @Min(1)
+    private int maxDeliveryAttempts = 5;
+
+    /**
+     * Stream that receives records which exceeded {@link #maxDeliveryAttempts}, trimmed to {@link
+     * #streamMaxLength}. Defaults to the {@link #getStreamKey() stream key} plus {@code
+     * .dead-letter}.
+     */
+    private String deadLetterStreamKey;
 
     public String getStreamKey() {
       return streamKey != null ? streamKey : name;
@@ -70,6 +133,10 @@ public class RedisPubsubProperties {
 
     public String getConsumerGroup() {
       return consumerGroup != null ? consumerGroup : name;
+    }
+
+    public String getDeadLetterStreamKey() {
+      return deadLetterStreamKey != null ? deadLetterStreamKey : getStreamKey() + ".dead-letter";
     }
   }
 
@@ -79,6 +146,14 @@ public class RedisPubsubProperties {
 
     /** Redis Pub/Sub channel to publish/subscribe to. Defaults to {@link #name}. */
     private String channel;
+
+    /**
+     * Messages that may wait for a handler on this instance. Native Pub/Sub is at-most-once, so
+     * when the queue is full further messages are dropped (and counted) rather than buffered
+     * without bound.
+     */
+    @Min(1)
+    private int queueCapacity = 1000;
 
     public String getChannel() {
       return channel != null ? channel : name;

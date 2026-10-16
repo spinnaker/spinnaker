@@ -19,8 +19,6 @@ package com.netflix.spinnaker.kork.pubsub.redis.config;
 import com.netflix.spinnaker.kork.pubsub.redis.streams.DefaultRedisStreamMessageAcknowledger;
 import com.netflix.spinnaker.kork.pubsub.redis.streams.api.RedisStreamMessageAcknowledger;
 import io.micrometer.core.instrument.MeterRegistry;
-import jakarta.validation.Valid;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
@@ -59,8 +57,6 @@ import org.springframework.data.redis.core.StringRedisTemplate;
 @Import({DataRedisAutoConfiguration.class, IntegrationAutoConfiguration.class})
 public class RedisPubsubConfig {
   public static final String SYSTEM = "redis";
-
-  @Valid @Autowired private RedisPubsubProperties redisPubsubProperties;
 
   @Bean
   @ConditionalOnMissingBean(RedisStreamMessageAcknowledger.class)
