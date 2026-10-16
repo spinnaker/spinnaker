@@ -5,7 +5,6 @@ import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.mockito.Mockito.*;
 import static org.mockito.MockitoAnnotations.initMocks;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.collect.ImmutableList;
 import com.netflix.kayenta.canary.CanaryConfig;
 import com.netflix.kayenta.canary.CanaryMetricConfig;
@@ -20,6 +19,7 @@ import com.netflix.kayenta.prometheus.model.PrometheusResults;
 import com.netflix.kayenta.prometheus.service.PrometheusRemoteService;
 import com.netflix.kayenta.security.AccountCredentialsRepository;
 import com.netflix.spectator.api.NoopRegistry;
+import com.netflix.spinnaker.kork.retrofit.util.CustomConverterFactory;
 import java.lang.annotation.Annotation;
 import java.lang.reflect.ParameterizedType;
 import java.lang.reflect.Type;
@@ -32,7 +32,7 @@ import org.junit.jupiter.api.Test;
 import org.mockito.Mock;
 import retrofit2.Converter;
 import retrofit2.Retrofit;
-import retrofit2.converter.jackson.JacksonConverterFactory;
+import tools.jackson.databind.json.JsonMapper;
 
 /**
  * Integration Test for reproducing and TDD'ing the following issues:
@@ -57,7 +57,7 @@ public class CanaryAnalysisPrometheusMetricsMixerServiceIntegrationTest {
   private final Retrofit retrofit =
       new Retrofit.Builder()
           .baseUrl("http://prometheus")
-          .addConverterFactory(JacksonConverterFactory.create())
+          .addConverterFactory(CustomConverterFactory.create())
           .build();
 
   private Converter<ResponseBody, List<PrometheusResults>> prometheusResultsConverter;
@@ -65,7 +65,7 @@ public class CanaryAnalysisPrometheusMetricsMixerServiceIntegrationTest {
   @BeforeEach
   public void before() {
     initMocks(this);
-    prometheusResponseConverter = new PrometheusResponseConverter(new ObjectMapper());
+    prometheusResponseConverter = new PrometheusResponseConverter(JsonMapper.builder().build());
     prometheusResultsConverter =
         (Converter<ResponseBody, List<PrometheusResults>>)
             prometheusResponseConverter.responseBodyConverter(

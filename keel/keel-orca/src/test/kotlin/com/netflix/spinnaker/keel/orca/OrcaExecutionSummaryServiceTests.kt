@@ -1,6 +1,6 @@
 package com.netflix.spinnaker.keel.orca
 
-import com.fasterxml.jackson.module.kotlin.readValue
+import tools.jackson.module.kotlin.readValue
 import com.netflix.spinnaker.keel.api.TaskStatus
 import com.netflix.spinnaker.keel.actuation.RolloutStatus.NOT_STARTED
 import com.netflix.spinnaker.keel.actuation.RolloutStatus.RUNNING

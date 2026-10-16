@@ -16,8 +16,6 @@
 
 package com.netflix.spinnaker.igor.helm.accounts;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.dataformat.yaml.YAMLFactory;
 import com.netflix.spinnaker.igor.helm.model.HelmIndex;
 import com.netflix.spinnaker.kork.retrofit.Retrofit2SyncCall;
 import com.netflix.spinnaker.kork.retrofit.exceptions.SpinnakerServerException;
@@ -29,6 +27,8 @@ import java.util.Map;
 import java.util.stream.Collectors;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
+import tools.jackson.databind.ObjectMapper;
+import tools.jackson.dataformat.yaml.YAMLMapper;
 
 @Slf4j
 public class HelmAccounts {
@@ -40,8 +40,7 @@ public class HelmAccounts {
 
   public HelmAccounts(YamlHelper yamlHelper) {
     this.accounts = new ArrayList<>();
-    this.mapper =
-        new ObjectMapper(YAMLFactory.builder().loaderOptions(yamlHelper.loaderOptions()).build());
+    this.mapper = YAMLMapper.builder(yamlHelper.yamlFactory()).build();
   }
 
   public HelmIndex getIndex(String account) {

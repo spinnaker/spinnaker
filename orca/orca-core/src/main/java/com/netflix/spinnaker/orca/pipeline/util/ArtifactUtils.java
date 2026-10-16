@@ -20,8 +20,6 @@ import static com.google.common.collect.ImmutableList.toImmutableList;
 import static com.google.common.collect.ImmutableSet.toImmutableSet;
 import static java.util.Collections.emptyList;
 
-import com.fasterxml.jackson.core.type.TypeReference;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.base.Strings;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
@@ -35,7 +33,6 @@ import com.netflix.spinnaker.orca.pipeline.model.StageExecutionImpl;
 import com.netflix.spinnaker.orca.pipeline.persistence.ExecutionRepository;
 import com.netflix.spinnaker.orca.pipeline.persistence.ExecutionRepository.ExecutionCriteria;
 import io.reactivex.rxjava3.schedulers.Schedulers;
-import java.io.IOException;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.Comparator;
@@ -54,6 +51,9 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
+import tools.jackson.core.JacksonException;
+import tools.jackson.core.type.TypeReference;
+import tools.jackson.databind.ObjectMapper;
 
 @Component
 @NonnullByDefault
@@ -255,7 +255,7 @@ public class ArtifactUtils {
           objectMapper.readValue(
               objectMapper.writeValueAsString(resolveResult.getResolvedExpectedArtifacts()),
               List.class)); // Add the actual expectedArtifacts we included in the ids.
-    } catch (IOException e) {
+    } catch (JacksonException e) {
       throw new ArtifactResolutionException(
           "Failed to store artifacts in trigger: " + e.getMessage(), e);
     }

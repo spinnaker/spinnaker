@@ -43,7 +43,7 @@ import org.springframework.test.web.servlet.MockMvc;
 
 /**
  * Pipeline fields that {@link Pipeline} doesn't declare live in its "any" map, which only
- * Front50ApiModule's Jackson 2 mixin maps to and from top-level JSON properties.
+ * Front50ApiModule's Jackson 3 mixin maps to and from top-level JSON properties.
  */
 @AutoConfigureMockMvc(addFilters = false)
 @WebMvcTest(controllers = PipelineController.class)

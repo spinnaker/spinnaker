@@ -16,22 +16,15 @@
 
 package com.netflix.spinnaker.kork.aws.jackson;
 
-import com.fasterxml.jackson.core.Version;
-import com.fasterxml.jackson.databind.module.SimpleModule;
-import software.amazon.awssdk.core.SdkPojo;
-
 /**
- * Jackson module that enables serialization and deserialization of AWS SDK v2 model types ({@link
- * SdkPojo}). Register this module on any {@code ObjectMapper} that needs to handle v2 SDK objects.
+ * Jackson 3 module that enables serialization and deserialization of AWS SDK v2 model types.
  *
- * <p>Spring Boot applications should prefer {@link AwsSdkV2JacksonConfiguration}, which registers
- * this module as a bean and lets Spring auto-configure it onto the shared {@code ObjectMapper}.
+ * <p>This class keeps the original module name for callers migrating from Jackson 2. Register it on
+ * a Jackson 3 {@code ObjectMapper} that needs to handle v2 SDK objects.
  */
-public class AwsSdkV2Module extends SimpleModule {
+public class AwsSdkV2Module extends AwsSdkV2Jackson3Module {
 
   public AwsSdkV2Module() {
-    super("AwsSdkV2Module", Version.unknownVersion());
-    addSerializer(SdkPojo.class, new SdkPojoSerializer());
-    setDeserializerModifier(new SdkPojoDeserializerModifier());
+    super();
   }
 }

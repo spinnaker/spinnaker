@@ -16,7 +16,7 @@
 
 package com.netflix.spinnaker.gate.controllers
 
-import com.fasterxml.jackson.databind.ObjectMapper
+import tools.jackson.databind.ObjectMapper
 import com.google.common.cache.CacheBuilder
 import com.google.common.cache.CacheLoader
 import com.netflix.spectator.api.Registry

@@ -16,13 +16,14 @@
 package com.netflix.spinnaker.config
 
 import com.fasterxml.jackson.annotation.JsonTypeName
-import com.fasterxml.jackson.databind.ObjectMapper
-import com.fasterxml.jackson.databind.jsontype.NamedType
 import com.netflix.spinnaker.exception.InvalidSubtypeConfigurationException
 import org.slf4j.LoggerFactory
 import org.springframework.context.annotation.ClassPathScanningCandidateComponentProvider
 import org.springframework.core.type.filter.AssignableTypeFilter
 import org.springframework.util.ClassUtils
+import tools.jackson.databind.ObjectMapper
+import tools.jackson.databind.jsontype.NamedType
+import tools.jackson.databind.json.JsonMapper
 
 /**
  * Automates registering subtypes to the queue object mapper by classpath scanning.
@@ -33,23 +34,35 @@ class SpringObjectMapperConfigurer(
 
   private val log = LoggerFactory.getLogger(javaClass)
 
-  fun registerSubtypes(mapper: ObjectMapper) {
-    registerSubtypes(mapper, properties.messageRootType, properties.messagePackages)
-    registerSubtypes(mapper, properties.attributeRootType, properties.attributePackages)
+  fun registerSubtypes(mapper: ObjectMapper): ObjectMapper {
+    var configuredMapper = registerSubtypes(mapper, properties.messageRootType, properties.messagePackages)
+    configuredMapper = registerSubtypes(
+      configuredMapper,
+      properties.attributeRootType,
+      properties.attributePackages
+    )
 
     properties.extraSubtypes.entries.forEach {
-      registerSubtypes(mapper, it.key, it.value)
+      configuredMapper = registerSubtypes(configuredMapper, it.key, it.value)
     }
+
+    return configuredMapper
   }
 
   private fun registerSubtypes(
     mapper: ObjectMapper,
     rootType: String,
     subtypePackages: List<String>
-  ) {
+  ): ObjectMapper {
+    var configuredMapper = mapper
     getRootTypeClass(rootType).also { cls ->
-      subtypePackages.forEach { mapper.registerSubtypes(*findSubtypes(cls, it)) }
+      subtypePackages.forEach {
+        configuredMapper = configuredMapper.rebuild<JsonMapper, JsonMapper.Builder>()
+          .registerSubtypes(*findSubtypes(cls, it))
+          .build()
+      }
     }
+    return configuredMapper
   }
 
   private fun getRootTypeClass(name: String): Class<*> {
@@ -61,8 +74,8 @@ class SpringObjectMapperConfigurer(
       .apply { addIncludeFilter(AssignableTypeFilter(clazz)) }
       .findCandidateComponents(pkg)
       .map {
-        check(it.beanClassName != null)
-        val cls = ClassUtils.resolveClassName(it.beanClassName, ClassUtils.getDefaultClassLoader())
+        val className = checkNotNull(it.beanClassName)
+        val cls = ClassUtils.resolveClassName(className, ClassUtils.getDefaultClassLoader())
 
         // Enforce all implementing types to have a JsonTypeName class
         val serializationName = cls.annotations

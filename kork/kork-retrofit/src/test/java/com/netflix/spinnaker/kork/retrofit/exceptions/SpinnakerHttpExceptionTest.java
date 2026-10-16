@@ -19,6 +19,7 @@ package com.netflix.spinnaker.kork.retrofit.exceptions;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
+import com.netflix.spinnaker.kork.retrofit.util.CustomConverterFactory;
 import java.util.Map;
 import okhttp3.MediaType;
 import okhttp3.ResponseBody;
@@ -26,7 +27,6 @@ import org.junit.jupiter.api.Test;
 import org.springframework.http.HttpMethod;
 import org.springframework.http.HttpStatus;
 import retrofit2.Retrofit;
-import retrofit2.converter.jackson.JacksonConverterFactory;
 
 class SpinnakerHttpExceptionTest {
 
@@ -43,7 +43,7 @@ class SpinnakerHttpExceptionTest {
     Retrofit retrofit2Service =
         new Retrofit.Builder()
             .baseUrl(url)
-            .addConverterFactory(JacksonConverterFactory.create())
+            .addConverterFactory(CustomConverterFactory.create())
             .build();
     assertThat(retrofit2Service.baseUrl().toString()).isEqualTo(url);
     SpinnakerHttpException notFoundException =

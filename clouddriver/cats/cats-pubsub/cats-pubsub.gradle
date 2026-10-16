@@ -20,7 +20,7 @@ dependencies {
   implementation project(":cats:cats-core")
   implementation project(":clouddriver-api")
 
-  implementation "com.fasterxml.jackson.core:jackson-databind"
+  implementation "tools.jackson.core:jackson-databind"
   implementation "io.micrometer:micrometer-core"
   implementation "io.spinnaker.kork:kork-core"
   implementation "org.jooq:jooq"

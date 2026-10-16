@@ -5,10 +5,10 @@ import static com.netflix.spinnaker.cats.agent.AgentDataType.Authority.INFORMATI
 import static com.netflix.spinnaker.clouddriver.core.provider.agent.Namespace.HEALTH;
 import static com.netflix.spinnaker.clouddriver.core.provider.agent.Namespace.INSTANCES;
 
-import com.fasterxml.jackson.core.type.TypeReference;
 import com.netflix.spinnaker.cats.agent.AgentDataType;
 import com.netflix.spinnaker.cats.agent.CachingAgent;
 import java.util.*;
+import tools.jackson.core.type.TypeReference;
 
 public interface HealthProvidingCachingAgent extends CachingAgent {
   TypeReference<Map<String, Object>> ATTRIBUTES = new TypeReference<Map<String, Object>>() {};

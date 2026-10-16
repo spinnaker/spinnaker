@@ -16,7 +16,6 @@
 
 package com.netflix.spinnaker.clouddriver.aws.deploy.converters
 
-import com.fasterxml.jackson.databind.ObjectMapper
 import com.netflix.spinnaker.clouddriver.aws.deploy.description.UpsertAlarmDescription
 import com.netflix.spinnaker.clouddriver.aws.deploy.ops.UpsertAlarmAtomicOperation
 import com.netflix.spinnaker.clouddriver.aws.security.NetflixAmazonCredentials
@@ -24,12 +23,14 @@ import com.netflix.spinnaker.clouddriver.security.AccountCredentialsProvider
 import software.amazon.awssdk.services.cloudwatch.model.ComparisonOperator
 import software.amazon.awssdk.services.cloudwatch.model.StandardUnit
 import software.amazon.awssdk.services.cloudwatch.model.Statistic
+import tools.jackson.databind.ObjectMapper
+import tools.jackson.databind.json.JsonMapper
 import spock.lang.Shared
 import spock.lang.Specification
 
 class UpsertAlarmDescriptionAtomicOperationConverterUnitSpec extends Specification {
   @Shared
-  ObjectMapper mapper = new ObjectMapper()
+  ObjectMapper mapper = JsonMapper.builder().build()
 
   @Shared
   UpsertAlarmDescriptionAtomicOperationConverter converter

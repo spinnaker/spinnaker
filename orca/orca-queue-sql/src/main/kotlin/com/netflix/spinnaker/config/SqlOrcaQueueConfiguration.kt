@@ -16,10 +16,6 @@
 
 package com.netflix.spinnaker.config
 
-import com.fasterxml.jackson.databind.DeserializationFeature
-import com.fasterxml.jackson.databind.ObjectMapper
-import com.fasterxml.jackson.databind.module.SimpleModule
-import com.fasterxml.jackson.module.kotlin.KotlinModule
 import com.netflix.spinnaker.orca.TaskResolver
 import com.netflix.spinnaker.orca.api.pipeline.models.ExecutionType
 import com.netflix.spinnaker.orca.q.migration.ExecutionTypeDeserializer
@@ -31,11 +27,19 @@ import com.netflix.spinnaker.q.sql.SqlQueue
 import java.time.Clock
 import java.util.Optional
 import org.jooq.DSLContext
-import org.springframework.beans.factory.annotation.Autowired
+import org.springframework.beans.factory.annotation.Qualifier
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty
 import org.springframework.boot.context.properties.EnableConfigurationProperties
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
+import org.springframework.context.annotation.Lazy
+import tools.jackson.databind.DeserializationFeature
+import tools.jackson.databind.ObjectMapper
+import tools.jackson.databind.MapperFeature
+import tools.jackson.databind.cfg.EnumFeature
+import tools.jackson.databind.json.JsonMapper
+import tools.jackson.databind.module.SimpleModule
+import tools.jackson.module.kotlin.KotlinModule
 
 @Configuration
 @EnableConfigurationProperties(ObjectMapperSubtypeProperties::class)
@@ -46,35 +50,45 @@ import org.springframework.context.annotation.Configuration
 )
 class SqlOrcaQueueConfiguration : SqlQueueConfiguration() {
 
-  @Autowired
-  fun sqlQueueObjectMapper(
-    mapper: ObjectMapper,
+  // Not primary: see RedisOrcaQueueConfiguration - OrcaConfiguration.mapper is primary.
+  @Bean
+  fun orcaSqlQueueObjectMapper(
+    @Qualifier("mapper") mapper: ObjectMapper,
     objectMapperSubtypeProperties: ObjectMapperSubtypeProperties,
-    taskResolver: TaskResolver
-  ) {
-    mapper.apply {
-      registerModule(KotlinModule.Builder().build())
-      registerModule(
+    // Same circular-reference avoidance as RedisOrcaQueueConfiguration: TaskResolver's graph
+    // transitively needs an ObjectMapper.
+    @Lazy taskResolver: TaskResolver
+  ): ObjectMapper {
+    val configuredMapper = mapper.rebuild<JsonMapper, JsonMapper.Builder>()
+      // Jackson 3 no longer merges into getter-only collections by default; the queue
+      // relies on it for message attributes (e.g. ack counting).
+      .enable(MapperFeature.USE_GETTERS_AS_SETTERS)
+      // Jackson 3 serializes enums via toString()/lowercase by default; the queue must stay
+      // byte-compatible with Jackson 2 output (name()), which old messages and readers use.
+      .disable(EnumFeature.WRITE_ENUMS_USING_TO_STRING)
+      .disable(EnumFeature.WRITE_ENUMS_TO_LOWERCASE)
+      .addModule(KotlinModule.Builder().build())
+      .addModule(
         SimpleModule()
           .addDeserializer(ExecutionType::class.java, ExecutionTypeDeserializer())
           .addDeserializer(Class::class.java, TaskTypeDeserializer(taskResolver))
       )
-      disable(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES)
+      .disable(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES)
+      .build()
 
-      SpringObjectMapperConfigurer(
-        objectMapperSubtypeProperties.apply {
-          messagePackages = messagePackages + listOf("com.netflix.spinnaker.orca.q")
-          attributePackages = attributePackages + listOf("com.netflix.spinnaker.orca.q")
-        }
-      ).registerSubtypes(this)
-    }
+    return SpringObjectMapperConfigurer(
+      objectMapperSubtypeProperties.apply {
+        messagePackages = messagePackages + listOf("com.netflix.spinnaker.orca.q")
+        attributePackages = attributePackages + listOf("com.netflix.spinnaker.orca.q")
+      }
+    ).registerSubtypes(configuredMapper)
   }
 
   @Bean
   override fun queue(
     jooq: DSLContext,
     clock: Clock,
-    mapper: ObjectMapper,
+    @Qualifier("orcaSqlQueueObjectMapper") mapper: ObjectMapper,
     deadMessageHandler: SqlDeadMessageHandler,
     publisher: EventPublisher,
     serializationMigrator: Optional<SerializationMigrator>,

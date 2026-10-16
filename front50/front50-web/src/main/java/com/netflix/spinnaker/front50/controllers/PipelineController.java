@@ -19,8 +19,6 @@ import static com.netflix.spinnaker.front50.api.model.pipeline.Pipeline.TYPE_TEM
 import static com.netflix.spinnaker.front50.model.pipeline.TemplateConfiguration.TemplateSource.SPINNAKER_PREFIX;
 import static java.lang.String.format;
 
-import com.fasterxml.jackson.core.type.TypeReference;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.base.Strings;
 import com.netflix.spinnaker.fiat.shared.FiatPermissionEvaluator;
 import com.netflix.spinnaker.front50.ServiceAccountsService;
@@ -69,6 +67,9 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
+import tools.jackson.core.JacksonException;
+import tools.jackson.core.type.TypeReference;
+import tools.jackson.databind.ObjectMapper;
 
 /** Controller for presets */
 @RestController
@@ -474,7 +475,7 @@ public class PipelineController {
             } else {
               pipelines.add(pipeline);
             }
-          } catch (IllegalArgumentException e) {
+          } catch (IllegalArgumentException | JacksonException e) {
             log.error(
                 "Failed to deserialize pipeline map from the provided json: {}", pipelineMap, e);
             pipelineMap.put(

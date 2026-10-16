@@ -19,7 +19,6 @@ import static com.netflix.spinnaker.cats.agent.AgentDataType.Authority.AUTHORITA
 import static com.netflix.spinnaker.clouddriver.core.provider.agent.Namespace.TARGET_GROUPS;
 import static com.netflix.spinnaker.clouddriver.ecs.cache.Keys.Namespace.TARGET_HEALTHS;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
 import com.netflix.spinnaker.cats.agent.*;
 import com.netflix.spinnaker.cats.cache.*;
 import com.netflix.spinnaker.cats.provider.ProviderCache;
@@ -41,6 +40,7 @@ import software.amazon.awssdk.services.elasticloadbalancingv2.model.DescribeTarg
 import software.amazon.awssdk.services.elasticloadbalancingv2.model.DescribeTargetHealthResponse;
 import software.amazon.awssdk.services.elasticloadbalancingv2.model.TargetGroupNotFoundException;
 import software.amazon.awssdk.services.elasticloadbalancingv2.model.TargetHealthDescription;
+import tools.jackson.databind.ObjectMapper;
 
 public class TargetHealthCachingAgent extends AbstractEcsAwsAwareCachingAgent<EcsTargetHealth>
     implements HealthProvidingCachingAgent {

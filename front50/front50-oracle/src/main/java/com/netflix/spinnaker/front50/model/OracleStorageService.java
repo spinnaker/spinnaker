@@ -8,10 +8,6 @@
  */
 package com.netflix.spinnaker.front50.model;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.databind.ser.FilterProvider;
-import com.fasterxml.jackson.databind.ser.impl.SimpleBeanPropertyFilter;
-import com.fasterxml.jackson.databind.ser.impl.SimpleFilterProvider;
 import com.netflix.spinnaker.front50.api.model.Timestamped;
 import com.netflix.spinnaker.front50.api.model.pipeline.Pipeline;
 import com.netflix.spinnaker.front50.config.OracleProperties;
@@ -47,6 +43,12 @@ import java.util.Map;
 import java.util.function.Supplier;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.UriBuilder;
+import tools.jackson.core.JacksonException;
+import tools.jackson.databind.ObjectMapper;
+import tools.jackson.databind.json.JsonMapper;
+import tools.jackson.databind.ser.FilterProvider;
+import tools.jackson.databind.ser.std.SimpleBeanPropertyFilter;
+import tools.jackson.databind.ser.std.SimpleFilterProvider;
 
 /**
  * Oracle Object Storage-backed Front50 metadata storage.
@@ -65,10 +67,17 @@ public class OracleStorageService implements StorageService {
   private final String compartmentId;
   private final String bucketName;
 
+  private final FilterProvider filters =
+      new SimpleFilterProvider()
+          .addFilter(
+              "explicitlySetFilter",
+              SimpleBeanPropertyFilter.serializeAllExcept("__explicitlySet__"));
+
   private final ObjectMapper objectMapper =
-      new ObjectMapper()
+      JsonMapper.builder()
           .addMixIn(Timestamped.class, TimestampedMixins.class)
-          .addMixIn(Pipeline.class, PipelineMixins.class);
+          .addMixIn(Pipeline.class, PipelineMixins.class)
+          .build();
 
   private class RequestSigningFilter extends ClientFilter {
     private final RequestSigner signer;
@@ -120,12 +129,6 @@ public class OracleStorageService implements StorageService {
     ClientConfig clientConfig = new DefaultClientConfig();
     client = new Client(new URLConnectionClientHandler(), clientConfig);
     client.addFilter(new OracleStorageService.RequestSigningFilter(requestSigner));
-    FilterProvider filters =
-        new SimpleFilterProvider()
-            .addFilter(
-                "explicitlySetFilter",
-                SimpleBeanPropertyFilter.serializeAllExcept("__explicitlySet__"));
-    objectMapper.setFilterProvider(filters);
   }
 
   public void ensureBucketExists() {
@@ -141,9 +144,9 @@ public class OracleStorageService implements StorageService {
       wr = client.resource(UriBuilder.fromPath(endpoint + "/n/{arg1}/b/").build(region, namespace));
       wr.accept(MediaType.APPLICATION_JSON_TYPE);
       try {
-        byte[] bytes = objectMapper.writeValueAsBytes(createBucketDetails);
+        byte[] bytes = objectMapper.writer(filters).writeValueAsBytes(createBucketDetails);
         wr.post(new String(bytes, StandardCharsets.UTF_8));
-      } catch (IOException e) {
+      } catch (JacksonException e) {
         throw new RuntimeException(e);
       }
     } else if (rsp.getStatus() != 200) {
@@ -214,9 +217,9 @@ public class OracleStorageService implements StorageService {
                     buildOSSKey(objectType.group, objectKey, objectType.defaultMetadataFilename)));
     wr.accept(MediaType.APPLICATION_JSON_TYPE);
     try {
-      byte[] bytes = objectMapper.writeValueAsBytes(item);
+      byte[] bytes = objectMapper.writer(filters).writeValueAsBytes(item);
       wr.put(new String(bytes, StandardCharsets.UTF_8));
-    } catch (IOException e) {
+    } catch (JacksonException e) {
       throw new RuntimeException(e);
     }
 
@@ -271,9 +274,9 @@ public class OracleStorageService implements StorageService {
                 .build(region, namespace, bucketName, objectType.group + "/last-modified.json"));
     wr.accept(MediaType.APPLICATION_JSON_TYPE);
     try {
-      byte[] bytes = objectMapper.writeValueAsBytes(new LastModified());
+      byte[] bytes = objectMapper.writer(filters).writeValueAsBytes(new LastModified());
       wr.put(new String(bytes, StandardCharsets.UTF_8));
-    } catch (IOException e) {
+    } catch (JacksonException e) {
       throw new RuntimeException(e);
     }
   }

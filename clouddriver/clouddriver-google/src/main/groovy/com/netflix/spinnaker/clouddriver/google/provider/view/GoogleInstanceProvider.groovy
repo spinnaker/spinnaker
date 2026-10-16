@@ -16,7 +16,7 @@
 
 package com.netflix.spinnaker.clouddriver.google.provider.view
 
-import com.fasterxml.jackson.databind.ObjectMapper
+import tools.jackson.databind.ObjectMapper
 import com.google.api.services.iam.v1.model.ServiceAccount
 import com.netflix.spectator.api.Registry
 import com.netflix.spinnaker.cats.cache.Cache

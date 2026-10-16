@@ -1,6 +1,5 @@
 package com.netflix.spinnaker.echo.pipelinetriggers.eventhandlers;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.base.Strings;
 import com.netflix.spectator.api.Registry;
 import com.netflix.spinnaker.echo.model.Trigger;
@@ -18,6 +17,7 @@ import java.util.function.Predicate;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
+import tools.jackson.databind.ObjectMapper;
 
 @Component
 public class HelmEventHandler extends BaseTriggerEventHandler<HelmEvent> {

@@ -18,8 +18,6 @@
 package com.netflix.spinnaker.clouddriver.aws.deploy.ops.actions;
 
 import com.fasterxml.jackson.annotation.JsonTypeName;
-import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
-import com.fasterxml.jackson.databind.annotation.JsonPOJOBuilder;
 import com.netflix.spinnaker.clouddriver.aws.deploy.asg.AsgConfigHelper;
 import com.netflix.spinnaker.clouddriver.aws.deploy.description.ModifyServerGroupLaunchTemplateDescription;
 import com.netflix.spinnaker.clouddriver.aws.deploy.validators.ModifyServerGroupLaunchTemplateValidator;
@@ -40,6 +38,8 @@ import org.jetbrains.annotations.NotNull;
 import org.springframework.stereotype.Component;
 import software.amazon.awssdk.services.autoscaling.model.LaunchTemplateOverrides;
 import software.amazon.awssdk.services.ec2.model.LaunchTemplateVersion;
+import tools.jackson.databind.annotation.JsonDeserialize;
+import tools.jackson.databind.annotation.JsonPOJOBuilder;
 
 /** Action to prepare for AWS EC2 Auto Scaling Group update. */
 @Component

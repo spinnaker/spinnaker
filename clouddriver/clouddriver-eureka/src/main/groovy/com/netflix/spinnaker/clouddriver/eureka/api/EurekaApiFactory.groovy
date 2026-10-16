@@ -16,7 +16,7 @@
 
 package com.netflix.spinnaker.clouddriver.eureka.api
 
-import com.fasterxml.jackson.databind.ObjectMapper
+import tools.jackson.databind.ObjectMapper
 import com.netflix.spinnaker.config.DefaultServiceEndpoint
 import com.netflix.spinnaker.kork.client.ServiceClientProvider
 import com.netflix.spinnaker.okhttp.SpinnakerRequestHeaderInterceptor

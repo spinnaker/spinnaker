@@ -38,7 +38,7 @@ public class SecretKeyRemoverHandler implements ArtifactStorageHandler {
     public boolean canHandle(Object v) {
         return v instanceof Map;
     }
-    public <V> V handle(ArtifactStore store, V v, ObjectMapper objectMapper) {
+    public <V> V handle(ArtifactStore store, V v, SerializationContext context) {
         Map m = (Map) v;
         if (!m.containsKey("secret")) {
             return v;
@@ -59,7 +59,7 @@ public class SecretKeyRemoverHandler implements ArtifactStoragePropertyHandler {
     boolean canHandleProperty(BeanProperty property, Object v) {
         return "secrets".equals(property.getName()) && v instanceof Map;
     }
-    public <T> T handleProperty(ArtifactStore store, BeanProperty property, T v, ObjectMapper objectMapper) {
+    public <T> T handleProperty(ArtifactStore store, BeanProperty property, T v, SerializationContext context) {
         Map m = (Map) v;
         if (!m.containsKey("secret")) {
             return v;

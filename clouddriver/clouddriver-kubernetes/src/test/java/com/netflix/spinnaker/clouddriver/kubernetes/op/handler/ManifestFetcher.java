@@ -17,7 +17,6 @@
 
 package com.netflix.spinnaker.clouddriver.kubernetes.op.handler;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.collect.ImmutableList;
 import com.google.common.io.Resources;
 import com.netflix.spinnaker.clouddriver.kubernetes.description.manifest.KubernetesManifest;
@@ -28,6 +27,8 @@ import java.io.UncheckedIOException;
 import java.nio.charset.StandardCharsets;
 import java.util.Objects;
 import java.util.stream.StreamSupport;
+import tools.jackson.databind.ObjectMapper;
+import tools.jackson.databind.json.JsonMapper;
 
 /**
  * Helper class to fetch Kubernetes manifest objects stored as resources on the classpath. Only
@@ -48,7 +49,7 @@ public final class ManifestFetcher {
 
   public static ImmutableList<KubernetesManifest> getManifest(
       Class<?> referenceClass, String basePath) {
-    ObjectMapper mapper = new ObjectMapper();
+    ObjectMapper mapper = JsonMapper.builder().build();
     return StreamSupport.stream(
             Yaml.getSnakeYaml(null).loadAll(getResource(referenceClass, basePath)).spliterator(),
             false)

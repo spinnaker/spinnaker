@@ -15,7 +15,7 @@
  */
 package com.netflix.spinnaker.orca.pipelinetemplate.v1schema
 
-import com.fasterxml.jackson.databind.ObjectMapper
+import tools.jackson.databind.ObjectMapper
 import com.netflix.spectator.api.*
 import com.netflix.spinnaker.kork.yaml.YamlHelper
 import com.netflix.spinnaker.kork.yaml.YamlParserProperties

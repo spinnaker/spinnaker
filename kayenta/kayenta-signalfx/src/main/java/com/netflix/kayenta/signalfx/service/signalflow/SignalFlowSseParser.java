@@ -15,8 +15,6 @@
  */
 package com.netflix.kayenta.signalfx.service.signalflow;
 
-import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStream;
@@ -24,6 +22,10 @@ import java.io.InputStreamReader;
 import java.nio.charset.StandardCharsets;
 import java.util.Iterator;
 import java.util.NoSuchElementException;
+import tools.jackson.core.JacksonException;
+import tools.jackson.databind.JsonNode;
+import tools.jackson.databind.ObjectMapper;
+import tools.jackson.databind.json.JsonMapper;
 
 /**
  * Parses a Splunk Observability SignalFlow response stream (text/event-stream) into typed {@link
@@ -45,7 +47,7 @@ public class SignalFlowSseParser implements Iterator<SignalFlowMessage>, AutoClo
   private boolean eof;
 
   public SignalFlowSseParser(InputStream inputStream) {
-    this(inputStream, new ObjectMapper());
+    this(inputStream, JsonMapper.builder().build());
   }
 
   public SignalFlowSseParser(InputStream inputStream, ObjectMapper objectMapper) {
@@ -140,7 +142,7 @@ public class SignalFlowSseParser implements Iterator<SignalFlowMessage>, AutoClo
     JsonNode payload;
     try {
       payload = objectMapper.readTree(data);
-    } catch (IOException e) {
+    } catch (JacksonException e) {
       throw new SignalFlowParseException(
           "Failed parsing SignalFlow JSON payload for event '" + eventName + "'", e);
     }

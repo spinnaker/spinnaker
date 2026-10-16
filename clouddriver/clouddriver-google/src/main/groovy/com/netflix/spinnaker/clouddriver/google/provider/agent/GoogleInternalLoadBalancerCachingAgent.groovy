@@ -16,7 +16,7 @@
 
 package com.netflix.spinnaker.clouddriver.google.provider.agent
 
-import com.fasterxml.jackson.databind.ObjectMapper
+import tools.jackson.databind.ObjectMapper
 import com.google.api.services.compute.model.BackendService
 import com.google.api.services.compute.model.ForwardingRule
 import com.google.api.services.compute.model.HealthCheck

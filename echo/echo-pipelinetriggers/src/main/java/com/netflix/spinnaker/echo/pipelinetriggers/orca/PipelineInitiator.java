@@ -16,8 +16,6 @@
 
 package com.netflix.spinnaker.echo.pipelinetriggers.orca;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import com.netflix.spectator.api.Registry;
 import com.netflix.spinnaker.echo.model.Pipeline;
 import com.netflix.spinnaker.echo.pipelinetriggers.QuietPeriodIndicator;
@@ -49,6 +47,8 @@ import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
+import tools.jackson.core.JacksonException;
+import tools.jackson.databind.ObjectMapper;
 
 /** Triggers a {@link Pipeline} by invoking _Orca_. */
 @Component
@@ -366,7 +366,7 @@ public class PipelineInitiator {
   private String pipelineAsString(Pipeline pipeline) {
     try {
       return objectMapper.writeValueAsString(pipeline);
-    } catch (JsonProcessingException jsonException) {
+    } catch (JacksonException jsonException) {
       log.warn("Failed to convert pipeline to json, using raw toString", jsonException);
       return pipeline.toString();
     }

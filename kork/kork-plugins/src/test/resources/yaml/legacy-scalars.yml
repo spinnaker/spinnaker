@@ -1,0 +1,7 @@
+mode: 0644
+capacity: 012
+enabled: yes
+disabled: off
+quoted: "0644"
+tagged: !!str yes
+explicit: !!int 12

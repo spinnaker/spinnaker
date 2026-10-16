@@ -1,6 +1,5 @@
 package com.netflix.spinnaker.echo.jira
 
-import com.fasterxml.jackson.databind.ObjectMapper
 import com.netflix.spinnaker.echo.api.Notification
 import com.netflix.spinnaker.echo.jackson.EchoObjectMapper
 import com.netflix.spinnaker.kork.core.RetrySupport

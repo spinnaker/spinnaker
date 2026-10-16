@@ -7,7 +7,7 @@ dependencies {
   implementation project(":kork-annotations")
   implementation project(":kork-exceptions")
   implementation project(":kork-security")
-  implementation "com.fasterxml.jackson.core:jackson-databind"
+  implementation "tools.jackson.core:jackson-databind"
   implementation platform('software.amazon.awssdk:bom')
   api 'software.amazon.awssdk:s3'
   api 'software.amazon.awssdk:sts'

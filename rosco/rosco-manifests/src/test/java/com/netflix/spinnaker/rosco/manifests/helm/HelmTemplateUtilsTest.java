@@ -28,9 +28,6 @@ import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
-import com.fasterxml.jackson.core.type.TypeReference;
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.dataformat.yaml.YAMLFactory;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 import com.netflix.spinnaker.kork.artifacts.artifactstore.ArtifactStore;
@@ -72,6 +69,11 @@ import org.junit.jupiter.params.provider.Arguments;
 import org.junit.jupiter.params.provider.MethodSource;
 import org.junit.jupiter.params.provider.ValueSource;
 import org.springframework.http.HttpStatus;
+import tools.jackson.core.JacksonException;
+import tools.jackson.core.StreamWriteConstraints;
+import tools.jackson.core.type.TypeReference;
+import tools.jackson.dataformat.yaml.YAMLFactory;
+import tools.jackson.dataformat.yaml.YAMLMapper;
 
 final class HelmTemplateUtilsTest {
 
@@ -110,6 +112,36 @@ final class HelmTemplateUtilsTest {
 
     bakeManifestRequest = new HelmBakeManifestRequest();
     bakeManifestRequest.setInputArtifacts(ImmutableList.of(chartArtifact));
+  }
+
+  @Test
+  void jacksonWriteFailuresRetainTheHelmErrorContext() throws IOException {
+    helmConfigurationProperties.setOverridesFileThreshold(1);
+    YamlHelper limited =
+        new YamlHelper(new YamlParserProperties()) {
+          @Override
+          public YAMLFactory yamlFactory() {
+            return YAMLFactory.builder()
+                .streamWriteConstraints(StreamWriteConstraints.builder().maxNestingDepth(0).build())
+                .build();
+          }
+        };
+    HelmTemplateUtils utils =
+        new HelmTemplateUtils(
+            artifactDownloader,
+            Optional.empty(),
+            artifactStoreConfig,
+            helmConfigurationProperties,
+            limited);
+    bakeManifestRequest.setOverrides(Map.of("key", "value"));
+    try (BakeManifestEnvironment env = BakeManifestEnvironment.create()) {
+      IllegalStateException failure =
+          assertThrows(
+              IllegalStateException.class, () -> utils.buildBakeRecipe(env, bakeManifestRequest));
+      assertThat(failure)
+          .hasMessageContaining("failed to write override yaml file")
+          .hasCauseInstanceOf(JacksonException.class);
+    }
   }
 
   @Test
@@ -558,7 +590,8 @@ final class HelmTemplateUtilsTest {
         assertThat(helmTemplateCommand).doesNotContain("--set-string");
         assertThat(helmTemplateCommand).contains("--values");
         assertThat(
-                new ObjectMapper(new YAMLFactory())
+                YAMLMapper.builder()
+                    .build()
                     .readValue(
                         String.join(System.lineSeparator(), overridesYamlContents),
                         new TypeReference<Map<String, Object>>() {}))
@@ -721,7 +754,8 @@ final class HelmTemplateUtilsTest {
       assertThat(helmTemplateCommand).doesNotContain("--set-string");
       assertThat(helmTemplateCommand).contains("--values");
       assertThat(
-              new ObjectMapper(new YAMLFactory())
+              YAMLMapper.builder()
+                  .build()
                   .readValue(
                       String.join(System.lineSeparator(), overridesYamlContents),
                       new TypeReference<Map<String, Object>>() {}))
@@ -777,7 +811,8 @@ final class HelmTemplateUtilsTest {
       assertThat(helmTemplateCommand).doesNotContain("--set-string");
       assertThat(helmTemplateCommand).contains("--values");
       assertThat(
-              new ObjectMapper(new YAMLFactory())
+              YAMLMapper.builder()
+                  .build()
                   .readValue(
                       String.join(System.lineSeparator(), overridesYamlContents),
                       new TypeReference<Map<String, Object>>() {}))

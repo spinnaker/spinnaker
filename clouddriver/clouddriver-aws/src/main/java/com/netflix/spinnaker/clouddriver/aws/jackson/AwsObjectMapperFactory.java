@@ -16,10 +16,11 @@
 
 package com.netflix.spinnaker.clouddriver.aws.jackson;
 
-import com.fasterxml.jackson.databind.DeserializationFeature;
-import com.fasterxml.jackson.databind.MapperFeature;
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.databind.SerializationFeature;
+import com.fasterxml.jackson.annotation.JsonInclude;
+import tools.jackson.databind.DeserializationFeature;
+import tools.jackson.databind.ObjectMapper;
+import tools.jackson.databind.SerializationFeature;
+import tools.jackson.databind.json.JsonMapper;
 
 /**
  * Replaces {@code com.netflix.awsobjectmapper.AmazonObjectMapperConfigurer}, which pulled in the
@@ -35,14 +36,20 @@ public final class AwsObjectMapperFactory {
   private AwsObjectMapperFactory() {}
 
   public static ObjectMapper createConfigured() {
-    ObjectMapper objectMapper = new ObjectMapper();
-    objectMapper.configure(MapperFeature.AUTO_DETECT_IS_GETTERS, false);
-    objectMapper.configure(SerializationFeature.INDENT_OUTPUT, true);
-    objectMapper.configure(SerializationFeature.WRITE_NULL_MAP_VALUES, false);
-    objectMapper.configure(SerializationFeature.FAIL_ON_EMPTY_BEANS, false);
-    // Lets already-cached JSON written with fields no longer present on the current model
-    // (e.g. from a since-removed AWS SDK v1 shape) keep deserializing instead of failing.
-    objectMapper.configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
-    return objectMapper;
+    return JsonMapper.builder()
+        // Jackson 3 removed MapperFeature.AUTO_DETECT_IS_GETTERS; AWS SDK v2 model
+        // objects are (de)serialized by SdkPojoSerializer/SdkPojoDeserializer via each
+        // field's own memberName(), bypassing bean introspection entirely, so there is
+        // nothing to port here.
+        .enable(SerializationFeature.INDENT_OUTPUT)
+        // Jackson 3 removed SerializationFeature.WRITE_NULL_MAP_VALUES. NON_NULL content
+        // inclusion preserves the previous behavior (no null map entries).
+        .changeDefaultPropertyInclusion(
+            value -> value.withContentInclusion(JsonInclude.Include.NON_NULL))
+        .disable(SerializationFeature.FAIL_ON_EMPTY_BEANS)
+        // Lets already-cached JSON written with fields no longer present on the current model
+        // (e.g. from a since-removed AWS SDK v1 shape) keep deserializing instead of failing.
+        .disable(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES)
+        .build();
   }
 }

@@ -15,7 +15,6 @@
  */
 package com.netflix.spinnaker.kork.jedis;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
 import com.netflix.spectator.api.Registry;
 import java.util.List;
 import java.util.stream.Collectors;
@@ -27,6 +26,7 @@ import org.springframework.boot.health.contributor.HealthIndicator;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Import;
+import tools.jackson.databind.ObjectMapper;
 
 @Configuration
 @Import(RedisClientConfiguration.class)

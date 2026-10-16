@@ -19,8 +19,6 @@ package com.netflix.spinnaker.kork.github;
 import static com.github.tomakehurst.wiremock.client.WireMock.*;
 import static org.junit.jupiter.api.Assertions.*;
 
-import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import com.github.tomakehurst.wiremock.WireMockServer;
 import com.github.tomakehurst.wiremock.core.WireMockConfiguration;
 import com.netflix.spinnaker.kork.github.test.GitHubAppTestKeys;
@@ -40,6 +38,9 @@ import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
+import tools.jackson.databind.JsonNode;
+import tools.jackson.databind.ObjectMapper;
+import tools.jackson.databind.json.JsonMapper;
 
 /**
  * End-to-end tests of the GitHub App token exchange in {@link GitHubAppAuthenticator} against a
@@ -52,7 +53,7 @@ class GitHubAppAuthenticatorTokenExchangeTest {
   private static final String ACCESS_TOKENS_PATH =
       "/app/installations/" + INSTALLATION_ID + "/access_tokens";
 
-  private final ObjectMapper objectMapper = new ObjectMapper();
+  private final ObjectMapper objectMapper = JsonMapper.builder().build();
 
   private WireMockServer server;
   private Path privateKeyFile;

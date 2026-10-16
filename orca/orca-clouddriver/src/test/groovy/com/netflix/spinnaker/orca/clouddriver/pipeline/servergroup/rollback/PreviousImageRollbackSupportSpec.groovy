@@ -16,16 +16,17 @@
 
 package com.netflix.spinnaker.orca.clouddriver.pipeline.servergroup.rollback
 
-import com.fasterxml.jackson.databind.ObjectMapper
+import tools.jackson.databind.ObjectMapper
 import com.netflix.spinnaker.kork.core.RetrySupport
 import com.netflix.spinnaker.orca.clouddriver.CloudDriverService
 import com.netflix.spinnaker.orca.clouddriver.FeaturesService
 import com.netflix.spinnaker.orca.clouddriver.model.EntityTags
 import spock.lang.Specification
 import spock.lang.Subject;
+import tools.jackson.databind.json.JsonMapper
 
 class PreviousImageRollbackSupportSpec extends Specification {
-  def objectMapper = new ObjectMapper()
+  def objectMapper = JsonMapper.builder().build()
   def featuresService = Mock(FeaturesService)
   CloudDriverService cloudDriverService = Mock()
   def retrySupport = Spy(RetrySupport) {

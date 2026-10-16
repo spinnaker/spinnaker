@@ -16,8 +16,6 @@
 package com.netflix.spinnaker.clouddriver.core;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
-import com.fasterxml.jackson.databind.DeserializationFeature;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import com.netflix.frigga.Names;
 import com.netflix.spinnaker.clouddriver.core.services.Front50Service;
 import com.netflix.spinnaker.clouddriver.model.Cluster;
@@ -31,6 +29,8 @@ import java.util.stream.Collectors;
 import javax.annotation.Nonnull;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import tools.jackson.databind.DeserializationFeature;
+import tools.jackson.databind.ObjectMapper;
 
 public class ProjectClustersService {
 
@@ -46,7 +46,7 @@ public class ProjectClustersService {
       Provider<List<ClusterProvider>> clusterProviders) {
     this.front50Service = front50Service;
     this.objectMapper =
-        objectMapper.copy().disable(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES);
+        objectMapper.rebuild().disable(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES).build();
     this.clusterProviders = clusterProviders;
   }
 

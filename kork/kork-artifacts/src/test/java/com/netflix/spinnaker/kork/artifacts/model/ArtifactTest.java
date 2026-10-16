@@ -19,26 +19,23 @@ package com.netflix.spinnaker.kork.artifacts.model;
 import static org.assertj.core.api.Assertions.assertThat;
 
 import com.fasterxml.jackson.annotation.JsonInclude.Include;
-import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.databind.PropertyNamingStrategies;
-import com.fasterxml.jackson.databind.node.JsonNodeFactory;
-import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.google.common.collect.ImmutableMap;
 import java.io.IOException;
 import java.util.HashMap;
 import java.util.Map;
 import org.assertj.core.api.AssertionsForClassTypes;
 import org.junit.jupiter.api.Test;
+import tools.jackson.databind.JsonNode;
+import tools.jackson.databind.MapperFeature;
+import tools.jackson.databind.ObjectMapper;
+import tools.jackson.databind.PropertyNamingStrategies;
+import tools.jackson.databind.json.JsonMapper;
+import tools.jackson.databind.node.JsonNodeFactory;
 
 final class ArtifactTest {
-  private static final ObjectMapper objectMapper = new ObjectMapper();
-
-  static {
-    // This avoids needing to write out all null values in our expected JSON and is how the
-    // objectMapper in orca/clouddriver are configured.
-    objectMapper.setSerializationInclusion(Include.NON_NULL);
-  }
+  // This avoids needing to write out all null values in our expected JSON and is how the
+  // objectMapper in orca/clouddriver are configured.
+  private static final ObjectMapper objectMapper = nonNullMapper();
 
   // In some cases (particularly BakeRequest preparation), orca uses an ObjectMapper configured
   // to use snake_case. Ideally all code consuming serialized data with such an ObjectMapper would
@@ -47,13 +44,22 @@ final class ArtifactTest {
   // deserialization of artifacts is consistent, regardless of the naming strategy.
   // If at some point we are sure that a consistently-configured ObjectMapper is used for all
   // serialization-deserialization paths, these tests can be removed.
-  private static final ObjectMapper snakeObjectMapper = new ObjectMapper();
+  private static final ObjectMapper snakeObjectMapper =
+      JsonMapper.builder()
+          .disable(MapperFeature.SORT_PROPERTIES_ALPHABETICALLY)
+          .changeDefaultPropertyInclusion(
+              value ->
+                  value.withValueInclusion(Include.NON_NULL).withContentInclusion(Include.NON_NULL))
+          .propertyNamingStrategy(PropertyNamingStrategies.SNAKE_CASE)
+          .build();
 
-  static {
-    // This avoids needing to write out all null values in our expected JSON and is how the
-    // objectMapper in orca/clouddriver are configured.
-    snakeObjectMapper.setSerializationInclusion(Include.NON_NULL);
-    snakeObjectMapper.setPropertyNamingStrategy(PropertyNamingStrategies.SNAKE_CASE);
+  private static ObjectMapper nonNullMapper() {
+    return JsonMapper.builder()
+        .disable(MapperFeature.SORT_PROPERTIES_ALPHABETICALLY)
+        .changeDefaultPropertyInclusion(
+            value ->
+                value.withValueInclusion(Include.NON_NULL).withContentInclusion(Include.NON_NULL))
+        .build();
   }
 
   private static final JsonNodeFactory jsonFactory = JsonNodeFactory.instance;
@@ -271,7 +277,7 @@ final class ArtifactTest {
     String json =
         jsonFactory
             .objectNode()
-            .<ObjectNode>set("metadata", jsonFactory.objectNode().<ObjectNode>set("key", null))
+            .set("metadata", jsonFactory.objectNode().set("key", null))
             .toString();
     Artifact result = objectMapper.readValue(json, Artifact.class);
     assertThat(result.getMetadata("key")).isNull();
@@ -279,7 +285,7 @@ final class ArtifactTest {
 
   @Test
   void deserializeNullUnknownKey() throws IOException {
-    String json = jsonFactory.objectNode().<ObjectNode>set("key", null).toString();
+    String json = jsonFactory.objectNode().set("key", null).toString();
     Artifact result = objectMapper.readValue(json, Artifact.class);
     assertThat(result.getMetadata("key")).isNull();
   }
@@ -296,7 +302,7 @@ final class ArtifactTest {
         .put("artifactAccount", "my-account")
         .put("provenance", "history")
         .put("uuid", "6b9a5d0b-5706-41da-b379-234c27971482")
-        .<ObjectNode>set("metadata", jsonFactory.objectNode().put("test", "123"))
+        .set("metadata", jsonFactory.objectNode().put("test", "123"))
         .toString();
   }
 
@@ -306,7 +312,7 @@ final class ArtifactTest {
     return jsonFactory
         .objectNode()
         .put("customKind", false)
-        .<ObjectNode>set("metadata", jsonFactory.objectNode())
+        .set("metadata", jsonFactory.objectNode())
         .toString();
   }
 

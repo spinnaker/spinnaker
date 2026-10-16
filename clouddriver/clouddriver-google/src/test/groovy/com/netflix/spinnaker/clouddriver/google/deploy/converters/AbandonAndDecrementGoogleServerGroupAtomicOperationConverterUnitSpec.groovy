@@ -16,13 +16,14 @@
 
 package com.netflix.spinnaker.clouddriver.google.deploy.converters
 
-import com.fasterxml.jackson.databind.ObjectMapper
+import tools.jackson.databind.ObjectMapper
 import com.netflix.spinnaker.clouddriver.google.deploy.description.AbandonAndDecrementGoogleServerGroupDescription
 import com.netflix.spinnaker.clouddriver.google.deploy.ops.AbandonAndDecrementGoogleServerGroupAtomicOperation
 import com.netflix.spinnaker.clouddriver.google.security.GoogleNamedAccountCredentials
 import com.netflix.spinnaker.credentials.CredentialsRepository
 import spock.lang.Shared
 import spock.lang.Specification
+import tools.jackson.databind.json.JsonMapper
 
 class AbandonAndDecrementGoogleServerGroupAtomicOperationConverterUnitSpec extends Specification {
   private static final ACCOUNT_NAME = "auto"
@@ -30,7 +31,7 @@ class AbandonAndDecrementGoogleServerGroupAtomicOperationConverterUnitSpec exten
   private static final SERVER_GROUP_NAME = "my-server-group-name"
 
   @Shared
-  ObjectMapper mapper = new ObjectMapper()
+  ObjectMapper mapper = JsonMapper.builder().build()
 
   @Shared
   AbandonAndDecrementGoogleServerGroupAtomicOperationConverter converter

@@ -19,7 +19,6 @@ package com.netflix.spinnaker.orca.pipeline.util;
 import static com.netflix.spinnaker.orca.api.pipeline.models.ExecutionType.PIPELINE;
 import static org.assertj.core.api.Assertions.assertThat;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.collect.ImmutableList;
 import com.netflix.spinnaker.kork.artifacts.model.Artifact;
 import com.netflix.spinnaker.kork.artifacts.model.ExpectedArtifact;
@@ -31,6 +30,7 @@ import com.netflix.spinnaker.orca.pipeline.persistence.InMemoryExecutionReposito
 import java.util.HashMap;
 import java.util.Map;
 import org.junit.jupiter.api.Test;
+import tools.jackson.databind.json.JsonMapper;
 
 final class ArtifactUtilsTest {
   @Test
@@ -115,6 +115,8 @@ final class ArtifactUtilsTest {
 
   private ArtifactUtils createArtifactUtils() {
     return new ArtifactUtils(
-        new ObjectMapper(), new InMemoryExecutionRepository(), new ContextParameterProcessor());
+        JsonMapper.builder().build(),
+        new InMemoryExecutionRepository(),
+        new ContextParameterProcessor());
   }
 }

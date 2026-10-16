@@ -1,9 +1,10 @@
 package com.netflix.spinnaker.keel.ec2.jackson
 
-import com.fasterxml.jackson.databind.Module
-import com.fasterxml.jackson.databind.ObjectMapper
-import com.fasterxml.jackson.databind.jsontype.NamedType
-import com.fasterxml.jackson.databind.module.SimpleModule
+import tools.jackson.databind.JacksonModule
+import tools.jackson.databind.jsontype.NamedType
+import tools.jackson.databind.module.SimpleModule
+import tools.jackson.databind.json.JsonMapper
+import tools.jackson.dataformat.yaml.YAMLMapper
 import com.netflix.spinnaker.keel.api.ec2.ApplicationLoadBalancerSpec
 import com.netflix.spinnaker.keel.api.ec2.CidrRule
 import com.netflix.spinnaker.keel.api.ec2.ClassicLoadBalancerSpec
@@ -56,14 +57,15 @@ val SECURITY_GROUP_RULE_SUBTYPES = mapOf(
   PrefixListRule::class.java to "prefix-list"
 )
 
-fun ObjectMapper.registerKeelEc2ApiModule(): ObjectMapper {
-  return registerModule(KeelEc2ApiModule)
-    .apply {
-      SECURITY_GROUP_RULE_SUBTYPES.forEach { (subType, discriminator) ->
-        registerSubtypes(NamedType(subType, discriminator))
-      }
-    }
-}
+fun JsonMapper.registerKeelEc2ApiModule(): JsonMapper = rebuild()
+  .addModule(KeelEc2ApiModule)
+  .registerSubtypes(*SECURITY_GROUP_RULE_SUBTYPES.map { (subType, discriminator) -> NamedType(subType, discriminator) }.toTypedArray())
+  .build()
+
+fun YAMLMapper.registerKeelEc2ApiModule(): YAMLMapper = rebuild()
+  .addModule(KeelEc2ApiModule)
+  .registerSubtypes(*SECURITY_GROUP_RULE_SUBTYPES.map { (subType, discriminator) -> NamedType(subType, discriminator) }.toTypedArray())
+  .build()
 
 fun ExtensionRegistry.registerEc2Subtypes() {
   // Note that the discriminators below are not used as sub-types are determined by the custom deserializer above
@@ -75,33 +77,33 @@ fun ExtensionRegistry.registerEc2Subtypes() {
 internal object KeelEc2ApiModule : SimpleModule("Keel EC2 API") {
   override fun setupModule(context: SetupContext) {
     with(context) {
-      setMixInAnnotations<ApplicationLoadBalancerSpec.Action, ActionMixin>()
-      setMixInAnnotations<ApplicationLoadBalancerSpec, ApplicationLoadBalancerSpecMixin>()
+      setMixIn<ApplicationLoadBalancerSpec.Action, ActionMixin>()
+      setMixIn<ApplicationLoadBalancerSpec, ApplicationLoadBalancerSpecMixin>()
       // same annotations are required for these legacy models, so they can reuse the same mixin
-      setMixInAnnotations<ApplicationLoadBalancerV1_1Spec, ApplicationLoadBalancerSpecMixin>()
-      setMixInAnnotations<ApplicationLoadBalancerV1Spec, ApplicationLoadBalancerSpecMixin>()
-      setMixInAnnotations<BuildInfo, BuildInfoMixin>()
-      setMixInAnnotations<ClassicLoadBalancerSpec, ClassicLoadBalancerSpecMixin>()
-      setMixInAnnotations<ClusterDependencies, ClusterDependenciesMixin>()
-      setMixInAnnotations<ClusterSpec, ClusterSpecMixin>()
-      setMixInAnnotations<ClusterV1Spec, ClusterV1SpecMixin>()
-      setMixInAnnotations<CustomizedMetricSpecification, CustomizedMetricSpecificationMixin>()
-      setMixInAnnotations<Health, HealthMixin>()
-      setMixInAnnotations<HealthSpec, HealthSpecMixin>()
-      setMixInAnnotations<InstanceProvider, InstanceProviderMixin>()
-      setMixInAnnotations<ReferenceRule, ReferenceRuleMixin>()
-      setMixInAnnotations<Scaling, ScalingMixin>()
-      setMixInAnnotations<SecurityGroupSpec, SecurityGroupSpecMixin>()
-      setMixInAnnotations<ServerGroupSpec, ServerGroupSpecMixin>()
-      setMixInAnnotations<StepAdjustment, StepAdjustmentMixin>()
-      setMixInAnnotations<StepScalingPolicy, StepScalingPolicyMixin>()
-      setMixInAnnotations<TargetGroupAttributes, TargetGroupAttributesMixin>()
-      setMixInAnnotations<TargetTrackingPolicy, TargetTrackingPolicyMixin>()
+      setMixIn<ApplicationLoadBalancerV1_1Spec, ApplicationLoadBalancerSpecMixin>()
+      setMixIn<ApplicationLoadBalancerV1Spec, ApplicationLoadBalancerSpecMixin>()
+      setMixIn<BuildInfo, BuildInfoMixin>()
+      setMixIn<ClassicLoadBalancerSpec, ClassicLoadBalancerSpecMixin>()
+      setMixIn<ClusterDependencies, ClusterDependenciesMixin>()
+      setMixIn<ClusterSpec, ClusterSpecMixin>()
+      setMixIn<ClusterV1Spec, ClusterV1SpecMixin>()
+      setMixIn<CustomizedMetricSpecification, CustomizedMetricSpecificationMixin>()
+      setMixIn<Health, HealthMixin>()
+      setMixIn<HealthSpec, HealthSpecMixin>()
+      setMixIn<InstanceProvider, InstanceProviderMixin>()
+      setMixIn<ReferenceRule, ReferenceRuleMixin>()
+      setMixIn<Scaling, ScalingMixin>()
+      setMixIn<SecurityGroupSpec, SecurityGroupSpecMixin>()
+      setMixIn<ServerGroupSpec, ServerGroupSpecMixin>()
+      setMixIn<StepAdjustment, StepAdjustmentMixin>()
+      setMixIn<StepScalingPolicy, StepScalingPolicyMixin>()
+      setMixIn<TargetGroupAttributes, TargetGroupAttributesMixin>()
+      setMixIn<TargetTrackingPolicy, TargetTrackingPolicyMixin>()
     }
     super.setupModule(context)
   }
 }
 
-private inline fun <reified TARGET, reified MIXIN> Module.SetupContext.setMixInAnnotations() {
-  setMixInAnnotations(TARGET::class.java, MIXIN::class.java)
+private inline fun <reified TARGET, reified MIXIN> JacksonModule.SetupContext.setMixIn() {
+  setMixIn(TARGET::class.java, MIXIN::class.java)
 }

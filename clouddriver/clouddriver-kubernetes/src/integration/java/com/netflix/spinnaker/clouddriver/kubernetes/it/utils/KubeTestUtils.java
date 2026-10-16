@@ -23,9 +23,6 @@ import static org.hamcrest.Matchers.is;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.fail;
 
-import com.fasterxml.jackson.core.type.TypeReference;
-import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.base.Splitter;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Iterables;
@@ -46,6 +43,10 @@ import java.util.stream.StreamSupport;
 import org.springframework.core.io.DefaultResourceLoader;
 import org.springframework.core.io.ResourceLoader;
 import org.yaml.snakeyaml.Yaml;
+import tools.jackson.core.type.TypeReference;
+import tools.jackson.databind.JsonNode;
+import tools.jackson.databind.ObjectMapper;
+import tools.jackson.databind.json.JsonMapper;
 
 public abstract class KubeTestUtils {
 
@@ -70,7 +71,7 @@ public abstract class KubeTestUtils {
   }
 
   private static List<Map<String, Object>> coerceManifestToList(Object manifest) {
-    ObjectMapper objectMapper = new ObjectMapper();
+    ObjectMapper objectMapper = JsonMapper.builder().build();
     if (manifest instanceof List) {
       return objectMapper.convertValue(manifest, new TypeReference<>() {});
     }
@@ -83,7 +84,7 @@ public abstract class KubeTestUtils {
     ResourceLoader resourceLoader = new DefaultResourceLoader();
     try {
       InputStream is = resourceLoader.getResource(file).getInputStream();
-      ObjectMapper objectMapper = new ObjectMapper();
+      ObjectMapper objectMapper = JsonMapper.builder().build();
       JsonNode jsonNode = objectMapper.readTree(is);
       List<Map<String, Object>> content;
       if (jsonNode.isArray()) {

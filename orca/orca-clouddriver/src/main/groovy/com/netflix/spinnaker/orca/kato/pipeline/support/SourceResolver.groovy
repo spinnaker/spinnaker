@@ -16,9 +16,7 @@
 
 package com.netflix.spinnaker.orca.kato.pipeline.support
 
-import com.fasterxml.jackson.core.JsonParseException
-import com.fasterxml.jackson.databind.JsonMappingException
-import com.fasterxml.jackson.databind.ObjectMapper
+import tools.jackson.databind.ObjectMapper
 import com.netflix.spinnaker.kork.retrofit.exceptions.SpinnakerHttpException
 import com.netflix.spinnaker.orca.api.pipeline.models.StageExecution
 import com.netflix.spinnaker.orca.clouddriver.CloudDriverService
@@ -42,7 +40,7 @@ class SourceResolver {
   @Autowired
   TargetServerGroupResolver resolver
 
-  StageData.Source getSource(StageExecution stage) throws JsonParseException, JsonMappingException {
+  StageData.Source getSource(StageExecution stage) {
     def stageData = stage.mapTo(StageData)
     if (stageData.source) {
       // targeting a source in a different account and region
@@ -123,7 +121,7 @@ class SourceResolver {
     )
   }
 
-  List<ServerGroup> getExistingAsgs(String app, String account, String cluster, String cloudProvider) throws JsonParseException, JsonMappingException {
+  List<ServerGroup> getExistingAsgs(String app, String account, String cluster, String cloudProvider) {
     try {
       def map = cloudDriverService.getCluster(app, account, cluster, cloudProvider)
       map.serverGroups.sort { it.createdTime }

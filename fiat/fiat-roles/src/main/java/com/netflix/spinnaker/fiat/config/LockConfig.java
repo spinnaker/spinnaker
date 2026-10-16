@@ -17,8 +17,6 @@
 package com.netflix.spinnaker.fiat.config;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
-import com.fasterxml.jackson.databind.DeserializationFeature;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import com.netflix.spectator.api.Registry;
 import com.netflix.spinnaker.kork.jedis.RedisClientDelegate;
 import com.netflix.spinnaker.kork.jedis.lock.RedisLockManager;
@@ -27,6 +25,9 @@ import java.time.Clock;
 import java.util.Optional;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import tools.jackson.databind.DeserializationFeature;
+import tools.jackson.databind.ObjectMapper;
+import tools.jackson.databind.json.JsonMapper;
 
 @Configuration
 public class LockConfig {
@@ -39,9 +40,11 @@ public class LockConfig {
   LockManager redisLockManager(
       Clock clock, Registry registry, RedisClientDelegate redisClientDelegate) {
     ObjectMapper objectMapper =
-        new ObjectMapper()
+        JsonMapper.builder()
             .disable(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES)
-            .setSerializationInclusion(JsonInclude.Include.NON_NULL);
+            .changeDefaultPropertyInclusion(
+                value -> value.withValueInclusion(JsonInclude.Include.NON_NULL))
+            .build();
 
     return new RedisLockManager(
         null, // will fall back to running node name

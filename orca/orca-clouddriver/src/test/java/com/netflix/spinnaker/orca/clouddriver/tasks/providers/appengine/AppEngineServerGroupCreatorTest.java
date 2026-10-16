@@ -24,7 +24,6 @@ import static org.mockito.ArgumentMatchers.nullable;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Iterables;
@@ -41,6 +40,7 @@ import java.util.Map;
 import org.junit.jupiter.api.Test;
 import org.mockito.AdditionalAnswers;
 import org.mockito.stubbing.Answer;
+import tools.jackson.databind.ObjectMapper;
 
 final class AppEngineServerGroupCreatorTest {
   private static final ObjectMapper OBJECT_MAPPER = OrcaObjectMapper.getInstance();

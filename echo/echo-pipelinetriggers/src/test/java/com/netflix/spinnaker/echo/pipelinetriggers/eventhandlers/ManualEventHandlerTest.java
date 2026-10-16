@@ -32,6 +32,7 @@ import com.netflix.spinnaker.echo.model.trigger.ManualEvent;
 import com.netflix.spinnaker.echo.pipelinetriggers.PipelineCache;
 import com.netflix.spinnaker.kork.artifacts.model.Artifact;
 import com.netflix.spinnaker.kork.retrofit.exceptions.SpinnakerHttpException;
+import com.netflix.spinnaker.kork.retrofit.util.CustomConverterFactory;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
@@ -44,12 +45,10 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import retrofit2.Response;
 import retrofit2.Retrofit;
-import retrofit2.converter.jackson.JacksonConverterFactory;
 
 class ManualEventHandlerTest {
 
-  private final com.fasterxml.jackson.databind.ObjectMapper objectMapper =
-      EchoObjectMapper.getInstance();
+  private final tools.jackson.databind.ObjectMapper objectMapper = EchoObjectMapper.getInstance();
   private BuildInfoService buildInfoService;
   private ArtifactInfoService artifactInfoService;
   private PipelineCache pipelineCache;
@@ -121,7 +120,7 @@ class ManualEventHandlerTest {
     Retrofit retrofit =
         new Retrofit.Builder()
             .baseUrl(url)
-            .addConverterFactory(JacksonConverterFactory.create())
+            .addConverterFactory(CustomConverterFactory.create())
             .build();
 
     return new SpinnakerHttpException(retrofit2Response, retrofit);

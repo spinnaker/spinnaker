@@ -20,7 +20,6 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.jooq.impl.DSL.field;
 import static org.jooq.impl.DSL.table;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
 import com.netflix.spectator.api.NoopRegistry;
 import com.netflix.spinnaker.clouddriver.data.task.Task;
 import com.netflix.spinnaker.config.ConnectionPools;
@@ -33,6 +32,7 @@ import java.time.ZoneOffset;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import tools.jackson.databind.json.JsonMapper;
 
 /**
  * Which tasks {@link SqlTaskCleanupAgent} removes, by state and age (spinnaker/spinnaker#8109 S9).
@@ -111,7 +111,10 @@ class SqlTaskCleanupAgentStatesTest {
   private Task taskCreatedAgo(long ageMs) {
     Clock created = Clock.fixed(Instant.now().minus(Duration.ofMillis(ageMs)), ZoneOffset.UTC);
     return new SqlTaskRepository(
-            database.context, new ObjectMapper(), created, ConnectionPools.TASKS.getValue())
+            database.context,
+            JsonMapper.builder().build(),
+            created,
+            ConnectionPools.TASKS.getValue())
         .create("ORCHESTRATION", "Initializing");
   }
 

@@ -17,7 +17,7 @@
 
 package com.netflix.spinnaker.front50.controllers
 
-import com.fasterxml.jackson.databind.ObjectMapper
+import tools.jackson.databind.ObjectMapper
 import com.netflix.spectator.api.NoopRegistry
 import com.netflix.spinnaker.config.Front50SqlProperties
 import com.netflix.spinnaker.front50.api.model.pipeline.Pipeline
@@ -44,6 +44,7 @@ import java.time.Clock
 import java.util.concurrent.Executors
 
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*
+import tools.jackson.databind.json.JsonMapper
 
 abstract class StrategyControllerTck extends Specification {
 
@@ -89,7 +90,7 @@ abstract class StrategyControllerTck extends Specification {
 
     when:
     def response = mockMvc.perform(post('/strategies').
-      contentType(MediaType.APPLICATION_JSON).content(new ObjectMapper().writeValueAsString(pipeline)))
+      contentType(MediaType.APPLICATION_JSON).content(JsonMapper.builder().build().writeValueAsString(pipeline)))
       .andReturn().response
 
     def updatedPipeline = pipelineStrategyDAO.findById(
@@ -113,7 +114,7 @@ abstract class StrategyControllerTck extends Specification {
     when:
     strategy.name = "Updated Name"
     def response = mockMvc.perform(put("/strategies/${strategy.id}").contentType(MediaType.APPLICATION_JSON)
-      .content(new ObjectMapper().writeValueAsString(strategy))).andReturn().response
+      .content(JsonMapper.builder().build().writeValueAsString(strategy))).andReturn().response
 
     then:
     response.status == OK
@@ -133,7 +134,7 @@ abstract class StrategyControllerTck extends Specification {
 
     when:
     def response = mockMvc.perform(put("/strategies/${strategy1.id}").contentType(MediaType.APPLICATION_JSON)
-      .content(new ObjectMapper().writeValueAsString(strategy1))).andReturn().response
+      .content(JsonMapper.builder().build().writeValueAsString(strategy1))).andReturn().response
 
     then:
     response.status == BAD_REQUEST
@@ -141,7 +142,7 @@ abstract class StrategyControllerTck extends Specification {
 
     when:
     response = mockMvc.perform(put("/strategies/${strategy1.id}").contentType(MediaType.APPLICATION_JSON)
-      .content(new ObjectMapper().writeValueAsString(strategy2))).andReturn().response
+      .content(JsonMapper.builder().build().writeValueAsString(strategy2))).andReturn().response
 
     then:
     response.status == BAD_REQUEST
@@ -193,7 +194,7 @@ abstract class StrategyControllerTck extends Specification {
     when:
     def response = mockMvc.perform(post('/strategies')
       .contentType(MediaType.APPLICATION_JSON)
-      .content(new ObjectMapper().writeValueAsString([name: "pipeline1", application: "test"])))
+      .content(JsonMapper.builder().build().writeValueAsString([name: "pipeline1", application: "test"])))
       .andReturn().response
 
     then:
@@ -217,7 +218,7 @@ class SqlStrategyControllerTck extends StrategyControllerTck {
     def registry = new NoopRegistry()
 
     def storageService = new SqlStorageService(
-      new ObjectMapper(),
+      JsonMapper.builder().build(),
       registry,
       currentDatabase.context,
       Clock.systemDefaultZone(),

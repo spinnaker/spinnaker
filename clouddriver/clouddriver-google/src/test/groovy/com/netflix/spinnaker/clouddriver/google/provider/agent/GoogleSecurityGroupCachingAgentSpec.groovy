@@ -16,7 +16,7 @@
 
 package com.netflix.spinnaker.clouddriver.google.provider.agent
 
-import com.fasterxml.jackson.databind.ObjectMapper
+import tools.jackson.databind.ObjectMapper
 import com.google.api.services.compute.Compute
 import com.google.api.services.compute.model.Firewall
 import com.google.api.services.compute.model.FirewallList
@@ -27,6 +27,7 @@ import com.netflix.spinnaker.clouddriver.google.cache.Keys
 import com.netflix.spinnaker.clouddriver.google.security.GoogleNamedAccountCredentials
 import spock.lang.Specification
 import spock.lang.Subject
+import tools.jackson.databind.json.JsonMapper
 
 class GoogleSecurityGroupCachingAgentSpec extends Specification {
 
@@ -60,7 +61,7 @@ class GoogleSecurityGroupCachingAgentSpec extends Specification {
       def ProviderCache providerCache = Mock(ProviderCache)
       @Subject GoogleSecurityGroupCachingAgent agent = new GoogleSecurityGroupCachingAgent("testApplicationName",
                                                                                            credentials,
-                                                                                           new ObjectMapper(),
+                                                                                           JsonMapper.builder().build(),
                                                                                            registry)
       // We are passing registry in above because the constructor needs it.
       // However there is also an @autowired registry on the instance this test
@@ -103,7 +104,7 @@ class GoogleSecurityGroupCachingAgentSpec extends Specification {
     def ProviderCache providerCache = Mock(ProviderCache)
     @Subject GoogleSecurityGroupCachingAgent agent = new GoogleSecurityGroupCachingAgent("testApplicationName",
       credentials,
-      new ObjectMapper(),
+      JsonMapper.builder().build(),
       registry)
     agent.registry = registry
 

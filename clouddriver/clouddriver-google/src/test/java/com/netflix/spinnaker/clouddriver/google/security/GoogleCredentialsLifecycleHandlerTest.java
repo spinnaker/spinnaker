@@ -24,7 +24,6 @@ import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.api.services.compute.Compute;
 import com.netflix.spectator.api.DefaultRegistry;
 import com.netflix.spinnaker.clouddriver.google.compute.GoogleComputeApiFactory;
@@ -40,6 +39,7 @@ import java.util.Set;
 import org.junit.jupiter.api.Test;
 import org.mockito.ArgumentCaptor;
 import org.mockito.InOrder;
+import tools.jackson.databind.json.JsonMapper;
 
 class GoogleCredentialsLifecycleHandlerTest {
   @Test
@@ -85,7 +85,7 @@ class GoogleCredentialsLifecycleHandlerTest {
         provider,
         new GoogleConfigurationProperties(),
         mock(GoogleComputeApiFactory.class),
-        new ObjectMapper(),
+        JsonMapper.builder().build(),
         new DefaultRegistry(),
         "clouddriver",
         mock(ServiceClientProvider.class));

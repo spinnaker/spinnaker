@@ -27,8 +27,6 @@ import static org.mockito.ArgumentMatchers.isNull;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
-import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.collect.ImmutableMap;
 import com.netflix.spinnaker.clouddriver.cloudfoundry.cache.CacheRepository;
 import com.netflix.spinnaker.clouddriver.cloudfoundry.client.CloudFoundryClient;
@@ -44,6 +42,9 @@ import okhttp3.OkHttpClient;
 import org.jetbrains.annotations.NotNull;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
+import tools.jackson.databind.JsonNode;
+import tools.jackson.databind.ObjectMapper;
+import tools.jackson.databind.json.JsonMapper;
 
 public class CloudFoundryCredentialsTest {
 
@@ -145,7 +146,7 @@ public class CloudFoundryCredentialsTest {
         NoSuchMethodException.class,
         () -> CloudFoundryCredentials.class.getMethod("getCloudFoundryClient"));
 
-    ObjectMapper mapper = new ObjectMapper();
+    ObjectMapper mapper = JsonMapper.builder().build();
     CloudFoundryCredentials credentials = getStubCloudFoundryCredentials();
     // Test Jackson Annotations
     JsonNode jsonCredentials = mapper.valueToTree(credentials);

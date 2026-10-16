@@ -17,7 +17,6 @@
 package com.netflix.spinnaker.clouddriver.tencentcloud.model;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import com.netflix.spinnaker.clouddriver.model.HealthState;
 import com.netflix.spinnaker.clouddriver.model.Instance;
 import com.netflix.spinnaker.clouddriver.names.NamerRegistry;
@@ -28,6 +27,8 @@ import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
 import lombok.Data;
+import tools.jackson.databind.ObjectMapper;
+import tools.jackson.databind.json.JsonMapper;
 
 @Data
 public class TencentCloudInstance implements Instance, TencentCloudBasicResource {
@@ -63,7 +64,7 @@ public class TencentCloudInstance implements Instance, TencentCloudBasicResource
   }
 
   public List<Map<String, Object>> getHealth() {
-    ObjectMapper objectMapper = new ObjectMapper();
+    ObjectMapper objectMapper = JsonMapper.builder().build();
     List<Map<String, Object>> healths = new ArrayList<>();
 
     if (instanceHealth != null) {

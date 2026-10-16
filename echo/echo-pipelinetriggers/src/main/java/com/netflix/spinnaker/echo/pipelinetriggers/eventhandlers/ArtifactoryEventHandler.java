@@ -16,7 +16,6 @@
 
 package com.netflix.spinnaker.echo.pipelinetriggers.eventhandlers;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
 import com.netflix.spectator.api.Registry;
 import com.netflix.spinnaker.echo.model.Trigger;
 import com.netflix.spinnaker.echo.model.trigger.ArtifactoryEvent;
@@ -28,6 +27,7 @@ import java.util.List;
 import java.util.function.Function;
 import java.util.function.Predicate;
 import org.springframework.stereotype.Component;
+import tools.jackson.databind.ObjectMapper;
 
 /**
  * Implementation of TriggerEventHandler for events of type {@link ArtifactoryEvent}, which occur

@@ -16,9 +16,10 @@
 package com.netflix.spinnaker.clouddriver.event
 
 import com.fasterxml.jackson.annotation.JsonTypeName
-import com.fasterxml.jackson.databind.ObjectMapper
-import com.fasterxml.jackson.module.kotlin.readValue
-import com.fasterxml.jackson.module.kotlin.registerKotlinModule
+import tools.jackson.databind.ObjectMapper
+import tools.jackson.module.kotlin.readValue
+import tools.jackson.databind.json.JsonMapper
+import tools.jackson.module.kotlin.KotlinModule
 import dev.minutest.junit.JUnit5Minutests
 import dev.minutest.rootContext
 import strikt.api.expectThat
@@ -29,12 +30,11 @@ class ObjectMappingTest : JUnit5Minutests {
 
   fun tests() = rootContext<ObjectMapper> {
     fixture {
-      ObjectMapper()
-        .registerKotlinModule()
-        .findAndRegisterModules()
-        .apply {
-          registerSubtypes(listOf(MyEvent::class.java))
-        }
+JsonMapper.builder()
+        .addModule(KotlinModule.Builder().build())
+        .findAndAddModules()
+        .registerSubtypes(MyEvent::class.java)
+        .build()
     }
 
     test("can serialize and deserialize events") {

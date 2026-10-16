@@ -16,7 +16,6 @@
 
 package com.netflix.spinnaker.echo.cdevents
 
-import com.fasterxml.jackson.databind.ObjectMapper
 import com.netflix.spinnaker.echo.api.events.Event
 import io.cloudevents.CloudEvent
 import io.cloudevents.core.builder.CloudEventBuilder
@@ -26,8 +25,10 @@ import io.opentelemetry.sdk.OpenTelemetrySdk
 import io.opentelemetry.sdk.testing.exporter.InMemorySpanExporter
 import io.opentelemetry.sdk.trace.SdkTracerProvider
 import io.opentelemetry.sdk.trace.export.SimpleSpanProcessor
+import tools.jackson.databind.ObjectMapper
 import spock.lang.Specification
 import spock.lang.Subject
+import tools.jackson.databind.json.JsonMapper
 
 class CDEventsOTelSenderSpec extends Specification {
 
@@ -40,7 +41,7 @@ class CDEventsOTelSenderSpec extends Specification {
 
   def setup() {
     def config = new CDEventsConfigProperties()
-    def objectMapper = new ObjectMapper()
+    def objectMapper = JsonMapper.builder().build()
     sender = new CDEventsOTelSender(config, objectMapper)
 
     // Inject a test SDK with in-memory exporter into the sdkCache
@@ -88,7 +89,7 @@ class CDEventsOTelSenderSpec extends Specification {
   def "multiple pods produce same trace hierarchy without shared state"() {
     given: "two independent sender instances (simulating two pods)"
     def config = new CDEventsConfigProperties()
-    def objectMapper = new ObjectMapper()
+    def objectMapper = JsonMapper.builder().build()
     def sender2 = new CDEventsOTelSender(config, objectMapper)
     def exporter2 = InMemorySpanExporter.create()
     def testSdk2 = OpenTelemetrySdk.builder()

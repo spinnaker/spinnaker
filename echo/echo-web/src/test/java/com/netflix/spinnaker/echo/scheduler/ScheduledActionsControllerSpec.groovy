@@ -1,6 +1,6 @@
 package com.netflix.spinnaker.echo.scheduler
 
-import com.fasterxml.jackson.databind.ObjectMapper
+import tools.jackson.databind.ObjectMapper
 import com.netflix.spinnaker.echo.jackson.EchoObjectMapper
 import org.quartz.CronTrigger
 import org.quartz.Scheduler

@@ -16,7 +16,7 @@
 
 package com.netflix.spinnaker.clouddriver.aws.provider.view
 
-import com.fasterxml.jackson.databind.ObjectMapper
+import tools.jackson.databind.ObjectMapper
 import com.netflix.spinnaker.cats.cache.Cache
 import com.netflix.spinnaker.clouddriver.model.ReservationReport
 import com.netflix.spinnaker.clouddriver.model.ReservationReportProvider
@@ -76,4 +76,3 @@ class AmazonReservationReportProvider implements ReservationReportProvider {
     // deserialize directly into a map avoids default values for AccountReservationDetail.[reservedVpc|usedVpc]
   }
 }
-

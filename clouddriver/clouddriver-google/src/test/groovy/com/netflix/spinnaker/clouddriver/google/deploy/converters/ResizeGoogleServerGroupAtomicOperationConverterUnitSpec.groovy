@@ -16,7 +16,7 @@
 
 package com.netflix.spinnaker.clouddriver.google.deploy.converters
 
-import com.fasterxml.jackson.databind.ObjectMapper
+import tools.jackson.databind.ObjectMapper
 import com.google.api.services.compute.model.AutoscalingPolicy
 import com.netflix.spinnaker.clouddriver.google.deploy.description.ResizeGoogleServerGroupDescription
 import com.netflix.spinnaker.clouddriver.google.deploy.description.UpsertGoogleAutoscalingPolicyDescription
@@ -29,6 +29,7 @@ import com.netflix.spinnaker.credentials.CredentialsRepository
 import spock.lang.Shared
 import spock.lang.Specification
 import spock.lang.Unroll
+import tools.jackson.databind.json.JsonMapper
 
 class ResizeGoogleServerGroupAtomicOperationConverterUnitSpec extends Specification {
   private static final SERVER_GROUP_NAME = "spinnaker-test-v000"
@@ -38,7 +39,7 @@ class ResizeGoogleServerGroupAtomicOperationConverterUnitSpec extends Specificat
   private static final ACCOUNT_NAME = "auto"
 
   @Shared
-  ObjectMapper mapper = new ObjectMapper()
+  ObjectMapper mapper = JsonMapper.builder().build()
 
   @Unroll
   void "#descriptionType and #operationType are returned when autoscalingPolicy is #autoscalingPolicy"() {

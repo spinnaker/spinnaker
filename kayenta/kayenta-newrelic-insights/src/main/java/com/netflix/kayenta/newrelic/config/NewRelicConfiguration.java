@@ -16,7 +16,6 @@
 
 package com.netflix.kayenta.newrelic.config;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
 import com.netflix.kayenta.metrics.MetricsService;
 import com.netflix.kayenta.newrelic.metrics.NewRelicMetricsService;
 import com.netflix.kayenta.newrelic.security.NewRelicCredentials;
@@ -26,6 +25,7 @@ import com.netflix.kayenta.retrofit.config.RemoteService;
 import com.netflix.kayenta.retrofit.config.RetrofitClientFactory;
 import com.netflix.kayenta.security.AccountCredentials;
 import com.netflix.kayenta.security.AccountCredentialsRepository;
+import com.netflix.spinnaker.kork.retrofit.util.CustomConverterFactory;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
@@ -36,7 +36,7 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.ComponentScan;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.util.CollectionUtils;
-import retrofit2.converter.jackson.JacksonConverterFactory;
+import tools.jackson.databind.ObjectMapper;
 
 @Configuration
 @ConditionalOnProperty("kayenta.newrelic.enabled")
@@ -119,7 +119,7 @@ public class NewRelicConfiguration {
           accountCredentialsBuilder.newRelicRemoteService(
               retrofitClientFactory.createClient(
                   NewRelicRemoteService.class,
-                  JacksonConverterFactory.create(objectMapper),
+                  CustomConverterFactory.create(objectMapper),
                   endpoint));
         }
         accountCredentialsBuilder.supportedTypes(supportedTypes);

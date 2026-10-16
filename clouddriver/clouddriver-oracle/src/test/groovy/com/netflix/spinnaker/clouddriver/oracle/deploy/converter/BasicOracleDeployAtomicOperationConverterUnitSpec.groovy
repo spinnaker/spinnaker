@@ -8,13 +8,14 @@
  */
 package com.netflix.spinnaker.clouddriver.oracle.deploy.converter
 
-import com.fasterxml.jackson.databind.ObjectMapper
+import tools.jackson.databind.ObjectMapper
 import com.netflix.spinnaker.clouddriver.deploy.DeployAtomicOperation
 import com.netflix.spinnaker.clouddriver.oracle.deploy.description.BasicOracleDeployDescription
 import com.netflix.spinnaker.clouddriver.oracle.security.OracleNamedAccountCredentials
 import com.netflix.spinnaker.clouddriver.security.AccountCredentialsProvider
 import spock.lang.Shared
 import spock.lang.Specification
+import tools.jackson.databind.json.JsonMapper
 
 class BasicOracleDeployAtomicOperationConverterUnitSpec extends Specification {
 
@@ -28,7 +29,7 @@ class BasicOracleDeployAtomicOperationConverterUnitSpec extends Specification {
   private static final ACCOUNT_NAME = "auto"
 
   @Shared
-  ObjectMapper mapper = new ObjectMapper()
+  ObjectMapper mapper = JsonMapper.builder().build()
 
   @Shared
   BasicOracleDeployAtomicOperationConverter converter

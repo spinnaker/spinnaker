@@ -1,6 +1,6 @@
 package com.netflix.spinnaker.echo.services
 
-import com.fasterxml.jackson.databind.ObjectMapper
+import tools.jackson.databind.ObjectMapper
 import com.github.tomakehurst.wiremock.WireMockServer
 import com.github.tomakehurst.wiremock.core.WireMockConfiguration
 import com.github.tomakehurst.wiremock.client.WireMock
@@ -11,15 +11,16 @@ import com.netflix.spinnaker.config.okhttp3.InsecureOkHttpClientBuilderProvider
 import com.netflix.spinnaker.echo.model.Trigger
 import com.netflix.spinnaker.kork.retrofit.ErrorHandlingExecutorCallAdapterFactory
 import com.netflix.spinnaker.kork.retrofit.Retrofit2SyncCall
+import com.netflix.spinnaker.kork.retrofit.util.CustomConverterFactory
 import com.netflix.spinnaker.okhttp.Retrofit2EncodeCorrectionInterceptor
 import okhttp3.OkHttpClient
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.test.context.SpringBootTest
 import retrofit2.Retrofit
-import retrofit2.converter.jackson.JacksonConverterFactory
 import spock.lang.Ignore;
 import spock.lang.Specification
 import spock.util.concurrent.BlockingVariable
+import tools.jackson.databind.json.JsonMapper
 
 @SpringBootTest(classes = [OkHttpClientProvider, InsecureOkHttpClientBuilderProvider, OkHttpClient, Retrofit2EncodeCorrectionInterceptor],
   webEnvironment = SpringBootTest.WebEnvironment.NONE)
@@ -32,7 +33,7 @@ class Front50ServiceSpec extends Specification {
 
   BlockingVariable<List<Map<String,Object>>> pipelineResponse
 
-  ObjectMapper objectMapper = new ObjectMapper()
+  ObjectMapper objectMapper = JsonMapper.builder().build()
 
   def setup() {
     pipelineResponse = new BlockingVariable<List<Map<String,Object>>>(5)
@@ -132,9 +133,9 @@ class Front50ServiceSpec extends Specification {
   private Front50Service front50Service(String baseUrl){
     new Retrofit.Builder()
       .baseUrl(baseUrl)
-      .client(clientProvider.getClient(new DefaultServiceEndpoint("front50", baseUrl, false)))
-      .addCallAdapterFactory(ErrorHandlingExecutorCallAdapterFactory.getInstance())
-      .addConverterFactory(JacksonConverterFactory.create())
+       .client(clientProvider.getClient(new DefaultServiceEndpoint("front50", baseUrl, false)))
+       .addCallAdapterFactory(ErrorHandlingExecutorCallAdapterFactory.getInstance())
+       .addConverterFactory(CustomConverterFactory.create())
       .build()
       .create(Front50Service.class);
   }

@@ -19,7 +19,6 @@ import static com.netflix.spinnaker.kork.discovery.InstanceStatus.STARTING;
 import static com.netflix.spinnaker.kork.discovery.InstanceStatus.UP;
 import static com.netflix.spinnaker.orca.api.pipeline.models.ExecutionType.PIPELINE;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
 import com.netflix.kayenta.config.OrcaCompositeHealthContributor;
 import com.netflix.spinnaker.kork.discovery.DiscoveryStatusChangeEvent;
 import com.netflix.spinnaker.kork.discovery.RemoteStatusChangedEvent;
@@ -47,6 +46,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestController;
+import tools.jackson.databind.ObjectMapper;
 
 @RestController
 @RequestMapping("/pipelines")

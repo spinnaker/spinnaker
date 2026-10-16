@@ -18,17 +18,18 @@ package com.netflix.spinnaker.clouddriver.cloudfoundry.model;
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonView;
-import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 import com.netflix.spinnaker.clouddriver.model.Image;
 import java.util.Collection;
 import javax.annotation.Nullable;
 import lombok.Builder;
 import lombok.EqualsAndHashCode;
 import lombok.Value;
+import tools.jackson.databind.annotation.JsonDeserialize;
+import tools.jackson.databind.annotation.JsonPOJOBuilder;
 
 @Value
 @EqualsAndHashCode(of = "id")
-@Builder
+@Builder(builderClassName = "CloudFoundryDropletBuilder")
 @JsonDeserialize(builder = CloudFoundryDroplet.CloudFoundryDropletBuilder.class)
 @JsonIgnoreProperties(ignoreUnknown = true)
 public class CloudFoundryDroplet implements Image {
@@ -56,4 +57,7 @@ public class CloudFoundryDroplet implements Image {
   public String getRegion() {
     return space != null ? space.getRegion() : null;
   }
+
+  @JsonPOJOBuilder(withPrefix = "")
+  public static class CloudFoundryDropletBuilder {}
 }

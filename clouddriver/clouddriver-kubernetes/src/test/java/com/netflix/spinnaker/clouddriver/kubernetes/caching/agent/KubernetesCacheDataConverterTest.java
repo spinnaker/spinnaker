@@ -18,20 +18,21 @@ package com.netflix.spinnaker.clouddriver.kubernetes.caching.agent;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
 import com.netflix.spinnaker.clouddriver.kubernetes.caching.Keys;
 import com.netflix.spinnaker.clouddriver.kubernetes.description.manifest.KubernetesManifest;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.Set;
 import org.junit.jupiter.api.Test;
+import tools.jackson.databind.ObjectMapper;
+import tools.jackson.databind.json.JsonMapper;
 
 public class KubernetesCacheDataConverterTest {
 
   @Test
   public void testOwnerRefUnregisteredKind() throws IOException {
     try (InputStream stream = KubernetesManifest.class.getResourceAsStream("owned-manifest.json")) {
-      ObjectMapper objectMapper = new ObjectMapper();
+      ObjectMapper objectMapper = JsonMapper.builder().build();
       KubernetesManifest manifest = objectMapper.readValue(stream, KubernetesManifest.class);
       Set<Keys.CacheKey> ownerKeys =
           KubernetesCacheDataConverter.ownerReferenceRelationships(

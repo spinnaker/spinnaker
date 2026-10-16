@@ -16,7 +16,8 @@
 
 package com.netflix.spinnaker.clouddriver.aws.deploy.converters
 
-import com.fasterxml.jackson.databind.ObjectMapper
+import tools.jackson.databind.ObjectMapper
+import tools.jackson.databind.json.JsonMapper
 import com.netflix.spinnaker.clouddriver.aws.deploy.description.DeleteCloudFormationChangeSetDescription
 import com.netflix.spinnaker.clouddriver.aws.deploy.ops.DeleteCloudFormationChangeSetAtomicOperation
 import com.netflix.spinnaker.clouddriver.aws.security.NetflixAmazonCredentials
@@ -27,7 +28,7 @@ import spock.lang.Specification
 class DeleteCloudFormationChangeSetAtomicOperationConverterSpec extends Specification {
 
   @Shared
-  ObjectMapper mapper = new ObjectMapper()
+  ObjectMapper mapper = JsonMapper.builder().build()
 
   @Shared
   DeleteCloudFormationChangeSetAtomicOperationConverter converter

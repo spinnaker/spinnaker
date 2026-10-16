@@ -17,7 +17,7 @@
 
 package com.netflix.spinnaker.front50.controllers.v2
 
-import com.fasterxml.jackson.databind.ObjectMapper
+import tools.jackson.databind.ObjectMapper
 import com.netflix.spectator.api.NoopRegistry
 import com.netflix.spinnaker.config.Front50SqlProperties
 import com.netflix.spinnaker.front50.config.StorageServiceConfigurationProperties
@@ -45,9 +45,16 @@ import java.util.concurrent.Executors
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status
+import tools.jackson.databind.MapperFeature
+import tools.jackson.databind.json.JsonMapper
 
 abstract class ProjectsControllerTck extends Specification {
-  ObjectMapper objectMapper = new ObjectMapper()
+  // Match the message-converter mapper below: Jackson 3 sorts alphabetically by default,
+  // contract assertions expect Jackson 2 declaration order.
+  ObjectMapper objectMapper = JsonMapper.builder()
+    .disable(MapperFeature.SORT_PROPERTIES_ALPHABETICALLY)
+    .disable(MapperFeature.SORT_CREATOR_PROPERTIES_FIRST)
+    .build()
 
   MockMvc mockMvc
 
@@ -62,13 +69,17 @@ abstract class ProjectsControllerTck extends Specification {
     this.controller = new ProjectsController(dao)
     this.mockMvc = MockMvcBuilders
       .standaloneSetup(controller)
-      // Pin Jackson 2 explicitly: standalone setups don't load the app context
-      // (so kork's Jackson3PropertyOrderConfiguration doesn't apply), and Boot 4's
+      // Pin declaration order explicitly: standalone setups don't load the app context
+      // (so kork's Jackson3PropertyOrderConfiguration doesn't apply), and the
       // default Jackson 3 mapper sorts properties alphabetically while these
       // contract assertions expect Jackson 2 declaration order.
       .setMessageConverters(
-        new org.springframework.http.converter.json.MappingJackson2HttpMessageConverter(
-          new ObjectMapper()))
+        new org.springframework.http.converter.json.JacksonJsonHttpMessageConverter(
+          JsonMapper.builder()
+            .disable(MapperFeature.SORT_PROPERTIES_ALPHABETICALLY)
+            .disable(MapperFeature.SORT_CREATOR_PROPERTIES_FIRST)
+            .build()))
+
       .setControllerAdvice(
         new GenericExceptionHandlers(
           new ExceptionMessageDecorator(Mock(ObjectProvider))
@@ -91,7 +102,7 @@ abstract class ProjectsControllerTck extends Specification {
 
     then:
     response.andExpect status().isOk()
-    response.andExpect content().string(new ObjectMapper().writeValueAsString([dao.findByName(project.name)]))
+    response.andExpect content().string(objectMapper.writeValueAsString([dao.findByName(project.name)]))
 
     where:
     criteria       | project
@@ -145,7 +156,7 @@ abstract class ProjectsControllerTck extends Specification {
 
     then:
     response.andExpect status().isOk()
-    response.andExpect content().string(new ObjectMapper().writeValueAsString([dao.findByName("Project1")]))
+    response.andExpect content().string(objectMapper.writeValueAsString([dao.findByName("Project1")]))
 
     when:
     response = mockMvc.perform(
@@ -165,7 +176,7 @@ abstract class ProjectsControllerTck extends Specification {
 
     then:
     response.andExpect status().isOk()
-    response.andExpect content().string(new ObjectMapper().writeValueAsString([dao.findByName("Project")]))
+    response.andExpect content().string(objectMapper.writeValueAsString([dao.findByName("Project")]))
 
     when:
     response = mockMvc.perform(
@@ -174,7 +185,7 @@ abstract class ProjectsControllerTck extends Specification {
 
     then:
     response.andExpect status().isOk()
-    response.andExpect content().string(new ObjectMapper().writeValueAsString([ dao.findByName("Project"), dao.findByName("Project1")]))
+    response.andExpect content().string(objectMapper.writeValueAsString([ dao.findByName("Project"), dao.findByName("Project1")]))
 
 
     when:
@@ -184,7 +195,7 @@ abstract class ProjectsControllerTck extends Specification {
 
     then: "should show the most relevant result"
     response.andExpect status().isOk()
-    response.andExpect content().string(new ObjectMapper().writeValueAsString([ dao.findByName("Project")]))
+    response.andExpect content().string(objectMapper.writeValueAsString([ dao.findByName("Project")]))
 
 
     when:
@@ -194,7 +205,7 @@ abstract class ProjectsControllerTck extends Specification {
 
     then:
     response.andExpect status().isOk()
-    response.andExpect content().string(new ObjectMapper().writeValueAsString([ dao.findByName("Project")]))
+    response.andExpect content().string(objectMapper.writeValueAsString([ dao.findByName("Project")]))
   }
 
   void "should fetch all projects"() {
@@ -206,7 +217,7 @@ abstract class ProjectsControllerTck extends Specification {
     expect:
     mockMvc.perform(
       get("/v2/projects")
-    ).andExpect content().string(new ObjectMapper().writeValueAsString(dao.all()))
+    ).andExpect content().string(objectMapper.writeValueAsString(dao.all()))
   }
 
   @Unroll
@@ -320,7 +331,7 @@ class SqlProjectsControllerTck extends ProjectsControllerTck {
     def registry = new NoopRegistry()
 
     def storageService = new SqlStorageService(
-      new ObjectMapper(),
+      JsonMapper.builder().build(),
       registry,
       currentDatabase.context,
       Clock.systemDefaultZone(),

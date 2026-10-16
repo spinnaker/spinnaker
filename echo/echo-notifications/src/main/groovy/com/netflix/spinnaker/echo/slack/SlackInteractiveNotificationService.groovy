@@ -16,13 +16,14 @@
 
 package com.netflix.spinnaker.echo.slack
 
-import com.fasterxml.jackson.databind.ObjectMapper
+import tools.jackson.databind.ObjectMapper
 import com.netflix.spinnaker.config.OkHttp3ClientConfiguration
 import com.netflix.spinnaker.echo.api.Notification
 import com.netflix.spinnaker.echo.notification.InteractiveNotificationService
 import com.netflix.spinnaker.echo.notification.NotificationTemplateEngine
 import com.netflix.spinnaker.kork.retrofit.ErrorHandlingExecutorCallAdapterFactory;
 import com.netflix.spinnaker.kork.retrofit.Retrofit2SyncCall;
+import com.netflix.spinnaker.kork.retrofit.util.CustomConverterFactory;
 import com.netflix.spinnaker.kork.retrofit.util.RetrofitUtils;
 import com.netflix.spinnaker.kork.web.exceptions.InvalidRequestException
 import groovy.util.logging.Slf4j
@@ -38,7 +39,6 @@ import retrofit2.http.POST
 import retrofit2.http.Path
 import retrofit2.Call
 import retrofit2.Retrofit
-import retrofit2.converter.jackson.JacksonConverterFactory;
 
 @Slf4j
 @Component
@@ -168,7 +168,7 @@ class SlackInteractiveNotificationService extends SlackNotificationService imple
       .baseUrl(RetrofitUtils.getBaseUrl(SLACK_WEBHOOK_BASE_URL))
       .client(okHttp3ClientConfiguration.createForRetrofit2().build())
       .addCallAdapterFactory(ErrorHandlingExecutorCallAdapterFactory.getInstance())
-      .addConverterFactory(JacksonConverterFactory.create())
+      .addConverterFactory(CustomConverterFactory.create())
       .build()
       .create(SlackHookService.class);
   }

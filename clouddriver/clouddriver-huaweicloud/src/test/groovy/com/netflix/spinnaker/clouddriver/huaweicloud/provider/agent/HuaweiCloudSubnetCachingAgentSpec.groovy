@@ -16,7 +16,7 @@
 
 package com.netflix.spinnaker.clouddriver.huaweicloud.provider.agent
 
-import com.fasterxml.jackson.databind.ObjectMapper
+import tools.jackson.databind.ObjectMapper
 import com.huawei.openstack4j.openstack.vpc.v1.domain.Subnet
 import com.netflix.spectator.api.DefaultRegistry
 import com.netflix.spinnaker.cats.cache.CacheData
@@ -26,6 +26,7 @@ import com.netflix.spinnaker.clouddriver.huaweicloud.client.HuaweiCloudClient
 import com.netflix.spinnaker.clouddriver.huaweicloud.security.HuaweiCloudNamedAccountCredentials
 import spock.lang.Specification
 import spock.lang.Subject
+import tools.jackson.databind.json.JsonMapper
 
 class HuaweiCloudSubnetCachingAgentSpec extends Specification {
 
@@ -43,7 +44,7 @@ class HuaweiCloudSubnetCachingAgentSpec extends Specification {
 
       @Subject
       HuaweiCloudSubnetCachingAgent agent = new HuaweiCloudSubnetCachingAgent(
-          credentials, new ObjectMapper(), REGION)
+          credentials, JsonMapper.builder().build(), REGION)
 
       def subnetA = Subnet.builder()
          .name('name-a')

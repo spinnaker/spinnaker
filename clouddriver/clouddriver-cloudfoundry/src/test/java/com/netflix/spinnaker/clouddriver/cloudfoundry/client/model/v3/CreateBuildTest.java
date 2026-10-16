@@ -18,14 +18,14 @@ package com.netflix.spinnaker.clouddriver.cloudfoundry.client.model.v3;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import org.junit.jupiter.api.Test;
+import tools.jackson.core.JacksonException;
+import tools.jackson.databind.json.JsonMapper;
 
 class CreateBuildTest {
   @Test
-  void serialize() throws JsonProcessingException {
-    assertThat(new ObjectMapper().writeValueAsString(new CreateBuild("123", 1024, 1024)))
+  void serialize() throws JacksonException {
+    assertThat(JsonMapper.builder().build().writeValueAsString(new CreateBuild("123", 1024, 1024)))
         .isEqualTo(
             "{\"package\":{\"guid\":\"123\"},\"staging_memory_in_mb\":1024,\"staging_disk_in_mb\":1024}");
   }

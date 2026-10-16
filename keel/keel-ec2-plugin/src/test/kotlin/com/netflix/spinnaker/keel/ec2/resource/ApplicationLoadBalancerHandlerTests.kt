@@ -1,6 +1,6 @@
 package com.netflix.spinnaker.keel.ec2.resource
 
-import com.fasterxml.jackson.module.kotlin.readValue
+import tools.jackson.module.kotlin.readValue
 import com.netflix.spinnaker.keel.api.Environment
 import com.netflix.spinnaker.keel.api.Exportable
 import com.netflix.spinnaker.keel.api.ec2.ApplicationLoadBalancer

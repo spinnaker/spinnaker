@@ -1,5 +1,5 @@
 dependencies {
-  testImplementation "com.fasterxml.jackson.core:jackson-databind"
+  testImplementation "tools.jackson.core:jackson-databind"
   testImplementation "org.assertj:assertj-core"
   testImplementation "org.junit.jupiter:junit-jupiter-api"
   testImplementation "org.slf4j:slf4j-api"

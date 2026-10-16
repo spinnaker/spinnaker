@@ -24,8 +24,6 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.collect.ImmutableMap;
 import com.netflix.spinnaker.orca.api.pipeline.TaskResult;
 import com.netflix.spinnaker.orca.api.pipeline.models.ExecutionStatus;
@@ -37,18 +35,21 @@ import com.netflix.spinnaker.orca.pipeline.model.StageExecutionImpl;
 import com.netflix.spinnaker.orca.pipeline.util.ArtifactUtils;
 import java.util.Map;
 import org.junit.jupiter.api.Test;
+import tools.jackson.core.JacksonException;
+import tools.jackson.databind.ObjectMapper;
+import tools.jackson.databind.json.JsonMapper;
 
 public class DeployAppEngineConfigurationTaskTest {
   private final String CLOUD_OPERATION_TYPE = "deployAppengineConfiguration";
 
-  ObjectMapper mapper = new ObjectMapper();
+  ObjectMapper mapper = JsonMapper.builder().build();
   KatoService katoService = mock(KatoService.class);
   ArtifactUtils artifactUtils = mock(ArtifactUtils.class);
   DeployAppEngineConfigurationTask deployAppEngineConfigurationTask =
       new DeployAppEngineConfigurationTask(mapper, katoService, artifactUtils);
 
   @Test
-  public void shouldMapAndDeploy() throws JsonProcessingException {
+  public void shouldMapAndDeploy() throws JacksonException {
     String json =
         "{\n"
             + "  \"account\": \"my-appengine-account\",\n"
@@ -96,7 +97,7 @@ public class DeployAppEngineConfigurationTaskTest {
   }
 
   @Test
-  public void shouldThrowWhenNoArtifactsSelected() throws JsonProcessingException {
+  public void shouldThrowWhenNoArtifactsSelected() throws JacksonException {
     String json =
         "{\n"
             + "  \"account\": \"my-appengine-account\",\n"

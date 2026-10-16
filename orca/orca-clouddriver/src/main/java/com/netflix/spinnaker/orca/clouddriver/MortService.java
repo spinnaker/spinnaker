@@ -18,7 +18,6 @@ package com.netflix.spinnaker.orca.clouddriver;
 
 import com.fasterxml.jackson.annotation.JsonRawValue;
 import com.fasterxml.jackson.annotation.JsonSetter;
-import com.fasterxml.jackson.databind.JsonNode;
 import com.netflix.spinnaker.kork.retrofit.Retrofit2SyncCall;
 import groovy.transform.EqualsAndHashCode;
 import java.util.Collection;
@@ -33,6 +32,7 @@ import retrofit2.Call;
 import retrofit2.http.GET;
 import retrofit2.http.Path;
 import retrofit2.http.Query;
+import tools.jackson.databind.JsonNode;
 
 public interface MortService {
   @GET("securityGroups/{account}/{type}/{region}/{securityGroupName}")

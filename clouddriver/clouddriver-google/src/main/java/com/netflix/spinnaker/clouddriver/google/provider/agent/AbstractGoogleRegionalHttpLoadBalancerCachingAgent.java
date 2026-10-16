@@ -18,7 +18,6 @@ package com.netflix.spinnaker.clouddriver.google.provider.agent;
 
 import static java.util.stream.Collectors.toList;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.api.client.googleapis.batch.json.JsonBatchCallback;
 import com.google.api.client.googleapis.json.GoogleJsonError;
 import com.google.api.client.http.HttpHeaders;
@@ -68,6 +67,8 @@ import java.util.Map;
 import java.util.Set;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import tools.jackson.databind.ObjectMapper;
+import tools.jackson.databind.json.JsonMapper;
 
 /**
  * Shared regional HTTP(S) cache graph walk for internal and external managed load balancers.
@@ -372,7 +373,8 @@ abstract class AbstractGoogleRegionalHttpLoadBalancerCachingAgent<T extends Goog
       @Override
       public void onFailure(GoogleJsonError e, HttpHeaders responseHeaders) throws IOException {
         if (e.getCode() != 404) {
-          log.error(new ObjectMapper().writerWithDefaultPrettyPrinter().writeValueAsString(e));
+          log.error(
+              JsonMapper.builder().build().writerWithDefaultPrettyPrinter().writeValueAsString(e));
         }
       }
 

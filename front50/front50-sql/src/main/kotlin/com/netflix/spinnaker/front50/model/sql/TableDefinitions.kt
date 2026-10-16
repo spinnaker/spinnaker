@@ -16,7 +16,7 @@
 
 package com.netflix.spinnaker.front50.model.sql
 
-import com.fasterxml.jackson.databind.ObjectMapper
+import tools.jackson.databind.ObjectMapper
 import com.google.common.hash.Hashing
 import com.netflix.spinnaker.front50.model.ObjectType
 import com.netflix.spinnaker.front50.api.model.Timestamped

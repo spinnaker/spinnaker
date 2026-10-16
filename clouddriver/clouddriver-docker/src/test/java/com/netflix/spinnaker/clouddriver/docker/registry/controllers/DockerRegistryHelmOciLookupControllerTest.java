@@ -23,7 +23,6 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
 import com.netflix.spectator.api.NoopRegistry;
 import com.netflix.spectator.api.Registry;
 import com.netflix.spinnaker.cats.cache.CacheData;
@@ -72,6 +71,8 @@ import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.MvcResult;
 import retrofit2.mock.Calls;
+import tools.jackson.databind.ObjectMapper;
+import tools.jackson.databind.json.JsonMapper;
 
 @SpringBootTest(classes = TestConfig.class, properties = "services.fiat.cache.max-entries=0")
 @AutoConfigureMockMvc
@@ -110,7 +111,7 @@ class DockerRegistryHelmOciLookupControllerTest {
 
     @Bean
     ObjectMapper objectMapper() {
-      return new ObjectMapper();
+      return JsonMapper.builder().build();
     }
   }
 

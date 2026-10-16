@@ -1,6 +1,6 @@
 package com.netflix.spinnaker.keel.jackson.mixins
 
-import com.fasterxml.jackson.databind.annotation.JsonSerialize
+import tools.jackson.databind.annotation.JsonSerialize
 import com.netflix.spinnaker.keel.jackson.CommitMessageSerializer
 
 internal interface CommitMixin {

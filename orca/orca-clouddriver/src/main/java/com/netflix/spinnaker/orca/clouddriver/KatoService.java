@@ -1,6 +1,5 @@
 package com.netflix.spinnaker.orca.clouddriver;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.hash.Hashing;
 import com.netflix.spinnaker.kork.core.RetrySupport;
 import com.netflix.spinnaker.kork.exceptions.IntegrationException;
@@ -21,6 +20,7 @@ import okhttp3.ResponseBody;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.http.HttpStatus;
+import tools.jackson.databind.ObjectMapper;
 
 public class KatoService {
 

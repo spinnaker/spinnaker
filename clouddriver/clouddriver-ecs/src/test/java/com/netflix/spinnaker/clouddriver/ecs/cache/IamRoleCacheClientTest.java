@@ -20,7 +20,6 @@ import static com.netflix.spinnaker.clouddriver.ecs.cache.Keys.Namespace.IAM_ROL
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.Mockito.when;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
 import com.netflix.spinnaker.cats.cache.DefaultCacheData;
 import com.netflix.spinnaker.clouddriver.ecs.cache.client.IamRoleCacheClient;
 import com.netflix.spinnaker.clouddriver.ecs.cache.model.IamRole;
@@ -30,6 +29,7 @@ import java.util.Collections;
 import java.util.Map;
 import org.junit.jupiter.api.Test;
 import spock.lang.Subject;
+import tools.jackson.databind.json.JsonMapper;
 
 public class IamRoleCacheClientTest extends CommonCacheClient {
   @Subject private final IamRoleCacheClient client = new IamRoleCacheClient(cacheView);
@@ -37,7 +37,7 @@ public class IamRoleCacheClientTest extends CommonCacheClient {
   @Test
   public void shouldConvert() {
     // Given
-    ObjectMapper mapper = new ObjectMapper();
+    var mapper = JsonMapper.builder().build();
     String name = "iam-role-name";
     String key = Keys.getIamRoleKey(ACCOUNT, name);
 

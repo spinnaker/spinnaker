@@ -16,13 +16,14 @@
 
 package com.netflix.spinnaker.orca.sql
 
-import com.fasterxml.jackson.core.JsonParser
-import com.fasterxml.jackson.databind.JsonNode
 import com.netflix.spinnaker.orca.api.pipeline.models.Trigger
 import com.netflix.spinnaker.orca.pipeline.model.support.CustomTriggerDeserializerSupplier
 import com.netflix.spinnaker.orca.pipeline.model.support.mapValue
 import com.netflix.spinnaker.orca.pipeline.model.support.listValue
+import com.netflix.spinnaker.orca.pipeline.model.support.parseValue
 import com.netflix.spinnaker.orca.sql.pipeline.persistence.PipelineRefTrigger
+import tools.jackson.databind.DeserializationContext
+import tools.jackson.databind.JsonNode
 
 class PipelineRefTriggerDeserializerSupplier(
   private val pipelineRefEnabled: Boolean
@@ -46,7 +47,7 @@ class PipelineRefTriggerDeserializerSupplier(
       }
     }
 
-  override val deserializer: (node: JsonNode, parser: JsonParser) -> Trigger
+  override val deserializer: (node: JsonNode, context: DeserializationContext) -> Trigger
     get() = { node, parser ->
           with(node) {
             val parentExecutionId =  if (node.looksLikePipeline()) get("parentExecution").get("id").textValue() else get("parentExecutionId").textValue()
@@ -63,14 +64,34 @@ class PipelineRefTriggerDeserializerSupplier(
               parentPipelineStageId = get("parentPipelineStageId")?.textValue()
             ).apply {
               resolvedExpectedArtifacts = get("resolvedExpectedArtifacts")?.listValue(parser) ?: mutableListOf()
-              other = get("other")?.mapValue(parser) ?: mutableMapOf()
+              other = otherValues(parser)
             }
           }
     }
+
+  private fun JsonNode.otherValues(context: DeserializationContext): MutableMap<String, Any> {
+    val metadata = get("other")?.mapValue<Any>(context) ?: mutableMapOf()
+    // TriggerMixin flattens metadata on write; retain legacy nested values as well.
+    // Modeled fields, especially parentExecution, must not be embedded in the reference.
+    for ((name, value) in properties()) {
+      if (name !in TRIGGER_FIELDS) {
+        metadata[name] = value.parseValue(context)
+      }
+    }
+    return metadata
+  }
 
   private fun JsonNode.isPipelineRefTrigger() =
     get("type")?.textValue() == type
 
   private fun JsonNode.looksLikePipeline() =
     hasNonNull("parentExecution")
+
+  private companion object {
+    val TRIGGER_FIELDS = setOf(
+      "type", "correlationId", "user", "parameters", "artifacts", "notifications",
+      "rebake", "dryRun", "strategy", "parentExecutionId", "parentPipelineStageId",
+      "parentExecution", "resolvedExpectedArtifacts", "other"
+    )
+  }
 }

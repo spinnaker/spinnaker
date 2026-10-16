@@ -17,7 +17,6 @@
 
 package com.netflix.spinnaker.clouddriver.cloudfoundry.model;
 
-import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 import com.netflix.spinnaker.clouddriver.cloudfoundry.CloudFoundryCloudProvider;
 import com.netflix.spinnaker.clouddriver.cloudfoundry.client.model.v3.Task;
 import com.netflix.spinnaker.clouddriver.cloudfoundry.client.model.v3.Task.State;
@@ -30,10 +29,12 @@ import javax.annotation.Nullable;
 import lombok.Builder;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
+import tools.jackson.databind.annotation.JsonDeserialize;
+import tools.jackson.databind.annotation.JsonPOJOBuilder;
 
 @Data
 @EqualsAndHashCode(callSuper = false)
-@Builder
+@Builder(builderClassName = "CloudFoundryJobStatusBuilder")
 @JsonDeserialize(builder = CloudFoundryJobStatus.CloudFoundryJobStatusBuilder.class)
 public class CloudFoundryJobStatus implements JobStatus {
   @Nullable private String name;
@@ -83,4 +84,7 @@ public class CloudFoundryJobStatus implements JobStatus {
         .createdTime(task.getCreatedAt().toInstant().toEpochMilli())
         .build();
   }
+
+  @JsonPOJOBuilder(withPrefix = "")
+  public static class CloudFoundryJobStatusBuilder {}
 }

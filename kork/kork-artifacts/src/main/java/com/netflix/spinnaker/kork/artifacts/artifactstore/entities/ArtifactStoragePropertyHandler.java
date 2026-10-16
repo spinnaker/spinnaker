@@ -15,9 +15,9 @@
  */
 package com.netflix.spinnaker.kork.artifacts.artifactstore.entities;
 
-import com.fasterxml.jackson.databind.BeanProperty;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import com.netflix.spinnaker.kork.artifacts.artifactstore.ArtifactStore;
+import tools.jackson.databind.BeanProperty;
+import tools.jackson.databind.SerializationContext;
 
 /**
  * An artifact storage property handler is a special type of handler specific of handling fields in
@@ -36,7 +36,7 @@ import com.netflix.spinnaker.kork.artifacts.artifactstore.ArtifactStore;
  *              return "metadata".equals(property.getName()) && property.getType().isMapLikeType();
  *          }
  *
- *          public <T> T handleProperty(ArtifactStore store, BeanProperty property, T v, ObjectMapper objectMapper) {
+ *          public <T> T handleProperty(ArtifactStore store, BeanProperty property, T v, SerializationContext context) {
  *              String ref = Base64.getEncoder().encodeToString(mapper.writeValueAsBytes(v));
  *              Artifact toStore = Artifact.builder().name("metadata-entity").type("embedded/customtype/base64").reference(ref).build();
  *              Artifact stored = store.store(toStore, ArtifactTypeDecorator.toRemote(artifact));
@@ -91,5 +91,6 @@ public interface ArtifactStoragePropertyHandler extends ArtifactHandler {
   /** Called to check if this handler can handle a bean property. */
   boolean canHandleProperty(BeanProperty property, Object v);
 
-  <T> T handleProperty(ArtifactStore store, BeanProperty property, T v, ObjectMapper objectMapper);
+  <T> T handleProperty(
+      ArtifactStore store, BeanProperty property, T v, SerializationContext context);
 }

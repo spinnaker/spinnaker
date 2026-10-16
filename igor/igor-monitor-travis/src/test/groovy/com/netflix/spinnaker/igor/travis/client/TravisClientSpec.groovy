@@ -16,7 +16,6 @@
 
 package com.netflix.spinnaker.igor.travis.client
 
-import com.fasterxml.jackson.databind.ObjectMapper
 import com.netflix.spinnaker.config.OkHttp3ClientConfiguration
 import com.netflix.spinnaker.igor.travis.client.model.AccessToken
 import com.netflix.spinnaker.igor.travis.client.model.Build
@@ -41,6 +40,7 @@ import java.time.Month
 import java.time.ZoneOffset
 
 import static com.netflix.spinnaker.igor.travis.helpers.TestUtils.createObjectMapper
+import tools.jackson.databind.ObjectMapper
 
 class TravisClientSpec extends Specification {
 

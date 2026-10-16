@@ -16,8 +16,6 @@
 
 package com.netflix.kayenta.sql.storage;
 
-import com.fasterxml.jackson.core.type.TypeReference;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import com.netflix.kayenta.sql.storage.model.SqlCanaryArchive;
 import com.netflix.kayenta.sql.storage.model.SqlCanaryConfig;
 import com.netflix.kayenta.sql.storage.model.SqlMetricSetPairs;
@@ -29,7 +27,6 @@ import com.netflix.kayenta.sql.storage.repo.SqlMetricSetsRepo;
 import com.netflix.kayenta.storage.ObjectType;
 import com.netflix.kayenta.storage.StorageService;
 import com.netflix.spinnaker.kork.web.exceptions.NotFoundException;
-import java.io.IOException;
 import java.time.Instant;
 import java.util.HashMap;
 import java.util.List;
@@ -41,6 +38,9 @@ import lombok.Getter;
 import lombok.Singular;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.stereotype.Service;
+import tools.jackson.core.JacksonException;
+import tools.jackson.core.type.TypeReference;
+import tools.jackson.databind.ObjectMapper;
 
 @Builder
 @Service
@@ -211,7 +211,7 @@ public class SqlStorageService implements StorageService {
   private <T> T mapToObject(String json, ObjectType objectType) {
     try {
       return objectMapper.readValue(json, (TypeReference<T>) objectType.getTypeReference());
-    } catch (IOException e) {
+    } catch (JacksonException e) {
       throw new IllegalStateException(
           "Failed to deserialize object for objectType: " + objectType, e);
     }
@@ -220,7 +220,7 @@ public class SqlStorageService implements StorageService {
   private <T> String mapToJson(T obj, ObjectType objectType) {
     try {
       return objectMapper.writeValueAsString(obj);
-    } catch (IOException e) {
+    } catch (JacksonException e) {
       throw new IllegalStateException(
           "Failed to serialize object for objectType: " + objectType, e);
     }

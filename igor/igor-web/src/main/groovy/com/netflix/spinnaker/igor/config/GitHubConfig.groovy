@@ -16,11 +16,11 @@
 
 package com.netflix.spinnaker.igor.config
 
-import com.fasterxml.jackson.databind.ObjectMapper
 import com.netflix.spinnaker.config.OkHttp3ClientConfiguration
 import com.netflix.spinnaker.igor.scm.github.client.GitHubClient
 import com.netflix.spinnaker.igor.scm.github.client.GitHubMaster
 import com.netflix.spinnaker.kork.retrofit.ErrorHandlingExecutorCallAdapterFactory
+import com.netflix.spinnaker.kork.retrofit.util.CustomConverterFactory
 import com.netflix.spinnaker.kork.retrofit.util.RetrofitUtils
 import groovy.transform.CompileStatic
 import groovy.util.logging.Slf4j
@@ -32,9 +32,10 @@ import org.springframework.boot.context.properties.EnableConfigurationProperties
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
 import retrofit2.Retrofit
-import retrofit2.converter.jackson.JacksonConverterFactory
+import tools.jackson.databind.ObjectMapper
 
 import jakarta.validation.Valid
+import tools.jackson.databind.json.JsonMapper
 
 /**
  * Converts the list of GitHub Configuration properties a collection of clients to access the GitHub hosts
@@ -52,11 +53,11 @@ class GitHubConfig {
         new GitHubMaster(gitHubClient: gitHubClient(okHttpClientConfig, gitHubProperties.baseUrl, gitHubProperties.accessToken, mapper), baseUrl: gitHubProperties.baseUrl)
     }
 
-    GitHubClient gitHubClient(OkHttp3ClientConfiguration okHttpClientConfig, String address, String accessToken, ObjectMapper mapper = new ObjectMapper()) {
+    GitHubClient gitHubClient(OkHttp3ClientConfiguration okHttpClientConfig, String address, String accessToken, ObjectMapper mapper = JsonMapper.builder().build()) {
         new Retrofit.Builder()
             .baseUrl(RetrofitUtils.getBaseUrl(address))
             .client(okHttpClientConfig.createForRetrofit2().addInterceptor(new BasicAuthRequestInterceptor(accessToken)).build())
-            .addConverterFactory(JacksonConverterFactory.create(mapper))
+            .addConverterFactory(CustomConverterFactory.create(mapper))
             .addCallAdapterFactory(ErrorHandlingExecutorCallAdapterFactory.getInstance())
             .build()
             .create(GitHubClient)

@@ -16,11 +16,11 @@
 
 package com.netflix.spinnaker.clouddriver.ecs.provider.agent
 
-import com.fasterxml.jackson.databind.DeserializationFeature
-import com.fasterxml.jackson.databind.ObjectMapper
-import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule
+import tools.jackson.databind.DeserializationFeature
+import tools.jackson.databind.ObjectMapper
+import tools.jackson.databind.json.JsonMapper
 import com.netflix.spinnaker.cats.provider.ProviderCache
-import com.netflix.spinnaker.clouddriver.aws.jackson.AwsSdkV2Module
+import com.netflix.spinnaker.kork.aws.jackson.AwsSdkV2Module
 import com.netflix.spinnaker.clouddriver.aws.security.AmazonClientProvider
 import software.amazon.awssdk.services.applicationautoscaling.ApplicationAutoScalingClient
 import software.amazon.awssdk.services.applicationautoscaling.model.DescribeScalableTargetsRequest
@@ -39,10 +39,10 @@ class ScalableTargetCachingAgentSpec extends Specification {
   def clientProvider = Mock(AmazonClientProvider)
   def providerCache = Mock(ProviderCache)
   // mirrors clouddriver's ObjectMapper: AwsSdkV2Module is registered as a Spring Module bean
-  def objectMapper = new ObjectMapper()
-    .registerModule(new JavaTimeModule())
-    .registerModule(new AwsSdkV2Module())
-    .configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false)
+  def objectMapper = JsonMapper.builder()
+    .addModule(new AwsSdkV2Module())
+    .disable(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES)
+    .build()
 
   @Subject
   ScalableTargetsCachingAgent agent = new ScalableTargetsCachingAgent(CommonCachingAgent.netflixAmazonCredentials, 'us-west-1', clientProvider, objectMapper)

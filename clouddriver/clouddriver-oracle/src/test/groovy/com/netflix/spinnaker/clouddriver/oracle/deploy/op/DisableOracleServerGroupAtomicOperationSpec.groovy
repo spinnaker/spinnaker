@@ -8,7 +8,7 @@
  */
 package com.netflix.spinnaker.clouddriver.oracle.deploy.op
 
-import com.fasterxml.jackson.databind.ObjectMapper
+import tools.jackson.databind.ObjectMapper
 import com.netflix.spinnaker.clouddriver.data.task.Task
 import com.netflix.spinnaker.clouddriver.data.task.TaskRepository
 import com.netflix.spinnaker.clouddriver.oracle.deploy.OracleWorkRequestPoller
@@ -22,6 +22,7 @@ import com.oracle.bmc.loadbalancer.model.LoadBalancer
 import com.oracle.bmc.loadbalancer.responses.GetLoadBalancerResponse
 import com.oracle.bmc.loadbalancer.responses.UpdateListenerResponse
 import spock.lang.Specification
+import tools.jackson.databind.json.JsonMapper
 
 class DisableOracleServerGroupAtomicOperationSpec extends Specification {
 
@@ -39,7 +40,7 @@ class DisableOracleServerGroupAtomicOperationSpec extends Specification {
     def sgService = Mock(OracleServerGroupService)
     DisableOracleServerGroupAtomicOperation op = new DisableOracleServerGroupAtomicOperation(disableDesc)
     op.oracleServerGroupService = sgService
-    op.objectMapper = new ObjectMapper()
+    op.objectMapper = JsonMapper.builder().build()
 
 
     when:

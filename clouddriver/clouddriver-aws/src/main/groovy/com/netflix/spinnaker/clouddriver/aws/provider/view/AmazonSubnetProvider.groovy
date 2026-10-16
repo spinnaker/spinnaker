@@ -17,8 +17,8 @@
 package com.netflix.spinnaker.clouddriver.aws.provider.view
 
 import software.amazon.awssdk.services.ec2.model.Subnet
-import com.fasterxml.jackson.core.JsonParseException
-import com.fasterxml.jackson.databind.ObjectMapper
+import tools.jackson.core.exc.StreamReadException
+import tools.jackson.databind.ObjectMapper
 import com.netflix.spinnaker.cats.cache.Cache
 import com.netflix.spinnaker.cats.cache.CacheData
 import com.netflix.spinnaker.cats.cache.RelationshipCacheFilter
@@ -32,6 +32,7 @@ import org.springframework.beans.factory.annotation.Qualifier
 import org.springframework.stereotype.Component
 
 import static com.netflix.spinnaker.clouddriver.aws.cache.Keys.Namespace.SUBNETS
+import tools.jackson.databind.json.JsonMapper
 
 @Component
 @Slf4j
@@ -76,12 +77,12 @@ class AmazonSubnetProvider implements SubnetProvider<AmazonSubnet> {
     String purpose = null
     String target = null
     if (json) {
-      def objectMapper = new ObjectMapper()
+      def objectMapper = JsonMapper.builder().build()
       try {
         def metadata = objectMapper.readValue((String) json, Map.class)
         purpose = metadata?.purpose
         target = metadata?.target
-      } catch (JsonParseException e) {
+      } catch (StreamReadException e) {
         log.error("Can not extract purpose and/or target from ${METADATA_TAG_KEY}\n" +
           "\tAccount: ${parts.account? parts.account : "account not resolved"}\n" +
           "\tSubnet id: ${parts.id? parts.id: "subnet id not found"}\n" +

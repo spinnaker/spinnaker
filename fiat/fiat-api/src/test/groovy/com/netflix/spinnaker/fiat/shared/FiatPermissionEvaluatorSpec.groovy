@@ -28,6 +28,7 @@ import com.netflix.spinnaker.fiat.model.resources.Role
 import com.netflix.spinnaker.fiat.model.resources.ServiceAccount
 import com.netflix.spinnaker.kork.common.Header
 import com.netflix.spinnaker.kork.retrofit.exceptions.SpinnakerHttpException
+import com.netflix.spinnaker.kork.retrofit.util.CustomConverterFactory
 import org.slf4j.MDC
 import org.springframework.security.core.context.SecurityContextHolder
 import org.springframework.security.web.authentication.preauth.PreAuthenticatedAuthenticationToken
@@ -36,7 +37,6 @@ import okhttp3.ResponseBody
 import retrofit2.Call;
 import retrofit2.Response
 import retrofit2.Retrofit
-import retrofit2.converter.jackson.JacksonConverterFactory;
 import spock.lang.Shared
 import spock.lang.Subject
 import spock.lang.Unroll
@@ -389,7 +389,7 @@ class FiatPermissionEvaluatorSpec extends FiatSharedSpecification {
     Retrofit retrofit =
             new Retrofit.Builder()
                     .baseUrl(url)
-                    .addConverterFactory(JacksonConverterFactory.create())
+                    .addConverterFactory(CustomConverterFactory.create())
                     .build();
 
     return new SpinnakerHttpException(retrofit2Response, retrofit);

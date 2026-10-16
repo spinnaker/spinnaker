@@ -16,7 +16,6 @@
 
 package com.netflix.spinnaker.gate.config;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
 import com.netflix.spinnaker.config.DefaultServiceEndpoint;
 import com.netflix.spinnaker.gate.services.SlackService;
 import com.netflix.spinnaker.kork.client.ServiceClientProvider;
@@ -30,6 +29,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import tools.jackson.databind.json.JsonMapper;
 
 @Configuration
 @EnableConfigurationProperties(SlackConfigProperties.class)
@@ -48,7 +48,7 @@ public class SlackConfig {
     return serviceClientProvider.getService(
         SlackService.class,
         new DefaultServiceEndpoint("slack", slackConfigProperties.getBaseUrl()),
-        new ObjectMapper(),
+        JsonMapper.builder().build(),
         List.of(new RequestHeaderInterceptor(token)));
   }
 

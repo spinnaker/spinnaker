@@ -24,8 +24,10 @@ import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.fail;
 
 import com.netflix.spinnaker.kork.secrets.SecretConfiguration;
+import java.nio.charset.StandardCharsets;
 import java.util.List;
 import java.util.Map;
+import java.util.stream.Stream;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -107,6 +109,60 @@ public class UserSecretSerdeTest {
         secret.getSecretString(UserSecretReference.parse("secret://mock?k=b")), equalTo("B"));
     assertThat(
         secret.getSecretString(UserSecretReference.parse("secret://mock?k=c")), equalTo("C"));
+  }
+
+  @Test
+  void yamlPreservesLegacyScalarValuesForCustomSecretTypes() {
+    var metadata = UserSecretMetadata.builder().type("scalar-test").encoding("yaml").build();
+    var serde =
+        new SecretConfiguration().userSecretSerde(List.of(() -> Stream.of(ScalarSecretData.class)));
+    var bytes =
+        ("mode: 0644\nenabled: yes\nquoted: \"0644\"\ntagged: !!str yes\n")
+            .getBytes(StandardCharsets.UTF_8);
+    var secret = serde.deserialize(bytes, metadata);
+
+    assertThat(
+        secret.getSecretString(UserSecretReference.parse("secret://mock?k=mode")), equalTo("420"));
+    assertThat(
+        secret.getSecretString(UserSecretReference.parse("secret://mock?k=enabled")),
+        equalTo("true"));
+    assertThat(
+        secret.getSecretString(UserSecretReference.parse("secret://mock?k=quoted")),
+        equalTo("0644"));
+    assertThat(
+        secret.getSecretString(UserSecretReference.parse("secret://mock?k=tagged")),
+        equalTo("yes"));
+  }
+
+  @Test
+  void yamlRejectsMalformedLegacyNumbersInOpaqueStrings() {
+    var metadata = UserSecretMetadata.builder().type("opaque").encoding("yaml").build();
+    var serde = factory.serdeFor(metadata);
+    assertThrows(
+        InvalidUserSecretDataException.class,
+        () -> serde.deserialize("value: ._".getBytes(StandardCharsets.UTF_8), metadata));
+  }
+
+  @UserSecretType("scalar-test")
+  public static class ScalarSecretData implements UserSecretData {
+    public int mode;
+    public boolean enabled;
+    public String quoted;
+    public String tagged;
+
+    @Override
+    public String getSecretString(String key) {
+      return Map.of(
+              "mode",
+              Integer.toString(mode),
+              "enabled",
+              Boolean.toString(enabled),
+              "quoted",
+              quoted,
+              "tagged",
+              tagged)
+          .get(key);
+    }
   }
 
   @Test

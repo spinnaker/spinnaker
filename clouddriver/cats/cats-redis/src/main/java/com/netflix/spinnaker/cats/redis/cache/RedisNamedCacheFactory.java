@@ -16,11 +16,11 @@
 
 package com.netflix.spinnaker.cats.redis.cache;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
 import com.netflix.spinnaker.cats.cache.NamedCacheFactory;
 import com.netflix.spinnaker.cats.cache.WriteableCache;
 import com.netflix.spinnaker.cats.redis.cache.RedisCache.CacheMetrics;
 import com.netflix.spinnaker.kork.jedis.RedisClientDelegate;
+import tools.jackson.databind.ObjectMapper;
 
 public class RedisNamedCacheFactory implements NamedCacheFactory {
 

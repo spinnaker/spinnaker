@@ -51,7 +51,7 @@ package com.netflix.spinnaker.kork.artifacts.artifactstore.entities;
  *          return v instanceof Map && ((Map) v).get("qux") != null;
  *       }
  *
- *       public <V> V handle(ArtifactStore store, V v, ObjectMapper objectMapper) {
+ *       public <V> V handle(ArtifactStore store, V v, SerializationContext context) {
  *          Map<?, ?> m = (Map) v;
  *          m.put("qux", Map.of("newField1", newField2"));
  *          return m;

@@ -17,8 +17,8 @@
 package com.netflix.spinnaker.clouddriver.google.model
 
 import com.fasterxml.jackson.annotation.JsonIgnore
-import com.fasterxml.jackson.core.type.TypeReference
-import com.fasterxml.jackson.databind.ObjectMapper
+import tools.jackson.core.type.TypeReference
+import tools.jackson.databind.ObjectMapper
 import com.google.api.client.json.GenericJson
 import com.google.api.services.compute.model.*
 import com.netflix.spinnaker.clouddriver.consul.model.ConsulHealth
@@ -33,6 +33,7 @@ import com.netflix.spinnaker.clouddriver.names.NamerRegistry
 import com.netflix.spinnaker.moniker.Moniker
 import groovy.transform.Canonical
 import groovy.transform.EqualsAndHashCode
+import tools.jackson.databind.json.JsonMapper
 
 @EqualsAndHashCode(includes = "name")
 class GoogleInstance implements GoogleLabeledResource {
@@ -130,7 +131,7 @@ class GoogleInstance implements GoogleLabeledResource {
 
     @Override
     List<Map<String, Object>> getHealth() {
-      ObjectMapper mapper = new ObjectMapper()
+      ObjectMapper mapper = JsonMapper.builder().build()
       def healths = []
       loadBalancerHealths.each { GoogleLoadBalancerHealth h ->
         healths << mapper.convertValue(h.view, new TypeReference<Map<String, Object>>() {})

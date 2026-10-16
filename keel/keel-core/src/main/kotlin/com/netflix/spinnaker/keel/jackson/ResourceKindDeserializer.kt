@@ -1,12 +1,12 @@
 package com.netflix.spinnaker.keel.jackson
 
-import com.fasterxml.jackson.core.JsonParser
-import com.fasterxml.jackson.databind.DeserializationContext
-import com.fasterxml.jackson.databind.JsonDeserializer
+import tools.jackson.core.JsonParser
+import tools.jackson.databind.DeserializationContext
+import tools.jackson.databind.ValueDeserializer
 import com.netflix.spinnaker.keel.api.ResourceKind
 import com.netflix.spinnaker.keel.api.ResourceKind.Companion.parseKind
 
-class ResourceKindDeserializer : JsonDeserializer<ResourceKind>() {
+class ResourceKindDeserializer : ValueDeserializer<ResourceKind>() {
   override fun deserialize(parser: JsonParser, context: DeserializationContext) =
     parseKind(parser.text)
 }

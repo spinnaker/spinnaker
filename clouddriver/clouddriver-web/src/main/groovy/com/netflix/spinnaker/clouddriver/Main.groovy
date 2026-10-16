@@ -16,9 +16,8 @@
 
 package com.netflix.spinnaker.clouddriver
 
-import com.fasterxml.jackson.databind.ObjectMapper
-import com.fasterxml.jackson.databind.annotation.JsonDeserialize
-import com.fasterxml.jackson.databind.module.SimpleModule
+import tools.jackson.databind.annotation.JsonDeserialize
+import tools.jackson.databind.module.SimpleModule
 import com.netflix.spinnaker.clouddriver.security.config.SecurityConfig
 import com.netflix.spinnaker.kork.artifacts.artifactstore.ArtifactDeserializer
 import com.netflix.spinnaker.kork.artifacts.artifactstore.ArtifactStoreConfiguration
@@ -36,7 +35,9 @@ import org.springframework.context.annotation.ComponentScan
 import org.springframework.context.annotation.Configuration
 import org.springframework.context.annotation.Import
 import org.springframework.context.annotation.Primary
-import org.springframework.http.converter.json.Jackson2ObjectMapperBuilder
+import tools.jackson.databind.MapperFeature
+import tools.jackson.databind.json.JsonMapper
+import tools.jackson.databind.jsontype.BasicPolymorphicTypeValidator
 import org.springframework.scheduling.annotation.EnableScheduling
 
 import java.security.Security
@@ -84,9 +85,20 @@ class Main extends SpringBootServletInitializer {
 
   @Bean
   @Primary
-  ObjectMapper objectMapper(Jackson2ObjectMapperBuilder builder, Optional<DeserializerHookRegistry> deserializerHook, Optional<SerializerHookRegistry> serializerHook) {
-    builder = builder.createXmlMapper(false)
-      .mixIn(Artifact.class, ArtifactMixin.class);
+  JsonMapper objectMapper(JsonMapper.Builder builder, Optional<DeserializerHookRegistry> deserializerHook, Optional<SerializerHookRegistry> serializerHook) {
+    // Declared as JsonMapper (not ObjectMapper) so Boot 4's JacksonAutoConfiguration backs off
+    // its own jacksonJsonMapper bean; otherwise two primaries collide at injection points.
+    builder.addMixIn(Artifact.class, ArtifactMixin.class);
+    // Google GenericJson policies contain Object-valued maps; validate their concrete types.
+    builder.polymorphicTypeValidator(BasicPolymorphicTypeValidator.builder()
+      .allowIfSubType("com.google.api.services.compute.model.")
+      .allowIfSubType("com.netflix.spinnaker.")
+      .allowIfSubType(Map)
+      .allowIfSubType(Collection)
+      .allowIfSubType("java.lang.")
+      .build())
+    // Jackson 2 merged JSON into getter-only collections (e.g. KubernetesSelectorList).
+    builder.enable(MapperFeature.USE_GETTERS_AS_SETTERS)
 
     SimpleModule module = new SimpleModule("registryHook")
     if (deserializerHook.isPresent()) {
@@ -95,7 +107,7 @@ class Main extends SpringBootServletInitializer {
     if (serializerHook.isPresent()) {
       module.setSerializerModifier(serializerHook.get());
     }
-    builder.modules(l -> l.add(module))
+    builder.addModule(module)
     return builder.build();
   }
 

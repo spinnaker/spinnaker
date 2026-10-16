@@ -16,7 +16,7 @@
 
 package com.netflix.spinnaker.clouddriver.azure.resources.loadbalancer.deploy.converters
 
-import com.fasterxml.jackson.databind.ObjectMapper
+import tools.jackson.databind.ObjectMapper
 import com.netflix.spinnaker.clouddriver.azure.resources.loadbalancer.model.AzureLoadBalancer
 import com.netflix.spinnaker.clouddriver.azure.security.AzureNamedAccountCredentials
 import com.netflix.spinnaker.clouddriver.security.AccountCredentialsProvider
@@ -25,6 +25,7 @@ import com.netflix.spinnaker.clouddriver.azure.resources.loadbalancer.ops.Upsert
 import com.netflix.spinnaker.clouddriver.azure.resources.loadbalancer.ops.converters.UpsertAzureLoadBalancerAtomicOperationConverter
 import spock.lang.Shared
 import spock.lang.Specification
+import tools.jackson.databind.json.JsonMapper
 
 class UpsertAzureLoadBalancerAtomicOperationConverterUnitSpec extends Specification {
   private static final LOAD_BALANCER_NAME = "azureapp1-st1-d1"
@@ -61,7 +62,7 @@ class UpsertAzureLoadBalancerAtomicOperationConverterUnitSpec extends Specificat
   private static final LB_RULE_IDLE_TIMEOUT2 = 5
 
   @Shared
-  ObjectMapper mapper = new ObjectMapper()
+  ObjectMapper mapper = JsonMapper.builder().build()
 
   @Shared
   UpsertAzureLoadBalancerAtomicOperationConverter converter

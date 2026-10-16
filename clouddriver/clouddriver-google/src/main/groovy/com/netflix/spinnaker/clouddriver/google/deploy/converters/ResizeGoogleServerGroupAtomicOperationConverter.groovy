@@ -32,7 +32,7 @@ import com.netflix.spinnaker.clouddriver.google.security.GoogleNamedAccountCrede
 import com.netflix.spinnaker.clouddriver.orchestration.*
 import com.netflix.spinnaker.clouddriver.security.AbstractAtomicOperationsCredentialsConverter
 import com.netflix.spinnaker.orchestration.OperationDescription
-import com.fasterxml.jackson.databind.ObjectMapper
+import tools.jackson.databind.ObjectMapper
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Component
 

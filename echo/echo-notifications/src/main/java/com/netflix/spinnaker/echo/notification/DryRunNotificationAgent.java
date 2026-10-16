@@ -18,7 +18,6 @@ package com.netflix.spinnaker.echo.notification;
 
 import static java.lang.String.format;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
 import com.netflix.spinnaker.echo.api.events.Event;
 import com.netflix.spinnaker.echo.config.DryRunConfig;
 import com.netflix.spinnaker.echo.jackson.EchoObjectMapper;
@@ -31,6 +30,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import lombok.extern.slf4j.Slf4j;
+import tools.jackson.databind.ObjectMapper;
 
 @Slf4j
 public class DryRunNotificationAgent extends AbstractEventNotificationAgent {

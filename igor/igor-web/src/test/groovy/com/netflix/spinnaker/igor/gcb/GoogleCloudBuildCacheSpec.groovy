@@ -16,7 +16,6 @@
 
 package com.netflix.spinnaker.igor.gcb
 
-import com.fasterxml.jackson.databind.ObjectMapper
 import com.google.api.services.cloudbuild.v1.model.Build
 import com.netflix.spinnaker.igor.polling.LockService
 import com.netflix.spinnaker.kork.jedis.EmbeddedRedis
@@ -24,8 +23,10 @@ import com.netflix.spinnaker.kork.jedis.JedisClientDelegate
 import com.netflix.spinnaker.kork.jedis.RedisClientDelegate
 import spock.lang.Shared
 import spock.lang.Specification
+import tools.jackson.databind.ObjectMapper
 
 import java.time.Duration
+import tools.jackson.databind.json.JsonMapper
 
 class GoogleCloudBuildCacheSpec extends Specification {
   @Shared LockService lockService = Stub(LockService) {
@@ -38,7 +39,7 @@ class GoogleCloudBuildCacheSpec extends Specification {
   String keyPrefix = "abc"
   String lockPrefix = "def"
   @Shared GoogleCloudBuildCache googleCloudBuildCache = new GoogleCloudBuildCache(lockService, redisClientDelegate, keyPrefix, lockPrefix)
-  @Shared ObjectMapper objectMapper = new ObjectMapper()
+  @Shared ObjectMapper objectMapper = JsonMapper.builder().build()
 
   def cleanupSpec() {
     redis.destroy()

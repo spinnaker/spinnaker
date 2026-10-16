@@ -3,8 +3,6 @@ package com.netflix.spinnaker.igor.artifacts;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 import com.netflix.spinnaker.igor.Main;
 import com.netflix.spinnaker.igor.build.model.GenericBuild;
 import com.netflix.spinnaker.igor.build.model.GenericGitRevision;
@@ -23,6 +21,8 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.test.context.TestPropertySource;
 import org.springframework.test.context.junit.jupiter.SpringExtension;
+import tools.jackson.databind.ObjectMapper;
+import tools.jackson.databind.json.JsonMapper;
 
 @ExtendWith(SpringExtension.class)
 @SpringBootTest(classes = Main.class)
@@ -43,8 +43,7 @@ public class ArtifactExtractorTest {
 
   @BeforeEach
   public void setUp() {
-    objectMapper = new ObjectMapper();
-    objectMapper.registerModule(new JavaTimeModule());
+    objectMapper = JsonMapper.builder().build();
     jinjaArtifactExtractorFactory = new JinjaArtifactExtractor.Factory(new DefaultJinjavaFactory());
     artifactExtractor =
         new ArtifactExtractor(objectMapper, jinjaTemplateService, jinjaArtifactExtractorFactory);

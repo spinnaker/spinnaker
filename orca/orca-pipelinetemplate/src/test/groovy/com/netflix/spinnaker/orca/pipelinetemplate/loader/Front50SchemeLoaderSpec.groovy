@@ -15,7 +15,7 @@
  */
 package com.netflix.spinnaker.orca.pipelinetemplate.loader
 
-import com.fasterxml.jackson.databind.ObjectMapper
+import tools.jackson.databind.ObjectMapper
 import com.netflix.spinnaker.kork.retrofit.exceptions.SpinnakerNetworkException
 import com.netflix.spinnaker.orca.front50.Front50Service
 import com.netflix.spinnaker.orca.pipelinetemplate.exceptions.TemplateLoaderException
@@ -24,13 +24,14 @@ import retrofit2.mock.Calls
 import spock.lang.Specification
 import spock.lang.Subject
 import spock.lang.Unroll
+import tools.jackson.databind.json.JsonMapper
 
 class Front50SchemeLoaderSpec extends Specification {
 
   Front50Service front50Service = Mock()
 
   @Subject
-  def schemeLoader = new Front50SchemeLoader(Optional.of(front50Service), new ObjectMapper())
+  def schemeLoader = new Front50SchemeLoader(Optional.of(front50Service), JsonMapper.builder().build())
 
   @Unroll
   void 'should support spinnaker scheme'() {

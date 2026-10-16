@@ -15,9 +15,9 @@
  */
 package com.netflix.spinnaker.orca.q.migration
 
-import com.fasterxml.jackson.databind.ObjectMapper
-import com.fasterxml.jackson.module.kotlin.readValue
 import com.netflix.spinnaker.q.migration.SerializationMigrator
+import tools.jackson.databind.ObjectMapper
+import tools.jackson.module.kotlin.readValue
 
 internal val orcaToKeikoTypes = mapOf(
   ".StartTask" to "startTask",

@@ -16,7 +16,7 @@
 
 package com.netflix.spinnaker.echo.artifacts
 
-import com.fasterxml.jackson.databind.ObjectMapper
+import tools.jackson.databind.ObjectMapper
 import com.netflix.spinnaker.kork.artifacts.parsing.DefaultJinjavaFactory
 import com.netflix.spinnaker.kork.artifacts.parsing.JinjaArtifactExtractor
 import org.springframework.context.ApplicationEventPublisher

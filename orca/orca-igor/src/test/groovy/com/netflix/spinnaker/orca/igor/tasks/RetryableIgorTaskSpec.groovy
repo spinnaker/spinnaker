@@ -22,12 +22,12 @@ import com.netflix.spinnaker.orca.api.pipeline.models.ExecutionStatus
 import com.netflix.spinnaker.orca.api.pipeline.TaskResult
 import com.netflix.spinnaker.orca.igor.model.RetryableStageDefinition
 import com.netflix.spinnaker.orca.pipeline.model.StageExecutionImpl
+import com.netflix.spinnaker.kork.retrofit.util.CustomConverterFactory
 import okhttp3.MediaType
 import okhttp3.Request
 import okhttp3.ResponseBody
 import retrofit2.Response
 import retrofit2.Retrofit
-import retrofit2.converter.jackson.JacksonConverterFactory
 import spock.lang.Specification
 import spock.lang.Subject
 
@@ -127,7 +127,7 @@ class RetryableIgorTaskSpec extends Specification {
     Retrofit retrofit =
         new Retrofit.Builder()
             .baseUrl(url)
-            .addConverterFactory(JacksonConverterFactory.create())
+            .addConverterFactory(CustomConverterFactory.create())
             .build()
 
     return new SpinnakerHttpException(retrofit2Response, retrofit)

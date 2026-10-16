@@ -25,7 +25,6 @@ import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.collect.ImmutableList;
 import com.google.gson.JsonSyntaxException;
 import com.netflix.spectator.api.DefaultRegistry;
@@ -57,6 +56,7 @@ import com.netflix.spinnaker.kork.configserver.ConfigFileService;
 import io.kubernetes.client.util.Yaml;
 import java.util.HashMap;
 import org.junit.jupiter.api.Test;
+import tools.jackson.databind.json.JsonMapper;
 
 final class KubernetesCredentialsTest {
   private static final String ACCOUNT_NAME = "my-account";
@@ -113,7 +113,8 @@ final class KubernetesCredentialsTest {
   }
 
   private static KubernetesManifest yamlManifest(String yaml) {
-    return new ObjectMapper()
+    return JsonMapper.builder()
+        .build()
         .convertValue(Yaml.getSnakeYaml(null).load(yaml), KubernetesManifest.class);
   }
 

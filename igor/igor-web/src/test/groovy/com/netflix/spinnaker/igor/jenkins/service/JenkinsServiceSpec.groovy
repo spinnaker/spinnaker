@@ -153,7 +153,7 @@ class JenkinsServiceSpec extends Specification {
 
     void 'we can read crumbs'() {
         given:
-        String jenkinsCrumbResponse = '<hudson><crumb>fb171d526b9cc9e25afe80b356e12cb7</crumb><crumbRequestField>.crumb</crumbRequestField></hudson>"}'
+        String jenkinsCrumbResponse = '<hudson><crumb>fb171d526b9cc9e25afe80b356e12cb7</crumb><crumbRequestField>.crumb</crumbRequestField></hudson>'
 
         MockWebServer server = new MockWebServer()
         server.enqueue(

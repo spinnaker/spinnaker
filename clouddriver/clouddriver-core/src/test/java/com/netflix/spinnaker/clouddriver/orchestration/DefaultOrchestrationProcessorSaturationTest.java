@@ -26,7 +26,6 @@ import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
 import com.netflix.spectator.api.NoopRegistry;
 import com.netflix.spinnaker.clouddriver.config.ExceptionClassifierConfigurationProperties;
 import com.netflix.spinnaker.clouddriver.config.OrchestrationExecutorProperties;
@@ -54,6 +53,7 @@ import org.springframework.beans.factory.config.AutowireCapableBeanFactory;
 import org.springframework.context.ApplicationContext;
 import org.springframework.security.authentication.TestingAuthenticationToken;
 import org.springframework.security.core.context.SecurityContextHolder;
+import tools.jackson.databind.json.JsonMapper;
 
 /** The processor runs a bounded number of operations (spinnaker/spinnaker#8109 P2). */
 class DefaultOrchestrationProcessorSaturationTest {
@@ -232,7 +232,7 @@ class DefaultOrchestrationProcessorSaturationTest {
         applicationContext,
         new NoopRegistry(),
         Optional.empty(),
-        new ObjectMapper(),
+        JsonMapper.builder().build(),
         new ExceptionClassifier(
             new ExceptionClassifierConfigurationProperties(), mock(DynamicConfigService.class)),
         new AuthenticatedRequestContextProvider(),

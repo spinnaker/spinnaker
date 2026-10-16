@@ -17,9 +17,9 @@
 package com.netflix.spinnaker.igor.jenkins.client.model
 
 import groovy.transform.CompileStatic
-import javax.xml.bind.annotation.XmlElement
+import jakarta.xml.bind.annotation.XmlElement
 
-import javax.xml.bind.annotation.XmlRootElement
+import jakarta.xml.bind.annotation.XmlRootElement
 
 /**
  * Represents a build artifact

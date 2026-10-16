@@ -1,7 +1,7 @@
 package com.netflix.spinnaker.keel.bakery
 
-import com.fasterxml.jackson.dataformat.yaml.YAMLMapper
-import com.fasterxml.jackson.module.kotlin.readValue
+import tools.jackson.dataformat.yaml.YAMLMapper
+import tools.jackson.module.kotlin.readValue
 import com.netflix.spinnaker.keel.api.artifacts.BaseLabel.PREVIOUS
 import com.netflix.spinnaker.keel.api.artifacts.BaseLabel.RELEASE
 import dev.minutest.junit.JUnit5Minutests

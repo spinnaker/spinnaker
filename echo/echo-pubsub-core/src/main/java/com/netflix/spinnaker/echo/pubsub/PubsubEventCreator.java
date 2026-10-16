@@ -16,7 +16,6 @@
 
 package com.netflix.spinnaker.echo.pubsub;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
 import com.hubspot.jinjava.interpret.FatalTemplateErrorsException;
 import com.netflix.spinnaker.echo.api.events.Event;
 import com.netflix.spinnaker.echo.api.events.Metadata;
@@ -26,11 +25,12 @@ import com.netflix.spinnaker.echo.model.pubsub.MessageDescription;
 import com.netflix.spinnaker.echo.pipelinetriggers.eventhandlers.PubsubEventHandler;
 import com.netflix.spinnaker.echo.pubsub.model.EventCreator;
 import com.netflix.spinnaker.kork.artifacts.model.Artifact;
-import java.io.IOException;
 import java.util.*;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.util.CollectionUtils;
 import org.springframework.util.StringUtils;
+import tools.jackson.core.JacksonException;
+import tools.jackson.databind.ObjectMapper;
 
 /**
  * An EventCreator that extracts artifacts from an incoming message and creates an event of type
@@ -60,7 +60,7 @@ public class PubsubEventCreator implements EventCreator {
 
     try {
       event.setPayload(objectMapper.readValue(description.getMessagePayload(), Map.class));
-    } catch (IOException e) {
+    } catch (JacksonException e) {
       log.warn("Could not parse message payload as JSON", e);
     }
 

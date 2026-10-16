@@ -15,7 +15,7 @@
  */
 package com.netflix.spinnaker.clouddriver.core
 
-import com.fasterxml.jackson.databind.ObjectMapper
+import tools.jackson.databind.ObjectMapper
 import com.netflix.spinnaker.clouddriver.core.services.Front50Service
 import com.netflix.spinnaker.clouddriver.model.Cluster
 import com.netflix.spinnaker.clouddriver.model.ClusterProvider
@@ -28,6 +28,7 @@ import spock.lang.Specification
 import jakarta.inject.Provider
 
 import static com.netflix.spinnaker.clouddriver.core.ProjectClustersService.ClusterModel
+import tools.jackson.databind.json.JsonMapper
 
 class ProjectClustersServiceSpec extends Specification {
 
@@ -58,7 +59,7 @@ class ProjectClustersServiceSpec extends Specification {
 
     subject = new ProjectClustersService(
       front50Service,
-      new ObjectMapper(),
+      JsonMapper.builder().build(),
       new Provider<List<ClusterProvider>>() {
         @Override
         List<ClusterProvider> get() {

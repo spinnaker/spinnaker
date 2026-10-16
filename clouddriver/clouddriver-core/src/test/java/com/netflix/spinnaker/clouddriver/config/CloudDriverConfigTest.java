@@ -18,13 +18,13 @@ package com.netflix.spinnaker.clouddriver.config;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.databind.SerializationFeature;
 import java.time.Instant;
 import java.util.ArrayList;
 import java.util.Map;
 import org.junit.jupiter.api.Test;
-import org.springframework.http.converter.json.Jackson2ObjectMapperBuilder;
+import tools.jackson.databind.ObjectMapper;
+import tools.jackson.databind.cfg.DateTimeFeature;
+import tools.jackson.databind.json.JsonMapper;
 
 class CloudDriverConfigTest {
 
@@ -36,9 +36,9 @@ class CloudDriverConfigTest {
    * AmazonInstance.getLaunchTime()} comparing against {@code System.currentTimeMillis()}.
    */
   private ObjectMapper sharedObjectMapper() {
-    Jackson2ObjectMapperBuilder builder = new Jackson2ObjectMapperBuilder();
+    JsonMapper.Builder builder = JsonMapper.builder();
     new CloudDriverConfig().defaultObjectMapperCustomizer(new ArrayList<>()).customize(builder);
-    return builder.build().enable(SerializationFeature.WRITE_DATES_AS_TIMESTAMPS);
+    return builder.enable(DateTimeFeature.WRITE_DATES_AS_TIMESTAMPS).build();
   }
 
   @Test

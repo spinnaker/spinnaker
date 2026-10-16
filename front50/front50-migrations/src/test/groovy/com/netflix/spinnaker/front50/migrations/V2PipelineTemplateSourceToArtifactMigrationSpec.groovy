@@ -17,17 +17,18 @@
 
 package com.netflix.spinnaker.front50.migrations
 
-import com.fasterxml.jackson.databind.ObjectMapper
+import tools.jackson.databind.ObjectMapper
 
 import com.netflix.spinnaker.front50.api.model.pipeline.Pipeline;
 import com.netflix.spinnaker.front50.model.pipeline.PipelineDAO
 import spock.lang.Specification
 import spock.lang.Subject
+import tools.jackson.databind.json.JsonMapper
 
 class V2PipelineTemplateSourceToArtifactMigrationSpec extends Specification {
 
   def pipelineDAO = Mock(PipelineDAO)
-  def objectMapper = new ObjectMapper()
+  def objectMapper = JsonMapper.builder().build()
 
   @Subject
   def migration = new V2PipelineTemplateSourceToArtifactMigration(pipelineDAO, objectMapper)

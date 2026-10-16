@@ -23,9 +23,10 @@ plugins {
 dependencies {
   implementation("org.gradle.crypto.checksum:org.gradle.crypto.checksum.gradle.plugin:1.4.0")
 
-  implementation(platform("com.fasterxml.jackson:jackson-bom:2.21.2"))
-  implementation("com.fasterxml.jackson.dataformat:jackson-dataformat-yaml")
-  implementation("com.fasterxml.jackson.module:jackson-module-kotlin")
+  // Jackson 3 (tools.jackson namespace), aligned with the rest of the monorepo.
+  implementation(platform("tools.jackson:jackson-bom:3.1.5"))
+  implementation("tools.jackson.dataformat:jackson-dataformat-yaml")
+  implementation("tools.jackson.module:jackson-module-kotlin")
   implementation("org.jetbrains.kotlin:kotlin-gradle-plugin-api")
   implementation("org.jetbrains.kotlin:kotlin-gradle-plugin")
 

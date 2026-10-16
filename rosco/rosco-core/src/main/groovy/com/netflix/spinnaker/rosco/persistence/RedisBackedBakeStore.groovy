@@ -16,7 +16,6 @@
 
 package com.netflix.spinnaker.rosco.persistence
 
-import com.fasterxml.jackson.databind.ObjectMapper
 import com.netflix.spinnaker.kork.jedis.RedisClientDelegate
 import com.netflix.spinnaker.rosco.api.Bake
 import com.netflix.spinnaker.rosco.api.BakeRequest
@@ -26,8 +25,10 @@ import groovy.transform.CompileStatic
 import org.springframework.beans.factory.annotation.Autowired
 import redis.clients.jedis.JedisPool
 import redis.clients.jedis.exceptions.JedisDataException
+import tools.jackson.databind.ObjectMapper
 
 import java.util.concurrent.TimeUnit
+import tools.jackson.databind.json.JsonMapper
 
 class RedisBackedBakeStore implements BakeStore {
 
@@ -36,7 +37,7 @@ class RedisBackedBakeStore implements BakeStore {
   @Autowired
   String roscoInstanceId
 
-  private ObjectMapper mapper = new ObjectMapper()
+  private ObjectMapper mapper = JsonMapper.builder().build()
   private JedisPool jedisPool
   private RedisClientDelegate redisClientDelegate
 

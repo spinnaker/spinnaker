@@ -17,7 +17,7 @@
 
 package com.netflix.spinnaker.orca.webhook.tasks
 
-import com.fasterxml.jackson.databind.ObjectMapper
+import tools.jackson.databind.ObjectMapper
 import com.netflix.spinnaker.orca.api.pipeline.models.ExecutionStatus
 import com.netflix.spinnaker.orca.pipeline.model.PipelineExecutionImpl
 import com.netflix.spinnaker.orca.pipeline.model.StageExecutionImpl
@@ -36,6 +36,7 @@ import spock.lang.Subject
 import spock.lang.Unroll
 
 import java.nio.charset.Charset
+import tools.jackson.databind.json.JsonMapper
 
 class CreateWebhookTaskSpec extends Specification {
 
@@ -44,7 +45,7 @@ class CreateWebhookTaskSpec extends Specification {
   WebhookService webhookService = Mock()
 
   @Subject
-  def createWebhookTask = new CreateWebhookTask(webhookService, new WebhookProperties(), new ObjectMapper())
+  def createWebhookTask = new CreateWebhookTask(webhookService, new WebhookProperties(), JsonMapper.builder().build())
 
   def setup() {
     println "--------------- Test " + specificationContext.currentIteration.name

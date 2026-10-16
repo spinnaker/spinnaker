@@ -15,7 +15,7 @@
  */
 package com.netflix.spinnaker.orca.pipelinetemplate.pipeline
 
-import com.fasterxml.jackson.databind.ObjectMapper
+import tools.jackson.databind.ObjectMapper
 import com.netflix.spinnaker.orca.front50.Front50Service
 import com.netflix.spinnaker.orca.front50.pipeline.UpdatePipelineStage
 import com.netflix.spinnaker.orca.pipeline.graph.StageGraphBuilderImpl
@@ -25,6 +25,7 @@ import com.netflix.spinnaker.orca.pipelinetemplate.v1schema.model.PipelineTempla
 import com.netflix.spinnaker.orca.pipelinetemplate.v1schema.model.PipelineTemplate.Configuration
 import retrofit2.mock.Calls
 import spock.lang.Specification
+import tools.jackson.databind.json.JsonMapper
 
 class UpdatePipelineTemplateStageSpec extends Specification {
 
@@ -33,7 +34,7 @@ class UpdatePipelineTemplateStageSpec extends Specification {
 
   def setup() {
     stageBuilder.updatePipelineStage = new UpdatePipelineStage()
-    stageBuilder.pipelineTemplateObjectMapper = new ObjectMapper()
+    stageBuilder.pipelineTemplateObjectMapper = JsonMapper.builder().build()
     stageBuilder.front50Service = front50Service
   }
 
@@ -82,7 +83,7 @@ class UpdatePipelineTemplateStageSpec extends Specification {
     ]
 
     and:
-    def config = [pipelineTemplate: Base64.encoder.encodeToString(new ObjectMapper().writeValueAsString(pipelineTemplate).bytes)]
+    def config = [pipelineTemplate: Base64.encoder.encodeToString(JsonMapper.builder().build().writeValueAsString(pipelineTemplate).bytes)]
     def stage = new StageExecutionImpl(PipelineExecutionImpl.newPipeline("orca"), "updatePipelineTemplate", config)
     def graphBefore = StageGraphBuilderImpl.beforeStages(stage)
     def graphAfter = StageGraphBuilderImpl.afterStages(stage)

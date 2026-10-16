@@ -17,7 +17,7 @@
 package com.netflix.spinnaker.clouddriver.appengine.model
 
 import com.fasterxml.jackson.annotation.JsonInclude
-import com.fasterxml.jackson.databind.ObjectMapper
+import tools.jackson.databind.ObjectMapper
 import com.google.api.services.appengine.v1.model.Service
 import com.netflix.spinnaker.clouddriver.appengine.AppengineCloudProvider
 import com.netflix.spinnaker.clouddriver.model.LoadBalancer
@@ -27,6 +27,7 @@ import com.netflix.spinnaker.moniker.Moniker
 import groovy.transform.AutoClone
 import groovy.transform.CompileStatic
 import groovy.transform.EqualsAndHashCode
+import tools.jackson.databind.json.JsonMapper
 
 @CompileStatic
 @EqualsAndHashCode(includes = ["name", "account"])
@@ -54,7 +55,7 @@ class AppengineLoadBalancer implements LoadBalancer, Serializable {
     this.selfLink = service.getName()
     this.account = account
     this.region = region
-    this.split = new ObjectMapper().convertValue(service.getSplit(), AppengineTrafficSplit)
+    this.split = JsonMapper.builder().build().convertValue(service.getSplit(), AppengineTrafficSplit)
     this.httpUrl = AppengineModelUtil.getHttpUrl(service.getName())
     this.httpsUrl = AppengineModelUtil.getHttpsUrl(service.getName())
     // Self link has the form apps/{project}/services/{service}.

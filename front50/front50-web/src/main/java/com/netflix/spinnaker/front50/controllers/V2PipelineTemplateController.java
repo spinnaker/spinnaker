@@ -20,8 +20,6 @@ package com.netflix.spinnaker.front50.controllers;
 import static com.netflix.spinnaker.front50.api.model.pipeline.Pipeline.TYPE_TEMPLATED;
 import static com.netflix.spinnaker.front50.model.pipeline.TemplateConfiguration.TemplateSource.SPINNAKER_PREFIX;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.annotations.VisibleForTesting;
 import com.netflix.spinnaker.front50.api.model.pipeline.Pipeline;
 import com.netflix.spinnaker.front50.exception.BadRequestException;
@@ -52,6 +50,8 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
+import tools.jackson.core.JacksonException;
+import tools.jackson.databind.ObjectMapper;
 
 @RestController
 @RequestMapping("/v2/pipelineTemplates")
@@ -236,7 +236,7 @@ public class V2PipelineTemplateController {
       MessageDigest digest = MessageDigest.getInstance("SHA-256");
       byte[] hashBytes = digest.digest(jsonPayload.getBytes(StandardCharsets.UTF_8));
       return Hex.encodeHexString(hashBytes);
-    } catch (NoSuchAlgorithmException | JsonProcessingException e) {
+    } catch (NoSuchAlgorithmException | JacksonException e) {
       throw new InvalidRequestException(
           String.format(
               "Computing digest for pipeline template %s failed. Nested exception is %s",

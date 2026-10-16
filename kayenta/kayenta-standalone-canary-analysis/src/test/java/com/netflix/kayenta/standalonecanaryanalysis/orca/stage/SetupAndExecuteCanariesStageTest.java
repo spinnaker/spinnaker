@@ -21,7 +21,6 @@ import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.Mockito.when;
 import static org.mockito.MockitoAnnotations.initMocks;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.collect.ImmutableList;
 import com.netflix.kayenta.standalonecanaryanalysis.domain.CanaryAnalysisExecutionRequest;
 import com.netflix.kayenta.standalonecanaryanalysis.domain.CanaryAnalysisExecutionRequestScope;
@@ -32,6 +31,7 @@ import java.time.temporal.ChronoUnit;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.Mock;
+import tools.jackson.databind.json.JsonMapper;
 
 public class SetupAndExecuteCanariesStageTest {
 
@@ -47,7 +47,7 @@ public class SetupAndExecuteCanariesStageTest {
 
     when(clock.instant()).thenReturn(now);
 
-    stage = new SetupAndExecuteCanariesStage(clock, new ObjectMapper());
+    stage = new SetupAndExecuteCanariesStage(clock, JsonMapper.builder().build());
   }
 
   @Test

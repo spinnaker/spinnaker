@@ -18,8 +18,14 @@ package com.netflix.spinnaker.kork.aws.jackson;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
 import org.junit.jupiter.api.Test;
+import org.springframework.context.annotation.AnnotationConfigApplicationContext;
 import software.amazon.awssdk.services.ecs.model.Cluster;
+import tools.jackson.databind.JacksonModule;
+import tools.jackson.databind.json.JsonMapper;
 
 class AwsSdkV2Jackson3ModuleTest {
 
@@ -32,19 +38,36 @@ class AwsSdkV2Jackson3ModuleTest {
           .build();
 
   @Test
-  void jackson3OutputMatchesJackson2Shape() throws Exception {
-    String jackson2 =
-        new com.fasterxml.jackson.databind.ObjectMapper()
-            .registerModule(new AwsSdkV2Module())
-            .writeValueAsString(CLUSTER);
+  void springRegistersOneModuleThatRoundTripsSdkModels() {
+    try (var context = new AnnotationConfigApplicationContext(AwsSdkV2JacksonConfiguration.class)) {
+      Map<String, JacksonModule> modules = context.getBeansOfType(JacksonModule.class);
+      assertEquals(Set.of("awsSdkV2Module"), modules.keySet());
 
+      Cluster cluster =
+          CLUSTER.toBuilder()
+              .statistics(List.of())
+              .tags(List.of())
+              .settings(List.of())
+              .defaultCapacityProviderStrategy(List.of())
+              .attachments(List.of())
+              .build();
+      JsonMapper mapper = JsonMapper.builder().addModules(modules.values()).build();
+      String json = mapper.writeValueAsString(cluster);
+
+      assertEquals("my-cluster", mapper.readTree(json).get("clusterName").asText());
+      assertEquals(cluster, mapper.readValue(json, Cluster.class));
+    }
+  }
+
+  @Test
+  void jackson3OutputUsesSdkProtocolShape() throws Exception {
     tools.jackson.databind.json.JsonMapper mapper3 =
-        tools.jackson.databind.json.JsonMapper.builder()
-            .addModule(new AwsSdkV2Jackson3Module())
-            .build();
+        tools.jackson.databind.json.JsonMapper.builder().addModule(new AwsSdkV2Module()).build();
     String jackson3 = mapper3.writeValueAsString(CLUSTER);
 
-    assertEquals(jackson2, jackson3);
+    assertEquals(
+        "{\"clusterArn\":\"arn:aws:ecs:::cluster/my-cluster\",\"clusterName\":\"my-cluster\",\"status\":\"ACTIVE\",\"statistics\":[],\"tags\":[],\"settings\":[],\"capacityProviders\":[\"FARGATE\",\"FARGATE_SPOT\"],\"defaultCapacityProviderStrategy\":[],\"attachments\":[]}",
+        jackson3);
   }
 
   @Test

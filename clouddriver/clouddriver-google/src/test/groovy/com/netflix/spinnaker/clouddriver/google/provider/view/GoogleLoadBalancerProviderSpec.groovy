@@ -16,7 +16,7 @@
 
 package com.netflix.spinnaker.clouddriver.google.provider.view
 
-import com.fasterxml.jackson.databind.ObjectMapper
+import tools.jackson.databind.ObjectMapper
 import com.netflix.spinnaker.cats.cache.CacheData
 import com.netflix.spinnaker.cats.cache.Cache
 import com.netflix.spinnaker.clouddriver.google.model.loadbalancing.*
@@ -26,6 +26,7 @@ import spock.lang.Subject
 
 import static com.netflix.spinnaker.clouddriver.google.cache.Keys.Namespace.LOAD_BALANCERS
 import static com.netflix.spinnaker.clouddriver.google.cache.Keys.Namespace.SERVER_GROUPS
+import tools.jackson.databind.json.JsonMapper
 
 class GoogleLoadBalancerProviderSpec extends Specification {
   private static final ACCOUNT_NAME = "auto"
@@ -56,7 +57,7 @@ class GoogleLoadBalancerProviderSpec extends Specification {
 
       @Subject def provider = new GoogleLoadBalancerProvider()
       provider.cacheView = cacheView
-      provider.objectMapper = new ObjectMapper()
+      provider.objectMapper = JsonMapper.builder().build()
 
     when:
       def details = provider.byAccountAndRegionAndName(ACCOUNT_NAME, REGION_EUROPE, LOAD_BALANCER_NAME)
@@ -117,7 +118,7 @@ class GoogleLoadBalancerProviderSpec extends Specification {
 
       @Subject def provider = new GoogleLoadBalancerProvider()
       provider.cacheView = cacheView
-      provider.objectMapper = new ObjectMapper()
+      provider.objectMapper = JsonMapper.builder().build()
 
     when:
       def details = provider.byAccountAndRegionAndName(ACCOUNT_NAME, REGION_EUROPE, LOAD_BALANCER_NAME)
@@ -155,7 +156,7 @@ class GoogleLoadBalancerProviderSpec extends Specification {
 
       @Subject def provider = new GoogleLoadBalancerProvider()
       provider.cacheView = cacheView
-      provider.objectMapper = new ObjectMapper()
+      provider.objectMapper = JsonMapper.builder().build()
 
     when:
       def details = provider.byAccountAndRegionAndName(ACCOUNT_NAME, REGION_EUROPE, LOAD_BALANCER_NAME)
@@ -198,7 +199,7 @@ class GoogleLoadBalancerProviderSpec extends Specification {
 
       @Subject def provider = new GoogleLoadBalancerProvider()
       provider.cacheView = cacheView
-      provider.objectMapper = new ObjectMapper()
+      provider.objectMapper = JsonMapper.builder().build()
 
     when:
       def details = provider.byAccountAndRegionAndName(ACCOUNT_NAME, REGION_EUROPE, LOAD_BALANCER_NAME)
@@ -244,7 +245,7 @@ class GoogleLoadBalancerProviderSpec extends Specification {
 
       @Subject def provider = new GoogleLoadBalancerProvider()
       provider.cacheView = cacheView
-      provider.objectMapper = new ObjectMapper()
+      provider.objectMapper = JsonMapper.builder().build()
 
     when:
       def details = provider.byAccountAndRegionAndName(ACCOUNT_NAME, REGION_EUROPE, LOAD_BALANCER_NAME)
@@ -287,7 +288,7 @@ class GoogleLoadBalancerProviderSpec extends Specification {
 
       @Subject def provider = new GoogleLoadBalancerProvider()
       provider.cacheView = cacheView
-      provider.objectMapper = new ObjectMapper()
+      provider.objectMapper = JsonMapper.builder().build()
 
     when:
       def details = provider.byAccountAndRegionAndName(ACCOUNT_NAME, REGION_EUROPE, LOAD_BALANCER_NAME)

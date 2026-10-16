@@ -18,8 +18,8 @@
 package com.netflix.spinnaker.kork.plugins.remote.extension.transport.http
 
 
-import com.fasterxml.jackson.core.type.TypeReference
-import com.fasterxml.jackson.databind.ObjectMapper
+import tools.jackson.core.type.TypeReference
+import tools.jackson.databind.ObjectMapper
 import com.netflix.spinnaker.kork.api.plugins.remote.RemoteExtensionConfig
 import com.netflix.spinnaker.kork.exceptions.IntegrationException
 import com.netflix.spinnaker.kork.plugins.remote.extension.transport.RemoteExtensionPayload

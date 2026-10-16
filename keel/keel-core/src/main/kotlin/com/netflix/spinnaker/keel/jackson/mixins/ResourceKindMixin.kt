@@ -1,8 +1,8 @@
 package com.netflix.spinnaker.keel.jackson.mixins
 
-import com.fasterxml.jackson.databind.annotation.JsonDeserialize
-import com.fasterxml.jackson.databind.annotation.JsonSerialize
-import com.fasterxml.jackson.databind.ser.std.ToStringSerializer
+import tools.jackson.databind.annotation.JsonDeserialize
+import tools.jackson.databind.annotation.JsonSerialize
+import tools.jackson.databind.ser.std.ToStringSerializer
 import com.netflix.spinnaker.keel.jackson.ResourceKindDeserializer
 
 @JsonSerialize(using = ToStringSerializer::class)

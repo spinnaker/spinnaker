@@ -27,7 +27,7 @@ import org.springframework.boot.health.contributor.Health
 import org.springframework.web.context.request.RequestContextHolder
 import org.springframework.web.context.request.ServletWebRequest
 import retrofit2.Retrofit
-import retrofit2.converter.jackson.JacksonConverterFactory
+import com.netflix.spinnaker.kork.retrofit.util.CustomConverterFactory
 import retrofit2.mock.Calls
 import spock.lang.Specification
 import spock.lang.Unroll
@@ -155,7 +155,7 @@ class DownstreamServicesHealthIndicatorSpec extends Specification {
     Retrofit retrofit =
       new Retrofit.Builder()
         .baseUrl(url)
-        .addConverterFactory(JacksonConverterFactory.create())
+        .addConverterFactory(CustomConverterFactory.create())
         .build();
 
     return new SpinnakerHttpException(retrofit2Response, retrofit);

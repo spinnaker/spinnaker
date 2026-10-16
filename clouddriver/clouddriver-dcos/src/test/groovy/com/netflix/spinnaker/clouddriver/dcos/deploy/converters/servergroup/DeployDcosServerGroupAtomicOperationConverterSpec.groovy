@@ -16,7 +16,7 @@
 
 package com.netflix.spinnaker.clouddriver.dcos.deploy.converters.servergroup
 
-import com.fasterxml.jackson.databind.ObjectMapper
+import tools.jackson.databind.ObjectMapper
 import com.netflix.spinnaker.clouddriver.dcos.DcosClientProvider
 import com.netflix.spinnaker.clouddriver.dcos.security.DcosAccountCredentials
 import com.netflix.spinnaker.clouddriver.dcos.deploy.BaseSpecification
@@ -28,6 +28,7 @@ import com.netflix.spinnaker.clouddriver.security.AbstractAtomicOperationsCreden
 import com.netflix.spinnaker.clouddriver.security.AccountCredentialsProvider
 import mesosphere.dcos.client.DCOS
 import spock.lang.Subject
+import tools.jackson.databind.json.JsonMapper
 
 class DeployDcosServerGroupAtomicOperationConverterSpec extends BaseSpecification {
 
@@ -50,7 +51,7 @@ class DeployDcosServerGroupAtomicOperationConverterSpec extends BaseSpecificatio
   void 'convertDescription should return a valid DeployDcosServerGroupDescription'() {
     given:
     atomicOperationConverter.accountCredentialsProvider = accountCredentialsProvider
-    atomicOperationConverter.objectMapper = new ObjectMapper()
+    atomicOperationConverter.objectMapper = JsonMapper.builder().build()
     Map input = [
       account: 'test',
       cluster: "us-test-1",
@@ -90,7 +91,7 @@ class DeployDcosServerGroupAtomicOperationConverterSpec extends BaseSpecificatio
   void 'convertOperation should return a DeployDcosServerGroupAtomicOperation with DeployDcosServerGroupDescription'() {
     given:
     atomicOperationConverter.accountCredentialsProvider = accountCredentialsProvider
-    atomicOperationConverter.objectMapper = new ObjectMapper()
+    atomicOperationConverter.objectMapper = JsonMapper.builder().build()
     Map input = [
       account: 'test',
       cluster: "us-test-1",

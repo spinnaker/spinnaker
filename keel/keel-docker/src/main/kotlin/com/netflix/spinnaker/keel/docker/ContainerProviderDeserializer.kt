@@ -17,8 +17,8 @@
  */
 package com.netflix.spinnaker.keel.docker
 
-import com.fasterxml.jackson.databind.DeserializationContext
-import com.fasterxml.jackson.databind.JsonNode
+import tools.jackson.databind.DeserializationContext
+import tools.jackson.databind.JsonNode
 import com.netflix.spinnaker.keel.jackson.PropertyNamePolymorphicDeserializer
 
 class ContainerProviderDeserializer :

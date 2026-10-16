@@ -16,7 +16,7 @@
 
 package com.netflix.spinnaker.orca.applications.tasks
 
-import com.fasterxml.jackson.databind.ObjectMapper
+import tools.jackson.databind.ObjectMapper
 import com.netflix.spinnaker.fiat.model.resources.Permissions
 import com.netflix.spinnaker.kork.dynamicconfig.DynamicConfigService
 import com.netflix.spinnaker.kork.retrofit.Retrofit2SyncCall

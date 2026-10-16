@@ -21,7 +21,6 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
 import com.netflix.spectator.api.Registry;
 import com.netflix.spinnaker.clouddriver.google.GoogleExecutor;
 import com.netflix.spinnaker.clouddriver.google.config.GoogleConfigurationProperties;
@@ -41,6 +40,8 @@ import java.util.List;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.context.ApplicationContext;
+import tools.jackson.databind.ObjectMapper;
+import tools.jackson.databind.json.JsonMapper;
 
 /**
  * Comprehensive test for Google dynamic account loading matching AWS patterns. Tests the complete
@@ -70,7 +71,7 @@ public class GoogleDynamicAccountLoadingTest {
     mockNamerRegistry = mock(NamerRegistry.class);
     mockServiceClientProvider = mock(ServiceClientProvider.class);
     mockRegistry = mock(Registry.class);
-    objectMapper = new ObjectMapper();
+    objectMapper = JsonMapper.builder().build();
   }
 
   @Test

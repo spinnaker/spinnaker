@@ -16,9 +16,10 @@
 
 package com.netflix.spinnaker.q.redis
 
-import com.fasterxml.jackson.databind.DeserializationFeature
-import com.fasterxml.jackson.databind.ObjectMapper
-import com.fasterxml.jackson.module.kotlin.KotlinModule
+import tools.jackson.databind.DeserializationFeature
+import tools.jackson.databind.ObjectMapper
+import tools.jackson.databind.json.JsonMapper
+import tools.jackson.module.kotlin.KotlinModule
 import com.netflix.spinnaker.kork.jedis.EmbeddedRedis
 import com.netflix.spinnaker.q.AttemptsAttribute
 import com.netflix.spinnaker.q.DeadMessageCallback
@@ -60,13 +61,14 @@ private fun createQueue(clock: Clock,
         override fun publishEvent(event: QueueEvent) {}
       }
       ),
-    mapper = ObjectMapper().apply {
-      registerModule(KotlinModule.Builder().build())
-      disable(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES)
-
-      registerSubtypes(TestMessage::class.java)
-      registerSubtypes(MaxAttemptsAttribute::class.java, AttemptsAttribute::class.java)
-    },
+     mapper = JsonMapper.builder()
+       .addModule(KotlinModule.Builder().build())
+       .disable(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES)
+       // Jackson 3 default changed: merge into getter-only collections (message attributes).
+       .enable(tools.jackson.databind.MapperFeature.USE_GETTERS_AS_SETTERS)
+       .registerSubtypes(TestMessage::class.java)
+       .registerSubtypes(MaxAttemptsAttribute::class.java, AttemptsAttribute::class.java)
+       .build(),
     serializationMigrator = Optional.empty()
   )
 }

@@ -17,13 +17,13 @@
 package com.netflix.spinnaker.clouddriver.ecs.cache
 
 import software.amazon.awssdk.services.ec2.model.Instance
-import com.fasterxml.jackson.databind.DeserializationFeature
-import com.fasterxml.jackson.databind.ObjectMapper
-import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule
+import tools.jackson.databind.DeserializationFeature
+import tools.jackson.databind.ObjectMapper
+import tools.jackson.databind.json.JsonMapper
 import com.netflix.spinnaker.cats.cache.Cache
 import com.netflix.spinnaker.cats.cache.DefaultCacheData
 import com.netflix.spinnaker.clouddriver.aws.data.Keys
-import com.netflix.spinnaker.clouddriver.aws.jackson.AwsSdkV2Module
+import com.netflix.spinnaker.kork.aws.jackson.AwsSdkV2Module
 import com.netflix.spinnaker.clouddriver.ecs.cache.client.EcsInstanceCacheClient
 import spock.lang.Specification
 import spock.lang.Subject
@@ -34,10 +34,10 @@ import static com.netflix.spinnaker.clouddriver.core.provider.agent.Namespace.IN
 
 class EcsInstanceCacheClientSpec extends Specification {
   def cacheView = Mock(Cache)
-  def objectMapper = new ObjectMapper()
-                          .configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false)
-                          .registerModule(new AwsSdkV2Module())
-                          .registerModule(new JavaTimeModule())
+  def objectMapper = JsonMapper.builder()
+                          .disable(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES)
+                          .addModule(new AwsSdkV2Module())
+                          .build()
 
   @Subject
   def client = new EcsInstanceCacheClient(cacheView, objectMapper)

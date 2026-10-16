@@ -18,10 +18,6 @@ package com.netflix.spinnaker.orca;
 
 import static org.junit.jupiter.api.Assertions.assertThrows;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.JsonMappingException;
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.databind.exc.InvalidFormatException;
 import com.netflix.spinnaker.orca.notifications.NotificationClusterLock;
 import com.netflix.spinnaker.orca.pipeline.persistence.ExecutionRepository;
 import com.netflix.spinnaker.orca.q.pending.PendingExecutionService;
@@ -32,6 +28,10 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.test.context.TestPropertySource;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
+import tools.jackson.core.JacksonException;
+import tools.jackson.databind.DatabindException;
+import tools.jackson.databind.ObjectMapper;
+import tools.jackson.databind.exc.InvalidFormatException;
 
 @SpringBootTest(classes = Main.class)
 @TestPropertySource(
@@ -73,12 +73,12 @@ class HttpStatusCodeSpringObjectMapperTest {
       """;
 
     assertThrows(
-        JsonMappingException.class,
+        DatabindException.class,
         () -> objectMapper.readValue(json, WebhookStage.WebhookMonitorResponseStageData.class));
   }
 
   @Test
-  void shouldDeserializeStringStatusCode() throws JsonProcessingException {
+  void shouldDeserializeStringStatusCode() throws JacksonException {
     String json =
         """
       {
@@ -92,7 +92,7 @@ class HttpStatusCodeSpringObjectMapperTest {
   }
 
   @Test
-  void shouldDeserializeIntStatusCode() throws JsonProcessingException {
+  void shouldDeserializeIntStatusCode() throws JacksonException {
     String json =
         """
       {

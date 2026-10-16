@@ -16,9 +16,8 @@
 
 package com.netflix.spinnaker.orca.keel
 
-import com.fasterxml.jackson.databind.ObjectMapper
-import com.fasterxml.jackson.module.kotlin.convertValue
 import com.netflix.spinnaker.kork.retrofit.exceptions.SpinnakerHttpException
+import com.netflix.spinnaker.kork.retrofit.util.CustomConverterFactory
 import com.netflix.spinnaker.kork.web.exceptions.InvalidRequestException
 import com.netflix.spinnaker.orca.KeelService
 import com.netflix.spinnaker.orca.api.pipeline.TaskResult
@@ -46,7 +45,6 @@ import okhttp3.MediaType.Companion.toMediaTypeOrNull
 import okhttp3.Protocol
 import retrofit2.Response
 import retrofit2.Retrofit
-import retrofit2.converter.jackson.JacksonConverterFactory
 import retrofit2.mock.Calls
 import strikt.api.expectThat
 import strikt.api.expectThrows
@@ -54,6 +52,8 @@ import strikt.assertions.contains
 import strikt.assertions.isEqualTo
 import strikt.assertions.isNotEqualTo
 import strikt.assertions.isNotNull
+import tools.jackson.databind.ObjectMapper
+import tools.jackson.module.kotlin.convertValue
 
 internal class ImportDeliveryConfigTaskTests : JUnit5Minutests {
   data class ManifestLocation(
@@ -128,7 +128,7 @@ internal class ImportDeliveryConfigTaskTests : JUnit5Minutests {
     val response = Response.error<Any>(body, rawResponse)
     val retrofit = Retrofit.Builder()
       .baseUrl(url)
-      .addConverterFactory(JacksonConverterFactory.create())
+      .addConverterFactory(CustomConverterFactory.create())
       .build()
     return SpinnakerHttpException(response, retrofit)
   }
@@ -276,7 +276,7 @@ internal class ImportDeliveryConfigTaskTests : JUnit5Minutests {
     }
 
     context("with detailed git info in payload field") {
-      val trigger = objectMapper.readValue(javaClass.getResource("/trigger.json"), Trigger::class.java)
+      val trigger = objectMapper.readValue(javaClass.getResource("/trigger.json").readText(), Trigger::class.java)
       fixture {
         Fixture(
           trigger

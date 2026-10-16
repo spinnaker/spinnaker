@@ -16,7 +16,6 @@
 
 package com.netflix.spinnaker.orca.clouddriver.config;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
 import com.netflix.spinnaker.config.DefaultServiceEndpoint;
 import com.netflix.spinnaker.kork.artifacts.artifactstore.ArtifactStoreConfiguration;
 import com.netflix.spinnaker.kork.client.ServiceClientProvider;
@@ -39,6 +38,7 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.ComponentScan;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Import;
+import tools.jackson.databind.ObjectMapper;
 
 @Configuration
 @Import({RetrofitConfiguration.class, ArtifactStoreConfiguration.class})

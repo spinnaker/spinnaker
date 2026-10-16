@@ -18,8 +18,6 @@
 package com.netflix.spinnaker.clouddriver.aws.deploy.ops.actions;
 
 import com.fasterxml.jackson.annotation.JsonTypeName;
-import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
-import com.fasterxml.jackson.databind.annotation.JsonPOJOBuilder;
 import com.netflix.spinnaker.clouddriver.aws.deploy.AmiIdResolver;
 import com.netflix.spinnaker.clouddriver.aws.deploy.InstanceTypeUtils.BlockDeviceConfig;
 import com.netflix.spinnaker.clouddriver.aws.deploy.ModifyServerGroupUtils;
@@ -59,6 +57,8 @@ import software.amazon.awssdk.services.ec2.model.LaunchTemplateInstanceMarketOpt
 import software.amazon.awssdk.services.ec2.model.LaunchTemplateInstanceNetworkInterfaceSpecification;
 import software.amazon.awssdk.services.ec2.model.LaunchTemplateVersion;
 import software.amazon.awssdk.services.ec2.model.ResponseLaunchTemplateData;
+import tools.jackson.databind.annotation.JsonDeserialize;
+import tools.jackson.databind.annotation.JsonPOJOBuilder;
 
 /**
  * Action to prepare the description of type ModifyServerGroupLaunchTemplateDescription for launch

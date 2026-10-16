@@ -20,15 +20,16 @@ package com.netflix.spinnaker.orca.clouddriver.tasks.providers.aws
 import retrofit2.mock.Calls
 
 import java.util.stream.Collectors
-import com.fasterxml.jackson.databind.ObjectMapper
+import tools.jackson.databind.ObjectMapper
 import com.netflix.spinnaker.orca.clouddriver.OortService
 import com.netflix.spinnaker.orca.pipeline.model.PipelineExecutionImpl
 import com.netflix.spinnaker.orca.pipeline.model.StageExecutionImpl
 import spock.lang.Specification
 import spock.lang.Subject
+import tools.jackson.databind.json.JsonMapper
 
 class AmazonImageFinderSpec extends Specification {
-  def objectMapper = new ObjectMapper()
+  def objectMapper = JsonMapper.builder().build()
   def oortService = Mock(OortService)
 
   @Subject

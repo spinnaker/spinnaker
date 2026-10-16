@@ -16,7 +16,7 @@
 
 package com.netflix.spinnaker.rosco.providers.alicloud
 
-import com.fasterxml.jackson.databind.ObjectMapper
+import tools.jackson.databind.ObjectMapper
 import com.netflix.spinnaker.rosco.api.Bake
 import com.netflix.spinnaker.rosco.api.BakeRequest
 import com.netflix.spinnaker.rosco.config.RoscoConfiguration
@@ -27,6 +27,7 @@ import com.netflix.spinnaker.rosco.providers.util.TestDefaults
 import spock.lang.Shared
 import spock.lang.Specification
 import spock.lang.Subject
+import tools.jackson.databind.json.JsonMapper
 
 class AliCloudBakeHandlerSpec extends Specification implements TestDefaults {
 
@@ -81,7 +82,7 @@ class AliCloudBakeHandlerSpec extends Specification implements TestDefaults {
       ]
     ]
 
-    alicloudBakeryDefaults = new ObjectMapper().convertValue(alicloudBakeryDefaultsJson, RoscoAliCloudConfiguration.AliCloudBakeryDefaults)
+    alicloudBakeryDefaults = JsonMapper.builder().build().convertValue(alicloudBakeryDefaultsJson, RoscoAliCloudConfiguration.AliCloudBakeryDefaults)
   }
 
   void 'can scrape packer logs for image name'() {
