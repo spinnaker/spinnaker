@@ -66,7 +66,7 @@ class UpsertGoogleLoadBalancerDescriptionValidator extends
     helper.validateCredentials(description.accountName, credentialsRepository)
     helper.validateName(description.loadBalancerName, "loadBalancerName")
 
-    if (description.loadBalancerType == GoogleLoadBalancerType.EXTERNAL_MANAGED) {
+    if (description.loadBalancerType in [GoogleLoadBalancerType.EXTERNAL_MANAGED, GoogleLoadBalancerType.INTERNAL_MANAGED]) {
       validateListenersToDelete(description, errors)
     }
 

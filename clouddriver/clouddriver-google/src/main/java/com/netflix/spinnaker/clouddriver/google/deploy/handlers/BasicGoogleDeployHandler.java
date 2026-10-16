@@ -635,12 +635,13 @@ public class BasicGoogleDeployHandler
                   Arrays.asList(instanceMetadata.get(REGION_BACKEND_SERVICE_NAMES).split(",")))
               : new ArrayList<>();
       List<String> ilbServices =
-          lbInfo.getInternalLoadBalancers().stream()
-              .map(lb -> (GoogleInternalLoadBalancer.View) lb)
-              .map(it -> it.getBackendService().getName())
-              .collect(Collectors.toList());
-      ilbServices.addAll(regionBackendServices);
-      ilbServices.stream().distinct().collect(Collectors.toList());
+          Stream.concat(
+                  lbInfo.getInternalLoadBalancers().stream()
+                      .map(lb -> (GoogleInternalLoadBalancer.View) lb)
+                      .map(it -> it.getBackendService().getName()),
+                  regionBackendServices.stream())
+              .distinct()
+              .collect(Collectors.toCollection(ArrayList::new));
       List<String> ilbNames =
           lbInfo.getInternalLoadBalancers().stream()
               .map(GoogleLoadBalancerView::getName)
