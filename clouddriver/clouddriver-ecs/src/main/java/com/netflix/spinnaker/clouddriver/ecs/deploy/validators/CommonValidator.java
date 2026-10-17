@@ -20,10 +20,12 @@ import com.netflix.spinnaker.clouddriver.aws.deploy.description.AbstractAmazonCr
 import com.netflix.spinnaker.clouddriver.aws.security.AmazonCredentials;
 import com.netflix.spinnaker.clouddriver.deploy.DescriptionValidator;
 import com.netflix.spinnaker.clouddriver.deploy.ValidationErrors;
+import com.netflix.spinnaker.clouddriver.ecs.deploy.description.EcsNativeDeploymentSettings;
 import com.netflix.spinnaker.clouddriver.model.ServerGroup;
 import java.util.Collection;
 import java.util.Set;
 import java.util.stream.Collectors;
+import org.apache.commons.lang3.StringUtils;
 
 abstract class CommonValidator extends DescriptionValidator {
   String errorKey;
@@ -98,6 +100,47 @@ abstract class CommonValidator extends DescriptionValidator {
 
     } else {
       rejectValue(errors, "capacity", "not.nullable");
+    }
+  }
+
+  /**
+   * Validates the native ECS deployment settings shared by the ecs-native create and update
+   * descriptions. ECS accepts {@code minimumHealthyPercent} in 0..100 and requires {@code
+   * maximumPercent} to be at least 100 and not below the minimum.
+   */
+  void validateNativeDeploymentSettings(
+      EcsNativeDeploymentSettings settings, ValidationErrors errors) {
+    Integer minimumHealthyPercent = settings.getMinimumHealthyPercent();
+    if (minimumHealthyPercent != null
+        && (minimumHealthyPercent < 0 || minimumHealthyPercent > 100)) {
+      rejectValue(errors, "minimumHealthyPercent", "invalid");
+    }
+
+    Integer maximumPercent = settings.getMaximumPercent();
+    if (maximumPercent != null && maximumPercent < 100) {
+      rejectValue(errors, "maximumPercent", "invalid");
+    }
+
+    if (minimumHealthyPercent != null
+        && maximumPercent != null
+        && maximumPercent < minimumHealthyPercent) {
+      rejectValue(errors, "maximumPercent", "less.than.minimumHealthyPercent");
+    }
+
+    if (settings.getBakeTimeInMinutes() != null && settings.getBakeTimeInMinutes() < 0) {
+      rejectValue(errors, "bakeTimeInMinutes", "invalid");
+    }
+
+    if (StringUtils.isNotBlank(settings.getDeploymentStrategy())
+        && !EcsNativeDeploymentSettings.isSupportedStrategy(settings.getDeploymentStrategy())) {
+      rejectValue(errors, "deploymentStrategy", "invalid");
+    }
+
+    boolean hasAlarmNames =
+        settings.getAlarmNames() != null
+            && settings.getAlarmNames().stream().anyMatch(StringUtils::isNotBlank);
+    if (settings.isEnableDeploymentAlarms() && !hasAlarmNames) {
+      rejectValue(errors, "alarmNames", "not.nullable");
     }
   }
 

@@ -18,8 +18,10 @@ package com.netflix.spinnaker.clouddriver.ecs.deploy.validators;
 
 import com.google.common.collect.Sets;
 import com.netflix.spinnaker.clouddriver.deploy.ValidationErrors;
+import com.netflix.spinnaker.clouddriver.ecs.EcsNativeOperation;
 import com.netflix.spinnaker.clouddriver.ecs.EcsOperation;
 import com.netflix.spinnaker.clouddriver.ecs.deploy.description.CreateServerGroupDescription;
+import com.netflix.spinnaker.clouddriver.ecs.deploy.description.EcsNativeCreateServerGroupDescription;
 import com.netflix.spinnaker.clouddriver.orchestration.AtomicOperations;
 import com.netflix.spinnaker.moniker.Moniker;
 import java.util.Collections;
@@ -31,6 +33,7 @@ import software.amazon.awssdk.services.ecs.model.PlacementStrategy;
 import software.amazon.awssdk.services.ecs.model.PlacementStrategyType;
 
 @EcsOperation(AtomicOperations.CREATE_SERVER_GROUP)
+@EcsNativeOperation(AtomicOperations.CREATE_SERVER_GROUP)
 @Component("ecsCreateServerGroupDescriptionValidator")
 public class EcsCreateServerGroupDescriptionValidator extends CommonValidator {
 
@@ -205,6 +208,22 @@ public class EcsCreateServerGroupDescriptionValidator extends CommonValidator {
           RESERVED_ENVIRONMENT_VARIABLES)) {
         rejectValue(errors, "environmentVariables", "invalid");
       }
+    }
+
+    if (createServerGroupDescription instanceof EcsNativeCreateServerGroupDescription) {
+      validateNativeFields(
+          (EcsNativeCreateServerGroupDescription) createServerGroupDescription, errors);
+    }
+  }
+
+  private void validateNativeFields(
+      EcsNativeCreateServerGroupDescription description, ValidationErrors errors) {
+    validateNativeDeploymentSettings(description, errors);
+
+    if (description.declaresLoadBalancer()
+        && description.hasAnyTrafficShiftField()
+        && !description.hasAllTrafficShiftFields()) {
+      rejectValue(errors, "alternateTargetGroupArn", "incomplete");
     }
   }
 

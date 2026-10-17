@@ -136,6 +136,188 @@ class CreateServerGroupStageSpec extends Specification {
     true                    | "rollingredblack" | ["us-west-1": ["myapplication-stack-v001"]] || [expectedRollbackContext([enableAndDisableOnly: true, onlyEnabledServerGroups: true]), expectedDestroyContext()]
   }
 
+  @Unroll
+  def "appends waitForEcsNativeServiceDeployment only for the ecs-native cloud provider (cloudProvider=#cloudProvider)"() {
+    given:
+    def featuresService = Mock(FeaturesService) {
+      areEntityTagsAvailable() >> false
+    }
+    // A plain Mock returns false for isEnabled(...) by default, which disables the optional
+    // force-cache-refresh tasks and keeps the task list deterministic for this assertion.
+    def dynamicConfigService = Mock(DynamicConfigService)
+    def stageForProvider = new CreateServerGroupStage(
+        featuresService,
+        new RollbackClusterStage(),
+        new DestroyServerGroupStage(dynamicConfigService),
+        dynamicConfigService)
+
+    def stage = stage {
+      context = [
+        "application"  : "myapplication",
+        "account"      : "test",
+        "cloudProvider": cloudProvider,
+      ]
+    }
+
+    when:
+    def taskNames = stageForProvider.basicTasks(stage)*.name
+
+    then:
+    taskNames.contains("waitForUpInstances")
+    taskNames.contains("waitForEcsNativeServiceDeployment") == expectWait
+
+    where:
+    cloudProvider | expectWait
+    "ecs-native"  | true
+    "ecs"         | false
+    "aws"         | false
+    null          | false
+  }
+
+  def "for ecs-native, waitForEcsNativeServiceDeployment runs before waitForUpInstances so the trailing forceCacheRefresh captures the settled rollout state"() {
+    given:
+    def featuresService = Mock(FeaturesService) {
+      areEntityTagsAvailable() >> false
+    }
+    // Enable force-cache-refresh so both refresh tasks are present and we can assert the ecs-native
+    // wait lands between them.
+    def dynamicConfigService = Mock(DynamicConfigService) {
+      isEnabled("stages.create-server-group-stage.force-cache-refresh.enabled", true) >> true
+    }
+    def stageForProvider = new CreateServerGroupStage(
+        featuresService,
+        new RollbackClusterStage(),
+        new DestroyServerGroupStage(dynamicConfigService),
+        dynamicConfigService)
+
+    def stage = stage {
+      context = [
+        "application"  : "myapplication",
+        "account"      : "test",
+        "cloudProvider": "ecs-native",
+      ]
+    }
+
+    when:
+    def taskNames = stageForProvider.basicTasks(stage)*.name
+
+    then:
+    // waitForEcsNativeServiceDeployment must precede waitForUpInstances...
+    taskNames.indexOf("waitForEcsNativeServiceDeployment") < taskNames.indexOf("waitForUpInstances")
+    // ...and there must be a forceCacheRefresh after it, so the settled COMPLETED state is cached.
+    taskNames.lastIndexOf("forceCacheRefresh") > taskNames.indexOf("waitForEcsNativeServiceDeployment")
+    // Two refresh tasks bracket the ecs-native wait + waitForUpInstances.
+    taskNames.count { it == "forceCacheRefresh" } == 2
+    taskNames.indexOf("forceCacheRefresh") < taskNames.indexOf("waitForEcsNativeServiceDeployment")
+  }
+
+  @Unroll
+  def "sets ecsNativeWaitForLifecycleGate only for ecs-native BLUE_GREEN with a pause stage (cloudProvider=#cloudProvider, deploymentStrategy=#deploymentStrategy, pauseStage=#pauseStage)"() {
+    given:
+    // basicTasks() sets the flag on the stage context as a side effect of building the graph, so the
+    // flag has to be read back from the context. If it is missing for blue/green, the wait task would
+    // poll for final SUCCESSFUL and never reach the Continue stage.
+    def dynamicConfigService = Mock(DynamicConfigService)
+    def stageForProvider = new CreateServerGroupStage(
+        Mock(FeaturesService) { areEntityTagsAvailable() >> false },
+        new RollbackClusterStage(),
+        new DestroyServerGroupStage(dynamicConfigService),
+        dynamicConfigService)
+
+    def stage = stage {
+      context = [
+        "application"       : "myapplication",
+        "account"           : "test",
+        "cloudProvider"     : cloudProvider,
+        "deploymentStrategy": deploymentStrategy,
+        "lifecyclePauseStage": pauseStage,
+      ]
+    }
+
+    when:
+    stageForProvider.basicTasks(stage)
+
+    then:
+    stage.context.ecsNativeWaitForLifecycleGate == expectedGate
+
+    where:
+    cloudProvider | deploymentStrategy | pauseStage                || expectedGate
+    "ecs-native"  | "BLUE_GREEN"       | "POST_TEST_TRAFFIC_SHIFT" || true
+    "ecs-native"  | "blue_green"       | "POST_TEST_TRAFFIC_SHIFT" || true
+    "ecs-native"  | "BLUE_GREEN"       | null                      || null
+    "ecs-native"  | "ROLLING"          | "POST_TEST_TRAFFIC_SHIFT" || null
+    "ecs-native"  | null               | null                      || null
+    "ecs"         | "BLUE_GREEN"       | "POST_TEST_TRAFFIC_SHIFT" || null
+    "aws"         | "BLUE_GREEN"       | "POST_TEST_TRAFFIC_SHIFT" || null
+  }
+
+  @Unroll
+  def "ecs-native rejects a non-None Spinnaker deployment strategy (strategy=#strategy)"() {
+    given:
+    def featuresService = Mock(FeaturesService) {
+      areEntityTagsAvailable() >> false
+    }
+    def dynamicConfigService = Mock(DynamicConfigService)
+    def stageForProvider = new CreateServerGroupStage(
+        featuresService,
+        new RollbackClusterStage(),
+        new DestroyServerGroupStage(dynamicConfigService),
+        dynamicConfigService)
+
+    def stage = stage {
+      context = [
+        "application"  : "myapplication",
+        "account"      : "test",
+        "cloudProvider": "ecs-native",
+        "strategy"     : strategy,
+      ]
+    }
+
+    when:
+    stageForProvider.basicTasks(stage)
+
+    then:
+    def e = thrown(IllegalStateException)
+    e.message.contains("ecs-native")
+    e.message.contains("None")
+
+    where:
+    strategy << ["redblack", "rollingredblack", "highlander"]
+  }
+
+  @Unroll
+  def "ecs-native accepts the None strategy (strategy=#strategy)"() {
+    given:
+    def featuresService = Mock(FeaturesService) {
+      areEntityTagsAvailable() >> false
+    }
+    def dynamicConfigService = Mock(DynamicConfigService)
+    def stageForProvider = new CreateServerGroupStage(
+        featuresService,
+        new RollbackClusterStage(),
+        new DestroyServerGroupStage(dynamicConfigService),
+        dynamicConfigService)
+
+    def stage = stage {
+      context = [
+        "application"  : "myapplication",
+        "account"      : "test",
+        "cloudProvider": "ecs-native",
+        "strategy"     : strategy,
+      ]
+    }
+
+    when:
+    def taskNames = stageForProvider.basicTasks(stage)*.name
+
+    then:
+    notThrown(IllegalStateException)
+    taskNames.contains("waitForEcsNativeServiceDeployment")
+
+    where:
+    strategy << [null, "", "none"]
+  }
+
   Map expectedRollbackContext(Map<String, Object> additionalRollbackContext) {
     return [
       regions                  : ["us-west-1"],
