@@ -37,6 +37,16 @@ class PipelineExecutionImplTest {
   }
 
   @Test
+  void executionsDoNotShareDefaultTriggerParameters() {
+    PipelineExecutionImpl first = new PipelineExecutionImpl(ExecutionType.PIPELINE, "first");
+    PipelineExecutionImpl second = new PipelineExecutionImpl(ExecutionType.PIPELINE, "second");
+
+    first.getTrigger().getParameters().put("tg", "bar");
+
+    assertThat(second.getTrigger().getParameters()).doesNotContainKey("tg");
+  }
+
+  @Test
   void getTotalSizeMissingPipelineSize() {
     // given
     assertThat(pipelineExecution.getSize()).isEmpty();
