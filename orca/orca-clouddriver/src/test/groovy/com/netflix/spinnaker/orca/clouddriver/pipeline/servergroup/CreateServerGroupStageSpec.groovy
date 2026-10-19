@@ -20,8 +20,11 @@ import com.netflix.spinnaker.kork.dynamicconfig.DynamicConfigService
 import com.netflix.spinnaker.orca.api.pipeline.models.ExecutionStatus
 import com.netflix.spinnaker.orca.clouddriver.FeaturesService
 import com.netflix.spinnaker.orca.clouddriver.pipeline.servergroup.strategies.DeployStagePreProcessor
+import com.netflix.spinnaker.orca.clouddriver.pipeline.servergroup.strategies.NoStrategy
+import com.netflix.spinnaker.orca.clouddriver.pipeline.servergroup.strategies.Strategy
 import com.netflix.spinnaker.orca.clouddriver.utils.TrafficGuard
 import com.netflix.spinnaker.orca.api.pipeline.graph.StageDefinitionBuilder
+import com.netflix.spinnaker.orca.api.pipeline.graph.TaskNode
 import com.netflix.spinnaker.orca.pipeline.model.TaskExecutionImpl
 import org.springframework.mock.env.MockEnvironment
 
@@ -251,53 +254,72 @@ class CreateServerGroupStageSpec extends Specification {
     "aws"         | "BLUE_GREEN"       | "POST_TEST_TRAFFIC_SHIFT" || null
   }
 
-  @Unroll
-  def "ecs-native rejects a non-None Spinnaker deployment strategy (strategy=#strategy)"() {
-    given:
-    def featuresService = Mock(FeaturesService) {
-      areEntityTagsAvailable() >> false
-    }
+  /**
+   * A stage wired the way the Spring context would wire it: a NoStrategy fallback plus named
+   * strategy beans, including ones that replace the basic steps (custom, rollingpush) and a
+   * hypothetical plugin-provided strategy. The ecs-native guard has to hold for all of them, so the
+   * tests below drive the full taskGraph rather than basicTasks.
+   */
+  private CreateServerGroupStage ecsNativeGuardStage() {
     def dynamicConfigService = Mock(DynamicConfigService)
     def stageForProvider = new CreateServerGroupStage(
-        featuresService,
+        Mock(FeaturesService) { areEntityTagsAvailable() >> false },
         new RollbackClusterStage(),
         new DestroyServerGroupStage(dynamicConfigService),
         dynamicConfigService)
+    stageForProvider.noStrategy = new NoStrategy()
+    stageForProvider.strategies = [
+      stageForProvider.noStrategy,
+      Stub(Strategy) { getName() >> "redblack" },
+      Stub(Strategy) { getName() >> "rollingredblack" },
+      Stub(Strategy) { getName() >> "highlander" },
+      Stub(Strategy) { getName() >> "custom"; replacesBasicSteps() >> true },
+      Stub(Strategy) { getName() >> "rollingpush"; replacesBasicSteps() >> true },
+      Stub(Strategy) { getName() >> "myPluginStrategy" },
+    ]
+    return stageForProvider
+  }
 
+  @Unroll
+  def "ecs-native rejects a non-None Spinnaker deployment strategy (strategy=#strategy, nestedClusterBlock=#nested)"() {
+    given:
+    def stageForProvider = ecsNativeGuardStage()
+    def baseContext = [
+      "application"  : "myapplication",
+      "account"      : "test",
+      "cloudProvider": "ecs-native",
+    ]
     def stage = stage {
-      context = [
-        "application"  : "myapplication",
-        "account"      : "test",
-        "cloudProvider": "ecs-native",
-        "strategy"     : strategy,
-      ]
+      // Older pipelines nest the deploy parameters under "cluster"; the base class flattens that
+      // block before resolving the strategy, so the guard must see the flattened value.
+      context = nested ? baseContext + ["cluster": ["strategy": strategy]] : baseContext + ["strategy": strategy]
     }
 
     when:
-    stageForProvider.basicTasks(stage)
+    stageForProvider.taskGraph(stage, new TaskNode.Builder(TaskNode.GraphType.FULL))
 
     then:
     def e = thrown(IllegalStateException)
     e.message.contains("ecs-native")
     e.message.contains("None")
+    e.message.contains("'${resolvedName}'")
 
     where:
-    strategy << ["redblack", "rollingredblack", "highlander"]
+    strategy           | nested || resolvedName
+    "redblack"         | false  || "redblack"
+    "RedBlack"         | false  || "redblack"          // resolution is case-insensitive
+    "rollingredblack"  | false  || "rollingredblack"
+    "highlander"       | false  || "highlander"
+    "custom"           | false  || "custom"            // replacesBasicSteps: basicTasks never runs
+    "rollingpush"      | false  || "rollingpush"       // replacesBasicSteps: basicTasks never runs
+    "myPluginStrategy" | false  || "myPluginStrategy"  // not a built-in key
+    "redblack"         | true   || "redblack"          // nested cluster block
   }
 
   @Unroll
   def "ecs-native accepts the None strategy (strategy=#strategy)"() {
     given:
-    def featuresService = Mock(FeaturesService) {
-      areEntityTagsAvailable() >> false
-    }
-    def dynamicConfigService = Mock(DynamicConfigService)
-    def stageForProvider = new CreateServerGroupStage(
-        featuresService,
-        new RollbackClusterStage(),
-        new DestroyServerGroupStage(dynamicConfigService),
-        dynamicConfigService)
-
+    def stageForProvider = ecsNativeGuardStage()
     def stage = stage {
       context = [
         "application"  : "myapplication",
@@ -308,6 +330,7 @@ class CreateServerGroupStageSpec extends Specification {
     }
 
     when:
+    stageForProvider.taskGraph(stage, new TaskNode.Builder(TaskNode.GraphType.FULL))
     def taskNames = stageForProvider.basicTasks(stage)*.name
 
     then:
@@ -315,7 +338,34 @@ class CreateServerGroupStageSpec extends Specification {
     taskNames.contains("waitForEcsNativeServiceDeployment")
 
     where:
-    strategy << [null, "", "none"]
+    strategy << [null, "", "none", "None", "NONE"]
+  }
+
+  @Unroll
+  def "the ecs-native strategy guard leaves other providers alone (cloudProvider=#cloudProvider, strategy=#strategy)"() {
+    given:
+    def stageForProvider = ecsNativeGuardStage()
+    def stage = stage {
+      context = [
+        "application"  : "myapplication",
+        "account"      : "test",
+        "cloudProvider": cloudProvider,
+        "strategy"     : strategy,
+      ]
+    }
+
+    when:
+    stageForProvider.taskGraph(stage, new TaskNode.Builder(TaskNode.GraphType.FULL))
+
+    then:
+    notThrown(IllegalStateException)
+
+    where:
+    cloudProvider | strategy
+    "ecs"         | "redblack"
+    "ecs"         | "custom"
+    "aws"         | "rollingpush"
+    null          | "redblack"
   }
 
   Map expectedRollbackContext(Map<String, Object> additionalRollbackContext) {

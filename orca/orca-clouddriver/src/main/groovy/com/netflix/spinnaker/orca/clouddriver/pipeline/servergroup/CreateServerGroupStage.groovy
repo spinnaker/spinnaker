@@ -30,6 +30,8 @@ import com.netflix.spinnaker.moniker.Moniker
 import com.netflix.spinnaker.orca.clouddriver.FeaturesService
 import com.netflix.spinnaker.orca.clouddriver.pipeline.cluster.RollbackClusterStage
 import com.netflix.spinnaker.orca.clouddriver.pipeline.servergroup.strategies.AbstractDeployStrategyStage
+import com.netflix.spinnaker.orca.clouddriver.pipeline.servergroup.strategies.NoStrategy
+import com.netflix.spinnaker.orca.clouddriver.pipeline.servergroup.strategies.Strategy as DeployStrategy
 import com.netflix.spinnaker.orca.clouddriver.tasks.MonitorKatoTask
 import com.netflix.spinnaker.orca.clouddriver.tasks.instance.WaitForUpInstancesTask
 import com.netflix.spinnaker.orca.clouddriver.tasks.servergroup.AddServerGroupEntityTagsTask
@@ -104,19 +106,6 @@ class CreateServerGroupStage extends AbstractDeployStrategyStage implements Forc
           && stage.context.lifecyclePauseStage) {
         stage.context.ecsNativeWaitForLifecycleGate = true
       }
-      // ecs-native deploys to a single durable ECS service in place and lets ECS's own deployment
-      // strategy (ROLLING / BLUE_GREEN) drive the rollout. A Spinnaker red/black-style strategy
-      // would try to create a new versioned server group and disable/destroy the old one, which
-      // either collides with the fixed service name or runs as inert no-ops. Deck's ecs-native
-      // server group wizard validation rejects any Spinnaker strategy other than "None"; this is the
-      // server-side guard for pipelines that bypass the wizard (hand-edited JSON, API callers).
-      Strategy strategy = Strategy.fromStrategyKey(stage.context.strategy as String)
-      if (strategy != Strategy.NONE) {
-        throw new IllegalStateException(
-          "ecs-native deploys must use the 'None' deployment strategy (ECS's own ROLLING/BLUE_GREEN " +
-            "strategy drives the rollout); got '${strategy.key}'. Remove the Spinnaker deployment strategy " +
-            "from this stage, or use the classic 'ecs' provider for red/black deploys.")
-      }
 
       tasks << TaskNode.task("waitForEcsNativeServiceDeployment", WaitForEcsNativeServiceDeploymentTask)
     }
@@ -128,6 +117,31 @@ class CreateServerGroupStage extends AbstractDeployStrategyStage implements Forc
     }
 
     return tasks
+  }
+
+  /**
+   * ecs-native deploys to a single durable ECS service in place and lets ECS's own deployment
+   * strategy (ROLLING / BLUE_GREEN) drive the rollout. A Spinnaker red/black-style strategy would
+   * try to create a new versioned server group and disable/destroy the old one, which either
+   * collides with the fixed service name or runs as inert no-ops. Deck's ecs-native server group
+   * wizard rejects any Spinnaker strategy other than "None"; this is the server-side guard for
+   * pipelines that bypass the wizard (hand-edited JSON, API callers).
+   *
+   * It lives here rather than in {@link #basicTasks} because the base class skips basicTasks for
+   * strategies that replace them (custom, rollingpush), and because the base class resolves the
+   * strategy case-insensitively after flattening a nested {@code cluster} block; hooking the
+   * resolution itself means every spelling and every graph hook is covered.
+   */
+  @Override
+  protected DeployStrategy getStrategy(StageExecution stage) {
+    DeployStrategy strategy = super.getStrategy(stage)
+    if (ECS_NATIVE_CLOUD_PROVIDER == getCloudProvider(stage) && !(strategy instanceof NoStrategy)) {
+      throw new IllegalStateException(
+        "ecs-native deploys must use the 'None' deployment strategy (ECS's own ROLLING/BLUE_GREEN " +
+          "strategy drives the rollout); got '${strategy.name}'. Remove the Spinnaker deployment strategy " +
+          "from this stage, or use the classic 'ecs' provider for red/black deploys.")
+    }
+    return strategy
   }
 
   @Override
