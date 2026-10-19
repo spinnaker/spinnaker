@@ -32,6 +32,7 @@ import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
 import java.util.concurrent.TimeUnit;
+import java.util.stream.Collectors;
 import javax.annotation.Nonnull;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -322,66 +323,174 @@ public class WaitForEcsNativeServiceDeploymentTask implements OverridableTimeout
     return arn instanceof String && !((String) arn).isBlank() ? (String) arn : null;
   }
 
+  /**
+   * Resolves the ARN for a stage that did not start a deployment itself (Continue, Stop, the
+   * standalone wait).
+   *
+   * <p>The referenced deploy stage is authoritative: when it started exactly one deployment, that
+   * ARN is used even if this stage's own context carries a different one (a stale value from an
+   * earlier run must not redirect a Continue to an old deployment). When the referenced deploy
+   * started several deployments (one {@code createServerGroup} child per cluster), the pipeline
+   * author has to say which one is meant: an {@code ecsNativeExpectedServiceDeploymentArn} set on
+   * this stage that matches one of them wins; anything else fails rather than silently picking one.
+   * With no referenced deploy at all, the stage's own ARN is the only option.
+   */
   private static String resolveReferencedServiceDeploymentArn(StageExecution stage) {
-    return findReferencedDeploymentStage(stage)
-        .map(WaitForEcsNativeServiceDeploymentTask::deploymentArnOf)
-        .orElseGet(() -> deploymentArn(stage.getContext()));
+    String ownArn = deploymentArn(stage.getContext());
+    List<StageExecution> candidates = referencedDeploymentStages(stage);
+    if (candidates.isEmpty()) {
+      return ownArn;
+    }
+    if (candidates.size() == 1) {
+      return deploymentArnOf(candidates.get(0));
+    }
+    if (ownArn != null && candidates.stream().anyMatch(c -> ownArn.equals(deploymentArnOf(c)))) {
+      return ownArn;
+    }
+    throw new IllegalStateException(ambiguousDeploymentMessage(stage, candidates, ownArn));
   }
 
   /**
-   * Finds the deploy stage (or, for a Deck-authored {@code deploy} wrapper, its synthetic {@code
-   * createServerGroup} child) that published the deployment ARN this stage refers to: the explicit
-   * {@code deploymentStageRefId} when set, otherwise the stage's requisite stages.
+   * The single deploy stage this stage's deployment settings and ARN come from, or empty when there
+   * is none or the reference is ambiguous and nothing on this stage disambiguates it. Unlike {@link
+   * #resolveReferencedServiceDeploymentArn} this never throws, so the timeout calculation stays
+   * lenient and the ambiguity surfaces from the task itself with a clear message.
    */
   private static Optional<StageExecution> findReferencedDeploymentStage(StageExecution stage) {
-    Collection<String> references = stage.getRequisiteStageRefIds();
+    List<StageExecution> candidates = referencedDeploymentStages(stage);
+    if (candidates.size() == 1) {
+      return Optional.of(candidates.get(0));
+    }
+    String ownArn = deploymentArn(stage.getContext());
+    return candidates.stream()
+        .filter(c -> ownArn != null && ownArn.equals(deploymentArnOf(c)))
+        .findFirst();
+  }
+
+  /**
+   * The stages that published the deployment ARN(s) this stage refers to, resolved as a unit: the
+   * stage named by {@code deploymentStageRefId} when set, otherwise the nearest upstream deploy.
+   *
+   * <p>A Deck-authored {@code deploy} stage is a wrapper whose synthetic {@code createServerGroup}
+   * children (one per cluster) carry the ARN in their context, written there by MonitorKatoTask.
+   * All ARN-bearing children of the same wrapper are returned together, so a multi-cluster deploy
+   * is visible to the caller as several candidates instead of being collapsed to one of them.
+   *
+   * <p>Without an explicit reference the search walks {@link StageExecution#ancestors()}, which
+   * lists requisite stages, their synthetic children and then their own ancestors, nearest first,
+   * and stops at the first group that carries an ARN. That covers a Manual Judgment (or any other
+   * stage) sitting between the deploy and this stage. {@code findAncestor} is deliberately not
+   * used: it crosses into parent pipeline executions, which must never supply a deployment here.
+   */
+  private static List<StageExecution> referencedDeploymentStages(StageExecution stage) {
     Object explicitReference = stage.getContext().get("deploymentStageRefId");
     if (explicitReference instanceof String && !((String) explicitReference).isBlank()) {
-      references = List.of((String) explicitReference);
+      return stage.getExecution().getStages().stream()
+          .filter(candidate -> explicitReference.equals(candidate.getRefId()))
+          .findFirst()
+          .map(referenced -> deploymentStagesOf(stage, referenced))
+          .orElse(List.of());
     }
-    if (references == null) {
-      return Optional.empty();
-    }
-    for (String reference : references) {
-      Optional<StageExecution> precedingStage =
-          stage.getExecution().getStages().stream()
-              .filter(candidate -> reference.equals(candidate.getRefId()))
-              .findFirst();
-      if (precedingStage.isEmpty()) {
+    for (StageExecution ancestor : stage.ancestors()) {
+      if (ancestor == stage || stage.getId().equals(ancestor.getId())) {
         continue;
       }
-      if (deploymentArnOf(precedingStage.get()) != null) {
-        return precedingStage;
-      }
-      // A Deck-authored "deploy" stage wraps one synthetic createServerGroup child per cluster; the
-      // ARN is written to that child's outputs, not to the wrapper.
-      Optional<StageExecution> child = deploymentChild(stage, precedingStage.get());
-      if (child.isPresent()) {
-        return child;
+      List<StageExecution> group = deploymentStagesOf(stage, ancestor);
+      if (!group.isEmpty()) {
+        return group;
       }
     }
-    return Optional.empty();
+    return List.of();
   }
 
-  private static Optional<StageExecution> deploymentChild(
-      StageExecution stage, StageExecution parent) {
-    return stage.getExecution().getStages().stream()
-        .filter(candidate -> parent.getId().equals(candidate.getParentStageId()))
-        .filter(child -> deploymentArnOf(child) != null)
-        .reduce((first, second) -> second);
+  /**
+   * Resolves one referenced stage as a unit: the stage itself when it carries an ARN, otherwise all
+   * of its synthetic children that do. A synthetic child that is reached directly (it appears in
+   * the ancestor list right after its wrapper) resolves to its whole sibling group so the ambiguity
+   * check sees every cluster of that deploy.
+   */
+  private static List<StageExecution> deploymentStagesOf(
+      StageExecution stage, StageExecution referenced) {
+    StageExecution wrapper = referenced;
+    if (deploymentArnOf(referenced) != null && referenced.getParentStageId() == null) {
+      return List.of(referenced);
+    }
+    if (referenced.getParentStageId() != null) {
+      wrapper =
+          stage.getExecution().getStages().stream()
+              .filter(candidate -> referenced.getParentStageId().equals(candidate.getId()))
+              .findFirst()
+              .orElse(referenced);
+    }
+    String wrapperId = wrapper.getId();
+    List<StageExecution> children =
+        stage.getExecution().getStages().stream()
+            .filter(candidate -> wrapperId.equals(candidate.getParentStageId()))
+            .filter(child -> deploymentArnOf(child) != null)
+            .collect(Collectors.toList());
+    if (children.isEmpty() && deploymentArnOf(referenced) != null) {
+      return List.of(referenced);
+    }
+    return children;
   }
 
+  private static String ambiguousDeploymentMessage(
+      StageExecution stage, List<StageExecution> candidates, String ownArn) {
+    StringBuilder message =
+        new StringBuilder(stage.getType())
+            .append(" stage '")
+            .append(stage.getName())
+            .append("' refers to a deploy that started ")
+            .append(candidates.size())
+            .append(" ecs-native service deployments: ");
+    for (int i = 0; i < candidates.size(); i++) {
+      if (i > 0) {
+        message.append(", ");
+      }
+      message
+          .append('\'')
+          .append(candidates.get(i).getName())
+          .append("' -> ")
+          .append(deploymentArnOf(candidates.get(i)));
+    }
+    message.append(". ");
+    if (ownArn != null) {
+      message
+          .append("Its ")
+          .append(EXPECTED_SERVICE_DEPLOYMENT_ARN)
+          .append(" (")
+          .append(ownArn)
+          .append(") matches none of them. ");
+    }
+    return message
+        .append("Set ")
+        .append(EXPECTED_SERVICE_DEPLOYMENT_ARN)
+        .append(
+            " on this stage to the deployment it should act on, or split the deploy stage per cluster.")
+        .toString();
+  }
+
+  /** The ARN a stage published itself: its outputs first, then its own context. */
   private static String deploymentArnOf(StageExecution stage) {
     String resolved = deploymentArn(stage.getOutputs());
     return resolved != null ? resolved : deploymentArn(stage.getContext());
   }
 
+  /**
+   * Reads the ARN from this map only. A stage's context is a {@code StageContext} whose {@code get}
+   * falls back to ancestor stages' outputs; going through {@code containsKey} first keeps the read
+   * local, so an upstream deployment can never masquerade as this stage's own value.
+   */
   private static String deploymentArn(Map<String, Object> values) {
-    Object expected = values.get(EXPECTED_SERVICE_DEPLOYMENT_ARN);
+    Object expected = ownValue(values, EXPECTED_SERVICE_DEPLOYMENT_ARN);
     if (expected == null) {
-      expected = values.get("expectedServiceDeploymentArn");
+      expected = ownValue(values, "expectedServiceDeploymentArn");
     }
     return expected instanceof String && !((String) expected).isBlank() ? (String) expected : null;
+  }
+
+  private static Object ownValue(Map<String, Object> values, String key) {
+    return values != null && values.containsKey(key) ? values.get(key) : null;
   }
 
   private static String resolveRegion(Map<String, Object> context) {

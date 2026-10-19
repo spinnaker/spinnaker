@@ -171,6 +171,26 @@ class EcsNativeServiceDeploymentStagesSpec extends Specification {
     new EcsNativeContinueServiceDeploymentTask().convert(stage).ecsNativeExpectedServiceDeploymentArn == 'arn:current'
   }
 
+  def 'a Continue after a Manual Judgment resolves the deploy without an explicit reference'() {
+    given: 'deploy -> manualJudgment -> Continue, wired only through requisiteStageRefIds'
+    def pipeline = PipelineExecutionImpl.newPipeline('orca')
+    deployStage(pipeline, 'arn:aws:ecs:us-west-2:123:service-deployment/myapp-main/abc')
+    def judgment = new StageExecutionImpl(pipeline, 'manualJudgment', 'Approve', [:])
+    judgment.refId = 'judge-ref'
+    judgment.requisiteStageRefIds = ['deploy-ref']
+    pipeline.stages << judgment
+    def stage = new StageExecutionImpl(pipeline, 'ecsNativeContinueServiceDeployment', 'Continue', [
+      cloudProvider: 'ecs-native', account: 'test', region: 'us-west-2', serverGroupName: 'myapp-main',
+    ])
+    stage.refId = 'continue-ref'
+    stage.requisiteStageRefIds = ['judge-ref']
+    pipeline.stages << stage
+
+    expect:
+    new EcsNativeContinueServiceDeploymentTask().convert(stage).ecsNativeExpectedServiceDeploymentArn ==
+      'arn:aws:ecs:us-west-2:123:service-deployment/myapp-main/abc'
+  }
+
   def 'a lifecycle stage with neither a deploy-stage reference nor a direct ARN fails closed'() {
     given:
     def pipeline = PipelineExecutionImpl.newPipeline('orca')

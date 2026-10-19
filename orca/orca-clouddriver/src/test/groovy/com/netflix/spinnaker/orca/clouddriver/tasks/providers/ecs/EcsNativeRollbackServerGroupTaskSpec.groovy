@@ -26,6 +26,7 @@ import com.netflix.spinnaker.orca.pipeline.model.PipelineExecutionImpl
 import com.netflix.spinnaker.orca.pipeline.model.StageExecutionImpl
 import spock.lang.Specification
 import spock.lang.Subject
+import spock.lang.Unroll
 
 class EcsNativeRollbackServerGroupTaskSpec extends Specification {
 
@@ -67,5 +68,34 @@ class EcsNativeRollbackServerGroupTaskSpec extends Specification {
     // deploy.server.groups feeds the following waitForEcsNativeServiceDeployment stage.
     result.context.'deploy.server.groups' == ['us-west-2': ['myapp']]
     result.context.serverGroupName == 'myapp'
+  }
+
+  @Unroll
+  def 'fails closed when the target task definition is #description, before anything is submitted'() {
+    given:
+    task.operationsRunner = Mock(OperationsRunner)
+    def context = [
+      cloudProvider  : 'ecs-native',
+      credentials    : 'test',
+      region         : 'us-west-2',
+      serverGroupName: 'myapp',
+    ]
+    if (taskDefinition != null) {
+      context.taskDefinition = taskDefinition
+    }
+    def stage = new StageExecutionImpl(PipelineExecutionImpl.newPipeline('orca'), 'rollbackEcsNativeServerGroup', context)
+
+    when:
+    task.execute(stage)
+
+    then:
+    def e = thrown(IllegalArgumentException)
+    e.message.contains('taskDefinition')
+    0 * task.operationsRunner.run(_)
+
+    where:
+    description | taskDefinition
+    'missing'   | null
+    'blank'     | '   '
   }
 }

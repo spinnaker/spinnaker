@@ -16,7 +16,9 @@
 
 package com.netflix.spinnaker.orca.clouddriver.tasks.providers.ecs;
 
+import com.netflix.spinnaker.orca.api.pipeline.models.StageExecution;
 import com.netflix.spinnaker.orca.clouddriver.tasks.servergroup.AbstractServerGroupTask;
+import java.util.Map;
 import org.springframework.stereotype.Component;
 
 /**
@@ -44,9 +46,29 @@ public class EcsNativeRollbackServerGroupTask extends AbstractServerGroupTask {
   // (as UpdateLaunchConfigStage/Task do) rather than the clouddriver-core constant, which isn't on
   // orca's classpath.
   static final String OPERATION = "updateLaunchConfig";
+  static final String TASK_DEFINITION = "taskDefinition";
 
   @Override
   public String getServerGroupAction() {
     return OPERATION;
+  }
+
+  /**
+   * A rollback without a target revision would be an in-place update to "nothing", which the
+   * clouddriver converter would turn into a redeploy of whatever the description defaults to. Fail
+   * here with a clear message instead.
+   */
+  @Override
+  @SuppressWarnings({"rawtypes", "unchecked"})
+  public Map convert(StageExecution stage) {
+    Map operation = super.convert(stage);
+    Object taskDefinition = operation.get(TASK_DEFINITION);
+    if (!(taskDefinition instanceof String) || ((String) taskDefinition).isBlank()) {
+      throw new IllegalArgumentException(
+          "ecs-native rollback requires "
+              + TASK_DEFINITION
+              + " (the task-definition revision ARN to roll the service back to)");
+    }
+    return operation;
   }
 }

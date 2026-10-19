@@ -28,10 +28,12 @@ import org.springframework.stereotype.Component;
  *
  * <p>It delegates all operation/artifact/image-resolution logic to the classic {@link
  * EcsServerGroupCreator} bean and differs only in the cloud-provider id it reports, so that a
- * deploy/clone stage declaring {@code cloudProvider: "ecs-native"} is routed here by {@code
+ * deploy stage declaring {@code cloudProvider: "ecs-native"} is routed here by {@code
  * CreateServerGroupTask} (and, in turn, to the clouddriver {@code @EcsNativeOperation} converters).
- * The health provider name stays "ecs" because the resulting services are cached and viewed through
- * the existing ECS read stack.
+ * Clone is not part of this path: an {@code ecs-native} service is a single durable service, so
+ * cloning it is rejected by clouddriver ({@code EcsNativeCloneServiceAtomicOperationConverter}) and
+ * Deck does not offer the action. The health provider name stays "ecs" because the resulting
+ * services are cached and viewed through the existing ECS read stack.
  *
  * <p>Composition rather than inheritance: the classic creator is Groovy and resolves some members
  * dynamically against the runtime class, which breaks for private members when subclassed.

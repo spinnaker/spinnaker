@@ -20,6 +20,7 @@ import com.netflix.spectator.api.NoopRegistry
 import com.netflix.spinnaker.kork.core.RetrySupport
 import com.netflix.spinnaker.kork.dynamicconfig.DynamicConfigService
 import com.netflix.spinnaker.kork.retrofit.exceptions.SpinnakerHttpException
+import com.netflix.spinnaker.orca.api.pipeline.SyntheticStageOwner
 import com.netflix.spinnaker.orca.api.pipeline.models.ExecutionStatus
 import com.netflix.spinnaker.orca.clouddriver.EcsNativeService
 import com.netflix.spinnaker.orca.clouddriver.KatoService
@@ -272,6 +273,158 @@ class WaitForEcsNativeServiceDeploymentTaskSpec extends Specification {
 
     expect:
     WaitForEcsNativeServiceDeploymentTask.resolveExpectedServiceDeploymentArn(stage) == 'service-deployment-from-child'
+  }
+
+  /**
+   * A Deck-authored deploy as Orca builds it at runtime: a "deploy" wrapper with one synthetic
+   * createServerGroup child per cluster, each carrying the ARN MonitorKatoTask wrote into its
+   * CONTEXT (not its outputs), optionally followed by a Manual Judgment and then the stage under
+   * test, wired through requisiteStageRefIds only.
+   */
+  private static StageExecutionImpl deployGraph(PipelineExecutionImpl pipeline, Map<String, Map> childContextsByName, boolean viaManualJudgment) {
+    def wrapper = new StageExecutionImpl(pipeline, 'deploy', 'Deploy', [cloudProvider: 'ecs-native'])
+    wrapper.refId = 'deploy-ref'
+    pipeline.stages << wrapper
+    childContextsByName.each { String name, Map context ->
+      def child = new StageExecutionImpl(pipeline, 'createServerGroup', name, context)
+      child.parentStageId = wrapper.id
+      child.syntheticStageOwner = SyntheticStageOwner.STAGE_AFTER
+      pipeline.stages << child
+    }
+    String upstreamRef = 'deploy-ref'
+    if (viaManualJudgment) {
+      def judgment = new StageExecutionImpl(pipeline, 'manualJudgment', 'Approve rollout', [:])
+      judgment.refId = 'judge-ref'
+      judgment.requisiteStageRefIds = ['deploy-ref']
+      pipeline.stages << judgment
+      upstreamRef = 'judge-ref'
+    }
+    def stage = new StageExecutionImpl(pipeline, 'ecsNativeContinueServiceDeployment', 'Continue', [
+      account: 'test', region: 'us-west-2', serverGroupName: 'myapp'])
+    stage.refId = 'continue-ref'
+    stage.requisiteStageRefIds = [upstreamRef]
+    pipeline.stages << stage
+    return stage
+  }
+
+  def 'resolves the ARN through a Manual Judgment between the deploy and the Continue stage'() {
+    given:
+    def stage = deployGraph(PipelineExecutionImpl.newPipeline('orca'),
+      ['Deploy in us-west-2': [ecsNativeExpectedServiceDeploymentArn: 'arn-from-child', bakeTimeInMinutes: 7]], true)
+    def status = new EcsServiceDeploymentStatus(serviceDeploymentArn: 'arn-from-child', status: 'IN_PROGRESS')
+
+    when:
+    def result = task.execute(stage)
+
+    then: 'the deploy child two hops upstream is found and polled'
+    1 * ecsNativeService.getServiceDeploymentStatus('test', 'us-west-2', 'myapp', 'arn-from-child') >> Calls.response(status)
+    result.status == ExecutionStatus.RUNNING
+
+    and: 'the dynamic timeout is derived from that same child'
+    task.getDynamicTimeout(stage) == TimeUnit.HOURS.toMillis(1) + TimeUnit.MINUTES.toMillis(7)
+  }
+
+  def 'a deploy that started several ecs-native deployments is ambiguous without an explicit ARN'() {
+    given:
+    def stage = deployGraph(PipelineExecutionImpl.newPipeline('orca'), [
+      'Deploy in us-west-2'   : [ecsNativeExpectedServiceDeploymentArn: 'arn-west'],
+      'Deploy in eu-central-1': [ecsNativeExpectedServiceDeploymentArn: 'arn-eu'],
+    ], viaManualJudgment)
+
+    when:
+    WaitForEcsNativeServiceDeploymentTask.resolveExpectedServiceDeploymentArn(stage)
+
+    then: 'neither child is picked silently; the message names both'
+    def e = thrown(IllegalStateException)
+    e.message.contains('2 ecs-native service deployments')
+    e.message.contains("'Deploy in us-west-2' -> arn-west")
+    e.message.contains("'Deploy in eu-central-1' -> arn-eu")
+    e.message.contains('ecsNativeExpectedServiceDeploymentArn')
+
+    and: 'the timeout calculation stays lenient instead of failing the stage from inside the handler'
+    task.getDynamicTimeout(stage) == TimeUnit.HOURS.toMillis(1)
+
+    where:
+    viaManualJudgment << [false, true]
+  }
+
+  def 'a multi-cluster deploy whose children publish the ARN in their outputs is still ambiguous'() {
+    given: 'the ARN only in the children outputs, where the ancestor-output fallback used to find it'
+    def pipeline = PipelineExecutionImpl.newPipeline('orca')
+    def stage = deployGraph(pipeline, ['Deploy in us-west-2': [:], 'Deploy in eu-central-1': [:]], false)
+    pipeline.stages.findAll { it.type == 'createServerGroup' }.eachWithIndex { child, i ->
+      child.outputs.ecsNativeExpectedServiceDeploymentArn = "arn-${i}".toString()
+    }
+
+    when:
+    WaitForEcsNativeServiceDeploymentTask.resolveExpectedServiceDeploymentArn(stage)
+
+    then:
+    thrown(IllegalStateException)
+  }
+
+  def 'an explicit ARN on the stage selects one of several deployments'() {
+    given:
+    def stage = deployGraph(PipelineExecutionImpl.newPipeline('orca'), [
+      'Deploy in us-west-2'   : [ecsNativeExpectedServiceDeploymentArn: 'arn-west', bakeTimeInMinutes: 3],
+      'Deploy in eu-central-1': [ecsNativeExpectedServiceDeploymentArn: 'arn-eu', bakeTimeInMinutes: 11],
+    ], true)
+    stage.context.ecsNativeExpectedServiceDeploymentArn = 'arn-eu'
+
+    expect:
+    WaitForEcsNativeServiceDeploymentTask.resolveExpectedServiceDeploymentArn(stage) == 'arn-eu'
+    task.getDynamicTimeout(stage) == TimeUnit.HOURS.toMillis(1) + TimeUnit.MINUTES.toMillis(11)
+  }
+
+  def 'an explicit ARN that matches none of a multi-cluster deploy fails rather than picking one'() {
+    given:
+    def stage = deployGraph(PipelineExecutionImpl.newPipeline('orca'), [
+      'Deploy in us-west-2'   : [ecsNativeExpectedServiceDeploymentArn: 'arn-west'],
+      'Deploy in eu-central-1': [ecsNativeExpectedServiceDeploymentArn: 'arn-eu'],
+    ], false)
+    stage.context.ecsNativeExpectedServiceDeploymentArn = 'arn-from-an-earlier-run'
+
+    when:
+    WaitForEcsNativeServiceDeploymentTask.resolveExpectedServiceDeploymentArn(stage)
+
+    then:
+    def e = thrown(IllegalStateException)
+    e.message.contains('arn-from-an-earlier-run')
+    e.message.contains('matches none')
+  }
+
+  def 'an explicit deploymentStageRefId to a multi-cluster deploy is resolved with the same rules'() {
+    given:
+    def pipeline = PipelineExecutionImpl.newPipeline('orca')
+    def stage = deployGraph(pipeline, [
+      'Deploy in us-west-2'   : [ecsNativeExpectedServiceDeploymentArn: 'arn-west'],
+      'Deploy in eu-central-1': [ecsNativeExpectedServiceDeploymentArn: 'arn-eu'],
+    ], true)
+    // Not connected through requisites at all; only the explicit reference points at the deploy.
+    stage.requisiteStageRefIds = []
+    stage.context.deploymentStageRefId = 'deploy-ref'
+
+    when:
+    WaitForEcsNativeServiceDeploymentTask.resolveExpectedServiceDeploymentArn(stage)
+
+    then:
+    thrown(IllegalStateException)
+
+    when:
+    stage.context.ecsNativeExpectedServiceDeploymentArn = 'arn-west'
+
+    then:
+    WaitForEcsNativeServiceDeploymentTask.resolveExpectedServiceDeploymentArn(stage) == 'arn-west'
+  }
+
+  def 'a single-cluster deploy still wins over a stale ARN on the stage, through a Manual Judgment too'() {
+    given:
+    def stage = deployGraph(PipelineExecutionImpl.newPipeline('orca'),
+      ['Deploy in us-west-2': [ecsNativeExpectedServiceDeploymentArn: 'arn-current']], true)
+    stage.context.ecsNativeExpectedServiceDeploymentArn = 'arn-stale'
+
+    expect:
+    WaitForEcsNativeServiceDeploymentTask.resolveExpectedServiceDeploymentArn(stage) == 'arn-current'
   }
 
   private static Map katoTask(String id, Map metadata) {
