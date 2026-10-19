@@ -43,11 +43,16 @@ dependencies {
   // Explicit: jackson-datatype-jsr310 no longer arrives transitively (aws-java-sdk
   // v1 removal + Boot 4 Jackson line); ECS cache specs register JavaTimeModule.
   testImplementation "com.fasterxml.jackson.datatype:jackson-datatype-jsr310"
+  testImplementation "com.squareup.retrofit2:retrofit-mock"
+  testImplementation "io.spinnaker.kork:kork-core"
+  testImplementation "io.spinnaker.kork:kork-security"
   testImplementation "org.mockito:mockito-core"
   testImplementation "org.objenesis:objenesis"
   testImplementation "org.spockframework:spock-core"
   testImplementation "org.spockframework:spock-spring"
   testImplementation "org.springframework.boot:spring-boot-starter-test"
+  testImplementation "org.springframework.boot:spring-boot-starter-webmvc-test"
+  testImplementation "org.springframework.security:spring-security-test"
   integrationImplementation 'org.springframework.boot:spring-boot-starter-security'
 
   integrationImplementation project(":clouddriver-web")

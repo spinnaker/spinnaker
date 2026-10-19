@@ -17,11 +17,15 @@
 package com.netflix.spinnaker.clouddriver.ecs.deploy.ops
 
 import com.netflix.spinnaker.clouddriver.aws.security.AmazonCredentials
+import com.netflix.spinnaker.clouddriver.ecs.EcsCloudProvider
 import com.netflix.spinnaker.clouddriver.ecs.EcsNativeServiceTag
 import com.netflix.spinnaker.clouddriver.ecs.deploy.description.CreateServerGroupDescription
 import com.netflix.spinnaker.clouddriver.ecs.deploy.description.EcsNativeCreateServerGroupDescription
 import com.netflix.spinnaker.clouddriver.ecs.names.EcsDefaultNamer
+import com.netflix.spinnaker.clouddriver.ecs.names.EcsResource
 import com.netflix.spinnaker.clouddriver.ecs.names.EcsServerGroupName
+import com.netflix.spinnaker.clouddriver.ecs.names.EcsTagNamer
+import com.netflix.spinnaker.clouddriver.names.NamerRegistry
 import com.netflix.spinnaker.clouddriver.model.ServerGroup
 import software.amazon.awssdk.services.ecs.model.CapacityProviderStrategyItem
 import software.amazon.awssdk.services.ecs.model.CreateServiceRequest
@@ -69,6 +73,27 @@ class EcsNativeCreateServerGroupAtomicOperationSpec extends CommonAtomicOperatio
     request.deploymentConfiguration().deploymentCircuitBreaker().enable() == true
     request.deploymentConfiguration().deploymentCircuitBreaker().rollback() == true
     request.tags().any { it.key() == EcsNativeServiceTag.KEY && it.value() == EcsNativeServiceTag.VALUE }
+  }
+
+  def 'a supplied conflicting ownership tag is replaced by exactly one canonical tag and unrelated tags survive'() {
+    given:
+    def description = Mock(EcsNativeCreateServerGroupDescription)
+    description.getApplication() >> 'mygreatapp'
+    description.getStack() >> 'stack1'
+    description.getFreeFormDetails() >> 'details2'
+    description.getTargetGroup() >> null
+    description.getTags() >> [(EcsNativeServiceTag.KEY): 'external', 'team': 'x']
+
+    def operation = new EcsNativeCreateServerGroupAtomicOperation(description)
+
+    when:
+    CreateServiceRequest request = operation.makeServiceRequest('task-def-arn',
+        new EcsServerGroupName('mygreatapp-stack1-details2-v011'),
+        1, new EcsDefaultNamer(), true)
+
+    then:
+    request.tags().findAll { it.key() == EcsNativeServiceTag.KEY }*.value() == [EcsNativeServiceTag.VALUE]
+    request.tags().any { it.key() == 'team' && it.value() == 'x' }
   }
 
   def 'should preserve the original ecs defaults when native fields are unset'() {
@@ -314,7 +339,6 @@ class EcsNativeCreateServerGroupAtomicOperationSpec extends CommonAtomicOperatio
     operation.getAmazonEcsClient() >> ecs
     operation.getCredentials() >> Mock(AmazonCredentials)
     operation.resolveTaskRoleArn(_) >> 'arn:aws:iam::123456789012:role/ecsRole'
-    operation.registerTaskDefinition(ecs, _, _) >> TaskDefinition.builder().taskDefinitionArn('new-task-def-arn').build()
     ecs.describeServices(_ as DescribeServicesRequest) >> DescribeServicesResponse.builder()
         .services(Service.builder().serviceName(serviceName).status('ACTIVE').tags(EcsNativeServiceTag.tag()).build())
         .build()
@@ -325,7 +349,105 @@ class EcsNativeCreateServerGroupAtomicOperationSpec extends CommonAtomicOperatio
     then:
     def e = thrown(IllegalArgumentException)
     e.message.contains('advancedConfiguration')
+    // Rejected from the description alone: no task-definition revision is registered and no
+    // service call is made, so a rejected deploy leaves nothing behind in the account.
+    0 * operation.registerTaskDefinition(_, _, _)
     0 * ecs.updateService(_)
+  }
+
+  def 'rejects a partial blue/green ALB traffic shift on a redeploy before registering a task definition'() {
+    given:
+    // A single traffic-shift field with a rolling strategy and no target group: the description is
+    // inconsistent regardless of strategy, so it must fail before any AWS write.
+    def serviceName = 'mygreatapp-stack1-details2'
+    def description = new EcsNativeCreateServerGroupDescription(
+        application: 'mygreatapp', stack: 'stack1', freeFormDetails: 'details2',
+        ecsClusterName: 'my-cluster',
+        deploymentStrategy: 'ROLLING',
+        alternateTargetGroupArn: 'arn:alternate-target-group',
+        availabilityZones: ['us-west-1': ['us-west-1a']])
+
+    def operation = Spy(EcsNativeCreateServerGroupAtomicOperation, constructorArgs: [description])
+    operation.getAmazonEcsClient() >> ecs
+    operation.getCredentials() >> Mock(AmazonCredentials)
+    operation.resolveTaskRoleArn(_) >> 'arn:aws:iam::123456789012:role/ecsRole'
+    ecs.describeServices(_ as DescribeServicesRequest) >> DescribeServicesResponse.builder()
+        .services(Service.builder().serviceName(serviceName).status('ACTIVE').tags(EcsNativeServiceTag.tag()).build())
+        .build()
+
+    when:
+    operation.operate([])
+
+    then:
+    def e = thrown(IllegalArgumentException)
+    e.message.contains('all be set together')
+    0 * operation.registerTaskDefinition(_, _, _)
+    0 * ecs.updateService(_)
+  }
+
+  def 'rejects a complete blue/green ALB traffic shift with two target-group mappings before registering a task definition'() {
+    given:
+    // ECS allows advancedConfiguration on exactly one load balancer; the count is known from the
+    // description, so the deploy must fail before registerTaskDefinition rather than at AWS.
+    def serviceName = 'mygreatapp-stack1-details2'
+    def description = new EcsNativeCreateServerGroupDescription(
+        application: 'mygreatapp', stack: 'stack1', freeFormDetails: 'details2',
+        ecsClusterName: 'my-cluster',
+        deploymentStrategy: 'BLUE_GREEN',
+        targetGroupMappings: [
+          new CreateServerGroupDescription.TargetGroupProperties(containerName: 'web', containerPort: 80, targetGroup: 'tg-one'),
+          new CreateServerGroupDescription.TargetGroupProperties(containerName: 'web', containerPort: 8080, targetGroup: 'tg-two'),
+        ] as Set,
+        alternateTargetGroupArn: 'arn:alternate-target-group',
+        productionListenerRule: 'arn:production-rule',
+        testListenerRule: 'arn:test-rule',
+        blueGreenRoleArn: 'arn:aws:iam::123456789012:role/ecsBlueGreenRole',
+        availabilityZones: ['us-west-1': ['us-west-1a']])
+
+    def operation = Spy(EcsNativeCreateServerGroupAtomicOperation, constructorArgs: [description])
+    operation.getAmazonEcsClient() >> ecs
+    operation.getCredentials() >> Mock(AmazonCredentials)
+    operation.resolveTaskRoleArn(_) >> 'arn:aws:iam::123456789012:role/ecsRole'
+    ecs.describeServices(_ as DescribeServicesRequest) >> DescribeServicesResponse.builder()
+        .services(Service.builder().serviceName(serviceName).status('ACTIVE').tags(EcsNativeServiceTag.tag()).build())
+        .build()
+
+    when:
+    operation.operate([])
+
+    then:
+    def e = thrown(IllegalArgumentException)
+    e.message.contains('exactly one target-group mapping')
+    e.message.contains('found 2')
+    0 * operation.registerTaskDefinition(_, _, _)
+    0 * ecs.updateService(_)
+  }
+
+  def 'refuses the initial create before registering a task definition when service tagging is disabled'() {
+    given:
+    // No existing service -> create path. The ownership tag needs account-level service tagging;
+    // without it the deploy must stop before CreateService and before registerTaskDefinition.
+    def description = new EcsNativeCreateServerGroupDescription(
+        application: 'mygreatapp', stack: 'stack1', freeFormDetails: 'details2',
+        account: 'test-account',
+        ecsClusterName: 'my-cluster',
+        availabilityZones: ['us-west-1': ['us-west-1a']])
+
+    def operation = Spy(EcsNativeCreateServerGroupAtomicOperation, constructorArgs: [description])
+    operation.getAmazonEcsClient() >> ecs
+    operation.getCredentials() >> Mock(AmazonCredentials)
+    operation.isTaggingEnabled(ecs) >> false
+    ecs.describeServices(_ as DescribeServicesRequest) >> DescribeServicesResponse.builder().build()
+
+    when:
+    operation.operate([])
+
+    then:
+    def e = thrown(IllegalArgumentException)
+    e.message.contains('serviceLongArnFormat')
+    e.message.contains('test-account')
+    0 * operation.registerTaskDefinition(_, _, _)
+    0 * ecs.createService(_)
   }
 
   def 'allows native blue/green lifecycle controls to reach UpdateService'() {
@@ -533,16 +655,19 @@ class EcsNativeCreateServerGroupAtomicOperationSpec extends CommonAtomicOperatio
     operation.getAmazonEcsClient() >> ecs
     operation.getCredentials() >> Mock(AmazonCredentials)
     operation.resolveTaskRoleArn(_) >> 'arn:aws:iam::123456789012:role/ecsRole'
-    operation.registerTaskDefinition(ecs, _, _) >> TaskDefinition.builder().taskDefinitionArn('new-task-def-arn').build()
-    // The fixed-name service already exists -> in-place update.
-    ecs.describeServices(_ as DescribeServicesRequest) >> DescribeServicesResponse.builder()
-        .services(Service.builder().serviceName(serviceName).status('ACTIVE').tags(EcsNativeServiceTag.tag()).build())
-        .build()
 
     when:
     def result = operation.operate([])
 
-    then:
+    then: 'the fixed-name service is looked up first (it already exists -> in-place update)'
+    1 * ecs.describeServices(_ as DescribeServicesRequest) >> DescribeServicesResponse.builder()
+        .services(Service.builder().serviceName(serviceName).status('ACTIVE').tags(EcsNativeServiceTag.tag()).build())
+        .build()
+
+    then: 'only then is a task-definition revision registered'
+    1 * operation.registerTaskDefinition(ecs, _, _) >> TaskDefinition.builder().taskDefinitionArn('new-task-def-arn').build()
+
+    then: 'and the service is rolled in place with it'
     1 * ecs.updateService({ UpdateServiceRequest req ->
       req.cluster() == 'my-cluster' &&
           req.service() == serviceName &&
@@ -766,5 +891,53 @@ class EcsNativeCreateServerGroupAtomicOperationSpec extends CommonAtomicOperatio
     updateRequest.desiredCount() == 3
     1 * operation.registerAutoScalingGroup(_, _, _) >> 'service/my-cluster/mygreatapp-stack1-details2'
   }
-}
 
+  def 'targets the existing fixed-name service when the ecs tags naming strategy is active'() {
+    given:
+    def serviceName = 'mygreatapp-stack1-details2'
+    def account = 'tag-namer-account'
+    NamerRegistry.lookup()
+        .withProvider(EcsCloudProvider.ID)
+        .withAccount(account)
+        .setNamer(EcsResource, new EcsTagNamer())
+    def description = new EcsNativeCreateServerGroupDescription(
+        application: 'mygreatapp', stack: 'stack1', freeFormDetails: 'details2',
+        account: account,
+        ecsClusterName: 'my-cluster',
+        availabilityZones: ['us-west-1': ['us-west-1a']],
+        useSourceCapacity: false,
+        capacity: new ServerGroup.Capacity(1, 2, 3))
+    def operation = Spy(EcsNativeCreateServerGroupAtomicOperation, constructorArgs: [description])
+    def updateRequest
+    operation.getAmazonEcsClient() >> ecs
+    operation.getCredentials() >> Mock(AmazonCredentials)
+    operation.resolveTaskRoleArn(_) >> 'arn:aws:iam::123456789012:role/ecsRole'
+    operation.registerTaskDefinition(ecs, _, _) >> TaskDefinition.builder().taskDefinitionArn('new-task-def-arn').build()
+    operation.registerAutoScalingGroup(_, _, _) >> 'service/my-cluster/mygreatapp-stack1-details2'
+    ecs.describeServices(_ as DescribeServicesRequest) >> DescribeServicesResponse.builder()
+        .services(Service.builder()
+            .serviceName(serviceName).status('ACTIVE').tags(EcsNativeServiceTag.tag()).desiredCount(7).build())
+        .build()
+    ecs.updateService(_ as UpdateServiceRequest) >> { UpdateServiceRequest request ->
+      updateRequest = request
+      UpdateServiceResponse.builder()
+          .service(Service.builder().serviceName(serviceName).taskDefinition('new-task-def-arn').build())
+          .build()
+    }
+
+    when:
+    operation.operate([])
+
+    then:
+    // Unlike the default (Frigga) namer, EcsTagNamer does not rewrite the service name, so the
+    // request must already carry the fixed name rather than the versioned "family-family" form.
+    updateRequest.service() == serviceName
+    updateRequest.desiredCount() == 3
+
+    cleanup:
+    NamerRegistry.lookup()
+        .withProvider(EcsCloudProvider.ID)
+        .withAccount(account)
+        .setNamer(EcsResource, new EcsDefaultNamer())
+  }
+}

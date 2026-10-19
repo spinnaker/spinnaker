@@ -17,18 +17,21 @@
 package com.netflix.spinnaker.clouddriver.ecs.deploy.validators;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import com.netflix.spinnaker.clouddriver.deploy.DescriptionValidationErrors;
 import com.netflix.spinnaker.clouddriver.deploy.DescriptionValidator;
 import com.netflix.spinnaker.clouddriver.ecs.EcsNativeCloudProvider;
+import com.netflix.spinnaker.clouddriver.ecs.EcsNativeServiceTag;
 import com.netflix.spinnaker.clouddriver.ecs.deploy.description.EcsNativeCreateServerGroupDescription;
 import com.netflix.spinnaker.clouddriver.ecs.deploy.description.EcsNativeUpdateServiceDescription;
 import com.netflix.spinnaker.clouddriver.orchestration.AnnotationsBasedAtomicOperationsRegistry;
 import com.netflix.spinnaker.clouddriver.orchestration.AtomicOperations;
 import java.util.Collections;
 import java.util.List;
+import java.util.Map;
 import java.util.stream.Collectors;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
@@ -120,6 +123,41 @@ class EcsNativeDescriptionValidationTest {
   }
 
   @Test
+  void nativeCreateRequiresTrafficShiftConfigForBlueGreenOnLoadBalancedDeploy() {
+    // BLUE_GREEN plus a target group but none of the four ALB fields: ECS would reject the deploy
+    // once the request reaches it, so the validator must fail it before the operation runs (and
+    // before a task-definition revision is registered).
+    EcsNativeCreateServerGroupDescription description = new EcsNativeCreateServerGroupDescription();
+    description.setDeploymentStrategy("blue_green");
+    description.setTargetGroup("arn:target-group");
+
+    assertEquals(
+        "createServerGroupDescription.alternateTargetGroupArn.required",
+        codeFor(validate(createValidator(), description), "alternateTargetGroupArn"));
+  }
+
+  @Test
+  void nativeCreateAcceptsBlueGreenWithoutLoadBalancerAndWithoutTrafficShiftConfig() {
+    EcsNativeCreateServerGroupDescription description = new EcsNativeCreateServerGroupDescription();
+    description.setDeploymentStrategy("BLUE_GREEN");
+
+    assertFalse(errorFields(createValidator(), description).contains("alternateTargetGroupArn"));
+  }
+
+  @Test
+  void nativeCreateAcceptsBlueGreenWithCompleteTrafficShiftConfig() {
+    EcsNativeCreateServerGroupDescription description = new EcsNativeCreateServerGroupDescription();
+    description.setDeploymentStrategy("BLUE_GREEN");
+    description.setTargetGroup("arn:target-group");
+    description.setAlternateTargetGroupArn("arn:alternate-target-group");
+    description.setProductionListenerRule("arn:production-rule");
+    description.setTestListenerRule("arn:test-rule");
+    description.setBlueGreenRoleArn("arn:aws:iam::123456789012:role/ecsBlueGreenRole");
+
+    assertFalse(errorFields(createValidator(), description).contains("alternateTargetGroupArn"));
+  }
+
+  @Test
   void nativeCreateRejectsPartialTrafficShiftConfigOnLoadBalancedDeploy() {
     EcsNativeCreateServerGroupDescription description = new EcsNativeCreateServerGroupDescription();
     description.setTargetGroup("arn:target-group");
@@ -128,6 +166,16 @@ class EcsNativeDescriptionValidationTest {
     assertEquals(
         "createServerGroupDescription.alternateTargetGroupArn.incomplete",
         codeFor(validate(createValidator(), description), "alternateTargetGroupArn"));
+  }
+
+  @Test
+  void nativeCreateDoesNotRejectTheReservedOwnershipTag() {
+    // The native create operation strips and re-adds the canonical ownership tag itself, so a
+    // caller-supplied value is normalized rather than rejected (unlike a classic deploy).
+    EcsNativeCreateServerGroupDescription description = new EcsNativeCreateServerGroupDescription();
+    description.setTags(Map.of(EcsNativeServiceTag.KEY, "something-else"));
+
+    assertFalse(errorFields(createValidator(), description).contains("tags"));
   }
 
   private static void populateInvalidSettings(EcsNativeCreateServerGroupDescription description) {

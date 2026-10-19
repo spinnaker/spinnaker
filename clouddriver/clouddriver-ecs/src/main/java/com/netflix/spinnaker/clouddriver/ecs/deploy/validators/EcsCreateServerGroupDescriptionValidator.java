@@ -19,9 +19,11 @@ package com.netflix.spinnaker.clouddriver.ecs.deploy.validators;
 import com.google.common.collect.Sets;
 import com.netflix.spinnaker.clouddriver.deploy.ValidationErrors;
 import com.netflix.spinnaker.clouddriver.ecs.EcsNativeOperation;
+import com.netflix.spinnaker.clouddriver.ecs.EcsNativeServiceTag;
 import com.netflix.spinnaker.clouddriver.ecs.EcsOperation;
 import com.netflix.spinnaker.clouddriver.ecs.deploy.description.CreateServerGroupDescription;
 import com.netflix.spinnaker.clouddriver.ecs.deploy.description.EcsNativeCreateServerGroupDescription;
+import com.netflix.spinnaker.clouddriver.ecs.deploy.description.EcsNativeDeploymentSettings;
 import com.netflix.spinnaker.clouddriver.orchestration.AtomicOperations;
 import com.netflix.spinnaker.moniker.Moniker;
 import java.util.Collections;
@@ -213,6 +215,12 @@ public class EcsCreateServerGroupDescriptionValidator extends CommonValidator {
     if (createServerGroupDescription instanceof EcsNativeCreateServerGroupDescription) {
       validateNativeFields(
           (EcsNativeCreateServerGroupDescription) createServerGroupDescription, errors);
+    } else if (createServerGroupDescription.getTags() != null
+        && createServerGroupDescription.getTags().containsKey(EcsNativeServiceTag.KEY)) {
+      // The ownership tag marks a service as managed by ecs-native. A classic deploy must not be
+      // able to set it, otherwise it could create (or tag) a service that ecs-native would then
+      // treat as its own. The native path strips and re-adds the canonical tag itself.
+      rejectValue(errors, "tags", "reserved");
     }
   }
 
@@ -220,7 +228,14 @@ public class EcsCreateServerGroupDescriptionValidator extends CommonValidator {
       EcsNativeCreateServerGroupDescription description, ValidationErrors errors) {
     validateNativeDeploymentSettings(description, errors);
 
-    if (description.declaresLoadBalancer()
+    if (EcsNativeDeploymentSettings.isBlueGreen(description.getDeploymentStrategy())
+        && description.declaresLoadBalancer()
+        && !description.hasAllTrafficShiftFields()) {
+      // ECS rejects a BLUE_GREEN deploy whose load balancers carry no advancedConfiguration, so
+      // the four traffic-shift fields are mandatory as soon as the strategy is blue/green and a
+      // target group is attached. Catching it here fails the request before the operation runs.
+      rejectValue(errors, "alternateTargetGroupArn", "required");
+    } else if (description.declaresLoadBalancer()
         && description.hasAnyTrafficShiftField()
         && !description.hasAllTrafficShiftFields()) {
       rejectValue(errors, "alternateTargetGroupArn", "incomplete");

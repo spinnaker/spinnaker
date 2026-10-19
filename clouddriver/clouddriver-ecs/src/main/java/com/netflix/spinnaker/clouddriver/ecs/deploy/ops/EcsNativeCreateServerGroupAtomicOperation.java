@@ -84,6 +84,12 @@ public class EcsNativeCreateServerGroupAtomicOperation extends CreateServerGroup
     // strategy is omitted, the service lookup below is required to validate the stored strategy.
     EcsNativeDeploymentConfiguration.validateLifecycleSupport(nativeDescription());
 
+    // Every misconfiguration that can be decided from the description alone is rejected here,
+    // before any AWS call. Doing it later (where the request is built) would leave an orphan
+    // task-definition revision behind for each rejected deploy, because registration happens
+    // first on both the create and the in-place update path.
+    EcsNativeBlueGreenConfiguration.validateDescription(nativeDescription());
+
     // ecs-native is always in-place: there is one durable ECS service per cluster, named by the
     // fixed (unversioned) family name. If that service already exists, roll it via a native
     // UpdateService; only the first-ever deploy (service absent) falls through to CreateService.
@@ -93,8 +99,24 @@ public class EcsNativeCreateServerGroupAtomicOperation extends CreateServerGroup
           nativeDescription(), existingService.deploymentConfiguration());
       return updateExistingServiceInPlace(existingService);
     }
+
+    // The ownership tag is what makes a service ecs-native, so the account must support service
+    // tagging. The shared create path only learns that while building the CreateService request,
+    // after the task definition is registered; check it up front instead (one extra
+    // ListAccountSettings call, only on the first deploy of a service).
+    if (!isTaggingEnabled(getAmazonEcsClient())) {
+      throw taggingRequired();
+    }
     updateTaskStatus("No existing ecs-native service found; creating the initial durable service.");
     return super.operate(priorOutputs);
+  }
+
+  private IllegalArgumentException taggingRequired() {
+    return new IllegalArgumentException(
+        "ecs-native requires ECS service tagging, but serviceLongArnFormat and taskLongArnFormat "
+            + "are not both enabled for account "
+            + description.getAccount()
+            + ". Enable both account settings before creating an ecs-native service.");
   }
 
   /**
@@ -179,14 +201,12 @@ public class EcsNativeCreateServerGroupAtomicOperation extends CreateServerGroup
     String taskRoleArn = resolveTaskRoleArn(getCredentials());
 
     // Register a new revision under the same family as the existing service.
-    EcsServerGroupName serverGroupName = new EcsServerGroupName(existingServiceName);
+    EcsServerGroupName serverGroupName = buildEcsServerGroupName(ecs, null);
     TaskDefinition taskDefinition = registerTaskDefinition(ecs, taskRoleArn, serverGroupName);
 
     UpdateServiceRequest.Builder requestBuilder =
         buildAuthoritativeUpdateRequest(
             ecs, taskDefinition.taskDefinitionArn(), serverGroupName, existingService);
-
-    EcsNativeBlueGreenConfiguration.validateInPlaceConfig(nativeDescription());
 
     DeploymentConfiguration deploymentConfiguration =
         EcsNativeDeploymentConfiguration.forUpdate(
@@ -365,11 +385,8 @@ public class EcsNativeCreateServerGroupAtomicOperation extends CreateServerGroup
     }
 
     if (!taggingEnabled) {
-      throw new IllegalArgumentException(
-          "ecs-native requires ECS service tagging, but serviceLongArnFormat and taskLongArnFormat "
-              + "are not both enabled for account "
-              + description.getAccount()
-              + ". Enable both account settings before creating an ecs-native service.");
+      // Normally unreachable: operate() checks the account setting before registering anything.
+      throw taggingRequired();
     }
 
     CreateServiceRequest serviceRequest = requestBuilder.build();
