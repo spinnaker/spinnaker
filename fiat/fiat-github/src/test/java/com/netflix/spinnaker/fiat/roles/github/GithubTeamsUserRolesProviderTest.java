@@ -19,16 +19,24 @@ package com.netflix.spinnaker.fiat.roles.github;
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.*;
 
+import com.google.common.base.Ticker;
+import com.google.common.util.concurrent.MoreExecutors;
 import com.netflix.spinnaker.fiat.model.resources.Role;
 import com.netflix.spinnaker.fiat.permissions.ExternalUser;
+import com.netflix.spinnaker.fiat.providers.ProviderException;
 import java.io.IOException;
+import java.time.Duration;
 import java.util.*;
+import java.util.concurrent.atomic.AtomicInteger;
+import java.util.concurrent.atomic.AtomicLong;
+import java.util.stream.Collectors;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.kohsuke.github.*;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.mockito.stubbing.Answer;
 
 /**
  * Unit tests for GithubTeamsUserRolesProvider using hub4j/github-api library.
@@ -74,12 +82,15 @@ class GithubTeamsUserRolesProviderTest {
 
   @Mock private PagedIterable<GHUser> orgMembers;
 
+  @Mock private PagedIterable<GHTeam> orgTeams;
+
   @Mock private PagedIterable<GHUser> team1Members;
 
   @Mock private PagedIterable<GHUser> team2Members;
 
   private GithubTeamsUserRolesProvider provider;
   private GitHubProperties gitHubProperties;
+  private final FakeTicker ticker = new FakeTicker();
 
   @BeforeEach
   void setUp() throws IOException {
@@ -91,6 +102,9 @@ class GithubTeamsUserRolesProviderTest {
 
     provider.setGitHubClient(gitHubClient);
     provider.setGitHubProperties(gitHubProperties);
+    // Cache time moves only when a test advances it, and refreshes run inline on the reading thread
+    provider.setTicker(ticker);
+    provider.setExecutor(MoreExecutors.newDirectExecutorService());
 
     // Use lenient() for stubbings that aren't used in all tests
     lenient().when(gitHubClient.getOrganization("test-org")).thenReturn(organization);
@@ -105,10 +119,8 @@ class GithubTeamsUserRolesProviderTest {
     lenient().when(team2.getName()).thenReturn("Team 2");
     lenient().when(team2.getSlug()).thenReturn("team-2");
 
-    Map<String, GHTeam> teams = new HashMap<>();
-    teams.put("team-1", team1);
-    teams.put("team-2", team2);
-    lenient().when(organization.getTeams()).thenReturn(teams);
+    lenient().when(organization.listTeams()).thenReturn(orgTeams);
+    lenient().when(orgTeams.toList()).thenReturn(Arrays.asList(team1, team2));
   }
 
   @Test
@@ -321,7 +333,7 @@ class GithubTeamsUserRolesProviderTest {
     when(orgMembers.toList()).thenReturn(Arrays.asList(user1));
 
     // Mock no teams
-    when(organization.getTeams()).thenReturn(Collections.emptyMap());
+    when(orgTeams.toList()).thenReturn(Collections.emptyList());
 
     ExternalUser externalUser = new ExternalUser().setId("user1");
 
@@ -426,9 +438,8 @@ class GithubTeamsUserRolesProviderTest {
         assertThrows(RuntimeException.class, () -> provider.loadRoles(externalUser));
 
     assertTrue(
-        exception.getMessage().contains("Critical GitHub API error"),
-        "Exception message should contain 'Critical GitHub API error', but was: "
-            + exception.getMessage());
+        exception.getMessage().contains("GitHub API error"),
+        "Exception message should contain 'GitHub API error', but was: " + exception.getMessage());
   }
 
   @Test
@@ -447,9 +458,8 @@ class GithubTeamsUserRolesProviderTest {
         assertThrows(RuntimeException.class, () -> provider.loadRoles(externalUser));
 
     assertTrue(
-        exception.getMessage().contains("Critical GitHub API error"),
-        "Exception message should contain 'Critical GitHub API error', but was: "
-            + exception.getMessage());
+        exception.getMessage().contains("GitHub API error"),
+        "Exception message should contain 'GitHub API error', but was: " + exception.getMessage());
   }
 
   @Test
@@ -469,13 +479,12 @@ class GithubTeamsUserRolesProviderTest {
         assertThrows(RuntimeException.class, () -> provider.loadRoles(externalUser));
 
     assertTrue(
-        exception.getMessage().contains("Critical GitHub API error"),
-        "Exception message should contain 'Critical GitHub API error', but was: "
-            + exception.getMessage());
+        exception.getMessage().contains("GitHub API error"),
+        "Exception message should contain 'GitHub API error', but was: " + exception.getMessage());
   }
 
   @Test
-  void shouldReturnEmptySetForOtherIOExceptions() throws Exception {
+  void shouldThrowExceptionForOtherIOExceptions() throws Exception {
     // Given
     provider.afterPropertiesSet();
     provider.invalidateAll(); // Clear cache to force fresh fetch
@@ -485,12 +494,148 @@ class GithubTeamsUserRolesProviderTest {
 
     ExternalUser externalUser = new ExternalUser().setId("user1");
 
-    // When
-    List<Role> roles = provider.loadRoles(externalUser);
+    // When & Then - Should throw rather than report the user as having no roles
+    ProviderException exception =
+        assertThrows(ProviderException.class, () -> provider.loadRoles(externalUser));
 
-    // Then - Should return empty roles for non-critical errors
-    assertNotNull(roles);
-    assertTrue(roles.isEmpty());
+    assertTrue(
+        exception.getMessage().contains("GitHub API error"),
+        "Exception message should contain 'GitHub API error', but was: " + exception.getMessage());
+  }
+
+  @Test
+  void shouldKeepCachedMembersWhenRefreshFails() throws Exception {
+    AtomicInteger fetches = new AtomicInteger();
+    when(organization.listMembers()).thenReturn(orgMembers);
+    when(orgMembers.toList()).thenAnswer(succeedOnceThenFail(Arrays.asList(user1), fetches));
+    stubTeamMembers();
+
+    assertCachedRolesSurviveFailedRefreshes(fetches);
+  }
+
+  @Test
+  void shouldKeepCachedTeamsWhenRefreshFails() throws Exception {
+    AtomicInteger fetches = new AtomicInteger();
+    stubOrgMembers();
+    when(orgTeams.toList()).thenAnswer(succeedOnceThenFail(Arrays.asList(team1, team2), fetches));
+    stubTeamMembers();
+
+    assertCachedRolesSurviveFailedRefreshes(fetches);
+  }
+
+  @Test
+  void shouldKeepCachedValuesWhenRefreshFailsWithUncheckedException() throws Exception {
+    // e.g. hub4j's GHException, which its paged iterators throw when a page fails to load
+    AtomicInteger fetches = new AtomicInteger();
+    when(organization.listMembers()).thenReturn(orgMembers);
+    when(orgMembers.toList())
+        .thenAnswer(
+            succeedOnceThenFail(
+                Arrays.asList(user1),
+                fetches,
+                new GHException(
+                    "Failed to retrieve members", new IOException("Connection reset"))));
+    stubTeamMembers();
+
+    assertCachedRolesSurviveFailedRefreshes(fetches);
+  }
+
+  @Test
+  void shouldKeepCachedTeamMembershipsWhenRefreshFails() throws Exception {
+    AtomicInteger fetches = new AtomicInteger();
+    stubOrgMembers();
+    when(organization.getTeamBySlug("team-1")).thenReturn(team1);
+    when(team1.listMembers()).thenReturn(team1Members);
+    when(team1Members.toList()).thenAnswer(succeedOnceThenFail(Arrays.asList(user1), fetches));
+    when(organization.getTeamBySlug("team-2")).thenReturn(team2);
+    when(team2.listMembers()).thenReturn(team2Members);
+    when(team2Members.toList()).thenReturn(Collections.emptyList());
+
+    assertCachedRolesSurviveFailedRefreshes(fetches);
+  }
+
+  /**
+   * Loads user1's roles (org + team-1), then lets the refresh interval elapse twice while the
+   * stubbed GitHub call fails. The cached roles must keep being served, and a failed refresh must
+   * not be retried until the next interval.
+   *
+   * @param fetches the number of calls made to the stubbed GitHub call that fails after its first
+   *     call
+   */
+  private void assertCachedRolesSurviveFailedRefreshes(AtomicInteger fetches) throws Exception {
+    provider.afterPropertiesSet();
+    ExternalUser externalUser = new ExternalUser().setId("user1");
+    Duration refreshInterval =
+        Duration.ofSeconds(gitHubProperties.getMembershipCacheTTLSeconds() + 1);
+
+    assertOrgAndTeam1Roles(provider.loadRoles(externalUser));
+    assertEquals(1, fetches.get());
+
+    // The interval elapses, so the next read refreshes; the refresh fails and keeps the old value
+    ticker.advance(refreshInterval);
+    assertOrgAndTeam1Roles(provider.loadRoles(externalUser));
+    assertEquals(2, fetches.get());
+
+    // The failed refresh counts as a fresh write, so reads within the interval make no new calls
+    assertOrgAndTeam1Roles(provider.loadRoles(externalUser));
+    assertEquals(2, fetches.get());
+
+    // After another interval the refresh is retried, and the old value is still served
+    ticker.advance(refreshInterval);
+    assertOrgAndTeam1Roles(provider.loadRoles(externalUser));
+    assertEquals(3, fetches.get());
+  }
+
+  private static void assertOrgAndTeam1Roles(List<Role> roles) {
+    assertEquals(
+        Set.of("test-org", "team-1"),
+        roles.stream().map(Role::getName).collect(Collectors.toSet()));
+  }
+
+  /** Returns {@code value} on the first call and fails like a network error on every later one. */
+  private static <T> Answer<T> succeedOnceThenFail(T value, AtomicInteger calls) {
+    return succeedOnceThenFail(value, calls, new IOException("Connection reset"));
+  }
+
+  /** Returns {@code value} on the first call and throws {@code failure} on every later one. */
+  private static <T> Answer<T> succeedOnceThenFail(
+      T value, AtomicInteger calls, Throwable failure) {
+    return invocation -> {
+      if (calls.incrementAndGet() == 1) {
+        return value;
+      }
+      throw failure;
+    };
+  }
+
+  /** Stubs the org members as user1 only. */
+  private void stubOrgMembers() throws IOException {
+    when(organization.listMembers()).thenReturn(orgMembers);
+    when(orgMembers.toList()).thenReturn(Arrays.asList(user1));
+  }
+
+  /** Stubs team-1 with user1 as its only member, and team-2 with no members. */
+  private void stubTeamMembers() throws IOException {
+    when(organization.getTeamBySlug("team-1")).thenReturn(team1);
+    when(team1.listMembers()).thenReturn(team1Members);
+    when(team1Members.toList()).thenReturn(Arrays.asList(user1));
+    when(organization.getTeamBySlug("team-2")).thenReturn(team2);
+    when(team2.listMembers()).thenReturn(team2Members);
+    when(team2Members.toList()).thenReturn(Collections.emptyList());
+  }
+
+  /** A cache clock that moves only when a test advances it. */
+  private static class FakeTicker extends Ticker {
+    private final AtomicLong nanos = new AtomicLong();
+
+    @Override
+    public long read() {
+      return nanos.get();
+    }
+
+    void advance(Duration duration) {
+      nanos.addAndGet(duration.toNanos());
+    }
   }
 
   @Test
@@ -535,10 +680,10 @@ class GithubTeamsUserRolesProviderTest {
     when(organization.getTeamBySlug("team-1")).thenReturn(team1);
     when(team1.listMembers()).thenThrow(new IOException("401 Unauthorized"));
 
-    // Need to setup team-2 as well
-    when(organization.getTeamBySlug("team-2")).thenReturn(team2);
-    when(team2.listMembers()).thenReturn(team2Members);
-    when(team2Members.toList()).thenReturn(Collections.emptyList());
+    // team-2 is only fetched if it is checked before team-1 fails
+    lenient().when(organization.getTeamBySlug("team-2")).thenReturn(team2);
+    lenient().when(team2.listMembers()).thenReturn(team2Members);
+    lenient().when(team2Members.toList()).thenReturn(Collections.emptyList());
 
     ExternalUser externalUser = new ExternalUser().setId("user1");
 
@@ -547,50 +692,8 @@ class GithubTeamsUserRolesProviderTest {
         assertThrows(RuntimeException.class, () -> provider.loadRoles(externalUser));
 
     assertTrue(
-        exception.getMessage().contains("Critical GitHub API error"),
-        "Exception message should contain 'Critical GitHub API error', but was: "
-            + exception.getMessage());
-  }
-
-  @Test
-  void shouldPreserveCachedValuesOnTransientErrors() throws Exception {
-    // Given
-    provider.afterPropertiesSet();
-
-    // First call succeeds - populate cache
-    when(organization.listMembers()).thenReturn(orgMembers);
-    when(orgMembers.toList()).thenReturn(Arrays.asList(user1));
-    when(organization.getTeamBySlug("team-1")).thenReturn(team1);
-    when(team1.listMembers()).thenReturn(team1Members);
-    when(team1Members.toList()).thenReturn(Arrays.asList(user1));
-    when(organization.getTeamBySlug("team-2")).thenReturn(team2);
-    when(team2.listMembers()).thenReturn(team2Members);
-    when(team2Members.toList()).thenReturn(Collections.emptyList());
-
-    ExternalUser externalUser = new ExternalUser().setId("user1");
-
-    // First call - cache population
-    List<Role> rolesBeforeError = provider.loadRoles(externalUser);
-    assertNotNull(rolesBeforeError);
-    assertEquals(2, rolesBeforeError.size()); // org + team1
-
-    // Verify that RuntimeException is thrown for 401 errors on fresh fetch
-    // This ensures cache can preserve stale values when underlying fetch fails
-    reset(gitHubClient);
-    lenient().when(gitHubClient.getOrganization("test-org")).thenReturn(organization);
-    provider.invalidateAll(); // Clear cache to force fresh fetch
-    when(gitHubClient.getOrganization("test-org")).thenThrow(new IOException("401 Unauthorized"));
-
-    // When - Attempt to fetch with error (bypassing cache)
-    // In production, Guava cache would catch this exception and serve stale data
-    RuntimeException exception =
-        assertThrows(RuntimeException.class, () -> provider.loadRoles(externalUser));
-
-    // Then - Exception is thrown, allowing cache layer to preserve old values
-    assertTrue(
-        exception.getMessage().contains("Critical GitHub API error"),
-        "Exception message should contain 'Critical GitHub API error', but was: "
-            + exception.getMessage());
+        exception.getMessage().contains("GitHub API error"),
+        "Exception message should contain 'GitHub API error', but was: " + exception.getMessage());
   }
 
   @Test
@@ -650,7 +753,7 @@ class GithubTeamsUserRolesProviderTest {
               () -> provider.loadRoles(externalUser),
               "Failed for error message: " + errorMessage);
 
-      assertTrue(runtimeException.getMessage().contains("Critical GitHub API error"));
+      assertTrue(runtimeException.getMessage().contains("GitHub API error"));
     }
   }
 
@@ -683,7 +786,7 @@ class GithubTeamsUserRolesProviderTest {
               () -> provider.loadRoles(externalUser),
               "Failed for error message: " + errorMessage);
 
-      assertTrue(runtimeException.getMessage().contains("Critical GitHub API error"));
+      assertTrue(runtimeException.getMessage().contains("GitHub API error"));
     }
   }
 
@@ -719,7 +822,7 @@ class GithubTeamsUserRolesProviderTest {
               () -> provider.loadRoles(externalUser),
               "Failed for error message: " + errorMessage);
 
-      assertTrue(runtimeException.getMessage().contains("Critical GitHub API error"));
+      assertTrue(runtimeException.getMessage().contains("GitHub API error"));
     }
   }
 }
