@@ -15,9 +15,10 @@
  */
 
 package com.netflix.spinnaker.clouddriver.aws
-import com.fasterxml.jackson.databind.ObjectMapper
 import com.netflix.spinnaker.clouddriver.aws.security.NetflixAmazonCredentials
 import groovy.transform.CompileStatic
+import tools.jackson.databind.DeserializationFeature
+import tools.jackson.databind.json.JsonMapper
 
 @CompileStatic
 class TestCredential {
@@ -32,6 +33,11 @@ class TestCredential {
                           [name: 'us-west-1', availabilityZones: ["us-west-1a", "us-west-1b"]]],
         ] + params
 
-        new ObjectMapper().convertValue(credJson, NetflixAmazonCredentials)
+        // Jackson 3 fails on nulls for primitives by default (Jackson 2 was lenient);
+        // test credentials omit optional booleans, so restore lenient behavior here.
+        JsonMapper.builder()
+            .disable(DeserializationFeature.FAIL_ON_NULL_FOR_PRIMITIVES)
+            .build()
+            .convertValue(credJson, NetflixAmazonCredentials)
     }
 }

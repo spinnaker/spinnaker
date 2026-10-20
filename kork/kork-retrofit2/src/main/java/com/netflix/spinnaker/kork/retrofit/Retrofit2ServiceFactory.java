@@ -17,18 +17,18 @@
 
 package com.netflix.spinnaker.kork.retrofit;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
 import com.netflix.spinnaker.config.ServiceEndpoint;
 import com.netflix.spinnaker.config.okhttp3.OkHttpClientProvider;
 import com.netflix.spinnaker.kork.annotations.NonnullByDefault;
 import com.netflix.spinnaker.kork.client.ServiceClientFactory;
+import com.netflix.spinnaker.kork.retrofit.util.CustomConverterFactory;
 import com.netflix.spinnaker.kork.retrofit.util.RetrofitUtils;
 import java.util.List;
 import okhttp3.Interceptor;
 import okhttp3.OkHttpClient;
 import retrofit2.Converter;
 import retrofit2.Retrofit;
-import retrofit2.converter.jackson.JacksonConverterFactory;
+import tools.jackson.databind.ObjectMapper;
 
 @NonnullByDefault
 public class Retrofit2ServiceFactory implements ServiceClientFactory {
@@ -55,7 +55,7 @@ public class Retrofit2ServiceFactory implements ServiceClientFactory {
     return new Retrofit.Builder()
         .baseUrl(RetrofitUtils.getBaseUrl(serviceEndpoint.getBaseUrl()))
         .client(okHttpClient)
-        .addConverterFactory(JacksonConverterFactory.create(objectMapper))
+        .addConverterFactory(CustomConverterFactory.createWithJsonStringResponses(objectMapper))
         .addCallAdapterFactory(ErrorHandlingExecutorCallAdapterFactory.getInstance())
         .build()
         .create(type);

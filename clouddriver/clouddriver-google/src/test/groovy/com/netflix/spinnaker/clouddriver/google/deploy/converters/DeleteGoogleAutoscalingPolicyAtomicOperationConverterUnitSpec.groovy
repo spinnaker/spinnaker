@@ -16,20 +16,21 @@
 
 package com.netflix.spinnaker.clouddriver.google.deploy.converters
 
-import com.fasterxml.jackson.databind.ObjectMapper
+import tools.jackson.databind.ObjectMapper
 import com.netflix.spinnaker.clouddriver.google.deploy.description.DeleteGoogleAutoscalingPolicyDescription
 import com.netflix.spinnaker.clouddriver.google.deploy.ops.DeleteGoogleAutoscalingPolicyAtomicOperation
 import com.netflix.spinnaker.clouddriver.google.security.GoogleNamedAccountCredentials
 import com.netflix.spinnaker.credentials.CredentialsRepository
 import spock.lang.Shared
 import spock.lang.Specification
+import tools.jackson.databind.json.JsonMapper
 
 class DeleteGoogleAutoscalingPolicyAtomicOperationConverterUnitSpec extends Specification {
   private static final SERVER_GROUP_NAME = "my-server-group"
   private static final ACCOUNT_NAME = "my-account-name"
 
   @Shared
-  ObjectMapper mapper = new ObjectMapper()
+  ObjectMapper mapper = JsonMapper.builder().build()
 
   @Shared
   DeleteGoogleAutoscalingPolicyAtomicOperationConverter converter

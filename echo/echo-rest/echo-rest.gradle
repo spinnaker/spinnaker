@@ -15,7 +15,6 @@
  */
 
 dependencies {
-  implementation "com.squareup.retrofit2:converter-jackson"
   implementation project(':echo-model')
   implementation project(':echo-api')
   implementation project(':echo-core')
@@ -24,7 +23,7 @@ dependencies {
 
   implementation "io.spinnaker.kork:kork-retrofit"
   implementation "io.spinnaker.kork:kork-web"
-  implementation "com.fasterxml.jackson.core:jackson-databind"
+  implementation "tools.jackson.core:jackson-databind"
   implementation "jakarta.validation:jakarta.validation-api"
   implementation "org.apache.commons:commons-lang3"
 

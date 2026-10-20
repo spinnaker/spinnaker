@@ -16,8 +16,6 @@
 
 package com.netflix.spinnaker.orca.keel.task
 
-import com.fasterxml.jackson.databind.ObjectMapper
-import com.fasterxml.jackson.module.kotlin.convertValue
 import com.netflix.spinnaker.kork.annotations.VisibleForTesting
 import com.netflix.spinnaker.kork.retrofit.Retrofit2SyncCall
 import com.netflix.spinnaker.kork.retrofit.exceptions.SpinnakerHttpException
@@ -41,6 +39,8 @@ import java.time.Instant
 import java.util.concurrent.TimeUnit
 import org.slf4j.LoggerFactory
 import org.springframework.stereotype.Component
+import tools.jackson.core.type.TypeReference
+import tools.jackson.databind.ObjectMapper
 
 /**
  * Task that retrieves a Managed Delivery config manifest from source control via igor, then publishes it to keel,
@@ -56,7 +56,10 @@ constructor(
   private val log = LoggerFactory.getLogger(javaClass)
 
   override fun execute(stage: StageExecution): TaskResult {
-    val context = objectMapper.convertValue<ImportDeliveryConfigContext>(stage.context)
+    val context = objectMapper.convertValue(
+      stage.context,
+      object : TypeReference<ImportDeliveryConfigContext>() {}
+    )
     val trigger = stage.execution.trigger
     val user = trigger.user ?: "anonymous"
     val manifestLocation = processDeliveryConfigLocation(trigger, context)
@@ -67,7 +70,10 @@ constructor(
         context.repoType, context.projectKey, context.repositorySlug, context.directory, context.manifest, context.ref
       )
 
-      val metadata: MutableMap<String, Any?> = objectMapper.convertValue(deliveryConfig.getOrDefault("metadata", emptyMap<String, Any?>()))
+       val metadata: MutableMap<String, Any?> = objectMapper.convertValue(
+         deliveryConfig.getOrDefault("metadata", emptyMap<String, Any?>()),
+         object : TypeReference<MutableMap<String, Any?>>() {}
+       )
       val gitMetadata = processTriggerGitInfo(trigger, stage)
       if (gitMetadata != null) {
         metadata["gitMetadata"] = gitMetadata
@@ -88,7 +94,10 @@ constructor(
 
   private fun processTriggerGitInfo(trigger: Trigger, stage: StageExecution): GitMetadata? {
     try {
-      val gitTrigger: TriggerWithGitData = objectMapper.convertValue(trigger)
+      val gitTrigger: TriggerWithGitData = objectMapper.convertValue(
+        trigger,
+        object : TypeReference<TriggerWithGitData>() {}
+      )
       with(gitTrigger) {
         return GitMetadata(
           commit = hash,
@@ -298,7 +307,10 @@ constructor(
   )
 
   fun ImportDeliveryConfigContext.incrementAttempt() = this.also { attempt += 1 }
-  fun ImportDeliveryConfigContext.toMap() = objectMapper.convertValue<Map<String, Any?>>(this)
+  fun ImportDeliveryConfigContext.toMap() = objectMapper.convertValue(
+    this,
+    object : TypeReference<Map<String, Any?>>() {}
+  )
 
   data class SpringHttpError(
     val error: String,

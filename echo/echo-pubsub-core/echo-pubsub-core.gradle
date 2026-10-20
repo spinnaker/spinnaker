@@ -24,6 +24,7 @@ dependencies {
   implementation "redis.clients:jedis"
   implementation "io.reactivex.rxjava3:rxjava"
   implementation "com.hubspot.jinjava:jinjava"
+  implementation "tools.jackson.core:jackson-databind"
   implementation "io.spinnaker.kork:kork-core"
   implementation "io.spinnaker.kork:kork-jedis"
   implementation "io.spinnaker.kork:kork-artifacts"

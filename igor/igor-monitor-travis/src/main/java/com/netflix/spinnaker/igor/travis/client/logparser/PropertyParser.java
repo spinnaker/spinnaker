@@ -17,14 +17,16 @@
 
 package com.netflix.spinnaker.igor.travis.client.logparser;
 
-import com.fasterxml.jackson.core.type.TypeReference;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import java.io.IOException;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.regex.Pattern;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import tools.jackson.core.JacksonException;
+import tools.jackson.core.type.TypeReference;
+import tools.jackson.databind.ObjectMapper;
+import tools.jackson.databind.json.JsonMapper;
 
 public class PropertyParser {
 
@@ -52,11 +54,11 @@ public class PropertyParser {
       if (MAGIC_JSON_SEARCH_PATTERN.matcher(line).find()) {
         log.debug("Identified Spinnaker JSON properties magic string: " + line);
         final String jsonContent = line.replaceFirst(MAGIC_JSON_SEARCH_STRING, "");
-        ObjectMapper objectMapper = new ObjectMapper();
+        ObjectMapper objectMapper = JsonMapper.builder().build();
         try {
           map.putAll(
               objectMapper.readValue(jsonContent, new TypeReference<Map<String, Object>>() {}));
-        } catch (IOException e) {
+        } catch (JacksonException e) {
           log.error(
               "Unable to parse content from {}. Content is: {}",
               MAGIC_JSON_SEARCH_STRING,

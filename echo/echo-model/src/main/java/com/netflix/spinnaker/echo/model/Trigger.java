@@ -17,8 +17,6 @@
 package com.netflix.spinnaker.echo.model;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
-import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
-import com.fasterxml.jackson.databind.annotation.JsonPOJOBuilder;
 import java.util.List;
 import java.util.Map;
 import java.util.UUID;
@@ -29,6 +27,8 @@ import lombok.Value;
 import lombok.With;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import tools.jackson.databind.annotation.JsonDeserialize;
+import tools.jackson.databind.annotation.JsonPOJOBuilder;
 
 /**
  * the values we include in toString are meaningful, they are hashed and become part of

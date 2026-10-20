@@ -53,7 +53,7 @@ class AmazonLoadBalancerCachingAgentSpec extends Specification {
       }
     }
 
-    new AmazonLoadBalancerCachingAgent(cloud, client, creds, region, AwsObjectMapperFactory.createConfigured().registerModule(new AwsSdkV2Module()), Spectator.globalRegistry(), filter)
+    new AmazonLoadBalancerCachingAgent(cloud, client, creds, region, AwsObjectMapperFactory.createConfigured().rebuild().addModule(new AwsSdkV2Module()).build(), Spectator.globalRegistry(), filter)
   }
 
   void "should filter by tags"() {

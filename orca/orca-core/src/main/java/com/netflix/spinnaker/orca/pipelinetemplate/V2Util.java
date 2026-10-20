@@ -16,7 +16,6 @@
 
 package com.netflix.spinnaker.orca.pipelinetemplate;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
 import com.netflix.spinnaker.orca.api.pipeline.ExecutionPreprocessor;
 import com.netflix.spinnaker.orca.api.pipeline.models.PipelineExecution;
 import com.netflix.spinnaker.orca.exceptions.PipelineTemplateValidationException;
@@ -28,6 +27,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
 import lombok.extern.slf4j.Slf4j;
+import tools.jackson.databind.json.JsonMapper;
 
 @Slf4j
 public class V2Util {
@@ -81,7 +81,8 @@ public class V2Util {
       PipelineExecution.PipelineSource source = new PipelineExecution.PipelineSource();
       source.setType("templatedPipeline");
       source.setVersion("v2");
-      spelEvaluatedPipeline.put("source", new ObjectMapper().convertValue(source, Map.class));
+      spelEvaluatedPipeline.put(
+          "source", JsonMapper.builder().build().convertValue(source, Map.class));
     }
 
     return spelEvaluatedPipeline;

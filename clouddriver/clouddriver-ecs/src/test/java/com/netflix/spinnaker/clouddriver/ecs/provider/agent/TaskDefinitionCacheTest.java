@@ -24,22 +24,23 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.when;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
 import com.netflix.spinnaker.cats.agent.CacheResult;
 import com.netflix.spinnaker.cats.cache.CacheData;
 import com.netflix.spinnaker.cats.cache.DefaultCacheData;
-import com.netflix.spinnaker.clouddriver.aws.jackson.AwsSdkV2Module;
 import com.netflix.spinnaker.clouddriver.ecs.cache.Keys;
 import com.netflix.spinnaker.clouddriver.ecs.cache.client.TaskDefinitionCacheClient;
+import com.netflix.spinnaker.kork.aws.jackson.AwsSdkV2Module;
 import java.util.*;
 import org.junit.jupiter.api.Test;
 import software.amazon.awssdk.services.ecs.model.DescribeTaskDefinitionRequest;
 import software.amazon.awssdk.services.ecs.model.DescribeTaskDefinitionResponse;
 import software.amazon.awssdk.services.ecs.model.TaskDefinition;
 import spock.lang.Subject;
+import tools.jackson.databind.ObjectMapper;
+import tools.jackson.databind.json.JsonMapper;
 
 public class TaskDefinitionCacheTest extends CommonCachingAgent {
-  private final ObjectMapper mapper = new ObjectMapper().registerModule(new AwsSdkV2Module());
+  private final ObjectMapper mapper = JsonMapper.builder().addModule(new AwsSdkV2Module()).build();
 
   @Subject
   private final TaskDefinitionCachingAgent agent =

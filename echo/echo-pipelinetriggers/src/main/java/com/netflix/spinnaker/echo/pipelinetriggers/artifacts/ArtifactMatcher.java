@@ -16,8 +16,6 @@
 
 package com.netflix.spinnaker.echo.pipelinetriggers.artifacts;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import com.jayway.jsonpath.*;
 import com.netflix.spinnaker.echo.model.Trigger;
 import com.netflix.spinnaker.kork.artifacts.model.Artifact;
@@ -28,11 +26,14 @@ import java.util.regex.Pattern;
 import java.util.regex.PatternSyntaxException;
 import java.util.stream.Collectors;
 import lombok.extern.slf4j.Slf4j;
+import tools.jackson.core.JacksonException;
+import tools.jackson.databind.ObjectMapper;
+import tools.jackson.databind.json.JsonMapper;
 
 @Slf4j
 public class ArtifactMatcher {
 
-  private static final ObjectMapper mapper = new ObjectMapper();
+  private static final ObjectMapper mapper = JsonMapper.builder().build();
   private static final Configuration conf =
       Configuration.defaultConfiguration().setOptions(Option.SUPPRESS_EXCEPTIONS);
 
@@ -112,7 +113,7 @@ public class ArtifactMatcher {
     String json;
     try {
       json = mapper.writeValueAsString(payload);
-    } catch (JsonProcessingException e) {
+    } catch (JacksonException e) {
       throw new RuntimeException(e);
     }
     DocumentContext documentContext = JsonPath.using(conf).parse(json);

@@ -16,7 +16,6 @@
 
 package com.netflix.spinnaker.orca.clouddriver.tasks.providers.cf;
 
-import com.fasterxml.jackson.databind.annotation.JsonPOJOBuilder;
 import com.netflix.spinnaker.kork.artifacts.model.Artifact;
 import com.netflix.spinnaker.orca.clouddriver.tasks.manifest.ManifestContext;
 import java.util.Collections;
@@ -25,6 +24,7 @@ import java.util.Map;
 import javax.annotation.Nullable;
 import lombok.Builder;
 import lombok.Value;
+import tools.jackson.databind.annotation.JsonPOJOBuilder;
 
 @Builder(builderClassName = "CloudFoundryManifestContextBuilder", toBuilder = true)
 @Value

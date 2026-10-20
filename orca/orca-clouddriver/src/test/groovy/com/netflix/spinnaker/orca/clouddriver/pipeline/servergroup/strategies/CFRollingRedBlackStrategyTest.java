@@ -22,7 +22,6 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.*;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
 import com.netflix.spinnaker.kork.artifacts.model.Artifact;
 import com.netflix.spinnaker.kork.dynamicconfig.SpringDynamicConfigService;
 import com.netflix.spinnaker.moniker.Moniker;
@@ -53,6 +52,8 @@ import org.junit.jupiter.api.Test;
 import org.springframework.core.env.Environment;
 import org.springframework.mock.env.MockEnvironment;
 import retrofit2.mock.Calls;
+import tools.jackson.databind.ObjectMapper;
+import tools.jackson.databind.json.JsonMapper;
 
 class CFRollingRedBlackStrategyTest {
   private CFRollingRedBlackStrategy strategy;
@@ -65,7 +66,7 @@ class CFRollingRedBlackStrategyTest {
   private TargetServerGroupResolver targetServerGroupResolver =
       mock(TargetServerGroupResolver.class);
   private final ResizeStrategy.Capacity zeroCapacity = new ResizeStrategy.Capacity(0, 0, 0);
-  private final ObjectMapper objectMapper = new ObjectMapper();
+  private final ObjectMapper objectMapper = JsonMapper.builder().build();
 
   {
     springDynamicConfigService.setEnvironment(env);

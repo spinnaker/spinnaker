@@ -16,8 +16,9 @@
 
 package com.netflix.spinnaker.orca.clouddriver.tasks.loadbalancer
 
-import com.fasterxml.jackson.core.type.TypeReference
-import com.fasterxml.jackson.databind.ObjectMapper
+import tools.jackson.core.type.TypeReference
+import tools.jackson.databind.ObjectMapper
+import tools.jackson.databind.json.JsonMapper
 import com.netflix.spinnaker.orca.clouddriver.KatoService
 import com.netflix.spinnaker.orca.clouddriver.model.TaskId
 import spock.lang.Specification
@@ -26,7 +27,7 @@ import spock.lang.Subject
 import static com.netflix.spinnaker.orca.test.model.ExecutionBuilder.stage
 
 class UpsertLoadBalancerTaskSpec extends Specification {
-  def mapper = new ObjectMapper()
+  def mapper = JsonMapper.builder().build()
   def kato = Mock(KatoService)
 
   @Subject

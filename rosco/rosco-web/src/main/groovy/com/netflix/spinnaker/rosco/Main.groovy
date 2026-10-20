@@ -16,7 +16,6 @@
 
 package com.netflix.spinnaker.rosco
 
-import com.fasterxml.jackson.databind.ObjectMapper
 import com.netflix.spinnaker.kork.artifacts.artifactstore.ArtifactStore
 import com.netflix.spinnaker.kork.artifacts.artifactstore.ArtifactStoreConfiguration
 import com.netflix.spinnaker.kork.artifacts.artifactstore.EmbeddedArtifactSerializer
@@ -42,12 +41,15 @@ import org.springframework.boot.web.servlet.support.SpringBootServletInitializer
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.ComponentScan
 import org.springframework.context.annotation.Configuration
+import org.springframework.context.annotation.Primary
 import org.springframework.context.annotation.Import
 import org.springframework.context.annotation.Primary
-import org.springframework.http.converter.json.Jackson2ObjectMapperBuilder
 import org.springframework.scheduling.annotation.EnableScheduling
 import org.springframework.web.filter.ShallowEtagHeaderFilter
 import com.netflix.spinnaker.kork.boot.DefaultPropertiesBuilder
+import tools.jackson.databind.ObjectMapper
+import tools.jackson.databind.json.JsonMapper
+import tools.jackson.databind.module.SimpleModule
 
 import jakarta.servlet.Filter
 
@@ -106,9 +108,14 @@ class Main extends SpringBootServletInitializer {
   }
 
   @Bean
-  ObjectMapper objectMapper(Jackson2ObjectMapperBuilder builder, EmbeddedArtifactSerializer serializer) {
-    return builder.createXmlMapper(false)
-            .serializerByType(Artifact.class, serializer)
-            .build();
+  @Primary
+  JsonMapper objectMapper(JsonMapper.Builder builder, EmbeddedArtifactSerializer serializer) {
+    // Declared as JsonMapper (not ObjectMapper) so Boot 4's JacksonAutoConfiguration backs off
+    // its own jacksonJsonMapper bean, and @Primary so Boot's message-converter customizers (which
+    // inject JsonMapper by type) resolve to this artifact-aware mapper instead of failing on
+    // multiple candidates.
+    SimpleModule module = new SimpleModule("artifact")
+    module.addSerializer(Artifact.class, serializer)
+    return builder.addModule(module).build()
   }
 }

@@ -16,7 +16,7 @@
 
 package com.netflix.spinnaker.orca.kato.tasks
 
-import com.fasterxml.jackson.databind.ObjectMapper
+import tools.jackson.databind.ObjectMapper
 import com.netflix.spinnaker.kork.retrofit.exceptions.SpinnakerHttpException
 import com.netflix.spinnaker.orca.clouddriver.OortService
 import com.netflix.spinnaker.orca.clouddriver.tasks.servergroup.WaitForDestroyedServerGroupTask
@@ -26,7 +26,7 @@ import okhttp3.MediaType
 import okhttp3.ResponseBody
 import retrofit2.Response
 import retrofit2.Retrofit
-import retrofit2.converter.jackson.JacksonConverterFactory
+import com.netflix.spinnaker.kork.retrofit.util.CustomConverterFactory
 import retrofit2.mock.Calls
 import spock.lang.Shared
 import spock.lang.Specification
@@ -34,6 +34,7 @@ import spock.lang.Subject
 import spock.lang.Unroll
 import static com.netflix.spinnaker.orca.api.pipeline.models.ExecutionStatus.RUNNING
 import static com.netflix.spinnaker.orca.api.pipeline.models.ExecutionStatus.SUCCEEDED
+import tools.jackson.databind.json.JsonMapper
 
 class WaitForDestroyedAsgTaskSpec extends Specification {
 
@@ -41,7 +42,7 @@ class WaitForDestroyedAsgTaskSpec extends Specification {
   def task = new WaitForDestroyedServerGroupTask()
 
   @Shared
-  def objectMapper = new ObjectMapper()
+  def objectMapper = JsonMapper.builder().build()
 
   @Unroll
   void "should return RUNNING status if ASG does not exist, adding remaining instances to context"() {
@@ -155,7 +156,7 @@ class WaitForDestroyedAsgTaskSpec extends Specification {
     Retrofit retrofit =
         new Retrofit.Builder()
             .baseUrl(url)
-            .addConverterFactory(JacksonConverterFactory.create())
+            .addConverterFactory(CustomConverterFactory.create())
             .build()
 
     return new SpinnakerHttpException(retrofit2Response, retrofit)

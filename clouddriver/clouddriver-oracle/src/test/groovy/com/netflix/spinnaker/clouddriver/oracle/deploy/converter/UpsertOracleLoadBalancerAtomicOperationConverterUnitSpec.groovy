@@ -8,18 +8,19 @@
  */
 package com.netflix.spinnaker.clouddriver.oracle.deploy.converter
 
-import com.fasterxml.jackson.databind.ObjectMapper
+import tools.jackson.databind.ObjectMapper
 import com.netflix.spinnaker.clouddriver.oracle.deploy.description.UpsertLoadBalancerDescription
 import com.netflix.spinnaker.clouddriver.oracle.deploy.op.UpsertOracleLoadBalancerAtomicOperation
 import com.netflix.spinnaker.clouddriver.oracle.security.OracleNamedAccountCredentials
 import com.netflix.spinnaker.clouddriver.security.AccountCredentialsProvider
 import spock.lang.Shared
 import spock.lang.Specification
+import tools.jackson.databind.json.JsonMapper
 
 class UpsertOracleLoadBalancerAtomicOperationConverterUnitSpec extends Specification {
 
   @Shared
-  ObjectMapper mapper = new ObjectMapper()
+  ObjectMapper mapper = JsonMapper.builder().build()
 
   @Shared
   UpsertOracleLoadBalancerAtomicOperationConverter converter

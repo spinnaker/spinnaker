@@ -16,7 +16,7 @@
 
 package com.netflix.spinnaker.orca.clouddriver.tasks.cluster
 
-import com.fasterxml.jackson.databind.ObjectMapper
+import tools.jackson.databind.ObjectMapper
 import com.netflix.spinnaker.kork.core.RetrySupport
 import com.netflix.spinnaker.moniker.Moniker
 import com.netflix.spinnaker.orca.clouddriver.CloudDriverService
@@ -31,9 +31,10 @@ import spock.lang.Unroll
 
 import static DetermineRollbackCandidatesTask.determineTargetHealthyRollbackPercentage
 import static com.netflix.spinnaker.orca.test.model.ExecutionBuilder.stage
+import tools.jackson.databind.json.JsonMapper
 
 class DetermineRollbackCandidatesTaskSpec extends Specification {
-  def objectMapper = new ObjectMapper()
+  def objectMapper = JsonMapper.builder().build()
   def featuresService = Mock(FeaturesService)
   def dynamicRollback = new RollbackConfigurationProperties.DynamicRollback(
       enabled: true

@@ -1,6 +1,6 @@
 package com.netflix.spinnaker.keel.upsert
 
-import com.fasterxml.jackson.databind.ObjectMapper
+import tools.jackson.databind.ObjectMapper
 import com.netflix.spinnaker.config.PersistenceRetryConfig
 import com.netflix.spinnaker.keel.core.api.SubmittedDeliveryConfig
 import com.netflix.spinnaker.keel.exceptions.ValidationException

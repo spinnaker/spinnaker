@@ -16,7 +16,6 @@
 
 package com.netflix.spinnaker.echo.config;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
 import com.netflix.spinnaker.config.OkHttp3ClientConfiguration;
 import com.netflix.spinnaker.echo.microsoftteams.MicrosoftTeamsService;
 import com.netflix.spinnaker.echo.microsoftteams.MicrosoftTeamsTemplateEngine;
@@ -26,6 +25,7 @@ import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import tools.jackson.databind.ObjectMapper;
 
 @Configuration
 @ConditionalOnProperty("microsoftteams.enabled")

@@ -17,12 +17,12 @@
 
 package com.netflix.spinnaker.clouddriver.kubernetes.caching.agent;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
 import com.netflix.spectator.api.Registry;
 import com.netflix.spinnaker.clouddriver.kubernetes.config.KubernetesConfigurationProperties;
 import com.netflix.spinnaker.clouddriver.kubernetes.description.KubernetesSpinnakerKindMap;
 import com.netflix.spinnaker.clouddriver.kubernetes.security.KubernetesNamedAccountCredentials;
 import org.springframework.lang.Nullable;
+import tools.jackson.databind.ObjectMapper;
 
 @FunctionalInterface
 public interface KubernetesCachingAgentFactory {

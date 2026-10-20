@@ -37,11 +37,11 @@ import com.netflix.spinnaker.clouddriver.eureka.deploy.ops.EurekaSupportConfigur
 import com.netflix.spinnaker.clouddriver.model.ClusterProvider
 import com.netflix.spinnaker.clouddriver.model.ServerGroup
 import com.netflix.spinnaker.kork.retrofit.exceptions.SpinnakerHttpException
+import com.netflix.spinnaker.kork.retrofit.util.CustomConverterFactory
 import okhttp3.MediaType
 import okhttp3.Response
 import okhttp3.ResponseBody
 import retrofit2.Retrofit
-import retrofit2.converter.jackson.JacksonConverterFactory
 import retrofit2.mock.Calls
 import spock.lang.Specification
 import spock.lang.Subject
@@ -515,7 +515,7 @@ class DiscoverySupportUnitSpec extends Specification {
     Retrofit retrofit =
       new Retrofit.Builder()
         .baseUrl(url)
-        .addConverterFactory(JacksonConverterFactory.create())
+         .addConverterFactory(CustomConverterFactory.create())
         .build();
 
     return new SpinnakerHttpException(retrofit2Response, retrofit);

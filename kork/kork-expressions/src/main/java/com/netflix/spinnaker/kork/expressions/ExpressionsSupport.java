@@ -18,7 +18,6 @@ package com.netflix.spinnaker.kork.expressions;
 
 import static java.lang.String.format;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
 import com.netflix.spinnaker.kork.api.expressions.ExpressionFunctionProvider;
 import com.netflix.spinnaker.kork.artifacts.artifactstore.ArtifactStore;
 import com.netflix.spinnaker.kork.artifacts.artifactstore.entities.EntityPropertyAccessor;
@@ -29,6 +28,7 @@ import com.netflix.spinnaker.kork.expressions.allowlist.MapPropertyAccessor;
 import com.netflix.spinnaker.kork.expressions.allowlist.ReturnTypeRestrictor;
 import com.netflix.spinnaker.kork.expressions.config.ExpressionProperties;
 import com.netflix.spinnaker.kork.expressions.functions.ArtifactStoreFunctions;
+import com.netflix.spinnaker.kork.jackson.Jackson2AccessorNamingStrategy;
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -51,6 +51,10 @@ import org.pf4j.PluginManager;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.expression.spel.support.StandardEvaluationContext;
+import tools.jackson.databind.MapperFeature;
+import tools.jackson.databind.ObjectMapper;
+import tools.jackson.databind.cfg.DateTimeFeature;
+import tools.jackson.databind.json.JsonMapper;
 
 /**
  * Provides utility support for SpEL integration Supports registering SpEL functions, ACLs to
@@ -58,7 +62,16 @@ import org.springframework.expression.spel.support.StandardEvaluationContext;
  */
 public class ExpressionsSupport {
   private static final Logger LOGGER = LoggerFactory.getLogger(ExpressionsSupport.class);
-  private static final ObjectMapper mapper = new ObjectMapper();
+  // toJson output is visible to pipeline authors, so keep Jackson 2's property order and Date
+  // format.
+  private static final ObjectMapper mapper =
+      JsonMapper.builder()
+          .accessorNaming(new Jackson2AccessorNamingStrategy.Provider())
+          .disable(MapperFeature.FIX_FIELD_NAME_UPPER_CASE_PREFIX)
+          .disable(MapperFeature.SORT_PROPERTIES_ALPHABETICALLY)
+          .disable(MapperFeature.SORT_CREATOR_PROPERTIES_FIRST)
+          .enable(DateTimeFeature.WRITE_DATES_AS_TIMESTAMPS)
+          .build();
 
   private final Set<Class<?>> allowedReturnTypes;
   private final List<ExpressionFunctionProvider> expressionFunctionProviders;

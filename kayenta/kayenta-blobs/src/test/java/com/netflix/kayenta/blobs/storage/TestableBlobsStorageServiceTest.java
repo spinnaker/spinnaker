@@ -19,7 +19,6 @@ package com.netflix.kayenta.blobs.storage;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.mockito.Mockito.*;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
 import com.netflix.kayenta.azure.security.AzureCredentials;
 import com.netflix.kayenta.azure.security.AzureNamedAccountCredentials;
 import com.netflix.kayenta.canary.CanaryConfig;
@@ -36,6 +35,8 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.MethodSource;
 import org.mockito.Mockito;
+import tools.jackson.databind.ObjectMapper;
+import tools.jackson.databind.json.JsonMapper;
 
 @Slf4j
 public class TestableBlobsStorageServiceTest {
@@ -66,7 +67,7 @@ public class TestableBlobsStorageServiceTest {
     credentialsRepository = new MapBackedAccountCredentialsRepository();
     credentialsRepository.save(kayenataAccountName, accountCredentials);
 
-    ObjectMapper kayentaObjectMapper = new ObjectMapper();
+    ObjectMapper kayentaObjectMapper = JsonMapper.builder().build();
     this.mockedCanaryConfigIndex = mock(CanaryConfigIndex.class);
 
     this.testBlobsStorageService =

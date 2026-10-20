@@ -15,13 +15,13 @@
  */
 package com.netflix.spinnaker.orca.pipeline.model.support
 
-import com.fasterxml.jackson.core.JsonParser
-import com.fasterxml.jackson.core.type.TypeReference
-import com.fasterxml.jackson.databind.DeserializationContext
-import com.fasterxml.jackson.databind.deser.std.StdDeserializer
+import tools.jackson.core.JsonParser
+import tools.jackson.core.type.TypeReference
+import tools.jackson.databind.DeserializationContext
+import tools.jackson.databind.deser.std.StdDeserializer
 
 internal class RequisiteStageRefIdDeserializer : StdDeserializer<Collection<String>?>(Collection::class.java) {
   override fun deserialize(p: JsonParser, ctxt: DeserializationContext): Collection<String> {
-    return p.codec.readValue(p, object : TypeReference<Collection<String>?>() {}) ?: return setOf()
+    return ctxt.readValue(p, object : TypeReference<Collection<String>?>() {}) ?: return setOf()
   }
 }

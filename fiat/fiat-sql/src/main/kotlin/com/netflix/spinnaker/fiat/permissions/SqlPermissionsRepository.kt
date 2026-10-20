@@ -16,7 +16,6 @@
 
 package com.netflix.spinnaker.fiat.permissions
 
-import com.fasterxml.jackson.databind.ObjectMapper
 import com.github.benmanes.caffeine.cache.Caffeine
 import com.google.common.hash.Hashing
 import com.netflix.spinnaker.fiat.config.UnrestrictedResourceConfig.UNRESTRICTED_USERNAME
@@ -50,6 +49,7 @@ import jakarta.annotation.PreDestroy
 import kotlin.contracts.ExperimentalContracts
 import kotlin.contracts.contract
 import kotlin.coroutines.CoroutineContext
+import tools.jackson.databind.ObjectMapper
 
 @ExperimentalContracts
 class SqlPermissionsRepository(

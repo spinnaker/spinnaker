@@ -27,7 +27,6 @@ import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
 import com.github.tomakehurst.wiremock.WireMockServer;
 import com.github.tomakehurst.wiremock.client.WireMock;
 import com.github.tomakehurst.wiremock.core.WireMockConfiguration;
@@ -58,6 +57,7 @@ import org.springframework.context.annotation.Configuration;
 import retrofit2.Call;
 import retrofit2.Response;
 import retrofit2.http.GET;
+import tools.jackson.databind.json.JsonMapper;
 
 @SpringBootTest(
     webEnvironment = SpringBootTest.WebEnvironment.NONE,
@@ -150,7 +150,10 @@ public class Retrofit2ServiceFactoryTest {
         new DefaultServiceEndpoint("retrofit2service", "http://localhost:" + port);
     Retrofit2TestService retrofit2TestService =
         serviceClientProvider.getService(
-            Retrofit2TestService.class, serviceEndpoint, new ObjectMapper(), List.of(interceptor));
+            Retrofit2TestService.class,
+            serviceEndpoint,
+            JsonMapper.builder().build(),
+            List.of(interceptor));
     Retrofit2SyncCall.execute(retrofit2TestService.getSomething());
 
     verify(
@@ -204,8 +207,11 @@ public class Retrofit2ServiceFactoryTest {
             SpinnakerConversionException.class,
             () -> Retrofit2SyncCall.executeCall(retrofit2TestService.getSomething()));
     assertEquals(
-        "Failed to process response body: Unexpected end-of-input in VALUE_STRING\n"
-            + " at [Source: REDACTED (`StreamReadFeature.INCLUDE_SOURCE_IN_LOCATION` disabled); line: 1, column: 29]",
+        "Failed to process response body: Unexpected end-of-input: was expecting closing quote "
+            + "for a string value\n"
+            + " at [Source: REDACTED (`StreamReadFeature.INCLUDE_SOURCE_IN_LOCATION` disabled); "
+            + "byte offset: #UNKNOWN] (through reference chain: "
+            + "java.util.LinkedHashMap[\"message\"])",
         exception.getMessage());
   }
 
@@ -227,7 +233,7 @@ public class Retrofit2ServiceFactoryTest {
     @Bean
     public ServiceClientProvider serviceClientProvider(
         List<ServiceClientFactory> serviceClientFactories) {
-      return new DefaultServiceClientProvider(serviceClientFactories, new ObjectMapper());
+      return new DefaultServiceClientProvider(serviceClientFactories, JsonMapper.builder().build());
     }
   }
 

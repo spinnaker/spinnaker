@@ -15,7 +15,6 @@
  */
 package com.netflix.spinnaker.clouddriver.sql
 
-import com.fasterxml.jackson.databind.ObjectMapper
 import com.netflix.spinnaker.clouddriver.sql.exceptions.SqlUnavailableException
 import com.netflix.spinnaker.config.ConnectionPools
 import com.netflix.spinnaker.kork.api.exceptions.ExceptionMessage
@@ -41,6 +40,7 @@ import org.mockito.kotlin.mock
 import org.springframework.beans.factory.ObjectProvider
 import org.springframework.mock.web.MockHttpServletRequest
 import org.springframework.mock.web.MockHttpServletResponse
+import tools.jackson.databind.json.JsonMapper
 
 /**
  * Runs the clouddriver-sql repositories against a jOOQ [MockConnection] that fails the way a real
@@ -109,7 +109,7 @@ class SqlRetriesTest {
   }
 
   private fun taskRepository(jooq: DSLContext) =
-    SqlTaskRepository(jooq, ObjectMapper(), Clock.systemUTC(), ConnectionPools.TASKS.value, retries)
+    SqlTaskRepository(jooq, JsonMapper.builder().build(), Clock.systemUTC(), ConnectionPools.TASKS.value, retries)
 
   private fun dsl(execute: () -> Array<MockResult>): DSLContext =
     DSL.using(MockConnection(MockDataProvider { execute() }), SQLDialect.MYSQL)

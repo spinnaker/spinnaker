@@ -16,8 +16,6 @@
 
 package com.netflix.spinnaker.igor.config;
 
-import com.fasterxml.jackson.databind.DeserializationFeature;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import com.netflix.spinnaker.config.OkHttp3ClientConfiguration;
 import com.netflix.spinnaker.igor.IgorConfigurationProperties;
 import com.netflix.spinnaker.igor.helm.accounts.HelmAccounts;
@@ -32,6 +30,9 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.util.StringUtils;
 import retrofit2.Retrofit;
+import tools.jackson.databind.DeserializationFeature;
+import tools.jackson.databind.ObjectMapper;
+import tools.jackson.databind.json.JsonMapper;
 
 @Configuration
 @ConditionalOnProperty("helm.enabled")
@@ -52,8 +53,8 @@ public class HelmConfig {
       log.warn(
           "No Clouddriver URL is configured - Igor will be unable to fetch Helm charts and repository indexes");
     }
-    ObjectMapper objectMapper = new ObjectMapper();
-    objectMapper.configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
+    ObjectMapper objectMapper =
+        JsonMapper.builder().disable(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES).build();
 
     return new Retrofit.Builder()
         .baseUrl(RetrofitUtils.getBaseUrl(address))

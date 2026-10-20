@@ -27,5 +27,6 @@ dependencies {
   implementation "software.amazon.awssdk:sns"
   implementation "software.amazon.awssdk:sqs"
   implementation "jakarta.validation:jakarta.validation-api"
+  implementation "tools.jackson.core:jackson-databind"
   testImplementation "io.spinnaker.kork:kork-test"
 }

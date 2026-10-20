@@ -19,9 +19,9 @@ package com.netflix.kayenta.influxdb.config;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
 import com.netflix.kayenta.influxdb.model.InfluxDbResult;
 import com.netflix.kayenta.metrics.ConversionException;
+import com.netflix.spinnaker.kork.retrofit.util.CustomConverterFactory;
 import java.lang.annotation.Annotation;
 import java.lang.reflect.ParameterizedType;
 import java.lang.reflect.Type;
@@ -31,7 +31,7 @@ import okhttp3.ResponseBody;
 import org.junit.jupiter.api.Test;
 import retrofit2.Converter;
 import retrofit2.Retrofit;
-import retrofit2.converter.jackson.JacksonConverterFactory;
+import tools.jackson.databind.json.JsonMapper;
 
 public class InfluxDbResponseConverterTest {
 
@@ -85,11 +85,11 @@ public class InfluxDbResponseConverterTest {
   Retrofit retrofit =
       new Retrofit.Builder()
           .baseUrl("http://influxdb")
-          .addConverterFactory(JacksonConverterFactory.create())
+          .addConverterFactory(CustomConverterFactory.create())
           .build();
 
   private final InfluxDbResponseConverter influxDbResponseConverter =
-      new InfluxDbResponseConverter(new ObjectMapper());
+      new InfluxDbResponseConverter(JsonMapper.builder().build());
 
   Converter<ResponseBody, List<InfluxDbResult>> converter =
       (Converter<ResponseBody, List<InfluxDbResult>>)

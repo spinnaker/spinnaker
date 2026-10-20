@@ -16,7 +16,7 @@
 
 package com.netflix.spinnaker.orca.kato.pipeline.support
 
-import com.fasterxml.jackson.databind.ObjectMapper
+import tools.jackson.databind.ObjectMapper
 import com.netflix.spinnaker.kork.core.RetrySupport
 import com.netflix.spinnaker.orca.clouddriver.CloudDriverService
 import com.netflix.spinnaker.orca.clouddriver.ModelUtils
@@ -28,6 +28,7 @@ import com.netflix.spinnaker.orca.pipeline.model.StageExecutionImpl
 import retrofit2.mock.Calls
 import spock.lang.Specification
 import spock.lang.Unroll
+import tools.jackson.databind.json.JsonMapper
 
 class SourceResolverSpec extends Specification {
 
@@ -100,7 +101,7 @@ class SourceResolverSpec extends Specification {
   void "should populate deploy stage 'source' with targeted server group if source is absent and target is explicitly specified"() {
     given:
     OortService oort = Mock(OortService)
-    ObjectMapper mapper = new ObjectMapper()
+    ObjectMapper mapper = JsonMapper.builder().build()
     RetrySupport retrySupport = Spy(RetrySupport) {
       _ * sleep(_) >> { /* do nothing */ }
     }
@@ -147,7 +148,7 @@ class SourceResolverSpec extends Specification {
   void "should populate deploy stage 'source' with targeted server group if source contains the location of the target"() {
     given:
     OortService oort = Mock()
-    ObjectMapper mapper = new ObjectMapper()
+    ObjectMapper mapper = JsonMapper.builder().build()
     RetrySupport retrySupport = Spy(RetrySupport) {
       _ * sleep(_) >> { /* do nothing */ }
     }

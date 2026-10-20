@@ -15,17 +15,17 @@
  */
 package com.netflix.spinnaker.kork.artifacts.artifactstore.entities;
 
-import com.fasterxml.jackson.core.JsonGenerator;
-import com.fasterxml.jackson.databind.BeanProperty;
-import com.fasterxml.jackson.databind.JsonSerializer;
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.databind.SerializerProvider;
-import com.fasterxml.jackson.databind.ser.std.MapSerializer;
 import com.netflix.spinnaker.kork.artifacts.artifactstore.ArtifactStore;
-import java.io.IOException;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import tools.jackson.core.JacksonException;
+import tools.jackson.core.JsonGenerator;
+import tools.jackson.databind.BeanProperty;
+import tools.jackson.databind.SerializationContext;
+import tools.jackson.databind.ValueSerializer;
+import tools.jackson.databind.jsontype.TypeSerializer;
+import tools.jackson.databind.ser.jdk.MapSerializer;
 
 /**
  * MapSerializerHook will hook into the map serializers to match a map to a handler.
@@ -66,8 +66,8 @@ public class MapSerializerHook extends MapSerializer {
       List<ArtifactHandler> handlers,
       MapSerializer defaultSerializer,
       BeanProperty property,
-      JsonSerializer<?> keySerializer,
-      JsonSerializer<?> valueSerializer,
+      ValueSerializer<?> keySerializer,
+      ValueSerializer<?> valueSerializer,
       Set<String> ignoredEntries,
       Set<String> includedEntries) {
     super(
@@ -83,14 +83,13 @@ public class MapSerializerHook extends MapSerializer {
   }
 
   @Override
-  public void serialize(Map<?, ?> value, JsonGenerator gen, SerializerProvider provider)
-      throws IOException {
-    ObjectMapper objectMapper = (ObjectMapper) gen.getCodec();
-    value = visit(value, objectMapper);
+  public void serialize(Map<?, ?> value, JsonGenerator gen, SerializationContext provider)
+      throws JacksonException {
+    value = visit(value, provider);
     this.defaultSerializer.serialize(value, gen, provider);
   }
 
-  private <K, V> Map<K, V> visit(Map<K, V> value, ObjectMapper objectMapper) {
+  private <K, V> Map<K, V> visit(Map<K, V> value, SerializationContext context) {
     // Maps, among collection-like types, are a little interesting. Other generic serializers do not
     // have a separate handling of properties.
     // Generic serializers are wrapped in a BeanSerializer which handles that.
@@ -108,7 +107,7 @@ public class MapSerializerHook extends MapSerializer {
               .findFirst()
               .orElse(null);
       if (handler != null) {
-        return handler.handleProperty(this.storage, this._property, value, objectMapper);
+        return handler.handleProperty(this.storage, this._property, value, context);
       }
     }
 
@@ -120,7 +119,7 @@ public class MapSerializerHook extends MapSerializer {
             .findFirst()
             .orElse(null);
     if (handler != null) {
-      return handler.handle(this.storage, value, objectMapper);
+      return handler.handle(this.storage, value, context);
     }
 
     return value;
@@ -147,30 +146,35 @@ public class MapSerializerHook extends MapSerializer {
   }
 
   @Override
-  public MapSerializer withContentInclusion(Object suppressableValue) {
+  public ValueSerializer<?> createContextual(SerializationContext context, BeanProperty property) {
+    ValueSerializer<?> resolved = this.defaultSerializer.createContextual(context, property);
+    if (!(resolved instanceof MapSerializer)) {
+      return resolved;
+    }
+    MapSerializer mapSerializer = (MapSerializer) resolved;
     return new MapSerializerHook(
         this.storage,
         this.handlers,
-        this.defaultSerializer.withContentInclusion(suppressableValue));
+        mapSerializer,
+        property,
+        mapSerializer.getKeySerializer(),
+        mapSerializer.getContentSerializer(),
+        this._ignoredEntries,
+        this._includedEntries);
   }
 
   @Override
-  public MapSerializer withResolved(
-      BeanProperty property,
-      JsonSerializer<?> keySerializer,
-      JsonSerializer<?> valueSerializer,
-      Set<String> ignored,
-      Set<String> included,
-      boolean sortKeys) {
+  protected MapSerializer _withValueTypeSerializer(TypeSerializer typeSerializer) {
+    MapSerializer resolved =
+        (MapSerializer) this.defaultSerializer.withValueTypeSerializer(typeSerializer);
     return new MapSerializerHook(
         this.storage,
         this.handlers,
-        this.defaultSerializer.withResolved(
-            property, keySerializer, valueSerializer, ignored, included, sortKeys),
-        property,
-        keySerializer,
-        valueSerializer,
-        ignored,
-        included);
+        resolved,
+        this._property,
+        resolved.getKeySerializer(),
+        resolved.getContentSerializer(),
+        this._ignoredEntries,
+        this._includedEntries);
   }
 }

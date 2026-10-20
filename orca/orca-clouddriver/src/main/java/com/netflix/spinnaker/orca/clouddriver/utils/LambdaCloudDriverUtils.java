@@ -16,12 +16,6 @@
 
 package com.netflix.spinnaker.orca.clouddriver.utils;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.DeserializationFeature;
-import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.databind.node.ArrayNode;
-import com.fasterxml.jackson.databind.type.TypeFactory;
 import com.netflix.spinnaker.kork.artifacts.model.Artifact;
 import com.netflix.spinnaker.kork.core.RetrySupport;
 import com.netflix.spinnaker.kork.exceptions.SpinnakerException;
@@ -58,17 +52,25 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
+import tools.jackson.core.JacksonException;
+import tools.jackson.databind.DeserializationFeature;
+import tools.jackson.databind.JsonNode;
+import tools.jackson.databind.ObjectMapper;
+import tools.jackson.databind.json.JsonMapper;
+import tools.jackson.databind.node.ArrayNode;
+import tools.jackson.databind.type.TypeFactory;
 
 @Component
 public class LambdaCloudDriverUtils {
   private static final Logger logger = LoggerFactory.getLogger(LambdaCloudDriverUtils.class);
-  private static final ObjectMapper objectMapper = new ObjectMapper();
+  private static final ObjectMapper objectMapper =
+      JsonMapper.builder()
+          .build()
+          .rebuild()
+          .disable(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES)
+          .enable(DeserializationFeature.ACCEPT_SINGLE_VALUE_AS_ARRAY)
+          .build();
   private static final String CLOUDDRIVER_GET_PATH = "/functions";
-
-  static {
-    objectMapper.configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
-    objectMapper.configure(DeserializationFeature.ACCEPT_SINGLE_VALUE_AS_ARRAY, true);
-  }
 
   private final LambdaConfigurationProperties config;
 
@@ -309,7 +311,7 @@ public class LambdaCloudDriverUtils {
   public String asString(Object inp) {
     try {
       return objectMapper.writeValueAsString(inp);
-    } catch (JsonProcessingException e) {
+    } catch (JacksonException e) {
       logger.error("Could not jsonify", e);
       throw new RuntimeException(e);
     }

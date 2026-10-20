@@ -17,9 +17,7 @@ dependencies {
     implementation "org.springframework.boot:spring-boot-starter-webmvc"
     implementation "org.springframework.boot:spring-boot-starter-groovy-templates"
 
-    implementation "javax.xml.bind:jaxb-api"
-    implementation "com.sun.xml.bind:jaxb-core:2.3.0.1"
-    implementation "com.sun.xml.bind:jaxb-impl:2.3.2"
+    implementation "jakarta.xml.bind:jakarta.xml.bind-api"
 
     implementation "com.vdurmont:semver4j"
     implementation "commons-io:commons-io"
@@ -36,19 +34,16 @@ dependencies {
     testRuntimeOnly "org.objenesis:objenesis"
     implementation "org.apache.groovy:groovy"
 
-    implementation "com.fasterxml.jackson.core:jackson-annotations"
-    implementation "com.fasterxml.jackson.core:jackson-core"
-    implementation "com.fasterxml.jackson.core:jackson-databind"
-    implementation "com.fasterxml.jackson.module:jackson-module-jaxb-annotations"
-    implementation "com.fasterxml.jackson.dataformat:jackson-dataformat-xml"
-    implementation("com.fasterxml.jackson.dataformat:jackson-dataformat-yaml")
-    implementation "com.fasterxml.jackson.module:jackson-module-jaxb-annotations"
+    implementation "tools.jackson.core:jackson-databind"
+    implementation "tools.jackson.dataformat:jackson-dataformat-xml"
+    implementation "tools.jackson.dataformat:jackson-dataformat-yaml"
+    implementation "tools.jackson.module:jackson-module-jakarta-xmlbind-annotations"
 
     implementation "com.squareup.retrofit2:retrofit"
-    implementation "com.squareup.retrofit2:converter-jackson"
     implementation "com.squareup.okhttp3:okhttp-sse"
     implementation "io.spinnaker.fiat:fiat-api"
     implementation "io.spinnaker.fiat:fiat-core"
+    implementation "io.spinnaker.kork:kork-retrofit"
     implementation "org.springframework.security:spring-security-core"
     implementation "org.springframework.security:spring-security-config"
     implementation "org.springframework.security:spring-security-web"

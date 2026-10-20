@@ -18,7 +18,6 @@ package com.netflix.kayenta.standalonecanaryanalysis.orca.task;
 
 import static com.netflix.spinnaker.orca.api.pipeline.models.ExecutionStatus.SUCCEEDED;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
 import com.netflix.kayenta.canary.CanaryAdhocExecutionRequest;
 import com.netflix.kayenta.canary.CanaryExecutionRequest;
 import com.netflix.kayenta.canary.CanaryExecutionResponse;
@@ -34,8 +33,10 @@ import java.util.Optional;
 import javax.annotation.Nonnull;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Component;
+import tools.jackson.databind.ObjectMapper;
 
 /** Orca Task that tells Kayenta to execute a canary analysis / judgement */
 @Component
@@ -53,7 +54,7 @@ public class RunCanaryTask implements Task {
   public RunCanaryTask(
       AccountCredentialsRepository accountCredentialsRepository,
       ExecutionMapper executionMapper,
-      ObjectMapper kayentaObjectMapper) {
+      @Qualifier("kayentaObjectMapper") ObjectMapper kayentaObjectMapper) {
 
     this.accountCredentialsRepository = accountCredentialsRepository;
     this.executionMapper = executionMapper;

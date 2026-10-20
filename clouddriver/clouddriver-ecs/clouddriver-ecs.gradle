@@ -28,6 +28,7 @@ dependencies {
   implementation "io.spinnaker.fiat:fiat-api"
   implementation "io.spinnaker.fiat:fiat-core"
   implementation "io.spinnaker.kork:kork-artifacts"
+  implementation "io.spinnaker.kork:kork-aws"
   implementation "io.spinnaker.kork:kork-credentials"
   implementation "io.spinnaker.kork:kork-credentials-api"
   implementation "io.spinnaker.kork:kork-exceptions"
@@ -40,9 +41,8 @@ dependencies {
   implementation "org.springframework.boot:spring-boot-starter-web"
 
   testImplementation "cglib:cglib-nodep"
-  // Explicit: jackson-datatype-jsr310 no longer arrives transitively (aws-java-sdk
-  // v1 removal + Boot 4 Jackson line); ECS cache specs register JavaTimeModule.
-  testImplementation "com.fasterxml.jackson.datatype:jackson-datatype-jsr310"
+  testImplementation "io.spinnaker.kork:kork-aws"
+
   testImplementation "org.mockito:mockito-core"
   testImplementation "org.objenesis:objenesis"
   testImplementation "org.spockframework:spock-core"

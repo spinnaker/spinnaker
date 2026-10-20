@@ -16,7 +16,6 @@
 
 package com.netflix.spinnaker.clouddriver.elasticsearch.converters;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
 import com.netflix.spinnaker.clouddriver.core.services.Front50Service;
 import com.netflix.spinnaker.clouddriver.elasticsearch.descriptions.BulkUpsertEntityTagsDescription;
 import com.netflix.spinnaker.clouddriver.elasticsearch.model.ElasticSearchEntityTagsProvider;
@@ -28,6 +27,7 @@ import com.netflix.spinnaker.kork.core.RetrySupport;
 import java.util.Map;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
+import tools.jackson.databind.ObjectMapper;
 
 @Component("bulkUpsertEntityTagsDescription")
 public class BulkUpsertEntityTagsAtomicOperationConverter

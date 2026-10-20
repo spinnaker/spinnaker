@@ -16,7 +16,7 @@
 
 package com.netflix.spinnaker.clouddriver.dcos.deploy.converters.loadbalancer
 
-import com.fasterxml.jackson.databind.ObjectMapper
+import tools.jackson.databind.ObjectMapper
 import com.netflix.spinnaker.clouddriver.dcos.DcosClientProvider
 import com.netflix.spinnaker.clouddriver.dcos.security.DcosAccountCredentials
 import com.netflix.spinnaker.clouddriver.dcos.deploy.BaseSpecification
@@ -26,12 +26,13 @@ import com.netflix.spinnaker.clouddriver.dcos.deploy.util.monitor.DcosDeployment
 import com.netflix.spinnaker.clouddriver.security.AccountCredentialsProvider
 import spock.lang.Shared
 import spock.lang.Subject
+import tools.jackson.databind.json.JsonMapper
 
 class DeleteDcosLoadBalancerAtomicOperationConverterSpec extends BaseSpecification {
   private static final LOAD_BALANCER_NAME = "external"
 
   @Shared
-  ObjectMapper mapper = new ObjectMapper()
+  ObjectMapper mapper = JsonMapper.builder().build()
 
   @Shared
   @Subject

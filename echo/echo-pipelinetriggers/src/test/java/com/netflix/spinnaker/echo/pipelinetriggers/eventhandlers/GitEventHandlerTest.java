@@ -48,8 +48,7 @@ import org.slf4j.LoggerFactory;
 
 class GitEventHandlerTest {
   private final NoopRegistry registry = new NoopRegistry();
-  private final com.fasterxml.jackson.databind.ObjectMapper objectMapper =
-      EchoObjectMapper.getInstance();
+  private final tools.jackson.databind.ObjectMapper objectMapper = EchoObjectMapper.getInstance();
   private final TestEventHandlerSupport handlerSupport = new TestEventHandlerSupport();
   private final AtomicInteger nextId = new AtomicInteger(1);
 

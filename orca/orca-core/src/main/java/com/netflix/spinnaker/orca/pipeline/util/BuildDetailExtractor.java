@@ -20,13 +20,13 @@ import static java.lang.String.format;
 import static java.util.Collections.emptyList;
 import static java.util.stream.Collectors.joining;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
 import com.netflix.spinnaker.orca.jackson.OrcaObjectMapper;
 import com.netflix.spinnaker.orca.pipeline.model.BuildInfo;
 import com.netflix.spinnaker.orca.pipeline.model.JenkinsBuildInfo;
 import com.netflix.spinnaker.orca.pipeline.model.SourceControl;
 import java.util.*;
 import org.apache.commons.lang3.StringUtils;
+import tools.jackson.databind.ObjectMapper;
 
 public class BuildDetailExtractor {
 

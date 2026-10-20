@@ -21,8 +21,6 @@ import static java.time.Duration.ZERO;
 import static java.time.Instant.now;
 import static java.time.temporal.ChronoUnit.MINUTES;
 
-import com.fasterxml.jackson.core.type.TypeReference;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import com.netflix.kayenta.canary.CanaryScope;
 import com.netflix.kayenta.canary.CanaryScopePair;
 import com.netflix.kayenta.standalonecanaryanalysis.CanaryAnalysisConfig;
@@ -42,7 +40,10 @@ import java.util.Optional;
 import javax.annotation.Nonnull;
 import lombok.Data;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Component;
+import tools.jackson.core.type.TypeReference;
+import tools.jackson.databind.ObjectMapper;
 
 /**
  * This StageExecution setups up the canary execution stages and executes / monitors them. This
@@ -60,7 +61,8 @@ public class SetupAndExecuteCanariesStage implements StageDefinitionBuilder {
   private final ObjectMapper kayentaObjectMapper;
 
   @Autowired
-  public SetupAndExecuteCanariesStage(Clock clock, ObjectMapper kayentaObjectMapper) {
+  public SetupAndExecuteCanariesStage(
+      Clock clock, @Qualifier("kayentaObjectMapper") ObjectMapper kayentaObjectMapper) {
 
     this.clock = clock;
     this.kayentaObjectMapper = kayentaObjectMapper;

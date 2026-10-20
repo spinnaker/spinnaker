@@ -21,7 +21,6 @@ import static com.netflix.spinnaker.orca.api.pipeline.models.ExecutionStatus.RUN
 import static com.netflix.spinnaker.orca.api.pipeline.models.ExecutionStatus.SUCCEEDED;
 import static com.netflix.spinnaker.orca.api.pipeline.models.ExecutionStatus.TERMINAL;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 import com.netflix.kayenta.canary.CanaryExecutionStatusResponse;
@@ -50,6 +49,8 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Component;
+import tools.jackson.databind.ObjectMapper;
+import tools.jackson.databind.json.JsonMapper;
 
 /**
  * Java port of <a
@@ -171,7 +172,7 @@ public class MonitorCanaryTask implements Task, OverridableTimeoutRetryableTask 
     // Datadog doesn't return data points in the same way as other metrics providers
     // and so are excluded here.  See this Github comment for more information:
     // https://github.com/spinnaker/kayenta/issues/283#issuecomment-397346975
-    final ObjectMapper om = new ObjectMapper();
+    final ObjectMapper om = JsonMapper.builder().build();
     if (!credentialType.equals("datadog")
         && statusResponse.getResult().getJudgeResult().getResults().stream()
             .anyMatch(

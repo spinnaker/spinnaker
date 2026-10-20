@@ -17,7 +17,7 @@
 package com.netflix.spinnaker.clouddriver.google.deploy.ops
 
 import com.google.api.services.compute.Compute
-import com.fasterxml.jackson.databind.ObjectMapper
+import tools.jackson.databind.ObjectMapper
 import com.google.api.services.compute.model.*
 import com.netflix.spinnaker.cats.cache.Cache
 import com.netflix.spectator.api.DefaultRegistry
@@ -38,6 +38,7 @@ import com.netflix.spinnaker.clouddriver.orchestration.DefaultOrchestrationProce
 import spock.lang.Specification
 import spock.lang.Subject
 import spock.lang.Unroll
+import tools.jackson.databind.json.JsonMapper
 
 class UpsertGoogleAutoscalingPolicyAtomicOperationUnitSpec extends Specification {
   private static final ACCOUNT_NAME = "auto"
@@ -494,7 +495,7 @@ class UpsertGoogleAutoscalingPolicyAtomicOperationUnitSpec extends Specification
     }
     patchRequest.method() == "PATCH"
     new URI(patchRequest.url()).path == expectedPath
-    def body = new ObjectMapper().readTree(patchRequest.body())
+    def body = JsonMapper.builder().build().readTree(patchRequest.body())
     body.path("autoHealingPolicies").size() == 1
     body.path("autoHealingPolicies").get(0).path("healthCheck").asText() == 'hc-link'
     body.path("autoHealingPolicies").get(0).path("initialDelaySec").asInt() == 30

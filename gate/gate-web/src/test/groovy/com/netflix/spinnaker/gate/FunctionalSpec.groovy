@@ -16,7 +16,7 @@
 
 package com.netflix.spinnaker.gate
 
-import com.fasterxml.jackson.databind.ObjectMapper
+import tools.jackson.databind.ObjectMapper
 import com.netflix.spectator.api.NoopRegistry
 import com.netflix.spinnaker.config.ErrorConfiguration
 import com.netflix.spinnaker.config.okhttp3.OkHttpClientProvider
@@ -46,15 +46,16 @@ import org.springframework.security.config.annotation.web.builders.HttpSecurity
 import org.springframework.security.web.SecurityFilterChain
 import retrofit2.Retrofit
 import retrofit2.mock.Calls
-import retrofit2.converter.jackson.JacksonConverterFactory
+import com.netflix.spinnaker.kork.retrofit.util.CustomConverterFactory
 import spock.lang.Shared
 import spock.lang.Specification
 
 import java.util.concurrent.ExecutorService
+import tools.jackson.databind.json.JsonMapper
 
 class FunctionalSpec extends Specification {
   @Shared
-  ObjectMapper objectMapper = new ObjectMapper()
+  ObjectMapper objectMapper = JsonMapper.builder().build()
 
   @Shared
   Api api
@@ -121,7 +122,7 @@ class FunctionalSpec extends Specification {
         .baseUrl(RetrofitUtils.getBaseUrl("http://localhost:${localPort}"))
         .client(new OkHttpClient())
         .addCallAdapterFactory(ErrorHandlingExecutorCallAdapterFactory.getInstance())
-        .addConverterFactory(JacksonConverterFactory.create())
+        .addConverterFactory(CustomConverterFactory.create())
         .build()
         .create(Api)
   }

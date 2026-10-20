@@ -16,13 +16,13 @@
 
 package com.netflix.spinnaker.kork.jackson;
 
-import com.fasterxml.jackson.core.JsonParseException;
-import com.fasterxml.jackson.databind.JsonMappingException;
-import com.fasterxml.jackson.databind.JsonMappingException.Reference;
-import com.fasterxml.jackson.databind.exc.InvalidFormatException;
-import com.fasterxml.jackson.databind.exc.MismatchedInputException;
-import com.fasterxml.jackson.databind.exc.UnrecognizedPropertyException;
 import lombok.experimental.UtilityClass;
+import tools.jackson.core.JacksonException.Reference;
+import tools.jackson.core.exc.StreamReadException;
+import tools.jackson.databind.DatabindException;
+import tools.jackson.databind.exc.InvalidFormatException;
+import tools.jackson.databind.exc.MismatchedInputException;
+import tools.jackson.databind.exc.UnrecognizedPropertyException;
 
 /**
  * Provides a utility to translate common Jackson exceptions into user-friendly error messages that
@@ -32,15 +32,15 @@ import lombok.experimental.UtilityClass;
 public class UserFriendlyErrorHandler {
 
   public static String translateJacksonError(Throwable e) {
-    if (e instanceof JsonParseException) {
-      return handleJsonParseError((JsonParseException) e);
-    } else if (e instanceof JsonMappingException) {
-      return handleJsonMappingError((JsonMappingException) e);
+    if (e instanceof StreamReadException) {
+      return handleJsonParseError((StreamReadException) e);
+    } else if (e instanceof DatabindException) {
+      return handleJsonMappingError((DatabindException) e);
     }
     return "Oops! Something went wrong while processing your request. Please double-check your input and try again.";
   }
 
-  private static String handleJsonParseError(JsonParseException e) {
+  private static String handleJsonParseError(StreamReadException e) {
     // Handle basic JSON syntax errors
     if (e.getMessage().contains("Unexpected character")) {
       return "It looks like there is an unexpected character in your input. Please review it for any typos or special characters.";
@@ -51,15 +51,15 @@ public class UserFriendlyErrorHandler {
     return "The format of your input seems incorrect. Please make sure it follows the correct structure.";
   }
 
-  private static String handleJsonMappingError(JsonMappingException e) {
+  private static String handleJsonMappingError(DatabindException e) {
     // Get the full path that caused the error
     StringBuilder pathBuilder = new StringBuilder();
     for (Reference ref : e.getPath()) {
-      if (ref.getFieldName() != null) {
+      if (ref.getPropertyName() != null) {
         if (pathBuilder.length() > 0 && pathBuilder.charAt(pathBuilder.length() - 1) != '.') {
           pathBuilder.append(".");
         }
-        pathBuilder.append(ref.getFieldName());
+        pathBuilder.append(ref.getPropertyName());
       } else if (ref.getIndex() != -1) {
         pathBuilder.append("[").append(ref.getIndex()).append("]");
       }

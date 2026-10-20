@@ -16,12 +16,12 @@
 
 package com.netflix.spinnaker.clouddriver.huaweicloud.provider.agent;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
 import com.netflix.spinnaker.cats.agent.AccountAware;
 import com.netflix.spinnaker.cats.agent.CachingAgent;
 import com.netflix.spinnaker.clouddriver.huaweicloud.client.HuaweiCloudClient;
 import com.netflix.spinnaker.clouddriver.huaweicloud.provider.HuaweiCloudInfrastructureProvider;
 import com.netflix.spinnaker.clouddriver.huaweicloud.security.HuaweiCloudNamedAccountCredentials;
+import tools.jackson.databind.ObjectMapper;
 
 public abstract class AbstractHuaweiCloudCachingAgent implements CachingAgent, AccountAware {
 

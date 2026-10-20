@@ -11,6 +11,7 @@ import org.springframework.scheduling.annotation.EnableScheduling;
 @Configuration
 @Import({
   KayentaConfiguration.class,
+  KayentaJacksonMessageConverterConfiguration.class,
   WebConfiguration.class,
   PluginsAutoConfiguration.class,
 })

@@ -16,10 +16,10 @@
 
 package com.netflix.spinnaker.echo.model
 
-import com.fasterxml.jackson.databind.ObjectMapper
 import com.netflix.spinnaker.echo.jackson.EchoObjectMapper
 import spock.lang.Shared
 import spock.lang.Specification
+import tools.jackson.databind.ObjectMapper
 
 class TriggerSpec extends Specification {
 

@@ -19,7 +19,6 @@ package com.netflix.spinnaker.clouddriver.lambda.provider.agent;
 import static com.netflix.spinnaker.cats.agent.AgentDataType.Authority.AUTHORITATIVE;
 import static com.netflix.spinnaker.clouddriver.lambda.cache.Keys.Namespace.IAM_ROLE;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
 import com.netflix.spinnaker.cats.agent.AgentDataType;
 import com.netflix.spinnaker.cats.agent.CacheResult;
 import com.netflix.spinnaker.cats.agent.CachingAgent;
@@ -33,7 +32,6 @@ import com.netflix.spinnaker.clouddriver.aws.security.NetflixAmazonCredentials;
 import com.netflix.spinnaker.clouddriver.cache.CustomScheduledAgent;
 import com.netflix.spinnaker.clouddriver.lambda.cache.Keys;
 import com.netflix.spinnaker.clouddriver.lambda.cache.model.IamRole;
-import java.io.IOException;
 import java.net.URLDecoder;
 import java.util.*;
 import java.util.concurrent.TimeUnit;
@@ -45,6 +43,8 @@ import software.amazon.awssdk.services.iam.IamClient;
 import software.amazon.awssdk.services.iam.model.ListRolesRequest;
 import software.amazon.awssdk.services.iam.model.ListRolesResponse;
 import software.amazon.awssdk.services.iam.model.Role;
+import tools.jackson.core.JacksonException;
+import tools.jackson.databind.ObjectMapper;
 
 public class IamRoleCachingAgent implements CachingAgent, CustomScheduledAgent {
   private static final long POLL_INTERVAL_MILLIS = TimeUnit.MINUTES.toMillis(30);
@@ -230,7 +230,7 @@ public class IamRoleCachingAgent implements CachingAgent, CustomScheduledAgent {
           }
         }
       }
-    } catch (IOException e) {
+    } catch (JacksonException e) {
       log.error(
           "Unable to extract trusted entities (policyDocument: {})", urlEncodedPolicyDocument, e);
     }

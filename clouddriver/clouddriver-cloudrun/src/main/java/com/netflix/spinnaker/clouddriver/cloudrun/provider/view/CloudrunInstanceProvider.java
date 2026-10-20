@@ -18,7 +18,6 @@ package com.netflix.spinnaker.clouddriver.cloudrun.provider.view;
 
 import static com.netflix.spinnaker.clouddriver.core.provider.agent.Namespace.*;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
 import com.netflix.spinnaker.cats.cache.Cache;
 import com.netflix.spinnaker.cats.cache.CacheData;
 import com.netflix.spinnaker.cats.cache.RelationshipCacheFilter;
@@ -28,6 +27,7 @@ import com.netflix.spinnaker.clouddriver.cloudrun.model.CloudrunInstance;
 import com.netflix.spinnaker.clouddriver.model.InstanceProvider;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
+import tools.jackson.databind.ObjectMapper;
 
 @Component
 public class CloudrunInstanceProvider implements InstanceProvider<CloudrunInstance, String> {

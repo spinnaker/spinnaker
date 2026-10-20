@@ -17,7 +17,7 @@
 
 package com.netflix.spinnaker.clouddriver.kubernetes.caching.agent
 
-import com.fasterxml.jackson.databind.ObjectMapper
+import tools.jackson.databind.ObjectMapper
 import com.google.common.collect.ImmutableList
 import com.netflix.spinnaker.clouddriver.kubernetes.KubernetesCloudProvider
 import com.netflix.spinnaker.clouddriver.kubernetes.caching.Keys
@@ -40,9 +40,10 @@ import org.yaml.snakeyaml.Yaml
 import org.yaml.snakeyaml.constructor.SafeConstructor
 import spock.lang.Specification
 import spock.lang.Unroll
+import tools.jackson.databind.json.JsonMapper
 
 class KubernetesCacheDataConvertSpec extends Specification {
-  def mapper = new ObjectMapper()
+  def mapper = JsonMapper.builder().build()
   def yaml = new Yaml(new SafeConstructor(new LoaderOptions()))
 
   KubernetesManifest stringToManifest(String input) {

@@ -27,11 +27,13 @@ import java.time.Instant
 import software.amazon.awssdk.services.ecs.model.TaskDefinition
 import software.amazon.awssdk.services.ecs.model.ContainerDefinition
 import software.amazon.awssdk.services.ecs.model.PortMapping
-import com.fasterxml.jackson.databind.DeserializationFeature
-import com.fasterxml.jackson.databind.ObjectMapper
+import tools.jackson.databind.DeserializationFeature
+import tools.jackson.databind.ObjectMapper
+import tools.jackson.databind.json.JsonMapper
 import com.netflix.frigga.Names
 import com.netflix.spinnaker.cats.cache.Cache
 import com.netflix.spinnaker.cats.cache.DefaultCacheData
+import com.netflix.spinnaker.kork.aws.jackson.AwsSdkV2Module
 import com.netflix.spinnaker.clouddriver.aws.security.AmazonCredentials
 import com.netflix.spinnaker.clouddriver.aws.security.NetflixAmazonCredentials
 import com.netflix.spinnaker.clouddriver.ecs.cache.Keys
@@ -55,8 +57,10 @@ import spock.lang.Subject
 
 class EcsServerClusterProviderSpec extends Specification {
   def cacheView = Mock(Cache)
-  def objectMapper = new ObjectMapper()
-    .configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false)
+  def objectMapper = JsonMapper.builder()
+    .addModule(new AwsSdkV2Module())
+    .disable(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES)
+    .build()
 
   def taskCacheClient = new TaskCacheClient(cacheView, objectMapper)
   def serviceCacheClient = new ServiceCacheClient(cacheView, objectMapper)

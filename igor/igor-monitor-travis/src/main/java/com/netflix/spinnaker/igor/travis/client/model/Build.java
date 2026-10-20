@@ -22,9 +22,9 @@ import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.netflix.spinnaker.igor.travis.client.model.v3.Config;
 import com.netflix.spinnaker.igor.travis.client.model.v3.TravisBuildState;
+import jakarta.xml.bind.annotation.XmlRootElement;
 import java.time.Instant;
 import java.util.List;
-import javax.xml.bind.annotation.XmlRootElement;
 import lombok.Data;
 
 @JsonInclude(JsonInclude.Include.NON_NULL)

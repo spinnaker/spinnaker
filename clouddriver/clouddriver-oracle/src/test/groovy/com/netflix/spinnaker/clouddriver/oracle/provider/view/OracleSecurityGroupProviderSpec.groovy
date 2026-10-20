@@ -9,9 +9,9 @@
 
 package com.netflix.spinnaker.clouddriver.oracle.provider.view
 
-import com.fasterxml.jackson.core.type.TypeReference
-import com.fasterxml.jackson.databind.ObjectMapper
-import com.fasterxml.jackson.databind.ser.impl.SimpleFilterProvider
+import tools.jackson.core.type.TypeReference
+import tools.jackson.databind.ObjectMapper
+import tools.jackson.databind.ser.std.SimpleFilterProvider
 import com.netflix.spinnaker.cats.cache.DefaultCacheData
 import com.netflix.spinnaker.cats.mem.InMemoryCache
 import com.netflix.spinnaker.clouddriver.oracle.OracleCloudProvider
@@ -21,10 +21,11 @@ import com.oracle.bmc.core.model.PortRange
 import com.oracle.bmc.core.model.SecurityList
 import com.oracle.bmc.core.model.TcpOptions
 import spock.lang.Specification
+import tools.jackson.databind.json.JsonMapper
 
 class OracleSecurityGroupProviderSpec extends Specification {
 
-  ObjectMapper objectMapper = new ObjectMapper().setFilterProvider(new SimpleFilterProvider().setFailOnUnknownId(false))
+  ObjectMapper objectMapper = JsonMapper.builder().filterProvider(new SimpleFilterProvider().setFailOnUnknownId(false)).build()
 
   def "get all"() {
     setup:

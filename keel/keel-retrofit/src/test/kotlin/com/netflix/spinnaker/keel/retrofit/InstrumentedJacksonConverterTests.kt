@@ -1,8 +1,5 @@
 package com.netflix.spinnaker.keel.retrofit
 
-import com.fasterxml.jackson.databind.JsonMappingException
-import com.fasterxml.jackson.databind.ObjectMapper
-import com.fasterxml.jackson.module.kotlin.registerKotlinModule
 import kotlinx.coroutines.runBlocking
 import okhttp3.OkHttpClient
 import okhttp3.mockwebserver.MockResponse
@@ -22,6 +19,9 @@ import strikt.assertions.isFailure
 import strikt.assertions.isNotNull
 import strikt.assertions.isSuccess
 import strikt.assertions.message
+import tools.jackson.databind.DatabindException
+import tools.jackson.databind.json.JsonMapper
+import tools.jackson.module.kotlin.KotlinModule
 
 class InstrumentedJacksonConverterTests {
 
@@ -37,7 +37,12 @@ class InstrumentedJacksonConverterTests {
   private val service by lazy {
     Retrofit.Builder()
       .baseUrl(server.url("/"))
-      .addConverterFactory(InstrumentedJacksonConverter.Factory("River", ObjectMapper().registerKotlinModule()))
+      .addConverterFactory(
+        InstrumentedJacksonConverter.Factory(
+          "River",
+          JsonMapper.builder().addModule(KotlinModule.Builder().build()).build()
+        )
+      )
       .client(OkHttpClient.Builder().build())
       .build()
       .create<Service>()
@@ -69,7 +74,7 @@ class InstrumentedJacksonConverterTests {
       .isFailure()
       .isA<UnparseableResponseException>()
       .and {
-        cause.isA<JsonMappingException>()
+        cause.isA<DatabindException>()
         get { targetSimpleSignature } isEqualTo "List<Whatever>"
       }
   }

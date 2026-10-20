@@ -15,7 +15,7 @@
  */
 package com.netflix.spinnaker.orca.pipelinetemplate
 
-import com.fasterxml.jackson.databind.ObjectMapper
+import tools.jackson.databind.ObjectMapper
 import com.netflix.spectator.api.Clock
 import com.netflix.spectator.api.Counter
 import com.netflix.spectator.api.Id
@@ -44,10 +44,14 @@ import spock.lang.Subject
 import spock.lang.Unroll
 
 import static org.assertj.core.api.Assertions.assertThat
+import tools.jackson.databind.DeserializationFeature
+import tools.jackson.databind.json.JsonMapper
 
 class PipelineTemplatePipelinePreprocessorSpec extends Specification {
 
-  ObjectMapper objectMapper = new ObjectMapper()
+  // Jackson 3 disables FAIL_ON_UNKNOWN_PROPERTIES by default (Jackson 2 had it enabled);
+  // this spec asserts mapping errors for invalid templates, so restore strict behavior.
+  ObjectMapper objectMapper = JsonMapper.builder().enable(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES).build()
   def oortService = Mock(OortService)
 
   Renderer renderer = new JinjaRenderer(

@@ -16,15 +16,10 @@
 
 package com.netflix.spinnaker.clouddriver.aws.jackson;
 
-import com.fasterxml.jackson.core.Version;
-import com.fasterxml.jackson.databind.module.SimpleModule;
-import software.amazon.awssdk.core.SdkPojo;
-
-public class AwsSdkV2Module extends SimpleModule {
+/** Jackson 3 compatibility name for the shared AWS SDK v2 module. */
+public class AwsSdkV2Module extends com.netflix.spinnaker.kork.aws.jackson.AwsSdkV2Module {
 
   public AwsSdkV2Module() {
-    super("AwsSdkV2Module", Version.unknownVersion());
-    addSerializer(SdkPojo.class, new SdkPojoSerializer());
-    setDeserializerModifier(new SdkPojoDeserializerModifier());
+    super();
   }
 }

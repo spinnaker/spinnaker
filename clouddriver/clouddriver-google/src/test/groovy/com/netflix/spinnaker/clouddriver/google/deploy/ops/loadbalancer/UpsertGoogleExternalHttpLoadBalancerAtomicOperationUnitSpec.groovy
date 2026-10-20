@@ -16,7 +16,8 @@
 
 package com.netflix.spinnaker.clouddriver.google.deploy.ops.loadbalancer
 
-import com.fasterxml.jackson.databind.ObjectMapper
+import tools.jackson.databind.ObjectMapper
+import tools.jackson.databind.json.JsonMapper
 import com.google.api.client.json.gson.GsonFactory
 import com.google.api.services.compute.Compute
 import com.google.api.services.compute.model.AttachedDisk
@@ -78,7 +79,7 @@ class UpsertGoogleExternalHttpLoadBalancerAtomicOperationUnitSpec extends Specif
   @Shared def threadSleeperMock = Mock(GoogleOperationPoller.ThreadSleeper)
   @Shared def registry = new DefaultRegistry()
   @Shared SafeRetry safeRetry
-  @Shared ObjectMapper objectMapper = new ObjectMapper()
+  @Shared ObjectMapper objectMapper = JsonMapper.builder().build()
 
   def setupSpec() {
     TaskRepository.threadLocalTask.set(Mock(Task))

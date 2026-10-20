@@ -16,7 +16,6 @@
 
 package com.netflix.spinnaker.echo.notification
 
-import com.fasterxml.jackson.databind.ObjectMapper
 import com.netflix.spinnaker.echo.api.events.Event
 import com.netflix.spinnaker.echo.api.events.Metadata
 import com.netflix.spinnaker.echo.jackson.EchoObjectMapper
@@ -27,6 +26,7 @@ import okhttp3.RequestBody
 import retrofit2.mock.Calls
 import spock.lang.Specification
 import spock.lang.Subject
+import tools.jackson.databind.ObjectMapper
 
 class GoogleCloudBuildNotificationSpec extends Specification {
   IgorService igorService = Mock(IgorService)

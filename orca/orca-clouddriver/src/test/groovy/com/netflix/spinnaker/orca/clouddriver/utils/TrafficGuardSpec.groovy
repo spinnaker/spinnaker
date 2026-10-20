@@ -16,7 +16,7 @@
 
 package com.netflix.spinnaker.orca.clouddriver.utils
 
-import com.fasterxml.jackson.databind.ObjectMapper
+import tools.jackson.databind.ObjectMapper
 import com.netflix.spectator.api.NoopRegistry
 import com.netflix.spectator.api.Registry
 import com.netflix.spinnaker.kork.dynamicconfig.DynamicConfigService
@@ -35,12 +35,13 @@ import okhttp3.MediaType
 import okhttp3.ResponseBody
 import retrofit2.Response
 import retrofit2.Retrofit
-import retrofit2.converter.jackson.JacksonConverterFactory
+import com.netflix.spinnaker.kork.retrofit.util.CustomConverterFactory
 import retrofit2.mock.Calls
 import spock.lang.Shared
 import spock.lang.Specification
 import spock.lang.Subject
 import spock.lang.Unroll
+import tools.jackson.databind.json.JsonMapper
 
 class TrafficGuardSpec extends Specification {
 
@@ -79,7 +80,7 @@ class TrafficGuardSpec extends Specification {
   }
 
   def "pinned should not appear in serialized capacity"() {
-    def mapper = new ObjectMapper()
+    def mapper = JsonMapper.builder().build()
     def capacity = Capacity.builder().min(1).max(1).desired(1).build()
 
     expect:
@@ -635,7 +636,7 @@ class TrafficGuardSpec extends Specification {
     Retrofit retrofit =
         new Retrofit.Builder()
             .baseUrl(url)
-            .addConverterFactory(JacksonConverterFactory.create())
+            .addConverterFactory(CustomConverterFactory.create())
             .build()
 
     return new SpinnakerHttpException(retrofit2Response, retrofit)

@@ -27,6 +27,12 @@ apply from: "../wiremock-substitution.gradle"
 allprojects {
   apply plugin: "io.spinnaker.project"
   group = "io.spinnaker.kayenta"
+
+  // Kayenta injects kayentaObjectMapper by constructor parameter name. Without this,
+  // Spring falls back to Orca's primary mapper and metric subtypes are missing.
+  tasks.withType(JavaCompile).configureEach {
+    options.compilerArgs << "-parameters"
+  }
 }
 
 subprojects { project ->

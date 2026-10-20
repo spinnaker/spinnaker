@@ -50,10 +50,11 @@ import com.netflix.spinnaker.clouddriver.google.security.GoogleCredentials
 import com.netflix.spinnaker.clouddriver.google.security.GoogleNamedAccountCredentials
 import com.netflix.spinnaker.clouddriver.names.NamerRegistry
 import com.netflix.spinnaker.moniker.Namer
-import com.fasterxml.jackson.databind.ObjectMapper
+import tools.jackson.databind.ObjectMapper
 import spock.lang.Ignore
 import spock.lang.Shared
 import spock.lang.Specification
+import tools.jackson.databind.json.JsonMapper
 
 class BasicGoogleDeployHandlerSpec extends Specification {
 
@@ -203,7 +204,7 @@ class BasicGoogleDeployHandlerSpec extends Specification {
   def "buildLoadBalancerPolicyFromInput initializes policy from description"() {
     given:
     def handler = new BasicGoogleDeployHandler()
-    handler.objectMapper = new ObjectMapper()
+    handler.objectMapper = JsonMapper.builder().build()
     
     def description = new BasicGoogleDeployDescription()
     description.instanceMetadata = [:] // Initialize empty metadata map
@@ -227,7 +228,7 @@ class BasicGoogleDeployHandlerSpec extends Specification {
   def "buildLoadBalancerPolicyFromInput creates default policy when no input provided"() {
     given:
     def handler = new BasicGoogleDeployHandler()
-    handler.objectMapper = new ObjectMapper()
+    handler.objectMapper = JsonMapper.builder().build()
     
     def description = new BasicGoogleDeployDescription()
     description.instanceMetadata = [:] // Initialize empty metadata map
@@ -249,7 +250,7 @@ class BasicGoogleDeployHandlerSpec extends Specification {
   def "buildLoadBalancerPolicyFromInput uses policy from JSON metadata when available"() {
     given:
     def handler = new BasicGoogleDeployHandler()
-    handler.objectMapper = new ObjectMapper()
+    handler.objectMapper = JsonMapper.builder().build()
     
     def description = new BasicGoogleDeployDescription()
     def policyJson = '''{
@@ -273,7 +274,7 @@ class BasicGoogleDeployHandlerSpec extends Specification {
   def "buildLoadBalancerPolicyFromInput handles invalid JSON gracefully"() {
     given:
     def handler = new BasicGoogleDeployHandler()
-    handler.objectMapper = new ObjectMapper()
+    handler.objectMapper = JsonMapper.builder().build()
     
     def description = new BasicGoogleDeployDescription()
     description.instanceMetadata = ["load-balancing-policy": "invalid-json{"]
@@ -283,14 +284,14 @@ class BasicGoogleDeployHandlerSpec extends Specification {
     def result = handler.buildLoadBalancerPolicyFromInput(description)
     
     then:
-    // Should throw JsonProcessingException for invalid JSON
-    thrown(com.fasterxml.jackson.core.JsonProcessingException)
+    // Should throw JacksonException for invalid JSON
+    thrown(tools.jackson.core.JacksonException)
   }
   
   def "buildLoadBalancerPolicyFromInput prioritizes description policy over metadata"() {
     given:
     def handler = new BasicGoogleDeployHandler()
-    handler.objectMapper = new ObjectMapper()
+    handler.objectMapper = JsonMapper.builder().build()
     
     def description = new BasicGoogleDeployDescription()
     def inputPolicy = new GoogleHttpLoadBalancingPolicy(

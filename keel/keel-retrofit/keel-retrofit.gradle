@@ -1,6 +1,5 @@
 dependencies {
   api("com.squareup.retrofit2:retrofit")
-  api("com.squareup.retrofit2:converter-jackson")
   api("org.jetbrains.kotlinx:kotlinx-coroutines-core")
 
   api("io.spinnaker.kork:kork-web")
@@ -11,6 +10,6 @@ dependencies {
   implementation("io.spinnaker.fiat:fiat-core")
 
   testImplementation("com.squareup.okhttp3:mockwebserver")
-  testImplementation("com.fasterxml.jackson.module:jackson-module-kotlin")
+  testImplementation("tools.jackson.module:jackson-module-kotlin")
   testImplementation("io.strikt:strikt-core")
 }

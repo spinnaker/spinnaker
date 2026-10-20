@@ -16,7 +16,6 @@
 
 package com.netflix.spinnaker.clouddriver.aws.lifecycle;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
 import com.netflix.spinnaker.cats.agent.RunnableAgent;
 import com.netflix.spinnaker.clouddriver.aws.AmazonCloudProvider;
 import com.netflix.spinnaker.clouddriver.aws.provider.AwsProvider;
@@ -26,7 +25,6 @@ import com.netflix.spinnaker.clouddriver.cache.CustomScheduledAgent;
 import com.netflix.spinnaker.clouddriver.security.AccountCredentials;
 import com.netflix.spinnaker.clouddriver.tags.EntityTagger;
 import com.netflix.spinnaker.credentials.CredentialsRepository;
-import java.io.IOException;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.TimeUnit;
@@ -58,6 +56,8 @@ import software.amazon.awssdk.services.sqs.model.ReceiptHandleIsInvalidException
 import software.amazon.awssdk.services.sqs.model.ReceiveMessageRequest;
 import software.amazon.awssdk.services.sqs.model.ReceiveMessageResponse;
 import software.amazon.awssdk.services.sqs.model.SetQueueAttributesRequest;
+import tools.jackson.core.JacksonException;
+import tools.jackson.databind.ObjectMapper;
 
 /**
  * An Agent that subscribes to a particular SQS queue and tags any server groups that had launch
@@ -162,7 +162,7 @@ class LaunchFailureNotificationAgent implements RunnableAgent, CustomScheduledAg
                   if (SUPPORTED_LIFECYCLE_TRANSITION.equalsIgnoreCase(notificationMessage.event)) {
                     handleMessage(serverGroupTagger, notificationMessage);
                   }
-                } catch (IOException e) {
+                } catch (JacksonException e) {
                   log.error("Unable to convert NotificationMessage (body: {})", message.body(), e);
                 }
 

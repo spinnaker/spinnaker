@@ -16,7 +16,6 @@
 
 package com.netflix.spinnaker.clouddriver.google.provider.agent;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.api.services.compute.model.ForwardingRule;
 import com.google.api.services.compute.model.TargetHttpsProxy;
 import com.netflix.spectator.api.Registry;
@@ -31,6 +30,7 @@ import java.util.ArrayList;
 import java.util.List;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import tools.jackson.databind.ObjectMapper;
 
 /**
  * Caches regional external Application Load Balancers backed by the Compute `EXTERNAL_MANAGED`

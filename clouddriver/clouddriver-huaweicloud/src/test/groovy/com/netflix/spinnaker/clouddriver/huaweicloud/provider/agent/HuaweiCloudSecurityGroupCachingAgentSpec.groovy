@@ -17,7 +17,7 @@
 package com.netflix.spinnaker.clouddriver.huaweicloud.provider.agent
 
 import com.huawei.openstack4j.openstack.vpc.v1.domain.SecurityGroup
-import com.fasterxml.jackson.databind.ObjectMapper
+import tools.jackson.databind.ObjectMapper
 import com.netflix.spectator.api.DefaultRegistry
 import com.netflix.spinnaker.cats.cache.CacheData
 import com.netflix.spinnaker.cats.provider.ProviderCache
@@ -26,6 +26,7 @@ import com.netflix.spinnaker.clouddriver.huaweicloud.client.HuaweiCloudClient
 import com.netflix.spinnaker.clouddriver.huaweicloud.security.HuaweiCloudNamedAccountCredentials
 import spock.lang.Specification
 import spock.lang.Subject
+import tools.jackson.databind.json.JsonMapper
 
 class HuaweiCloudSecurityGroupCachingAgentSpec extends Specification {
 
@@ -43,7 +44,7 @@ class HuaweiCloudSecurityGroupCachingAgentSpec extends Specification {
 
       @Subject
       HuaweiCloudSecurityGroupCachingAgent agent = new HuaweiCloudSecurityGroupCachingAgent(
-          credentials, new ObjectMapper(), registry, REGION)
+          credentials, JsonMapper.builder().build(), registry, REGION)
 
       def securityGroupA = SecurityGroup.builder()
          .name('name-a')

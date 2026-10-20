@@ -16,7 +16,6 @@
 
 package com.netflix.spinnaker.echo.artifacts;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
 import com.netflix.spinnaker.echo.jackson.EchoObjectMapper;
 import com.netflix.spinnaker.kork.artifacts.model.Artifact;
 import java.util.Collections;
@@ -24,6 +23,7 @@ import java.util.List;
 import java.util.Map;
 import lombok.Data;
 import org.springframework.stereotype.Component;
+import tools.jackson.databind.ObjectMapper;
 
 @Component
 public class NexusArtifactExtractor implements WebhookArtifactExtractor {

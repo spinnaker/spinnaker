@@ -27,8 +27,6 @@ import static org.mockito.Mockito.any;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import com.github.tomakehurst.wiremock.client.WireMock;
 import com.github.tomakehurst.wiremock.junit5.WireMockExtension;
 import com.netflix.spinnaker.kork.core.RetrySupport;
@@ -36,6 +34,7 @@ import com.netflix.spinnaker.kork.retrofit.ErrorHandlingExecutorCallAdapterFacto
 import com.netflix.spinnaker.kork.retrofit.exceptions.SpinnakerConversionException;
 import com.netflix.spinnaker.kork.retrofit.exceptions.SpinnakerHttpException;
 import com.netflix.spinnaker.kork.retrofit.exceptions.SpinnakerNetworkException;
+import com.netflix.spinnaker.kork.retrofit.util.CustomConverterFactory;
 import com.netflix.spinnaker.orca.api.pipeline.models.ExecutionType;
 import com.netflix.spinnaker.orca.api.pipeline.models.StageExecution;
 import com.netflix.spinnaker.orca.clouddriver.OortService;
@@ -62,7 +61,9 @@ import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.MethodSource;
 import org.junit.jupiter.params.provider.ValueSource;
 import retrofit2.Retrofit;
-import retrofit2.converter.jackson.JacksonConverterFactory;
+import tools.jackson.core.JacksonException;
+import tools.jackson.databind.ObjectMapper;
+import tools.jackson.databind.json.JsonMapper;
 
 public class TargetServerGroupResolverTest {
 
@@ -72,7 +73,7 @@ public class TargetServerGroupResolverTest {
 
   static OortService oortService;
   static TargetServerGroupResolver targetServerGroupResolver;
-  static ObjectMapper mapper = new ObjectMapper();
+  static ObjectMapper mapper = JsonMapper.builder().build();
 
   @BeforeAll
   public static void setup() {
@@ -81,7 +82,7 @@ public class TargetServerGroupResolverTest {
             .baseUrl(wmOort.baseUrl())
             .client(new OkHttpClient())
             .addCallAdapterFactory(ErrorHandlingExecutorCallAdapterFactory.getInstance())
-            .addConverterFactory(JacksonConverterFactory.create())
+            .addConverterFactory(CustomConverterFactory.create())
             .build()
             .create(OortService.class);
 
@@ -157,7 +158,7 @@ public class TargetServerGroupResolverTest {
   }
 
   @Test
-  public void shouldResolveToTargetServerGroups() throws JsonProcessingException {
+  public void shouldResolveToTargetServerGroups() throws JacksonException {
     // Case 1: resolve using current_asg target
     ServerGroup sg1 = new ServerGroup();
     sg1.setName("test-app-v010");
@@ -423,7 +424,7 @@ public class TargetServerGroupResolverTest {
     Retrofit retrofit =
         new Retrofit.Builder()
             .baseUrl(url)
-            .addConverterFactory(JacksonConverterFactory.create())
+            .addConverterFactory(CustomConverterFactory.create())
             .build();
 
     return new SpinnakerHttpException(retrofit2Response, retrofit);

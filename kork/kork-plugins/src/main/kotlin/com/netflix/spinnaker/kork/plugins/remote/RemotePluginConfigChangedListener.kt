@@ -17,7 +17,7 @@
 
 package com.netflix.spinnaker.kork.plugins.remote
 
-import com.fasterxml.jackson.databind.ObjectMapper
+import tools.jackson.databind.ObjectMapper
 import com.netflix.spinnaker.config.DefaultServiceEndpoint
 import com.netflix.spinnaker.config.okhttp3.OkHttpClientProvider
 import com.netflix.spinnaker.kork.annotations.Beta
@@ -49,9 +49,13 @@ class RemotePluginConfigChangedListener(
 
   private val log by lazy { LoggerFactory.getLogger(javaClass) }
 
-  init {
-    if (!subtypeLocatorsProvider.ifAvailable.isNullOrEmpty()) {
-      ObjectMapperSubtypeConfigurer(true).registerSubtypes(objectMapperProvider.getObject(), subtypeLocatorsProvider.ifAvailable)
+  private val objectMapper: ObjectMapper by lazy {
+    val mapper = objectMapperProvider.getObject()
+    val subtypeLocators = subtypeLocatorsProvider.ifAvailable
+    if (subtypeLocators.isNullOrEmpty()) {
+      mapper
+    } else {
+      ObjectMapperSubtypeConfigurer(true).registerSubtypes(mapper, subtypeLocators)
     }
   }
 
@@ -79,7 +83,7 @@ class RemotePluginConfigChangedListener(
           )
         )
         OkHttpRemoteExtensionTransport(
-          objectMapperProvider.getObject(),
+          objectMapper,
           client,
           remoteExtensionConfig.transport.http
         )
@@ -98,7 +102,7 @@ class RemotePluginConfigChangedListener(
           remoteExtensionConfig.id,
           event.pluginId,
           remoteExtensionDefinition.type(),
-          objectMapperProvider.getObject().convertValue(remoteExtensionConfig.config, configType),
+          objectMapper.convertValue(remoteExtensionConfig.config, configType),
           remoteExtensionTransport
         )
       )

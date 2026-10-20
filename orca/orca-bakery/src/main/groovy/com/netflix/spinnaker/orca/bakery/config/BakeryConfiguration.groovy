@@ -16,8 +16,6 @@
 
 package com.netflix.spinnaker.orca.bakery.config
 
-import com.fasterxml.jackson.databind.EnumNamingStrategies
-import com.fasterxml.jackson.databind.PropertyNamingStrategies
 import com.netflix.spinnaker.config.DefaultServiceEndpoint
 import com.netflix.spinnaker.kork.client.ServiceClientProvider
 import com.netflix.spinnaker.kork.retrofit.util.CustomConverterFactory
@@ -26,7 +24,6 @@ import org.springframework.boot.autoconfigure.condition.ConditionalOnExpression
 import org.springframework.boot.context.properties.EnableConfigurationProperties
 
 import java.text.SimpleDateFormat
-import com.fasterxml.jackson.databind.ObjectMapper
 import com.netflix.spinnaker.orca.bakery.api.BakeryService
 import com.netflix.spinnaker.orca.config.OrcaConfiguration
 import com.netflix.spinnaker.orca.retrofit.RetrofitConfiguration
@@ -37,7 +34,10 @@ import org.springframework.context.annotation.ComponentScan
 import org.springframework.context.annotation.Configuration
 import org.springframework.context.annotation.Import
 import static com.fasterxml.jackson.annotation.JsonInclude.Include.NON_NULL
-import static com.fasterxml.jackson.databind.DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES
+import tools.jackson.databind.ObjectMapper
+import tools.jackson.databind.PropertyNamingStrategies
+import tools.jackson.databind.DeserializationFeature
+import tools.jackson.databind.json.JsonMapper
 
 @Configuration
 @Import([OrcaConfiguration, RetrofitConfiguration])
@@ -56,12 +56,12 @@ class BakeryConfiguration {
   }
 
   static ObjectMapper bakeryConfiguredObjectMapper() {
-    def objectMapper = new ObjectMapper()
-      .setPropertyNamingStrategy(PropertyNamingStrategies.SnakeCaseStrategy.INSTANCE)
-      .setDateFormat(new SimpleDateFormat("YYYYMMDDHHmm"))
-      .setDefaultPropertyInclusion(NON_NULL)
-      .disable(FAIL_ON_UNKNOWN_PROPERTIES)
-
+    JsonMapper.builder()
+      .propertyNamingStrategy(PropertyNamingStrategies.SNAKE_CASE)
+      .defaultDateFormat(new SimpleDateFormat("YYYYMMDDHHmm"))
+      .changeDefaultPropertyInclusion { value -> value.withValueInclusion(NON_NULL) }
+      .disable(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES)
+      .build()
   }
 
   BakeryService buildService(String url, ServiceClientProvider serviceClientProvider) {

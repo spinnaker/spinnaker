@@ -16,7 +16,8 @@
 
 package com.netflix.spinnaker.clouddriver.google.provider.agent
 
-import com.fasterxml.jackson.databind.ObjectMapper
+import tools.jackson.databind.ObjectMapper
+import tools.jackson.databind.json.JsonMapper
 import com.google.api.services.compute.Compute
 import com.google.api.services.compute.model.SslCertificate
 import com.google.api.services.compute.model.SslCertificateList
@@ -168,7 +169,7 @@ class GoogleSslCertificateCachingAgentSpec extends Specification {
     new GoogleSslCertificateCachingAgent(
       "clouddriver",
       credentials,
-      new ObjectMapper(),
+      JsonMapper.builder().build(),
       new DefaultRegistry(),
       region)
   }

@@ -16,7 +16,7 @@
 
 package com.netflix.spinnaker.config
 
-import com.fasterxml.jackson.databind.ObjectMapper
+import tools.jackson.databind.ObjectMapper
 import com.netflix.spectator.api.Registry
 import com.netflix.spinnaker.front50.model.SqlStorageService
 import com.netflix.spinnaker.kork.sql.config.DefaultSqlConfiguration

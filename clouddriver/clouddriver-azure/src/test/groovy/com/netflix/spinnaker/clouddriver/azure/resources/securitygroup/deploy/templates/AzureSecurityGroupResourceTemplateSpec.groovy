@@ -15,7 +15,7 @@
  */
 package com.netflix.spinnaker.clouddriver.azure.resources.securitygroup.deploy.templates
 
-import com.fasterxml.jackson.databind.ObjectMapper
+import tools.jackson.databind.ObjectMapper
 import com.netflix.spinnaker.clouddriver.azure.resources.securitygroup.model.AzureSecurityGroupDescription
 import com.netflix.spinnaker.clouddriver.azure.templates.AzureSecurityGroupResourceTemplate
 import com.netflix.spinnaker.clouddriver.azure.resources.securitygroup.model.UpsertAzureSecurityGroupDescription

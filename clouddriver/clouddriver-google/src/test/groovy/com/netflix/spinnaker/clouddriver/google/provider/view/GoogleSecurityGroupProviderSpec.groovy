@@ -16,7 +16,7 @@
 
 package com.netflix.spinnaker.clouddriver.google.provider.view
 
-import com.fasterxml.jackson.databind.ObjectMapper
+import tools.jackson.databind.ObjectMapper
 import com.google.api.services.compute.model.Firewall
 import com.netflix.spinnaker.cats.cache.CacheData
 import com.netflix.spinnaker.cats.cache.DefaultCacheData
@@ -37,6 +37,7 @@ import spock.lang.Shared
 import spock.lang.Specification
 import spock.lang.Subject
 import spock.lang.Unroll
+import tools.jackson.databind.json.JsonMapper
 
 class GoogleSecurityGroupProviderSpec extends Specification {
 
@@ -44,7 +45,7 @@ class GoogleSecurityGroupProviderSpec extends Specification {
   GoogleSecurityGroupProvider provider
 
   WriteableCache cache = new InMemoryCache()
-  ObjectMapper mapper = new ObjectMapper()
+  ObjectMapper mapper = JsonMapper.builder().build()
 
   def setup() {
     def credentialsRepo = new MapBackedCredentialsRepository(GoogleNamedAccountCredentials.CREDENTIALS_TYPE,

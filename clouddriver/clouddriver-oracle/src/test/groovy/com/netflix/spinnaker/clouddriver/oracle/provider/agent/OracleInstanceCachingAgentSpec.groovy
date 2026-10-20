@@ -9,7 +9,7 @@
 
 package com.netflix.spinnaker.clouddriver.oracle.provider.agent
 
-import com.fasterxml.jackson.databind.ObjectMapper
+import tools.jackson.databind.ObjectMapper
 import com.netflix.spinnaker.clouddriver.oracle.cache.Keys
 import com.netflix.spinnaker.clouddriver.oracle.security.OracleNamedAccountCredentials
 import com.oracle.bmc.Region
@@ -20,11 +20,12 @@ import spock.lang.Shared
 import spock.lang.Specification
 
 import static com.netflix.spinnaker.clouddriver.oracle.cache.Keys.Namespace.INSTANCES
+import tools.jackson.databind.json.JsonMapper
 
 class OracleInstanceCachingAgentSpec extends Specification {
 
   @Shared
-  ObjectMapper objectMapper = new ObjectMapper()
+  ObjectMapper objectMapper = JsonMapper.builder().build()
 
   def "agent has correct agentType"() {
     setup:

@@ -26,9 +26,6 @@ import static com.netflix.spinnaker.clouddriver.google.cache.Keys.Namespace.SERV
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.entry;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.core.type.TypeReference;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.api.services.compute.Compute;
 import com.google.api.services.compute.model.Instance;
 import com.google.api.services.compute.model.InstanceGroupManager;
@@ -64,6 +61,10 @@ import java.util.concurrent.Executors;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.Mock;
+import tools.jackson.core.JacksonException;
+import tools.jackson.core.type.TypeReference;
+import tools.jackson.databind.ObjectMapper;
+import tools.jackson.databind.json.JsonMapper;
 
 final class GoogleZonalServerGroupCachingAgentTest {
 
@@ -82,11 +83,11 @@ final class GoogleZonalServerGroupCachingAgentTest {
 
   @BeforeEach
   public void createTestObjects() {
-    objectMapper = new ObjectMapper();
+    objectMapper = JsonMapper.builder().build();
   }
 
   @Test
-  void loadData_existingOnDemandData() throws JsonProcessingException {
+  void loadData_existingOnDemandData() throws JacksonException {
 
     Compute compute =
         new StubComputeFactory()
@@ -197,7 +198,7 @@ final class GoogleZonalServerGroupCachingAgentTest {
     assertThat(cachedInFutureProcessedData.getAttributes()).containsKeys("copiedFromCacheData");
   }
 
-  private String serverGroupCacheData(String serverGroupName) throws JsonProcessingException {
+  private String serverGroupCacheData(String serverGroupName) throws JacksonException {
     return objectMapper.writeValueAsString(
         ImmutableMap.of(
             SERVER_GROUPS.getNs(),
@@ -521,7 +522,7 @@ final class GoogleZonalServerGroupCachingAgentTest {
             MoreExecutors.listeningDecorator(Executors.newCachedThreadPool())),
         new DefaultRegistry(),
         REGION,
-        new ObjectMapper(),
+        JsonMapper.builder().build(),
         serviceClientProvider);
   }
 

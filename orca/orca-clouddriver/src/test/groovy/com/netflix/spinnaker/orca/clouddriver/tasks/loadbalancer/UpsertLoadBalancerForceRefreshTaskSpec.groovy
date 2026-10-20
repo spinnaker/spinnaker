@@ -16,7 +16,7 @@
 
 package com.netflix.spinnaker.orca.clouddriver.tasks.loadbalancer
 
-import com.fasterxml.jackson.databind.ObjectMapper
+import tools.jackson.databind.ObjectMapper
 import com.netflix.spinnaker.kork.core.RetrySupport
 import com.netflix.spinnaker.kork.retrofit.exceptions.SpinnakerHttpException
 import com.netflix.spinnaker.kork.retrofit.exceptions.SpinnakerServerException
@@ -32,7 +32,7 @@ import okhttp3.ResponseBody
 import retrofit2.Call
 import retrofit2.Response
 import retrofit2.Retrofit
-import retrofit2.converter.jackson.JacksonConverterFactory
+import com.netflix.spinnaker.kork.retrofit.util.CustomConverterFactory
 import retrofit2.mock.Calls
 import spock.lang.Specification
 import spock.lang.Subject
@@ -42,6 +42,7 @@ import java.time.Duration
 import java.util.concurrent.TimeUnit
 
 import static com.netflix.spinnaker.orca.test.model.ExecutionBuilder.stage
+import tools.jackson.databind.json.JsonMapper
 import static java.net.HttpURLConnection.HTTP_ACCEPTED
 import static java.net.HttpURLConnection.HTTP_BAD_REQUEST
 
@@ -54,7 +55,7 @@ class UpsertLoadBalancerForceRefreshTaskSpec extends Specification {
   def task = new UpsertLoadBalancerForceRefreshTask(
     cloudDriverCacheService,
     cloudDriverCacheStatusService,
-    new ObjectMapper(),
+    JsonMapper.builder().build(),
     new NoSleepRetry(),
     oortService
   )
@@ -88,7 +89,7 @@ class UpsertLoadBalancerForceRefreshTaskSpec extends Specification {
     def response = Response.error(statusCode, jsonBody('{"message":"request failed"}'))
     def retrofit = new Retrofit.Builder()
       .baseUrl("http://clouddriver/")
-      .addConverterFactory(JacksonConverterFactory.create())
+      .addConverterFactory(CustomConverterFactory.createWithJsonStringResponses())
       .build()
     new SpinnakerHttpException(response, retrofit)
   }
@@ -576,8 +577,8 @@ class UpsertLoadBalancerForceRefreshTaskSpec extends Specification {
         ],
       ]
     })
-    List<Map> serializedTargets = new ObjectMapper().readValue(
-      new ObjectMapper().writeValueAsString(producerResult.context.targets),
+    List<Map> serializedTargets = JsonMapper.builder().build().readValue(
+      JsonMapper.builder().build().writeValueAsString(producerResult.context.targets),
       List
     ) as List<Map>
     stage.context = [

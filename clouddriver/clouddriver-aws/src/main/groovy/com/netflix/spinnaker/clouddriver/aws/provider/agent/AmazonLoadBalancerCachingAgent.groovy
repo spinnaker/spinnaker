@@ -23,8 +23,8 @@ import software.amazon.awssdk.services.elasticloadbalancing.model.DescribeTagsRe
 import software.amazon.awssdk.services.elasticloadbalancing.model.LoadBalancerAttributes
 import software.amazon.awssdk.services.elasticloadbalancing.model.LoadBalancerDescription
 import software.amazon.awssdk.services.elasticloadbalancing.model.LoadBalancerNotFoundException
-import com.fasterxml.jackson.core.type.TypeReference
-import com.fasterxml.jackson.databind.ObjectMapper
+import tools.jackson.core.type.TypeReference
+import tools.jackson.databind.ObjectMapper
 import com.netflix.spectator.api.Registry
 import com.netflix.spinnaker.cats.agent.CacheResult
 import com.netflix.spinnaker.cats.agent.DefaultCacheResult

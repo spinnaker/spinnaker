@@ -18,9 +18,9 @@ package com.netflix.spinnaker.clouddriver.aws.provider.agent
 
 import software.amazon.awssdk.services.autoscaling.model.DescribeLaunchConfigurationsRequest
 import software.amazon.awssdk.services.autoscaling.model.LaunchConfiguration
-import com.fasterxml.jackson.core.type.TypeReference
-import com.fasterxml.jackson.databind.ObjectMapper
-import com.fasterxml.jackson.databind.SerializationFeature
+import tools.jackson.core.type.TypeReference
+import tools.jackson.databind.ObjectMapper
+import tools.jackson.databind.cfg.DateTimeFeature
 import com.netflix.spectator.api.Registry
 import com.netflix.spinnaker.cats.agent.AccountAware
 import com.netflix.spinnaker.cats.agent.AgentDataType
@@ -59,7 +59,7 @@ class LaunchConfigCachingAgent implements CachingAgent, AccountAware, DriftMetri
     this.amazonClientProvider = amazonClientProvider
     this.account = account
     this.region = region
-    this.objectMapper = objectMapper.enable(SerializationFeature.WRITE_DATES_AS_TIMESTAMPS)
+    this.objectMapper = objectMapper.rebuild().enable(DateTimeFeature.WRITE_DATES_AS_TIMESTAMPS).build()
     this.registry = registry
   }
 

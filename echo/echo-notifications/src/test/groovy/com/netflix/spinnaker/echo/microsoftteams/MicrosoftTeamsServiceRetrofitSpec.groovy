@@ -28,8 +28,6 @@ import okhttp3.mockwebserver.MockResponse
 import okhttp3.mockwebserver.MockWebServer
 import okhttp3.logging.HttpLoggingInterceptor
 import org.springframework.beans.factory.ObjectFactory
-import retrofit2.Retrofit
-import retrofit2.converter.jackson.JacksonConverterFactory
 import spock.lang.Specification
 import spock.lang.Subject
 

@@ -19,7 +19,6 @@ package com.netflix.spinnaker.clouddriver.ecs.provider.agent;
 import static com.netflix.spinnaker.cats.agent.AgentDataType.Authority.AUTHORITATIVE;
 import static com.netflix.spinnaker.clouddriver.ecs.cache.Keys.Namespace.TASK_DEFINITIONS;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
 import com.netflix.spectator.api.Registry;
 import com.netflix.spinnaker.cats.agent.AgentDataType;
 import com.netflix.spinnaker.cats.cache.CacheData;
@@ -38,6 +37,7 @@ import software.amazon.awssdk.services.ecs.model.DescribeTaskDefinitionRequest;
 import software.amazon.awssdk.services.ecs.model.DescribeTaskDefinitionResponse;
 import software.amazon.awssdk.services.ecs.model.LoadBalancer;
 import software.amazon.awssdk.services.ecs.model.TaskDefinition;
+import tools.jackson.databind.ObjectMapper;
 
 public class TaskDefinitionCachingAgent extends AbstractEcsOnDemandAgent<TaskDefinition> {
   private static final Collection<AgentDataType> types =

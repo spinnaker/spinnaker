@@ -20,7 +20,6 @@ import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.collect.ImmutableList;
 import com.netflix.spinnaker.clouddriver.kubernetes.config.KubernetesConfigurationProperties;
 import com.netflix.spinnaker.clouddriver.kubernetes.description.KubernetesResourceProperties;
@@ -33,6 +32,7 @@ import java.util.ArrayList;
 import java.util.Collection;
 import org.jetbrains.annotations.NotNull;
 import org.junit.jupiter.api.Test;
+import tools.jackson.databind.json.JsonMapper;
 
 public class KubernetesCachingAgentDispatcherTest {
 
@@ -40,7 +40,7 @@ public class KubernetesCachingAgentDispatcherTest {
   public void buildAllCachingAgentsOneThread() {
     KubernetesCachingAgentDispatcher dispatcher =
         new KubernetesCachingAgentDispatcher(
-            new ObjectMapper(),
+            JsonMapper.builder().build(),
             null,
             new KubernetesConfigurationProperties(),
             new KubernetesSpinnakerKindMap(new ArrayList<>()),
@@ -56,7 +56,7 @@ public class KubernetesCachingAgentDispatcherTest {
   public void buildAllCachingAgentsTwoThreads() {
     KubernetesCachingAgentDispatcher dispatcher =
         new KubernetesCachingAgentDispatcher(
-            new ObjectMapper(),
+            JsonMapper.builder().build(),
             null,
             new KubernetesConfigurationProperties(),
             new KubernetesSpinnakerKindMap(new ArrayList<>()),
@@ -74,7 +74,7 @@ public class KubernetesCachingAgentDispatcherTest {
     configProperties.getCache().setEnabled(false);
     KubernetesCachingAgentDispatcher dispatcher =
         new KubernetesCachingAgentDispatcher(
-            new ObjectMapper(),
+            JsonMapper.builder().build(),
             null,
             configProperties,
             new KubernetesSpinnakerKindMap(new ArrayList<>()),

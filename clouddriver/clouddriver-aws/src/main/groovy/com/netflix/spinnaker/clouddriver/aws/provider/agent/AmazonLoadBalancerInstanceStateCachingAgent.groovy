@@ -19,8 +19,8 @@ package com.netflix.spinnaker.clouddriver.aws.provider.agent
 import software.amazon.awssdk.services.elasticloadbalancing.model.DescribeInstanceHealthRequest
 import software.amazon.awssdk.services.elasticloadbalancing.model.DescribeInstanceHealthResponse
 import software.amazon.awssdk.services.elasticloadbalancing.model.LoadBalancerNotFoundException
-import com.fasterxml.jackson.databind.ObjectMapper
-import com.fasterxml.jackson.databind.SerializationFeature
+import tools.jackson.databind.ObjectMapper
+import tools.jackson.databind.cfg.DateTimeFeature
 import com.netflix.spinnaker.cats.agent.AccountAware
 import com.netflix.spinnaker.cats.agent.AgentDataType
 import com.netflix.spinnaker.cats.agent.CacheResult
@@ -67,7 +67,7 @@ class AmazonLoadBalancerInstanceStateCachingAgent implements CachingAgent, Healt
     this.amazonClientProvider = amazonClientProvider
     this.account = account
     this.region = region
-    this.objectMapper = objectMapper.enable(SerializationFeature.WRITE_DATES_AS_TIMESTAMPS)
+    this.objectMapper = objectMapper.rebuild().enable(DateTimeFeature.WRITE_DATES_AS_TIMESTAMPS).build()
     this.ctx = ctx
   }
 

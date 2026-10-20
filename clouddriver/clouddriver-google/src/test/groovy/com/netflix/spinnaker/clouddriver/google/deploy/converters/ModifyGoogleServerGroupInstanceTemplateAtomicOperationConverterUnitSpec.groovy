@@ -16,13 +16,14 @@
 
 package com.netflix.spinnaker.clouddriver.google.deploy.converters
 
-import com.fasterxml.jackson.databind.ObjectMapper
+import tools.jackson.databind.ObjectMapper
 import com.netflix.spinnaker.clouddriver.google.deploy.description.ModifyGoogleServerGroupInstanceTemplateDescription
 import com.netflix.spinnaker.clouddriver.google.deploy.ops.ModifyGoogleServerGroupInstanceTemplateAtomicOperation
 import com.netflix.spinnaker.clouddriver.google.security.GoogleNamedAccountCredentials
 import com.netflix.spinnaker.credentials.CredentialsRepository
 import spock.lang.Shared
 import spock.lang.Specification
+import tools.jackson.databind.json.JsonMapper
 
 class ModifyGoogleServerGroupInstanceTemplateAtomicOperationConverterUnitSpec extends Specification {
   private static final SERVER_GROUP_NAME = "spinnaker-test-v000"
@@ -31,7 +32,7 @@ class ModifyGoogleServerGroupInstanceTemplateAtomicOperationConverterUnitSpec ex
   private static final TAGS = ["some-tag-1", "some-tag-2"]
 
   @Shared
-  ObjectMapper mapper = new ObjectMapper()
+  ObjectMapper mapper = JsonMapper.builder().build()
 
   @Shared
   ModifyGoogleServerGroupInstanceTemplateAtomicOperationConverter converter

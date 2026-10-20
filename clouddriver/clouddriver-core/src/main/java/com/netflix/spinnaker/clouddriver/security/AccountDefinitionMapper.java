@@ -16,10 +16,6 @@
 
 package com.netflix.spinnaker.clouddriver.security;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.netflix.spinnaker.credentials.definition.CredentialsDefinition;
 import com.netflix.spinnaker.kork.annotations.NonnullByDefault;
 import com.netflix.spinnaker.kork.secrets.EncryptedSecret;
@@ -29,6 +25,10 @@ import java.util.Iterator;
 import java.util.Map;
 import java.util.Optional;
 import lombok.RequiredArgsConstructor;
+import tools.jackson.core.JacksonException;
+import tools.jackson.databind.JsonNode;
+import tools.jackson.databind.ObjectMapper;
+import tools.jackson.databind.node.ObjectNode;
 
 /**
  * Maps account definitions to and from strings. Only {@link CredentialsDefinition} classes
@@ -46,14 +46,14 @@ public class AccountDefinitionMapper {
   private final AccountDefinitionSecretManager secretManager;
   private final SecretSession secretSession;
 
-  public String serialize(CredentialsDefinition definition) throws JsonProcessingException {
+  public String serialize(CredentialsDefinition definition) throws JacksonException {
     return objectMapper.writeValueAsString(definition);
   }
 
-  public CredentialsDefinition deserialize(String string) throws JsonProcessingException {
+  public CredentialsDefinition deserialize(String string) throws JacksonException {
     ObjectNode account = (ObjectNode) objectMapper.readTree(string);
     String accountName = account.required("name").asText();
-    Iterator<Map.Entry<String, JsonNode>> it = account.fields();
+    Iterator<Map.Entry<String, JsonNode>> it = account.properties().iterator();
     while (it.hasNext()) {
       Map.Entry<String, JsonNode> field = it.next();
       JsonNode node = field.getValue();
@@ -68,7 +68,7 @@ public class AccountDefinitionMapper {
         } else {
           plaintext = Optional.empty();
         }
-        plaintext.map(account::textNode).ifPresent(field::setValue);
+        plaintext.ifPresent(value -> field.setValue(objectMapper.stringNode(value)));
       }
     }
     return objectMapper.convertValue(account, CredentialsDefinition.class);

@@ -19,10 +19,6 @@ import static org.junit.jupiter.api.Assertions.*;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonInclude;
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.databind.SerializationFeature;
-import com.fasterxml.jackson.databind.module.SimpleModule;
 import com.netflix.spinnaker.kork.artifacts.ArtifactTypes;
 import com.netflix.spinnaker.kork.artifacts.artifactstore.ArtifactStore;
 import com.netflix.spinnaker.kork.artifacts.artifactstore.filters.ApplicationStorageFilter;
@@ -44,6 +40,13 @@ import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
 import org.junit.jupiter.params.provider.MethodSource;
 import org.mockito.Mockito;
+import tools.jackson.core.JacksonException;
+import tools.jackson.databind.MapperFeature;
+import tools.jackson.databind.ObjectMapper;
+import tools.jackson.databind.SerializationContext;
+import tools.jackson.databind.SerializationFeature;
+import tools.jackson.databind.json.JsonMapper;
+import tools.jackson.databind.module.SimpleModule;
 
 class SerializerVisitorHookTest {
   @Data
@@ -136,7 +139,7 @@ class SerializerVisitorHookTest {
                 .type(ArtifactTypes.REMOTE_MAP_BASE64.getMimeType())
                 .reference("ref://stored")
                 .build());
-    ObjectMapper mapper = new ObjectMapper();
+    ObjectMapper mapper = JsonMapper.builder().build();
     SimpleModule module = new SimpleModule();
 
     List<ArtifactHandler> mapHandlers = List.of(new ManifestMapStorageHandler(Map.of()));
@@ -147,10 +150,15 @@ class SerializerVisitorHookTest {
             .collectionHandlers(listHandlers)
             .build();
     module.setSerializerModifier(new SerializerHookRegistry(storage, handlers));
-    mapper.registerModule(module);
+    mapper = JsonMapper.builder().addModule(module).build();
     // By default, object mapper does not sort the keys. To make this a little more deterministic,
     // we will sort our keys to make it easier to assert.
-    mapper.configure(SerializationFeature.ORDER_MAP_ENTRIES_BY_KEYS, true);
+    mapper =
+        JsonMapper.builder()
+            .disable(MapperFeature.SORT_PROPERTIES_ALPHABETICALLY)
+            .addModule(module)
+            .configure(SerializationFeature.ORDER_MAP_ENTRIES_BY_KEYS, true)
+            .build();
     String result = mapper.writeValueAsString(value);
     assertEquals(expectedJSON, result);
   }
@@ -165,7 +173,7 @@ class SerializerVisitorHookTest {
     }
 
     @Override
-    public <V> V handle(ArtifactStore store, V v, ObjectMapper objectMapper) {
+    public <V> V handle(ArtifactStore store, V v, SerializationContext context) {
       return v;
     }
   }
@@ -180,17 +188,21 @@ class SerializerVisitorHookTest {
                 .type(ArtifactTypes.REMOTE_MAP_BASE64.getMimeType())
                 .reference("ref://stored")
                 .build());
-    ObjectMapper mapper = new ObjectMapper();
+    ObjectMapper mapper = JsonMapper.builder().build();
     SimpleModule module = new SimpleModule();
 
     CountHandler handler = new CountHandler();
     ArtifactHandlerLists handlers =
         ArtifactHandlerLists.builder().mapHandlers(List.of(handler)).build();
     module.setSerializerModifier(new SerializerHookRegistry(storage, handlers));
-    mapper.registerModule(module);
+    mapper =
+        JsonMapper.builder()
+            .disable(MapperFeature.SORT_PROPERTIES_ALPHABETICALLY)
+            .addModule(module)
+            .build();
     try {
       mapper.writeValueAsString(m);
-    } catch (JsonProcessingException e) {
+    } catch (JacksonException e) {
       fail(e);
     }
     assertEquals(expected, handler.getCount());
@@ -243,7 +255,7 @@ class SerializerVisitorHookTest {
     Map<String, List<ApplicationStorageFilter>> filterMap =
         Map.of(ArtifactTypes.EMBEDDED_MAP_BASE64.getMimeType(), List.of(filter));
 
-    ObjectMapper mapper = new ObjectMapper();
+    ObjectMapper mapper = JsonMapper.builder().build();
     SimpleModule module = new SimpleModule();
     List<ArtifactHandler> mapHandlers = List.of(new ManifestMapStorageHandler(filterMap));
     List<ArtifactHandler> listHandlers = List.of(new ManifestStorageCollectionHandler(filterMap));
@@ -254,13 +266,17 @@ class SerializerVisitorHookTest {
             .build();
 
     module.setSerializerModifier(new SerializerHookRegistry(storage, handlers));
-    mapper.registerModule(module);
+    mapper =
+        JsonMapper.builder()
+            .disable(MapperFeature.SORT_PROPERTIES_ALPHABETICALLY)
+            .addModule(module)
+            .build();
 
     Map<String, Object> m = Map.of("manifests", List.of(Map.of("foo", "bar")));
     try {
       String json = mapper.writeValueAsString(m);
       assertEquals("{\"manifests\":[{\"foo\":\"bar\"}]}", json);
-    } catch (JsonProcessingException e) {
+    } catch (JacksonException e) {
       fail(e);
     }
 
@@ -270,7 +286,7 @@ class SerializerVisitorHookTest {
       assertEquals(
           "{\"manifests\":[{\"type\":\"remote/map/base64\",\"customKind\":false,\"reference\":\"ref://stored\",\"metadata\":{}}]}",
           json);
-    } catch (JsonProcessingException e) {
+    } catch (JacksonException e) {
       fail(e);
     }
   }

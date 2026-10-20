@@ -15,7 +15,7 @@
  */
 package com.netflix.spinnaker.orca.pipelinetemplate.v1schema
 
-import com.fasterxml.jackson.databind.ObjectMapper
+import tools.jackson.databind.ObjectMapper
 import com.netflix.spinnaker.orca.pipelinetemplate.loader.TemplateLoader
 import com.netflix.spinnaker.orca.pipelinetemplate.v1schema.model.NamedHashMap
 import com.netflix.spinnaker.orca.pipelinetemplate.v1schema.model.PipelineTemplate
@@ -24,10 +24,11 @@ import com.netflix.spinnaker.orca.pipelinetemplate.v1schema.render.Renderer
 import spock.lang.Specification
 import spock.lang.Subject
 import spock.lang.Unroll
+import tools.jackson.databind.json.JsonMapper
 
 class TemplatedPipelineModelMutatorSpec extends Specification {
 
-  ObjectMapper objectMapper = new ObjectMapper()
+  ObjectMapper objectMapper = JsonMapper.builder().build()
   TemplateLoader templateLoader = Mock()
   Renderer renderer = Mock()
 

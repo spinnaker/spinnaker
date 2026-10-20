@@ -16,9 +16,6 @@
 
 package com.netflix.spinnaker.orca.front50.tasks;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.core.type.TypeReference;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import com.netflix.spinnaker.kork.retrofit.Retrofit2SyncCall;
 import com.netflix.spinnaker.orca.api.pipeline.Task;
 import com.netflix.spinnaker.orca.api.pipeline.TaskResult;
@@ -39,6 +36,9 @@ import org.apache.commons.lang3.ObjectUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Component;
+import tools.jackson.core.JacksonException;
+import tools.jackson.core.type.TypeReference;
+import tools.jackson.databind.ObjectMapper;
 
 @Component
 public class RunMultiplePipelinesTask implements Task {
@@ -67,7 +67,7 @@ public class RunMultiplePipelinesTask implements Task {
           objectMapper.readValue(
               objectMapper.writeValueAsString(stage.getContext().get("orderOfExecutions")),
               new TypeReference<>() {});
-    } catch (JsonProcessingException e) {
+    } catch (JacksonException e) {
       throw new IllegalStateException("Unable to parse orderOfExecutions from stage context", e);
     }
     int levelNumber = (int) stage.getContext().get("levelNumber");
@@ -158,7 +158,7 @@ public class RunMultiplePipelinesTask implements Task {
       pipelineConfigCopy =
           objectMapper.readValue(
               objectMapper.writeValueAsString(pipelineConfig), new TypeReference<>() {});
-    } catch (JsonProcessingException e) {
+    } catch (JacksonException e) {
       throw new IllegalStateException("Unable to copy child pipeline config", e);
     }
     TriggerInOrder triggerInOrder =

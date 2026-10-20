@@ -15,8 +15,8 @@
  */
 package com.netflix.spinnaker.orca.pipeline.util
 
-import com.fasterxml.jackson.databind.ObjectMapper
 import com.netflix.spinnaker.kork.artifacts.model.Artifact
+import com.netflix.spinnaker.orca.jackson.OrcaObjectMapper
 import com.netflix.spinnaker.orca.pipeline.model.*
 import com.netflix.spinnaker.orca.test.model.ExecutionBuilder
 import org.springframework.beans.factory.annotation.Autowired
@@ -24,6 +24,7 @@ import spock.lang.Specification
 import spock.lang.Unroll
 
 import java.util.regex.Pattern
+import tools.jackson.databind.ObjectMapper
 
 import static com.netflix.spinnaker.orca.pipeline.util.PackageType.DEB
 import static com.netflix.spinnaker.orca.pipeline.util.PackageType.RPM
@@ -72,7 +73,7 @@ class PackageInfoSpec extends Specification {
 
     def packageType = DEB
     def packageInfo =
-      new PackageInfo(quipStage, [], packageType.packageType, packageType.versionDelimiter, true, false, new ObjectMapper())
+      new PackageInfo(quipStage, [], packageType.packageType, packageType.versionDelimiter, true, false, OrcaObjectMapper.newInstance())
 
     when:
     packageInfo.findTargetPackage(false)
@@ -112,7 +113,7 @@ class PackageInfoSpec extends Specification {
     def quipStage = pipeline.stages.last()
 
     PackageInfo packageInfo =
-      new PackageInfo(quipStage, [], DEB.packageType, DEB.versionDelimiter, true, false, new ObjectMapper())
+      new PackageInfo(quipStage, [], DEB.packageType, DEB.versionDelimiter, true, false, OrcaObjectMapper.newInstance())
 
     when:
     def requestMap = packageInfo.findTargetPackage(true)
@@ -234,7 +235,7 @@ class PackageInfoSpec extends Specification {
     def bakeStage = pipeline.stageByRef("2")
 
     PackageType packageType = DEB
-    ObjectMapper objectMapper = new ObjectMapper()
+    ObjectMapper objectMapper = OrcaObjectMapper.newInstance()
     PackageInfo packageInfo = new PackageInfo(bakeStage, [], packageType.packageType, packageType.versionDelimiter, true, true, objectMapper)
 
     when:
@@ -256,7 +257,7 @@ class PackageInfoSpec extends Specification {
     def bakeStage = pipeline.stageByRef("1")
 
     PackageType packageType = DEB
-    ObjectMapper objectMapper = new ObjectMapper()
+    ObjectMapper objectMapper = OrcaObjectMapper.newInstance()
     PackageInfo packageInfo = new PackageInfo(bakeStage, [], packageType.packageType, packageType.versionDelimiter, true, true, objectMapper)
 
     when:
@@ -303,7 +304,7 @@ class PackageInfoSpec extends Specification {
 
     def bakeStage = pipeline.stageByRef("3")
     PackageType packageType = DEB
-    ObjectMapper objectMapper = new ObjectMapper()
+    ObjectMapper objectMapper = OrcaObjectMapper.newInstance()
     PackageInfo packageInfo = new PackageInfo(bakeStage, [], packageType.packageType, packageType.versionDelimiter, true, true, objectMapper)
     def pattern = Pattern.compile("api.*")
 
@@ -339,7 +340,7 @@ class PackageInfoSpec extends Specification {
     def quipStage = pipeline.stageByRef("2")
 
     PackageType packageType = DEB
-    ObjectMapper objectMapper = new ObjectMapper()
+    ObjectMapper objectMapper = OrcaObjectMapper.newInstance()
     PackageInfo packageInfo = new PackageInfo(quipStage, [], packageType.packageType, packageType.versionDelimiter, true, true, objectMapper)
 
     when:
@@ -374,7 +375,7 @@ class PackageInfoSpec extends Specification {
     def quipStage = pipeline.stageByRef("2")
 
     PackageType packageType = DEB
-    ObjectMapper objectMapper = new ObjectMapper()
+    ObjectMapper objectMapper = OrcaObjectMapper.newInstance()
     PackageInfo packageInfo = new PackageInfo(quipStage, [], packageType.packageType, packageType.versionDelimiter, true, true, objectMapper)
 
     when:
@@ -403,7 +404,7 @@ class PackageInfoSpec extends Specification {
     def quipStage = pipeline.stageByRef("1")
 
     PackageType packageType = DEB
-    ObjectMapper objectMapper = new ObjectMapper()
+    ObjectMapper objectMapper = OrcaObjectMapper.newInstance()
     PackageInfo packageInfo = new PackageInfo(quipStage, [], packageType.packageType, packageType.versionDelimiter, true, true, objectMapper)
 
     expect:
@@ -438,7 +439,7 @@ class PackageInfoSpec extends Specification {
     def quipStage = pipeline.stages.first()
 
     PackageType packageType = DEB
-    ObjectMapper objectMapper = new ObjectMapper()
+    ObjectMapper objectMapper = OrcaObjectMapper.newInstance()
     PackageInfo packageInfo = new PackageInfo(quipStage, [], packageType.packageType, packageType.versionDelimiter, true, true, objectMapper)
 
     when:
@@ -503,7 +504,7 @@ class PackageInfoSpec extends Specification {
     def quipStage = pipeline.stages.first()
 
     PackageType packageType = DEB
-    ObjectMapper objectMapper = new ObjectMapper()
+    ObjectMapper objectMapper = OrcaObjectMapper.newInstance()
     PackageInfo packageInfo = new PackageInfo(quipStage, [], packageType.packageType, packageType.versionDelimiter, true, true, objectMapper)
 
     when:
@@ -559,7 +560,7 @@ class PackageInfoSpec extends Specification {
     }
 
     and:
-    def packageInfo = new PackageInfo(pipeline.stageById("3"), [], "deb", "_", false, false, new ObjectMapper())
+    def packageInfo = new PackageInfo(pipeline.stageById("3"), [], "deb", "_", false, false, OrcaObjectMapper.newInstance())
 
     expect:
     packageInfo.findTargetPackage(false).package == "spinnakerdeps_0.1.0-114_all spinnaker_0.2.0-114_all"
@@ -883,7 +884,7 @@ class PackageInfoSpec extends Specification {
     }
 
     PackageType packageType = DEB
-    ObjectMapper objectMapper = new ObjectMapper()
+    ObjectMapper objectMapper = OrcaObjectMapper.newInstance()
 
     when:
     PackageInfo packageInfo1 = new PackageInfo(

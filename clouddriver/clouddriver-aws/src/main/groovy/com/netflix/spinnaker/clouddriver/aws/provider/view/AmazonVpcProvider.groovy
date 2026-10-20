@@ -17,7 +17,7 @@
 package com.netflix.spinnaker.clouddriver.aws.provider.view
 
 import software.amazon.awssdk.services.ec2.model.Vpc
-import com.fasterxml.jackson.databind.ObjectMapper
+import tools.jackson.databind.ObjectMapper
 import com.netflix.spinnaker.cats.cache.Cache
 import com.netflix.spinnaker.cats.cache.CacheData
 import com.netflix.spinnaker.cats.cache.RelationshipCacheFilter

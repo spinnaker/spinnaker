@@ -19,8 +19,6 @@ import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.databind.module.SimpleModule;
 import com.netflix.spinnaker.kork.artifacts.ArtifactTypes;
 import com.netflix.spinnaker.kork.artifacts.artifactstore.s3.S3ArtifactStoreGetter;
 import com.netflix.spinnaker.kork.artifacts.artifactstore.s3.S3ArtifactStoreStorer;
@@ -40,6 +38,10 @@ import org.junit.jupiter.params.provider.MethodSource;
 import org.mockito.Mockito;
 import software.amazon.awssdk.services.s3.S3Client;
 import software.amazon.awssdk.services.s3.model.*;
+import tools.jackson.databind.MapperFeature;
+import tools.jackson.databind.ObjectMapper;
+import tools.jackson.databind.json.JsonMapper;
+import tools.jackson.databind.module.SimpleModule;
 
 class EmbeddedArtifactSerializerTest {
   @ParameterizedTest(name = "{index} {0}")
@@ -51,11 +53,15 @@ class EmbeddedArtifactSerializerTest {
     when(storage.store(Mockito.any())).thenReturn(mockArtifact);
 
     EmbeddedArtifactSerializer serializer =
-        new EmbeddedArtifactSerializer(new ObjectMapper(), storage);
-    ObjectMapper objectMapper = new ObjectMapper();
+        new EmbeddedArtifactSerializer(defaultObjectMapper(), storage);
+    ObjectMapper objectMapper = JsonMapper.builder().build();
     SimpleModule module = new SimpleModule();
     module.addSerializer(Artifact.class, serializer);
-    objectMapper.registerModule(module);
+    objectMapper =
+        JsonMapper.builder()
+            .disable(MapperFeature.SORT_PROPERTIES_ALPHABETICALLY)
+            .addModule(module)
+            .build();
 
     String result = objectMapper.writeValueAsString(artifact);
     assertEquals(expectedJson, result);
@@ -76,11 +82,15 @@ class EmbeddedArtifactSerializerTest {
         new ArtifactStore(s3ArtifactStoreGetter, artifactStoreStorer, new HashMap<>());
 
     EmbeddedArtifactSerializer serializer =
-        new EmbeddedArtifactSerializer(new ObjectMapper(), artifactStore);
-    ObjectMapper objectMapper = new ObjectMapper();
+        new EmbeddedArtifactSerializer(defaultObjectMapper(), artifactStore);
+    ObjectMapper objectMapper = JsonMapper.builder().build();
     SimpleModule module = new SimpleModule();
     module.addSerializer(Artifact.class, serializer);
-    objectMapper.registerModule(module);
+    objectMapper =
+        JsonMapper.builder()
+            .disable(MapperFeature.SORT_PROPERTIES_ALPHABETICALLY)
+            .addModule(module)
+            .build();
 
     objectMapper.writeValue(
         new ByteArrayOutputStream(),
@@ -88,6 +98,10 @@ class EmbeddedArtifactSerializerTest {
             .type(ArtifactTypes.EMBEDDED_BASE64.getMimeType())
             .reference("aGVsbG8gd29ybGQK") // arbitrary
             .build());
+  }
+
+  private static ObjectMapper defaultObjectMapper() {
+    return JsonMapper.builder().disable(MapperFeature.SORT_PROPERTIES_ALPHABETICALLY).build();
   }
 
   private static Stream<Arguments> generateTestCase() {

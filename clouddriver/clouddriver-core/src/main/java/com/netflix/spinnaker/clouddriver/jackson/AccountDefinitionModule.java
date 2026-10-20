@@ -15,11 +15,11 @@
  */
 package com.netflix.spinnaker.clouddriver.jackson;
 
-import com.fasterxml.jackson.databind.jsontype.NamedType;
-import com.fasterxml.jackson.databind.module.SimpleModule;
 import com.netflix.spinnaker.clouddriver.jackson.mixins.CredentialsDefinitionMixin;
 import com.netflix.spinnaker.credentials.definition.CredentialsDefinition;
 import java.util.List;
+import tools.jackson.databind.jsontype.NamedType;
+import tools.jackson.databind.module.SimpleModule;
 
 /**
  * Jackson module to register {@link CredentialsDefinition} type discriminators for the provided
@@ -42,7 +42,7 @@ public class AccountDefinitionModule extends SimpleModule {
   @Override
   public void setupModule(SetupContext context) {
     super.setupModule(context);
-    context.setMixInAnnotations(CredentialsDefinition.class, CredentialsDefinitionMixin.class);
+    context.setMixIn(CredentialsDefinition.class, CredentialsDefinitionMixin.class);
     context.registerSubtypes(accountDefinitionTypes);
   }
 }

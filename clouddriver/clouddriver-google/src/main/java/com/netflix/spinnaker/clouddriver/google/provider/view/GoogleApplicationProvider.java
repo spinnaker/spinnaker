@@ -23,7 +23,6 @@ import static com.netflix.spinnaker.clouddriver.google.cache.Keys.Namespace.INST
 import static java.util.stream.Collectors.toList;
 import static java.util.stream.Collectors.toSet;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
 import com.netflix.spinnaker.cats.cache.Cache;
 import com.netflix.spinnaker.cats.cache.CacheData;
 import com.netflix.spinnaker.cats.cache.RelationshipCacheFilter;
@@ -43,6 +42,7 @@ import javax.annotation.Nullable;
 import lombok.Value;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
+import tools.jackson.databind.ObjectMapper;
 
 @Component
 final class GoogleApplicationProvider implements ApplicationProvider {

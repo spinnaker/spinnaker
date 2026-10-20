@@ -16,7 +16,6 @@
 
 package com.netflix.kayenta.graphite.orca;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
 import com.netflix.kayenta.canary.CanaryConfig;
 import com.netflix.kayenta.canary.CanaryScope;
 import com.netflix.kayenta.metrics.SynchronousQueryProcessor;
@@ -25,13 +24,14 @@ import com.netflix.kayenta.security.AccountCredentialsRepository;
 import com.netflix.spinnaker.orca.api.pipeline.RetryableTask;
 import com.netflix.spinnaker.orca.api.pipeline.TaskResult;
 import com.netflix.spinnaker.orca.api.pipeline.models.StageExecution;
-import java.io.IOException;
 import java.time.Duration;
 import java.util.Map;
 import javax.annotation.Nonnull;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
+import tools.jackson.core.JacksonException;
+import tools.jackson.databind.ObjectMapper;
 
 @Component
 @Slf4j
@@ -70,7 +70,7 @@ public class GraphiteFetchTask implements RetryableTask {
       canaryScope =
           kayentaObjectMapper.readValue(
               (String) stage.getContext().get("canaryScope"), CanaryScope.class);
-    } catch (IOException e) {
+    } catch (JacksonException e) {
       log.warn("Unable to parse JSON scope", e);
       throw new RuntimeException(e);
     }

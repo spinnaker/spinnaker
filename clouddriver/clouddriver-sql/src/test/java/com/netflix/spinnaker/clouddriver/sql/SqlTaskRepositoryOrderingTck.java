@@ -20,7 +20,6 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.jooq.impl.DSL.field;
 import static org.jooq.impl.DSL.table;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
 import com.netflix.spinnaker.clouddriver.core.ClouddriverHostname;
 import com.netflix.spinnaker.clouddriver.data.task.Status;
 import com.netflix.spinnaker.clouddriver.data.task.Task;
@@ -43,6 +42,7 @@ import org.jooq.DSLContext;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import tools.jackson.databind.json.JsonMapper;
 
 /**
  * Ordering and concurrency behaviour of {@link SqlTaskRepository} that the shared {@code
@@ -270,6 +270,6 @@ abstract class SqlTaskRepositoryOrderingTck {
 
   private SqlTaskRepository repository(Clock clock) {
     return new SqlTaskRepository(
-        database.context, new ObjectMapper(), clock, ConnectionPools.TASKS.getValue());
+        database.context, JsonMapper.builder().build(), clock, ConnectionPools.TASKS.getValue());
   }
 }

@@ -33,22 +33,28 @@ package com.netflix.spinnaker.clouddriver.azure.templates
 import com.azure.resourcemanager.compute.models.ResourceIdentityType
 import com.azure.resourcemanager.compute.models.VirtualMachineScaleSetDataDisk
 import com.fasterxml.jackson.annotation.JsonInclude
-import com.fasterxml.jackson.databind.ObjectMapper
-import com.fasterxml.jackson.databind.SerializationFeature
+import com.fasterxml.jackson.annotation.JsonProperty
+import com.fasterxml.jackson.annotation.JsonPropertyOrder
+import tools.jackson.databind.MapperFeature
+import tools.jackson.databind.ObjectMapper
+import tools.jackson.databind.SerializationFeature
 import com.netflix.spinnaker.clouddriver.azure.common.AzureUtilities
 import com.netflix.spinnaker.clouddriver.azure.resources.loadbalancer.model.AzureLoadBalancer
 import com.netflix.spinnaker.clouddriver.azure.resources.servergroup.model.AzureServerGroupDescription
 import com.netflix.spinnaker.clouddriver.azure.resources.servergroup.model.AzureServerGroupDescription.AzureInboundPortConfig
 import groovy.util.logging.Slf4j
+import tools.jackson.databind.json.JsonMapper
 
 @Slf4j
 class AzureServerGroupResourceTemplate {
   static final String STORAGE_ACCOUNT_SUFFIX = "sa"
   static String LB_NAME = null
 
-  protected static ObjectMapper mapper = new ObjectMapper()
-    .configure(SerializationFeature.INDENT_OUTPUT, true)
-    .configure(SerializationFeature.FAIL_ON_EMPTY_BEANS, false)
+  protected static ObjectMapper mapper = JsonMapper.builder()
+    .enable(SerializationFeature.INDENT_OUTPUT)
+    .disable(SerializationFeature.FAIL_ON_EMPTY_BEANS)
+    .disable(MapperFeature.SORT_PROPERTIES_ALPHABETICALLY)
+    .disable(MapperFeature.SORT_CREATOR_PROPERTIES_FIRST).build()
 
   /**
    * Build the resource manager template that will create the Azure equivalent (VM Scale Set)
@@ -72,8 +78,10 @@ class AzureServerGroupResourceTemplate {
   /**
    *
    */
+  @JsonPropertyOrder(['$schema'])
   static class ServerGroupTemplate {
     //TODO: Make this configurable for AZURE_US_GOVERNMENT
+    @JsonProperty('$schema')
     String $schema = "https://schema.management.azure.com/schemas/2015-01-01/deploymentTemplate.json#"
     String contentVersion = "1.0.0.0"
 
@@ -646,9 +654,9 @@ class AzureServerGroupResourceTemplate {
    */
   static class NetworkInterfaceIPConfigurationsProperty {
     NetworkInterfaceIPConfigurationSubnet subnet
-    ArrayList<AppGatewayBackendAddressPool> ApplicationGatewayBackendAddressPools = []
     ArrayList<LoadBalancerBackendAddressPool> loadBalancerBackendAddressPools = []
     ArrayList<LoadBalancerInboundNatPoolId> loadBalancerInboundNatPools = []
+    ArrayList<AppGatewayBackendAddressPool> applicationGatewayBackendAddressPools = []
 
     /**
      *
@@ -665,7 +673,7 @@ class AzureServerGroupResourceTemplate {
           loadBalancerBackendAddressPools.add(new LoadBalancerBackendAddressPool())
           loadBalancerInboundNatPools.add(new LoadBalancerInboundNatPoolId())
         }
-        ApplicationGatewayBackendAddressPools.add(new AppGatewayBackendAddressPool())
+        applicationGatewayBackendAddressPools.add(new AppGatewayBackendAddressPool())
       } else if (description.loadBalancerType == null) {
         subnet = new NetworkInterfaceIPConfigurationSubnet()
       } else {

@@ -16,13 +16,14 @@
 
 package com.netflix.spinnaker.clouddriver.google.security
 
-import com.fasterxml.jackson.core.type.TypeReference
-import com.fasterxml.jackson.databind.ObjectMapper
+import tools.jackson.core.type.TypeReference
+import tools.jackson.databind.ObjectMapper
 import com.google.api.services.compute.Compute
 import com.google.api.services.compute.model.*
 import com.netflix.spectator.api.NoopRegistry
 import com.netflix.spinnaker.clouddriver.google.GoogleExecutor
 import spock.lang.Specification
+import tools.jackson.databind.json.JsonMapper
 
 class GoogleNamedAccountCredentialsSpec extends Specification implements TestDefaults {
   private static final String PROJECT = "test-project"
@@ -51,7 +52,7 @@ class GoogleNamedAccountCredentialsSpec extends Specification implements TestDef
 
   def 'instanceTypeList should convert to map'() {
     setup:
-      MachineTypeAggregatedList instanceTypeList = new ObjectMapper().convertValue(INSTANCE_TYPE_LIST, MachineTypeAggregatedList)
+      MachineTypeAggregatedList instanceTypeList = JsonMapper.builder().build().convertValue(INSTANCE_TYPE_LIST, MachineTypeAggregatedList)
 
     when:
       def map = GoogleNamedAccountCredentials.convertInstanceTypeListToMap(instanceTypeList)
@@ -96,7 +97,7 @@ class GoogleNamedAccountCredentialsSpec extends Specification implements TestDef
       instanceTypeListCopy.items['zones/europe-west1-b'].machineTypes = INSTANCE_TYPES_WITH_32
 
       // Rebuild the map.
-      instanceTypeList = new ObjectMapper().convertValue(instanceTypeListCopy, MachineTypeAggregatedList)
+      instanceTypeList = JsonMapper.builder().build().convertValue(instanceTypeListCopy, MachineTypeAggregatedList)
       map = GoogleNamedAccountCredentials.convertInstanceTypeListToMap(instanceTypeList)
       GoogleNamedAccountCredentials.populateRegionInstanceTypes(map, REGION_TO_ZONES)
 
@@ -118,7 +119,7 @@ class GoogleNamedAccountCredentialsSpec extends Specification implements TestDef
       instanceTypeListCopy.items['zones/europe-west1-b'].machineTypes = INSTANCE_TYPES_WITH_64
 
       // Rebuild the map.
-      instanceTypeList = new ObjectMapper().convertValue(instanceTypeListCopy, MachineTypeAggregatedList)
+      instanceTypeList = JsonMapper.builder().build().convertValue(instanceTypeListCopy, MachineTypeAggregatedList)
       map = GoogleNamedAccountCredentials.convertInstanceTypeListToMap(instanceTypeList)
       GoogleNamedAccountCredentials.populateRegionInstanceTypes(map, REGION_TO_ZONES)
 
@@ -145,7 +146,7 @@ class GoogleNamedAccountCredentialsSpec extends Specification implements TestDef
       instanceTypeListCopy.items['zones/europe-west1-d'].machineTypes = INSTANCE_TYPES_WITH_64
 
       // Rebuild the map.
-      instanceTypeList = new ObjectMapper().convertValue(instanceTypeListCopy, MachineTypeAggregatedList)
+      instanceTypeList = JsonMapper.builder().build().convertValue(instanceTypeListCopy, MachineTypeAggregatedList)
       map = GoogleNamedAccountCredentials.convertInstanceTypeListToMap(instanceTypeList)
       GoogleNamedAccountCredentials.populateRegionInstanceTypes(map, REGION_TO_ZONES)
 
@@ -166,7 +167,7 @@ class GoogleNamedAccountCredentialsSpec extends Specification implements TestDef
 
   def 'zoneList should convert to cpu platforms map'() {
     setup:
-      List<Zone> zoneItemsList = new ObjectMapper().convertValue(ZONE_ITEMS_LIST, new TypeReference<List<Zone>>() {})
+      List<Zone> zoneItemsList = JsonMapper.builder().build().convertValue(ZONE_ITEMS_LIST, new TypeReference<List<Zone>>() {})
       ZoneList zoneList = new ZoneList(items: zoneItemsList)
       Map<String, List<String>> locationToCpuPlatformsMap = new HashMap<>()
 
@@ -233,7 +234,7 @@ class GoogleNamedAccountCredentialsSpec extends Specification implements TestDef
         ],
         nextPageToken: 'page2token'
       ]
-      MachineTypeAggregatedList firstPage = new ObjectMapper().convertValue(firstPageData, MachineTypeAggregatedList)
+      MachineTypeAggregatedList firstPage = JsonMapper.builder().build().convertValue(firstPageData, MachineTypeAggregatedList)
 
       // Create second page of results
       def secondPageData = [
@@ -244,7 +245,7 @@ class GoogleNamedAccountCredentialsSpec extends Specification implements TestDef
         ],
         nextPageToken: null
       ]
-      MachineTypeAggregatedList secondPage = new ObjectMapper().convertValue(secondPageData, MachineTypeAggregatedList)
+      MachineTypeAggregatedList secondPage = JsonMapper.builder().build().convertValue(secondPageData, MachineTypeAggregatedList)
 
     when:
       // Process first page
@@ -317,7 +318,7 @@ class GoogleNamedAccountCredentialsSpec extends Specification implements TestDef
         ],
         nextPageToken: 'page2token'
       ]
-      AcceleratorTypeAggregatedList firstPage = new ObjectMapper().convertValue(firstPageData, AcceleratorTypeAggregatedList)
+      AcceleratorTypeAggregatedList firstPage = JsonMapper.builder().build().convertValue(firstPageData, AcceleratorTypeAggregatedList)
 
       // Create second page of accelerator types
       def secondPageData = [
@@ -331,7 +332,7 @@ class GoogleNamedAccountCredentialsSpec extends Specification implements TestDef
         ],
         nextPageToken: null
       ]
-      AcceleratorTypeAggregatedList secondPage = new ObjectMapper().convertValue(secondPageData, AcceleratorTypeAggregatedList)
+      AcceleratorTypeAggregatedList secondPage = JsonMapper.builder().build().convertValue(secondPageData, AcceleratorTypeAggregatedList)
 
     when:
       // Process first page
@@ -373,7 +374,7 @@ class GoogleNamedAccountCredentialsSpec extends Specification implements TestDef
         ],
         nextPageToken: 'token123'
       ]
-      AcceleratorTypeAggregatedList firstPage = new ObjectMapper().convertValue(firstPageData, AcceleratorTypeAggregatedList)
+      AcceleratorTypeAggregatedList firstPage = JsonMapper.builder().build().convertValue(firstPageData, AcceleratorTypeAggregatedList)
 
       // Second page response
       def secondPageData = [
@@ -386,7 +387,7 @@ class GoogleNamedAccountCredentialsSpec extends Specification implements TestDef
         ],
         nextPageToken: null
       ]
-      AcceleratorTypeAggregatedList secondPage = new ObjectMapper().convertValue(secondPageData, AcceleratorTypeAggregatedList)
+      AcceleratorTypeAggregatedList secondPage = JsonMapper.builder().build().convertValue(secondPageData, AcceleratorTypeAggregatedList)
 
     when:
       def result = GoogleNamedAccountCredentials.queryAcceleratorTypes(computeMock, PROJECT)
@@ -425,7 +426,7 @@ class GoogleNamedAccountCredentialsSpec extends Specification implements TestDef
         ],
         nextPageToken: 'token456'
       ]
-      MachineTypeAggregatedList firstPage = new ObjectMapper().convertValue(firstPageData, MachineTypeAggregatedList)
+      MachineTypeAggregatedList firstPage = JsonMapper.builder().build().convertValue(firstPageData, MachineTypeAggregatedList)
 
       // Second page response
       def secondPageData = [
@@ -436,7 +437,7 @@ class GoogleNamedAccountCredentialsSpec extends Specification implements TestDef
         ],
         nextPageToken: null
       ]
-      MachineTypeAggregatedList secondPage = new ObjectMapper().convertValue(secondPageData, MachineTypeAggregatedList)
+      MachineTypeAggregatedList secondPage = JsonMapper.builder().build().convertValue(secondPageData, MachineTypeAggregatedList)
 
     when:
       def result = GoogleNamedAccountCredentials.queryInstanceTypes(computeMock, PROJECT, [:])

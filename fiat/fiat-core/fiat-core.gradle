@@ -10,5 +10,5 @@ dependencies {
   implementation "org.springframework.boot:spring-boot-starter-web"
 
   testImplementation "org.springframework.boot:spring-boot"
-  testImplementation "com.fasterxml.jackson.core:jackson-databind"
+  testImplementation "tools.jackson.core:jackson-databind"
 }

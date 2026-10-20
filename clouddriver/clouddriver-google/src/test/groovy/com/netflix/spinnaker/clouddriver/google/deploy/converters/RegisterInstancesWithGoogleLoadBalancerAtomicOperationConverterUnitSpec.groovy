@@ -16,13 +16,14 @@
 
 package com.netflix.spinnaker.clouddriver.google.deploy.converters
 
-import com.fasterxml.jackson.databind.ObjectMapper
+import tools.jackson.databind.ObjectMapper
 import com.netflix.spinnaker.clouddriver.google.deploy.description.RegisterInstancesWithGoogleLoadBalancerDescription
 import com.netflix.spinnaker.clouddriver.google.deploy.ops.RegisterInstancesWithGoogleLoadBalancerAtomicOperation
 import com.netflix.spinnaker.clouddriver.google.security.GoogleNamedAccountCredentials
 import com.netflix.spinnaker.credentials.CredentialsRepository
 import spock.lang.Shared
 import spock.lang.Specification
+import tools.jackson.databind.json.JsonMapper
 
 class RegisterInstancesWithGoogleLoadBalancerAtomicOperationConverterUnitSpec extends Specification {
   private static final SERVER_GROUP_NAME = "spinnaker-test-v000"
@@ -31,7 +32,7 @@ class RegisterInstancesWithGoogleLoadBalancerAtomicOperationConverterUnitSpec ex
   private static final INSTANCE_IDS = ["my-app7-dev-v000-instance1", "my-app7-dev-v000-instance2"]
 
   @Shared
-  ObjectMapper mapper = new ObjectMapper()
+  ObjectMapper mapper = JsonMapper.builder().build()
 
   @Shared
   RegisterInstancesWithGoogleLoadBalancerAtomicOperationConverter converter

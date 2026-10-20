@@ -17,7 +17,7 @@
 package com.netflix.spinnaker.igor.jenkins.client.model
 
 
-import javax.xml.bind.annotation.XmlRootElement
+import jakarta.xml.bind.annotation.XmlRootElement
 
 /**
  * Represents a Jenkins job downstream project

@@ -20,8 +20,8 @@ package com.netflix.spinnaker.igor.travis.client.model;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.netflix.spinnaker.igor.build.model.GenericGitRevision;
+import jakarta.xml.bind.annotation.XmlRootElement;
 import java.time.Instant;
-import javax.xml.bind.annotation.XmlRootElement;
 import lombok.Data;
 import org.apache.commons.lang3.StringUtils;
 

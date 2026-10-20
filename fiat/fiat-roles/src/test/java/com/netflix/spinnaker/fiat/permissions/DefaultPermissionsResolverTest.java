@@ -25,7 +25,6 @@ import static org.mockito.ArgumentMatchers.anySet;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
 import com.netflix.spinnaker.fiat.config.AccountManagerConfig;
 import com.netflix.spinnaker.fiat.config.FiatAdminConfig;
 import com.netflix.spinnaker.fiat.model.UserPermission;
@@ -42,6 +41,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import org.junit.jupiter.api.Test;
+import tools.jackson.databind.json.JsonMapper;
 
 class DefaultPermissionsResolverTest {
 
@@ -75,7 +75,7 @@ class DefaultPermissionsResolverTest {
             resourceProviders,
             new FiatAdminConfig(),
             new AccountManagerConfig(),
-            new ObjectMapper());
+            JsonMapper.builder().build());
 
     Map<String, UserPermission> result = resolver.resolveResources(userToRoles);
 

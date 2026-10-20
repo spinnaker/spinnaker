@@ -18,7 +18,6 @@ package com.netflix.spinnaker.echo.notification;
 
 import static java.lang.String.format;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.base.Strings;
 import com.google.common.collect.ImmutableMap;
 import com.netflix.spinnaker.echo.api.events.Event;
@@ -30,6 +29,7 @@ import lombok.SneakyThrows;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
+import tools.jackson.databind.ObjectMapper;
 
 public abstract class AbstractEventNotificationAgent implements EventListener {
 

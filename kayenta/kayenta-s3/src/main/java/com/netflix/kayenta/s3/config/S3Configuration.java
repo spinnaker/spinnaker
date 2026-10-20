@@ -16,7 +16,6 @@
 
 package com.netflix.kayenta.s3.config;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
 import com.netflix.kayenta.aws.security.AwsNamedAccountCredentials;
 import com.netflix.kayenta.s3.storage.S3StorageService;
 import com.netflix.kayenta.security.AccountCredentials;
@@ -28,6 +27,7 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.ComponentScan;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.DependsOn;
+import tools.jackson.databind.ObjectMapper;
 
 @Configuration
 @ConditionalOnProperty("kayenta.s3.enabled")

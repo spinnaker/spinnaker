@@ -16,7 +16,6 @@ dependencies {
   api "jakarta.validation:jakarta.validation-api"
   api "io.swagger.core.v3:swagger-annotations"
 
-  implementation "com.squareup.retrofit2:converter-jackson"
   // Direct references in KayentaJackson3SubtypeConfiguration.
   implementation "org.springframework.boot:spring-boot-jackson"
   implementation "tools.jackson.core:jackson-databind"

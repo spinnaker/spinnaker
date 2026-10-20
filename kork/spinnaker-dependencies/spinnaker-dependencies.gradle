@@ -62,9 +62,7 @@ dependencies {
    * specified by `spring-boot-dependencies`.
    */
 
-  // Without pinning jackson-bom to the version that spring boot 3.1.12 brings
-  // in (2.15.4), we get a newer one from version 2.2.22 of swagger: 2.16.2.
-  // Let's keep more of the code running with the version it expects.
+  // Spring Boot manages Jackson 3 and the retained Jackson 2 compatibility dependencies.
   //kotlinVersion comes from gradle.properties since we have kotlin code in
   // this project and need to configure gradle plugins etc.
   api(platform(libs.kotlin.bom))

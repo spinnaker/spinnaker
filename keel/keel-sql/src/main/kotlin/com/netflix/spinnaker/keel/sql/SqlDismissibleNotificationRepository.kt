@@ -1,7 +1,7 @@
 package com.netflix.spinnaker.keel.sql
 
-import com.fasterxml.jackson.databind.ObjectMapper
-import com.fasterxml.jackson.module.kotlin.convertValue
+import tools.jackson.databind.ObjectMapper
+import tools.jackson.module.kotlin.convertValue
 import com.netflix.spinnaker.keel.api.UID
 import com.netflix.spinnaker.keel.events.EventLevel
 import com.netflix.spinnaker.keel.notifications.DismissibleNotification

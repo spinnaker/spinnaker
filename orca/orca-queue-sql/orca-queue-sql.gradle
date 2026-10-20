@@ -12,7 +12,7 @@ dependencies {
   api(project(":keiko-sql"))
   implementation(project(":orca-sql"))
   implementation(project(":keiko-redis-spring"))
-  implementation("com.fasterxml.jackson.module:jackson-module-kotlin")
+  implementation("tools.jackson.module:jackson-module-kotlin")
 
   implementation("org.jooq:jooq")
 

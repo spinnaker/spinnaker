@@ -1,6 +1,6 @@
 package com.netflix.spinnaker.keel.sql
 
-import com.fasterxml.jackson.databind.jsontype.NamedType
+import tools.jackson.databind.jsontype.NamedType
 import com.netflix.spinnaker.keel.scm.CommitCreatedEvent
 import com.netflix.spinnaker.keel.jackson.registerKeelApiModule
 import com.netflix.spinnaker.keel.persistence.WorkQueueRepositoryTests
@@ -15,9 +15,9 @@ internal class SqlWorkQueueRepositoryTests: WorkQueueRepositoryTests<SqlWorkQueu
 
   private val mapper = configuredObjectMapper()
     .registerKeelApiModule()
-    .apply {
-      registerSubtypes(NamedType(CommitCreatedEvent::class.java, "commit.created"))
-    }
+    .rebuild()
+    .registerSubtypes(NamedType(CommitCreatedEvent::class.java, "commit.created"))
+    .build()
 
 
 

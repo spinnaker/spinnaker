@@ -44,6 +44,7 @@ import com.netflix.spinnaker.kork.retrofit.exceptions.SpinnakerConversionExcepti
 import com.netflix.spinnaker.kork.retrofit.exceptions.SpinnakerHttpException;
 import com.netflix.spinnaker.kork.retrofit.exceptions.SpinnakerNetworkException;
 import com.netflix.spinnaker.kork.retrofit.exceptions.SpinnakerServerException;
+import com.netflix.spinnaker.kork.retrofit.util.CustomConverterFactory;
 import com.netflix.spinnaker.security.User;
 import java.io.IOException;
 import java.util.Collection;
@@ -60,7 +61,6 @@ import org.junit.jupiter.params.provider.MethodSource;
 import org.slf4j.MDC;
 import retrofit2.Response;
 import retrofit2.Retrofit;
-import retrofit2.converter.jackson.JacksonConverterFactory;
 import retrofit2.mock.Calls;
 
 public class PermissionServiceTest {
@@ -365,7 +365,7 @@ public class PermissionServiceTest {
     Retrofit retrofit =
         new Retrofit.Builder()
             .baseUrl(url)
-            .addConverterFactory(JacksonConverterFactory.create())
+            .addConverterFactory(CustomConverterFactory.create())
             .build();
 
     return new SpinnakerHttpException(retrofit2Response, retrofit);

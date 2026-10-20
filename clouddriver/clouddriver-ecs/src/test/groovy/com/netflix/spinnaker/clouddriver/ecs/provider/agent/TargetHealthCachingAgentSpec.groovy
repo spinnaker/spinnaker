@@ -24,7 +24,8 @@ import software.amazon.awssdk.services.elasticloadbalancingv2.model.TargetGroupN
 import software.amazon.awssdk.services.elasticloadbalancingv2.model.TargetHealth
 import software.amazon.awssdk.services.elasticloadbalancingv2.model.TargetHealthDescription
 import software.amazon.awssdk.services.elasticloadbalancingv2.model.TargetHealthStateEnum
-import com.fasterxml.jackson.databind.ObjectMapper
+import tools.jackson.databind.ObjectMapper
+import tools.jackson.databind.json.JsonMapper
 import com.netflix.spinnaker.cats.cache.DefaultCacheData
 import com.netflix.spinnaker.cats.provider.ProviderCache
 import com.netflix.spinnaker.clouddriver.aws.data.Keys
@@ -40,7 +41,7 @@ class TargetHealthCachingAgentSpec extends Specification {
   def awsProviderCache = Mock(ProviderCache)
   def amazonloadBalancing = Mock(ElasticLoadBalancingV2Client)
   def targetGroupArn = 'arn:aws:elasticloadbalancing:' + CommonCachingAgent.REGION + ':' + CommonCachingAgent.ACCOUNT_ID + ':targetgroup/test-tg/9e8997b7cff00c62'
-  ObjectMapper mapper = new ObjectMapper()
+  ObjectMapper mapper = JsonMapper.builder().build()
 
   @Subject
   TargetHealthCachingAgent agent =

@@ -16,9 +16,9 @@
 
 package com.netflix.spinnaker.orca.controllers
 
-import com.fasterxml.jackson.module.kotlin.jacksonObjectMapper
 import com.netflix.spinnaker.orca.api.test.OrcaFixture
 import com.netflix.spinnaker.orca.api.test.orcaFixture
+import com.netflix.spinnaker.orca.jackson.OrcaObjectMapper
 import com.netflix.spinnaker.q.discovery.DiscoveryActivator
 import dev.minutest.junit.JUnit5Minutests
 import dev.minutest.rootContext
@@ -56,7 +56,7 @@ class AdminControllerTest : JUnit5Minutests {
       val response = mockMvc.post("/admin/instance/enabled") {
         with(csrf())
         contentType = MediaType.APPLICATION_JSON
-        content = jacksonObjectMapper().writeValueAsString(mapOf("enabled" to false))
+         content = OrcaObjectMapper.getInstance().writeValueAsString(mapOf("enabled" to false))
       }.andReturn().response
 
       expectThat(response.status).isEqualTo(200)

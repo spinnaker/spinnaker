@@ -19,8 +19,6 @@ package com.netflix.spinnaker.orca.clouddriver.tasks.providers.cf;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.*;
 
-import com.fasterxml.jackson.databind.DeserializationFeature;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.collect.ImmutableList;
 import com.netflix.spinnaker.orca.clouddriver.KatoService;
 import com.netflix.spinnaker.orca.clouddriver.model.TaskId;
@@ -33,6 +31,9 @@ import java.util.List;
 import java.util.Map;
 import org.junit.jupiter.api.Test;
 import org.mockito.ArgumentCaptor;
+import tools.jackson.databind.DeserializationFeature;
+import tools.jackson.databind.ObjectMapper;
+import tools.jackson.databind.json.JsonMapper;
 
 class CloudFoundryDeployServiceTaskTest {
   @Test
@@ -54,7 +55,11 @@ class CloudFoundryDeployServiceTaskTest {
             + "}";
 
     ObjectMapper mapper =
-        new ObjectMapper().disable(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES);
+        JsonMapper.builder()
+            .build()
+            .rebuild()
+            .disable(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES)
+            .build();
 
     KatoService katoService = mock(KatoService.class);
     when(katoService.requestOperations(any(), any())).thenReturn(new TaskId("taskid"));

@@ -18,8 +18,6 @@ package com.netflix.spinnaker.orca.front50.tasks;
 
 import static java.lang.String.format;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.hash.Hashing;
 import com.netflix.spinnaker.fiat.model.UserPermission;
@@ -54,6 +52,8 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Component;
 import retrofit2.Response;
+import tools.jackson.core.JacksonException;
+import tools.jackson.databind.ObjectMapper;
 
 /**
  * Save a pipeline-scoped Fiat Service Account. The roles from this service account are used for
@@ -211,7 +211,7 @@ public class SaveServiceAccountTask implements RetryableTask {
           Base64.getEncoder()
               .encodeToString(
                   objectMapper.writeValueAsString(pipelines).getBytes(StandardCharsets.UTF_8));
-    } catch (JsonProcessingException e) {
+    } catch (JacksonException e) {
       throw new RuntimeException(
           "Failed to re-encode pipelines after applying service accounts", e);
     }

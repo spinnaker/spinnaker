@@ -1,7 +1,7 @@
 package com.netflix.spinnaker.keel.igor
 
-import com.fasterxml.jackson.databind.ObjectMapper
-import com.fasterxml.jackson.module.kotlin.convertValue
+import tools.jackson.databind.ObjectMapper
+import tools.jackson.module.kotlin.convertValue
 import com.netflix.spinnaker.config.BaseUrlConfig
 import com.netflix.spinnaker.config.LifecycleConfig
 import com.netflix.spinnaker.keel.api.artifacts.BuildMetadata

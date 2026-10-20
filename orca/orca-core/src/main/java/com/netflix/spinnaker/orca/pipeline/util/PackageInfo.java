@@ -23,12 +23,12 @@ import static java.util.Collections.emptyMap;
 import static java.util.stream.Collectors.joining;
 import static java.util.stream.Collectors.toList;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.annotations.VisibleForTesting;
 import com.netflix.spinnaker.kork.artifacts.model.Artifact;
 import com.netflix.spinnaker.orca.api.pipeline.models.StageExecution;
 import java.util.*;
 import java.util.regex.Pattern;
+import tools.jackson.databind.ObjectMapper;
 
 /**
  * This class inspects the context of a stage, preceding stages, the trigger, and the parent

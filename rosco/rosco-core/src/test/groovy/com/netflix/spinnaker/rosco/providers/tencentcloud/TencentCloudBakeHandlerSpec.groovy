@@ -16,7 +16,7 @@
 
 package com.netflix.spinnaker.rosco.providers.tencentcloud
 
-import com.fasterxml.jackson.databind.ObjectMapper
+import tools.jackson.databind.ObjectMapper
 import com.netflix.spinnaker.rosco.api.Bake
 import com.netflix.spinnaker.rosco.api.BakeRequest
 import com.netflix.spinnaker.rosco.providers.tencentcloud.config.RoscoTencentCloudConfiguration
@@ -26,6 +26,7 @@ import com.netflix.spinnaker.rosco.providers.util.TestDefaults
 import spock.lang.Shared
 import spock.lang.Specification
 import spock.lang.Subject
+import tools.jackson.databind.json.JsonMapper
 
 class TencentCloudBakeHandlerSpec extends Specification implements TestDefaults {
     private static final String REGION = "ap-guangzhou"
@@ -63,7 +64,7 @@ class TencentCloudBakeHandlerSpec extends Specification implements TestDefaults 
                 ]
         ]
 
-        tencentCloudBakeryDefaults = new ObjectMapper().convertValue(tencentCloudBakeryDefaultsJson, RoscoTencentCloudConfiguration.TencentCloudBakeryDefaults)
+        tencentCloudBakeryDefaults = JsonMapper.builder().build().convertValue(tencentCloudBakeryDefaultsJson, RoscoTencentCloudConfiguration.TencentCloudBakeryDefaults)
     }
 
     void 'can scrape packer logs for image name'() {

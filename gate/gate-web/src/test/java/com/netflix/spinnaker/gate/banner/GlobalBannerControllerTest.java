@@ -21,7 +21,6 @@ import static org.mockito.Mockito.*;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
 import com.netflix.spinnaker.gate.services.PermissionService;
 import com.netflix.spinnaker.security.User;
 import java.util.List;
@@ -47,6 +46,8 @@ import org.springframework.web.bind.annotation.ControllerAdvice;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.server.ResponseStatusException;
+import tools.jackson.databind.ObjectMapper;
+import tools.jackson.databind.json.JsonMapper;
 
 @ExtendWith(MockitoExtension.class)
 class GlobalBannerControllerTest {
@@ -57,7 +58,7 @@ class GlobalBannerControllerTest {
   GlobalBannerProperties properties;
   GlobalBannerController controller;
   MockMvc mockMvc;
-  ObjectMapper objectMapper = new ObjectMapper();
+  ObjectMapper objectMapper = JsonMapper.builder().build();
 
   @ControllerAdvice
   static class ExceptionAdvice {

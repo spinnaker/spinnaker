@@ -1,7 +1,7 @@
 package com.netflix.spinnaker.keel.ec2.jackson
 
-import com.fasterxml.jackson.databind.DeserializationContext
-import com.fasterxml.jackson.databind.JsonNode
+import tools.jackson.databind.DeserializationContext
+import tools.jackson.databind.JsonNode
 import com.netflix.spinnaker.keel.api.SimpleLocations
 import com.netflix.spinnaker.keel.api.ec2.CidrRule
 import com.netflix.spinnaker.keel.api.ec2.CrossAccountReferenceRule
@@ -9,9 +9,10 @@ import com.netflix.spinnaker.keel.api.ec2.PrefixListRule
 import com.netflix.spinnaker.keel.api.ec2.ReferenceRule
 import com.netflix.spinnaker.keel.api.ec2.SecurityGroupRule
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean
-import org.springframework.boot.jackson2.JsonComponent
+import org.springframework.boot.jackson.JacksonComponent
 
-@JsonComponent
+
+@JacksonComponent
 @ConditionalOnMissingBean(name = ["securityGroupRuleDeserializer"])
 class DefaultSecurityGroupRuleDeserializer : SecurityGroupRuleDeserializer() {
   override fun identifySubType(

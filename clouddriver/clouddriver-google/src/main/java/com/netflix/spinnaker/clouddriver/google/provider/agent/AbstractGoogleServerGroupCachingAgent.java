@@ -35,8 +35,6 @@ import static com.netflix.spinnaker.clouddriver.google.deploy.GCEUtil.REGIONAL_L
 import static com.netflix.spinnaker.clouddriver.google.deploy.GCEUtil.REGION_BACKEND_SERVICE_NAMES;
 import static com.netflix.spinnaker.clouddriver.google.deploy.GCEUtil.SELECT_ZONES;
 
-import com.fasterxml.jackson.core.type.TypeReference;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.api.services.compute.Compute;
 import com.google.api.services.compute.model.AttachedDisk;
 import com.google.api.services.compute.model.Autoscaler;
@@ -124,6 +122,9 @@ import javax.annotation.Nullable;
 import javax.annotation.ParametersAreNonnullByDefault;
 import lombok.Value;
 import lombok.extern.slf4j.Slf4j;
+import tools.jackson.core.JacksonException;
+import tools.jackson.core.type.TypeReference;
+import tools.jackson.databind.ObjectMapper;
 
 @Slf4j
 @ParametersAreNonnullByDefault
@@ -220,9 +221,9 @@ public abstract class AbstractGoogleServerGroupCachingAgent
               });
 
       return cacheResult;
-    } catch (IOException e) {
+    } catch (JacksonException | IOException e) {
       // CatsOnDemandCacheUpdater handles this
-      throw new UncheckedIOException(e);
+      throw new UncheckedIOException(new IOException(e));
     }
   }
 
@@ -284,9 +285,9 @@ public abstract class AbstractGoogleServerGroupCachingAgent
             new DefaultCacheResult(ImmutableMap.of()),
             ImmutableMap.of(SERVER_GROUPS.getNs(), ImmutableList.copyOf(existingIdentifiers)));
       }
-    } catch (IOException e) {
+    } catch (JacksonException e) {
       // CatsOnDemandCacheUpdater handles this
-      throw new UncheckedIOException(e);
+      throw new UncheckedIOException(new IOException(e));
     }
   }
 
@@ -939,7 +940,7 @@ public abstract class AbstractGoogleServerGroupCachingAgent
               LOAD_BALANCING_POLICY,
               objectMapper.readValue(
                   metadata.get(LOAD_BALANCING_POLICY), GoogleHttpLoadBalancingPolicy.class));
-        } catch (IOException e) {
+        } catch (JacksonException e) {
           log.warn("Error parsing load balancing policy", e);
         }
       }
