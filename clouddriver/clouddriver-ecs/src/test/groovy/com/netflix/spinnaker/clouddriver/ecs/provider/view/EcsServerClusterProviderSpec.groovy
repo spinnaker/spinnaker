@@ -403,6 +403,47 @@ class EcsServerClusterProviderSpec extends Specification {
     retrievedClusters.sort() == [expectedCluster, expectedCluster2].sort()
   }
 
+  def 'groups a classic versioned service and the ecs-native fixed-name service into one Spinnaker cluster'() {
+    given: 'both services cached for one account, with monikers derived from their names by the caching agent'
+    def creds = Mock(NetflixECSCredentials)
+    creds.getCloudProvider() >> 'ecs'
+    creds.getName() >> CREDS_NAME
+    creds.getRegions() >> [new AmazonCredentials.AWSRegion('us-west-1', ['us-west-1b', 'us-west-1c', 'us-west-1d'])]
+    def agent = TestServiceCachingAgentFactory.create(creds, 'us-west-1')
+    def classicService = cachedService                                          // myapp-kcats-liated-v007, untagged
+    def nativeService = cachedService.toBuilder()
+      .serviceName(FAMILY_NAME)                                                 // myapp-kcats-liated, no sequence
+      .tags(EcsNativeServiceTag.tag())
+      .build()
+    def classicData = new DefaultCacheData('', agent.convertServiceToAttributes(classicService), [:])
+    def nativeData = new DefaultCacheData('', agent.convertServiceToAttributes(nativeService), [:])
+
+    when:
+    def clusters = provider.getClusterDetails('myapp')
+
+    then:
+    credentialsRepository.getAll() >> [creds]
+    cacheView.getAll(Keys.Namespace.SERVICES.ns, _) >> [classicData, nativeData]
+
+    clusters.keySet() == ['myapp'] as Set
+    def appClusters = clusters['myapp'] as Set<EcsServerCluster>
+    appClusters.size() == 1
+    def cluster = appClusters.first()
+    cluster.name == FAMILY_NAME
+    cluster.accountName == CREDS_NAME
+    cluster.serverGroups*.name as Set == [FAMILY_NAME, "${FAMILY_NAME}-v007".toString()] as Set
+
+    def nativeGroup = cluster.serverGroups.find { it.name == FAMILY_NAME } as EcsServerGroup
+    nativeGroup.getIsNative() == true
+    nativeGroup.moniker.cluster == FAMILY_NAME
+    nativeGroup.moniker.sequence == null
+
+    def classicGroup = cluster.serverGroups.find { it.name == "${FAMILY_NAME}-v007" } as EcsServerGroup
+    classicGroup.getIsNative() == null
+    classicGroup.moniker.cluster == FAMILY_NAME
+    classicGroup.moniker.sequence == 7
+  }
+
   def 'should surface the task definition revision and ECS rollout state on the server group'() {
     given: 'a cached service with a PRIMARY deployment and a task-definition ARN carrying a revision'
     def creds = Mock(NetflixECSCredentials)
