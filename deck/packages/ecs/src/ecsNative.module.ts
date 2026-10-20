@@ -25,6 +25,14 @@ const ECS_NATIVE = 'ecs-native';
  * The native registration reuses each `ecs` component reference; only the display name, logo and
  * account type differ. Deploy/clone behavior is selected by the stage's `cloudProvider` and is not
  * inferred from an account.
+ *
+ * This is a one-time snapshot, taken when this module is imported (right after `./ecs.module`).
+ * `CloudProviderRegistry.getProvider` returns a deep copy (functions and React components by
+ * reference, everything else cloned), and `overrideValue` writes into the registry's own copy, so an
+ * `overrideValue('ecs', ...)` made after this point does not reach `ecs-native`. A deployment that
+ * customizes `ecs` and expects the same for `ecs-native` has to apply the override to both keys, or
+ * before this module is imported. The transient `SETTINGS.providers` entry below exists only for
+ * the duration of `registerProvider`; it is removed again so no `ecs-native` settings linger.
  */
 export function registerEcsNativeProvider(): void {
   const ecsConfig = CloudProviderRegistry.getProvider('ecs');
