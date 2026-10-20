@@ -22,7 +22,9 @@ import static org.junit.jupiter.api.Assertions.*;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.github.tomakehurst.wiremock.WireMockServer;
+import com.github.tomakehurst.wiremock.client.ResponseDefinitionBuilder;
 import com.github.tomakehurst.wiremock.core.WireMockConfiguration;
+import com.github.tomakehurst.wiremock.stubbing.Scenario;
 import com.netflix.spinnaker.kork.github.test.GitHubAppTestKeys;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
@@ -36,10 +38,12 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
 import java.util.concurrent.TimeUnit;
+import java.util.stream.Collectors;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
+import org.kohsuke.github.GitHub;
 
 /**
  * End-to-end tests of the GitHub App token exchange in {@link GitHubAppAuthenticator} against a
@@ -143,6 +147,67 @@ class GitHubAppAuthenticatorTokenExchangeTest {
     authenticator.getInstallationToken();
 
     server.verify(2, postRequestedFor(urlPathEqualTo(ACCESS_TOKENS_PATH)));
+  }
+
+  @Test
+  void authenticatedClientShouldRenewItsTokenWhenTheCachedOneExpires() throws Exception {
+    // The first token is already inside the refresh buffer, standing in for a client that has
+    // been held for an hour (e.g. a singleton @Bean); the second one is long-lived.
+    server.stubFor(
+        post(urlPathEqualTo(ACCESS_TOKENS_PATH))
+            .inScenario("token rotation")
+            .whenScenarioStateIs(Scenario.STARTED)
+            .willReturn(accessTokenResponse("ghs_first_token", "2000-01-01T00:00:00Z"))
+            .willSetStateTo("rotated"));
+    server.stubFor(
+        post(urlPathEqualTo(ACCESS_TOKENS_PATH))
+            .inScenario("token rotation")
+            .whenScenarioStateIs("rotated")
+            .willReturn(accessTokenResponse("ghs_second_token", "2099-01-01T00:00:00Z")));
+    stubOrganizations();
+    GitHubAppAuthenticator authenticator = authenticator(server.baseUrl());
+
+    GitHub client = authenticator.getAuthenticatedClient();
+    client.getOrganization("org-a");
+    client.getOrganization("org-b");
+
+    // The same client instance picked up the renewed token instead of reusing the expired one
+    assertEquals(
+        List.of("token ghs_second_token", "token ghs_second_token"),
+        organizationRequestAuthorizations());
+    server.verify(2, postRequestedFor(urlPathEqualTo(ACCESS_TOKENS_PATH)));
+  }
+
+  @Test
+  void authenticatedClientShouldServeCachedTokenWithoutMintingPerRequest() throws Exception {
+    stubAccessTokenCreation("ghs_stubbed_token", "2099-01-01T00:00:00Z");
+    stubOrganizations();
+    GitHubAppAuthenticator authenticator = authenticator(server.baseUrl());
+
+    GitHub client = authenticator.getAuthenticatedClient();
+    client.getOrganization("org-a");
+    client.getOrganization("org-b");
+    client.getOrganization("org-c");
+
+    assertEquals(
+        List.of("token ghs_stubbed_token", "token ghs_stubbed_token", "token ghs_stubbed_token"),
+        organizationRequestAuthorizations());
+    // One mint, made eagerly by getAuthenticatedClient; requests are served from the cache
+    server.verify(1, postRequestedFor(urlPathEqualTo(ACCESS_TOKENS_PATH)));
+  }
+
+  @Test
+  void authenticatedClientShouldFailFastWhenNoTokenCanBeMinted() {
+    server.stubFor(
+        post(urlPathEqualTo(ACCESS_TOKENS_PATH))
+            .willReturn(
+                aResponse()
+                    .withStatus(401)
+                    .withHeader("Content-Type", "application/json")
+                    .withBody("{\"message\": \"Bad credentials\"}")));
+    GitHubAppAuthenticator authenticator = authenticator(server.baseUrl());
+
+    assertThrows(IOException.class, authenticator::getAuthenticatedClient);
   }
 
   @Test
@@ -407,13 +472,33 @@ class GitHubAppAuthenticatorTokenExchangeTest {
 
   private void stubAccessTokenCreation(String token, String expiresAt) {
     server.stubFor(
-        post(urlPathEqualTo(ACCESS_TOKENS_PATH))
+        post(urlPathEqualTo(ACCESS_TOKENS_PATH)).willReturn(accessTokenResponse(token, expiresAt)));
+  }
+
+  private ResponseDefinitionBuilder accessTokenResponse(String token, String expiresAt) {
+    return aResponse()
+        .withStatus(201)
+        .withHeader("Content-Type", "application/json")
+        .withBody("{\"token\": \"" + token + "\", \"expires_at\": \"" + expiresAt + "\"}");
+  }
+
+  /**
+   * Stubs GET /orgs/{org}. Tests use a distinct org per call because hub4j caches organizations per
+   * client, and a cached lookup would not send a request.
+   */
+  private void stubOrganizations() {
+    server.stubFor(
+        get(urlPathMatching("/orgs/[^/]+"))
             .willReturn(
                 aResponse()
-                    .withStatus(201)
                     .withHeader("Content-Type", "application/json")
-                    .withBody(
-                        "{\"token\": \"" + token + "\", \"expires_at\": \"" + expiresAt + "\"}")));
+                    .withBody("{\"login\": \"test-org\", \"id\": 1}")));
+  }
+
+  private List<String> organizationRequestAuthorizations() {
+    return server.findAll(getRequestedFor(urlPathMatching("/orgs/[^/]+"))).stream()
+        .map(request -> request.getHeader("Authorization"))
+        .collect(Collectors.toList());
   }
 
   private JsonNode decodeJwtPayload(String jwt) throws Exception {
