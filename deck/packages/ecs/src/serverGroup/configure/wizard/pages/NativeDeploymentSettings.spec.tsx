@@ -113,11 +113,19 @@ describe('NativeDeploymentSettings', () => {
     expect(onFieldChange).toHaveBeenCalledWith('alarmNames', []);
   });
 
-  it('clears the Spinnaker strategy when native deployment is enabled', () => {
+  it('only reports the cloudProvider change when toggling; the command update owns the strategy and field cleanup', () => {
+    // Forcing strategy=None on the way in, and restoring it plus dropping the native-only fields on
+    // the way out, is done in updateEcsCommand (see its spec) so it also applies to formik's values.
     const onFieldChange = vi.fn();
     renderSettings(buildCommand({ strategy: 'redblack' }), onFieldChange);
     fireEvent.click(screen.getByRole('checkbox', { name: 'Use native ECS deployment' }));
-    expect(onFieldChange).toHaveBeenCalledWith('strategy', 'none');
+    expect(onFieldChange).toHaveBeenCalledTimes(1);
+    expect(onFieldChange).toHaveBeenCalledWith('cloudProvider', 'ecs-native');
+  });
+
+  it('treats a lowercase blue_green strategy like BLUE_GREEN, as clouddriver does', () => {
+    renderSettings(buildCommand({ cloudProvider: 'ecs-native', deploymentStrategy: 'blue_green' }));
+    expect(screen.getByLabelText('Alternate target group ARN')).toBeInTheDocument();
   });
 
   it('shows minimum and maximum healthy deployment bounds', () => {

@@ -55,6 +55,12 @@ import type {
   IEcsServerGroupCommand,
   IEcsTargetGroupMapping,
 } from '../serverGroupConfiguration.service';
+import {
+  ECS_NATIVE_BLUE_GREEN_ONLY_FIELDS,
+  ECS_NATIVE_ONLY_FIELDS,
+  isEcsNativeBlueGreenStrategy,
+  isEcsNativeStrategyDecidedInDeck,
+} from '../serverGroupConfiguration.service';
 import { ServiceDiscoveryReader } from '../../../serviceDiscovery/serviceDiscovery.read.service';
 
 type EcsFormikProps = IWizardPageInjectedProps<IEcsServerGroupCommand>['formik'];
@@ -185,10 +191,32 @@ const mergeEcsConfiguredCommand = (
     region: configured.region,
   });
 
-const updateEcsCommand = (command: IEcsServerGroupCommand, field: string, value: any) => {
+export const updateEcsCommand = (command: IEcsServerGroupCommand, field: string, value: any) => {
   const updated = { ...command, [field]: value } as IEcsServerGroupCommand;
   if (field === 'credentials' || field === 'region') {
     reconcileEcsLocation(updated);
+  }
+  if (field === 'cloudProvider') {
+    if (value === 'ecs-native') {
+      // ecs-native always deploys in place through ECS's own strategy, so the Spinnaker strategy
+      // must be None. Remember what it was so unticking the box restores it.
+      updated.viewState = { ...command.viewState, ecsNativePreviousStrategy: command.strategy } as any;
+      updated.strategy = 'none';
+    } else {
+      // Back to classic ecs: restore the strategy ('' is the classic default) and drop every field
+      // that only the native provider understands, so they are not sent in a classic payload.
+      updated.strategy = command.viewState?.ecsNativePreviousStrategy ?? '';
+      ECS_NATIVE_ONLY_FIELDS.forEach((nativeField) => delete (updated as any)[nativeField]);
+    }
+  }
+  if (
+    field === 'deploymentStrategy' &&
+    isEcsNativeStrategyDecidedInDeck(value) &&
+    !isEcsNativeBlueGreenStrategy(value)
+  ) {
+    // The wizard hides the blue/green-only fields for other strategies; clear them so hidden values
+    // cannot fail validation (or clouddriver's lifecyclePauseStage-requires-BLUE_GREEN check) later.
+    ECS_NATIVE_BLUE_GREEN_ONLY_FIELDS.forEach((blueGreenField) => delete (updated as any)[blueGreenField]);
   }
   if (field === 'useTaskDefinitionArtifact') {
     updated.serviceDiscoveryAssociations = (updated.serviceDiscoveryAssociations || []).map((association) => ({

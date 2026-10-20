@@ -4,6 +4,7 @@ import { HelpField } from '@spinnaker/core';
 
 import type { IEcsWizardPageProps } from './common';
 import type { IEcsServerGroupCommand } from '../../serverGroupConfiguration.service';
+import { isEcsNativeBlueGreenStrategy } from '../../serverGroupConfiguration.service';
 
 const ECS_NATIVE = 'ecs-native';
 
@@ -14,7 +15,7 @@ export const NativeDeploymentSettings = ({ command, onFieldChange }: IEcsWizardP
   const alarms = command.backingData?.filtered?.metricAlarms || [];
   const alarmNames: string[] = command.alarmNames || [];
   const strategy = command.deploymentStrategy || 'ROLLING';
-  const isBlueGreen = strategy === 'BLUE_GREEN';
+  const isBlueGreen = isEcsNativeBlueGreenStrategy(strategy);
   // When a load balancer is attached, AWS ECS requires the ALB traffic-shift config for BLUE_GREEN;
   // it is only truly optional for a service with no load balancer (ECS rejects a load-balanced
   // BLUE_GREEN deploy without advancedConfiguration; see validateEcsNativeDeployment).
@@ -38,13 +39,10 @@ export const NativeDeploymentSettings = ({ command, onFieldChange }: IEcsWizardP
             aria-label="Use native ECS deployment"
             checked={useNative}
             data-test-id="NativeDeployment.useEcsNative"
-            onChange={(event) => {
-              const nextCloudProvider = event.target.checked ? ECS_NATIVE : 'ecs';
-              onFieldChange('cloudProvider', nextCloudProvider);
-              if (nextCloudProvider === ECS_NATIVE) {
-                onFieldChange('strategy', 'none');
-              }
-            }}
+            // The wizard's command update (updateEcsCommand) reacts to this one field change: it
+            // forces the Spinnaker strategy to None while native is on, and on the way back restores
+            // the previous strategy and drops the native-only fields.
+            onChange={(event) => onFieldChange('cloudProvider', event.target.checked ? ECS_NATIVE : 'ecs')}
             type="checkbox"
           />
         </div>

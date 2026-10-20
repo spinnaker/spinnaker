@@ -3,6 +3,7 @@ import React from 'react';
 import type { IWizardPageComponent } from '@spinnaker/core';
 
 import type { IEcsServerGroupCommand } from '../../serverGroupConfiguration.service';
+import { isEcsNativeBlueGreenStrategy } from '../../serverGroupConfiguration.service';
 
 type ValidationErrors = { [key: string]: any };
 type Validator = (values: IEcsServerGroupCommand) => ValidationErrors;
@@ -200,6 +201,27 @@ export const validateEcsNativeDeployment: Validator = (values) => {
     errors.maximumPercent = 'Maximum percent cannot be less than minimum healthy percent.';
   }
 
+  // Bake time applies to both native strategies; clouddriver rejects a negative value.
+  if (required(values.bakeTimeInMinutes) && !validInteger(values.bakeTimeInMinutes)) {
+    errors.bakeTimeInMinutes = 'Bake time must be a non-negative integer number of minutes.';
+  }
+
+  const isBlueGreen = isEcsNativeBlueGreenStrategy(values.deploymentStrategy);
+  if (!isBlueGreen) {
+    // The remaining fields are only rendered for BLUE_GREEN. Values left behind by a strategy
+    // switch are cleared by the wizard (see updateEcsCommand); if any survive, validating them here
+    // would block saving on fields the user cannot see, so clouddriver stays the backstop.
+    return errors;
+  }
+
+  // clouddriver requires a timeout of at least one minute whenever a pause stage is configured.
+  if (required(values.lifecyclePauseStage)) {
+    const timeout = values.lifecyclePauseTimeoutMinutes;
+    if (!validInteger(timeout) || timeout < 1) {
+      errors.lifecyclePauseTimeoutMinutes = 'Pause timeout must be an integer of at least 1 minute.';
+    }
+  }
+
   const blueGreenFields = [
     'alternateTargetGroupArn',
     'productionListenerRule',
@@ -207,14 +229,13 @@ export const validateEcsNativeDeployment: Validator = (values) => {
     'blueGreenRoleArn',
   ] as const;
   const setCount = blueGreenFields.filter((field) => required(values[field])).length;
-  const isBlueGreen = values.deploymentStrategy === 'BLUE_GREEN';
 
   // AWS ECS requires the ALB traffic-shift config on every load balancer for a BLUE_GREEN deploy,
   // and rejects the deploy with a 400 otherwise ("advancedConfiguration field is required for all
-  // loadBalancers when using the Blue/green deployment strategy"). So when the strategy is
-  // BLUE_GREEN and a load balancer is attached, all four fields are required -- not optional.
-  // (With no load balancer, BLUE_GREEN needs none of them.)
-  if (isBlueGreen && hasLoadBalancer(values) && setCount < blueGreenFields.length) {
+  // loadBalancers when using the Blue/green deployment strategy"). So when a load balancer is
+  // attached, all four fields are required -- not optional. (With no load balancer, BLUE_GREEN
+  // needs none of them.)
+  if (hasLoadBalancer(values) && setCount < blueGreenFields.length) {
     const message =
       'The Blue/Green strategy on a load-balanced service requires all four fields: alternate target group ARN, production listener rule, test listener rule, and blue/green IAM role. Provide all four, or use the Rolling strategy.';
     blueGreenFields.forEach((field) => {

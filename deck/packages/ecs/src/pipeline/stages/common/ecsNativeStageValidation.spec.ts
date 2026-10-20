@@ -4,6 +4,13 @@ import { validateEcsNativeDeploymentReference, validateEcsNativeLifecycleAction 
 import { registerEcsPipelineStages } from '../../../ecs.module';
 
 const nativeDeploy = { refId: 'deploy', type: 'createServerGroup', cloudProvider: 'ecs-native', name: 'Deploy' } as any;
+const classicDeploy = { refId: 'deploy', type: 'createServerGroup', cloudProvider: 'ecs', name: 'Deploy' } as any;
+const deckDeploy = {
+  refId: 'deploy',
+  type: 'deploy',
+  name: 'Deploy',
+  clusters: [{ cloudProvider: 'ecs-native', application: 'app' }],
+} as any;
 const judgment = { refId: 'judge', type: 'manualJudgment', name: 'Approve', requisiteStageRefIds: ['deploy'] } as any;
 const pipelineWith = (...stages: any[]) => ({ stages, triggers: [] } as any);
 
@@ -18,16 +25,23 @@ describe('validateEcsNativeDeploymentReference', () => {
     expect(validateEcsNativeDeploymentReference(pipelineWith(stage), stage)).toBeNull();
   });
 
-  it('passes when a direct requisite is a native deploy stage (Orca falls back to requisites)', () => {
+  it('passes when a direct requisite is a native deploy stage', () => {
     const stage = { refId: 'continue', requisiteStageRefIds: ['deploy'] } as any;
     expect(validateEcsNativeDeploymentReference(pipelineWith(nativeDeploy, stage), stage)).toBeNull();
   });
 
-  it('fails when nothing identifies the deployment', () => {
+  it('passes when the native deploy sits upstream behind a Manual Judgment, as Orca resolves it', () => {
+    const stage = { refId: 'continue', requisiteStageRefIds: ['judge'] } as any;
+    expect(validateEcsNativeDeploymentReference(pipelineWith(nativeDeploy, judgment, stage), stage)).toBeNull();
+    expect(validateEcsNativeDeploymentReference(pipelineWith(deckDeploy, judgment, stage), stage)).toBeNull();
+  });
+
+  it('fails when no native deploy is anywhere upstream', () => {
     const stage = { refId: 'continue', requisiteStageRefIds: ['judge'], deploymentStageRefId: ' ' } as any;
-    expect(validateEcsNativeDeploymentReference(pipelineWith(nativeDeploy, judgment, stage), stage)).toContain(
+    expect(validateEcsNativeDeploymentReference(pipelineWith(classicDeploy, judgment, stage), stage)).toContain(
       'Deployment stage',
     );
+    expect(validateEcsNativeDeploymentReference(pipelineWith(stage), stage)).toContain('Deployment stage');
   });
 });
 
@@ -74,10 +88,17 @@ describe('ECS native Continue/Stop stage validation', () => {
     expect(Registry.pipeline.getStageConfig({ type: 'ecsNativeStopServiceDeployment' } as any)).toBeTruthy();
   });
 
-  it('flags Continue and Stop stages without a deployment reference', async () => {
+  it('flags Continue and Stop stages with no native deploy upstream and no explicit reference', async () => {
+    for (const type of ['ecsNativeContinueServiceDeployment', 'ecsNativeStopServiceDeployment']) {
+      const messages = await messagesFor(baseStage(type), classicDeploy, judgment);
+      expect(messages.some((message) => message.includes('Deployment stage'))).toBe(true);
+    }
+  });
+
+  it('accepts Continue and Stop stages that follow a native deploy through a Manual Judgment', async () => {
     for (const type of ['ecsNativeContinueServiceDeployment', 'ecsNativeStopServiceDeployment']) {
       const messages = await messagesFor(baseStage(type), nativeDeploy, judgment);
-      expect(messages.some((message) => message.includes('Deployment stage'))).toBe(true);
+      expect(messages.some((message) => message.includes('Deployment stage'))).toBe(false);
     }
   });
 

@@ -1,4 +1,5 @@
 import type { ICustomValidator, IPipeline, IStage, IValidatorConfig } from '@spinnaker/core';
+import { PipelineConfigService } from '@spinnaker/core';
 
 const ECS_NATIVE = 'ecs-native';
 
@@ -12,19 +13,18 @@ export const isEcsNativeDeployStage = (candidate: IStage): boolean =>
 
 /**
  * Continue/Stop stages act on one exact ECS service deployment. Orca resolves it from the
- * `deploymentStageRefId` stage, otherwise from a direct requisite native deploy stage, otherwise
- * from the legacy `ecsNativeExpectedServiceDeploymentArn` field. Without any of those the stage
- * fails at runtime.
+ * `deploymentStageRefId` stage, otherwise from the nearest native deploy stage anywhere upstream
+ * (a Manual Judgment or other stages may sit in between), otherwise from the legacy
+ * `ecsNativeExpectedServiceDeploymentArn` field. Without any of those the stage fails at runtime.
  */
 export function validateEcsNativeDeploymentReference(pipeline: IPipeline, stage: IStage): string {
   if (!isBlank(stage.deploymentStageRefId) || !isBlank(stage.ecsNativeExpectedServiceDeploymentArn)) {
     return null;
   }
-  const requisites = (stage.requisiteStageRefIds || []).map(String);
-  const hasDirectNativeDeployRequisite = (pipeline?.stages || []).some(
-    (candidate) => requisites.includes(String(candidate.refId)) && isEcsNativeDeployStage(candidate),
+  const hasUpstreamNativeDeploy = PipelineConfigService.getAllUpstreamDependencies(pipeline, stage).some(
+    isEcsNativeDeployStage,
   );
-  return hasDirectNativeDeployRequisite
+  return hasUpstreamNativeDeploy
     ? null
     : 'Select the preceding native ECS <strong>Deployment stage</strong> (or set the legacy expected service deployment ARN).';
 }
