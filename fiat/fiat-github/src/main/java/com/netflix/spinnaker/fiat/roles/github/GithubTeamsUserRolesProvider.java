@@ -16,18 +16,23 @@
 
 package com.netflix.spinnaker.fiat.roles.github;
 
+import com.google.common.base.Ticker;
 import com.google.common.cache.CacheBuilder;
 import com.google.common.cache.CacheLoader;
 import com.google.common.cache.LoadingCache;
 import com.google.common.util.concurrent.ListenableFuture;
 import com.google.common.util.concurrent.ListenableFutureTask;
+import com.google.common.util.concurrent.UncheckedExecutionException;
 import com.netflix.spinnaker.fiat.model.resources.Role;
 import com.netflix.spinnaker.fiat.permissions.ExternalUser;
+import com.netflix.spinnaker.fiat.providers.ProviderException;
 import com.netflix.spinnaker.fiat.roles.UserRolesProvider;
 import java.io.IOException;
 import java.util.*;
 import java.util.concurrent.*;
+import java.util.function.Function;
 import java.util.stream.Collectors;
+import lombok.AccessLevel;
 import lombok.Setter;
 import lombok.extern.slf4j.Slf4j;
 import lombok.val;
@@ -37,6 +42,7 @@ import org.kohsuke.github.GHOrganization;
 import org.kohsuke.github.GHRateLimit;
 import org.kohsuke.github.GHTeam;
 import org.kohsuke.github.GitHub;
+import org.kohsuke.github.HttpException;
 import org.springframework.beans.factory.InitializingBean;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
@@ -70,7 +76,11 @@ import org.springframework.util.Assert;
  * <p><b>Error Handling:</b>
  *
  * <ul>
- *   <li>404 errors (organization/team not found) are logged with specific context
+ *   <li>404 errors (organization/team not found) are logged with specific context and cached as
+ *       empty results
+ *   <li>Every other error fails the fetch with a {@link ProviderException}. A failed background
+ *       refresh keeps the previously cached value and is retried after the next refresh interval; a
+ *       failed load with nothing cached surfaces to the caller
  *   <li>Rate limit errors provide actionable guidance and rate limit URL
  *   <li>Authentication errors (401) suggest credential verification
  *   <li>Permission errors (403) suggest permission and rate limit checks
@@ -88,7 +98,15 @@ public class GithubTeamsUserRolesProvider implements UserRolesProvider, Initiali
 
   @Autowired @Setter private GitHubProperties gitHubProperties;
 
+  @Setter(AccessLevel.PACKAGE)
   private ExecutorService executor = Executors.newSingleThreadExecutor();
+
+  /**
+   * Clock for cache refresh intervals; tests replace it so they can advance time. Read when the
+   * caches are built in {@link #afterPropertiesSet()}, so set it before that.
+   */
+  @Setter(AccessLevel.PACKAGE)
+  private Ticker ticker = Ticker.systemTicker();
 
   private LoadingCache<String, Set<String>> membersCache;
 
@@ -122,20 +140,8 @@ public class GithubTeamsUserRolesProvider implements UserRolesProvider, Initiali
             .maximumSize(1) // Single org support - increase if multi-org is needed
             .refreshAfterWrite(
                 this.gitHubProperties.getMembershipCacheTTLSeconds(), TimeUnit.SECONDS)
-            .build(
-                new CacheLoader<String, Set<String>>() {
-                  public Set<String> load(String key) {
-                    return fetchOrgMembers(key);
-                  }
-
-                  public ListenableFuture<Set<String>> reload(
-                      final String key, final Set<String> prev) {
-                    ListenableFutureTask<Set<String>> task =
-                        ListenableFutureTask.create(() -> load(key));
-                    executor.execute(task);
-                    return task;
-                  }
-                });
+            .ticker(ticker)
+            .build(refreshingLoader(this::fetchOrgMembers));
   }
 
   /**
@@ -153,20 +159,8 @@ public class GithubTeamsUserRolesProvider implements UserRolesProvider, Initiali
             .maximumSize(1) // Single org support - increase if multi-org is needed
             .refreshAfterWrite(
                 this.gitHubProperties.getMembershipCacheTTLSeconds(), TimeUnit.SECONDS)
-            .build(
-                new CacheLoader<String, Map<String, GHTeam>>() {
-                  public Map<String, GHTeam> load(String key) {
-                    return fetchOrgTeams(key);
-                  }
-
-                  public ListenableFuture<Map<String, GHTeam>> reload(
-                      final String key, final Map<String, GHTeam> prev) {
-                    ListenableFutureTask<Map<String, GHTeam>> task =
-                        ListenableFutureTask.create(() -> load(key));
-                    executor.execute(task);
-                    return task;
-                  }
-                });
+            .ticker(ticker)
+            .build(refreshingLoader(this::fetchOrgTeams));
   }
 
   /**
@@ -185,20 +179,47 @@ public class GithubTeamsUserRolesProvider implements UserRolesProvider, Initiali
             .maximumSize(this.gitHubProperties.getMembershipCacheTeamsSize())
             .refreshAfterWrite(
                 this.gitHubProperties.getMembershipCacheTTLSeconds(), TimeUnit.SECONDS)
-            .build(
-                new CacheLoader<String, Set<String>>() {
-                  public Set<String> load(String teamSlug) {
-                    return fetchTeamMembers(teamSlug);
-                  }
+            .ticker(ticker)
+            .build(refreshingLoader(this::fetchTeamMembers));
+  }
 
-                  public ListenableFuture<Set<String>> reload(
-                      final String key, final Set<String> prev) {
-                    ListenableFutureTask<Set<String>> task =
-                        ListenableFutureTask.create(() -> load(key));
-                    executor.execute(task);
-                    return task;
+  /**
+   * Returns a cache loader that fetches with {@code fetch} and refreshes on {@link #executor}.
+   *
+   * <p>A failed refresh returns the previous value instead of failing. Guava stores it as a fresh
+   * write, so the cache keeps serving it and the next attempt waits a full refresh interval. If the
+   * refresh failed instead, the write time would stay unchanged and every read would start another
+   * GitHub call for as long as GitHub keeps failing. A load with nothing cached still throws.
+   */
+  private <V> CacheLoader<String, V> refreshingLoader(Function<String, V> fetch) {
+    return new CacheLoader<String, V>() {
+      @Override
+      public V load(String key) {
+        return fetch.apply(key);
+      }
+
+      @Override
+      public ListenableFuture<V> reload(String key, V prev) {
+        ListenableFutureTask<V> task =
+            ListenableFutureTask.create(
+                () -> {
+                  try {
+                    return load(key);
+                  } catch (ProviderException e) {
+                    // fetchFailure has already logged the error
+                    return prev;
+                  } catch (RuntimeException e) {
+                    log.error(
+                        "Unexpected error refreshing GitHub cache entry {}; keeping previous value",
+                        key,
+                        e);
+                    return prev;
                   }
                 });
+        executor.execute(task);
+        return task;
+      }
+    };
   }
 
   /**
@@ -228,38 +249,7 @@ public class GithubTeamsUserRolesProvider implements UserRolesProvider, Initiali
       // For 404, return empty set (org doesn't exist, no retries will help)
       return Collections.emptySet();
     } catch (IOException e) {
-      String message = e.getMessage() != null ? e.getMessage().toLowerCase() : "";
-
-      // Log specific error types with actionable information
-      if (message.contains("rate limit")) {
-        log.error(
-            "GitHub API rate limit exceeded for organization: {}. Check rate limit at: https://api.github.com/rate_limit",
-            orgName,
-            e);
-      } else if (message.contains("401")) {
-        log.error(
-            "GitHub authentication failed (401 Unauthorized) for organization: {}. Verify credentials.",
-            orgName,
-            e);
-      } else if (message.contains("403")) {
-        log.error(
-            "GitHub access forbidden (403) for organization: {}. Check permissions and rate limits.",
-            orgName,
-            e);
-      } else {
-        log.error("Failed to fetch members for organization: {}", orgName, e);
-      }
-
-      // For authentication/authorization errors (401/403), throw exception instead of returning
-      // empty set
-      // This allows Guava cache to keep using stale cached values until issue is resolved
-      if (message.contains("401") || message.contains("403") || message.contains("rate limit")) {
-        throw new RuntimeException(
-            "Critical GitHub API error - using cached values if available", e);
-      }
-
-      // For other transient errors, return empty set
-      return Collections.emptySet();
+      throw fetchFailure("members of organization " + orgName, e);
     }
   }
 
@@ -269,7 +259,11 @@ public class GithubTeamsUserRolesProvider implements UserRolesProvider, Initiali
       log.debug("Fetching teams for organization: {}", orgName);
 
       GHOrganization org = gitHubClient.getOrganization(orgName);
-      Map<String, GHTeam> teams = org.getTeams();
+      // Not org.getTeams(): it walks the paged iterator directly, so a failed page surfaces as an
+      // unchecked GHException. toList() rethrows it as the underlying IOException.
+      Map<String, GHTeam> teams =
+          org.listTeams().toList().stream()
+              .collect(Collectors.toMap(GHTeam::getSlug, team -> team, (a, b) -> a, TreeMap::new));
 
       log.info("Fetched {} teams from organization {}", teams.size(), orgName);
       logRateLimitInfo("fetchOrgTeams");
@@ -280,38 +274,7 @@ public class GithubTeamsUserRolesProvider implements UserRolesProvider, Initiali
       // For 404, return empty map (org doesn't exist, no retries will help)
       return Collections.emptyMap();
     } catch (IOException e) {
-      String message = e.getMessage() != null ? e.getMessage().toLowerCase() : "";
-
-      // Log specific error types with actionable information
-      if (message.contains("rate limit")) {
-        log.error(
-            "GitHub API rate limit exceeded for organization: {}. Check rate limit at: https://api.github.com/rate_limit",
-            orgName,
-            e);
-      } else if (message.contains("401")) {
-        log.error(
-            "GitHub authentication failed (401 Unauthorized) for organization: {}. Verify credentials.",
-            orgName,
-            e);
-      } else if (message.contains("403")) {
-        log.error(
-            "GitHub access forbidden (403) for organization: {}. Check permissions and rate limits.",
-            orgName,
-            e);
-      } else {
-        log.error("Failed to fetch teams for organization: {}", orgName, e);
-      }
-
-      // For authentication/authorization errors (401/403), throw exception instead of returning
-      // empty map
-      // This allows Guava cache to keep using stale cached values until issue is resolved
-      if (message.contains("401") || message.contains("403") || message.contains("rate limit")) {
-        throw new RuntimeException(
-            "Critical GitHub API error - using cached values if available", e);
-      }
-
-      // For other transient errors, return empty map
-      return Collections.emptyMap();
+      throw fetchFailure("teams of organization " + orgName, e);
     }
   }
 
@@ -351,46 +314,53 @@ public class GithubTeamsUserRolesProvider implements UserRolesProvider, Initiali
       // For 404, return empty set (team doesn't exist, no retries will help)
       return Collections.emptySet();
     } catch (IOException e) {
-      String message = e.getMessage() != null ? e.getMessage().toLowerCase() : "";
-
-      // Log specific error types with actionable information
-      if (message.contains("rate limit")) {
-        log.error(
-            "GitHub API rate limit exceeded for team: {} in organization: {}. Check rate limit at: https://api.github.com/rate_limit",
-            teamSlug,
-            gitHubProperties.getOrganization(),
-            e);
-      } else if (message.contains("401")) {
-        log.error(
-            "GitHub authentication failed (401 Unauthorized) for team: {} in organization: {}. Verify credentials.",
-            teamSlug,
-            gitHubProperties.getOrganization(),
-            e);
-      } else if (message.contains("403")) {
-        log.error(
-            "GitHub access forbidden (403) for team: {} in organization: {}. Check permissions and rate limits.",
-            teamSlug,
-            gitHubProperties.getOrganization(),
-            e);
-      } else {
-        log.error(
-            "Failed to fetch members for team: {} in organization: {}",
-            teamSlug,
-            gitHubProperties.getOrganization(),
-            e);
-      }
-
-      // For authentication/authorization errors (401/403), throw exception instead of returning
-      // empty set
-      // This allows Guava cache to keep using stale cached values until issue is resolved
-      if (message.contains("401") || message.contains("403") || message.contains("rate limit")) {
-        throw new RuntimeException(
-            "Critical GitHub API error - using cached values if available", e);
-      }
-
-      // For other transient errors, return empty set
-      return Collections.emptySet();
+      throw fetchFailure(
+          "members of team " + teamSlug + " in organization " + gitHubProperties.getOrganization(),
+          e);
     }
+  }
+
+  /**
+   * Logs a failed GitHub API call and wraps it so the calling cache loader can rethrow it.
+   *
+   * <p>Every failure other than a 404 is rethrown rather than turned into an empty result. On a
+   * refresh, Guava then keeps serving the previous value, so a network error, an expired credential
+   * or a rate limit cannot replace known memberships with an empty set and remove every user's
+   * roles. On a cold cache the exception fails the role sync, which leaves stored permissions
+   * unchanged.
+   *
+   * @param what the data being fetched, for log and exception messages
+   * @param e the failure
+   * @return the exception for the caller to throw
+   */
+  private ProviderException fetchFailure(String what, IOException e) {
+    String message = e.getMessage() != null ? e.getMessage().toLowerCase() : "";
+    // hub4j's HttpException message is the response body, which may not include the status code,
+    // so use the status when there is one and match on the message only for other IOExceptions
+    int status = e instanceof HttpException ? ((HttpException) e).getResponseCode() : -1;
+    boolean hasStatus = status > 0;
+
+    // Log actionable detail per error type. GitHub signals rate limits with 429, or with a 403
+    // whose body mentions the rate limit, so check for those before a plain 403.
+    if (status == 429 || message.contains("rate limit")) {
+      log.error(
+          "GitHub API rate limit exceeded fetching {}. Check rate limit at: https://api.github.com/rate_limit",
+          what,
+          e);
+    } else if (hasStatus ? status == 401 : message.contains("401")) {
+      log.error(
+          "GitHub authentication failed (401 Unauthorized) fetching {}. Verify credentials.",
+          what,
+          e);
+    } else if (hasStatus ? status == 403 : message.contains("403")) {
+      log.error(
+          "GitHub access forbidden (403) fetching {}. Check permissions and rate limits.", what, e);
+    } else {
+      log.error("Failed to fetch {} from GitHub", what, e);
+    }
+
+    return new ProviderException(
+        getClass(), "GitHub API error fetching " + what + " - using cached values if available", e);
   }
 
   /**
@@ -468,6 +438,7 @@ public class GithubTeamsUserRolesProvider implements UserRolesProvider, Initiali
    *
    * @param user External user to load roles for (must have a valid ID/username)
    * @return List of roles (organization + teams), or empty list if not an org member
+   * @throws ProviderException if GitHub data is needed that is not cached and cannot be fetched
    */
   @Override
   public List<Role> loadRoles(ExternalUser user) {
@@ -518,31 +489,30 @@ public class GithubTeamsUserRolesProvider implements UserRolesProvider, Initiali
   }
 
   private boolean isMemberOfOrg(String username) {
-    try {
-      return this.membersCache
-          .get(gitHubProperties.getOrganization())
-          .contains(username.toLowerCase());
-    } catch (ExecutionException e) {
-      log.error("Failed to read from cache when getting org membership", e);
-      return false;
-    }
+    return getCached(membersCache, gitHubProperties.getOrganization())
+        .contains(username.toLowerCase());
   }
 
   private Map<String, GHTeam> getTeams() {
-    try {
-      return this.teamsCache.get(gitHubProperties.getOrganization());
-    } catch (ExecutionException e) {
-      log.error("Failed to read from cache when getting teams", e);
-      return Collections.emptyMap();
-    }
+    return getCached(teamsCache, gitHubProperties.getOrganization());
   }
 
   private boolean isMemberOfTeam(String teamSlug, String username) {
+    return getCached(teamMembershipCache, teamSlug).contains(username.toLowerCase());
+  }
+
+  /**
+   * Reads from a cache, surfacing a failed load as a {@link ProviderException} so that Fiat's
+   * permission resolution and role sync treat it as a provider failure.
+   */
+  private <V> V getCached(LoadingCache<String, V> cache, String key) {
     try {
-      return this.teamMembershipCache.get(teamSlug).contains(username.toLowerCase());
-    } catch (ExecutionException e) {
-      log.error("Failed to read from cache when getting team membership", e);
-      return false;
+      return cache.get(key);
+    } catch (ExecutionException | UncheckedExecutionException e) {
+      if (e.getCause() instanceof ProviderException) {
+        throw (ProviderException) e.getCause();
+      }
+      throw new ProviderException(this.getClass(), e.getCause());
     }
   }
 
