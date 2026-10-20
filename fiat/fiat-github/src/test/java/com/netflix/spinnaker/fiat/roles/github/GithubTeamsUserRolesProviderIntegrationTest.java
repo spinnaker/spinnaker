@@ -21,10 +21,14 @@ import static com.github.tomakehurst.wiremock.core.WireMockConfiguration.wireMoc
 import static org.junit.jupiter.api.Assertions.*;
 
 import com.github.tomakehurst.wiremock.junit5.WireMockExtension;
+import com.google.common.base.Ticker;
+import com.google.common.util.concurrent.MoreExecutors;
 import com.netflix.spinnaker.fiat.model.resources.Role;
 import com.netflix.spinnaker.fiat.permissions.ExternalUser;
 import java.util.*;
 import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicLong;
+import java.util.stream.Collectors;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -201,10 +205,10 @@ class GithubTeamsUserRolesProviderIntegrationTest {
   }
 
   @Test
-  void shouldReturnEmptyRolesForUnauthorizedError() throws Exception {
-    // Given - 401 Unauthorized
-    // Note: With real hub4j client, 401 errors result in HttpException
-    // which is caught and handled as "401" in the error message
+  void shouldThrowForUnauthorizedError() throws Exception {
+    // Given - 401 Unauthorized. hub4j raises an HttpException whose message is the response body,
+    // which here does not contain "401"; the provider must still throw rather than cache an empty
+    // member list.
     wireMock.stubFor(
         get(urlPathEqualTo("/orgs/" + TEST_ORG))
             .atPriority(1)
@@ -216,14 +220,66 @@ class GithubTeamsUserRolesProviderIntegrationTest {
 
     ExternalUser externalUser = new ExternalUser().setId("alice");
 
-    // When - hub4j HttpException is caught by the provider
-    // The cache will either throw or return empty depending on cache state
-    // For fresh cache, it returns empty roles
-    List<Role> roles = provider.loadRoles(externalUser);
+    // When & Then - with nothing cached yet, the failure surfaces to the caller
+    RuntimeException exception =
+        assertThrows(RuntimeException.class, () -> provider.loadRoles(externalUser));
+    assertTrue(
+        exception.getMessage().contains("GitHub API error"),
+        "Exception message should contain 'GitHub API error', but was: " + exception.getMessage());
+  }
 
-    // Then - Should return empty roles for auth errors on fresh cache
-    assertNotNull(roles);
-    assertTrue(roles.isEmpty());
+  @Test
+  void shouldKeepCachedTeamsWhenListingTeamsFails() throws Exception {
+    // Given - the real hub4j client against WireMock, so a failed page goes through hub4j's own
+    // paging code. Cache time moves only when the test advances it, and refreshes run inline.
+    AtomicLong nanos = new AtomicLong();
+    provider.setTicker(
+        new Ticker() {
+          @Override
+          public long read() {
+            return nanos.get();
+          }
+        });
+    provider.setExecutor(MoreExecutors.newDirectExecutorService());
+    provider.afterPropertiesSet();
+    long refreshInterval =
+        TimeUnit.SECONDS.toNanos(gitHubProperties.getMembershipCacheTTLSeconds() + 1);
+
+    stubOrgEndpoint();
+    stubOrgMembersEndpoint("[" + userJson("alice") + "]");
+    stubOrgTeamsEndpoint("[" + teamJson("developers", "Developers", 1) + "]");
+    stubTeamBySlugEndpoint("developers", teamJson("developers", "Developers", 1));
+    stubTeamMembersEndpointById(1, "[" + userJson("alice") + "]");
+
+    ExternalUser externalUser = new ExternalUser().setId("alice");
+    assertEquals(Set.of(TEST_ORG, "developers"), roleNames(provider.loadRoles(externalUser)));
+
+    // When - listing teams starts failing, and the refresh interval elapses
+    wireMock.stubFor(
+        get(urlPathEqualTo("/orgs/" + TEST_ORG + "/teams"))
+            .atPriority(1)
+            .willReturn(
+                aResponse()
+                    .withStatus(503)
+                    .withHeader("Content-Type", "application/json")
+                    .withBody("{\"message\": \"Service Unavailable\"}")));
+    nanos.addAndGet(refreshInterval);
+
+    // Then - the failed refresh keeps the cached teams
+    assertEquals(Set.of(TEST_ORG, "developers"), roleNames(provider.loadRoles(externalUser)));
+    int teamListingsAfterRefresh = teamListingRequests();
+
+    // And it is not retried on the next read, only after the next refresh interval
+    assertEquals(Set.of(TEST_ORG, "developers"), roleNames(provider.loadRoles(externalUser)));
+    assertEquals(teamListingsAfterRefresh, teamListingRequests());
+  }
+
+  private static Set<String> roleNames(List<Role> roles) {
+    return roles.stream().map(Role::getName).collect(Collectors.toSet());
+  }
+
+  private int teamListingRequests() {
+    return wireMock.findAll(getRequestedFor(urlPathEqualTo("/orgs/" + TEST_ORG + "/teams"))).size();
   }
 
   // Note: Rate limit testing is not practical with WireMock because hub4j has
