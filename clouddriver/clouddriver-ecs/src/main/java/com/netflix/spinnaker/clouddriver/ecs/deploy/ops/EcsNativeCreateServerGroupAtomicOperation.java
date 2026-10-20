@@ -154,9 +154,9 @@ public class EcsNativeCreateServerGroupAtomicOperation extends CreateServerGroup
   /**
    * Returns the name of the existing durable ecs-native service to roll in place, or {@code null}
    * if it does not exist yet (first deploy). ecs-native uses a fixed, unversioned service name, so
-   * we compute that name and ask ECS whether such a service is currently ACTIVE/DRAINING in the
-   * cluster -- independent of any deploy-stage source block. This is what makes every ecs-native
-   * redeploy an in-place UpdateService rather than a colliding CreateService.
+   * we compute that name and ask ECS whether such a service is currently ACTIVE in the cluster --
+   * independent of any deploy-stage source block. This is what makes every ecs-native redeploy an
+   * in-place UpdateService rather than a colliding CreateService.
    */
   protected Service resolveExistingService() {
     EcsClient ecs = getAmazonEcsClient();
@@ -175,6 +175,19 @@ public class EcsNativeCreateServerGroupAtomicOperation extends CreateServerGroup
       return null;
     }
     Service service = result.services().get(0);
+    // DRAINING means ECS is still deleting the service. It occupies the fixed name, so we can
+    // neither create nor update: ECS rejects UpdateService on a non-ACTIVE service. Fail with the
+    // reason and the remedy instead of surfacing the raw AWS error after a task definition was
+    // already registered.
+    if ("DRAINING".equals(service.status())) {
+      throw new IllegalStateException(
+          "ECS service "
+              + fixedServiceName
+              + " in cluster "
+              + description.getEcsClusterName()
+              + " is DRAINING (being deleted) and cannot be updated or re-created yet;"
+              + " wait until ECS has removed it, then run the deploy again to create the ecs-native service.");
+    }
     if (!EcsNativeServiceTag.isNative(service.tags())) {
       throw new IllegalStateException(
           "ECS service "

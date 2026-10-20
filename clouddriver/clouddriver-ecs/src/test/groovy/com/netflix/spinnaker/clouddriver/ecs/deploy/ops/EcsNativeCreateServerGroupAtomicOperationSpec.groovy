@@ -639,6 +639,41 @@ class EcsNativeCreateServerGroupAtomicOperationSpec extends CommonAtomicOperatio
     exception.message.contains('not marked as owned by ecs-native')
   }
 
+  @Unroll
+  def 'a DRAINING fixed-name service fails the deploy with the reason before any AWS write (tagged=#tagged)'() {
+    given:
+    // ECS is still deleting the service: it occupies the fixed name but rejects UpdateService.
+    def description = new EcsNativeCreateServerGroupDescription(
+        application: 'myapp', stack: 'stack', freeFormDetails: 'web', ecsClusterName: 'my-cluster',
+        availabilityZones: ['us-west-1': ['us-west-1a']])
+    def operation = Spy(EcsNativeCreateServerGroupAtomicOperation, constructorArgs: [description])
+    operation.getAmazonEcsClient() >> ecs
+    operation.getCredentials() >> Mock(AmazonCredentials)
+    def draining = Service.builder().serviceName('myapp-stack-web').status('DRAINING')
+    if (tagged) {
+      draining.tags(EcsNativeServiceTag.tag())
+    }
+    ecs.describeServices(_ as DescribeServicesRequest) >> DescribeServicesResponse.builder()
+        .services(draining.build())
+        .build()
+
+    when:
+    operation.operate([])
+
+    then:
+    def e = thrown(IllegalStateException)
+    e.message.contains('myapp-stack-web')
+    e.message.contains('my-cluster')
+    e.message.contains('DRAINING')
+    e.message.contains('wait until ECS has removed it')
+    0 * operation.registerTaskDefinition(*_)
+    0 * ecs.updateService(_)
+    0 * ecs.createService(_)
+
+    where:
+    tagged << [true, false]
+  }
+
   def 'operate always rolls the existing durable service in place via UpdateService (no CreateService)'() {
     given:
     def serviceName = 'mygreatapp-stack1-details2'
