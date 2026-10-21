@@ -34,12 +34,21 @@ public class EnableServiceAtomicOperation
     extends AbstractEcsAtomicOperation<ModifyServiceDescription, Void> {
 
   public EnableServiceAtomicOperation(ModifyServiceDescription description) {
-    super(description, "ENABLE_ECS_SERVER_GROUP");
+    this(description, false);
+  }
+
+  public EnableServiceAtomicOperation(
+      ModifyServiceDescription description, boolean requireNativeServiceOwnership) {
+    super(description, "ENABLE_ECS_SERVER_GROUP", requireNativeServiceOwnership);
   }
 
   @Override
   public Void operate(List priorOutputs) {
     updateTaskStatus("Initializing Enable Amazon ECS Server Group Operation...");
+    String service = description.getServerGroupName();
+    String account = description.getAccount();
+    String cluster = getCluster(service, account);
+    requireNativeServiceOwnership(cluster, service);
     enableService();
     return null;
   }
