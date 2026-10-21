@@ -81,28 +81,35 @@ public class GitHubAppAuthenticator {
   }
 
   /**
-   * Returns an authenticated GitHub client using installation token.
+   * Returns a GitHub client authenticated as the configured installation.
    *
-   * <p><b>Important:</b> The returned {@link GitHub} client does NOT automatically refresh tokens.
-   * GitHub App installation tokens expire after 1 hour. This method handles token caching and will
-   * return a client with a valid token at the time of the call, but callers should:
+   * <p>The client asks this authenticator for credentials on every request (through {@link
+   * #getInstallationToken()}), so it keeps working after the one-hour installation token lifetime
+   * and is safe to hold long-term, including as a singleton Spring {@code @Bean}. Requests served
+   * from the token cache make no extra GitHub API calls; a new token is minted only shortly before
+   * the cached one expires.
    *
-   * <ul>
-   *   <li>Call this method for each operation (or batch of operations) rather than caching the
-   *       client long-term
-   *   <li>Or implement their own refresh logic by calling {@link #getInstallationToken()} directly
-   * </ul>
+   * <p>A token is minted eagerly before the client is returned, so invalid app credentials or an
+   * unreachable endpoint fail here rather than on the first request.
    *
-   * <p>For Spring applications, consider NOT using this as a singleton {@code @Bean}. Instead,
-   * inject the {@link GitHubAppAuthenticator} and call this method when needed.
+   * <p><<<<<<< HEAD
    *
-   * @return Authenticated GitHub client with a currently-valid token
+   * @return Authenticated GitHub client with a currently-valid token =======
+   *     <p>Requires a configured installation ID; in derive mode use {@link
+   *     #getInstallationTokenForRepo(String, String)} instead.
+   * @return Authenticated GitHub client that renews its installation token as needed >>>>>>>
+   *     37f1072 (fix(fiat): renew GitHub App installation tokens and keep cached memberships on
+   *     errors (#8224))
    * @throws IOException if authentication fails
    */
   public GitHub getAuthenticatedClient() throws IOException {
-    String token = getInstallationToken();
+    // Fail fast on bad credentials, and warm the token cache for the first request.
+    getInstallationToken();
 
-    return new GitHubBuilder().withEndpoint(baseUrl).withAppInstallationToken(token).build();
+    return new GitHubBuilder()
+        .withEndpoint(baseUrl)
+        .withAuthorizationProvider(() -> "token " + getInstallationToken())
+        .build();
   }
 
   /**

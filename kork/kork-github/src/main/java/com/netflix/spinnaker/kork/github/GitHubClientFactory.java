@@ -68,16 +68,14 @@ public class GitHubClientFactory {
    * <p>This method internally creates a {@link GitHubAppAuthenticator} to handle JWT generation and
    * installation token management.
    *
-   * <p><b>Warning:</b> GitHub App installation tokens expire after 1 hour. The returned client does
-   * NOT auto-refresh tokens. For long-running applications, consider using {@link
-   * #createAuthenticator(String, String, String, String)} and calling {@link
-   * GitHubAppAuthenticator#getAuthenticatedClient()} when needed to ensure fresh tokens.
+   * <p>The returned client renews its installation token shortly before it expires (see {@link
+   * GitHubAppAuthenticator#getAuthenticatedClient()}), so it can be held long-term.
    *
    * @param baseUrl GitHub API base URL (e.g., "https://api.github.com" or GitHub Enterprise URL)
    * @param appId GitHub App ID
    * @param privateKeyPath Path to the PEM-encoded private key file
    * @param installationId GitHub App installation ID
-   * @return Authenticated GitHub client with a token valid at time of creation
+   * @return Authenticated GitHub client that renews its installation token as needed
    * @throws IOException if client creation or authentication fails
    */
   public static GitHub createWithGitHubApp(
@@ -122,7 +120,7 @@ public class GitHubClientFactory {
    * GitHubAppAuthenticator authenticator = GitHubClientFactory.createAuthenticator(
    *     "https://api.github.com", "12345", "/path/to/key.pem", "67890");
    *
-   * // Get a fresh client when needed (handles token refresh automatically)
+   * // The client renews its installation token automatically and can be held long-term
    * GitHub client = authenticator.getAuthenticatedClient();
    * }</pre>
    *
