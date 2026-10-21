@@ -192,6 +192,23 @@ describe('EcsCloneServerGroupModal', () => {
     routers.splice(0).forEach((router) => router.dispose());
   });
 
+  it('shows an explicit unsupported state for native clones instead of rendering a submit wizard', async () => {
+    renderModal(buildCommand({ cloudProvider: 'ecs-native' }));
+    expect(await screen.findByRole('heading', { name: 'Clone server group unavailable' })).toBeInTheDocument();
+    expect(screen.queryByRole('heading', { name: 'Basic Settings' })).not.toBeInTheDocument();
+    expect(screen.queryByRole('button', { name: 'Done' })).not.toBeInTheDocument();
+  });
+
+  ['editPipeline', 'createPipeline'].forEach((mode) => {
+    it(`still renders the wizard for native clusters in ${mode} mode inside a pipeline deploy stage`, async () => {
+      const command = buildCommand({ cloudProvider: 'ecs-native' });
+      command.viewState = { ...command.viewState, mode } as any;
+      renderModal(command);
+      expect(await screen.findByRole('heading', { name: 'Basic Settings' })).toBeInTheDocument();
+      expect(screen.queryByText('Clone server group unavailable')).not.toBeInTheDocument();
+    });
+  });
+
   it('does not apply backing data when the mounted modal request resolves after unmount', async () => {
     const loadBalancers = deferred<any[]>();
     const get = vi.fn((config: any) => {
@@ -623,7 +640,7 @@ describe('EcsCloneServerGroupModal', () => {
     expect(await screen.findByText('Creating your server group')).toBeInTheDocument();
   });
 
-  it('renders the legacy eight-page grouping through the actual WizardModal', async () => {
+  it('renders the legacy eight-page grouping plus the Native ECS Deployment page through the actual WizardModal', async () => {
     const command = buildCommand({ useTaskDefinitionArtifact: false });
     renderModal(command);
     expect(await screen.findByRole('heading', { name: 'Basic Settings' })).toBeInTheDocument();
@@ -637,6 +654,7 @@ describe('EcsCloneServerGroupModal', () => {
       'Logging',
       'Service Discovery',
       'Advanced Settings',
+      'Native ECS Deployment',
     ]);
   });
 

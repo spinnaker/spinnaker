@@ -149,6 +149,11 @@ class MonitorKatoTask implements RetryableTask, CloudProviderAware {
     outputs['kato.task.lastStatus'] = status
 
     if (status == ExecutionStatus.SUCCEEDED) {
+      def expectedServiceDeployment = getEcsNativeExpectedServiceDeployment(katoTask)
+      if (expectedServiceDeployment) {
+        outputs["ecsNativeExpectedServiceDeploymentArn"] = expectedServiceDeployment
+      }
+
       def deployed = getDeployedNames(katoTask)
       // The below two checks aren't mutually exclusive since both `deploy.server.groups` and `deploy.jobs` can initially
       // by empty, although only one of them needs to be filled.
@@ -276,6 +281,14 @@ class MonitorKatoTask implements RetryableTask, CloudProviderAware {
           totalRetries, reason)
       registry.counter("monitorKatoTask.terminalRetry", "reason", reason).increment()
     }
+  }
+
+  @CompileStatic(TypeCheckingMode.SKIP)
+  private static String getEcsNativeExpectedServiceDeployment(Task task) {
+    def deployment = task.resultObjects?.find { it?.deployments }?.deployments?.find {
+      it?.metadata?.ecsNativeExpectedServiceDeploymentArn
+    }
+    return deployment?.metadata?.ecsNativeExpectedServiceDeploymentArn as String
   }
 
   /**
