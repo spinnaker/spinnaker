@@ -1,0 +1,33 @@
+.row {
+  .ecs-rollout-state-dot {
+    display: inline-block;
+    width: 8px;
+    height: 8px;
+    margin-left: 5px;
+    border-radius: 50%;
+    vertical-align: middle;
+
+    &--completed {
+      background-color: var(--color-accent-g3);
+    }
+
+    &--in-progress {
+      background-color: var(--color-alert-var1, #efc44f);
+    }
+  }
+
+  .ecs-rollout-state {
+    margin-left: 5px;
+    padding: 0 5px;
+    border-radius: 3px;
+    font-size: 10px;
+    font-weight: 600;
+    text-transform: uppercase;
+    vertical-align: middle;
+
+    &--failed {
+      background-color: var(--color-danger, #b32135);
+      color: var(--color-white, #fff);
+    }
+  }
+}

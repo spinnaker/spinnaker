@@ -80,6 +80,11 @@ public class ServiceCacheClient extends AbstractCacheClient<Service> {
 
     service.setCreatedAt((Long) attributes.get("createdAt"));
 
+    service.setDeploymentId((String) attributes.get("deploymentId"));
+    service.setRolloutState((String) attributes.get("rolloutState"));
+    service.setRolloutStateReason((String) attributes.get("rolloutStateReason"));
+    service.setEcsNative(Boolean.TRUE.equals(attributes.get("ecsNative")));
+
     if (attributes.containsKey("moniker")) {
       service.setMoniker(objectMapper.convertValue(attributes.get("moniker"), Moniker.class));
     }
