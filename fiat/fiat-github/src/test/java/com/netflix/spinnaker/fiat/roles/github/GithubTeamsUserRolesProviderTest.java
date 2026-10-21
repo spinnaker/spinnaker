@@ -24,9 +24,14 @@ import com.google.common.util.concurrent.MoreExecutors;
 import com.netflix.spinnaker.fiat.model.resources.Role;
 import com.netflix.spinnaker.fiat.permissions.ExternalUser;
 import com.netflix.spinnaker.fiat.providers.ProviderException;
+import com.netflix.spinnaker.kork.github.GitHubAppAuthenticator;
+import io.micrometer.core.instrument.simple.SimpleMeterRegistry;
 import java.io.IOException;
 import java.time.Duration;
+import java.time.Instant;
 import java.util.*;
+import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicLong;
 import java.util.stream.Collectors;
@@ -91,6 +96,7 @@ class GithubTeamsUserRolesProviderTest {
   private GithubTeamsUserRolesProvider provider;
   private GitHubProperties gitHubProperties;
   private final FakeTicker ticker = new FakeTicker();
+  private final SimpleMeterRegistry meterRegistry = new SimpleMeterRegistry();
 
   @BeforeEach
   void setUp() throws IOException {
@@ -99,9 +105,12 @@ class GithubTeamsUserRolesProviderTest {
     gitHubProperties.setBaseUrl("https://api.github.com");
     gitHubProperties.setOrganization("test-org");
     gitHubProperties.setAccessToken("ghp_test_token");
+    // Tests warm the members cache explicitly rather than on a background schedule
+    gitHubProperties.setHealthWarmIntervalSeconds(0);
 
     provider.setGitHubClient(gitHubClient);
     provider.setGitHubProperties(gitHubProperties);
+    provider.setMeterRegistry(meterRegistry);
     // Cache time moves only when a test advances it, and refreshes run inline on the reading thread
     provider.setTicker(ticker);
     provider.setExecutor(MoreExecutors.newDirectExecutorService());
@@ -157,12 +166,10 @@ class GithubTeamsUserRolesProviderTest {
     when(orgMembers.toList()).thenReturn(Arrays.asList(user1, user2));
 
     // Mock team 1 members
-    when(organization.getTeamBySlug("team-1")).thenReturn(team1);
     when(team1.listMembers()).thenReturn(team1Members);
     when(team1Members.toList()).thenReturn(Arrays.asList(user1));
 
     // Mock team 2 members
-    when(organization.getTeamBySlug("team-2")).thenReturn(team2);
     when(team2.listMembers()).thenReturn(team2Members);
     when(team2Members.toList()).thenReturn(Collections.emptyList());
 
@@ -241,11 +248,9 @@ class GithubTeamsUserRolesProviderTest {
     when(organization.listMembers()).thenReturn(orgMembers);
     when(orgMembers.toList()).thenReturn(Arrays.asList(upperCaseUser));
 
-    when(organization.getTeamBySlug("team-1")).thenReturn(team1);
     when(team1.listMembers()).thenReturn(team1Members);
     when(team1Members.toList()).thenReturn(Collections.emptyList());
 
-    when(organization.getTeamBySlug("team-2")).thenReturn(team2);
     when(team2.listMembers()).thenReturn(team2Members);
     when(team2Members.toList()).thenReturn(Collections.emptyList());
 
@@ -270,11 +275,9 @@ class GithubTeamsUserRolesProviderTest {
     when(organization.listMembers()).thenReturn(orgMembers);
     when(orgMembers.toList()).thenReturn(Arrays.asList(user1, user2));
 
-    when(organization.getTeamBySlug("team-1")).thenReturn(team1);
     when(team1.listMembers()).thenReturn(team1Members);
     when(team1Members.toList()).thenReturn(Arrays.asList(user1));
 
-    when(organization.getTeamBySlug("team-2")).thenReturn(team2);
     when(team2.listMembers()).thenReturn(team2Members);
     when(team2Members.toList()).thenReturn(Arrays.asList(user2));
 
@@ -355,11 +358,9 @@ class GithubTeamsUserRolesProviderTest {
     when(organization.listMembers()).thenReturn(orgMembers);
     when(orgMembers.toList()).thenReturn(Arrays.asList(user1));
 
-    when(organization.getTeamBySlug("team-1")).thenReturn(team1);
     when(team1.listMembers()).thenReturn(team1Members);
     when(team1Members.toList()).thenReturn(Arrays.asList(user1));
 
-    when(organization.getTeamBySlug("team-2")).thenReturn(team2);
     when(team2.listMembers()).thenReturn(team2Members);
     when(team2Members.toList()).thenReturn(Collections.emptyList());
 
@@ -381,11 +382,9 @@ class GithubTeamsUserRolesProviderTest {
     when(organization.listMembers()).thenReturn(orgMembers);
     when(orgMembers.toList()).thenReturn(Arrays.asList(user1));
 
-    when(organization.getTeamBySlug("team-1")).thenReturn(team1);
     when(team1.listMembers()).thenReturn(team1Members);
     when(team1Members.toList()).thenReturn(Collections.emptyList());
 
-    when(organization.getTeamBySlug("team-2")).thenReturn(team2);
     when(team2.listMembers()).thenReturn(team2Members);
     when(team2Members.toList()).thenReturn(Collections.emptyList());
 
@@ -403,23 +402,282 @@ class GithubTeamsUserRolesProviderTest {
   // during transient GitHub API errors.
 
   @Test
-  void shouldReturnEmptySetFor404OrganizationNotFound() throws Exception {
+  void shouldThrowFor404OrganizationNotFoundWithNothingCached() throws Exception {
     // Given
     provider.afterPropertiesSet();
-    provider.invalidateAll(); // Clear cache to force fresh fetch
 
-    // Mock 404 error (organization not found)
+    // A 404 for the organization (e.g. a renamed org, or a token that cannot see it) must not be
+    // read as "the organization has no members"
     when(gitHubClient.getOrganization("test-org"))
         .thenThrow(new GHFileNotFoundException("Organization not found"));
 
     ExternalUser externalUser = new ExternalUser().setId("user1");
 
-    // When
-    List<Role> roles = provider.loadRoles(externalUser);
+    // When & Then
+    assertThrows(ProviderException.class, () -> provider.loadRoles(externalUser));
+  }
 
-    // Then - Should return empty roles (org doesn't exist, no point retrying)
-    assertNotNull(roles);
-    assertTrue(roles.isEmpty());
+  @Test
+  void shouldKeepCachedMembersWhenTheOrganizationIsNotFoundOnRefresh() throws Exception {
+    AtomicInteger fetches = new AtomicInteger();
+    when(organization.listMembers()).thenReturn(orgMembers);
+    when(orgMembers.toList())
+        .thenAnswer(
+            succeedOnceThenFail(
+                Arrays.asList(user1), fetches, new GHFileNotFoundException("Not Found")));
+    stubTeamMembers();
+
+    assertCachedRolesSurviveFailedRefreshes(fetches);
+  }
+
+  @Test
+  void shouldKeepCachedTeamsWhenTheOrganizationIsNotFoundOnRefresh() throws Exception {
+    AtomicInteger fetches = new AtomicInteger();
+    stubOrgMembers();
+    when(orgTeams.toList())
+        .thenAnswer(
+            succeedOnceThenFail(
+                Arrays.asList(team1, team2), fetches, new GHFileNotFoundException("Not Found")));
+    stubTeamMembers();
+
+    assertCachedRolesSurviveFailedRefreshes(fetches);
+  }
+
+  @Test
+  void shouldListTeamMembersWithoutLookingUpEachTeam() throws Exception {
+    provider.afterPropertiesSet();
+    stubOrgMembers();
+    stubTeamMembers();
+
+    assertOrgAndTeam1Roles(provider.loadRoles(new ExternalUser().setId("user1")));
+
+    // The teams listing already returned each team, so no per-team lookup is needed: that would
+    // cost an extra GitHub call per team per refresh
+    verify(organization, never()).getTeamBySlug(anyString());
+  }
+
+  @Test
+  void shouldQueryTheRateLimitOnlyAfterOrganizationLevelFetches() throws Exception {
+    provider.afterPropertiesSet();
+    stubOrgMembers();
+    stubTeamMembers();
+
+    provider.loadRoles(new ExternalUser().setId("user1"));
+
+    // org members + org teams, not once more per team
+    verify(gitHubClient, times(2)).getRateLimit();
+  }
+
+  @Test
+  void shouldRejectCachedRolesOlderThanTheStalenessLimitUntilARefreshSucceeds() throws Exception {
+    gitHubProperties.setMaxStaleRolesSeconds(3600);
+    provider.afterPropertiesSet();
+    AtomicBoolean gitHubFailing = new AtomicBoolean();
+    when(organization.listMembers()).thenReturn(orgMembers);
+    when(orgMembers.toList()).thenAnswer(failWhile(gitHubFailing, Arrays.asList(user1)));
+    stubTeamMembers();
+    ExternalUser externalUser = new ExternalUser().setId("user1");
+    assertOrgAndTeam1Roles(provider.loadRoles(externalUser));
+
+    // GitHub fails; within the limit the cached roles are still served
+    gitHubFailing.set(true);
+    ticker.advance(Duration.ofMinutes(59));
+    assertOrgAndTeam1Roles(provider.loadRoles(externalUser));
+
+    // Past the limit, resolution fails rather than serving roles GitHub has not confirmed
+    ticker.advance(Duration.ofMinutes(2));
+    ProviderException exception =
+        assertThrows(ProviderException.class, () -> provider.loadRoles(externalUser));
+    assertTrue(exception.getMessage().contains("stale"), exception.getMessage());
+    assertEquals(1.0, meterRegistry.counter("fiat.github.staleRejections").count());
+
+    // Once GitHub answers again, the next refresh restores resolution
+    gitHubFailing.set(false);
+    ticker.advance(Duration.ofSeconds(gitHubProperties.getMembershipCacheTTLSeconds() + 1));
+    assertOrgAndTeam1Roles(provider.loadRoles(externalUser));
+  }
+
+  @Test
+  void shouldServeCachedRolesForAsLongAsGitHubFailsWhenTheStalenessLimitIsDisabled()
+      throws Exception {
+    gitHubProperties.setMaxStaleRolesSeconds(0);
+    provider.afterPropertiesSet();
+    AtomicBoolean gitHubFailing = new AtomicBoolean();
+    when(organization.listMembers()).thenReturn(orgMembers);
+    when(orgMembers.toList()).thenAnswer(failWhile(gitHubFailing, Arrays.asList(user1)));
+    stubTeamMembers();
+    ExternalUser externalUser = new ExternalUser().setId("user1");
+    assertOrgAndTeam1Roles(provider.loadRoles(externalUser));
+
+    gitHubFailing.set(true);
+    ticker.advance(Duration.ofDays(30));
+
+    assertOrgAndTeam1Roles(provider.loadRoles(externalUser));
+  }
+
+  @Test
+  void shouldInvalidateTheInstallationTokenWhenGitHubRejectsItWith401() throws Exception {
+    GitHubAppAuthenticator authenticator = mock(GitHubAppAuthenticator.class);
+    provider.setGitHubAppAuthenticator(authenticator);
+    provider.afterPropertiesSet();
+    // hub4j's message is the response body, which does not mention the status
+    when(gitHubClient.getOrganization("test-org"))
+        .thenThrow(httpException(401, "{\"message\": \"Bad credentials\"}"));
+
+    assertThrows(
+        ProviderException.class, () -> provider.loadRoles(new ExternalUser().setId("user1")));
+
+    verify(authenticator).invalidateInstallationToken();
+  }
+
+  @Test
+  void shouldKeepTheInstallationTokenForErrorsOtherThan401() throws Exception {
+    GitHubAppAuthenticator authenticator = mock(GitHubAppAuthenticator.class);
+    provider.setGitHubAppAuthenticator(authenticator);
+    provider.afterPropertiesSet();
+    when(gitHubClient.getOrganization("test-org"))
+        .thenThrow(httpException(503, "{\"message\": \"Service Unavailable\"}"));
+
+    assertThrows(
+        ProviderException.class, () -> provider.loadRoles(new ExternalUser().setId("user1")));
+
+    verify(authenticator, never()).invalidateInstallationToken();
+  }
+
+  @Test
+  void shouldCountFetchFailuresByOperationAndStatus() throws Exception {
+    provider.afterPropertiesSet();
+    when(gitHubClient.getOrganization("test-org"))
+        .thenThrow(httpException(503, "{\"message\": \"Service Unavailable\"}"));
+
+    assertThrows(
+        ProviderException.class, () -> provider.loadRoles(new ExternalUser().setId("user1")));
+
+    assertEquals(
+        1.0,
+        meterRegistry
+            .counter("fiat.github.fetchFailures", "op", "members", "status", "5xx")
+            .count());
+  }
+
+  @Test
+  void shouldFailAColdLoadThatExceedsTheRefreshTimeout() throws Exception {
+    gitHubProperties.setRefreshTimeoutSeconds(1);
+    provider.afterPropertiesSet();
+    CountDownLatch neverReleased = new CountDownLatch(1);
+    when(organization.listMembers()).thenReturn(orgMembers);
+    when(orgMembers.toList()).thenAnswer(blockOn(neverReleased));
+
+    ProviderException exception =
+        assertThrows(
+            ProviderException.class, () -> provider.loadRoles(new ExternalUser().setId("user1")));
+
+    assertTrue(exception.getMessage().contains("Timed out"), exception.getMessage());
+  }
+
+  @Test
+  void shouldKeepCachedRolesWhenARefreshExceedsTheRefreshTimeout() throws Exception {
+    gitHubProperties.setRefreshTimeoutSeconds(1);
+    provider.afterPropertiesSet();
+    CountDownLatch neverReleased = new CountDownLatch(1);
+    AtomicInteger fetches = new AtomicInteger();
+    when(organization.listMembers()).thenReturn(orgMembers);
+    when(orgMembers.toList())
+        .thenAnswer(
+            invocation ->
+                fetches.incrementAndGet() == 1
+                    ? Arrays.asList(user1)
+                    : blockOn(neverReleased).answer(invocation));
+    stubTeamMembers();
+    ExternalUser externalUser = new ExternalUser().setId("user1");
+    assertOrgAndTeam1Roles(provider.loadRoles(externalUser));
+
+    ticker.advance(Duration.ofSeconds(gitHubProperties.getMembershipCacheTTLSeconds() + 1));
+
+    assertOrgAndTeam1Roles(provider.loadRoles(externalUser));
+    assertEquals(2, fetches.get());
+  }
+
+  @Test
+  void shouldReportUnhealthyUntilAGitHubFetchSucceeds() throws Exception {
+    provider.afterPropertiesSet();
+    assertFalse(provider.getHealthTracker().isProviderHealthy());
+
+    stubOrgMembers();
+    provider.warmOrgMembers();
+
+    assertTrue(provider.getHealthTracker().isProviderHealthy());
+  }
+
+  @Test
+  void shouldStayUnhealthyWhenWarmingFails() throws Exception {
+    provider.afterPropertiesSet();
+    when(organization.listMembers()).thenReturn(orgMembers);
+    when(orgMembers.toList()).thenThrow(new IOException("Connection reset"));
+
+    provider.warmOrgMembers();
+
+    assertFalse(provider.getHealthTracker().isProviderHealthy());
+  }
+
+  @Test
+  void shouldWarmOrgMembersWithoutListingTeams() throws Exception {
+    provider.afterPropertiesSet();
+    stubOrgMembers();
+
+    provider.warmOrgMembers();
+    provider.warmOrgMembers();
+
+    // Each warm fetches the members again, so the replica's health tracks GitHub, but nothing
+    // else: teams are only fetched when roles are resolved
+    verify(organization, times(2)).listMembers();
+    verify(organization, never()).listTeams();
+  }
+
+  @Test
+  void shouldAlertAfterThreeRefreshIntervalsWithoutASuccessfulFetchByDefault() throws Exception {
+    gitHubProperties.setMembershipCacheTTLSeconds(600);
+    provider.afterPropertiesSet();
+
+    assertEquals(
+        1_800_000L, provider.getHealthTracker().getHealthView().getMaximumStalenessTimeMs());
+  }
+
+  @Test
+  void shouldAlertAfterTheConfiguredStaleness() throws Exception {
+    gitHubProperties.setAlertStalenessSeconds(900);
+    provider.afterPropertiesSet();
+
+    assertEquals(900_000L, provider.getHealthTracker().getHealthView().getMaximumStalenessTimeMs());
+  }
+
+  @Test
+  void shouldReportTheRemainingRateLimit() throws Exception {
+    provider.afterPropertiesSet();
+    stubOrgMembers();
+    GHRateLimit rateLimit = mock(GHRateLimit.class);
+    GHRateLimit.Record core = mock(GHRateLimit.Record.class);
+    when(gitHubClient.getRateLimit()).thenReturn(rateLimit);
+    when(rateLimit.getCore()).thenReturn(core);
+    when(core.getLimit()).thenReturn(5000);
+    when(core.getRemaining()).thenReturn(4321);
+
+    provider.warmOrgMembers();
+
+    assertEquals(4321.0, meterRegistry.get("fiat.github.rateLimitRemaining").gauge().value());
+  }
+
+  @Test
+  void shouldReportSecondsUntilTheInstallationTokenExpires() throws Exception {
+    GitHubAppAuthenticator authenticator = mock(GitHubAppAuthenticator.class);
+    when(authenticator.getInstallationTokenExpiry())
+        .thenReturn(Instant.now().plus(Duration.ofMinutes(30)));
+    provider.setGitHubAppAuthenticator(authenticator);
+    provider.afterPropertiesSet();
+
+    double secondsToExpiry = meterRegistry.get("fiat.github.tokenSecondsToExpiry").gauge().value();
+
+    assertTrue(secondsToExpiry > 1790 && secondsToExpiry <= 1800, "was " + secondsToExpiry);
   }
 
   @Test
@@ -544,10 +802,8 @@ class GithubTeamsUserRolesProviderTest {
   void shouldKeepCachedTeamMembershipsWhenRefreshFails() throws Exception {
     AtomicInteger fetches = new AtomicInteger();
     stubOrgMembers();
-    when(organization.getTeamBySlug("team-1")).thenReturn(team1);
     when(team1.listMembers()).thenReturn(team1Members);
     when(team1Members.toList()).thenAnswer(succeedOnceThenFail(Arrays.asList(user1), fetches));
-    when(organization.getTeamBySlug("team-2")).thenReturn(team2);
     when(team2.listMembers()).thenReturn(team2Members);
     when(team2Members.toList()).thenReturn(Collections.emptyList());
 
@@ -608,6 +864,29 @@ class GithubTeamsUserRolesProviderTest {
     };
   }
 
+  /** Returns {@code value}, or fails like a network error while {@code failing} is set. */
+  private static <T> Answer<T> failWhile(AtomicBoolean failing, T value) {
+    return invocation -> {
+      if (failing.get()) {
+        throw new IOException("Connection reset");
+      }
+      return value;
+    };
+  }
+
+  /** Blocks until {@code latch} is released or the calling thread is interrupted. */
+  private static <T> Answer<T> blockOn(CountDownLatch latch) {
+    return invocation -> {
+      latch.await();
+      throw new IllegalStateException("released unexpectedly");
+    };
+  }
+
+  /** An HTTP error as hub4j raises it: the message is the response body. */
+  private static HttpException httpException(int status, String body) {
+    return new HttpException(body, status, "", "https://api.github.com/orgs/test-org");
+  }
+
   /** Stubs the org members as user1 only. */
   private void stubOrgMembers() throws IOException {
     when(organization.listMembers()).thenReturn(orgMembers);
@@ -616,10 +895,8 @@ class GithubTeamsUserRolesProviderTest {
 
   /** Stubs team-1 with user1 as its only member, and team-2 with no members. */
   private void stubTeamMembers() throws IOException {
-    when(organization.getTeamBySlug("team-1")).thenReturn(team1);
     when(team1.listMembers()).thenReturn(team1Members);
     when(team1Members.toList()).thenReturn(Arrays.asList(user1));
-    when(organization.getTeamBySlug("team-2")).thenReturn(team2);
     when(team2.listMembers()).thenReturn(team2Members);
     when(team2Members.toList()).thenReturn(Collections.emptyList());
   }
@@ -648,10 +925,8 @@ class GithubTeamsUserRolesProviderTest {
     when(organization.listMembers()).thenReturn(orgMembers);
     when(orgMembers.toList()).thenReturn(Arrays.asList(user1));
 
-    // Mock successful teams fetch, but team lookup throws 404
-    when(organization.getTeamBySlug("team-1"))
-        .thenThrow(new GHFileNotFoundException("Team not found"));
-    when(organization.getTeamBySlug("team-2")).thenReturn(team2);
+    // Mock successful teams fetch, but listing team-1's members fails with 404
+    when(team1.listMembers()).thenThrow(new GHFileNotFoundException("Team not found"));
     when(team2.listMembers()).thenReturn(team2Members);
     when(team2Members.toList()).thenReturn(Collections.emptyList());
 
@@ -677,11 +952,9 @@ class GithubTeamsUserRolesProviderTest {
     when(orgMembers.toList()).thenReturn(Arrays.asList(user1));
 
     // Mock 401 error when fetching team members
-    when(organization.getTeamBySlug("team-1")).thenReturn(team1);
     when(team1.listMembers()).thenThrow(new IOException("401 Unauthorized"));
 
     // team-2 is only fetched if it is checked before team-1 fails
-    lenient().when(organization.getTeamBySlug("team-2")).thenReturn(team2);
     lenient().when(team2.listMembers()).thenReturn(team2Members);
     lenient().when(team2Members.toList()).thenReturn(Collections.emptyList());
 
@@ -706,9 +979,7 @@ class GithubTeamsUserRolesProviderTest {
     when(orgMembers.toList()).thenReturn(Arrays.asList(user1));
 
     // Mock one team with 404 (not found), one with success
-    when(organization.getTeamBySlug("team-1"))
-        .thenThrow(new GHFileNotFoundException("Team not found"));
-    when(organization.getTeamBySlug("team-2")).thenReturn(team2);
+    when(team1.listMembers()).thenThrow(new GHFileNotFoundException("Team not found"));
     when(team2.listMembers()).thenReturn(team2Members);
     when(team2Members.toList()).thenReturn(Arrays.asList(user1));
 

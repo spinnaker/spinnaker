@@ -32,6 +32,9 @@ public class GitHubProperties {
   // GitHub App authentication (preferred)
   private String appId;
   private String privateKeyPath;
+  // TODO: make installationId optional by resolving the installation from the organization
+  // (GHApp#getInstallationByOrganization), so that reinstalling the app, which gives it a new
+  // installation ID, does not need a configuration change.
   private String installationId;
 
   public enum AuthMethod {
@@ -47,6 +50,45 @@ public class GitHubProperties {
 
   @NotNull Integer membershipCacheTTLSeconds = 60 * 10; // 10 min time to refresh
   @NotNull Integer membershipCacheTeamsSize = 1000; // 1000 github teams
+
+  /**
+   * Oldest cached GitHub data that roles may still be resolved from, while refreshes keep failing.
+   * Past it, role resolution fails: the role sync aborts, leaving the permissions already stored
+   * unchanged, and resolving a user who is not stored (e.g. at login) fails. It does not remove
+   * stored permissions. 0 disables the limit, so cached data is served for as long as GitHub fails.
+   */
+  @NotNull
+  @Min(0L)
+  Integer maxStaleRolesSeconds = 24 * 60 * 60;
+
+  /**
+   * Longest a single GitHub fetch (org members, org teams or one team's members) may take. A fetch
+   * that takes longer fails, so a hung connection cannot stall cache refreshes indefinitely.
+   */
+  @NotNull
+  @Min(1L)
+  Integer refreshTimeoutSeconds = 120;
+
+  /**
+   * Age of the last successful GitHub fetch after which this provider reports unhealthy. Defaults
+   * to three refresh intervals ({@code 3 * membershipCacheTTLSeconds}).
+   */
+  @Min(1L)
+  Integer alertStalenessSeconds;
+
+  /**
+   * How often every Fiat replica fetches the organization's members, so that each replica's health
+   * reflects GitHub, not only the replica running the role sync. Costs one GitHub call per 100
+   * members per replica per interval. 0 disables it.
+   */
+  @NotNull
+  @Min(0L)
+  Integer healthWarmIntervalSeconds = 10 * 60;
+
+  /** Returns {@link #alertStalenessSeconds}, or its default of three refresh intervals. */
+  public int getEffectiveAlertStalenessSeconds() {
+    return alertStalenessSeconds != null ? alertStalenessSeconds : 3 * membershipCacheTTLSeconds;
+  }
 
   /**
    * Determines if GitHub App authentication should be used based on configuration and method

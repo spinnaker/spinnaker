@@ -25,6 +25,8 @@ import com.google.common.base.Ticker;
 import com.google.common.util.concurrent.MoreExecutors;
 import com.netflix.spinnaker.fiat.model.resources.Role;
 import com.netflix.spinnaker.fiat.permissions.ExternalUser;
+import com.netflix.spinnaker.fiat.providers.ProviderException;
+import io.micrometer.core.instrument.simple.SimpleMeterRegistry;
 import java.util.*;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicLong;
@@ -88,10 +90,13 @@ class GithubTeamsUserRolesProviderIntegrationTest {
     gitHubProperties.setBaseUrl(wireMock.baseUrl());
     gitHubProperties.setOrganization(TEST_ORG);
     gitHubProperties.setAccessToken(TEST_TOKEN);
+    // Tests make every request explicitly, with no background warming of the members cache
+    gitHubProperties.setHealthWarmIntervalSeconds(0);
 
     provider = new GithubTeamsUserRolesProvider();
     provider.setGitHubClient(gitHubClient);
     provider.setGitHubProperties(gitHubProperties);
+    provider.setMeterRegistry(new SimpleMeterRegistry());
     provider.afterPropertiesSet();
   }
 
@@ -99,6 +104,7 @@ class GithubTeamsUserRolesProviderIntegrationTest {
   void tearDown() {
     if (provider != null) {
       provider.invalidateAll();
+      provider.destroy();
     }
   }
 
@@ -115,8 +121,6 @@ class GithubTeamsUserRolesProviderIntegrationTest {
             + ", "
             + teamJson("admins", "Admins", 2)
             + "]");
-    stubTeamBySlugEndpoint("developers", teamJson("developers", "Developers", 1));
-    stubTeamBySlugEndpoint("admins", teamJson("admins", "Admins", 2));
     // hub4j uses /organizations/{org_id}/team/{team_id}/members endpoint
     stubTeamMembersEndpointById(1, "[" + userJson("alice") + "]");
     stubTeamMembersEndpointById(2, "[]");
@@ -144,6 +148,8 @@ class GithubTeamsUserRolesProviderIntegrationTest {
     // Verify HTTP calls were made
     wireMock.verify(getRequestedFor(urlPathEqualTo("/orgs/" + TEST_ORG)));
     wireMock.verify(getRequestedFor(urlPathEqualTo("/orgs/" + TEST_ORG + "/members")));
+    // Team members are listed from the teams already fetched, with no lookup per team
+    wireMock.verify(0, getRequestedFor(urlPathMatching("/orgs/" + TEST_ORG + "/teams/.+")));
   }
 
   @Test
@@ -183,7 +189,7 @@ class GithubTeamsUserRolesProviderIntegrationTest {
   // ===== Error Handling Tests =====
 
   @Test
-  void shouldHandleOrganizationNotFound() throws Exception {
+  void shouldThrowWhenOrganizationIsNotFound() throws Exception {
     // Given - 404 for organization (override the default org stub)
     wireMock.stubFor(
         get(urlPathEqualTo("/orgs/" + TEST_ORG))
@@ -196,12 +202,9 @@ class GithubTeamsUserRolesProviderIntegrationTest {
 
     ExternalUser externalUser = new ExternalUser().setId("alice");
 
-    // When
-    List<Role> roles = provider.loadRoles(externalUser);
-
-    // Then - Should return empty (org doesn't exist)
-    assertNotNull(roles);
-    assertTrue(roles.isEmpty());
+    // When & Then - a 404 can also mean the credentials cannot see the organization, so it fails
+    // like any other error instead of resolving every user to no roles
+    assertThrows(ProviderException.class, () -> provider.loadRoles(externalUser));
   }
 
   @Test
@@ -248,7 +251,6 @@ class GithubTeamsUserRolesProviderIntegrationTest {
     stubOrgEndpoint();
     stubOrgMembersEndpoint("[" + userJson("alice") + "]");
     stubOrgTeamsEndpoint("[" + teamJson("developers", "Developers", 1) + "]");
-    stubTeamBySlugEndpoint("developers", teamJson("developers", "Developers", 1));
     stubTeamMembersEndpointById(1, "[" + userJson("alice") + "]");
 
     ExternalUser externalUser = new ExternalUser().setId("alice");
@@ -314,7 +316,6 @@ class GithubTeamsUserRolesProviderIntegrationTest {
     stubOrgEndpoint();
     stubOrgMembersEndpoint("[" + userJson("alice") + ", " + userJson("bob") + "]");
     stubOrgTeamsEndpoint("[" + teamJson("team-a", "Team A", 1) + "]");
-    stubTeamBySlugEndpoint("team-a", teamJson("team-a", "Team A", 1));
     stubTeamMembersEndpointById(1, "[" + userJson("alice") + "]");
 
     Collection<ExternalUser> users =
@@ -442,17 +443,6 @@ class GithubTeamsUserRolesProviderIntegrationTest {
   private void stubOrgTeamsEndpoint(String responseBody) {
     wireMock.stubFor(
         get(urlPathEqualTo("/orgs/" + TEST_ORG + "/teams"))
-            .atPriority(1)
-            .willReturn(
-                aResponse()
-                    .withStatus(200)
-                    .withHeader("Content-Type", "application/json")
-                    .withBody(responseBody)));
-  }
-
-  private void stubTeamBySlugEndpoint(String teamSlug, String responseBody) {
-    wireMock.stubFor(
-        get(urlPathEqualTo("/orgs/" + TEST_ORG + "/teams/" + teamSlug))
             .atPriority(1)
             .willReturn(
                 aResponse()
