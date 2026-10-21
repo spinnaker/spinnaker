@@ -21,7 +21,9 @@ import static com.github.tomakehurst.wiremock.core.WireMockConfiguration.wireMoc
 import static org.junit.jupiter.api.Assertions.*;
 
 import com.github.tomakehurst.wiremock.junit5.WireMockExtension;
+import com.netflix.spinnaker.fiat.providers.HealthTrackable;
 import com.netflix.spinnaker.fiat.roles.github.GitHubProperties;
+import com.netflix.spinnaker.fiat.roles.github.GithubTeamsHealthTrackable;
 import com.netflix.spinnaker.fiat.roles.github.GithubTeamsUserRolesProvider;
 import com.netflix.spinnaker.kork.github.test.GitHubAppTestKeys;
 import io.micrometer.core.instrument.MeterRegistry;
@@ -53,7 +55,10 @@ class GitHubConfigWiringTest {
       new ApplicationContextRunner()
           .withConfiguration(AutoConfigurations.of(ConfigurationPropertiesAutoConfiguration.class))
           .withUserConfiguration(
-              GitHubProperties.class, GitHubConfig.class, GithubTeamsUserRolesProvider.class)
+              GitHubProperties.class,
+              GitHubConfig.class,
+              GithubTeamsUserRolesProvider.class,
+              GithubTeamsHealthTrackable.class)
           .withBean(MeterRegistry.class, SimpleMeterRegistry::new)
           .withPropertyValues(
               "auth.group-membership.service=github",
@@ -98,6 +103,39 @@ class GitHubConfigWiringTest {
                       .getBean(MeterRegistry.class)
                       .find("fiat.github.tokenSecondsToExpiry")
                       .gauge());
+            });
+  }
+
+  @Test
+  void shouldLeaveGitHubOutOfFiatHealthByDefault() {
+    // A GitHub outage at pod startup would otherwise keep the pod DOWN, and with it Fiat
+    contextRunner
+        .withPropertyValues(
+            "auth.group-membership.github.base-url=" + wireMock.baseUrl(),
+            "auth.group-membership.github.access-token=ghp_test_token")
+        .run(
+            context -> {
+              assertNull(context.getStartupFailure());
+              assertTrue(context.getBeansOfType(HealthTrackable.class).isEmpty());
+            });
+  }
+
+  @Test
+  void shouldTrackGitHubInFiatHealthWhenEnabled() {
+    contextRunner
+        .withPropertyValues(
+            "auth.group-membership.github.base-url=" + wireMock.baseUrl(),
+            "auth.group-membership.github.access-token=ghp_test_token",
+            "auth.group-membership.github.health-check-enabled=true")
+        .run(
+            context -> {
+              assertNull(context.getStartupFailure());
+              // Exactly one tracker, and not the provider itself, so disabling it is possible
+              HealthTrackable healthTrackable = context.getBean(HealthTrackable.class);
+              assertInstanceOf(GithubTeamsHealthTrackable.class, healthTrackable);
+              assertSame(
+                  context.getBean(GithubTeamsUserRolesProvider.class).getHealthTracker(),
+                  healthTrackable.getHealthTracker());
             });
   }
 

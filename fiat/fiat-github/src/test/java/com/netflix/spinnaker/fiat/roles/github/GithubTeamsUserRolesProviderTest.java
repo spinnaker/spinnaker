@@ -635,6 +635,31 @@ class GithubTeamsUserRolesProviderTest {
   }
 
   @Test
+  void shouldNotWarmOrgMembersWhenHealthChecksAreDisabled() throws Exception {
+    // Disabled is the default; a warm interval alone must not start the schedule
+    gitHubProperties.setHealthWarmIntervalSeconds(600);
+    lenient().when(organization.listMembers()).thenReturn(orgMembers);
+
+    provider.afterPropertiesSet();
+
+    verify(organization, after(500).never()).listMembers();
+  }
+
+  @Test
+  void shouldWarmOrgMembersOnAScheduleWhenHealthChecksAreEnabled() throws Exception {
+    gitHubProperties.setHealthCheckEnabled(true);
+    gitHubProperties.setHealthWarmIntervalSeconds(600);
+    stubOrgMembers();
+
+    provider.afterPropertiesSet();
+    try {
+      verify(organization, timeout(5000)).listMembers();
+    } finally {
+      provider.destroy();
+    }
+  }
+
+  @Test
   void shouldAlertAfterThreeRefreshIntervalsWithoutASuccessfulFetchByDefault() throws Exception {
     gitHubProperties.setMembershipCacheTTLSeconds(600);
     provider.afterPropertiesSet();

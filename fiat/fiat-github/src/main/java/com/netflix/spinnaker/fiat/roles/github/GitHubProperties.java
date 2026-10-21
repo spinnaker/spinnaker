@@ -70,16 +70,26 @@ public class GitHubProperties {
   Integer refreshTimeoutSeconds = 120;
 
   /**
-   * Age of the last successful GitHub fetch after which this provider reports unhealthy. Defaults
-   * to three refresh intervals ({@code 3 * membershipCacheTTLSeconds}).
+   * Whether GitHub counts towards Fiat's health ({@code /health}). Off by default: Fiat reports
+   * DOWN until every tracked provider has succeeded once, so a replica starting while GitHub is
+   * unreachable would stay DOWN, and with readiness on {@code /health} that can take Fiat down. The
+   * {@code fiat.github.*} metrics are published either way, for alerting without that risk.
+   */
+  @NotNull Boolean healthCheckEnabled = false;
+
+  /**
+   * Age of the last successful GitHub fetch after which this provider reports unhealthy, when
+   * {@link #healthCheckEnabled}. Defaults to three refresh intervals ({@code 3 *
+   * membershipCacheTTLSeconds}).
    */
   @Min(1L)
   Integer alertStalenessSeconds;
 
   /**
-   * How often every Fiat replica fetches the organization's members, so that each replica's health
-   * reflects GitHub, not only the replica running the role sync. Costs one GitHub call per 100
-   * members per replica per interval. 0 disables it.
+   * How often every Fiat replica fetches the organization's members when {@link
+   * #healthCheckEnabled}, so that each replica's health reflects GitHub, not only the replica
+   * running the role sync. Costs one GitHub call per 100 members per replica per interval. 0
+   * disables it.
    */
   @NotNull
   @Min(0L)

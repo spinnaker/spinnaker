@@ -26,7 +26,6 @@ import com.google.common.util.concurrent.ThreadFactoryBuilder;
 import com.google.common.util.concurrent.UncheckedExecutionException;
 import com.netflix.spinnaker.fiat.model.resources.Role;
 import com.netflix.spinnaker.fiat.permissions.ExternalUser;
-import com.netflix.spinnaker.fiat.providers.HealthTrackable;
 import com.netflix.spinnaker.fiat.providers.ProviderException;
 import com.netflix.spinnaker.fiat.providers.ProviderHealthTracker;
 import com.netflix.spinnaker.fiat.roles.UserRolesProvider;
@@ -108,7 +107,7 @@ import org.springframework.util.Assert;
 @Component
 @ConditionalOnProperty(value = "auth.group-membership.service", havingValue = "github")
 public class GithubTeamsUserRolesProvider
-    implements UserRolesProvider, InitializingBean, DisposableBean, HealthTrackable {
+    implements UserRolesProvider, InitializingBean, DisposableBean {
 
   @Autowired @Setter private GitHub gitHubClient;
 
@@ -136,7 +135,7 @@ public class GithubTeamsUserRolesProvider
   private final ExecutorService fetchExecutor =
       Executors.newCachedThreadPool(daemonThreads("github-roles-fetch-%d"));
 
-  /** Fetches the org members on every replica; null when the warm interval is 0. */
+  /** Fetches the org members on every replica; null unless health checks are enabled. */
   @Nullable private ScheduledExecutorService warmScheduler;
 
   /**
@@ -188,12 +187,12 @@ public class GithubTeamsUserRolesProvider
   }
 
   /**
-   * Reports healthy while a GitHub fetch has succeeded within {@code alertStalenessSeconds}. Only
-   * the replica holding the role-sync lock resolves every user's roles, so every replica also
-   * fetches the org members on a schedule (see {@link #warmOrgMembers()}); otherwise the other
-   * replicas would never fetch, and never report healthy.
+   * Healthy while a GitHub fetch has succeeded within {@code alertStalenessSeconds}. It counts
+   * towards Fiat's health only through {@link GithubTeamsHealthTrackable}, when {@code
+   * healthCheckEnabled}. Only the replica holding the role-sync lock resolves every user's roles,
+   * so with health checks on every replica also fetches the org members on a schedule (see {@link
+   * #warmOrgMembers()}); otherwise the other replicas would never fetch, and never report healthy.
    */
-  @Override
   public ProviderHealthTracker getHealthTracker() {
     return healthTracker;
   }
@@ -217,7 +216,7 @@ public class GithubTeamsUserRolesProvider
 
   private void scheduleOrgMembersWarming() {
     int intervalSeconds = gitHubProperties.getHealthWarmIntervalSeconds();
-    if (intervalSeconds <= 0) {
+    if (!gitHubProperties.getHealthCheckEnabled() || intervalSeconds <= 0) {
       return;
     }
     warmScheduler =
