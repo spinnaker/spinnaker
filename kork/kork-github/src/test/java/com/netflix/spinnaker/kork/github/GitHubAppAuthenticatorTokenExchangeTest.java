@@ -473,6 +473,27 @@ class GitHubAppAuthenticatorTokenExchangeTest {
   }
 
   @Test
+  void shouldNotRetryAFailedRenewalOnEveryCallWhileTheCachedTokenIsValid() throws Exception {
+    stubTokenThenMintFailure(ACCESS_TOKENS_PATH, "ghs_cached_token", "2030-01-01T01:00:00Z");
+    MutableClock clock = new MutableClock(Instant.parse("2030-01-01T00:00:00Z"));
+    GitHubAppAuthenticator authenticator = authenticator(clock);
+    authenticator.getInstallationToken();
+
+    // The renewal fails inside the window; every request uses the token, so retrying on each call
+    // would cost three GitHub calls (and a warning) per request while GitHub is failing
+    clock.instant(Instant.parse("2030-01-01T00:57:00Z"));
+    authenticator.getInstallationToken();
+    authenticator.getInstallationToken();
+    authenticator.getInstallationToken();
+    server.verify(2, postRequestedFor(urlPathEqualTo(ACCESS_TOKENS_PATH)));
+
+    // After a short pause, renewal is attempted again
+    clock.instant(Instant.parse("2030-01-01T00:57:31Z"));
+    assertEquals("ghs_cached_token", authenticator.getInstallationToken());
+    server.verify(3, postRequestedFor(urlPathEqualTo(ACCESS_TOKENS_PATH)));
+  }
+
+  @Test
   void shouldKeepServingTheCachedDerivedTokenWhenRenewalFailsBeforeItExpires() throws Exception {
     stubRepoInstallation("test-org", "my-repo", "99999", "unused");
     stubTokenThenMintFailure(
@@ -507,6 +528,42 @@ class GitHubAppAuthenticatorTokenExchangeTest {
     List<String> jwts = mintRequestJwts();
     assertTrue(isSignedBy(jwts.get(0), originalKey), "first JWT signed with the original key");
     assertTrue(isSignedBy(jwts.get(1), rotatedKey), "second JWT signed with the rotated key");
+  }
+
+  @Test
+  void shouldSignWithTheRotatedPrivateKeyEvenWhenTheFileKeepsItsModificationTime()
+      throws Exception {
+    // e.g. a key copied in with cp -p or extracted from an archive
+    stubAccessTokenCreation("ghs_expired_token", "2000-01-01T00:00:00Z");
+    GitHubAppAuthenticator authenticator = authenticator(server.baseUrl());
+    FileTime originalModifiedTime = Files.getLastModifiedTime(privateKeyFile);
+    authenticator.getInstallationToken();
+
+    GitHubAppTestKeys.writePkcs8Pem(privateKeyFile);
+    Files.setLastModifiedTime(privateKeyFile, originalModifiedTime);
+    PublicKey rotatedKey = publicKeyOf(privateKeyFile);
+    authenticator.getInstallationToken();
+
+    assertTrue(isSignedBy(mintRequestJwts().get(1), rotatedKey));
+  }
+
+  @Test
+  void shouldNotTreatAnInterruptedRenewalAsAGitHubFailure() throws Exception {
+    stubTokenThenMintFailure(ACCESS_TOKENS_PATH, "ghs_cached_token", "2030-01-01T01:00:00Z");
+    MutableClock clock = new MutableClock(Instant.parse("2030-01-01T00:00:00Z"));
+    GitHubAppAuthenticator authenticator = authenticator(clock);
+    authenticator.getInstallationToken();
+    clock.instant(Instant.parse("2030-01-01T00:57:00Z"));
+
+    // The caller was cancelled (e.g. by a timeout) while the token was being renewed: it must
+    // stop, rather than carry on with the cached token as if GitHub had failed
+    Thread.currentThread().interrupt();
+    try {
+      assertThrows(IOException.class, authenticator::getInstallationToken);
+      assertTrue(Thread.currentThread().isInterrupted(), "the interrupt must be preserved");
+    } finally {
+      Thread.interrupted();
+    }
   }
 
   @Test

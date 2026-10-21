@@ -33,6 +33,7 @@ import com.netflix.spinnaker.kork.github.GitHubAppAuthenticator;
 import io.micrometer.core.instrument.Gauge;
 import io.micrometer.core.instrument.MeterRegistry;
 import java.io.IOException;
+import java.io.InterruptedIOException;
 import java.time.Duration;
 import java.time.Instant;
 import java.util.*;
@@ -157,15 +158,42 @@ public class GithubTeamsUserRolesProvider
   private final AtomicLong rateLimitRemaining = new AtomicLong(-1);
 
   /**
-   * A cached GitHub result with the {@link #ticker} time it was fetched. A failed refresh keeps the
-   * previous instance, so {@code fetchedAtNanos} always dates the data GitHub last confirmed.
+   * A cached GitHub result with the {@link #ticker} time it was fetched, and when refreshing it
+   * started failing (null while refreshes succeed). A failed refresh keeps the value and its fetch
+   * time and records the first failure, so staleness measures how long GitHub has been failing, not
+   * how long the entry went unread: refreshes only start when an entry is read.
    */
-  private record Fetched<V>(V value, long fetchedAtNanos) {}
+  private record Fetched<V>(V value, long fetchedAtNanos, @Nullable Long failingSinceNanos) {
+
+    Fetched<V> failingSince(long nanos) {
+      return failingSinceNanos != null ? this : new Fetched<>(value, fetchedAtNanos, nanos);
+    }
+  }
 
   @Override
   public void afterPropertiesSet() throws Exception {
     Assert.state(gitHubProperties.getOrganization() != null, "Supply an organization");
     Assert.state(gitHubProperties.getBaseUrl() != null, "Supply a base url");
+    // GitHubProperties is not @Validated, so its @Min constraints are not enforced
+    Assert.state(
+        gitHubProperties.getRefreshTimeoutSeconds() > 0, "refreshTimeoutSeconds must be positive");
+    Assert.state(
+        gitHubProperties.getMaxStaleRolesSeconds() >= 0,
+        "maxStaleRolesSeconds must be 0 (disabled) or positive");
+    Assert.state(
+        gitHubProperties.getAlertStalenessSeconds() == null
+            || gitHubProperties.getAlertStalenessSeconds() > 0,
+        "alertStalenessSeconds must be positive");
+    Assert.state(
+        gitHubProperties.getHealthWarmIntervalSeconds() >= 0,
+        "healthWarmIntervalSeconds must be 0 (disabled) or positive");
+    Assert.state(
+        !gitHubProperties.getHealthCheckEnabled()
+            || gitHubProperties.getHealthWarmIntervalSeconds() == 0
+            || gitHubProperties.getEffectiveAlertStalenessSeconds()
+                > gitHubProperties.getHealthWarmIntervalSeconds(),
+        "alertStalenessSeconds must be longer than healthWarmIntervalSeconds, or replicas not"
+            + " running the role sync report unhealthy between warms");
 
     this.healthTracker =
         new ProviderHealthTracker(
@@ -199,6 +227,12 @@ public class GithubTeamsUserRolesProvider
 
   private void registerGauges() {
     meterRegistry.gauge("fiat.github.rateLimitRemaining", rateLimitRemaining);
+    Gauge.builder(
+            "fiat.github.dataAgeSeconds", this, GithubTeamsUserRolesProvider::orgMembersAgeSeconds)
+        .description(
+            "Seconds since this replica last fetched the GitHub org members; alert on this rather"
+                + " than on /health, which stays UP after the first success")
+        .register(meterRegistry);
     if (gitHubAppAuthenticator != null) {
       Gauge.builder(
               "fiat.github.tokenSecondsToExpiry",
@@ -207,6 +241,14 @@ public class GithubTeamsUserRolesProvider
           .description("Seconds until the cached GitHub App installation token expires")
           .register(meterRegistry);
     }
+  }
+
+  /** Age of the cached org members, without loading them; NaN if nothing is cached. */
+  private double orgMembersAgeSeconds() {
+    Fetched<Set<String>> members = membersCache.getIfPresent(gitHubProperties.getOrganization());
+    return members == null
+        ? Double.NaN
+        : TimeUnit.NANOSECONDS.toSeconds(ticker.read() - members.fetchedAtNanos());
   }
 
   private static double secondsToTokenExpiry(GitHubAppAuthenticator authenticator) {
@@ -231,10 +273,20 @@ public class GithubTeamsUserRolesProvider
    * members cache warm for logins. Teams are fetched only when roles are resolved.
    */
   void warmOrgMembers() {
+    String orgName = gitHubProperties.getOrganization();
+    // Skip members fetched successfully within the interval, e.g. on the replica running the sync
+    Fetched<Set<String>> members = membersCache.getIfPresent(orgName);
+    long intervalNanos = TimeUnit.SECONDS.toNanos(gitHubProperties.getHealthWarmIntervalSeconds());
+    if (members != null
+        && members.failingSinceNanos() == null
+        && ticker.read() - members.fetchedAtNanos() < intervalNanos) {
+      return;
+    }
     try {
-      // On failure Guava keeps any cached value; fetchFailure has already logged the error
-      membersCache.refresh(gitHubProperties.getOrganization());
+      // A failed fetch keeps any cached value; fetchFailure has already logged it
+      membersCache.refresh(orgName);
     } catch (RuntimeException e) {
+      // An exception escaping a scheduleWithFixedDelay task would cancel all later warms
       log.warn("Failed to warm the GitHub org members cache", e);
     }
   }
@@ -320,7 +372,7 @@ public class GithubTeamsUserRolesProvider
       public Fetched<V> load(String key) {
         V value = fetchWithTimeout(operation, fetch, key);
         healthTracker.success();
-        return new Fetched<>(value, ticker.read());
+        return new Fetched<>(value, ticker.read(), null);
       }
 
       @Override
@@ -332,13 +384,13 @@ public class GithubTeamsUserRolesProvider
                     return load(key);
                   } catch (ProviderException e) {
                     // fetchFailure has already logged the error
-                    return prev;
+                    return prev.failingSince(ticker.read());
                   } catch (RuntimeException e) {
                     log.error(
                         "Unexpected error refreshing GitHub cache entry {}; keeping previous value",
                         key,
                         e);
-                    return prev;
+                    return prev.failingSince(ticker.read());
                   }
                 });
         executor.execute(task);
@@ -434,21 +486,17 @@ public class GithubTeamsUserRolesProvider
   /**
    * Fetches members of a specific team using hub4j. The team comes from the cached teams listing,
    * so this costs one call per 100 members rather than also looking up the organization and the
-   * team on every refresh. A 404 for the team returns no members: the team is gone.
+   * team on every refresh. A 404 listing the team's members returns no members: the team is gone.
    */
   private Set<String> fetchTeamMembers(String teamSlug) {
     String orgName = gitHubProperties.getOrganization();
     try {
       log.debug("Fetching members for team: {} in organization: {}", teamSlug, orgName);
 
+      // Slugs come from this listing, so a missing one was removed since the listing was refreshed
       GHTeam team = getCached(teamsCache, orgName).get(teamSlug);
       if (team == null) {
-        // Not in the cached listing, e.g. created since it was fetched
-        team = gitHubClient.getOrganization(orgName).getTeamBySlug(teamSlug);
-      }
-
-      if (team == null) {
-        log.warn("Team not found: {} in organization: {}", teamSlug, orgName);
+        log.warn("Team no longer listed: {} in organization: {}", teamSlug, orgName);
         return Collections.emptySet();
       }
 
@@ -513,16 +561,39 @@ public class GithubTeamsUserRolesProvider
   }
 
   /**
+   * Whether a fetch failed because fetchWithTimeout cancelled it. hub4j reports the interrupt as an
+   * {@link InterruptedIOException} and clears the flag, and the token mint may wrap it, so the
+   * causes are checked as well as the flag.
+   */
+  private static boolean isCancellation(Throwable failure) {
+    if (Thread.currentThread().isInterrupted()) {
+      return true;
+    }
+    for (Throwable cause = failure; cause != null; cause = cause.getCause()) {
+      if (cause instanceof InterruptedIOException || cause instanceof InterruptedException) {
+        return true;
+      }
+    }
+    return false;
+  }
+
+  /**
    * As {@link #fetchFailure(FetchOperation, String, FailureStatus, Exception)}, for an I/O error.
    */
   private ProviderException fetchFailure(FetchOperation operation, String key, IOException e) {
+    if (isCancellation(e)) {
+      // Cancelled by fetchWithTimeout, which has already logged and counted the timeout
+      return new ProviderException(
+          getClass(), "Cancelled fetching " + operation.describe(key) + " after a timeout", e);
+    }
     return fetchFailure(operation, key, failureStatus(e), e);
   }
 
   /**
    * Logs a failed GitHub fetch, counts it, and wraps it so the calling cache loader can rethrow it.
-   * A 401 also drops the cached installation token, so the next request mints a new one rather than
-   * reusing a token GitHub has revoked.
+   * An HTTP 401 also drops the cached installation token, so the next request mints a new one
+   * rather than reusing a token GitHub has revoked. A 401 inferred from message text alone does
+   * not: it is not a response from GitHub.
    *
    * <p>Every failure is rethrown rather than turned into an empty result. On a refresh, Guava then
    * keeps serving the previous value, so a network error, an expired credential or a rate limit
@@ -568,7 +639,9 @@ public class GithubTeamsUserRolesProvider
         .counter("fiat.github.fetchFailures", "op", operation.tag, "status", status.tag)
         .increment();
 
-    if (status == FailureStatus.UNAUTHORIZED && gitHubAppAuthenticator != null) {
+    if (status == FailureStatus.UNAUTHORIZED
+        && e instanceof HttpException
+        && gitHubAppAuthenticator != null) {
       gitHubAppAuthenticator.invalidateInstallationToken();
     }
 
@@ -748,9 +821,9 @@ public class GithubTeamsUserRolesProvider
    * Reads from a cache, surfacing a failed load as a {@link ProviderException} so that Fiat's
    * permission resolution and role sync treat it as a provider failure.
    *
-   * <p>Data GitHub last confirmed more than {@code maxStaleRolesSeconds} ago is refused the same
-   * way, so roles are not served indefinitely from a cache that refreshes can no longer update. The
-   * role sync then aborts and the stored permissions stay as they are; it does not revoke them.
+   * <p>Data whose refreshes have kept failing for more than {@code maxStaleRolesSeconds} is refused
+   * the same way, so roles are not served indefinitely from a cache GitHub can no longer update.
+   * The role sync then aborts and the stored permissions stay as they are; it does not revoke them.
    */
   private <V> V getCached(LoadingCache<String, Fetched<V>> cache, String key) {
     Fetched<V> fetched;
@@ -764,18 +837,24 @@ public class GithubTeamsUserRolesProvider
     }
 
     int maxStaleSeconds = gitHubProperties.getMaxStaleRolesSeconds();
-    long ageSeconds = TimeUnit.NANOSECONDS.toSeconds(ticker.read() - fetched.fetchedAtNanos());
-    if (maxStaleSeconds > 0 && ageSeconds > maxStaleSeconds) {
-      meterRegistry.counter("fiat.github.staleRejections").increment();
-      throw new ProviderException(
-          getClass(),
-          "Cached GitHub data for "
-              + key
-              + " is stale: last fetched "
-              + ageSeconds
-              + "s ago, more than maxStaleRolesSeconds ("
-              + maxStaleSeconds
-              + "s). Refreshes are failing; see the earlier GitHub errors.");
+    Long failingSince = fetched.failingSinceNanos();
+    if (maxStaleSeconds > 0 && failingSince != null) {
+      long now = ticker.read();
+      long failingSeconds = TimeUnit.NANOSECONDS.toSeconds(now - failingSince);
+      if (failingSeconds > maxStaleSeconds) {
+        meterRegistry.counter("fiat.github.staleRejections").increment();
+        throw new ProviderException(
+            getClass(),
+            "Cached GitHub data for "
+                + key
+                + " is stale: refreshes have failed for "
+                + failingSeconds
+                + "s, more than maxStaleRolesSeconds ("
+                + maxStaleSeconds
+                + "s), and it was last fetched "
+                + TimeUnit.NANOSECONDS.toSeconds(now - fetched.fetchedAtNanos())
+                + "s ago. See the earlier GitHub errors.");
+      }
     }
     return fetched.value();
   }

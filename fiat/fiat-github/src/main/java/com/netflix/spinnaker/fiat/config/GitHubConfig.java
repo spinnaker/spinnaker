@@ -1,6 +1,8 @@
 package com.netflix.spinnaker.fiat.config;
 
 import com.netflix.spinnaker.fiat.roles.github.GitHubProperties;
+import com.netflix.spinnaker.fiat.roles.github.GithubTeamsHealthTrackable;
+import com.netflix.spinnaker.fiat.roles.github.GithubTeamsUserRolesProvider;
 import com.netflix.spinnaker.kork.github.GitHubAppAuthenticator;
 import com.netflix.spinnaker.kork.github.GitHubClientFactory;
 import jakarta.annotation.PostConstruct;
@@ -96,6 +98,19 @@ public class GitHubConfig {
       return GitHubClientFactory.createWithPAT(
           gitHubProperties.getBaseUrl(), gitHubProperties.getAccessToken());
     }
+  }
+
+  /**
+   * Adds the GitHub provider to Fiat's health when {@code health-check-enabled} is true; see {@link
+   * GitHubProperties#getHealthCheckEnabled()} for what that does and risks.
+   */
+  @Bean
+  @ConditionalOnProperty(
+      value = "auth.group-membership.github.health-check-enabled",
+      havingValue = "true")
+  public GithubTeamsHealthTrackable githubTeamsHealthTrackable(
+      GithubTeamsUserRolesProvider provider) {
+    return new GithubTeamsHealthTrackable(provider);
   }
 
   /**

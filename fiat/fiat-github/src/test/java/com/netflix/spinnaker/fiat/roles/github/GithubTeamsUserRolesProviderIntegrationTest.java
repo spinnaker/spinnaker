@@ -189,6 +189,38 @@ class GithubTeamsUserRolesProviderIntegrationTest {
   // ===== Error Handling Tests =====
 
   @Test
+  @Timeout(10)
+  void shouldAbandonAGitHubRequestThatExceedsTheRefreshTimeout() throws Exception {
+    // A real hub4j request against a slow response, to show the timeout ends the HTTP call itself
+    provider.destroy();
+    gitHubProperties.setRefreshTimeoutSeconds(1);
+    provider = new GithubTeamsUserRolesProvider();
+    provider.setGitHubClient(
+        new GitHubBuilder().withEndpoint(wireMock.baseUrl()).withOAuthToken(TEST_TOKEN).build());
+    provider.setGitHubProperties(gitHubProperties);
+    provider.setMeterRegistry(new SimpleMeterRegistry());
+    provider.afterPropertiesSet();
+    stubOrgEndpoint();
+    wireMock.stubFor(
+        get(urlPathEqualTo("/orgs/" + TEST_ORG + "/members"))
+            .atPriority(1)
+            .willReturn(
+                aResponse()
+                    .withHeader("Content-Type", "application/json")
+                    .withBody("[]")
+                    .withFixedDelay(5000)));
+
+    long started = System.nanoTime();
+    ProviderException exception =
+        assertThrows(
+            ProviderException.class, () -> provider.loadRoles(new ExternalUser().setId("alice")));
+
+    assertTrue(exception.getMessage().contains("Timed out"), exception.getMessage());
+    long elapsedMillis = TimeUnit.NANOSECONDS.toMillis(System.nanoTime() - started);
+    assertTrue(elapsedMillis < 4000, "returned after " + elapsedMillis + "ms");
+  }
+
+  @Test
   void shouldThrowWhenOrganizationIsNotFound() throws Exception {
     // Given - 404 for organization (override the default org stub)
     wireMock.stubFor(

@@ -1,5 +1,5 @@
 /*
- * Copyright 2026 spinnaker.io.
+ * Copyright 2026 Razorpay.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -21,7 +21,10 @@ import static com.github.tomakehurst.wiremock.core.WireMockConfiguration.wireMoc
 import static org.junit.jupiter.api.Assertions.*;
 
 import com.github.tomakehurst.wiremock.junit5.WireMockExtension;
+import com.github.tomakehurst.wiremock.stubbing.Scenario;
+import com.netflix.spinnaker.fiat.permissions.ExternalUser;
 import com.netflix.spinnaker.fiat.providers.HealthTrackable;
+import com.netflix.spinnaker.fiat.providers.ProviderException;
 import com.netflix.spinnaker.fiat.roles.github.GitHubProperties;
 import com.netflix.spinnaker.fiat.roles.github.GithubTeamsHealthTrackable;
 import com.netflix.spinnaker.fiat.roles.github.GithubTeamsUserRolesProvider;
@@ -55,10 +58,7 @@ class GitHubConfigWiringTest {
       new ApplicationContextRunner()
           .withConfiguration(AutoConfigurations.of(ConfigurationPropertiesAutoConfiguration.class))
           .withUserConfiguration(
-              GitHubProperties.class,
-              GitHubConfig.class,
-              GithubTeamsUserRolesProvider.class,
-              GithubTeamsHealthTrackable.class)
+              GitHubProperties.class, GitHubConfig.class, GithubTeamsUserRolesProvider.class)
           .withBean(MeterRegistry.class, SimpleMeterRegistry::new)
           .withPropertyValues(
               "auth.group-membership.service=github",
@@ -136,6 +136,69 @@ class GitHubConfigWiringTest {
               assertSame(
                   context.getBean(GithubTeamsUserRolesProvider.class).getHealthTracker(),
                   healthTrackable.getHealthTracker());
+            });
+  }
+
+  @Test
+  void shouldTrackGitHubInFiatHealthWhateverTheCaseOfTheServiceName() {
+    // The provider and GitHubConfig match auth.group-membership.service case-insensitively
+    contextRunner
+        .withPropertyValues(
+            "auth.group-membership.service=GitHub",
+            "auth.group-membership.github.base-url=" + wireMock.baseUrl(),
+            "auth.group-membership.github.access-token=ghp_test_token",
+            "auth.group-membership.github.health-check-enabled=true")
+        .run(
+            context -> {
+              assertNull(context.getStartupFailure());
+              assertInstanceOf(
+                  GithubTeamsHealthTrackable.class, context.getBean(HealthTrackable.class));
+            });
+  }
+
+  @Test
+  void shouldMintANewInstallationTokenAfterGitHubRejectsTheCachedOne() {
+    stubGitHubAppTokenExchange();
+    Path privateKey = GitHubAppTestKeys.writePkcs8Pem(tempDir.resolve("key.pem"));
+    // The first request is rejected, as after the app was suspended and reinstated
+    wireMock.stubFor(
+        get(urlPathEqualTo("/orgs/test-org"))
+            .inScenario("revoked token")
+            .whenScenarioStateIs(Scenario.STARTED)
+            .willReturn(
+                aResponse()
+                    .withStatus(401)
+                    .withHeader("Content-Type", "application/json")
+                    .withBody("{\"message\": \"Bad credentials\"}"))
+            .willSetStateTo("accepted"));
+    wireMock.stubFor(
+        get(urlPathEqualTo("/orgs/test-org"))
+            .inScenario("revoked token")
+            .whenScenarioStateIs("accepted")
+            .willReturn(okJson("{\"login\": \"test-org\", \"id\": 1}")));
+    wireMock.stubFor(get(urlPathEqualTo("/orgs/test-org/members")).willReturn(okJson("[]")));
+    wireMock.stubFor(get(urlPathEqualTo("/rate_limit")).willReturn(okJson("{\"resources\": {}}")));
+
+    contextRunner
+        .withPropertyValues(
+            "auth.group-membership.github.base-url=" + wireMock.baseUrl(),
+            "auth.group-membership.github.app-id=12345",
+            "auth.group-membership.github.private-key-path=" + privateKey,
+            "auth.group-membership.github.installation-id=" + INSTALLATION_ID)
+        .run(
+            context -> {
+              GithubTeamsUserRolesProvider provider =
+                  context.getBean(GithubTeamsUserRolesProvider.class);
+              ExternalUser user = new ExternalUser().setId("alice");
+
+              assertThrows(ProviderException.class, () -> provider.loadRoles(user));
+              assertTrue(provider.loadRoles(user).isEmpty());
+
+              // One token at startup, and a new one after GitHub rejected it
+              wireMock.verify(
+                  2,
+                  postRequestedFor(
+                      urlPathEqualTo("/app/installations/" + INSTALLATION_ID + "/access_tokens")));
             });
   }
 
