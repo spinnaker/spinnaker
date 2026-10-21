@@ -20,17 +20,24 @@ import com.google.common.util.concurrent.Striped;
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.SignatureAlgorithm;
 import java.io.IOException;
+import java.io.InterruptedIOException;
 import java.io.Reader;
+import java.nio.channels.ClosedByInterruptException;
 import java.nio.file.Files;
+import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.security.MessageDigest;
+import java.security.NoSuchAlgorithmException;
 import java.security.PrivateKey;
+import java.time.Clock;
+import java.time.Duration;
 import java.time.Instant;
+import java.util.Arrays;
 import java.util.Date;
 import java.util.Map;
 import java.util.Set;
 import java.util.TreeSet;
 import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.TimeUnit;
 import java.util.concurrent.locks.Lock;
 import javax.annotation.Nullable;
 import lombok.extern.slf4j.Slf4j;
@@ -69,10 +76,13 @@ import org.kohsuke.github.GitHubBuilder;
  * <h2>Responsibilities</h2>
  *
  * <ul>
- *   <li>Loading the app private key and signing JWTs
+ *   <li>Loading the app private key, and reloading it when the key file changes so a rotated key
+ *       needs no restart
+ *   <li>Signing JWTs, with the issue time set slightly in the past to tolerate clock skew
  *   <li>Resolving installations (derive mode) and minting installation tokens
  *   <li>Caching tokens per installation, refreshed shortly before expiry, so cache hits make no
- *       GitHub API calls
+ *       GitHub API calls. If a refresh fails while the cached token is still valid, the cached
+ *       token keeps being served
  *   <li>Enforcing the optional organization allowlist. This is authorization policy living inside
  *       an authentication primitive - a deliberate trade-off, so that the check cannot be bypassed
  *       by a caller that forgets it, and so rejection costs no API call.
@@ -82,14 +92,45 @@ import org.kohsuke.github.GitHubBuilder;
 @Slf4j
 public class GitHubAppAuthenticator {
 
-  private static final int JWT_EXPIRATION_MINUTES = 10;
-  private static final int TOKEN_REFRESH_BUFFER_MINUTES = 5;
+  /**
+   * How far a JWT's issue time is set in the past. GitHub rejects a JWT issued in its future, so
+   * this absorbs a host clock running ahead of GitHub's (as GitHub's documentation recommends).
+   */
+  private static final Duration JWT_BACKDATE = Duration.ofSeconds(60);
+
+  /**
+   * How long after now a JWT expires. GitHub rejects an expiry more than 10 minutes after its own
+   * now, so this stays below that for a host clock running ahead.
+   */
+  private static final Duration JWT_VALIDITY = Duration.ofMinutes(9);
+
+  /** How long before a cached token expires that it is renewed. */
+  private static final Duration TOKEN_REFRESH_BUFFER = Duration.ofMinutes(5);
+
+  /**
+   * How long to keep serving a still-valid cached token after renewing it failed, before trying
+   * again. Every request asks for the token, so without this each one would retry the mint (three
+   * GitHub calls) for as long as GitHub keeps failing.
+   */
+  private static final Duration RENEWAL_RETRY_DELAY = Duration.ofSeconds(30);
+
   private static final int MINT_LOCK_STRIPES = 32;
 
   private final String appId;
-  private final PrivateKey privateKey;
+  private final Path privateKeyPath;
+
+  /** Replaced when the key file changes, so a rotated key is picked up without a restart. */
+  private volatile PrivateKey privateKey;
+
+  /**
+   * SHA-256 digest of the key file's contents when {@link #privateKey} was loaded from it. A
+   * digest, not the contents, so that no second copy of the key is kept.
+   */
+  @Nullable private volatile byte[] privateKeyDigest;
+
   @Nullable private final String installationId;
   private final String baseUrl;
+  private final Clock clock;
 
   /** Owners this authenticator may derive installations for; empty means no restriction. */
   private final Set<String> allowedOrganizations;
@@ -143,11 +184,25 @@ public class GitHubAppAuthenticator {
       @Nullable String installationId,
       String baseUrl,
       Set<String> allowedOrganizations) {
+    this(appId, privateKeyPath, installationId, baseUrl, allowedOrganizations, Clock.systemUTC());
+  }
+
+  /** As the public constructors, with the clock used for JWTs and token expiry; for tests. */
+  GitHubAppAuthenticator(
+      String appId,
+      String privateKeyPath,
+      @Nullable String installationId,
+      String baseUrl,
+      Set<String> allowedOrganizations,
+      Clock clock) {
     this.appId = appId;
+    this.privateKeyPath = Paths.get(privateKeyPath);
+    this.privateKeyDigest = digestOf(this.privateKeyPath);
     this.privateKey = loadPrivateKey(privateKeyPath);
     this.installationId = installationId;
     this.baseUrl = baseUrl.endsWith("/") ? baseUrl.substring(0, baseUrl.length() - 1) : baseUrl;
     this.allowedOrganizations = Set.copyOf(allowedOrganizations);
+    this.clock = clock;
   }
 
   /**
@@ -182,7 +237,9 @@ public class GitHubAppAuthenticator {
   /**
    * Gets a valid installation token for the configured installation, using cache when possible.
    *
-   * <p>Cached tokens are returned without contacting the GitHub API.
+   * <p>Cached tokens are returned without contacting the GitHub API. If renewing a token fails
+   * while the cached one has not yet expired, the cached token is returned, and renewal is retried
+   * once a short delay has passed.
    *
    * @return Valid installation token
    * @throws IOException if token cannot be obtained
@@ -190,12 +247,7 @@ public class GitHubAppAuthenticator {
    *     #getInstallationTokenForRepo(String, String)} instead)
    */
   public String getInstallationToken() throws IOException {
-    if (installationId == null) {
-      throw new IllegalStateException(
-          "No GitHub App installation ID configured for app "
-              + appId
-              + ". Use getInstallationTokenForRepo to derive the installation from the repository.");
-    }
+    String installationId = requireInstallationId();
     CachedToken cached = tokensByInstallationId.get(installationId);
     if (cached != null && !isTokenExpired(cached)) {
       return cached.token;
@@ -204,12 +256,20 @@ public class GitHubAppAuthenticator {
     lock.lock();
     try {
       cached = tokensByInstallationId.get(installationId);
-      if (cached != null && !isTokenExpired(cached)) {
+      if (cached != null && (!isTokenExpired(cached) || renewalRecentlyFailed(cached))) {
         return cached.token;
       }
-      CachedToken fresh = mintToken(resolveInstallationById(installationId), installationId);
-      tokensByInstallationId.put(installationId, fresh);
-      return fresh.token;
+      try {
+        CachedToken fresh = mintToken(resolveInstallationById(installationId), installationId);
+        tokensByInstallationId.put(installationId, fresh);
+        return fresh.token;
+      } catch (IOException e) {
+        if (isInterruption(e)) {
+          Thread.currentThread().interrupt();
+          throw e;
+        }
+        return unexpiredTokenOrThrow(cached, "installation " + installationId, e);
+      }
     } finally {
       lock.unlock();
     }
@@ -246,36 +306,130 @@ public class GitHubAppAuthenticator {
               + ".");
     }
     CachedToken cached = cachedTokenForOwner(ownerKey);
-    if (cached != null) {
+    if (cached != null && !isTokenExpired(cached)) {
       return cached.token;
     }
     Lock lock = mintLocks.get("owner:" + ownerKey);
     lock.lock();
     try {
       cached = cachedTokenForOwner(ownerKey);
-      if (cached != null) {
+      if (cached != null && (!isTokenExpired(cached) || renewalRecentlyFailed(cached))) {
         return cached.token;
       }
-      GHAppInstallation installation = resolveInstallationByRepo(owner, repo);
-      String resolvedInstallationId = String.valueOf(installation.getId());
-      CachedToken fresh = mintToken(installation, resolvedInstallationId);
-      tokensByInstallationId.put(resolvedInstallationId, fresh);
-      installationIdsByOwner.put(ownerKey, resolvedInstallationId);
-      return fresh.token;
+      try {
+        GHAppInstallation installation = resolveInstallationByRepo(owner, repo);
+        String resolvedInstallationId = String.valueOf(installation.getId());
+        CachedToken fresh = mintToken(installation, resolvedInstallationId);
+        tokensByInstallationId.put(resolvedInstallationId, fresh);
+        installationIdsByOwner.put(ownerKey, resolvedInstallationId);
+        return fresh.token;
+      } catch (IOException e) {
+        if (isInterruption(e)) {
+          Thread.currentThread().interrupt();
+          throw e;
+        }
+        return unexpiredTokenOrThrow(cached, "owner '" + owner + "'", e);
+      }
     } finally {
       lock.unlock();
     }
   }
 
-  /** Returns the cached, unexpired token for an owner, or null when a token has to be minted. */
+  /**
+   * Drops the cached token for the configured installation, so that the next request mints a new
+   * one. Use it when GitHub rejects a cached token that has not yet expired, for example after the
+   * app was suspended and reinstated.
+   *
+   * @throws IllegalStateException if no installation ID was configured
+   */
+  public void invalidateInstallationToken() {
+    tokensByInstallationId.remove(requireInstallationId());
+  }
+
+  /**
+   * Returns when the cached token for the configured installation expires.
+   *
+   * @return the expiry, or null if no token has been minted yet
+   * @throws IllegalStateException if no installation ID was configured
+   */
+  @Nullable
+  public Instant getInstallationTokenExpiry() {
+    CachedToken cached = tokensByInstallationId.get(requireInstallationId());
+    return cached != null ? cached.expiresAt : null;
+  }
+
+  private String requireInstallationId() {
+    if (installationId == null) {
+      throw new IllegalStateException(
+          "No GitHub App installation ID configured for app "
+              + appId
+              + ". Use getInstallationTokenForRepo to derive the installation from the repository.");
+    }
+    return installationId;
+  }
+
+  /**
+   * Returns the cached token for an owner, which may be due for renewal, or null when the owner's
+   * installation has not been resolved yet.
+   */
   @Nullable
   private CachedToken cachedTokenForOwner(String ownerKey) {
     String knownInstallationId = installationIdsByOwner.get(ownerKey);
-    if (knownInstallationId == null) {
-      return null;
+    return knownInstallationId != null ? tokensByInstallationId.get(knownInstallationId) : null;
+  }
+
+  /**
+   * Returns a cached token whose renewal failed, as long as GitHub will still accept it, so that a
+   * GitHub outage inside the renewal window does not fail requests early.
+   *
+   * @throws IOException {@code failure}, if there is no cached token or it has expired
+   */
+  private String unexpiredTokenOrThrow(
+      @Nullable CachedToken cached, String description, IOException failure) throws IOException {
+    if (cached == null || cached.expiresAt == null || !cached.expiresAt.isAfter(clock.instant())) {
+      throw failure;
     }
-    CachedToken cached = tokensByInstallationId.get(knownInstallationId);
-    return cached != null && !isTokenExpired(cached) ? cached : null;
+    cached.renewalFailedAt = clock.instant();
+    log.warn(
+        "Failed to renew the GitHub App installation token for app {} {}; using the cached token, which expires at {}, and retrying in {}s",
+        appId,
+        description,
+        cached.expiresAt,
+        RENEWAL_RETRY_DELAY.toSeconds(),
+        failure);
+    return cached.token;
+  }
+
+  /**
+   * Whether renewing this still-valid token failed within the last {@link #RENEWAL_RETRY_DELAY}.
+   */
+  private boolean renewalRecentlyFailed(CachedToken cached) {
+    Instant failedAt = cached.renewalFailedAt;
+    Instant now = clock.instant();
+    return failedAt != null
+        && now.isBefore(failedAt.plus(RENEWAL_RETRY_DELAY))
+        && cached.expiresAt != null
+        && cached.expiresAt.isAfter(now);
+  }
+
+  /**
+   * Whether a renewal failed because the calling thread was interrupted, e.g. cancelled by a
+   * timeout, rather than because of GitHub. hub4j reports an interrupt as an {@link
+   * InterruptedIOException} and clears the interrupt flag, and the mint wraps it, so this checks
+   * the causes as well as the flag.
+   */
+  private static boolean isInterruption(Throwable failure) {
+    if (Thread.currentThread().isInterrupted()) {
+      return true;
+    }
+    for (Throwable cause = failure; cause != null; cause = cause.getCause()) {
+      if (cause instanceof InterruptedIOException
+          || cause instanceof InterruptedException
+          || cause instanceof ClosedByInterruptException) {
+        return true;
+      }
+    }
+    return false;
   }
 
   private GHAppInstallation resolveInstallationByRepo(String owner, String repo)
@@ -359,16 +513,49 @@ public class GitHubAppAuthenticator {
   }
 
   private String generateJWT() {
-    Instant now = Instant.now();
-    Date issuedAt = Date.from(now);
-    Date expiresAt = Date.from(now.plusSeconds(TimeUnit.MINUTES.toSeconds(JWT_EXPIRATION_MINUTES)));
+    reloadPrivateKeyIfChanged();
+    Instant now = clock.instant();
 
     return Jwts.builder()
         .setIssuer(appId)
-        .setIssuedAt(issuedAt)
-        .setExpiration(expiresAt)
+        .setIssuedAt(Date.from(now.minus(JWT_BACKDATE)))
+        .setExpiration(Date.from(now.plus(JWT_VALIDITY)))
         .signWith(privateKey, SignatureAlgorithm.RS256)
         .compact();
+  }
+
+  /**
+   * Reloads the private key if its file's contents have changed since it was loaded, so that a
+   * rotated key takes effect at the next mint. Contents rather than the modification time, which a
+   * copy can preserve (e.g. {@code cp -p}). This runs only when a JWT is signed, about once an hour
+   * per installation, so reading the small key file each time is cheap. If the changed file cannot
+   * be loaded, the current key stays in use and the reload is retried at the next mint.
+   */
+  private synchronized void reloadPrivateKeyIfChanged() {
+    byte[] digest = digestOf(privateKeyPath);
+    if (digest == null || Arrays.equals(digest, privateKeyDigest)) {
+      return;
+    }
+    try {
+      privateKey = loadPrivateKey(privateKeyPath.toString());
+      privateKeyDigest = digest;
+      log.info("Reloaded the changed GitHub App private key for app {}", appId);
+    } catch (RuntimeException e) {
+      log.error(
+          "Failed to reload the changed GitHub App private key for app {}; still using the previous key",
+          appId,
+          e);
+    }
+  }
+
+  @Nullable
+  private static byte[] digestOf(Path file) {
+    try {
+      return MessageDigest.getInstance("SHA-256").digest(Files.readAllBytes(file));
+    } catch (IOException | NoSuchAlgorithmException e) {
+      log.warn("Unable to read {} to check it for changes", file, e);
+      return null;
+    }
   }
 
   private boolean isTokenExpired(CachedToken token) {
@@ -376,9 +563,7 @@ public class GitHubAppAuthenticator {
       return true;
     }
 
-    Instant refreshThreshold =
-        Instant.now().plusSeconds(TimeUnit.MINUTES.toSeconds(TOKEN_REFRESH_BUFFER_MINUTES));
-    return token.expiresAt.isBefore(refreshThreshold);
+    return token.expiresAt.isBefore(clock.instant().plus(TOKEN_REFRESH_BUFFER));
   }
 
   /**
@@ -417,6 +602,9 @@ public class GitHubAppAuthenticator {
   private static class CachedToken {
     final String token;
     final Instant expiresAt;
+
+    /** When renewing this token last failed, or null; set and read under the mint lock. */
+    @Nullable volatile Instant renewalFailedAt;
 
     CachedToken(String token, Instant expiresAt) {
       this.token = token;
