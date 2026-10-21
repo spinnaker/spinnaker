@@ -607,32 +607,25 @@ public class GithubTeamsUserRolesProvider
       FetchOperation operation, String key, FailureStatus status, Exception e) {
     String what = operation.describe(key);
     switch (status) {
-      case RATE_LIMITED ->
-          log.error(
-              "GitHub API rate limit exceeded fetching {}. Check rate limit at: https://api.github.com/rate_limit",
-              what,
-              e);
-      case UNAUTHORIZED ->
-          log.error(
-              "GitHub authentication failed (401 Unauthorized) fetching {}. Verify credentials.",
-              what,
-              e);
-      case FORBIDDEN ->
-          log.error(
-              "GitHub access forbidden (403) fetching {}. Check permissions and rate limits.",
-              what,
-              e);
-      case NOT_FOUND ->
-          log.error(
-              "GitHub returned 404 Not Found fetching {}. Check the organization name and that the"
-                  + " credentials can see it.",
-              what,
-              e);
-      case TIMEOUT ->
-          log.error(
-              "Timed out after {}s fetching {} from GitHub",
-              gitHubProperties.getRefreshTimeoutSeconds(),
-              what);
+      case RATE_LIMITED -> log.error(
+          "GitHub API rate limit exceeded fetching {}. Check rate limit at: https://api.github.com/rate_limit",
+          what,
+          e);
+      case UNAUTHORIZED -> log.error(
+          "GitHub authentication failed (401 Unauthorized) fetching {}. Verify credentials.",
+          what,
+          e);
+      case FORBIDDEN -> log.error(
+          "GitHub access forbidden (403) fetching {}. Check permissions and rate limits.", what, e);
+      case NOT_FOUND -> log.error(
+          "GitHub returned 404 Not Found fetching {}. Check the organization name and that the"
+              + " credentials can see it.",
+          what,
+          e);
+      case TIMEOUT -> log.error(
+          "Timed out after {}s fetching {} from GitHub",
+          gitHubProperties.getRefreshTimeoutSeconds(),
+          what);
       default -> log.error("Failed to fetch {} from GitHub", what, e);
     }
     meterRegistry
