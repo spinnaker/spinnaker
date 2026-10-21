@@ -26,9 +26,20 @@ import com.github.tomakehurst.wiremock.client.ResponseDefinitionBuilder;
 import com.github.tomakehurst.wiremock.core.WireMockConfiguration;
 import com.github.tomakehurst.wiremock.stubbing.Scenario;
 import com.netflix.spinnaker.kork.github.test.GitHubAppTestKeys;
+import com.netflix.spinnaker.kork.test.time.MutableClock;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
+import java.nio.file.Files;
 import java.nio.file.Path;
+import java.nio.file.attribute.FileTime;
+import java.security.KeyFactory;
+import java.security.PublicKey;
+import java.security.Signature;
+import java.security.interfaces.RSAPrivateCrtKey;
+import java.security.spec.PKCS8EncodedKeySpec;
+import java.security.spec.RSAPublicKeySpec;
+import java.time.Clock;
+import java.time.Instant;
 import java.util.ArrayList;
 import java.util.Base64;
 import java.util.List;
@@ -427,6 +438,162 @@ class GitHubAppAuthenticatorTokenExchangeTest {
     GitHubAppAuthenticator authenticator = deriveModeAuthenticator(server.baseUrl());
 
     assertThrows(IllegalStateException.class, authenticator::getInstallationToken);
+  }
+
+  @Test
+  void shouldBackdateJwtIssueTimeToTolerateClockSkew() throws Exception {
+    stubAccessTokenCreation("ghs_stubbed_token", "2099-01-01T00:00:00Z");
+    MutableClock clock = new MutableClock(Instant.parse("2030-01-01T00:00:00Z"));
+
+    authenticator(clock).getInstallationToken();
+
+    // GitHub rejects a JWT issued in its future, or expiring more than 10 minutes after its now,
+    // so a host clock that runs slightly ahead must still produce an acceptable JWT
+    JsonNode jwtPayload = decodeJwtPayload(mintRequestJwts().get(0));
+    long now = clock.instant().getEpochSecond();
+    assertEquals(now - 60, jwtPayload.get("iat").asLong());
+    assertEquals(now + 9 * 60, jwtPayload.get("exp").asLong());
+  }
+
+  @Test
+  void shouldKeepServingTheCachedTokenWhenRenewalFailsBeforeItExpires() throws Exception {
+    stubTokenThenMintFailure(ACCESS_TOKENS_PATH, "ghs_cached_token", "2030-01-01T01:00:00Z");
+    MutableClock clock = new MutableClock(Instant.parse("2030-01-01T00:00:00Z"));
+    GitHubAppAuthenticator authenticator = authenticator(clock);
+    assertEquals("ghs_cached_token", authenticator.getInstallationToken());
+
+    // Inside the renewal window the mint fails, but the cached token is still valid
+    clock.instant(Instant.parse("2030-01-01T00:57:00Z"));
+    assertEquals("ghs_cached_token", authenticator.getInstallationToken());
+    server.verify(2, postRequestedFor(urlPathEqualTo(ACCESS_TOKENS_PATH)));
+
+    // Once the cached token has really expired, the failure surfaces
+    clock.instant(Instant.parse("2030-01-01T01:00:01Z"));
+    assertThrows(IOException.class, authenticator::getInstallationToken);
+  }
+
+  @Test
+  void shouldKeepServingTheCachedDerivedTokenWhenRenewalFailsBeforeItExpires() throws Exception {
+    stubRepoInstallation("test-org", "my-repo", "99999", "unused");
+    stubTokenThenMintFailure(
+        "/app/installations/99999/access_tokens", "ghs_org_token", "2030-01-01T01:00:00Z");
+    MutableClock clock = new MutableClock(Instant.parse("2030-01-01T00:00:00Z"));
+    GitHubAppAuthenticator authenticator =
+        new GitHubAppAuthenticator(
+            APP_ID, privateKeyFile.toString(), null, server.baseUrl(), Set.of(), clock);
+    assertEquals("ghs_org_token", authenticator.getInstallationTokenForRepo("test-org", "my-repo"));
+
+    clock.instant(Instant.parse("2030-01-01T00:57:00Z"));
+    assertEquals("ghs_org_token", authenticator.getInstallationTokenForRepo("test-org", "my-repo"));
+
+    clock.instant(Instant.parse("2030-01-01T01:00:01Z"));
+    assertThrows(
+        IOException.class, () -> authenticator.getInstallationTokenForRepo("test-org", "my-repo"));
+  }
+
+  @Test
+  void shouldSignWithTheRotatedPrivateKeyAfterTheKeyFileChanges() throws Exception {
+    // An already-expired token, so that every call mints and signs a new JWT
+    stubAccessTokenCreation("ghs_expired_token", "2000-01-01T00:00:00Z");
+    GitHubAppAuthenticator authenticator = authenticator(server.baseUrl());
+    PublicKey originalKey = publicKeyOf(privateKeyFile);
+    authenticator.getInstallationToken();
+
+    GitHubAppTestKeys.writePkcs8Pem(privateKeyFile);
+    Files.setLastModifiedTime(privateKeyFile, FileTime.from(Instant.now().plusSeconds(60)));
+    PublicKey rotatedKey = publicKeyOf(privateKeyFile);
+    authenticator.getInstallationToken();
+
+    List<String> jwts = mintRequestJwts();
+    assertTrue(isSignedBy(jwts.get(0), originalKey), "first JWT signed with the original key");
+    assertTrue(isSignedBy(jwts.get(1), rotatedKey), "second JWT signed with the rotated key");
+  }
+
+  @Test
+  void shouldKeepSigningWithThePreviousKeyWhenTheChangedKeyFileIsUnreadable() throws Exception {
+    stubAccessTokenCreation("ghs_expired_token", "2000-01-01T00:00:00Z");
+    GitHubAppAuthenticator authenticator = authenticator(server.baseUrl());
+    PublicKey originalKey = publicKeyOf(privateKeyFile);
+    authenticator.getInstallationToken();
+
+    // e.g. a secret volume caught mid-update
+    Files.writeString(privateKeyFile, "not a key");
+    Files.setLastModifiedTime(privateKeyFile, FileTime.from(Instant.now().plusSeconds(60)));
+
+    assertEquals("ghs_expired_token", authenticator.getInstallationToken());
+    assertTrue(isSignedBy(mintRequestJwts().get(1), originalKey));
+  }
+
+  @Test
+  void shouldMintANewTokenAfterTheCachedOneIsInvalidated() throws Exception {
+    stubAccessTokenCreation("ghs_stubbed_token", "2099-01-01T00:00:00Z");
+    GitHubAppAuthenticator authenticator = authenticator(server.baseUrl());
+    authenticator.getInstallationToken();
+
+    authenticator.invalidateInstallationToken();
+    authenticator.getInstallationToken();
+
+    server.verify(2, postRequestedFor(urlPathEqualTo(ACCESS_TOKENS_PATH)));
+  }
+
+  @Test
+  void shouldReportTheCachedInstallationTokenExpiry() throws Exception {
+    stubAccessTokenCreation("ghs_stubbed_token", "2099-01-01T00:00:00Z");
+    GitHubAppAuthenticator authenticator = authenticator(server.baseUrl());
+    assertNull(authenticator.getInstallationTokenExpiry());
+
+    authenticator.getInstallationToken();
+
+    assertEquals(Instant.parse("2099-01-01T00:00:00Z"), authenticator.getInstallationTokenExpiry());
+  }
+
+  private GitHubAppAuthenticator authenticator(Clock clock) {
+    return new GitHubAppAuthenticator(
+        APP_ID, privateKeyFile.toString(), INSTALLATION_ID, server.baseUrl(), Set.of(), clock);
+  }
+
+  /** Stubs one successful token creation at {@code path}, then failures for every later mint. */
+  private void stubTokenThenMintFailure(String path, String token, String expiresAt) {
+    server.stubFor(
+        post(urlPathEqualTo(path))
+            .inScenario("mint failure")
+            .whenScenarioStateIs(Scenario.STARTED)
+            .willReturn(accessTokenResponse(token, expiresAt))
+            .willSetStateTo("failing"));
+    server.stubFor(
+        post(urlPathEqualTo(path))
+            .inScenario("mint failure")
+            .whenScenarioStateIs("failing")
+            .willReturn(aResponse().withStatus(500)));
+  }
+
+  /** The JWTs sent to create installation tokens, in request order. */
+  private List<String> mintRequestJwts() {
+    return server.findAll(postRequestedFor(urlPathMatching("/app/installations/.*"))).stream()
+        .map(request -> request.getHeader("Authorization").substring("Bearer ".length()))
+        .collect(Collectors.toList());
+  }
+
+  private static PublicKey publicKeyOf(Path pemFile) throws Exception {
+    String base64 =
+        Files.readString(pemFile)
+            .replace("-----BEGIN PRIVATE KEY-----", "")
+            .replace("-----END PRIVATE KEY-----", "");
+    KeyFactory keyFactory = KeyFactory.getInstance("RSA");
+    RSAPrivateCrtKey privateKey =
+        (RSAPrivateCrtKey)
+            keyFactory.generatePrivate(
+                new PKCS8EncodedKeySpec(Base64.getMimeDecoder().decode(base64)));
+    return keyFactory.generatePublic(
+        new RSAPublicKeySpec(privateKey.getModulus(), privateKey.getPublicExponent()));
+  }
+
+  private static boolean isSignedBy(String jwt, PublicKey key) throws Exception {
+    int signatureStart = jwt.lastIndexOf('.');
+    Signature signature = Signature.getInstance("SHA256withRSA");
+    signature.initVerify(key);
+    signature.update(jwt.substring(0, signatureStart).getBytes(StandardCharsets.US_ASCII));
+    return signature.verify(Base64.getUrlDecoder().decode(jwt.substring(signatureStart + 1)));
   }
 
   private GitHubAppAuthenticator deriveModeAuthenticator(String baseUrl) {
