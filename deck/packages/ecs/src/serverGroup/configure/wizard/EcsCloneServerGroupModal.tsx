@@ -18,6 +18,7 @@ import {
   ReactModal,
   REST,
   TaskMonitor,
+  ValidationMessage,
   withRouter,
   WizardModal,
   WizardPage,
@@ -32,6 +33,7 @@ import { BasicSettings } from './pages/BasicSettings';
 import { ContainerSettings } from './pages/ContainerSettings';
 import { HorizontalScalingSettings } from './pages/HorizontalScalingSettings';
 import { LoggingSettings } from './pages/LoggingSettings';
+import { NativeDeploymentSettings } from './pages/NativeDeploymentSettings';
 import { NetworkingSettings } from './pages/NetworkingSettings';
 import { ServiceDiscoverySettings } from './pages/ServiceDiscoverySettings';
 import { TaskDefinitionSettings } from './pages/TaskDefinitionSettings';
@@ -40,6 +42,7 @@ import {
   validateEcsBasicSettings,
   validateEcsCapacity,
   validateEcsContainer,
+  validateEcsNativeDeployment,
   validateEcsServerGroup,
   validateEcsServiceDiscovery,
   validateEcsTaskDefinition,
@@ -51,6 +54,12 @@ import type {
   IEcsDockerImage,
   IEcsServerGroupCommand,
   IEcsTargetGroupMapping,
+} from '../serverGroupConfiguration.service';
+import {
+  ECS_NATIVE_BLUE_GREEN_ONLY_FIELDS,
+  ECS_NATIVE_ONLY_FIELDS,
+  isEcsNativeBlueGreenStrategy,
+  isEcsNativeStrategyDecidedInDeck,
 } from '../serverGroupConfiguration.service';
 import { ServiceDiscoveryReader } from '../../../serviceDiscovery/serviceDiscovery.read.service';
 
@@ -182,10 +191,32 @@ const mergeEcsConfiguredCommand = (
     region: configured.region,
   });
 
-const updateEcsCommand = (command: IEcsServerGroupCommand, field: string, value: any) => {
+export const updateEcsCommand = (command: IEcsServerGroupCommand, field: string, value: any) => {
   const updated = { ...command, [field]: value } as IEcsServerGroupCommand;
   if (field === 'credentials' || field === 'region') {
     reconcileEcsLocation(updated);
+  }
+  if (field === 'cloudProvider') {
+    if (value === 'ecs-native') {
+      // ecs-native always deploys in place through ECS's own strategy, so the Spinnaker strategy
+      // must be None. Remember what it was so unticking the box restores it.
+      updated.viewState = { ...command.viewState, ecsNativePreviousStrategy: command.strategy } as any;
+      updated.strategy = 'none';
+    } else {
+      // Back to classic ecs: restore the strategy ('' is the classic default) and drop every field
+      // that only the native provider understands, so they are not sent in a classic payload.
+      updated.strategy = command.viewState?.ecsNativePreviousStrategy ?? '';
+      ECS_NATIVE_ONLY_FIELDS.forEach((nativeField) => delete (updated as any)[nativeField]);
+    }
+  }
+  if (
+    field === 'deploymentStrategy' &&
+    isEcsNativeStrategyDecidedInDeck(value) &&
+    !isEcsNativeBlueGreenStrategy(value)
+  ) {
+    // The wizard hides the blue/green-only fields for other strategies; clear them so hidden values
+    // cannot fail validation (or clouddriver's lifecyclePauseStage-requires-BLUE_GREEN check) later.
+    ECS_NATIVE_BLUE_GREEN_ONLY_FIELDS.forEach((blueGreenField) => delete (updated as any)[blueGreenField]);
   }
   if (field === 'useTaskDefinitionArtifact') {
     updated.serviceDiscoveryAssociations = (updated.serviceDiscoveryAssociations || []).map((association) => ({
@@ -367,6 +398,21 @@ const EcsServerGroupWizardPages = ({
           configureCommand={configureCommand}
           onFieldChange={onFieldChange}
         />
+      )}
+      wizard={wizard}
+    />
+    <WizardPage
+      label="Native ECS Deployment"
+      order={nextIdx()}
+      render={({ innerRef }) => (
+        <EcsWizardPageValidation ref={innerRef} validator={validateEcsNativeDeployment}>
+          <NativeDeploymentSettings
+            application={application}
+            command={formik.values}
+            configureCommand={configureCommand}
+            onFieldChange={onFieldChange}
+          />
+        </EcsWizardPageValidation>
       )}
       wizard={wizard}
     />
@@ -763,6 +809,30 @@ export class EcsCloneServerGroupModalComponent extends React.Component<
           onDismiss={dismissModal}
           onTemplateSelected={this.templateSelected}
         />
+      );
+    }
+
+    // Only a real clone (details page, no pipeline context) is unsupported for ecs-native. Editing or
+    // creating a cluster inside a pipeline deploy stage just returns the command to the stage.
+    const pipelineMode = command.viewState?.mode === 'editPipeline' || command.viewState?.mode === 'createPipeline';
+    if (command.cloudProvider === 'ecs-native' && !pipelineMode) {
+      return (
+        <div className="modal-content">
+          <div className="modal-header">
+            <h4>Clone server group unavailable</h4>
+          </div>
+          <div className="modal-body">
+            <ValidationMessage
+              message="Cloning an ecs-native server group is unavailable because no safe durable-service deployment path is modeled. Use a createServerGroup stage instead."
+              type="warning"
+            />
+          </div>
+          <div className="modal-footer">
+            <button className="btn btn-default" onClick={dismissModal} type="button">
+              Close
+            </button>
+          </div>
+        </div>
       );
     }
 
