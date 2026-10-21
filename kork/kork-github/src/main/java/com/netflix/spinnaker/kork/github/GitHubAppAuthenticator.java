@@ -92,14 +92,14 @@ public class GitHubAppAuthenticator {
    * <p>A token is minted eagerly before the client is returned, so invalid app credentials or an
    * unreachable endpoint fail here rather than on the first request.
    *
-<<<<<<< HEAD
-   * @return Authenticated GitHub client with a currently-valid token
-=======
-   * <p>Requires a configured installation ID; in derive mode use {@link
-   * #getInstallationTokenForRepo(String, String)} instead.
+   * <p><<<<<<< HEAD
    *
-   * @return Authenticated GitHub client that renews its installation token as needed
->>>>>>> 37f1072 (fix(fiat): renew GitHub App installation tokens and keep cached memberships on errors (#8224))
+   * @return Authenticated GitHub client with a currently-valid token =======
+   *     <p>Requires a configured installation ID; in derive mode use {@link
+   *     #getInstallationTokenForRepo(String, String)} instead.
+   * @return Authenticated GitHub client that renews its installation token as needed >>>>>>>
+   *     37f1072 (fix(fiat): renew GitHub App installation tokens and keep cached memberships on
+   *     errors (#8224))
    * @throws IOException if authentication fails
    */
   public GitHub getAuthenticatedClient() throws IOException {
