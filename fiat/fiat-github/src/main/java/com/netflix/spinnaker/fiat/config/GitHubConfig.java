@@ -1,10 +1,13 @@
 package com.netflix.spinnaker.fiat.config;
 
 import com.netflix.spinnaker.fiat.roles.github.GitHubProperties;
+import com.netflix.spinnaker.fiat.roles.github.GithubTeamsHealthTrackable;
+import com.netflix.spinnaker.fiat.roles.github.GithubTeamsUserRolesProvider;
 import com.netflix.spinnaker.kork.github.GitHubAppAuthenticator;
 import com.netflix.spinnaker.kork.github.GitHubClientFactory;
 import jakarta.annotation.PostConstruct;
 import java.io.IOException;
+import javax.annotation.Nullable;
 import lombok.Setter;
 import lombok.extern.slf4j.Slf4j;
 import org.kohsuke.github.GitHub;
@@ -49,7 +52,7 @@ public class GitHubConfig {
           gitHubProperties.getOrganization(),
           gitHubProperties.getAuthMethod());
       log.info(
-          "Benefits: Better rate limits (5000/hour vs 15000/hour), enhanced security, and detailed audit logs");
+          "Benefits: rate limits that scale with the organization (5000/hour and up per installation, 15000/hour on GitHub Enterprise Cloud), enhanced security, and detailed audit logs");
 
       // Pre-create authenticator for GitHub App (handles token refresh)
       gitHubAppAuthenticator =
@@ -64,7 +67,7 @@ public class GitHubConfig {
           gitHubProperties.getOrganization(),
           gitHubProperties.getAuthMethod());
       log.warn(
-          "Consider migrating to GitHub App authentication for better rate limits (5000/hour vs 15000/hour) and enhanced security");
+          "Consider migrating to GitHub App authentication for rate limits that scale with the organization and do not depend on a personal account, and enhanced security");
     }
   }
 
@@ -98,11 +101,28 @@ public class GitHubConfig {
   }
 
   /**
-   * Returns the GitHub App authenticator that backs the {@link GitHub} bean. The bean already
-   * renews its installation token, so callers holding it long-term do not need this.
+   * Adds the GitHub provider to Fiat's health when {@code health-check-enabled} is true; see {@link
+   * GitHubProperties#getHealthCheckEnabled()} for what that does and risks.
+   */
+  @Bean
+  @ConditionalOnProperty(
+      value = "auth.group-membership.github.health-check-enabled",
+      havingValue = "true")
+  public GithubTeamsHealthTrackable githubTeamsHealthTrackable(
+      GithubTeamsUserRolesProvider provider) {
+    return new GithubTeamsHealthTrackable(provider);
+  }
+
+  /**
+   * Exposes the GitHub App authenticator that backs the {@link GitHub} bean. The bean already
+   * renews its installation token; the roles provider uses this to drop a cached token GitHub
+   * rejects. With a personal access token this is null, which Spring registers as no bean, so
+   * inject it as optional.
    *
    * @return GitHubAppAuthenticator if using GitHub App auth, null otherwise
    */
+  @Bean
+  @Nullable
   public GitHubAppAuthenticator getGitHubAppAuthenticator() {
     return gitHubAppAuthenticator;
   }
