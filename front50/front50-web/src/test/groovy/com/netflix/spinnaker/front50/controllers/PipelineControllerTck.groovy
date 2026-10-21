@@ -696,6 +696,21 @@ abstract class PipelineControllerTck extends Specification {
       name: "a3", application: "test", index: 3
     ]))
 
+    // Warm the cache before the concurrent phase. The DAO starts with an empty-but-non-null
+    // cache, so the refreshes triggered by the reads below race each other to populate it for
+    // the first time, and an unsynchronized refresh can publish its stale (empty) snapshot over
+    // a populated one. That is a property of a cold cache rather than of the concurrent
+    // behaviour under test here, and it makes the assertions below intermittently see [].
+    assert pipelineDAO.all(true).size() == 5
+
+    // Keep the reads below refreshing rather than serving a cache hit: create() writes straight
+    // through to storage without touching the cache, so this leaves the store newer than the
+    // warm cache. The new pipeline belongs to another application, so what /pipelines/test
+    // returns is unchanged.
+    pipelineDAO.create(null, new Pipeline([
+      name: "trigger-refresh", application: "other"
+    ]))
+
     def results = new ArrayList(10)
 
     when:
@@ -742,6 +757,12 @@ abstract class PipelineControllerTck extends Specification {
     pipelineDAO.create(null, new Pipeline([
       name: "a3", application: "test", index: 3
     ]))
+
+    // Warm the cache before the concurrent phase, for the same reason as the feature above:
+    // otherwise the first refreshes race to populate a cold cache and the assertions below can
+    // see []. With the cache warm, a refresh that loses a concurrent write still serves these
+    // five pipelines, so only the writes issued below (to other applications) can be missed.
+    assert pipelineDAO.all(true).size() == 5
 
     def results = new ArrayList(10)
 
