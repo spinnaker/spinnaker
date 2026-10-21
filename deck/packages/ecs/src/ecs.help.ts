@@ -90,6 +90,22 @@ const helpContents: { [key: string]: string } = {
     '<p>Designates the relative percentage of the total number of tasks launched that should use the specified capacity provider.</p>',
   'ecs.evaluateExpression':
     '<p>Whether to evaluate <a href="https://spinnaker.io/guides/user/pipeline/expressions/" target="_blank"><b>pipeline expressions</b></a> within the task definition artifact in this stage. Checking this box let\'s you evaluate your task definition artifact coming from external sources.(e.g. GitHub) </p>',
+  'ecs.native.useEcsNative':
+    '<p>Use the ECS service deployment controller to roll task-definition revisions in place, rather than creating a new Spinnaker server group for each deployment.</p>',
+  'ecs.native.deploymentCircuitBreakerRollback':
+    '<p>When enabled with the deployment circuit breaker, ECS automatically rolls back a failed deployment to the last completed deployment.</p>',
+  'ecs.native.alarmNames':
+    '<p>Select CloudWatch alarms that ECS should monitor during the deployment. A deployment can be rolled back when a selected alarm enters an alarm state.</p>',
+  'ecs.native.deploymentAlarmsRollback':
+    '<p>Automatically roll back the ECS deployment when one of the selected deployment alarms enters an alarm state.</p>',
+  'ecs.native.deploymentStrategy':
+    '<p>Choose ECS rolling deployment or Blue/Green deployment. Blue/Green deployments with a load balancer also require the complete ALB traffic-shift configuration below.</p>',
+  'ecs.native.lifecyclePause':
+    '<p>Opt-in ECS PAUSE lifecycle hook for Blue/Green. ECS holds the deployment at the chosen stage; a Continue ECS Native Service Deployment stage after a Manual Judgment (or any other gate) then continues or rolls back. If nothing acts before the timeout, ECS applies the timeout action.</p>',
+  'ecs.native.bakeTimeInMinutes':
+    '<p>The number of minutes ECS waits after the new task set is healthy before completing the deployment and retiring the previous revision.</p>',
+  'ecs.native.blueGreenAdvanced':
+    '<p>The ALB traffic-shift configuration for a Blue/Green deploy: an alternate target group, the production and test listener rules, and the IAM role ECS assumes to modify them. ECS routes test traffic at the new task set through the test listener rule, then shifts production traffic over.</p><p>These are <b>optional only when the service has no load balancer</b>. When a target group is attached, AWS ECS <b>requires</b> all four for a Blue/Green deploy and rejects it otherwise. Provide all four together, or all left blank; a partial set is always invalid.</p>',
 };
 
 Object.keys(helpContents).forEach((key) => HelpContentsRegistry.register(key, helpContents[key]));
