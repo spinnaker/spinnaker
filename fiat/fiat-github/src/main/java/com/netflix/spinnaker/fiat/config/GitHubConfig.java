@@ -26,9 +26,9 @@ import org.springframework.context.annotation.Configuration;
  * </ul>
  *
  * <p><b>Token Refresh:</b> For GitHub App authentication, installation tokens expire after 1 hour.
- * This configuration provides a {@link GitHubAppAuthenticator} bean that handles automatic token
- * refresh. The {@link #gitHubClient()} method returns a fresh client with a valid token on each
- * call when using GitHub App auth.
+ * This configuration creates a {@link GitHubAppAuthenticator} that caches the installation token
+ * and renews it shortly before expiry; the {@link #gitHubClient()} bean asks it for the token on
+ * every request.
  */
 @Configuration
 @ConditionalOnProperty(value = "auth.group-membership.service", havingValue = "github")
@@ -71,9 +71,9 @@ public class GitHubConfig {
   /**
    * Creates an authenticated GitHub client using either GitHub App or PAT authentication.
    *
-   * <p>For GitHub App authentication, this returns a fresh client with a valid token on each call.
-   * The {@link GitHubAppAuthenticator} handles token caching and automatic refresh when tokens are
-   * about to expire.
+   * <p>For GitHub App authentication, the client asks the {@link GitHubAppAuthenticator} for the
+   * installation token on every request. The authenticator caches the token and mints a new one
+   * shortly before it expires, so this singleton keeps working past the one-hour token lifetime.
    *
    * <p>For PAT authentication, this creates a client with the configured access token (PATs don't
    * expire unless revoked).
@@ -88,7 +88,7 @@ public class GitHubConfig {
           "Creating GitHub client with GitHub App (app: {}, installation: {})",
           gitHubProperties.getAppId(),
           gitHubProperties.getInstallationId());
-      // Use authenticator which handles token refresh
+      // The returned client fetches the (cached, auto-renewed) installation token per request
       return gitHubAppAuthenticator.getAuthenticatedClient();
     } else {
       log.debug("Creating GitHub client with Personal Access Token");
@@ -98,11 +98,8 @@ public class GitHubConfig {
   }
 
   /**
-   * Provides the GitHub App authenticator for components that need to manage token refresh
-   * manually.
-   *
-   * <p>This is useful for components that hold onto the GitHub client for extended periods and need
-   * to refresh it periodically.
+   * Returns the GitHub App authenticator that backs the {@link GitHub} bean. The bean already
+   * renews its installation token, so callers holding it long-term do not need this.
    *
    * @return GitHubAppAuthenticator if using GitHub App auth, null otherwise
    */
