@@ -21,15 +21,13 @@ The shared JSON file drives both image builds and the Kubernetes integration tes
 - `defaultMinor` selects the unversioned image binary and the default local test client and cluster.
 - `versions` maps each minor to its pinned `kubectl` patch release. Every entry is packaged.
 - `kubernetesImage` optionally selects a digest-pinned kind node image for integration testing.
-  Entries without it, such as the retained 1.30 client, are packaged without adding CI jobs.
+  Images are required for the default minor and its two adjacent minors.
 - `kindVersion` pins kind for the integration-test harness. A version entry can override it
   when its node image was published for an older kind release.
-- `testDefaultAgainstAll` adds the default client against every configured test cluster.
-  Matching clients always run, and duplicate combinations are omitted. With the current seven
-  clusters, `true` produces 13 integration jobs and `false` produces seven.
 
-Default-client tests against distant cluster versions exercise compatibility beyond Kubernetes'
-supported one-minor skew; passing them does not extend the upstream support policy.
+CI runs exactly three integration jobs, using only the default kubectl client against servers
+at the same minor version and one minor below and above it. With the current default, kubectl
+1.36.5 runs against Kubernetes 1.35, 1.36, and 1.37. The matrix follows `defaultMinor` when it changes.
 
 Kubernetes [supports kubectl within one minor version of the API server](https://kubernetes.io/releases/version-skew-policy/#kubectl).
 The default 1.36 client covers servers at 1.35–1.37; select a matching bundled client for older clusters.

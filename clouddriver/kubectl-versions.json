@@ -1,7 +1,6 @@
 {
   "defaultMinor": "1.36",
   "kindVersion": "0.33.0",
-  "testDefaultAgainstAll": true,
   "versions": {
     "1.30": {
       "kubectl": "1.30.14"
