@@ -1,0 +1,56 @@
+/*
+ * Copyright 2026 Spinnaker contributors.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *    http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
+package com.netflix.spinnaker.clouddriver.ecs.view;
+
+import com.netflix.spinnaker.clouddriver.ecs.EcsNativeCloudProvider;
+import com.netflix.spinnaker.clouddriver.ecs.model.EcsTask;
+import com.netflix.spinnaker.clouddriver.ecs.provider.view.EcsNativeServerClusterProvider;
+import com.netflix.spinnaker.clouddriver.model.InstanceProvider;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Component;
+
+/**
+ * Exposes the same instance/task view as {@link EcsInstanceProvider} under the {@code ecs-native}
+ * cloud provider id. See {@link EcsNativeServerClusterProvider} for why this delegate is needed:
+ * {@code InstanceController} filters {@link InstanceProvider} beans by an exact match on {@link
+ * #getCloudProvider()} when a caller passes one. Pure delegate; the original is unchanged.
+ */
+@Component
+public class EcsNativeInstanceProvider implements InstanceProvider<EcsTask, String> {
+
+  private final EcsInstanceProvider delegate;
+
+  @Autowired
+  public EcsNativeInstanceProvider(EcsInstanceProvider delegate) {
+    this.delegate = delegate;
+  }
+
+  @Override
+  public String getCloudProvider() {
+    return EcsNativeCloudProvider.ID;
+  }
+
+  @Override
+  public EcsTask getInstance(String account, String region, String id) {
+    return delegate.getInstance(account, region, id);
+  }
+
+  @Override
+  public String getConsoleOutput(String account, String region, String id) {
+    return delegate.getConsoleOutput(account, region, id);
+  }
+}

@@ -212,6 +212,13 @@ public class CloudDriverConfiguration {
     }
 
     @Bean
+    public EcsNativeService ecsNativeService(
+        ClouddriverRetrofitBuilder clouddriverRetrofitBuilder) {
+      return new DelegatingEcsNativeService(
+          clouddriverRetrofitBuilder.buildReadOnlyService(EcsNativeService.class));
+    }
+
+    @Bean
     public CloudDriverTaskStatusService cloudDriverTaskStatusService(
         ClouddriverRetrofitBuilder clouddriverRetrofitBuilder) {
       return new DelegatingCloudDriverTaskStatusService(
