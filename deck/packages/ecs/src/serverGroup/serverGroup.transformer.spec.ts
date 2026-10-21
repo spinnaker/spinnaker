@@ -60,6 +60,93 @@ describe('ecsServerGroupTransformer', () => {
       transformed = transformer.convertServerGroupCommandToDeployConfiguration(command);
       expect(transformed.subnetType).toBe('internal');
     });
+
+    it('defaults cloudProvider to ecs', () => {
+      const command: any = { viewState: { mode: 'create' }, application: { name: 'theApp' } };
+      const transformed = transformer.convertServerGroupCommandToDeployConfiguration(command);
+      expect(transformed.cloudProvider).toBe('ecs');
+    });
+
+    it('preserves cloudProvider ecs-native when the native deployment toggle is set', () => {
+      const command: any = {
+        viewState: { mode: 'create' },
+        application: { name: 'theApp' },
+        cloudProvider: 'ecs-native',
+      };
+      const transformed = transformer.convertServerGroupCommandToDeployConfiguration(command);
+      expect(transformed.cloudProvider).toBe('ecs-native');
+    });
+
+    const nativeFields = {
+      deploymentStrategy: 'BLUE_GREEN',
+      deploymentCircuitBreakerRollback: true,
+      alarmNames: ['alarm'],
+      enableDeploymentAlarms: true,
+      deploymentAlarmsRollback: true,
+      minimumHealthyPercent: 50,
+      maximumPercent: 200,
+      bakeTimeInMinutes: 5,
+      lifecyclePauseStage: 'POST_TEST_TRAFFIC_SHIFT',
+      lifecyclePauseTimeoutMinutes: 30,
+      lifecyclePauseTimeoutAction: 'ROLLBACK',
+      alternateTargetGroupArn: 'arn:alt',
+      productionListenerRule: 'arn:prod',
+      testListenerRule: 'arn:test',
+      blueGreenRoleArn: 'arn:role',
+    };
+    const blueGreenOnly = [
+      'lifecyclePauseStage',
+      'lifecyclePauseTimeoutMinutes',
+      'lifecyclePauseTimeoutAction',
+      'alternateTargetGroupArn',
+      'productionListenerRule',
+      'testListenerRule',
+      'blueGreenRoleArn',
+    ];
+
+    it('strips native-only fields from a classic ecs payload but keeps fields classic ecs supports', () => {
+      const command: any = {
+        viewState: { mode: 'create' },
+        application: { name: 'theApp' },
+        cloudProvider: 'ecs',
+        enableDeploymentCircuitBreaker: true,
+        useSourceCapacity: true,
+        ...nativeFields,
+      };
+      const transformed = transformer.convertServerGroupCommandToDeployConfiguration(command);
+      Object.keys(nativeFields).forEach((field) => expect(transformed).not.toHaveProperty(field));
+      expect(transformed.enableDeploymentCircuitBreaker).toBe(true);
+      expect(transformed.useSourceCapacity).toBe(true);
+    });
+
+    it('strips blue/green-only fields from a native payload whose strategy is rolling (any case)', () => {
+      const command: any = {
+        viewState: { mode: 'create' },
+        application: { name: 'theApp' },
+        cloudProvider: 'ecs-native',
+        ...nativeFields,
+        deploymentStrategy: 'rolling',
+      };
+      const transformed = transformer.convertServerGroupCommandToDeployConfiguration(command);
+      blueGreenOnly.forEach((field) => expect(transformed).not.toHaveProperty(field));
+      expect(transformed.bakeTimeInMinutes).toBe(5);
+      expect(transformed.deploymentStrategy).toBe('rolling');
+    });
+
+    it.each(['BLUE_GREEN', 'blue_green', '${ parameters.strategy }', undefined])(
+      'keeps blue/green-only fields on a native payload when the strategy is %p',
+      (deploymentStrategy) => {
+        const command: any = {
+          viewState: { mode: 'create' },
+          application: { name: 'theApp' },
+          cloudProvider: 'ecs-native',
+          ...nativeFields,
+          deploymentStrategy,
+        };
+        const transformed = transformer.convertServerGroupCommandToDeployConfiguration(command);
+        blueGreenOnly.forEach((field) => expect(transformed[field]).toEqual((nativeFields as any)[field]));
+      },
+    );
   });
 
   describe('normalize server group details', () => {

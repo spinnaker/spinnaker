@@ -123,7 +123,13 @@ abstract class AbstractDeployStrategyStage extends AbstractCloudProviderAwareSta
     }
   }
 
-  private Strategy getStrategy(StageExecution stage) {
+  /**
+   * Resolves the deployment strategy named by {@code stage.context.strategy} (case-insensitive),
+   * falling back to {@link NoStrategy}. Called after {@link #correctContext} from every graph hook
+   * (tasks, before/after/onFailure stages), so subclasses that override it see the normalized
+   * context and their result applies uniformly, whether or not the strategy replaces the basic steps.
+   */
+  protected Strategy getStrategy(StageExecution stage) {
     return (Strategy) strategies.findResult(noStrategy, {
       it.name.equalsIgnoreCase(stage.context.strategy as String) ? it : null
     })

@@ -32,9 +32,11 @@ import com.netflix.spinnaker.clouddriver.ecs.cache.model.Task;
 import com.netflix.spinnaker.clouddriver.ecs.model.EcsServerCluster;
 import com.netflix.spinnaker.clouddriver.ecs.model.EcsServerGroup;
 import com.netflix.spinnaker.clouddriver.ecs.model.EcsTask;
+import com.netflix.spinnaker.clouddriver.ecs.model.EcsTaskDefinitionRevision;
 import com.netflix.spinnaker.clouddriver.ecs.model.TaskDefinition;
 import com.netflix.spinnaker.clouddriver.ecs.security.NetflixECSCredentials;
 import com.netflix.spinnaker.clouddriver.ecs.services.ContainerInformationService;
+import com.netflix.spinnaker.clouddriver.ecs.services.EcsTaskDefinitionRevisionService;
 import com.netflix.spinnaker.clouddriver.ecs.services.SubnetSelector;
 import com.netflix.spinnaker.clouddriver.model.ClusterProvider;
 import com.netflix.spinnaker.clouddriver.model.Instance;
@@ -73,6 +75,7 @@ public class EcsServerClusterProvider implements ClusterProvider<EcsServerCluste
   private final CredentialsRepository<NetflixECSCredentials> credentialsRepository;
   private final ContainerInformationService containerInformationService;
   private final SubnetSelector subnetSelector;
+  private final EcsTaskDefinitionRevisionService ecsTaskDefinitionRevisionService;
 
   private final Logger log = LoggerFactory.getLogger(getClass());
 
@@ -86,7 +89,8 @@ public class EcsServerClusterProvider implements ClusterProvider<EcsServerCluste
       ScalableTargetCacheClient scalableTargetCacheClient,
       EcsLoadbalancerCacheClient ecsLoadbalancerCacheClient,
       TaskDefinitionCacheClient taskDefinitionCacheClient,
-      EcsCloudWatchAlarmCacheClient ecsCloudWatchAlarmCacheClient) {
+      EcsCloudWatchAlarmCacheClient ecsCloudWatchAlarmCacheClient,
+      EcsTaskDefinitionRevisionService ecsTaskDefinitionRevisionService) {
     this.credentialsRepository = credentialsRepository;
     this.containerInformationService = containerInformationService;
     this.subnetSelector = subnetSelector;
@@ -96,6 +100,7 @@ public class EcsServerClusterProvider implements ClusterProvider<EcsServerCluste
     this.taskDefinitionCacheClient = taskDefinitionCacheClient;
     this.ecsLoadbalancerCacheClient = ecsLoadbalancerCacheClient;
     this.ecsCloudWatchAlarmCacheClient = ecsCloudWatchAlarmCacheClient;
+    this.ecsTaskDefinitionRevisionService = ecsTaskDefinitionRevisionService;
   }
 
   private Map<String, Set<EcsServerCluster>> findClusters(
@@ -176,6 +181,7 @@ public class EcsServerClusterProvider implements ClusterProvider<EcsServerCluste
               taskDefinition,
               service.getSubnets(),
               service.getSecurityGroups(),
+              service,
               includeDetails);
 
       if (ecsServerGroup == null) {
@@ -281,6 +287,22 @@ public class EcsServerClusterProvider implements ClusterProvider<EcsServerCluste
         .setEnvironmentVariables(containerDefinition.environment());
   }
 
+  /**
+   * Extracts the task-definition revision from a task-definition ARN. ECS ARNs end with {@code
+   * family:revision} (e.g. {@code arn:aws:ecs:...:task-definition/my-family:42}), so the revision
+   * is the integer after the final colon. Returns null if the ARN is null or not in that form.
+   */
+  private Integer parseTaskDefinitionRevision(String taskDefinitionArn) {
+    if (taskDefinitionArn == null) {
+      return null;
+    }
+    String revision = StringUtils.substringAfterLast(taskDefinitionArn, ":");
+    if (StringUtils.isNumeric(revision)) {
+      return Integer.valueOf(revision);
+    }
+    return null;
+  }
+
   private ServerGroup.Capacity buildServerGroupCapacity(int desiredCount, ScalableTarget target) {
     ServerGroup.Capacity capacity = new ServerGroup.Capacity();
     capacity.setDesired(desiredCount);
@@ -318,6 +340,7 @@ public class EcsServerClusterProvider implements ClusterProvider<EcsServerCluste
       software.amazon.awssdk.services.ecs.model.TaskDefinition taskDefinition,
       List<String> eniSubnets,
       List<String> eniSecurityGroups,
+      Service service,
       boolean includeDetails) {
     ServerGroup.InstanceCounts instanceCounts = buildInstanceCount(instances);
     String scalableTargetId = "service/" + ecsClusterName + "/" + serviceName;
@@ -379,6 +402,8 @@ public class EcsServerClusterProvider implements ClusterProvider<EcsServerCluste
             .stream()
             .map(EcsMetricAlarm::getAlarmName)
             .collect(Collectors.toSet());
+    Integer taskDefinitionRevision =
+        parseTaskDefinitionRevision(taskDefinition.taskDefinitionArn());
     EcsServerGroup serverGroup = new EcsServerGroup();
     if (includeDetails) {
       TaskDefinition ecsTaskDefinition = buildTaskDefinition(taskDefinition);
@@ -419,6 +444,22 @@ public class EcsServerClusterProvider implements ClusterProvider<EcsServerCluste
           .setMetricAlarms(metricAlarmNames)
           .setMoniker(moniker);
     }
+
+    // Task-def revision and ECS rollout state apply to both the summary (clusters listing) and the
+    // detailed view, so set them regardless of includeDetails -- the clusters-view card header
+    // reads them from the summary payload.
+    serverGroup.setTaskDefinitionRevision(taskDefinitionRevision);
+    // Name shape is not ownership evidence: external Terraform/CDK/hand-created services can also
+    // be unversioned. Only the durable ECS service tag persisted by ecs-native marks ownership.
+    if (service != null && service.isEcsNative()) {
+      serverGroup.setIsNative(true);
+    }
+    if (service != null) {
+      serverGroup
+          .setDeploymentId(service.getDeploymentId())
+          .setRolloutState(service.getRolloutState())
+          .setRolloutStateReason(service.getRolloutStateReason());
+    }
     EcsServerGroup.AutoScalingGroup asg =
         new EcsServerGroup.AutoScalingGroup()
             .setDesiredCapacity(scalableTarget.maxCapacity())
@@ -429,6 +470,40 @@ public class EcsServerClusterProvider implements ClusterProvider<EcsServerCluste
     // serverGroup.setAsg(asg);
 
     return serverGroup;
+  }
+
+  /**
+   * Attaches the family's task-definition revisions to a single native server group for Deck's
+   * rollback picker. This is a live {@code ListTaskDefinitions} call, so it is only made from
+   * {@link #getServerGroup(String, String, String, boolean)} for the one requested server group,
+   * never from cluster/application listings. Best-effort: any failure is logged and leaves the
+   * revisions unset rather than failing the whole details view (the picker then simply shows no
+   * options).
+   */
+  private void attachTaskDefinitionRevisions(
+      EcsServerGroup serverGroup, NetflixECSCredentials credentials, String region) {
+    if (!Boolean.TRUE.equals(serverGroup.getIsNative())) {
+      return;
+    }
+    try {
+      Service service =
+          serviceCacheClient.get(
+              Keys.getServiceKey(credentials.getName(), region, serverGroup.getName()));
+      if (service == null) {
+        return;
+      }
+      List<EcsTaskDefinitionRevision> revisions =
+          ecsTaskDefinitionRevisionService.listRevisions(
+              credentials, region, service.getTaskDefinition());
+      serverGroup.setTaskDefinitionRevisions(revisions);
+    } catch (Exception e) {
+      log.warn(
+          "Failed to list task-definition revisions for ecs-native service {} in {}/{}",
+          serverGroup.getName(),
+          credentials.getName(),
+          region,
+          e);
+    }
   }
 
   private ServerGroup.InstanceCounts buildInstanceCount(Set<Instance> instances) {
@@ -471,7 +546,7 @@ public class EcsServerClusterProvider implements ClusterProvider<EcsServerCluste
     return credentialsRepository.getAll();
   }
 
-  private AmazonCredentials getEcsCredentials(String account) {
+  private NetflixECSCredentials getEcsCredentials(String account) {
     NetflixECSCredentials creds = credentialsRepository.getOne(account);
     if (creds == null) {
       throw new NoSuchElementException(
@@ -561,9 +636,10 @@ public class EcsServerClusterProvider implements ClusterProvider<EcsServerCluste
     }
 
     Map<String, Set<EcsServerCluster>> clusterMap = new HashMap<>();
+    NetflixECSCredentials credentials = null;
 
     try {
-      AmazonCredentials credentials = getEcsCredentials(account);
+      credentials = getEcsCredentials(account);
       Moniker moniker = MonikerHelper.applicationNameToMoniker(serverGroupName);
       log.debug("App Name is: " + moniker.getApp());
       clusterMap = findClusters(clusterMap, credentials, moniker.getApp(), true);
@@ -580,6 +656,11 @@ public class EcsServerClusterProvider implements ClusterProvider<EcsServerCluste
         for (ServerGroup serverGroup : ecsServerCluster.getServerGroups()) {
           if (region.equals(serverGroup.getRegion())
               && serverGroupName.equals(serverGroup.getName())) {
+            // Deliberately not gated on includeDetails: Deck's server-group details pane (the
+            // rollback picker's source) requests includeDetails=false, and this method has always
+            // returned the full model regardless of the flag. Scoping the live call to the single
+            // requested server group is what keeps it off listings and sibling services.
+            attachTaskDefinitionRevisions((EcsServerGroup) serverGroup, credentials, region);
             return serverGroup;
           }
         }
