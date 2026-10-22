@@ -16,6 +16,8 @@ RUN apt-get update && \
       python3 \
       unzip && \
     rm -rf /var/lib/apt/lists/*
+# Pick up the latest CA bundle and fail the build if the JVM still trusts emSign ECC Root CA - G3.
+RUN apt-get update && apt-get -y install --only-upgrade ca-certificates ca-certificates-java && rm -rf /var/lib/apt/lists/* && ! keytool -list -cacerts -storepass changeit | grep -qiE 'emsign.*ecc.*g3'
 
 # AWS CLI 2
 RUN if [ "${TARGETARCH}" = "arm64" ]; then \
