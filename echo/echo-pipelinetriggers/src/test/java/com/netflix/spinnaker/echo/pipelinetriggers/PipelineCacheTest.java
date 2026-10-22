@@ -367,4 +367,23 @@ public class PipelineCacheTest {
 
     assertThat(pipelineCache.getEnabledTriggersSync()).isEmpty();
   }
+
+  @ParameterizedTest(name = "hydrates pipelines with explicit null {0}")
+  @ValueSource(strings = {"type", "schema"})
+  void hydratesPipelinesWithExplicitNullTypeOrSchema(String nullKey) {
+    Map<String, Object> pipelineMap = new java.util.HashMap<>();
+    pipelineMap.put("application", "app");
+    pipelineMap.put("name", "pipe");
+    pipelineMap.put("id", "idPipe");
+    pipelineMap.put("type", "templatedPipeline");
+    pipelineMap.put("schema", "v2");
+    pipelineMap.put(nullKey, null);
+
+    when(front50.getPipelines()).thenReturn(Calls.response(List.of(pipelineMap)));
+
+    pipelineCache.start();
+    pipelineCache.pollPipelineConfigs();
+
+    assertThat(pipelineCache.getPipelines()).extracting(Pipeline::getId).containsExactly("idPipe");
+  }
 }
