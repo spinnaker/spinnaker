@@ -1,4 +1,0 @@
-# Status reporting no replicas and no conditions
-status:
-  conditions: []
-  observedGeneration: 3

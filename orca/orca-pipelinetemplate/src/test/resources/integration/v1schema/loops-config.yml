@@ -1,9 +1,0 @@
----
-schema: "1"
-pipeline:
-  application: orca
-  variables:
-    waitTimes:
-    - 5
-    - 10
-stages: []

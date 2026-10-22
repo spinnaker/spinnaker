@@ -1,8 +1,0 @@
-databaseChangeLog:
-- changeSet:
-    id: rename-feature-rollout-table
-    author: fletch
-    changes:
-    - renameTable:
-        oldTableName: feature-rollout
-        newTableName: feature_rollout

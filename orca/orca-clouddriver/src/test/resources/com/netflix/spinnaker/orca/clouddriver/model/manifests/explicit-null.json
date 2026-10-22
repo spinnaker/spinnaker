@@ -1,7 +1,0 @@
-{
-  "account" : "k8s",
-  "status" : {
-    "failed": null,
-    "stable": null
-  }
-}

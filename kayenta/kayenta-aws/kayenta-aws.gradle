@@ -1,7 +1,0 @@
-dependencies {
-  implementation project(":kayenta-core")
-
-  api "software.amazon.awssdk:s3"
-  api "software.amazon.awssdk:sts"
-  implementation "software.amazon.awssdk:apache-client"
-}

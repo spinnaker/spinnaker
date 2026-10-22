@@ -1,9 +1,0 @@
-dependencies {
-  implementation project(":kayenta-core")
-
-  api "com.google.apis:google-api-services-monitoring"
-  api "com.google.apis:google-api-services-storage"
-
-  implementation "com.google.auth:google-auth-library-oauth2-http"
-  implementation "com.google.http-client:google-http-client-jackson2"
-}

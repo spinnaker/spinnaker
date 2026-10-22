@@ -1,6 +1,0 @@
-apiVersion: v1
-kind: Namespace
-metadata:
-  name: spinnaker
-  labels:
-    name: spinnaker  # for matching Network Policies

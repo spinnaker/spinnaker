@@ -1,9 +1,0 @@
-apply from: "$rootDir/../kotlin.gradle"
-apply from: "$rootDir/gradle/detekt.gradle"
-
-dependencies {
-  api "org.jetbrains.spek:spek-api"
-  api "org.jetbrains.spek:spek-subject-extension"
-  api "org.mockito.kotlin:mockito-kotlin"
-  api "org.assertj:assertj-core"
-}

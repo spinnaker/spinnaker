@@ -1,6 +1,0 @@
-testRoot:
-  permissions:
-    read:
-      - foo
-    write:
-      - bar

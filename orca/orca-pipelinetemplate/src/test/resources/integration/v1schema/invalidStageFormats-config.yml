@@ -1,6 +1,0 @@
-schema: "1"
-pipeline:
-  application: orca
-  name: Invalid Stage Configs Test
-  variables:
-    waitTime: 5

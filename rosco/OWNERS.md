@@ -1,3 +1,0 @@
-asher
-jeyrschabu
-robzienert
