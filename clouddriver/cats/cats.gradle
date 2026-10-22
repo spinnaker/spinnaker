@@ -1,9 +1,0 @@
-tasks.findByName('bintrayUpload')?.enabled = false
-
-subprojects {
-  dependencies {
-    implementation project(":clouddriver-api")
-
-    implementation "org.apache.groovy:groovy"
-  }
-}

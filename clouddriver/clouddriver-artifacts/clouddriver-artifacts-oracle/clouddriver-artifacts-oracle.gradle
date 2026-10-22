@@ -1,4 +1,0 @@
-dependencies {
-  implementation "com.oracle.oci.sdk:oci-java-sdk-core"
-  implementation "com.sun.jersey:jersey-client:1.9.1"
-}

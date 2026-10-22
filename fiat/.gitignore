@@ -1,9 +1,0 @@
-/.gradle/
-build/
-*.iml
-*.ipr
-*.iws
-out/
-/.idea/
-/.shelf/
-plugins/

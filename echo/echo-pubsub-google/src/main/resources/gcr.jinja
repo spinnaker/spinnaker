@@ -1,9 +1,0 @@
-[
-  {
-    {% set split = digest.split("@") %}
-    "reference": "{{ digest }}",
-    "name": "{{ split[0] }}",
-    "version": "{{ split[1] }}",
-    "type": "docker/image"
-  }
-]

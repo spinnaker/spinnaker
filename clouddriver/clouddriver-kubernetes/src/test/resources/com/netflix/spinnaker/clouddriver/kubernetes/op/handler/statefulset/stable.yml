@@ -1,9 +1,0 @@
-status:
-  collisionCount: 0
-  currentReplicas: 4
-  currentRevision: web-c5f4bdc97
-  observedGeneration: 2
-  readyReplicas: 4
-  replicas: 4
-  updateRevision: web-c5f4bdc97
-  updatedReplicas: 4
