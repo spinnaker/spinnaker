@@ -1,4 +1,0 @@
-dependencies {
-  api(project(":keel-api"))
-  api("io.arrow-kt:arrow-optics:1.0.0")
-}

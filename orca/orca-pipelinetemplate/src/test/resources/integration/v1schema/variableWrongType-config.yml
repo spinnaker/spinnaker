@@ -1,8 +1,0 @@
----
-schema: "1"
-pipeline:
-  application: orca
-  name: WrongVariableTypeTest
-  variables:
-    waitTime: "HELLO_WORLD"
-stages: []

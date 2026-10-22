@@ -1,3 +1,0 @@
-dependencies {
-  implementation "io.spinnaker.kork:kork-credentials"
-}

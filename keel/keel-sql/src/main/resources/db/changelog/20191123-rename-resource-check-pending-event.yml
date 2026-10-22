@@ -1,7 +1,0 @@
-databaseChangeLog:
-- changeSet:
-    id: rename-resource-check-pending-event
-    author: fletch
-    changes:
-    - sql:
-        sql: update resource_event set json = replace(json, 'ResourceCheckPending', 'ResourceCheckUnresolvable')

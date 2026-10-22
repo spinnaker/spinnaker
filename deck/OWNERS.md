@@ -1,5 +1,0 @@
-christopherthielen
-anotherchrisberry
-alanmquach
-erikmunson
-aglover

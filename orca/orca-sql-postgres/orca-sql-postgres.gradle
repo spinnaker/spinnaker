@@ -1,4 +1,0 @@
-dependencies {
-  implementation(project(":orca-sql"))
-  runtimeOnly("org.postgresql:postgresql")
-}

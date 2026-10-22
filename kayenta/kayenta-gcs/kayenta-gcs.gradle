@@ -1,7 +1,0 @@
-dependencies {
-  implementation project(":kayenta-core")
-  implementation project(":kayenta-google")
-
-  api "io.spinnaker.kork:kork-exceptions"
-  api "com.google.apis:google-api-services-storage"
-}

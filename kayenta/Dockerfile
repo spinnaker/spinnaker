@@ -24,6 +24,8 @@ FROM alpine:3.20
 LABEL maintainer="delivery-engineering@netflix.com"
 
 RUN apk --no-cache add --update openjdk17-jre
+# Pick up the latest CA bundle and fail the build if the JVM still trusts emSign ECC Root CA - G3.
+RUN apk --no-cache upgrade && ! keytool -list -cacerts -storepass changeit | grep -qiE 'emsign.*ecc.*g3'
 
 # Set where to look for config from
 ENV KAYENTA_OPTS=-Dspring.config.location=file:/opt/kayenta/config/kayenta.yml

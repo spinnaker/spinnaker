@@ -1,8 +1,0 @@
-{
-  "errors": [
-    {
-      "severity": "FATAL",
-      "message": "unexpected schema version '0.1'"
-    }
-  ]
-}

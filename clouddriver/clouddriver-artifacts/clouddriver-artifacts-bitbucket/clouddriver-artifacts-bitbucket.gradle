@@ -1,7 +1,0 @@
-dependencies {
-  implementation "io.spinnaker.kork:kork-credentials"
-  implementation "com.google.guava:guava"
-  implementation "com.squareup.okhttp3:okhttp"
-
-  testImplementation "commons-io:commons-io"
-}

@@ -1,4 +1,0 @@
-dependencies {
-  implementation project(":kayenta-core")
-  implementation "com.squareup.retrofit2:converter-jackson"
-}

@@ -1,7 +1,0 @@
-apply from: "$rootDir/../kotlin.gradle"
-apply from: "$rootDir/gradle/detekt.gradle"
-
-dependencies {
-  api project(":keiko-core")
-  api project(":keiko-test-common")
-}
