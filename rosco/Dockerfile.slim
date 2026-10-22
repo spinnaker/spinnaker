@@ -16,6 +16,8 @@ RUN apk --no-cache add --update bash wget curl openssl openjdk17-jre git openssh
   wget https://releases.hashicorp.com/packer/${PACKER_VERSION}/packer_${PACKER_VERSION}_linux_${TARGETARCH}.zip && \
   unzip packer_${PACKER_VERSION}_linux_${TARGETARCH}.zip && \
   rm packer_${PACKER_VERSION}_linux_${TARGETARCH}.zip
+# Pick up the latest CA bundle and fail the build if the JVM still trusts emSign ECC Root CA - G3.
+RUN apk --no-cache upgrade && ! keytool -list -cacerts -storepass changeit | grep -qiE 'emsign.*ecc.*g3'
 
 ENV PATH "/packer:$PATH"
 
