@@ -1,3 +1,0 @@
-ajordens
-dreynaud
-robzienert

@@ -1,8 +1,0 @@
-dependencies {
-  implementation project(":gate-core")
-  implementation "org.springframework.security:spring-security-ldap"
-  implementation "io.spinnaker.kork:kork-security"
-  implementation "org.apache.commons:commons-lang3"
-  implementation "org.springframework.session:spring-session-core"
-
-}

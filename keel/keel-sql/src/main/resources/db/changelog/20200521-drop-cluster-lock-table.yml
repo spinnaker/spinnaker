@@ -1,7 +1,0 @@
-databaseChangeLog:
-- changeSet:
-    id: drop-cluster-lock-table
-    author: fletch
-    changes:
-    - dropTable:
-        tableName: cluster_lock

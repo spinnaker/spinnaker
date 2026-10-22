@@ -1,4 +1,0 @@
-dependencies {
-  implementation project(":kayenta-core")
-  implementation "com.clickhouse:client-v2:0.9.8"
-}

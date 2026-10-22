@@ -1,6 +1,0 @@
-dependencies {
-  implementation project(":cats:cats-sql")
-  implementation project(":clouddriver-sql")
-
-  runtimeOnly "com.mysql:mysql-connector-j"
-}

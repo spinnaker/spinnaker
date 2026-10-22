@@ -1,7 +1,0 @@
----
-schema: "1"
-pipeline:
-  application: orca
-  variables:
-    includeStage: false
-stages: []

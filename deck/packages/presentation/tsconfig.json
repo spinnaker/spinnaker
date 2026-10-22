@@ -1,9 +1,0 @@
-{
-  "extends": "../tsconfig.tools.base.json",
-  "exclude": ["dist"],
-  "compilerOptions": {
-    "outDir": "dist",
-    "rootDir": "src",
-    "strict": true
-  }
-}

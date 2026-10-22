@@ -1,5 +1,0 @@
-# halconfig
-
-server:
-  port: ${services.echo.port:8089}
-  address: ${services.echo.host:localhost}

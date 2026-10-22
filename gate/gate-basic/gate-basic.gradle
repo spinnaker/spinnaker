@@ -1,6 +1,0 @@
-dependencies {
-  implementation project(":gate-core")
-  implementation "io.spinnaker.kork:kork-annotations"
-  implementation "io.spinnaker.kork:kork-security"
-  implementation "org.springframework.session:spring-session-core"
-}

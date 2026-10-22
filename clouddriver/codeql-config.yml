@@ -1,4 +1,0 @@
-name: CodeQL Config
-
-paths:
-  - clouddriver

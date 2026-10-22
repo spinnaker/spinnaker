@@ -1,6 +1,0 @@
-{
-  "extends": "../../packages/tsconfig.tools.base.json",
-  "compilerOptions": {
-    "outDir": "dist"
-  }
-}

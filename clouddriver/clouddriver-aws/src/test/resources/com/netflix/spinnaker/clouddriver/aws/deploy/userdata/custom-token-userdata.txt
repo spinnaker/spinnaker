@@ -1,2 +1,0 @@
-CUSTOM_A="%%custom_token_a%%"
-CUSTOM_B="%%custom_token_b%%"
