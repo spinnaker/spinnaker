@@ -15,6 +15,8 @@ RUN apt-get update && apt-get -y install openjdk-17-jre-headless wget unzip curl
   wget https://releases.hashicorp.com/packer/${PACKER_VERSION}/packer_${PACKER_VERSION}_linux_${TARGETARCH}.zip && \
   unzip packer_${PACKER_VERSION}_linux_${TARGETARCH}.zip && \
   rm packer_${PACKER_VERSION}_linux_${TARGETARCH}.zip
+# Pick up the latest CA bundle and fail the build if the JVM still trusts emSign ECC Root CA - G3.
+RUN apt-get update && apt-get -y install --only-upgrade ca-certificates ca-certificates-java && rm -rf /var/lib/apt/lists/* && ! keytool -list -cacerts -storepass changeit | grep -qiE 'emsign.*ecc.*g3'
 
 ENV PATH "/packer:$PATH"
 
