@@ -1,9 +1,0 @@
-{
-  "errors": [
-    {
-      "severity": "FATAL",
-      "message": "malformed template configuration",
-      "cause": "[Pipeline Config: application='orca', name='WrongVariableTypeTest'] Incorrectly defined variable(s): waitTime (expected type 'int' found type 'String')"
-    }
-  ]
-}

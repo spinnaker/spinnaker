@@ -1,8 +1,0 @@
-# halconfig
-
-server:
-  port: ${services.echoWorker.port:8089}
-  address: ${services.echoWorker.host:localhost}
-
-scheduler:
-  enabled: false

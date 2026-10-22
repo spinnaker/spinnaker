@@ -1,6 +1,0 @@
-spec:
-  template:
-    spec:
-      containers:
-        - name: engine-x
-          image: index.docker.io/library/nginx:1.16

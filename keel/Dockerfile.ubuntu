@@ -1,6 +1,8 @@
 FROM ubuntu:jammy
 LABEL maintainer="sig-platform@spinnaker.io"
 RUN apt-get update && apt-get -y install openjdk-17-jre-headless wget
+# Pick up the latest CA bundle and fail the build if the JVM still trusts emSign ECC Root CA - G3.
+RUN apt-get update && apt-get -y install --only-upgrade ca-certificates ca-certificates-java && rm -rf /var/lib/apt/lists/* && ! keytool -list -cacerts -storepass changeit | grep -qiE 'emsign.*ecc.*g3'
 RUN adduser --system --uid 10111 --group spinnaker
 COPY keel-web/build/install/keel /opt/keel
 RUN mkdir -p /opt/keel/plugins && chown -R spinnaker:nogroup /opt/keel/plugins

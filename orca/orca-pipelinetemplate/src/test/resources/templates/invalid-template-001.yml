@@ -1,8 +1,0 @@
-# "stage" is not a valid field on a pipeline template
-schema: "1"
-id: invalidTemplate
-stage:
-- id: bake
-  type: bake
-  config:
-    some: value

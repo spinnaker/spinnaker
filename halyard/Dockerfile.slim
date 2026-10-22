@@ -14,6 +14,8 @@ RUN apk --no-cache add --update \
   && pip3 install --upgrade awscli==${AWS_CLI_VERSION} \
   && apk --purge del \
   && rm -rf /var/cache/apk
+# Pick up the latest CA bundle and fail the build if the JVM still trusts emSign ECC Root CA - G3.
+RUN apk --no-cache upgrade && ! keytool -list -cacerts -storepass changeit | grep -qiE 'emsign.*ecc.*g3'
 
 RUN echo '#!/usr/bin/env bash' > /usr/local/bin/hal && \
   echo '/opt/halyard/bin/hal "$@"' >> /usr/local/bin/hal && \

@@ -1,4 +1,0 @@
-com.netflix.spinnaker.kork.configserver.autoconfig.CloudConfigAutoConfiguration
-com.netflix.spinnaker.kork.configserver.autoconfig.SpringCloudAwsConfiguration
-com.netflix.spinnaker.kork.configserver.autoconfig.SpringCloudAwsS3ResourceLoaderConfiguration
-io.awspring.cloud.context.config.annotation.ContextResourceLoaderConfiguration

@@ -1,5 +1,0 @@
-# halconfig
-
-server:
-  port: ${services.clouddriverCaching.port:7002}
-  address: ${services.clouddriverCaching.host:localhost}

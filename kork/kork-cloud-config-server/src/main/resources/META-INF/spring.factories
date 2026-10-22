@@ -1,2 +1,0 @@
-org.springframework.context.ApplicationListener=\
-  com.netflix.spinnaker.kork.configserver.CloudConfigApplicationListener

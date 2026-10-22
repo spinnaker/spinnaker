@@ -1,5 +1,0 @@
-#!/usr/bin/env bash
-
-if [ -n "{%PASSPHRASE%}" ]; then
-  echo "{%PASSPHRASE%}"
-fi

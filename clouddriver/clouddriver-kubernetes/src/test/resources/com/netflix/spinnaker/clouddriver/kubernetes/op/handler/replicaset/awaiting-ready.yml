@@ -1,6 +1,0 @@
-status:
-  availableReplicas: 3
-  fullyLabeledReplicas: 4
-  observedGeneration: 2
-  readyReplicas: 3
-  replicas: 2
