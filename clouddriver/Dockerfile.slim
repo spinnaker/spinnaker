@@ -22,6 +22,8 @@ RUN apk update \
     git \
     openssh-client \
     unzip
+# Pick up the latest CA bundle and fail the build if the JVM still trusts emSign ECC Root CA - G3.
+RUN apk --no-cache upgrade && ! keytool -list -cacerts -storepass changeit | grep -qiE 'emsign.*ecc.*g3'
 
 # AWS CLI 2
 RUN apk add aws-cli=${AWS_CLI_VERSION}-r0
