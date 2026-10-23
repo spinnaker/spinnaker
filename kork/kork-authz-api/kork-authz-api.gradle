@@ -1,0 +1,23 @@
+apply plugin: "groovy"
+apply from: "$rootDir/gradle/lombok.gradle"
+
+dependencies {
+  api(platform(project(":spinnaker-dependencies")))
+
+  api "org.springframework.security:spring-security-core"
+
+  implementation "com.fasterxml.jackson.core:jackson-annotations"
+  implementation "com.google.code.findbugs:jsr305"
+  implementation project(":kork-retrofit")
+  implementation "org.slf4j:slf4j-api"
+  implementation "org.springframework:spring-core"
+  implementation "org.springframework.boot:spring-boot-starter-web"
+
+  testImplementation "org.springframework.boot:spring-boot"
+  testImplementation "com.fasterxml.jackson.core:jackson-databind"
+  testImplementation "org.springframework.boot:spring-boot-starter-test"
+  testImplementation "org.spockframework:spock-core"
+  testImplementation "org.spockframework:spock-spring"
+  testRuntimeOnly "cglib:cglib-nodep"
+  testRuntimeOnly "org.objenesis:objenesis"
+}
