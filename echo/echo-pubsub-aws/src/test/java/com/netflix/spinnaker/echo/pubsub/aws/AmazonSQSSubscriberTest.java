@@ -20,6 +20,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.never;
+import static org.mockito.Mockito.timeout;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
@@ -35,6 +36,7 @@ import com.netflix.spinnaker.kork.aws.ARN;
 import com.netflix.spinnaker.kork.test.log.MemoryAppender;
 import java.util.Collections;
 import java.util.List;
+import java.util.concurrent.atomic.AtomicBoolean;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -45,8 +47,11 @@ import software.amazon.awssdk.services.sns.model.SubscribeRequest;
 import software.amazon.awssdk.services.sns.model.SubscribeResponse;
 import software.amazon.awssdk.services.sqs.SqsClient;
 import software.amazon.awssdk.services.sqs.model.GetQueueUrlResponse;
+import software.amazon.awssdk.services.sqs.model.ReceiveMessageRequest;
+import software.amazon.awssdk.services.sqs.model.ReceiveMessageResponse;
 import software.amazon.awssdk.services.sqs.model.SetQueueAttributesRequest;
 import software.amazon.awssdk.services.sqs.model.SetQueueAttributesResponse;
+import software.amazon.awssdk.services.sqs.model.SqsException;
 
 @ExtendWith(MockitoExtension.class)
 public class AmazonSQSSubscriberTest {
@@ -190,5 +195,50 @@ public class AmazonSQSSubscriberTest {
     verify(sqsClient, times(1)).getQueueUrl(any(java.util.function.Consumer.class));
     verify(sqsClient, times(1)).setQueueAttributes(any(SetQueueAttributesRequest.class));
     verify(snsClient, times(1)).subscribe(any(SubscribeRequest.class));
+  }
+
+  @Test
+  void keepsListeningAfterRecreatingTheQueueFails() {
+    // given
+    AtomicBoolean enabled = new AtomicBoolean(true);
+    SqsException serviceUnavailable =
+        (SqsException)
+            SqsException.builder().message("Service Unavailable").statusCode(503).build();
+    when(sqsClient.getQueueUrl(any(java.util.function.Consumer.class)))
+        .thenReturn(GetQueueUrlResponse.builder().queueUrl("https://queue").build());
+    when(sqsClient.setQueueAttributes(any(SetQueueAttributesRequest.class)))
+        .thenReturn(SetQueueAttributesResponse.builder().build())
+        .thenThrow(serviceUnavailable);
+    when(snsClient.subscribe(any(SubscribeRequest.class)))
+        .thenReturn(SubscribeResponse.builder().subscriptionArn("arn:sub").build());
+    when(sqsClient.receiveMessage(any(ReceiveMessageRequest.class)))
+        .thenThrow(serviceUnavailable)
+        .thenAnswer(
+            invocation -> {
+              enabled.set(false);
+              return ReceiveMessageResponse.builder().build();
+            });
+
+    SQSSubscriber localSubject =
+        new SQSSubscriber(
+            objectMapper,
+            subscription,
+            pubsubMessageHandler,
+            snsClient,
+            sqsClient,
+            enabled::get,
+            registry);
+
+    // when
+    Thread worker = new Thread(localSubject::run);
+    worker.setDaemon(true);
+    worker.start();
+
+    // then
+    try {
+      verify(sqsClient, timeout(5000).atLeast(2)).receiveMessage(any(ReceiveMessageRequest.class));
+    } finally {
+      enabled.set(false);
+    }
   }
 }
