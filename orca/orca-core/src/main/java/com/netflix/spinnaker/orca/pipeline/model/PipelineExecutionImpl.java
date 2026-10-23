@@ -51,7 +51,6 @@ import lombok.extern.slf4j.Slf4j;
 @Slf4j
 public class PipelineExecutionImpl implements PipelineExecution, Serializable {
 
-  public static final DefaultTrigger NO_TRIGGER = new DefaultTrigger("none");
   private static final ULID ID_GENERATOR = new ULID();
 
   public PipelineExecutionImpl(ExecutionType type, String application) {
@@ -301,7 +300,7 @@ public class PipelineExecutionImpl implements PipelineExecution, Serializable {
     this.origin = origin;
   }
 
-  private Trigger trigger = NO_TRIGGER;
+  private Trigger trigger = new DefaultTrigger("none");
 
   public @Nonnull Trigger getTrigger() {
     return trigger;

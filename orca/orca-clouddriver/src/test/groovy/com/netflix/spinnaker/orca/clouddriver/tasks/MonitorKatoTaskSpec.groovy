@@ -246,6 +246,41 @@ class MonitorKatoTaskSpec extends Specification {
     taskId = "kato-task-id"
   }
 
+  @Unroll
+  def "publishes ecsNativeExpectedServiceDeploymentArn only when a succeeded task's deployment metadata carries it (#description)"() {
+    given:
+    kato.lookupTask(taskId, false) >> new Task(
+        taskId,
+        new Task.Status(completed: true, failed: false),
+        [[serverGroupNames: ['us-west-2:myapp'], deployments: [[cloudProvider: 'ecs-native', serverGroupName: 'myapp', metadata: metadata]]]],
+        [],
+        []
+    )
+
+    and:
+    def stage = new StageExecutionImpl(PipelineExecutionImpl.newPipeline("orca"), "createServerGroup", [
+        "kato.last.task.id": new TaskId(taskId)
+    ])
+
+    when:
+    def result = task.execute(stage)
+
+    then:
+    result.status == ExecutionStatus.SUCCEEDED
+    result.context.containsKey("ecsNativeExpectedServiceDeploymentArn") == (expectedArn != null)
+    result.context.ecsNativeExpectedServiceDeploymentArn == expectedArn
+    // The full result also lands in kato.tasks, which WaitForEcsNativeServiceDeploymentTask reads.
+    result.context["kato.tasks"][0].resultObjects[0].deployments[0].metadata == metadata
+
+    where:
+    description            | metadata                                                    || expectedArn
+    "ARN present"          | [ecsNativeExpectedServiceDeploymentArn: 'arn:deployment:1'] || 'arn:deployment:1'
+    "ARN absent"           | [ecsNativeExpectedTaskDefinition: 'task-def:2']              || null
+    "no metadata at all"   | null                                                        || null
+
+    taskId = "kato-task-id"
+  }
+
   static SpinnakerHttpException makeSpinnakerHttpException(int status) {
 
     String url = "https://kato";

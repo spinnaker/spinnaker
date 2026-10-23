@@ -20,12 +20,15 @@ import com.netflix.spinnaker.fiat.model.Authorization
 import com.netflix.spinnaker.fiat.model.SpinnakerAuthorities
 import com.netflix.spinnaker.fiat.model.UserPermission
 import com.netflix.spinnaker.fiat.model.resources.Application
+import com.netflix.spinnaker.fiat.model.resources.ArtifactAccount
 import com.netflix.spinnaker.fiat.model.resources.Authorizable
 import com.netflix.spinnaker.fiat.model.resources.Permissions
 import com.netflix.spinnaker.fiat.model.resources.Resource
 import com.netflix.spinnaker.fiat.model.resources.ResourceType
 import com.netflix.spinnaker.fiat.model.resources.Role
 import com.netflix.spinnaker.fiat.model.resources.ServiceAccount
+import com.fasterxml.jackson.databind.DeserializationFeature
+import com.fasterxml.jackson.databind.ObjectMapper
 import com.netflix.spinnaker.kork.common.Header
 import com.netflix.spinnaker.kork.retrofit.exceptions.SpinnakerHttpException
 import org.slf4j.MDC
@@ -329,6 +332,48 @@ class FiatPermissionEvaluatorSpec extends FiatSharedSpecification {
     "MY_EXTENSION_RESOURCE"   | "WRITE"       | false
     "YOUR_EXTENSION_RESOURCE" | "READ"        | false
     "YOUR_EXTENSION_RESOURCE" | "WRITE"       | false
+  }
+
+  @Unroll
+  def "should evaluate #authorization on artifact account #accountName as #expectedHasPermission"() {
+    setup:
+    def restricted = new ArtifactAccount(
+        name: "restricted-artifacts",
+        permissions: new Permissions.Builder()
+            .add(Authorization.READ, "test group")
+            .add(Authorization.WRITE, "other group")
+            .build())
+    def unrestricted = new ArtifactAccount(name: "open-artifacts")
+    def view = new UserPermission()
+        .setId("testUser")
+        .setRoles([new Role("test group")] as Set)
+        .addResources([restricted, unrestricted] as Set)
+        .getView()
+
+    // Same round trip as the FiatService client, which is where the extension resources must be parsed
+    def mapper = new ObjectMapper().disable(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES)
+    def fromWire = mapper.readValue(mapper.writeValueAsString(view), UserPermission.View)
+
+    FiatService fiatService = Mock(FiatService) {
+      getUserPermission("testUser") >> Mock(Call) {
+        execute() >> Response.success(fromWire)
+      }
+    }
+
+    when:
+    evaluator = updateEvaluator(fiatService)
+    def hasPermission = evaluator.hasPermission(authentication, accountName, "artifact_account", authorization)
+
+    then:
+    hasPermission == expectedHasPermission
+
+    where:
+    accountName            | authorization | expectedHasPermission
+    "restricted-artifacts" | "READ"        | true
+    "restricted-artifacts" | "WRITE"       | false
+    "open-artifacts"       | "READ"        | true
+    "open-artifacts"       | "WRITE"       | true
+    "unknown-artifacts"    | "READ"        | false
   }
 
   def "should evaluate permissions for AccessControlled objects"() {

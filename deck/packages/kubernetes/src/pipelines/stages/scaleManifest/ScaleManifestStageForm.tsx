@@ -7,24 +7,17 @@ import { ScaleSettingsForm } from '../../../manifest/scale/ScaleSettingsForm';
 import type { IManifestSelector } from '../../../manifest/selector/IManifestSelector';
 import { SelectorMode } from '../../../manifest/selector/IManifestSelector';
 import { ManifestSelector } from '../../../manifest/selector/ManifestSelector';
+import { applyManifestSelector } from '../../../manifest/selector/applyManifestSelector';
 
-interface IScaleManifestStageConfigFormProps {
-  stageFieldUpdated: () => void;
-}
-
-export function ScaleManifestStageForm({
-  application,
-  formik,
-  stageFieldUpdated,
-}: IScaleManifestStageConfigFormProps & IFormikStageConfigInjectedProps) {
+export function ScaleManifestStageForm({ application, formik }: IFormikStageConfigInjectedProps) {
   const stage = formik.values;
 
-  const onManifestSelectorChange = () => {
-    stageFieldUpdated();
+  const onManifestSelectorChange = (selector: IManifestSelector) => {
+    applyManifestSelector(formik, selector);
   };
 
-  const onScaleSettingsFormChange = () => {
-    stageFieldUpdated();
+  const onScaleSettingsFormChange = (options: IScaleCommand) => {
+    formik.setFieldValue('replicas', options.replicas);
   };
 
   return (

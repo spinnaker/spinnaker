@@ -67,6 +67,32 @@ public interface ExecutionRepository {
 
   void updateStatus(ExecutionType type, @Nonnull String id, @Nonnull ExecutionStatus status);
 
+  /**
+   * Stores the status of the given execution, but only if the status currently stored for it is
+   * {@code expectedStatus}. This prevents a stale copy of an execution from overwriting a newer
+   * state, for example when the same queue message is delivered to two workers.
+   *
+   * <p>The default implementation reads the stored execution before updating it, which narrows but
+   * does not close the window between the check and the update. Implementations should override it
+   * to perform both atomically.
+   *
+   * <p>TODO: make the default implementation atomic for repositories that don't override it (e.g.
+   * Redis). There is no tracking issue for this yet.
+   *
+   * @return {@code true} if the status was stored, {@code false} if the stored status was not
+   *     {@code expectedStatus} and nothing was changed
+   */
+  default boolean updateStatusIfExpected(
+      @Nonnull PipelineExecution execution, @Nonnull ExecutionStatus expectedStatus) {
+    ExecutionStatus storedStatus =
+        retrieve(execution.getType(), execution.getId(), true).getStatus();
+    if (storedStatus != expectedStatus) {
+      return false;
+    }
+    updateStatus(execution);
+    return true;
+  }
+
   void delete(@Nonnull ExecutionType type, @Nonnull String id);
 
   void delete(@Nonnull ExecutionType type, @Nonnull List<String> idsToDelete);
