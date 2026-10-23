@@ -209,26 +209,30 @@ public class RequestSheddingFilter extends HttpFilter {
 
   @SuppressWarnings("UnstableApiUsage")
   public void compilePatterns() {
-    String pathMatchers = configService.getConfig(String.class, PATHS_KEY, "");
-    if (Strings.isNullOrEmpty(pathMatchers)) {
-      return;
-    }
-
-    List<String> paths = splitter.splitToList(pathMatchers);
-    if (paths.isEmpty()) {
-      return;
-    }
-
-    List<Pattern> newPatterns = new ArrayList<>();
-    for (String path : paths) {
-      try {
-        newPatterns.add(Pattern.compile(path));
-      } catch (PatternSyntaxException e) {
-        log.error("Path pattern invalid, skipping: {}", path, e);
+    try {
+      String pathMatchers = configService.getConfig(String.class, PATHS_KEY, "");
+      if (Strings.isNullOrEmpty(pathMatchers)) {
+        return;
       }
-    }
 
-    pathPatterns.addAll(newPatterns);
-    pathPatterns.removeIf(p -> !newPatterns.contains(p));
+      List<String> paths = splitter.splitToList(pathMatchers);
+      if (paths.isEmpty()) {
+        return;
+      }
+
+      List<Pattern> newPatterns = new ArrayList<>();
+      for (String path : paths) {
+        try {
+          newPatterns.add(Pattern.compile(path));
+        } catch (PatternSyntaxException e) {
+          log.error("Path pattern invalid, skipping: {}", path, e);
+        }
+      }
+
+      pathPatterns.addAll(newPatterns);
+      pathPatterns.removeIf(p -> !newPatterns.contains(p));
+    } catch (Throwable t) {
+      log.error("Unable to refresh request shedding path patterns", t);
+    }
   }
 }
