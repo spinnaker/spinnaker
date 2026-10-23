@@ -1526,8 +1526,8 @@ packages:
     resolution: {integrity: sha512-78/PXT1wlLLDgTzDs7sjq9hzz0vXD+zn+7wypEe4fXQxCmdmqfGsEPQxmiCSQI3ajFV91bVSsvNtrJRiW6nGng==}
     engines: {node: '>=10'}
 
-  follow-redirects@1.16.0:
-    resolution: {integrity: sha512-y5rN/uOsadFT/JfYwhxRS5R7Qce+g3zG97+JrtFZlC9klX/W5hD7iiLzScI4nZqUS7DNUdhPgw4xI8W2LuXlUw==}
+  follow-redirects@1.16.1:
+    resolution: {integrity: sha512-FNvFGzoMLWmE6Yj9spb/zjd7yiNCHiAW9/Tg9CXrQ8wuu32HtlJOwWO11OJafl5FfY3DxTdQ0vj42zU1kvv5jg==}
     engines: {node: '>=4.0'}
     peerDependencies:
       debug: '*'
@@ -3685,7 +3685,7 @@ snapshots:
 
   axios@0.27.2(debug@4.3.4(supports-color@8.1.1)):
     dependencies:
-      follow-redirects: 1.16.0(debug@4.3.4(supports-color@8.1.1))
+      follow-redirects: 1.16.1(debug@4.3.4(supports-color@8.1.1))
       form-data: 4.0.5
     transitivePeerDependencies:
       - debug
@@ -4163,7 +4163,7 @@ snapshots:
       locate-path: 6.0.0
       path-exists: 4.0.0
 
-  follow-redirects@1.16.0(debug@4.3.4(supports-color@8.1.1)):
+  follow-redirects@1.16.1(debug@4.3.4(supports-color@8.1.1)):
     optionalDependencies:
       debug: 4.3.4(supports-color@8.1.1)
 
