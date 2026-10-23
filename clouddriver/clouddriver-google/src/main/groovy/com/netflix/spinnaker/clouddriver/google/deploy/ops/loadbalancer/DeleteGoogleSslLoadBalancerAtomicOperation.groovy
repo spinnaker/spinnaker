@@ -16,7 +16,6 @@
 
 package com.netflix.spinnaker.clouddriver.google.deploy.ops.loadbalancer
 
-import com.google.api.client.googleapis.json.GoogleJsonResponseException
 import com.google.api.services.compute.model.*
 import com.netflix.spinnaker.clouddriver.data.task.Task
 import com.netflix.spinnaker.clouddriver.data.task.TaskRepository
@@ -24,7 +23,9 @@ import com.netflix.spinnaker.clouddriver.google.deploy.GCEUtil
 import com.netflix.spinnaker.clouddriver.google.deploy.GoogleOperationPoller
 import com.netflix.spinnaker.clouddriver.google.deploy.SafeRetry
 import com.netflix.spinnaker.clouddriver.google.deploy.description.DeleteGoogleLoadBalancerDescription
+import com.netflix.spinnaker.clouddriver.google.deploy.exception.GoogleOperationException
 import com.netflix.spinnaker.clouddriver.google.model.callbacks.Utils
+import com.netflix.spinnaker.clouddriver.googlecommon.deploy.GoogleApiException
 import groovy.util.logging.Slf4j
 import org.springframework.beans.factory.annotation.Autowired
 
@@ -90,19 +91,19 @@ class DeleteGoogleSslLoadBalancerAtomicOperation extends DeleteGoogleLoadBalance
     }
     def backendServiceName = GCEUtil.getLocalName(retrievedTargetProxy.getService())
 
-    List<String> listenersToDelete = []
+    List<ForwardingRule> listenersToDelete = []
     projectForwardingRules.each { ForwardingRule rule ->
       try {
         def proxy = GCEUtil.getTargetProxyFromRule(compute, project, rule, BASE_PHASE, safeRetry, this)
         if (GCEUtil.getLocalName(proxy?.service) == backendServiceName) {
-          listenersToDelete << rule.getName()
+          listenersToDelete << rule
         }
-      } catch (GoogleJsonResponseException e) {
+      } catch (GoogleOperationException e) {
         // 404 is thrown if the target proxy does not exist.
         // We can ignore 404's here because we are iterating over all forwarding rules and some other process may have
         // deleted the target proxy between the time we queried for the list of forwarding rules and now.
         // Any other exception needs to be propagated.
-        if (e.getStatusCode() != 404) {
+        if (!(e.cause instanceof GoogleApiException.NotFoundException)) {
           throw e
         }
       }
@@ -153,11 +154,15 @@ class DeleteGoogleSslLoadBalancerAtomicOperation extends DeleteGoogleLoadBalance
     // Delete all the components.
     def timeoutSeconds = description.deleteOperationTimeoutSeconds
 
-    listenersToDelete.each { String ruleName ->
+    listenersToDelete.each { ForwardingRule rule ->
+      String ruleName = rule.getName()
       task.updateStatus BASE_PHASE, "Deleting listener $ruleName..."
-      Operation operation = GCEUtil.deleteGlobalListener(compute, project, ruleName, BASE_PHASE, safeRetry, this)
-      googleOperationPoller.waitForGlobalOperation(compute, project, operation.getName(),
-        timeoutSeconds, task, "listener " + ruleName, BASE_PHASE)
+      Operation operation = GCEUtil.deleteGlobalListener(compute, project, rule, BASE_PHASE, timeoutSeconds,
+        task, googleOperationPoller, safeRetry, this)
+      if (operation) {
+        googleOperationPoller.waitForGlobalOperation(compute, project, operation.getName(),
+          timeoutSeconds, task, "listener " + ruleName, BASE_PHASE)
+      }
     }
 
     Operation deleteBackendServiceOp = GCEUtil.deleteIfNotInUse(
@@ -172,8 +177,32 @@ class DeleteGoogleSslLoadBalancerAtomicOperation extends DeleteGoogleLoadBalance
       safeRetry,
       this
     )
-    googleOperationPoller.waitForGlobalOperation(compute, project, deleteBackendServiceOp.getName(),
-      timeoutSeconds, task, "backend service $backendServiceName", BASE_PHASE)
+    if (deleteBackendServiceOp) {
+      googleOperationPoller.waitForGlobalOperation(compute, project, deleteBackendServiceOp.getName(),
+        timeoutSeconds, task, "backend service $backendServiceName", BASE_PHASE)
+    } else {
+      // deleteIfNotInUse returns null both for 404 and for a backend service another resource still uses.
+      // Every listener using it was just deleted, so a remaining user is a leftover, not a sharer.
+      BackendService remainingBackendService = safeRetry.doRetry(
+        { timeExecute(
+              compute.backendServices().get(project, backendServiceName),
+              "compute.backendServices.get",
+              TAG_SCOPE, SCOPE_GLOBAL) },
+        "Backend service $backendServiceName",
+        task,
+        [400, 403, 412],
+        [404],
+        [action: "get", phase: BASE_PHASE, operation: "compute.backendServices.get", (TAG_SCOPE): SCOPE_GLOBAL],
+        registry
+      ) as BackendService
+      if (remainingBackendService) {
+        String message = "Backend service $backendServiceName is still used by another resource, such as a target " +
+          "proxy left by an earlier delete, so it was not deleted. Its listeners are already gone. Delete that " +
+          "resource, then backend service $backendServiceName and health check $healthCheckName in $project."
+        task.updateStatus BASE_PHASE, message
+        throw new IllegalStateException(message)
+      }
+    }
 
     if (description.deleteHealthChecks) {
       Operation deleteHealthCheckOp = GCEUtil.deleteIfNotInUse(
@@ -188,8 +217,10 @@ class DeleteGoogleSslLoadBalancerAtomicOperation extends DeleteGoogleLoadBalance
         safeRetry,
         this
       )
-      googleOperationPoller.waitForGlobalOperation(compute, project, deleteHealthCheckOp.getName(),
-        timeoutSeconds, task, "health check $healthCheckName", BASE_PHASE)
+      if (deleteHealthCheckOp) {
+        googleOperationPoller.waitForGlobalOperation(compute, project, deleteHealthCheckOp.getName(),
+          timeoutSeconds, task, "health check $healthCheckName", BASE_PHASE)
+      }
     }
 
     task.updateStatus BASE_PHASE, "Done deleting ssl load balancer $description.loadBalancerName."
