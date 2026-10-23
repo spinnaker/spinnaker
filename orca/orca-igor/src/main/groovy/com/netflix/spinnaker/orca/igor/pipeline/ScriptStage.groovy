@@ -19,10 +19,10 @@ package com.netflix.spinnaker.orca.igor.pipeline
 import com.netflix.spinnaker.orca.api.pipeline.CancellableStage
 import com.netflix.spinnaker.orca.api.pipeline.models.StageExecution
 import com.netflix.spinnaker.orca.igor.tasks.GetBuildPropertiesTask
-import com.netflix.spinnaker.orca.igor.tasks.MonitorJenkinsJobTask
-import com.netflix.spinnaker.orca.igor.tasks.MonitorQueuedJenkinsJobTask
+import com.netflix.spinnaker.orca.igor.tasks.MonitorBuildJobTask
+import com.netflix.spinnaker.orca.igor.tasks.MonitorQueuedBuildJobTask
 import com.netflix.spinnaker.orca.igor.tasks.StartScriptTask
-import com.netflix.spinnaker.orca.igor.tasks.StopJenkinsJobTask
+import com.netflix.spinnaker.orca.igor.tasks.StopBuildJobTask
 import com.netflix.spinnaker.orca.api.pipeline.graph.StageDefinitionBuilder
 import com.netflix.spinnaker.orca.api.pipeline.graph.TaskNode
 import groovy.transform.CompileStatic
@@ -37,16 +37,16 @@ import javax.annotation.Nonnull
 @Slf4j
 class ScriptStage implements StageDefinitionBuilder, CancellableStage {
 
-  @Autowired StopJenkinsJobTask stopJenkinsJobTask
+  @Autowired StopBuildJobTask stopBuildJobTask
 
   @Override
   void taskGraph(@Nonnull StageExecution stage, @Nonnull TaskNode.Builder builder) {
     builder
       .withTask("startScript", StartScriptTask)
-      .withTask("waitForScriptStart", MonitorQueuedJenkinsJobTask)
+      .withTask("waitForScriptStart", MonitorQueuedBuildJobTask)
 
     if (!stage.getContext().getOrDefault("waitForCompletion", "true").toString().equalsIgnoreCase("false")) {
-      builder.withTask("monitorScript", MonitorJenkinsJobTask)
+      builder.withTask("monitorScript", MonitorBuildJobTask)
       builder.withTask("getBuildProperties", GetBuildPropertiesTask.class)
     }
   }
@@ -66,7 +66,7 @@ class ScriptStage implements StageDefinitionBuilder, CancellableStage {
     log.info("Cancelling stage (stageId: ${stage.id}, executionId: ${stage.execution.id}, context: ${stage.context as Map})")
 
     try {
-      stopJenkinsJobTask.execute(stage)
+      stopBuildJobTask.execute(stage)
     } catch (Exception e) {
       log.error("Failed to cancel stage (stageId: ${stage.id}, executionId: ${stage.execution.id}), e: ${e.message}", e)
     }
