@@ -105,6 +105,9 @@ public class ResourcesConfig {
   }
 
   @Bean
+  @ConditionalOnProperty(
+      value = "auth.permissions.source.artifact-account.resource.enabled",
+      matchIfMissing = true)
   ClouddriverArtifactAccountLoader clouddriverArtifactAccountLoader(
       ProviderHealthTracker providerHealthTracker, ClouddriverApi clouddriverApi) {
     return new ClouddriverArtifactAccountLoader(providerHealthTracker, clouddriverApi);

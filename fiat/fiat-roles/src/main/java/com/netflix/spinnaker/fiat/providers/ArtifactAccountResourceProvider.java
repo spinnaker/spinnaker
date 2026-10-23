@@ -22,9 +22,13 @@ import com.netflix.spinnaker.fiat.model.resources.ArtifactAccount;
 import com.netflix.spinnaker.fiat.providers.internal.ClouddriverArtifactAccountLoader;
 import java.util.Set;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.stereotype.Component;
 
 @Component
+@ConditionalOnProperty(
+    value = "auth.permissions.source.artifact-account.resource.enabled",
+    matchIfMissing = true)
 public class ArtifactAccountResourceProvider extends BaseResourceProvider<ArtifactAccount>
     implements ResourceProvider<ArtifactAccount> {
 

@@ -81,16 +81,6 @@ class DefaultResourcePermissionConfig {
 
   @Bean
   @ConditionalOnProperty(
-      value = "auth.permissions.provider.artifact-account",
-      havingValue = "default",
-      matchIfMissing = true)
-  public ResourcePermissionProvider<ArtifactAccount> defaultArtifactAccountPermissionProvider(
-      ResourcePermissionSource<ArtifactAccount> artifactAccountResourcePermissionSource) {
-    return new DefaultResourcePermissionProvider<>(artifactAccountResourcePermissionSource);
-  }
-
-  @Bean
-  @ConditionalOnProperty(
       value = "auth.permissions.source.build-service.resource.enabled",
       matchIfMissing = true)
   @Order(Ordered.HIGHEST_PRECEDENCE + 100)
@@ -122,5 +112,25 @@ class DefaultResourcePermissionConfig {
       ObjectMapper objectMapper, FiatServerConfigurationProperties configurationProperties) {
     return new ChaosMonkeyApplicationResourcePermissionSource(
         configurationProperties.getChaosMonkey().getRoles(), objectMapper);
+  }
+
+  /**
+   * The default provider needs the default source. When the source is disabled, artifact accounts
+   * are not a Fiat resource at all, so there is no provider (and no resource provider/loader).
+   */
+  @Configuration
+  @ConditionalOnProperty(
+      value = "auth.permissions.source.artifact-account.resource.enabled",
+      matchIfMissing = true)
+  static class DefaultArtifactAccountPermissionProviderConfig {
+    @Bean
+    @ConditionalOnProperty(
+        value = "auth.permissions.provider.artifact-account",
+        havingValue = "default",
+        matchIfMissing = true)
+    public ResourcePermissionProvider<ArtifactAccount> defaultArtifactAccountPermissionProvider(
+        ResourcePermissionSource<ArtifactAccount> artifactAccountResourcePermissionSource) {
+      return new DefaultResourcePermissionProvider<>(artifactAccountResourcePermissionSource);
+    }
   }
 }
