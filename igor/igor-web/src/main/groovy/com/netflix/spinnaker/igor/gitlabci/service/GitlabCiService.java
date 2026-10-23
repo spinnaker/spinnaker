@@ -116,20 +116,35 @@ public class GitlabCiService implements BuildOperations, BuildProperties, Stoppa
 
   @Override
   public long triggerBuildWithParameters(String job, Map<String, String> queryParameters) {
-    String ref = queryParameters.getOrDefault("ref", "main");
+    // Default to GitLab's modern default branch ("main") when no ref is supplied.
+    // A present-but-blank ref is also treated as absent so we never trigger on "".
+    String ref = queryParameters.get("ref");
+    if (StringUtils.isBlank(ref)) {
+      ref = "main";
+    }
     String triggerToken = this.hostConfig.getTriggerToken();
-    if (triggerToken == null || triggerToken.isEmpty()) {
+    if (StringUtils.isBlank(triggerToken)) {
       throw new IllegalStateException(
           "Cannot trigger GitLab CI pipeline: triggerToken is not configured for master '"
               + this.name
               + "'");
     }
-    Pipeline pipeline = Retrofit2SyncCall.execute(client.triggerPipeline(job, triggerToken, ref));
+    // All parameters other than "ref" are forwarded to GitLab as pipeline variables,
+    // using GitLab's variables[KEY]=value trigger syntax. Null-valued parameters are
+    // skipped (an unset variable is simply not sent, and Collectors.toMap rejects nulls).
+    Map<String, String> variables =
+        queryParameters.entrySet().stream()
+            .filter(e -> !"ref".equals(e.getKey()) && e.getValue() != null)
+            .collect(Collectors.toMap(e -> "variables[" + e.getKey() + "]", Map.Entry::getValue));
+
+    Pipeline pipeline =
+        Retrofit2SyncCall.execute(client.triggerPipeline(job, triggerToken, ref, variables));
     log.info(
-        "Triggered GitLab CI pipeline {} for {} on ref {}",
+        "Triggered GitLab CI pipeline {} for {} on ref {} with {} variable(s)",
         kv("pipelineId", pipeline.getId()),
         kv("projectId", job),
-        kv("ref", ref));
+        kv("ref", ref),
+        kv("variableCount", variables.size()));
     return pipeline.getId();
   }
 
