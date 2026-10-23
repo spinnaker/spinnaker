@@ -21,11 +21,15 @@ import com.netflix.spinnaker.fiat.model.SpinnakerAuthorities
 import com.netflix.spinnaker.fiat.model.UserPermission
 import com.netflix.spinnaker.fiat.model.resources.Application
 import com.netflix.spinnaker.fiat.model.resources.Authorizable
+import com.netflix.spinnaker.fiat.model.resources.BaseAccessControlled
 import com.netflix.spinnaker.fiat.model.resources.Permissions
 import com.netflix.spinnaker.fiat.model.resources.Resource
 import com.netflix.spinnaker.fiat.model.resources.ResourceType
 import com.netflix.spinnaker.fiat.model.resources.Role
 import com.netflix.spinnaker.fiat.model.resources.ServiceAccount
+import com.netflix.spinnaker.fiat.model.resources.Viewable
+import com.fasterxml.jackson.databind.DeserializationFeature
+import com.fasterxml.jackson.databind.ObjectMapper
 import com.netflix.spinnaker.kork.common.Header
 import com.netflix.spinnaker.kork.retrofit.exceptions.SpinnakerHttpException
 import org.slf4j.MDC
@@ -331,6 +335,48 @@ class FiatPermissionEvaluatorSpec extends FiatSharedSpecification {
     "YOUR_EXTENSION_RESOURCE" | "WRITE"       | false
   }
 
+  @Unroll
+  def "should evaluate #authorization on extension resource #resourceName as #expectedHasPermission"() {
+    setup:
+    def restricted = new TestExtensionResource(
+        name: "restricted-resource",
+        permissions: new Permissions.Builder()
+            .add(Authorization.READ, "test group")
+            .add(Authorization.WRITE, "other group")
+            .build())
+    def unrestricted = new TestExtensionResource(name: "open-resource")
+    def view = new UserPermission()
+        .setId("testUser")
+        .setRoles([new Role("test group")] as Set)
+        .addResources([restricted, unrestricted] as Set)
+        .getView()
+
+    // Same round trip as the FiatService client, which is where the extension resources must be parsed
+    def mapper = new ObjectMapper().disable(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES)
+    def fromWire = mapper.readValue(mapper.writeValueAsString(view), UserPermission.View)
+
+    FiatService fiatService = Mock(FiatService) {
+      getUserPermission("testUser") >> Mock(Call) {
+        execute() >> Response.success(fromWire)
+      }
+    }
+
+    when:
+    evaluator = updateEvaluator(fiatService)
+    def hasPermission = evaluator.hasPermission(authentication, resourceName, "test_extension_resource", authorization)
+
+    then:
+    hasPermission == expectedHasPermission
+
+    where:
+    resourceName            | authorization | expectedHasPermission
+    "restricted-resource" | "READ"        | true
+    "restricted-resource" | "WRITE"       | false
+    "open-resource"       | "READ"        | true
+    "open-resource"       | "WRITE"       | true
+    "unknown-resource"    | "READ"        | false
+  }
+
   def "should evaluate permissions for AccessControlled objects"() {
     given:
     def resource = new AccessControlledResource(new Permissions.Builder().add(Authorization.READ, 'test group').build())
@@ -360,6 +406,31 @@ class FiatPermissionEvaluatorSpec extends FiatSharedSpecification {
     configurationProperties.cache.expiresAfterWriteSeconds = 0
     configurationProperties.grantedAuthorities.enabled = true
     return configurationProperties
+  }
+
+  // Stands in for a real extension resource (artifact accounts), which doesn't exist on this release
+  public static class TestExtensionResource extends BaseAccessControlled<TestExtensionResource> implements Viewable {
+    String name
+    Permissions permissions = Permissions.EMPTY
+
+    @Override
+    ResourceType getResourceType() { return new ResourceType("test_extension_resource") }
+
+    @Override
+    TestExtensionResource setPermissions(Permissions permissions) {
+      this.permissions = permissions
+      return this
+    }
+
+    @Override
+    Viewable.BaseView getView(Set<Role> userRoles, boolean isAdmin) {
+      return new TestExtensionResourceView(name: name, authorizations: permissions.getAuthorizations(userRoles))
+    }
+  }
+
+  public static class TestExtensionResourceView extends Viewable.BaseView implements Authorizable {
+    String name
+    Set<Authorization> authorizations
   }
 
   private static MY_EXTENSION_RESOURCE = new ResourceType("MY_EXTENSION_RESOURCE");
