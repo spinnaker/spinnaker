@@ -20,11 +20,12 @@ import static org.assertj.core.api.Assertions.assertThat;
 
 import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.netflix.spinnaker.fiat.model.resources.ArtifactAccount;
 import com.netflix.spinnaker.fiat.model.resources.Authorizable;
+import com.netflix.spinnaker.fiat.model.resources.BaseAccessControlled;
 import com.netflix.spinnaker.fiat.model.resources.Permissions;
 import com.netflix.spinnaker.fiat.model.resources.ResourceType;
 import com.netflix.spinnaker.fiat.model.resources.Role;
+import com.netflix.spinnaker.fiat.model.resources.Viewable;
 import java.util.Set;
 import org.junit.jupiter.api.Test;
 import org.springframework.security.core.GrantedAuthority;
@@ -57,17 +58,81 @@ class UserPermissionTest {
     assertThat(authorities).containsExactly(SpinnakerAuthorities.ACCOUNT_MANAGER_AUTHORITY);
   }
 
+  /**
+   * A permission resource of a type Fiat doesn't model itself, like one a plugin would register.
+   * Stands in for the real extension resource (artifact accounts) which doesn't exist on this
+   * release.
+   */
+  static class TestExtensionResource extends BaseAccessControlled<TestExtensionResource>
+      implements Viewable {
+    static final ResourceType TYPE = new ResourceType("test_extension_resource");
+
+    private String name;
+    private Permissions permissions = Permissions.EMPTY;
+
+    @Override
+    public String getName() {
+      return name;
+    }
+
+    public TestExtensionResource setName(String name) {
+      this.name = name;
+      return this;
+    }
+
+    @Override
+    public ResourceType getResourceType() {
+      return TYPE;
+    }
+
+    @Override
+    public Permissions getPermissions() {
+      return permissions;
+    }
+
+    @Override
+    public TestExtensionResource setPermissions(Permissions permissions) {
+      this.permissions = permissions;
+      return this;
+    }
+
+    @Override
+    public View getView(Set<Role> userRoles, boolean isAdmin) {
+      return new View(this, userRoles);
+    }
+
+    public static class View extends BaseView implements Authorizable {
+      private final String name;
+      private final Set<Authorization> authorizations;
+
+      View(TestExtensionResource resource, Set<Role> userRoles) {
+        this.name = resource.name;
+        this.authorizations = resource.permissions.getAuthorizations(userRoles);
+      }
+
+      @Override
+      public String getName() {
+        return name;
+      }
+
+      @Override
+      public Set<Authorization> getAuthorizations() {
+        return authorizations;
+      }
+    }
+  }
+
   @Test
   void extensionResourcesSurviveJsonRoundTrip() throws Exception {
-    ArtifactAccount artifactAccount = new ArtifactAccount();
-    artifactAccount.setName("my-artifacts");
-    artifactAccount.setPermissions(
-        new Permissions.Builder().add(Authorization.READ, "first").build());
+    TestExtensionResource resource =
+        new TestExtensionResource()
+            .setName("my-resource")
+            .setPermissions(new Permissions.Builder().add(Authorization.READ, "first").build());
     UserPermission userPermission =
         new UserPermission()
             .setId("jesse")
             .setRoles(Set.of(new Role("first")))
-            .addResources(Set.of(artifactAccount));
+            .addResources(Set.of(resource));
 
     // Same settings as the mapper behind FiatService.
     ObjectMapper mapper =
@@ -75,13 +140,13 @@ class UserPermissionTest {
     String json = mapper.writeValueAsString(userPermission.getView());
     UserPermission.View view = mapper.readValue(json, UserPermission.View.class);
 
-    Set<Authorizable> artifactAccounts =
-        view.getExtensionResources().get(ResourceType.ARTIFACT_ACCOUNT);
-    assertThat(artifactAccounts)
+    Set<Authorizable> extensionResources =
+        view.getExtensionResources().get(TestExtensionResource.TYPE);
+    assertThat(extensionResources)
         .singleElement()
         .satisfies(
             authorizable -> {
-              assertThat(authorizable.getName()).isEqualTo("my-artifacts");
+              assertThat(authorizable.getName()).isEqualTo("my-resource");
               assertThat(authorizable.getAuthorizations()).containsExactly(Authorization.READ);
             });
   }
