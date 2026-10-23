@@ -75,6 +75,28 @@ class CatsSearchProviderSpec extends Specification {
     ]
   }
 
+  def "should keep the last identifiers when a scheduled refresh throws an error"() {
+    given:
+    def failRefresh = false
+    cache.getIdentifiers("instances") >> {
+      if (failRefresh) {
+        throw new OutOfMemoryError("Java heap space")
+      }
+      return instanceIdentifiers
+    }
+    catsSearchProvider.run()
+    failRefresh = true
+
+    when:
+    catsSearchProvider.run()
+
+    then:
+    noExceptionThrown()
+    catsSearchProvider.cachedIdentifiersByType.get() == [
+      "instances": instanceIdentifiers.collect { it.toLowerCase() }
+    ]
+  }
+
   def "should handle unparseable instance identifiers"() {
     when:
     providers.clear()
