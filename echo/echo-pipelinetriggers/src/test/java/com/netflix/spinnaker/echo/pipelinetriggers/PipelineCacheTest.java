@@ -26,6 +26,7 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.netflix.spectator.api.DefaultRegistry;
 import com.netflix.spectator.api.NoopRegistry;
 import com.netflix.spinnaker.echo.jackson.EchoObjectMapper;
 import com.netflix.spinnaker.echo.model.Pipeline;
@@ -35,9 +36,11 @@ import com.netflix.spinnaker.echo.pipelinetriggers.orca.OrcaService;
 import com.netflix.spinnaker.echo.services.Front50Service;
 import com.netflix.spinnaker.kork.retrofit.exceptions.SpinnakerHttpException;
 import java.net.HttpURLConnection;
+import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeoutException;
 import okhttp3.MediaType;
@@ -208,6 +211,89 @@ public class PipelineCacheTest {
     // we recover after a failed poll: we return the updated value
     pipelineCache.pollPipelineConfigs();
     assertThat(pipelineCache.getPipelines()).containsExactly(pipeline);
+  }
+
+  @Test
+  void keepsThePreviousPipelinesIfHydratingPipelinesThrowsAnError() {
+    Map<String, Object> pipelineMap =
+        Map.of("application", "application", "name", "Pipeline", "id", "P1");
+    Map<String, Object> templatedPipelineMap =
+        Map.of(
+            "application", "application",
+            "name", "Templated",
+            "id", "P2",
+            "type", "templatedPipeline",
+            "schema", "v2");
+    Pipeline pipeline =
+        Pipeline.builder().application("application").name("Pipeline").id("P1").build();
+
+    when(front50.getPipelines())
+        .thenReturn(Calls.response(List.of(pipelineMap)))
+        .thenReturn(Calls.response(List.of(pipelineMap, templatedPipelineMap)));
+    when(orca.v2Plan(any())).thenThrow(new OutOfMemoryError("Java heap space"));
+
+    pipelineCache.start();
+    pipelineCache.pollPipelineConfigs();
+    assertThat(pipelineCache.getPipelines()).containsExactly(pipeline);
+
+    // planning the templated pipeline fails: we keep the pipelines from the last successful poll
+    pipelineCache.pollPipelineConfigs();
+    assertThat(pipelineCache.getPipelines()).containsExactly(pipeline);
+  }
+
+  @Test
+  void skipsAPipelineThatFailsToBeProcessed() {
+    Map<String, Object> pipelineMap =
+        Map.of("application", "application", "name", "Pipeline", "id", "P1");
+    Map<String, Object> nullTriggerPipelineMap =
+        Map.of(
+            "application", "application",
+            "name", "Null trigger",
+            "id", "P2",
+            "triggers", Collections.singletonList(null));
+    Pipeline pipeline =
+        Pipeline.builder().application("application").name("Pipeline").id("P1").build();
+
+    when(front50.getPipelines())
+        .thenReturn(Calls.response(List.of(pipelineMap, nullTriggerPipelineMap)));
+
+    pipelineCache.start();
+    pipelineCache.pollPipelineConfigs();
+
+    assertThat(pipelineCache.getPipelines()).containsExactly(pipeline);
+  }
+
+  @Test
+  void keepsPollingIfReadingFront50sResponseThrowsAnError() throws TimeoutException {
+    Map<String, Object> pipelineMap =
+        Map.of("application", "application", "name", "Pipeline", "id", "P1");
+    Pipeline pipeline =
+        Pipeline.builder().application("application").name("Pipeline").id("P1").build();
+
+    when(front50.getPipelines())
+        .thenReturn(Calls.failure(new OutOfMemoryError("Java heap space")))
+        .thenAnswer(invocation -> Calls.response(List.of(pipelineMap)));
+
+    DefaultRegistry defaultRegistry = new DefaultRegistry();
+    PipelineCache scheduledPipelineCache =
+        new PipelineCache(
+            Executors.newSingleThreadScheduledExecutor(),
+            1,
+            SLEEP_MS,
+            pipelineCacheConfigurationProperties,
+            objectMapper,
+            front50,
+            orca,
+            defaultRegistry,
+            List.of());
+
+    scheduledPipelineCache.start();
+    try {
+      assertThat(scheduledPipelineCache.getPipelinesSync(5000)).containsExactly(pipeline);
+      assertThat(defaultRegistry.counter("front50.errors").count()).isEqualTo(1);
+    } finally {
+      scheduledPipelineCache.stop();
+    }
   }
 
   @ParameterizedTest(name = "filters front50 pipelines when configured to do so ({0})")
