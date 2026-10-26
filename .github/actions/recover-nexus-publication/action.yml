@@ -1,0 +1,43 @@
+name: Recover (Maven Central)
+description: Resumes existing Sonatype staging repositories and Portal deployments
+
+inputs:
+  version:
+    description: Original library version being recovered
+    required: true
+  staging-repository-ids:
+    description: Failed staging repository IDs, separated by spaces or commas
+    default: ''
+  portal-deployment-ids:
+    description: Existing Portal deployment IDs, separated by spaces or commas
+    default: ''
+  checkpoint:
+    description: Recovery checkpoint file to create or resume
+    required: true
+  nexus-username:
+    description: Central publishing token username
+    required: true
+  nexus-password:
+    description: Central publishing token password
+    required: true
+
+runs:
+  using: "composite"
+  steps:
+    - uses: actions/setup-python@v6
+      with:
+        python-version: '3.13'
+
+    - name: Resume existing repositories and wait for Maven Central publication
+      shell: bash
+      env:
+        RELEASE_VERSION: ${{ inputs.version }}
+        STAGING_REPOSITORY_IDS: ${{ inputs.staging-repository-ids }}
+        PORTAL_DEPLOYMENT_IDS: ${{ inputs.portal-deployment-ids }}
+        CHECKPOINT_PATH: ${{ inputs.checkpoint }}
+        NEXUS_USERNAME: ${{ inputs.nexus-username }}
+        NEXUS_PASSWORD: ${{ inputs.nexus-password }}
+      run: |
+        python3 "$GITHUB_ACTION_PATH/recover_nexus_publication.py" \
+          --version "$RELEASE_VERSION" \
+          --checkpoint "$CHECKPOINT_PATH"

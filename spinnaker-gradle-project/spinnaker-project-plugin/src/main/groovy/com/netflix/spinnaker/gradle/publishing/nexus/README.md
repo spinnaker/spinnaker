@@ -52,8 +52,11 @@ transfer completed. Other services in the same Gradle invocation may already
 have published successfully. Published Maven coordinates are immutable.
 
 Use the **Recover Spinnaker Libraries** GitHub Actions workflow to finish
-existing repositories. It never runs Gradle, rebuilds libraries, drops
-repositories, or uploads individual Maven artifacts again.
+existing repositories. The workflow invokes the local
+`.github/actions/recover-nexus-publication` composite action, with its recovery
+implementation and tests kept alongside the other publishing actions. It never
+runs Gradle, rebuilds libraries, drops repositories, or uploads individual Maven
+artifacts again.
 
 1. Record the original version and the failed staging repository IDs from the
    library job's `Created staging repository` or `findNexusStagingRepository`
@@ -87,7 +90,7 @@ credentials manager, and set `STAGING_REPOSITORY_IDS` or `PORTAL_DEPLOYMENT_IDS`
 to the selected IDs:
 
 ```shell
-python3 .github/scripts/recover_nexus_publication.py \
+python3 .github/actions/recover-nexus-publication/recover_nexus_publication.py \
   --version 2026.3.2 \
   --checkpoint /path/to/retained/nexus-recovery-state.json
 ```

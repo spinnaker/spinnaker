@@ -18,7 +18,7 @@ on:
         type: string
   pull_request:
     paths:
-      - '.github/scripts/*nexus_publication.py'
+      - '.github/actions/recover-nexus-publication/**'
       - '.github/workflows/spinnaker-libraries-recover.yml'
       - '.github/workflows/spinnaker-libraries.yml'
   push:
@@ -26,7 +26,7 @@ on:
       - main
       - release-*
     paths:
-      - '.github/scripts/*nexus_publication.py'
+      - '.github/actions/recover-nexus-publication/**'
       - '.github/workflows/spinnaker-libraries-recover.yml'
       - '.github/workflows/spinnaker-libraries.yml'
 
@@ -46,7 +46,7 @@ jobs:
       - uses: actions/setup-python@v6
         with:
           python-version: '3.13'
-      - run: python3 -m unittest discover -s .github/scripts -p 'test_*nexus_publication.py' -v
+      - run: python3 -m unittest discover -s .github/actions/recover-nexus-publication -p 'test_*.py' -v
 
   recover:
     if: github.event_name == 'workflow_dispatch'
@@ -58,9 +58,6 @@ jobs:
       cancel-in-progress: false
     steps:
       - uses: actions/checkout@v7
-      - uses: actions/setup-python@v6
-        with:
-          python-version: '3.13'
 
       - name: Verify previous run is an upstream recovery dispatch
         if: inputs.previous-run-id != ''
@@ -87,17 +84,15 @@ jobs:
           github-token: ${{ secrets.GITHUB_TOKEN }}
           run-id: ${{ inputs.previous-run-id }}
 
-      - name: Resume existing repositories and wait for Maven Central publication
-        env:
-          RELEASE_VERSION: ${{ inputs.version }}
-          STAGING_REPOSITORY_IDS: ${{ inputs.staging-repository-ids }}
-          PORTAL_DEPLOYMENT_IDS: ${{ inputs.portal-deployment-ids }}
-          NEXUS_USERNAME: ${{ secrets.NEXUS_USERNAME }}
-          NEXUS_PASSWORD: ${{ secrets.NEXUS_PASSWORD }}
-        run: |
-          python3 .github/scripts/recover_nexus_publication.py \
-            --version "$RELEASE_VERSION" \
-            --checkpoint "$RUNNER_TEMP/nexus-recovery/state.json"
+      - name: Resume Maven Central publication
+        uses: ./.github/actions/recover-nexus-publication
+        with:
+          version: ${{ inputs.version }}
+          staging-repository-ids: ${{ inputs.staging-repository-ids }}
+          portal-deployment-ids: ${{ inputs.portal-deployment-ids }}
+          checkpoint: ${{ runner.temp }}/nexus-recovery/state.json
+          nexus-username: ${{ secrets.NEXUS_USERNAME }}
+          nexus-password: ${{ secrets.NEXUS_PASSWORD }}
 
       - name: Save recovery checkpoint
         if: always()
