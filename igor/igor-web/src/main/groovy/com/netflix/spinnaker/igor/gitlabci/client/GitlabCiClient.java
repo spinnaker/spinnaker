@@ -20,12 +20,14 @@ import com.netflix.spinnaker.igor.gitlabci.client.model.Job;
 import com.netflix.spinnaker.igor.gitlabci.client.model.Pipeline;
 import com.netflix.spinnaker.igor.gitlabci.client.model.Project;
 import java.util.List;
+import java.util.Map;
 import okhttp3.ResponseBody;
 import retrofit2.Call;
 import retrofit2.http.GET;
 import retrofit2.http.POST;
 import retrofit2.http.Path;
 import retrofit2.http.Query;
+import retrofit2.http.QueryMap;
 
 public interface GitlabCiClient {
 
@@ -58,12 +60,15 @@ public interface GitlabCiClient {
   Call<List<Bridge>> getBridges(
       @Path("projectId") String projectId, @Path("pipelineId") long pipelineId);
 
-  // Trigger a new pipeline on a given branch using a pipeline trigger token
+  // Trigger a new pipeline on a given branch using a pipeline trigger token.
+  // Additional parameters are forwarded as GitLab CI pipeline variables, keyed as
+  // "variables[KEY]" per the GitLab trigger API.
   @POST("api/v4/projects/{projectId}/trigger/pipeline")
   Call<Pipeline> triggerPipeline(
       @Path("projectId") String projectId,
       @Query("token") String triggerToken,
-      @Query("ref") String ref);
+      @Query("ref") String ref,
+      @QueryMap Map<String, String> variables);
 
   // Cancel a running pipeline
   @POST("api/v4/projects/{projectId}/pipelines/{pipelineId}/cancel")

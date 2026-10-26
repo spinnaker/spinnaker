@@ -18,11 +18,15 @@ package com.netflix.spinnaker.clouddriver.ecs.provider.agent;
 
 import static com.netflix.spinnaker.clouddriver.ecs.cache.Keys.Namespace.ECS_CLUSTERS;
 import static com.netflix.spinnaker.clouddriver.ecs.cache.Keys.Namespace.SERVICES;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.when;
 
 import com.netflix.spinnaker.cats.cache.CacheData;
+import com.netflix.spinnaker.clouddriver.ecs.EcsNativeServiceTag;
 import com.netflix.spinnaker.clouddriver.ecs.cache.Keys;
 import java.time.Instant;
 import java.util.Collection;
@@ -33,6 +37,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import org.junit.jupiter.api.Test;
+import software.amazon.awssdk.services.ecs.model.Deployment;
 import software.amazon.awssdk.services.ecs.model.DeploymentConfiguration;
 import software.amazon.awssdk.services.ecs.model.DescribeServicesRequest;
 import software.amazon.awssdk.services.ecs.model.DescribeServicesResponse;
@@ -162,5 +167,78 @@ public class ServiceCachingAgentTest extends CommonCachingAgent {
               + cacheData.getAttributes().get("serviceArn")
               + ".");
     }
+  }
+
+  @Test
+  public void shouldCapturePrimaryDeploymentRolloutState() {
+    // Given a service whose PRIMARY deployment reports an ECS rollout state
+    Service service =
+        Service.builder()
+            .clusterArn(CLUSTER_ARN_1)
+            .serviceArn(SERVICE_ARN_1)
+            .serviceName(SERVICE_NAME_1)
+            .taskDefinition(TASK_DEFINITION_ARN_1)
+            .roleArn(ROLE_ARN)
+            .deploymentConfiguration(
+                DeploymentConfiguration.builder()
+                    .minimumHealthyPercent(50)
+                    .maximumPercent(100)
+                    .build())
+            .loadBalancers(Collections.emptyList())
+            .desiredCount(1)
+            .createdAt(Instant.now())
+            .deployments(
+                Deployment.builder()
+                    .status("ACTIVE")
+                    .id("ecs-svc/old")
+                    .rolloutState("COMPLETED")
+                    .build(),
+                Deployment.builder()
+                    .status("PRIMARY")
+                    .id("ecs-svc/1234567890")
+                    .rolloutState("IN_PROGRESS")
+                    .rolloutStateReason("ECS deployment is in progress.")
+                    .build())
+            .tags(EcsNativeServiceTag.tag())
+            .build();
+
+    // When
+    Map<String, Object> attributes = agent.convertServiceToAttributes(service);
+
+    // Then the PRIMARY deployment's rollout state is captured (not the ACTIVE one)
+    assertEquals("ecs-svc/1234567890", attributes.get("deploymentId"));
+    assertEquals("IN_PROGRESS", attributes.get("rolloutState"));
+    assertEquals("ECS deployment is in progress.", attributes.get("rolloutStateReason"));
+    assertEquals(true, attributes.get("ecsNative"));
+  }
+
+  @Test
+  public void shouldTreatUnmarkedServiceAsClassic() {
+    // Given a service with no deployments (e.g. EXTERNAL deployment controller)
+    Service service =
+        Service.builder()
+            .clusterArn(CLUSTER_ARN_1)
+            .serviceArn(SERVICE_ARN_1)
+            .serviceName(SERVICE_NAME_1)
+            .taskDefinition(TASK_DEFINITION_ARN_1)
+            .roleArn(ROLE_ARN)
+            .deploymentConfiguration(
+                DeploymentConfiguration.builder()
+                    .minimumHealthyPercent(50)
+                    .maximumPercent(100)
+                    .build())
+            .loadBalancers(Collections.emptyList())
+            .desiredCount(1)
+            .createdAt(Instant.now())
+            .build();
+
+    // When
+    Map<String, Object> attributes = agent.convertServiceToAttributes(service);
+
+    // Then no rollout attributes are written
+    assertNull(attributes.get("deploymentId"));
+    assertNull(attributes.get("rolloutState"));
+    assertNull(attributes.get("rolloutStateReason"));
+    assertFalse(Boolean.TRUE.equals(attributes.get("ecsNative")));
   }
 }
