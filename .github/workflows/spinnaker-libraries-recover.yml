@@ -1,0 +1,109 @@
+name: Recover Spinnaker Libraries
+
+on:
+  workflow_dispatch:
+    inputs:
+      version:
+        description: Original library version (for example, 2026.3.2)
+        required: true
+        type: string
+      staging-repository-ids:
+        description: Failed staging repository IDs, separated by spaces or commas
+        type: string
+      portal-deployment-ids:
+        description: Existing Portal deployment IDs when staging records are unavailable
+        type: string
+      previous-run-id:
+        description: Previous recovery run ID to restore its checkpoint (required after an uncertain transfer)
+        type: string
+  pull_request:
+    paths:
+      - '.github/scripts/*nexus_publication.py'
+      - '.github/workflows/spinnaker-libraries-recover.yml'
+      - '.github/workflows/spinnaker-libraries.yml'
+  push:
+    branches:
+      - main
+      - release-*
+    paths:
+      - '.github/scripts/*nexus_publication.py'
+      - '.github/workflows/spinnaker-libraries-recover.yml'
+      - '.github/workflows/spinnaker-libraries.yml'
+
+defaults:
+  run:
+    shell: bash
+
+permissions:
+  contents: read
+  actions: read
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-python@v6
+        with:
+          python-version: '3.13'
+      - run: python3 -m unittest discover -s .github/scripts -p 'test_*nexus_publication.py' -v
+
+  recover:
+    if: github.event_name == 'workflow_dispatch'
+    needs: test
+    runs-on: ubuntu-latest
+    timeout-minutes: 40
+    concurrency:
+      group: spinnaker-libraries-${{ inputs.version }}
+      cancel-in-progress: false
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-python@v6
+        with:
+          python-version: '3.13'
+
+      - name: Verify previous run is an upstream recovery dispatch
+        if: inputs.previous-run-id != ''
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          PREVIOUS_RUN_ID: ${{ inputs.previous-run-id }}
+        run: |
+          if [[ ! "$PREVIOUS_RUN_ID" =~ ^[0-9]+$ ]]; then
+            echo "::error::Previous recovery run ID must be numeric."
+            exit 1
+          fi
+          gh api "repos/${GITHUB_REPOSITORY}/actions/runs/${PREVIOUS_RUN_ID}" \
+            | jq -e --arg repo "$GITHUB_REPOSITORY" \
+              '.event == "workflow_dispatch" and
+               .path == ".github/workflows/spinnaker-libraries-recover.yml" and
+               .head_repository.full_name == $repo'
+
+      - name: Restore previous recovery checkpoint
+        if: inputs.previous-run-id != ''
+        uses: actions/download-artifact@v8
+        with:
+          name: nexus-recovery-state
+          path: ${{ runner.temp }}/nexus-recovery
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          run-id: ${{ inputs.previous-run-id }}
+
+      - name: Resume existing repositories and wait for Maven Central publication
+        env:
+          RELEASE_VERSION: ${{ inputs.version }}
+          STAGING_REPOSITORY_IDS: ${{ inputs.staging-repository-ids }}
+          PORTAL_DEPLOYMENT_IDS: ${{ inputs.portal-deployment-ids }}
+          NEXUS_USERNAME: ${{ secrets.NEXUS_USERNAME }}
+          NEXUS_PASSWORD: ${{ secrets.NEXUS_PASSWORD }}
+        run: |
+          python3 .github/scripts/recover_nexus_publication.py \
+            --version "$RELEASE_VERSION" \
+            --checkpoint "$RUNNER_TEMP/nexus-recovery/state.json"
+
+      - name: Save recovery checkpoint
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: nexus-recovery-state
+          path: ${{ runner.temp }}/nexus-recovery/state.json
+          if-no-files-found: warn
+          retention-days: 30

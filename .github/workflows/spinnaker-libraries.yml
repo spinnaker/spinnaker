@@ -34,6 +34,9 @@ on:
 jobs:
   libraries-nexus:
     runs-on: ubuntu-latest
+    concurrency:
+      group: spinnaker-libraries-${{ inputs.version-override || github.ref }}
+      cancel-in-progress: false
     steps:
       - uses: actions/checkout@v7
 
@@ -63,7 +66,7 @@ jobs:
           ./gradlew assemble publishToNexus
 
       - name: Close and release Nexus staging repository
-        continue-on-error: true
+        id: nexus-release
         env:
           ORG_GRADLE_PROJECT_version: ${{ steps.version.outputs.version }}
           ORG_GRADLE_PROJECT_nexusPublishEnabled: true
@@ -72,4 +75,19 @@ jobs:
           ORG_GRADLE_PROJECT_nexusPgpSigningKey: ${{ secrets.NEXUS_PGP_SIGNING_KEY }}
           ORG_GRADLE_PROJECT_nexusPgpSigningPassword: ${{ secrets.NEXUS_PGP_SIGNING_PASSWORD }}
         run: |
-          ./gradlew findNexusStagingRepository closeAndReleaseNexusStagingRepository
+          ./gradlew --stacktrace findNexusStagingRepository closeAndReleaseNexusStagingRepository
+
+      - name: Report incomplete Maven publication
+        if: ${{ failure() && steps.nexus-release.outcome == 'failure' }}
+        env:
+          RELEASE_VERSION: ${{ steps.version.outputs.version }}
+        run: |
+          echo "::error title=Maven publication incomplete::Nexus staging close/release failed for ${RELEASE_VERSION}. Some libraries may be missing from Maven Central."
+          {
+            echo "### Maven publication incomplete: ${RELEASE_VERSION}"
+            echo
+            echo "Library uploads completed, but Nexus staging close/release failed."
+            echo "See the Gradle output for failed tasks and staging repository IDs."
+            echo "Run [Recover Spinnaker Libraries](${GITHUB_SERVER_URL}/${GITHUB_REPOSITORY}/actions/workflows/spinnaker-libraries-recover.yml) with this version and the failed staging repository IDs."
+            echo "See the [recovery runbook](${GITHUB_SERVER_URL}/${GITHUB_REPOSITORY}/blob/${GITHUB_SHA}/spinnaker-gradle-project/spinnaker-project-plugin/src/main/groovy/com/netflix/spinnaker/gradle/publishing/nexus/README.md#recovering-a-partially-published-release) for checkpoint recovery and unresolved transfers."
+          } >> "$GITHUB_STEP_SUMMARY"
