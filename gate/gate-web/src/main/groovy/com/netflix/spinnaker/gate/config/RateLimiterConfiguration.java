@@ -17,9 +17,11 @@ package com.netflix.spinnaker.gate.config;
 
 import java.util.ArrayList;
 import java.util.List;
+import lombok.Data;
 import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.stereotype.Component;
 
+@Data
 @Component
 @ConfigurationProperties("rate-limit")
 public class RateLimiterConfiguration {
@@ -63,6 +65,44 @@ public class RateLimiterConfiguration {
    */
   private List<SourceAppOverride> capacityBySourceApp = new ArrayList<>();
 
+  /**
+   * Endpoint-specific limits. The first rule matching a request's method and path is applied
+   * <em>instead of</em> the principal's default bucket; its counter is separate per rule and per
+   * principal. Requests that match no rule use the default bucket. Whether a rule is enforced or
+   * only logged follows the principal's learning state unless the rule sets {@code learning}.
+   *
+   * <p>Example:
+   *
+   * <pre>
+   * rate-limit:
+   *   rules:
+   *     - name: pipeline-start
+   *       methods: [POST]
+   *       path-patterns: ["/pipelines/**", "/webhooks/**"]
+   *       capacity: 10
+   *       rate-seconds: 60
+   * </pre>
+   */
+  private List<Rule> rules = new ArrayList<>();
+
+  /**
+   * The number of requests allowed in each rateSeconds window across <em>all</em> unauthenticated
+   * callers combined. Anonymous callers share one bucket since they can't be told apart reliably (a
+   * caller could change IP or any header at will), so this should comfortably exceed the default
+   * {@code capacity}. Health checks, actuator and {@code /auth} endpoints are excluded from
+   * limiting, see {@code excludePathPatterns}.
+   */
+  private int anonymousCapacity = 600;
+
+  /**
+   * {@link org.springframework.web.util.pattern.PathPattern}s that are never rate limited, no
+   * matter who calls them. Health checks and actuator endpoints are polled by load balancers and
+   * orchestrators; throttling them would take healthy instances out of service. {@code /auth}
+   * drives login pages and is reached before the caller has an identity.
+   */
+  private List<String> excludePathPatterns =
+      new ArrayList<>(List.of("/health/**", "/actuator/**", "/auth/**"));
+
   /** A principal-specific rate override map. */
   private List<PrincipalOverride> rateSecondsByPrincipal = new ArrayList<>();
 
@@ -80,118 +120,40 @@ public class RateLimiterConfiguration {
    */
   private List<String> ignoring = new ArrayList<>();
 
-  public int getCapacity() {
-    return capacity;
-  }
-
-  public int getRateSeconds() {
-    return rateSeconds;
-  }
-
-  public List<PrincipalOverride> getCapacityByPrincipal() {
-    return capacityByPrincipal;
-  }
-
-  public List<PrincipalOverride> getRateSecondsByPrincipal() {
-    return rateSecondsByPrincipal;
-  }
-
-  public List<SourceAppOverride> getCapacityBySourceApp() {
-    return capacityBySourceApp;
-  }
-
-  public boolean isLearning() {
-    return learning;
-  }
-
-  public List<String> getEnforcing() {
-    return enforcing;
-  }
-
-  public List<String> getIgnoring() {
-    return ignoring;
-  }
-
-  public void setLearning(boolean learning) {
-    this.learning = learning;
-  }
-
-  public void setCapacity(int capacity) {
-    this.capacity = capacity;
-  }
-
-  public void setRateSeconds(int rateSeconds) {
-    this.rateSeconds = rateSeconds;
-  }
-
-  public void setCapacityByPrincipal(List<PrincipalOverride> capacityByPrincipal) {
-    this.capacityByPrincipal = capacityByPrincipal;
-  }
-
-  public void setCapacityBySourceApp(List<SourceAppOverride> capacityBySourceApp) {
-    this.capacityBySourceApp = capacityBySourceApp;
-  }
-
-  public void setRateSecondsByPrincipal(List<PrincipalOverride> rateSecondsByPrincipal) {
-    this.rateSecondsByPrincipal = rateSecondsByPrincipal;
-  }
-
-  public void setEnforcing(List<String> enforcing) {
-    this.enforcing = enforcing;
-  }
-
-  public void setIgnoring(List<String> ignoring) {
-    this.ignoring = ignoring;
-  }
-
-  public int getFilterOrder() {
-    return filterOrder;
-  }
-
-  public void setFilterOrder(int filterOrder) {
-    this.filterOrder = filterOrder;
-  }
-
   // Spring doesn't enjoy principals that have dots in their name, so it can't be a map.
+  @Data
   public static class PrincipalOverride {
     private String principal;
     private Integer override;
-
-    public String getPrincipal() {
-      return principal;
-    }
-
-    public Integer getOverride() {
-      return override;
-    }
-
-    public void setPrincipal(String principal) {
-      this.principal = principal;
-    }
-
-    public void setOverride(Integer override) {
-      this.override = override;
-    }
   }
 
+  @Data
   public static class SourceAppOverride {
     private String sourceApp;
     private Integer override;
+  }
 
-    public String getSourceApp() {
-      return sourceApp;
-    }
+  /** An endpoint-specific limit, see {@link RateLimiterConfiguration#rules}. */
+  @Data
+  public static class Rule {
+    /** Unique identifier; used in the Redis key and metrics, so it may not contain ':'. */
+    private String name;
 
-    public Integer getOverride() {
-      return override;
-    }
+    /** HTTP methods the rule applies to; empty means all methods. */
+    private List<String> methods = new ArrayList<>();
 
-    public void setSourceApp(String sourceApp) {
-      this.sourceApp = sourceApp;
-    }
+    /**
+     * Spring {@link org.springframework.web.util.pattern.PathPattern}s matched against the request
+     * path, e.g. {@code /pipelines/**}. A trailing slash on the request is ignored.
+     */
+    private List<String> pathPatterns = new ArrayList<>();
 
-    public void setOverride(Integer override) {
-      this.override = override;
-    }
+    /** The number of requests allowed in each rateSeconds window. */
+    private int capacity;
+
+    private int rateSeconds;
+
+    /** Overrides the principal's learning state for this rule when set. */
+    private Boolean learning;
   }
 }

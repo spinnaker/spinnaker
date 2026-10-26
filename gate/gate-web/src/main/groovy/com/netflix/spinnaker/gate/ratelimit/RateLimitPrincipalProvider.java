@@ -16,11 +16,9 @@
 package com.netflix.spinnaker.gate.ratelimit;
 
 public interface RateLimitPrincipalProvider {
-  String DECK_APP = "deck";
+
+  /** The shared principal for every unauthenticated caller. */
+  String ANONYMOUS = "anonymous";
 
   RateLimitPrincipal getPrincipal(String name, String sourceApp);
-
-  default boolean supports(String sourceApp) {
-    return !DECK_APP.equalsIgnoreCase(sourceApp);
-  }
 }

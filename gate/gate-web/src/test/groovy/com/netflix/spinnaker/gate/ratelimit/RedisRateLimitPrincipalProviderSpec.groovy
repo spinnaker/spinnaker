@@ -81,7 +81,7 @@ class RedisRateLimitPrincipalProviderSpec extends Specification {
 
     where:
     principalName           | sourceApp  || expectedCapacity | expectedRateSeconds | expectedLearning
-    'anonymous-10.10.10.10' | null       || 5                | 5                   | true
+    'anonymous'             | null       || 5                | 5                   | true
     'redis-enforced'        | null       || 60               | 10                  | false
     'redis-ignored'         | null       || 60               | 10                  | true
     'redis-conflict'        | null       || 60               | 10                  | false
