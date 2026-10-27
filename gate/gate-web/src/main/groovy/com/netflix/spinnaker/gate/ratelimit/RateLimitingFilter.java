@@ -127,7 +127,8 @@ public class RateLimitingFilter extends HttpFilter {
     String principalName = resolved.get();
 
     RateLimitPrincipal principal =
-        rateLimitPrincipalProvider.getPrincipal(principalName, sourceApp);
+        rateLimitPrincipalProvider.getPrincipal(
+            principalName, sourceApp, () -> principalResolver.resolveRoles(request));
 
     Optional<Rule> rule = ruleMatcher.match(request);
     boolean learning = rule.map(Rule::getLearning).orElse(principal.isLearning());

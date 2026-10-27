@@ -16,6 +16,8 @@
 package com.netflix.spinnaker.gate.ratelimit;
 
 import jakarta.servlet.http.HttpServletRequest;
+import java.util.Collection;
+import java.util.List;
 import java.util.Optional;
 
 /**
@@ -28,4 +30,11 @@ public interface RateLimitPrincipalResolver {
    * @return the principal name to limit the request as, or empty to not rate limit the request
    */
   Optional<String> resolve(HttpServletRequest request);
+
+  /**
+   * @return the caller's roles, used to select a capacity tier; empty if none are known
+   */
+  default Collection<String> resolveRoles(HttpServletRequest request) {
+    return List.of();
+  }
 }

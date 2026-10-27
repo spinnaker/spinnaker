@@ -25,6 +25,7 @@ import com.netflix.spinnaker.gate.ratelimit.RateLimitingFilter;
 import com.netflix.spinnaker.gate.ratelimit.RedisRateLimitPrincipalProvider;
 import com.netflix.spinnaker.gate.ratelimit.RedisRateLimiter;
 import com.netflix.spinnaker.gate.security.RequestIdentityExtractor;
+import com.netflix.spinnaker.gate.services.PermissionService;
 import java.util.List;
 import java.util.Optional;
 import lombok.extern.slf4j.Slf4j;
@@ -97,8 +98,10 @@ public class RateLimiterConfig {
   @Bean
   @ConditionalOnMissingBean
   RateLimitPrincipalResolver rateLimitPrincipalResolver(
-      Optional<List<RequestIdentityExtractor>> requestIdentityExtractors) {
-    return new DefaultRateLimitPrincipalResolver(requestIdentityExtractors.orElse(null));
+      Optional<List<RequestIdentityExtractor>> requestIdentityExtractors,
+      Optional<PermissionService> permissionService) {
+    return new DefaultRateLimitPrincipalResolver(
+        requestIdentityExtractors.orElse(null), permissionService.orElse(null));
   }
 
   @Bean

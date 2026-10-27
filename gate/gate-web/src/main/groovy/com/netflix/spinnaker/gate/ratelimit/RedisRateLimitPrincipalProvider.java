@@ -19,8 +19,10 @@ import static net.logstash.logback.argument.StructuredArguments.value;
 
 import com.netflix.spinnaker.gate.config.RateLimiterConfiguration;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.List;
 import java.util.Optional;
+import java.util.function.Supplier;
 import javax.annotation.Nullable;
 import lombok.extern.slf4j.Slf4j;
 import redis.clients.jedis.Jedis;
@@ -41,8 +43,14 @@ public class RedisRateLimitPrincipalProvider extends AbstractRateLimitPrincipalP
 
   @Override
   public RateLimitPrincipal getPrincipal(String name, @Nullable String sourceApp) {
+    return getPrincipal(name, sourceApp, List::of);
+  }
+
+  @Override
+  public RateLimitPrincipal getPrincipal(
+      String name, @Nullable String sourceApp, Supplier<Collection<String>> roles) {
     try (Jedis jedis = jedisPool.getResource()) {
-      int capacity = getCapacity(jedis, name, sourceApp);
+      int capacity = getCapacity(jedis, name, sourceApp, roles);
       int rateSeconds = getRateSeconds(jedis, name);
       boolean learning = getLearningFlag(jedis, name, sourceApp);
 
@@ -57,7 +65,8 @@ public class RedisRateLimitPrincipalProvider extends AbstractRateLimitPrincipalP
     }
   }
 
-  private int getCapacity(Jedis jedis, String name, @Nullable String sourceApp) {
+  private int getCapacity(
+      Jedis jedis, String name, @Nullable String sourceApp, Supplier<Collection<String>> roles) {
     String capacity = jedis.get(getCapacityKey(name));
     if (capacity != null) {
       try {
@@ -74,7 +83,8 @@ public class RedisRateLimitPrincipalProvider extends AbstractRateLimitPrincipalP
     int defaultCapacity =
         ANONYMOUS.equals(name)
             ? rateLimiterConfiguration.getAnonymousCapacity()
-            : getCapacityForSourceApp(jedis, sourceApp)
+            : getCapacityForRoles(roles)
+                .or(() -> getCapacityForSourceApp(jedis, sourceApp))
                 .orElse(rateLimiterConfiguration.getCapacity());
 
     return overrideOrDefault(
@@ -154,6 +164,22 @@ public class RedisRateLimitPrincipalProvider extends AbstractRateLimitPrincipalP
 
   private static String getLearningKey() {
     return "rateLimit:learning";
+  }
+
+  private Optional<Integer> getCapacityForRoles(Supplier<Collection<String>> rolesSupplier) {
+    if (rateLimiterConfiguration.getCapacityByRole().isEmpty()) {
+      return Optional.empty();
+    }
+
+    Collection<String> roles = rolesSupplier.get();
+    if (roles == null || roles.isEmpty()) {
+      return Optional.empty();
+    }
+
+    return rateLimiterConfiguration.getCapacityByRole().stream()
+        .filter(o -> o.getRole() != null && o.getOverride() != null && roles.contains(o.getRole()))
+        .map(RateLimiterConfiguration.RoleOverride::getOverride)
+        .max(Integer::compare);
   }
 
   private Optional<Integer> getCapacityForSourceApp(Jedis jedis, @Nullable String sourceApp) {

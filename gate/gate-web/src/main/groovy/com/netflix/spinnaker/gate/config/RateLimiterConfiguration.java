@@ -60,6 +60,18 @@ public class RateLimiterConfiguration {
   private List<PrincipalOverride> capacityByPrincipal = new ArrayList<>();
 
   /**
+   * A role-specific capacity override list, e.g. to give administrators or service accounts more
+   * capacity per rateSeconds than the default. A caller's roles are any Fiat role or group
+   * (including ones synced from LDAP, SAML, OAuth2 or GitHub) and the role authorities of their
+   * authenticated session or token; Spinnaker administrators additionally carry the role {@code
+   * SPINNAKER_ADMIN}. Roles are only looked up when this list is non-empty. When a caller has
+   * several roles listed here the highest capacity wins. Precedence, highest first: capacity set in
+   * Redis for the principal, {@link #capacityByPrincipal}, {@code capacityByRole}, {@link
+   * #capacityBySourceApp}, {@link #capacity}. Anonymous callers have no roles.
+   */
+  private List<RoleOverride> capacityByRole = new ArrayList<>();
+
+  /**
    * A source app-specific capacity override map. This can be defined if you want to give a specific
    * source app more or less capacity per rateSeconds than the default.
    */
@@ -124,6 +136,12 @@ public class RateLimiterConfiguration {
   @Data
   public static class PrincipalOverride {
     private String principal;
+    private Integer override;
+  }
+
+  @Data
+  public static class RoleOverride {
+    private String role;
     private Integer override;
   }
 

@@ -15,12 +15,20 @@
  */
 package com.netflix.spinnaker.gate.ratelimit;
 
+import com.netflix.spinnaker.fiat.model.resources.Role;
 import com.netflix.spinnaker.gate.security.RequestIdentityExtractor;
+import com.netflix.spinnaker.gate.services.PermissionService;
+import com.netflix.spinnaker.security.SpinnakerAuthorities;
 import jakarta.servlet.http.HttpServletRequest;
+import java.util.Collection;
 import java.util.Collections;
+import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
+import java.util.Set;
+import java.util.stream.Collectors;
+import javax.annotation.Nullable;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.security.authentication.AnonymousAuthenticationToken;
 import org.springframework.security.core.Authentication;
@@ -40,9 +48,21 @@ public class DefaultRateLimitPrincipalResolver implements RateLimitPrincipalReso
 
   private final List<RequestIdentityExtractor> requestIdentityExtractors;
 
+  private final PermissionService permissionService;
+
   public DefaultRateLimitPrincipalResolver(List<RequestIdentityExtractor> extractors) {
+    this(extractors, null);
+  }
+
+  /**
+   * @param permissionService when present, also supplies the caller's Fiat roles (including groups
+   *     synced from an external provider), which are not necessarily granted authorities
+   */
+  public DefaultRateLimitPrincipalResolver(
+      List<RequestIdentityExtractor> extractors, @Nullable PermissionService permissionService) {
     this.requestIdentityExtractors =
         Objects.requireNonNullElseGet(extractors, Collections::emptyList);
+    this.permissionService = permissionService;
   }
 
   @Override
@@ -67,6 +87,37 @@ public class DefaultRateLimitPrincipalResolver implements RateLimitPrincipalReso
     }
 
     return Optional.of(name);
+  }
+
+  @Override
+  public Collection<String> resolveRoles(HttpServletRequest request) {
+    Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+    if (authentication == null || authentication instanceof AnonymousAuthenticationToken) {
+      return List.of();
+    }
+
+    Set<String> roles = new LinkedHashSet<>(SpinnakerAuthorities.getRoles(authentication));
+    if (SpinnakerAuthorities.isAdmin(authentication)) {
+      roles.add(SpinnakerAuthorities.ADMIN);
+    }
+    roles.addAll(fiatRoles(authentication));
+    return roles;
+  }
+
+  private Set<String> fiatRoles(Authentication authentication) {
+    if (permissionService == null || authentication.getName() == null) {
+      return Set.of();
+    }
+
+    // Never let a role lookup failure turn into a failed request: fall back to the default tier.
+    try {
+      return permissionService.getRoles(authentication.getName()).stream()
+          .map(Role.View::getName)
+          .collect(Collectors.toSet());
+    } catch (Exception e) {
+      log.warn("Unable to look up roles for rate limiting, using default capacity", e);
+      return Set.of();
+    }
   }
 
   private Optional<String> extractIdentity(HttpServletRequest request) {
