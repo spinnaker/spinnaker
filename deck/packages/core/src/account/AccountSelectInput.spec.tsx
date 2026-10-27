@@ -7,6 +7,7 @@ import type { IAccountSelectInputProps, IAccountSelectInputState } from './Accou
 import { AccountSelectInput } from './AccountSelectInput';
 import type { IAccountDetails } from './AccountService';
 import { AccountService } from './AccountService';
+import { ReactSelectInput } from '../presentation/forms/inputs/ReactSelectInput';
 import Spy = jasmine.Spy;
 
 const makeAccount = (name: string, cloudProvider: string, primaryAccount: boolean): IAccountDetails => {
@@ -146,5 +147,52 @@ describe('<AccountSelectInput/>', () => {
       <AccountSelectInput accounts={['prod', 'test']} provider={null} value="${parameters.account}" />,
     );
     expect(component.text()).toContain(text);
+  });
+
+  it("checks each account's details once, not once per account", async () => {
+    let nameReads = 0;
+    const details = Array.from({ length: 200 }, (_, i) => {
+      const account = makeAccount(`account-${String(i).padStart(3, '0')}`, 'kubernetes', i % 50 === 0);
+      const { name } = account;
+      Object.defineProperty(account, 'name', {
+        get: () => {
+          nameReads++;
+          return name;
+        },
+      });
+      return account;
+    });
+    AccountServiceSpy.and.returnValue(Promise.resolve(details));
+    const accounts = details.map((detail) => detail.name);
+    nameReads = 0;
+
+    component = shallow(<AccountSelectInput accounts={accounts} provider="kubernetes" value="account-000" />);
+    await settleComponent();
+
+    expect(component.state().primaryAccounts).toEqual(['account-000', 'account-050', 'account-100', 'account-150']);
+    expect(component.state().secondaryAccounts.length).toBe(196);
+    expect(nameReads).toBeLessThanOrEqual(details.length);
+  });
+
+  it('renders a virtualized select with primary accounts first when there are many accounts', async () => {
+    const accounts = ['prod', 'prod2', 'backup', 'staging', 'test', 'dev'];
+    AccountServiceSpy.and.returnValue(
+      Promise.resolve(accounts.map((name) => makeAccount(name, 'aws', name.startsWith('prod')))),
+    );
+    component = shallow(<AccountSelectInput accounts={accounts} provider="aws" value="prod" />);
+    await settleComponent();
+
+    const select = component.find(ReactSelectInput);
+    expect(select.prop('mode')).toBe('VIRTUALIZED');
+    expect(select.prop('options').map((option: { value: string }) => option.value)).toEqual([
+      '',
+      'prod',
+      'prod2',
+      '-',
+      'backup',
+      'dev',
+      'staging',
+      'test',
+    ]);
   });
 });
