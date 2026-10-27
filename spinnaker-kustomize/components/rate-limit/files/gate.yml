@@ -1,0 +1,65 @@
+## Gate API rate limiting demo. Requires Redis (see components/redis): counters are shared
+## across gate pods via a Redis Lua fixed-window limiter. Callers over their limit get a 429
+## with Retry-After and X-RateLimit-* headers.
+rate-limit:
+  enabled: true
+
+  ## Start in learning mode: over-limit calls are only logged ("would have been rate limited").
+  ## Watch gate logs, tune the numbers below, then set this to false to enforce.
+  learning: true
+
+  ## Default bucket: `capacity` requests per `rate-seconds` per authenticated principal.
+  capacity: 60
+  rate-seconds: 10
+
+  ## Unauthenticated callers share the anonymous bucket; keep it larger because login pages
+  ## and similar calls are anonymous.
+  anonymous-capacity: 600
+
+  ## Never rate limit these (these are also the defaults).
+  exclude-path-patterns:
+    - /health/**
+    - /actuator/**
+    - /auth/**
+
+  ## Higher limits by role. In Spinnaker, roles are groups: this matches authorities from the
+  ## login (e.g. SAML/OAuth2 groups) plus Fiat roles. A user in several matching roles gets
+  ## the highest limit. SPINNAKER_ADMIN is added automatically for Fiat admins.
+  capacity-by-role:
+    - role: SPINNAKER_ADMIN
+      override: 600
+    - role: platform-engineers
+      override: 300
+    - role: ci-automation
+      override: 1200
+
+  ## Per-principal overrides (user or service account name). These win over role limits.
+  capacity-by-principal:
+    - principal: jenkins-bot@example.com
+      override: 2000
+    - principal: noisy-user@example.com
+      override: 20
+
+  ## Endpoint-specific limits. The first rule matching method and path is used instead of the
+  ## default bucket, with a separate counter per rule and principal. The matching rule name is
+  ## returned in the X-RateLimit-Rule response header.
+  rules:
+    - name: pipeline-start
+      methods: [POST]
+      path-patterns:
+        - /pipelines/**
+        - /webhooks/**
+      capacity: 10
+      rate-seconds: 60
+    - name: search
+      methods: [GET]
+      path-patterns:
+        - /search/**
+        - /applications/*/serverGroups/**
+      capacity: 30
+      rate-seconds: 10
+
+  ## To enforce only for certain principals while others stay in learning mode, set
+  ## `learning: true` and list principals here (or the reverse with `ignoring`).
+  #enforcing:
+  #  - noisy-user@example.com
