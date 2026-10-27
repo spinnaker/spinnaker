@@ -31,7 +31,7 @@ ext {
     swagger          : "2.2.49",
     httpcore5        : "5.4.3",
     logback          : "1.5.37",
-    tomcat           : "10.1.56",
+    tomcat           : "10.1.59", // CVE-2026-65182: 10.1.0-M1 through 10.1.57 affected
     commonsCompress  : "1.27.1",
     // Testcontainers module for the MiniStack AWS emulator. The module is a thin
     // GenericContainer wrapper, so the emulator version comes from the image tag
