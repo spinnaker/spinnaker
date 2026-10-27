@@ -41,6 +41,7 @@ import java.io.InputStream;
 import java.nio.charset.StandardCharsets;
 import java.time.Duration;
 import java.util.*;
+import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
@@ -52,6 +53,14 @@ public class GitlabCiService implements BuildOperations, BuildProperties, Stoppa
   private final GitlabCiProperties.GitlabCiHost hostConfig;
   private final Permissions permissions;
   private final RetrySupport retrySupport = new RetrySupport();
+
+  // GitLab prefixes each job-log line with an ISO-8601 timestamp and a stream code, e.g.
+  // "2026-10-27T16:13:22.166283Z 01O SPINNAKER_PROPERTY_FOO=bar". The shared PropertyParser
+  // anchors SPINNAKER_PROPERTY_/SPINNAKER_CONFIG_JSON to the start of a line, so this prefix
+  // is stripped per line before parsing. Applied with MULTILINE so ^ matches each line.
+  private static final Pattern GITLAB_LOG_LINE_PREFIX =
+      Pattern.compile(
+          "^\\d{4}-\\d{2}-\\d{2}T\\d{2}:\\d{2}:\\d{2}\\.\\d+Z\\s+\\S+\\s+", Pattern.MULTILINE);
 
   public GitlabCiService(
       GitlabCiClient client,
@@ -243,7 +252,11 @@ public class GitlabCiService implements BuildOperations, BuildProperties, Stoppa
                       .source()
                       .inputStream();
               String log = new String(logStream.readAllBytes(), StandardCharsets.UTF_8);
-              Map<String, Object> jobProperties = PropertyParser.extractPropertiesFromLog(log);
+              // Strip GitLab's per-line timestamp/stream prefix so the shared PropertyParser
+              // (which anchors the magic string to line start) can match.
+              String cleanedLog = GITLAB_LOG_LINE_PREFIX.matcher(log).replaceAll("");
+              Map<String, Object> jobProperties =
+                  PropertyParser.extractPropertiesFromLog(cleanedLog);
               properties.putAll(jobProperties);
             }
 
