@@ -14,28 +14,7 @@ on:
       version-override:
         description: The release version to publish (e.g. "2026.3.2").
         type: string
-<<<<<<< HEAD
-
-  push:
-    branches:
-      - main
-      - release-*
-    paths:
-      - 'clouddriver/**'
-      - 'echo/**'
-      - 'fiat/**'
-      - 'front50/**'
-      - 'gate/**'
-      - 'halyard/**'
-      - 'igor/**'
-      - 'kayenta/**'
-      - 'keel/**'
-      - 'kork/**'
-      - 'orca/**'
-      - 'rosco/**'
-=======
         required: true
->>>>>>> 9ecc910 (ci: publish libraries and deck npm packages only for full releases (#8266))
 
 jobs:
   libraries-nexus:
