@@ -3,6 +3,7 @@ import React from 'react';
 
 import { PipelineRegistry } from './PipelineRegistry';
 import type { IRegion } from '../../account/AccountService';
+import { CloudProviderRegistry } from '../../cloudProvider';
 import { SETTINGS } from '../../config';
 import type { IStage, IStageTypeConfig, ITriggerTypeConfig } from '../../domain';
 import { ITriggerTemplateComponentProps } from '../manualExecution/TriggerTemplate';
@@ -504,6 +505,54 @@ describe('PipelineRegistry: API', function () {
         expect(Registry.pipeline.getConfigurableStageTypes(providerAccounts) as any[]).toEqual([
           { key: 'a', useBaseProvider: true, cloudProviders: ['aws', 'titus'] },
         ]);
+      });
+    });
+
+    describe('stage types excluded by providers', function () {
+      it('removes stages that every account provider excludes', function () {
+        spyOn(CloudProviderRegistry, 'getProvider').and.callFake((provider: string) => ({
+          name: provider,
+          unsupportedStageTypes: ['a'],
+        }));
+        Registry.pipeline.registerStage({ key: 'a' } as IStageTypeConfig);
+        Registry.pipeline.registerStage({ key: 'b' } as IStageTypeConfig);
+        const providerAccounts = [awsProviderAccount, gcpProviderAccount];
+        expect(Registry.pipeline.getConfigurableStageTypes(providerAccounts) as any[]).toEqual([
+          { key: 'b', cloudProviders: ['aws', 'gcp'] },
+        ]);
+      });
+
+      it('drops only the providers that exclude a stage', function () {
+        spyOn(CloudProviderRegistry, 'getProvider').and.callFake((provider: string) => ({
+          name: provider,
+          unsupportedStageTypes: provider === 'aws' ? ['a'] : [],
+        }));
+        Registry.pipeline.registerStage({ key: 'a' } as IStageTypeConfig);
+        const providerAccounts = [awsProviderAccount, gcpProviderAccount];
+        expect(Registry.pipeline.getConfigurableStageTypes(providerAccounts) as any[]).toEqual([
+          { key: 'a', cloudProviders: ['gcp'] },
+        ]);
+      });
+
+      it('looks up each provider once, however many accounts there are', function () {
+        const getProvider = spyOn(CloudProviderRegistry, 'getProvider').and.callFake((provider: string) => ({
+          name: provider,
+          unsupportedStageTypes: ['a'],
+        }));
+        Registry.pipeline.registerStage({ key: 'a', label: 'A' } as IStageTypeConfig);
+        Registry.pipeline.registerStage({ key: 'b', label: 'B', useBaseProvider: true } as IStageTypeConfig);
+        Registry.pipeline.registerStage({ key: 'c', provides: 'b', cloudProvider: 'aws' } as IStageTypeConfig);
+        Registry.pipeline.registerStage({ key: 'd', label: 'D' } as IStageTypeConfig);
+        const providerAccounts = [
+          ...Array.from({ length: 500 }, (_, i) => ({ ...awsProviderAccount, name: `aws-${i}` })),
+          ...Array.from({ length: 500 }, (_, i) => ({ ...gcpProviderAccount, name: `gcp-${i}` })),
+        ];
+
+        expect(Registry.pipeline.getConfigurableStageTypes(providerAccounts) as any[]).toEqual([
+          { key: 'b', label: 'B', useBaseProvider: true, cloudProviders: ['aws'] },
+          { key: 'd', label: 'D', cloudProviders: ['aws', 'gcp'] },
+        ]);
+        expect(getProvider.calls.allArgs()).toEqual([['aws'], ['gcp']]);
       });
     });
   });
