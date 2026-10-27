@@ -173,6 +173,35 @@ class GitlabCiServiceSpec extends Specification {
     thrown SpinnakerHttpException
   }
 
+  def "getBuildProperties extracts properties from GitLab-prefixed log lines"() {
+    given: "a job log in GitLab's real format: each line prefixed with a timestamp and stream code"
+    final String PROJECT_ID = "13"
+    final int PIPELINE_ID = 3
+    final int JOB_ID = 1
+
+    def build = new Build(number: PIPELINE_ID, duration: 0L)
+    def testPipeline = new Pipeline(id: PIPELINE_ID)
+    def testJob = new Job(pipeline: testPipeline, id: JOB_ID)
+    def gitlabLog =
+        "2026-10-27T16:13:21.006671Z 00O \u001B[0KRunning with gitlab-runner 19.1.1\u001B[0;m\n" +
+        "2026-10-27T16:13:22.166283Z 01O SPINNAKER_PROPERTY_BUILD_VERSION=1.2.3\n" +
+        "2026-10-27T16:13:22.166286Z 01O SPINNAKER_PROPERTY_BUILT_BY=eeigjon\n" +
+        "2026-10-27T16:13:23.000000Z 00O Job succeeded\n"
+    def jobLog = ResponseBody.create(gitlabLog, MediaType.parse("application/text"))
+
+    when:
+    def properties = service.getBuildProperties(PROJECT_ID, build.genericBuild(PROJECT_ID), "gitlab.properties")
+
+    then:
+    1 * client.getPipeline(PROJECT_ID, PIPELINE_ID) >> Calls.response(testPipeline)
+    1 * client.getJobs(PROJECT_ID, PIPELINE_ID) >> Calls.response([testJob])
+    1 * client.getBridges(PROJECT_ID, PIPELINE_ID) >> Calls.response([])
+    1 * client.getJobLog(PROJECT_ID, JOB_ID) >> Calls.response(jobLog)
+
+    and: "the timestamp/stream prefix is stripped so both properties are extracted (keys lowercased by the parser), and runner noise is ignored"
+    properties == [build_version: "1.2.3", built_by: "eeigjon"]
+  }
+
   def "triggerBuildWithParameters triggers a pipeline and returns its ID"() {
     given:
     final String PROJECT_ID = "9729"
