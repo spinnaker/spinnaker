@@ -5,14 +5,16 @@ on:
   workflow_call:
     inputs:
       version-override:
-        description: Overrides the version for artifacts (e.g. "1.37.1").  Otherwise, uses the auto-incrementing build number for the current branch.
+        description: The release version to publish (e.g. "2026.3.2").
         type: string
+        required: true
 
   workflow_dispatch:
     inputs:
       version-override:
-        description: Overrides the version for artifacts (e.g. "1.37.1").  Otherwise, uses the auto-incrementing build number for the current branch.
+        description: The release version to publish (e.g. "2026.3.2").
         type: string
+<<<<<<< HEAD
 
   push:
     branches:
@@ -31,6 +33,9 @@ on:
       - 'kork/**'
       - 'orca/**'
       - 'rosco/**'
+=======
+        required: true
+>>>>>>> 9ecc910 (ci: publish libraries and deck npm packages only for full releases (#8266))
 
 jobs:
   libraries-nexus:
