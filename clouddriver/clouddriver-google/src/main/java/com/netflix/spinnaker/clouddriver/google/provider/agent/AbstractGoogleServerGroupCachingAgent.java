@@ -582,23 +582,31 @@ public abstract class AbstractGoogleServerGroupCachingAgent
     return managers.stream()
         .map(
             manager -> {
-              ImmutableSet<GoogleInstance> ownedInstances = ImmutableSet.of();
-              if (manager.getBaseInstanceName() != null) {
-                ownedInstances =
-                    instances.stream()
-                        .filter(
-                            instance ->
-                                instance.getName().startsWith(manager.getBaseInstanceName()))
-                        .filter(instance -> instanceScopedToManager(instance, manager))
-                        .collect(toImmutableSet());
+              try {
+                ImmutableSet<GoogleInstance> ownedInstances = ImmutableSet.of();
+                if (manager.getBaseInstanceName() != null) {
+                  ownedInstances =
+                      instances.stream()
+                          .filter(
+                              instance ->
+                                  instance.getName().startsWith(manager.getBaseInstanceName()))
+                          .filter(instance -> instanceScopedToManager(instance, manager))
+                          .collect(toImmutableSet());
+                }
+                TargetAndScope key = TargetAndScope.forInstanceGroupManager(manager);
+                Autoscaler autoscaler = autoscalerMap.get(key);
+                InstanceTemplate instanceTemplate =
+                    instanceTemplatesMap.get(Utils.getLocalName(manager.getInstanceTemplate()));
+                return Optional.of(
+                    createServerGroup(
+                        manager, ownedInstances, instanceTemplate, autoscaler, providerCache));
+              } catch (Exception e) {
+                log.error("Failed to create server group for manager: " + manager.getName(), e);
+                return Optional.<GoogleServerGroup>empty();
               }
-              TargetAndScope key = TargetAndScope.forInstanceGroupManager(manager);
-              Autoscaler autoscaler = autoscalerMap.get(key);
-              InstanceTemplate instanceTemplate =
-                  instanceTemplatesMap.get(Utils.getLocalName(manager.getInstanceTemplate()));
-              return createServerGroup(
-                  manager, ownedInstances, instanceTemplate, autoscaler, providerCache);
             })
+        .filter(Optional::isPresent)
+        .map(Optional::get)
         .collect(toImmutableList());
   }
 
@@ -1088,7 +1096,7 @@ public abstract class AbstractGoogleServerGroupCachingAgent
       ScalingSchedule output = new ScalingSchedule();
       output.setScheduleName(key);
       output.setScheduleDescription(input.getDescription());
-      output.setEnabled(!input.getDisabled());
+      output.setEnabled(!Boolean.TRUE.equals(input.getDisabled()));
       output.setDuration(input.getDurationSec());
       output.setMinimumRequiredInstances(input.getMinRequiredReplicas());
       output.setScheduleCron(input.getSchedule());
