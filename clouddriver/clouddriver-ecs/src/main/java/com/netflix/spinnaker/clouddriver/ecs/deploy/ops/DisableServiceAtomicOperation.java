@@ -33,12 +33,21 @@ public class DisableServiceAtomicOperation
     extends AbstractEcsAtomicOperation<ModifyServiceDescription, Void> {
 
   public DisableServiceAtomicOperation(ModifyServiceDescription description) {
-    super(description, "DISABLE_ECS_SERVER_GROUP");
+    this(description, false);
+  }
+
+  public DisableServiceAtomicOperation(
+      ModifyServiceDescription description, boolean requireNativeServiceOwnership) {
+    super(description, "DISABLE_ECS_SERVER_GROUP", requireNativeServiceOwnership);
   }
 
   @Override
   public Void operate(List priorOutputs) {
     updateTaskStatus("Initializing Disable Amazon ECS Server Group Operation...");
+    String service = description.getServerGroupName();
+    String account = description.getAccount();
+    String cluster = getCluster(service, account);
+    requireNativeServiceOwnership(cluster, service);
     disableService();
     return null;
   }

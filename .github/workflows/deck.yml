@@ -90,7 +90,8 @@ jobs:
           publish: ${{ github.event_name != 'pull_request' }}
           publish-containers: ${{ github.event_name == 'push' || inputs.publish-containers == true }}
           publish-debs: ${{ inputs.publish-debs == true }}
-          publish-npm: ${{ github.event_name == 'push' || inputs.publish-npm == true }}
+          # npm packages are only published for full releases, which always pass an explicit version
+          publish-npm: ${{ inputs.publish-npm == true && inputs.version-override != '' }}
           version-override: ${{ inputs.version-override }}
           integration-test: false
           github-token: ${{ secrets.GITHUB_TOKEN }}
