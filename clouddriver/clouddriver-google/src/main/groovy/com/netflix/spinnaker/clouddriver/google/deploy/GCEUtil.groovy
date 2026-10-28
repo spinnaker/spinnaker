@@ -697,6 +697,7 @@ class GCEUtil {
     // templates created before the Compute v1 cutover. Legacy values arrive as Map/GenericJson
     // from wire JSON, so normalize rather than casting directly to ShieldedInstanceConfig.
     def shieldedConfig = resolveShieldedInstanceConfig(instanceTemplateProperties)
+    def workloadIdentityConfig = instanceTemplateProperties.workloadIdentityConfig
 
     return new BaseGoogleInstanceDescription(
       image: image,
@@ -713,7 +714,11 @@ class GCEUtil {
       authScopes: retrieveScopesFromServiceAccount(serviceAccountEmail, instanceTemplateProperties.serviceAccounts),
       enableSecureBoot: shieldedConfig?.enableSecureBoot,
       enableVtpm: shieldedConfig?.enableVtpm,
-      enableIntegrityMonitoring: shieldedConfig?.enableIntegrityMonitoring
+      enableIntegrityMonitoring: shieldedConfig?.enableIntegrityMonitoring,
+      workloadIdentityConfig: workloadIdentityConfig ? new BaseGoogleInstanceDescription.WorkloadIdentityConfig(
+        identity: workloadIdentityConfig.identity,
+        identityCertificateEnabled: workloadIdentityConfig.identityCertificateEnabled
+      ) : null
     )
   }
 

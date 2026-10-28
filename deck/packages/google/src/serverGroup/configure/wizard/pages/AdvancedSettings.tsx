@@ -775,6 +775,52 @@ export class AdvancedSettings extends GceServerGroupWizardPage {
           </div>
         </div>
 
+        <fieldset className="form-group" data-testid="workload-identity">
+          <legend className="sm-label-left">
+            Workload Identity <HelpField id="gce.serverGroup.workloadIdentityConfig" />
+          </legend>
+          <div className="form-group">
+            <label className="col-md-5 control-label" htmlFor="gce-workload-identity">
+              Identity <HelpField id="gce.serverGroup.workloadIdentityConfig.identity" />
+            </label>
+            <div className="col-md-6">
+              <input
+                className="form-control input-sm"
+                id="gce-workload-identity"
+                onChange={(event) => {
+                  const identity = event.target.value;
+                  const identityCertificateEnabled = Boolean(values.workloadIdentityConfig?.identityCertificateEnabled);
+                  this.setField(
+                    'workloadIdentityConfig',
+                    identity || identityCertificateEnabled ? { identity, identityCertificateEnabled } : undefined,
+                  );
+                }}
+                placeholder="e.g. [PROJECT_NUMBER]-compute@developer.gserviceaccount.com"
+                type="text"
+                value={values.workloadIdentityConfig?.identity || ''}
+              />
+            </div>
+          </div>
+          <div className="col-md-6 col-md-offset-5 checkbox">
+            <label>
+              <input
+                checked={Boolean(values.workloadIdentityConfig?.identityCertificateEnabled)}
+                onChange={(event) => {
+                  const identityCertificateEnabled = event.target.checked;
+                  const identity = values.workloadIdentityConfig?.identity || '';
+                  this.setField(
+                    'workloadIdentityConfig',
+                    identity || identityCertificateEnabled ? { identity, identityCertificateEnabled } : undefined,
+                  );
+                }}
+                type="checkbox"
+              />{' '}
+              Enable Identity Certificate{' '}
+              <HelpField id="gce.serverGroup.workloadIdentityConfig.identityCertificateEnabled" />
+            </label>
+          </div>
+        </fieldset>
+
         <div className="form-group">
           <div className="sm-label-left">
             <b>Auth Scopes</b>

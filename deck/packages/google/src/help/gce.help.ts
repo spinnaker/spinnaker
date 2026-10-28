@@ -145,6 +145,10 @@ const helpContents: { [key: string]: string } = {
     'Virtual Trusted Platform Module (vTPM) validates your guest VM pre-boot and boot integrity, and offers key generation and protection.',
   'gce.serverGroup.shieldedVmIntegrityMonitoring':
     'Integrity monitoring lets you monitor and verify the runtime boot integrity of your shielded VM instances using Stackdriver reports. Note: requires vTPM to be enabled.',
+  'gce.serverGroup.workloadIdentityConfig': 'The Workload Identity configuration for this instance.',
+  'gce.serverGroup.workloadIdentityConfig.identity': 'The identity for the instance.',
+  'gce.serverGroup.workloadIdentityConfig.identityCertificateEnabled':
+    'Whether to enable identity certificates for the instance.',
   'gce.serverGroup.preemptibility':
     'A preemptible VM costs much less, but lasts only 24 hours. It can be terminated sooner due to system demands.',
   'gce.serverGroup.automaticRestart':

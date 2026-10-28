@@ -260,6 +260,13 @@ class ModifyGoogleServerGroupInstanceTemplateAtomicOperation extends GoogleAtomi
         instanceTemplateProperties.setServiceAccounts(serviceAccount)
       }
 
+      if (description.workloadIdentityConfig) {
+        def workloadIdentityConfig = new com.google.api.services.compute.model.WorkloadIdentityConfig()
+        workloadIdentityConfig.setIdentity(description.workloadIdentityConfig.identity)
+        workloadIdentityConfig.setIdentityCertificateEnabled(description.workloadIdentityConfig.identityCertificateEnabled)
+        instanceTemplateProperties.setWorkloadIdentityConfig(workloadIdentityConfig)
+      }
+
       // Override the instance template's network if network was specified.
       if (overriddenProperties.network) {
         def network = GCEUtil.queryNetwork(accountName, newDescription.network, task, BASE_PHASE, googleNetworkProvider)
