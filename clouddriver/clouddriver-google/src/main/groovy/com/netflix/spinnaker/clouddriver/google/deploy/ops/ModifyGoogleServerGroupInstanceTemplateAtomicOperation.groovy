@@ -260,11 +260,10 @@ class ModifyGoogleServerGroupInstanceTemplateAtomicOperation extends GoogleAtomi
         instanceTemplateProperties.setServiceAccounts(serviceAccount)
       }
 
-      if (description.workloadIdentityConfig) {
-        def workloadIdentityConfig = new com.google.api.services.compute.model.WorkloadIdentityConfig()
-        workloadIdentityConfig.setIdentity(description.workloadIdentityConfig.identity)
-        workloadIdentityConfig.setIdentityCertificateEnabled(description.workloadIdentityConfig.identityCertificateEnabled)
-        instanceTemplateProperties.setWorkloadIdentityConfig(workloadIdentityConfig)
+      if (description.workloadIdentityConfig != null) {
+        // An empty setting (no identity, certificates disabled) clears Workload Identity.
+        instanceTemplateProperties.setWorkloadIdentityConfig(
+          GCEUtil.buildWorkloadIdentityConfig(description.workloadIdentityConfig))
       }
 
       // Override the instance template's network if network was specified.

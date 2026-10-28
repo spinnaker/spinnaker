@@ -22,6 +22,7 @@ import com.google.api.services.compute.model.InstanceProperties
 import com.google.api.services.compute.model.InstanceTemplate
 import com.google.api.services.compute.model.NetworkInterface
 import com.google.api.services.compute.model.WorkloadIdentityConfig
+import com.netflix.spinnaker.clouddriver.google.deploy.description.BaseGoogleInstanceDescription
 import spock.lang.Specification
 
 class WorkloadIdentitySpec extends Specification {
@@ -53,6 +54,38 @@ class WorkloadIdentitySpec extends Specification {
 
     then:
     description.workloadIdentityConfig == null
+  }
+
+  void "buildWorkloadIdentityConfig converts a populated setting"() {
+    when:
+    def config = GCEUtil.buildWorkloadIdentityConfig(
+      new BaseGoogleInstanceDescription.WorkloadIdentityConfig(identity: "my-identity", identityCertificateEnabled: true))
+
+    then:
+    config.identity == "my-identity"
+    config.identityCertificateEnabled == true
+  }
+
+  void "buildWorkloadIdentityConfig keeps a certificate-only setting"() {
+    when:
+    def config = GCEUtil.buildWorkloadIdentityConfig(
+      new BaseGoogleInstanceDescription.WorkloadIdentityConfig(identity: "", identityCertificateEnabled: true))
+
+    then:
+    config.identity == null
+    config.identityCertificateEnabled == true
+  }
+
+  void "buildWorkloadIdentityConfig returns null for an absent or empty setting"() {
+    expect:
+    GCEUtil.buildWorkloadIdentityConfig(input) == null
+
+    where:
+    input << [
+      null,
+      new BaseGoogleInstanceDescription.WorkloadIdentityConfig(),
+      new BaseGoogleInstanceDescription.WorkloadIdentityConfig(identity: "", identityCertificateEnabled: false)
+    ]
   }
 
   private static InstanceTemplate buildTemplate(WorkloadIdentityConfig workloadIdentityConfig) {

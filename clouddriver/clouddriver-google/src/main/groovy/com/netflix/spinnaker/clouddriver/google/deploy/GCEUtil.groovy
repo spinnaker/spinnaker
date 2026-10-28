@@ -723,6 +723,24 @@ class GCEUtil {
   }
 
   /**
+   * Converts a description's Workload Identity setting into the Compute API model.
+   *
+   * <p>Returns null when the setting is absent or empty (no identity and identity certificates
+   * disabled). Callers that modify an existing template treat a non-null but empty setting as a
+   * request to clear Workload Identity.
+   */
+  static WorkloadIdentityConfig buildWorkloadIdentityConfig(
+      BaseGoogleInstanceDescription.WorkloadIdentityConfig config) {
+    if (config == null || (!config.identity && !config.identityCertificateEnabled)) {
+      return null
+    }
+    return new WorkloadIdentityConfig(
+      identity: config.identity ?: null,
+      identityCertificateEnabled: config.identityCertificateEnabled
+    )
+  }
+
+  /**
    * Resolve shielded VM settings from InstanceProperties, preferring the stable-v1 typed field
    * and falling back to the legacy GenericJson key {@code shieldedVmConfig}.
    *

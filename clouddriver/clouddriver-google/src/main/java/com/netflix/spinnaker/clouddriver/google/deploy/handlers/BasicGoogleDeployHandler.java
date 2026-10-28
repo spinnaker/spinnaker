@@ -1007,12 +1007,7 @@ public class BasicGoogleDeployHandler
         .setScheduling(scheduling)
         .setServiceAccounts(serviceAccounts)
         .setWorkloadIdentityConfig(
-            description.getWorkloadIdentityConfig() != null
-                ? new com.google.api.services.compute.model.WorkloadIdentityConfig()
-                    .setIdentity(description.getWorkloadIdentityConfig().getIdentity())
-                    .setIdentityCertificateEnabled(
-                        description.getWorkloadIdentityConfig().getIdentityCertificateEnabled())
-                : null)
+            GCEUtil.buildWorkloadIdentityConfig(description.getWorkloadIdentityConfig()))
         .setResourceManagerTags(description.getResourceManagerTags());
   }
 

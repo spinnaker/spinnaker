@@ -786,16 +786,15 @@ export class AdvancedSettings extends GceServerGroupWizardPage {
             <div className="col-md-6">
               <input
                 className="form-control input-sm"
+                data-testid="workload-identity-identity"
                 id="gce-workload-identity"
                 onChange={(event) => {
-                  const identity = event.target.value;
                   const identityCertificateEnabled = Boolean(values.workloadIdentityConfig?.identityCertificateEnabled);
-                  this.setField(
-                    'workloadIdentityConfig',
-                    identity || identityCertificateEnabled ? { identity, identityCertificateEnabled } : undefined,
-                  );
+                  // Keep an empty config rather than dropping it so that clearing both fields removes an
+                  // existing Workload Identity configuration instead of inheriting it.
+                  this.setField('workloadIdentityConfig', { identity: event.target.value, identityCertificateEnabled });
                 }}
-                placeholder="e.g. [PROJECT_NUMBER]-compute@developer.gserviceaccount.com"
+                placeholder="Managed workload identity"
                 type="text"
                 value={values.workloadIdentityConfig?.identity || ''}
               />
@@ -805,13 +804,13 @@ export class AdvancedSettings extends GceServerGroupWizardPage {
             <label>
               <input
                 checked={Boolean(values.workloadIdentityConfig?.identityCertificateEnabled)}
+                data-testid="workload-identity-certificate"
                 onChange={(event) => {
-                  const identityCertificateEnabled = event.target.checked;
                   const identity = values.workloadIdentityConfig?.identity || '';
-                  this.setField(
-                    'workloadIdentityConfig',
-                    identity || identityCertificateEnabled ? { identity, identityCertificateEnabled } : undefined,
-                  );
+                  this.setField('workloadIdentityConfig', {
+                    identity,
+                    identityCertificateEnabled: event.target.checked,
+                  });
                 }}
                 type="checkbox"
               />{' '}

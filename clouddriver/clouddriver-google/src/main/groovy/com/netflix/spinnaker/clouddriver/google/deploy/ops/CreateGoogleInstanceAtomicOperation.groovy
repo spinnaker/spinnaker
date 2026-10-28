@@ -158,10 +158,8 @@ class CreateGoogleInstanceAtomicOperation extends GoogleAtomicOperation<Deployme
       instance.minCpuPlatform = description.minCpuPlatform
     }
 
-    if (description.workloadIdentityConfig) {
-      def workloadIdentityConfig = new com.google.api.services.compute.model.WorkloadIdentityConfig()
-      workloadIdentityConfig.setIdentity(description.workloadIdentityConfig.identity)
-      workloadIdentityConfig.setIdentityCertificateEnabled(description.workloadIdentityConfig.identityCertificateEnabled)
+    def workloadIdentityConfig = GCEUtil.buildWorkloadIdentityConfig(description.workloadIdentityConfig)
+    if (workloadIdentityConfig) {
       instance.setWorkloadIdentityConfig(workloadIdentityConfig)
     }
 
