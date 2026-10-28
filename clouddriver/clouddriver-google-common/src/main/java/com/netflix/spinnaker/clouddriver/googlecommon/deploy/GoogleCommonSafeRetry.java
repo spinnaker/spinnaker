@@ -20,6 +20,7 @@ import com.google.api.client.googleapis.json.GoogleJsonResponseException;
 import com.google.common.collect.ImmutableMap;
 import com.netflix.spectator.api.Registry;
 import com.netflix.spinnaker.kork.annotations.NonnullByDefault;
+import java.io.UncheckedIOException;
 import java.net.SocketTimeoutException;
 import java.util.List;
 import java.util.Map;
@@ -131,6 +132,23 @@ public final class GoogleCommonSafeRetry {
             jsonException.getMessage());
       } catch (SocketTimeoutException toEx) {
         log.warn("Retryable {} attempt #{} timed out.", description, tries);
+      } catch (UncheckedIOException uncheckedEx) {
+        Throwable cause = uncheckedEx.getCause();
+        if (cause instanceof GoogleJsonResponseException jsonException) {
+          if (!retryCodes.contains(jsonException.getStatusCode())) {
+            throw uncheckedEx;
+          }
+          log.warn(
+              "{} attempt #{} encountered retryable wrapped statusCode={} with error message: {}.",
+              description,
+              tries,
+              jsonException.getStatusCode(),
+              jsonException.getMessage());
+        } else if (cause instanceof SocketTimeoutException) {
+          log.warn("Retryable wrapped {} attempt #{} timed out.", description, tries);
+        } else {
+          throw uncheckedEx;
+        }
       }
       tries++;
       // Sleep with exponential backoff based on the number of retries. Add retry jitter with

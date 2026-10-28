@@ -25,6 +25,7 @@ import com.google.common.collect.ImmutableList
 import com.google.common.collect.ImmutableMap;
 import com.netflix.spectator.api.DefaultRegistry;
 import com.netflix.spectator.api.Registry;
+import java.io.UncheckedIOException
 import spock.lang.Shared
 import spock.lang.Specification
 
@@ -143,5 +144,45 @@ class GoogleCommonSafeRetrySpec extends Specification {
        throw e
       }
       thrown(GoogleApiException)
+  }
+
+  def "retry_wrapped_exception"() {
+    given:
+      Closure mockClosure = Mock(Closure)
+      int maxRetries = 10
+      GoogleCommonSafeRetry retrier = makeRetrier(maxRetries)
+      GoogleJsonResponseException retryableException = GoogleJsonResponseExceptionFactoryTesting.newMock(
+            new MockJsonFactory(), 500, "oops")
+
+    when:
+      Object result = retrier.doRetry(
+            mockClosure, "resource",
+            Arrays.asList(500), Arrays.asList(404),
+            ImmutableMap.of("action", "test"), registry)
+    then:
+      1 * mockClosure() >> {
+       throw new UncheckedIOException(retryableException)
+      }
+      1 * mockClosure() >> "Hello World"
+      result == "Hello World"
+  }
+
+  def "retry_wrapped_socket_timeout"() {
+    given:
+      Closure mockClosure = Mock(Closure)
+      int maxRetries = 10
+      GoogleCommonSafeRetry retrier = makeRetrier(maxRetries)
+
+    when:
+      Object result = retrier.doRetry(
+            mockClosure, "resource",
+            Arrays.asList(500), Arrays.asList(404),
+            ImmutableMap.of("action", "test"), registry)
+    then:
+      1 * mockClosure() >> {
+       throw new UncheckedIOException(new SocketTimeoutException())
+      }
+      1 * mockClosure() >> "Hello World"
+      result == "Hello World"
   }
 }

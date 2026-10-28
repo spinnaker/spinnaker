@@ -91,6 +91,7 @@ import com.netflix.spinnaker.moniker.Namer;
 import groovy.lang.Closure;
 import jakarta.annotation.PostConstruct;
 import java.io.IOException;
+import java.io.UncheckedIOException;
 import java.util.*;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
@@ -1778,8 +1779,8 @@ public class BasicGoogleDeployHandler
               SCOPE_GLOBAL);
         } catch (IOException e) {
           log.error("Failed to update backend service {}: {}", backendServiceName, e.getMessage());
+          throw new UncheckedIOException(e);
         }
-        return null;
       }
     };
   }
@@ -1865,8 +1866,8 @@ public class BasicGoogleDeployHandler
               "Failed to update regional backend service {}: {}",
               backendServiceName,
               e.getMessage());
+          throw new UncheckedIOException(e);
         }
-        return null;
       }
     };
   }
