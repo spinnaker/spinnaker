@@ -121,7 +121,21 @@ class MissedPipelineTriggerCompensationJobSpec extends Specification {
     0 * _
   }
 
-  def 'should not let an error from the pipeline cache escape the recurring job'() {
+  def 'should not let an exception escape the recurring job'() {
+    given:
+    def compensationJob = new MissedPipelineTriggerCompensationJob(pipelineCache, orcaService,
+      pipelineInitiator, registry, quietPeriodIndicator, 30000L, 2000L,
+      'America/Los_Angeles', true, 900000, 20, stubDateContext(0, 10))
+
+    when:
+    compensationJob.triggerMissedExecutions()
+
+    then:
+    1 * pipelineCache.getPipelinesSync() >> { throw new IllegalStateException('pipeline cache failure') }
+    noExceptionThrown()
+  }
+
+  def 'should rethrow an Error from the recurring job'() {
     given:
     def compensationJob = new MissedPipelineTriggerCompensationJob(pipelineCache, orcaService,
       pipelineInitiator, registry, quietPeriodIndicator, 30000L, 2000L,
@@ -132,11 +146,11 @@ class MissedPipelineTriggerCompensationJobSpec extends Specification {
 
     then:
     1 * pipelineCache.getPipelinesSync() >> { throw new OutOfMemoryError('Java heap space') }
-    noExceptionThrown()
+    thrown(OutOfMemoryError)
   }
 
   def 'should skip cron triggers with an invalid expression'() {
-    given: 'a five-field Unix cron expression, which Quartz does not accept, and a valid trigger in window'
+    given: 'a five-field Unix cron expression, which CronExpressionFuzzer cannot tokenize, and a valid trigger in window'
     def pipelines = [
       pipelineBuilder('1').disabled(false).triggers([
         new Trigger.TriggerBuilder().id('1').type(Trigger.Type.CRON.toString()).cronExpression('0 0 * * *').enabled(true).build()

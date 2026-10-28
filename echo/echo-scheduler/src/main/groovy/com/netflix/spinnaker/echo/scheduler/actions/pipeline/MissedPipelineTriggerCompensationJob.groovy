@@ -153,8 +153,11 @@ class MissedPipelineTriggerCompensationJob implements ApplicationListener<Contex
       triggerMissedExecutions(pipelineCache.getPipelinesSync())
     } catch(TimeoutException e) {
       log.error("Failed to get pipelines from the cache", e)
-    } catch(Throwable t) {
-      log.error("Failed to trigger missed executions", t)
+    } catch(Exception e) {
+      log.error("Failed to trigger missed executions", e)
+    } catch(Error e) {
+      log.error("Fatal error while triggering missed executions", e)
+      throw e
     }
   }
 
