@@ -114,9 +114,18 @@ class StartExecutionHandler(
           initialStages.forEach { queue.push(StartStage(it)) }
         } catch (e: Exception) {
           // Restore to NOT_STARTED so the ack-timeout retried StartExecution
-          // message isn't dropped by the status guard above.
+          // message isn't dropped by the status guard above. Only do so while the
+          // execution is still RUNNING: if it was canceled in the meantime, writing
+          // this copy back would undo the cancellation and the retry would start it.
           execution.updateStatus(NOT_STARTED)
-          repository.updateStatus(execution)
+          if (!repository.updateStatusIfExpected(execution, RUNNING)) {
+            log.warn(
+              "Not restoring execution (type ${execution.type}, id {}, application: {}) to NOT_STARTED: {}.",
+              value("executionId", execution.id),
+              value("application", execution.application),
+              describeStoredStatus(execution)
+            )
+          }
           throw e
         }
         publisher.publishEvent(ExecutionStarted(this, execution))
