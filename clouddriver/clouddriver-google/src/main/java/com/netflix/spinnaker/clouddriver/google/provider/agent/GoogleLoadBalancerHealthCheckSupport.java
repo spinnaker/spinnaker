@@ -37,7 +37,8 @@ final class GoogleLoadBalancerHealthCheckSupport {
    *
    * <p>The gRPC service name is stored in {@code grpcServiceName}; {@code requestPath} is only set
    * for HTTP, HTTPS and HTTP/2 health checks. {@code USE_NAMED_PORT} health checks have no port and
-   * are skipped, as before.
+   * are skipped, as before. The Compute v1 {@link HealthCheck} model has no UDP health check, so
+   * there is no UDP branch.
    */
   @Nullable
   static GoogleHealthCheck fromHealthCheck(@Nullable HealthCheck healthCheck) {
@@ -68,10 +69,6 @@ final class GoogleLoadBalancerHealthCheckSupport {
       portSpecification = healthCheck.getHttpsHealthCheck().getPortSpecification();
       requestPath = healthCheck.getHttpsHealthCheck().getRequestPath();
       healthCheckType = GoogleHealthCheck.HealthCheckType.HTTPS;
-    } else if (healthCheck.getUdpHealthCheck() != null) {
-      port = healthCheck.getUdpHealthCheck().getPort();
-      portSpecification = healthCheck.getUdpHealthCheck().getPortSpecification();
-      healthCheckType = GoogleHealthCheck.HealthCheckType.UDP;
     } else if (healthCheck.getHttp2HealthCheck() != null) {
       port = healthCheck.getHttp2HealthCheck().getPort();
       portSpecification = healthCheck.getHttp2HealthCheck().getPortSpecification();
