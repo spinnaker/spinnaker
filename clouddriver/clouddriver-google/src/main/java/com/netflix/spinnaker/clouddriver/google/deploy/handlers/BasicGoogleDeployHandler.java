@@ -1376,7 +1376,7 @@ public class BasicGoogleDeployHandler
                             backendService),
                         "Load balancer backend service",
                         task,
-                        List.of(400, 412),
+                        List.of(400, 412, 500, 503),
                         Collections.emptyList(),
                         Map.of(
                             "action",
@@ -1442,7 +1442,7 @@ public class BasicGoogleDeployHandler
                             region),
                         "Internal load balancer backend service",
                         task,
-                        List.of(400, 412),
+                        List.of(400, 412, 500, 503),
                         Collections.emptyList(),
                         Map.of(
                             "action",
