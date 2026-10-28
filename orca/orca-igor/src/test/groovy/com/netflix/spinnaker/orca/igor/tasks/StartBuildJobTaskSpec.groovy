@@ -51,9 +51,9 @@ class StartBuildJobTaskSpec extends Specification {
         given:
         def stage = new StageExecutionImpl(pipeline, "jenkins", [master: "builds", job: "orca"])
 
-        and:
+        and: "the stage has no parameters, so igor must be called with an empty map (not null)"
         task.buildService = Stub(BuildService) {
-          build(stage.context.master, stage.context.job, stage.context.parameters, stage.startTime.toString()) >>
+          build(stage.context.master, stage.context.job, [:], stage.startTime.toString()) >>
               Response.success(200, ResponseBody.create(MediaType.parse("application/json"),new ObjectMapper().writeValueAsString([result: 'SUCCESS', running: true, number: 4])))
         }
 
@@ -103,7 +103,7 @@ class StartBuildJobTaskSpec extends Specification {
 
     and:
     task.buildService = Stub(BuildService) {
-      build(stage.context.master, stage.context.job, stage.context.parameters, stage.startTime.toString()) >>
+      build(stage.context.master, stage.context.job, [:], stage.startTime.toString()) >>
           Response.success(202, ResponseBody.create(MediaType.parse("application/json"), "[]"))
     }
 
