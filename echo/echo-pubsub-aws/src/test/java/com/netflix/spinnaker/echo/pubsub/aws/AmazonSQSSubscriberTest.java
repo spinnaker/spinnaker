@@ -17,6 +17,7 @@
 package com.netflix.spinnaker.echo.pubsub.aws;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.never;
@@ -240,5 +241,21 @@ public class AmazonSQSSubscriberTest {
     } finally {
       enabled.set(false);
     }
+  }
+
+  @Test
+  void rethrowsAnErrorFromListening() {
+    // given
+    when(sqsClient.getQueueUrl(any(java.util.function.Consumer.class)))
+        .thenReturn(GetQueueUrlResponse.builder().queueUrl("https://queue").build());
+    when(sqsClient.setQueueAttributes(any(SetQueueAttributesRequest.class)))
+        .thenReturn(SetQueueAttributesResponse.builder().build());
+    when(snsClient.subscribe(any(SubscribeRequest.class)))
+        .thenReturn(SubscribeResponse.builder().subscriptionArn("arn:sub").build());
+    when(sqsClient.receiveMessage(any(ReceiveMessageRequest.class)))
+        .thenThrow(new OutOfMemoryError("Java heap space"));
+
+    // when / then
+    assertThatThrownBy(subject::run).isInstanceOf(OutOfMemoryError.class);
   }
 }
