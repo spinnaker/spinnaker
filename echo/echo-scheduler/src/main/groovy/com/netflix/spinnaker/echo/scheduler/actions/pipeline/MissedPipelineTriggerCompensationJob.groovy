@@ -153,6 +153,11 @@ class MissedPipelineTriggerCompensationJob implements ApplicationListener<Contex
       triggerMissedExecutions(pipelineCache.getPipelinesSync())
     } catch(TimeoutException e) {
       log.error("Failed to get pipelines from the cache", e)
+    } catch(Exception e) {
+      log.error("Failed to trigger missed executions", e)
+    } catch(Error e) {
+      log.error("Fatal error while triggering missed executions", e)
+      throw e
     }
   }
 
@@ -176,7 +181,15 @@ class MissedPipelineTriggerCompensationJob implements ApplicationListener<Contex
   }
 
   private List<Trigger> getWithValidTimeInWindow(List<Trigger> triggers) {
-    return triggers.findAll({ trigger -> getLastValidTimeInWindow(trigger, dateContext) != null })
+    return triggers.findAll({ trigger ->
+      try {
+        return getLastValidTimeInWindow(trigger, dateContext) != null
+      } catch (Exception e) {
+        log.warn("Skipping cron trigger ${trigger.id} for pipeline ${trigger.parent?.application}:${trigger.parent?.name} (${trigger.parent?.id}). " +
+          "Its CRON expression '${trigger.cronExpression}' can't be evaluated", e)
+        return false
+      }
+    })
   }
 
   private Date getLastExecutionOrNull(List<Date> executions) {
