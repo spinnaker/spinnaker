@@ -214,7 +214,7 @@ public class PipelineCacheTest {
   }
 
   @Test
-  void keepsThePreviousPipelinesIfHydratingPipelinesThrowsAnError() {
+  void rethrowsAnErrorFromHydratingPipelinesAndKeepsThePreviousPipelines() {
     Map<String, Object> pipelineMap =
         Map.of("application", "application", "name", "Pipeline", "id", "P1");
     Map<String, Object> templatedPipelineMap =
@@ -236,8 +236,9 @@ public class PipelineCacheTest {
     pipelineCache.pollPipelineConfigs();
     assertThat(pipelineCache.getPipelines()).containsExactly(pipeline);
 
-    // planning the templated pipeline fails: we keep the pipelines from the last successful poll
-    pipelineCache.pollPipelineConfigs();
+    // planning the templated pipeline fails in a worker thread: the Error is unwrapped and
+    // rethrown, and we keep the pipelines from the last successful poll
+    assertThatThrownBy(pipelineCache::pollPipelineConfigs).isInstanceOf(OutOfMemoryError.class);
     assertThat(pipelineCache.getPipelines()).containsExactly(pipeline);
   }
 
