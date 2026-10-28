@@ -75,7 +75,29 @@ class CatsSearchProviderSpec extends Specification {
     ]
   }
 
-  def "should keep the last identifiers when a scheduled refresh throws an error"() {
+  def "should keep the last identifiers when a scheduled refresh throws an exception"() {
+    given:
+    def failRefresh = false
+    cache.getIdentifiers("instances") >> {
+      if (failRefresh) {
+        throw new IllegalStateException("cache unavailable")
+      }
+      return instanceIdentifiers
+    }
+    catsSearchProvider.run()
+    failRefresh = true
+
+    when:
+    catsSearchProvider.run()
+
+    then:
+    noExceptionThrown()
+    catsSearchProvider.cachedIdentifiersByType.get() == [
+      "instances": instanceIdentifiers.collect { it.toLowerCase() }
+    ]
+  }
+
+  def "should rethrow an error from a scheduled refresh and keep the last identifiers"() {
     given:
     def failRefresh = false
     cache.getIdentifiers("instances") >> {
@@ -91,7 +113,7 @@ class CatsSearchProviderSpec extends Specification {
     catsSearchProvider.run()
 
     then:
-    noExceptionThrown()
+    thrown(OutOfMemoryError)
     catsSearchProvider.cachedIdentifiersByType.get() == [
       "instances": instanceIdentifiers.collect { it.toLowerCase() }
     ]
