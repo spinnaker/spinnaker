@@ -18,6 +18,7 @@ package com.netflix.spinnaker.echo.pipelinetriggers;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatCode;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.never;
@@ -40,7 +41,6 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
-import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeoutException;
 import okhttp3.MediaType;
@@ -264,21 +264,21 @@ public class PipelineCacheTest {
   }
 
   @Test
-  void keepsPollingIfReadingFront50sResponseThrowsAnError() throws TimeoutException {
+  void rethrowsAnErrorFromReadingFront50sResponseAndKeepsThePreviousPipelines() {
     Map<String, Object> pipelineMap =
         Map.of("application", "application", "name", "Pipeline", "id", "P1");
     Pipeline pipeline =
         Pipeline.builder().application("application").name("Pipeline").id("P1").build();
 
     when(front50.getPipelines())
-        .thenReturn(Calls.failure(new OutOfMemoryError("Java heap space")))
-        .thenAnswer(invocation -> Calls.response(List.of(pipelineMap)));
+        .thenReturn(Calls.response(List.of(pipelineMap)))
+        .thenReturn(Calls.failure(new OutOfMemoryError("Java heap space")));
 
     DefaultRegistry defaultRegistry = new DefaultRegistry();
-    PipelineCache scheduledPipelineCache =
+    PipelineCache countingPipelineCache =
         new PipelineCache(
-            Executors.newSingleThreadScheduledExecutor(),
-            1,
+            mock(ScheduledExecutorService.class),
+            INTERVAL,
             SLEEP_MS,
             pipelineCacheConfigurationProperties,
             objectMapper,
@@ -287,13 +287,13 @@ public class PipelineCacheTest {
             defaultRegistry,
             List.of());
 
-    scheduledPipelineCache.start();
-    try {
-      assertThat(scheduledPipelineCache.getPipelinesSync(5000)).containsExactly(pipeline);
-      assertThat(defaultRegistry.counter("front50.errors").count()).isEqualTo(1);
-    } finally {
-      scheduledPipelineCache.stop();
-    }
+    countingPipelineCache.start();
+    countingPipelineCache.pollPipelineConfigs();
+
+    assertThatThrownBy(countingPipelineCache::pollPipelineConfigs)
+        .isInstanceOf(OutOfMemoryError.class);
+    assertThat(countingPipelineCache.getPipelines()).containsExactly(pipeline);
+    assertThat(defaultRegistry.counter("front50.errors").count()).isEqualTo(1);
   }
 
   @ParameterizedTest(name = "filters front50 pipelines when configured to do so ({0})")

@@ -214,9 +214,13 @@ public class PipelineCache implements MonitoredPoller {
           "Fetched {} pipeline configs in {}ms",
           pipelines.size(),
           System.currentTimeMillis() - start);
-    } catch (Throwable t) {
-      log.error("Error fetching pipelines from Front50", t);
+    } catch (Exception e) {
+      log.error("Error fetching pipelines from Front50", e);
       registry.counter("front50.errors").increment();
+    } catch (Error e) {
+      log.error("Fatal error fetching pipelines from Front50, polling will stop", e);
+      registry.counter("front50.errors").increment();
+      throw e;
     }
   }
 
