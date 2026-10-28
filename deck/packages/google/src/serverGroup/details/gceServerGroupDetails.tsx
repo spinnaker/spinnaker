@@ -72,8 +72,7 @@ function decorateServerGroup(serverGroup: any): any {
       : undefined,
     network: xpnNaming.decorateXpnResourceIfNecessary(project, networkInterface.network),
     subnet: xpnNaming.decorateXpnResourceIfNecessary(project, networkInterface.subnetwork),
-    workloadIdentityConfig:
-      serverGroup.workloadIdentityConfig || instanceTemplate?.properties?.workloadIdentityConfig,
+    workloadIdentityConfig: instanceTemplate?.properties?.workloadIdentityConfig,
     zones: [...(serverGroup.zones || [])].sort(),
   };
 }
@@ -366,8 +365,7 @@ export function GceAutoHealingPolicySection({
 }
 
 export function GceWorkloadIdentitySection({ serverGroup }: { app: any; serverGroup: any }): JSX.Element {
-  const workloadIdentityConfig =
-    serverGroup.workloadIdentityConfig || serverGroup.launchConfig?.instanceTemplate?.properties?.workloadIdentityConfig;
+  const workloadIdentityConfig = serverGroup.launchConfig?.instanceTemplate?.properties?.workloadIdentityConfig;
   return (
     <CollapsibleSection heading="Workload Identity">
       {!workloadIdentityConfig ? (
