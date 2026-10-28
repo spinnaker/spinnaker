@@ -121,13 +121,18 @@ public class SQSSubscriber implements Runnable, PubsubSubscriber {
     }
     while (true) {
       try {
-        listenForMessages();
-      } catch (SqsException e) {
-        log.warn("Queue {} does not exist, recreating", queueARN);
-        initializeQueue();
+        try {
+          listenForMessages();
+        } catch (SqsException e) {
+          log.warn("Queue {} does not exist, recreating", queueARN);
+          initializeQueue();
+        }
       } catch (Exception e) {
         log.error("Unexpected error running " + getWorkerName() + ", restarting worker", e);
         sleepALittle();
+      } catch (Error e) {
+        log.error("Fatal error running " + getWorkerName() + ", stopping worker", e);
+        throw e;
       }
     }
   }
