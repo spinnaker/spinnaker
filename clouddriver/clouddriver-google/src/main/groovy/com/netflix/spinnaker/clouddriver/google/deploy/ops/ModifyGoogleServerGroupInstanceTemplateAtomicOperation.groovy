@@ -148,6 +148,12 @@ class ModifyGoogleServerGroupInstanceTemplateAtomicOperation extends GoogleAtomi
     // Resolve the auth scopes since the scopes returned on the existing instance template will be fully-resolved.
     newDescriptionProperties.authScopes = GCEUtil.resolveAuthScopes(newDescriptionProperties.authScopes)
 
+    // An empty Workload Identity setting means "none", so it only counts as a change when the
+    // existing template has one to clear.
+    if (GCEUtil.buildWorkloadIdentityConfig(newDescriptionProperties.workloadIdentityConfig) == null) {
+      newDescriptionProperties.workloadIdentityConfig = null
+    }
+
     // Create a description to represent the current instance template after overriding the specified properties.
     def newDescription = new BaseGoogleInstanceDescription(newDescriptionProperties)
 
