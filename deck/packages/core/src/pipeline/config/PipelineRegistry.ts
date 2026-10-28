@@ -1,4 +1,4 @@
-import { cloneDeep, fromPairs, intersection, isNil, memoize, uniq } from 'lodash';
+import { cloneDeep, fromPairs, intersection, isNil, memoize } from 'lodash';
 import type { ComponentType, SFC } from 'react';
 
 import type { IAccountDetails } from '../../account/AccountService';
@@ -197,9 +197,9 @@ export class PipelineRegistry {
   private getCloudProvidersForStage(
     type: IStageTypeConfig,
     allStageTypes: IStageTypeConfig[],
-    accounts: IAccountDetails[],
+    providerConfigs: Map<string, ICloudProviderConfig>,
   ): string[] {
-    const providersFromAccounts = uniq(accounts.map((acc) => acc.cloudProvider));
+    const providersFromAccounts = Array.from(providerConfigs.keys());
     let providersFromStage: string[] = [];
     if (type.providesFor) {
       providersFromStage = type.providesFor;
@@ -219,13 +219,10 @@ export class PipelineRegistry {
     }
 
     // Remove a provider if none of the given accounts support the stage type.
-    providersFromStage = providersFromStage.filter((providerKey: string) => {
-      const providerAccounts = accounts.filter((acc) => acc.cloudProvider === providerKey);
-      return !!providerAccounts.find((acc) => {
-        const provider = CloudProviderRegistry.getProvider(acc.cloudProvider);
-        return !isExcludedStageType(type, provider);
-      });
-    });
+    providersFromStage = providersFromStage.filter(
+      (providerKey: string) =>
+        providerConfigs.has(providerKey) && !isExcludedStageType(type, providerConfigs.get(providerKey)),
+    );
 
     // Docker Bake is wedged in here because it doesn't really fit our existing cloud provider paradigm
     if (SETTINGS.feature.dockerBake && type.key === 'bake') {
@@ -242,15 +239,16 @@ export class PipelineRegistry {
     if (providers.length === 0) {
       return configurableStageTypes;
     }
-    configurableStageTypes.forEach(
-      (type) => (type.cloudProviders = this.getCloudProvidersForStage(type, allStageTypes, accounts)),
+    // Stage support depends only on the provider, so look up each provider once instead of once per account
+    const providerConfigs = new Map(
+      providers.map((provider) => [provider, CloudProviderRegistry.getProvider(provider)] as const),
     );
-    configurableStageTypes = configurableStageTypes.filter((type) => {
-      return !accounts.every((a) => {
-        const p = CloudProviderRegistry.getProvider(a.cloudProvider);
-        return isExcludedStageType(type, p);
-      });
-    });
+    configurableStageTypes.forEach(
+      (type) => (type.cloudProviders = this.getCloudProvidersForStage(type, allStageTypes, providerConfigs)),
+    );
+    configurableStageTypes = configurableStageTypes.filter(
+      (type) => !providers.every((provider) => isExcludedStageType(type, providerConfigs.get(provider))),
+    );
     return configurableStageTypes
       .filter((stageType) => stageType.cloudProviders.length)
       .sort((a, b) => a.label.localeCompare(b.label));
