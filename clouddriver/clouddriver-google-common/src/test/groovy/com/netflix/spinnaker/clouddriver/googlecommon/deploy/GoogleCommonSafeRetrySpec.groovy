@@ -185,4 +185,76 @@ class GoogleCommonSafeRetrySpec extends Specification {
       1 * mockClosure() >> "Hello World"
       result == "Hello World"
   }
+
+  def "wrapped_non_retryable_exception_is_not_retried"() {
+    given:
+      Closure mockClosure = Mock(Closure)
+      GoogleCommonSafeRetry retrier = makeRetrier(10)
+
+    when:
+      retrier.doRetry(
+            mockClosure, "resource",
+            Arrays.asList(500), ImmutableList.of(),
+            ImmutableMap.of("action", "test"), registry)
+    then:
+      1 * mockClosure() >> {
+       throw new UncheckedIOException(GoogleJsonResponseExceptionFactoryTesting.newMock(
+            new MockJsonFactory(), 403, "forbidden"))
+      }
+      0 * mockClosure()
+      thrown(GoogleApiException)
+  }
+
+  def "wrapped_retryable_exception_until_exhausted"() {
+    given:
+      Closure mockClosure = Mock(Closure)
+      GoogleCommonSafeRetry retrier = makeRetrier(3)
+
+    when:
+      retrier.doRetry(
+            mockClosure, "resource",
+            Arrays.asList(500), ImmutableList.of(),
+            ImmutableMap.of("action", "test"), registry)
+    then:
+      3 * mockClosure() >> {
+       throw new UncheckedIOException(GoogleJsonResponseExceptionFactoryTesting.newMock(
+            new MockJsonFactory(), 500, "oops"))
+      }
+      thrown(GoogleApiException)
+  }
+
+  def "wrapped_socket_timeout_until_exhausted"() {
+    given:
+      Closure mockClosure = Mock(Closure)
+      GoogleCommonSafeRetry retrier = makeRetrier(2)
+
+    when:
+      retrier.doRetry(
+            mockClosure, "resource",
+            Arrays.asList(500), ImmutableList.of(),
+            ImmutableMap.of("action", "test"), registry)
+    then:
+      2 * mockClosure() >> {
+       throw new UncheckedIOException(new SocketTimeoutException())
+      }
+      thrown(GoogleApiException)
+  }
+
+  def "wrapped_success_code_is_treated_as_success"() {
+    given:
+      Closure mockClosure = Mock(Closure)
+      GoogleCommonSafeRetry retrier = makeRetrier(10)
+
+    when:
+      Object result = retrier.doRetry(
+            mockClosure, "resource",
+            Arrays.asList(500), Arrays.asList(404),
+            ImmutableMap.of("action", "test"), registry)
+    then:
+      1 * mockClosure() >> {
+       throw new UncheckedIOException(GoogleJsonResponseExceptionFactoryTesting.newMock(
+            new MockJsonFactory(), 404, "not found"))
+      }
+      result == null
+  }
 }

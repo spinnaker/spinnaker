@@ -1798,8 +1798,9 @@ public class BasicGoogleDeployHandler
    * @param backendServiceName Name of the regional backend service to update
    * @param backendService Backend service configuration with new backends to add
    * @param region GCP region where the backend service is located
-   * @return Closure that returns the update Operation, or null when the update request fails; that
-   *     failure is only logged, and the caller still reports the backend service as associated
+   * @return Closure that returns the update Operation. A failed update request is rethrown as an
+   *     {@link UncheckedIOException} so the surrounding safe-retry wrapper can retry it;
+   *     once retries are exhausted, or for a non-retryable error, the deploy fails
    */
   private Closure updateBackendServices(
       Compute compute,
