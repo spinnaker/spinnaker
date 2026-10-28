@@ -151,7 +151,7 @@ public class GcsStorageService implements StorageService {
       GoogleNamedAccountCredentials credentials,
       Storage storage,
       String bucketName) {
-    String rootFolder = daoRoot(credentials, objectType.getGroup()) + "/" + objectKey;
+    String rootFolder = daoRoot(credentials, objectType.getGroup()) + "/" + objectKey + "/";
 
     try {
       Storage.Objects.List objectsList = storage.objects().list(bucketName).setPrefix(rootFolder);
