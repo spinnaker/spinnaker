@@ -3,6 +3,7 @@ import React from 'react';
 import { mergeGceResourceOptions } from './gceLoadBalancerData';
 import type { IGceLoadBalancerData, IGceLoadBalancerDataItem } from './gceLoadBalancerData';
 import type {
+  GceHealthCheckPortSpecification,
   GceLoadBalancerProtocol,
   IGceLoadBalancerBackendService,
   IGceLoadBalancerCommand,
@@ -384,7 +385,7 @@ export function GceProxyLoadBalancerEditor({
           <select
             className="form-control input-sm"
             onChange={(event) => {
-              const portSpecification = event.target.value;
+              const portSpecification = event.target.value as GceHealthCheckPortSpecification;
               updateHealthCheck({
                 portSpecification,
                 ...(portSpecification === 'USE_SERVING_PORT' ? { port: undefined } : {}),

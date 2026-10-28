@@ -1,6 +1,7 @@
 import React from 'react';
 
 import type {
+  GceHealthCheckPortSpecification,
   GceLoadBalancerType,
   IGceLoadBalancerBackendService,
   IGceLoadBalancerDataItem,
@@ -116,7 +117,7 @@ export function GceHttpLoadBalancerHealthCheckEditor({
           data-testid="health-check-port-specification"
           value={healthCheck.portSpecification || 'USE_FIXED_PORT'}
           onChange={(event) => {
-            const portSpecification = event.target.value;
+            const portSpecification = event.target.value as GceHealthCheckPortSpecification;
             const next = { ...healthCheck, portSpecification };
             if (portSpecification === 'USE_SERVING_PORT') {
               delete next.port;
