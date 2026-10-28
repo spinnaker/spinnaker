@@ -33,8 +33,8 @@ importers:
         specifier: 4.3.5
         version: 4.3.5
       vite:
-        specifier: 7.3.6
-        version: 7.3.6(@types/node@25.7.0)(terser@5.47.1)
+        specifier: 7.3.7
+        version: 7.3.7(@types/node@25.7.0)(terser@5.47.1)
 
 packages:
 
@@ -2404,8 +2404,8 @@ packages:
     resolution: {integrity: sha512-ZZKSmDAEFOijERBLkmYfJ+vmk3w+7hOLYDNkRCuRuMJGEmqYNCNLyBBFwWKVMhfwaEF3WOd0Zlw86U/WC/+nYw==}
     engines: {'0': node >=0.6.0}
 
-  vite@7.3.6:
-    resolution: {integrity: sha512-4XP60spRGjSZFf1qYH+dJIkK2znL3zQfl9KkOV9MkkRR/3Dls0dxaBsQPTloEc5BLXWPL9vsOxopxyKoMmDueg==}
+  vite@7.3.7:
+    resolution: {integrity: sha512-AHEzTORMbi7/7aXp7w7KZ5+DCUdSeLsJz0grY8xHpc9DHdYb0vQu6DqJfm2tOw3gDExNgPgnJTXxM6syYFHaCA==}
     engines: {node: ^20.19.0 || >=22.12.0}
     hasBin: true
     peerDependencies:
@@ -5017,7 +5017,7 @@ snapshots:
       core-util-is: 1.0.2
       extsprintf: 1.3.0
 
-  vite@7.3.6(@types/node@25.7.0)(terser@5.47.1):
+  vite@7.3.7(@types/node@25.7.0)(terser@5.47.1):
     dependencies:
       esbuild: 0.28.2
       fdir: 6.5.0(picomatch@4.0.4)
