@@ -231,8 +231,11 @@ public class RequestSheddingFilter extends HttpFilter {
 
       pathPatterns.addAll(newPatterns);
       pathPatterns.removeIf(p -> !newPatterns.contains(p));
-    } catch (Throwable t) {
-      log.error("Unable to refresh request shedding path patterns", t);
+    } catch (Exception e) {
+      log.error("Unable to refresh request shedding path patterns", e);
+    } catch (Error e) {
+      log.error("Fatal error refreshing request shedding path patterns, the refresh will stop", e);
+      throw e;
     }
   }
 }

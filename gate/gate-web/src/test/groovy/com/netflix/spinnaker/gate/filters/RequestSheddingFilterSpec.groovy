@@ -66,7 +66,20 @@ class RequestSheddingFilterSpec extends Specification {
     0 * _
   }
 
-  def "should keep the last path patterns when a scheduled refresh throws an error"() {
+  def "should keep the last path patterns when a scheduled refresh throws an exception"() {
+    given:
+    configService.getConfig(String, PATHS_KEY, "") >>> ["/foo"] >> { throw new IllegalStateException("config unavailable") }
+    subject.compilePatterns()
+
+    when:
+    subject.compilePatterns()
+
+    then:
+    noExceptionThrown()
+    subject.pathPatterns*.pattern() == ["/foo"]
+  }
+
+  def "should rethrow an error from a scheduled refresh and keep the last path patterns"() {
     given:
     configService.getConfig(String, PATHS_KEY, "") >>> ["/foo"] >> { throw new OutOfMemoryError("Java heap space") }
     subject.compilePatterns()
@@ -75,7 +88,7 @@ class RequestSheddingFilterSpec extends Specification {
     subject.compilePatterns()
 
     then:
-    noExceptionThrown()
+    thrown(OutOfMemoryError)
     subject.pathPatterns*.pattern() == ["/foo"]
   }
 
