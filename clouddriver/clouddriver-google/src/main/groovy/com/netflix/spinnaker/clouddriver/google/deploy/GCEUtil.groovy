@@ -2602,38 +2602,43 @@ class GCEUtil {
       descriptionHealthCheck.timeoutSec != existingHealthCheck.getTimeoutSec()
 
     def descPortSpec = descriptionHealthCheck.portSpecification ?: 'USE_FIXED_PORT'
+    // With USE_SERVING_PORT the update path always clears the port, so a leftover port in the
+    // description (for example from a JSON-defined pipeline) must not trigger an update every time.
+    def portDiffers = { existingPort ->
+      descPortSpec != 'USE_SERVING_PORT' && descriptionHealthCheck.port != existingPort
+    }
 
     switch (descriptionHealthCheck.healthCheckType) {
       case GoogleHealthCheck.HealthCheckType.HTTP:
-        shouldUpdate |= ((descriptionHealthCheck.port != existingHealthCheck.httpHealthCheck.port) ||
+        shouldUpdate |= (portDiffers(existingHealthCheck.httpHealthCheck.port) ||
           (descriptionHealthCheck.requestPath != existingHealthCheck.httpHealthCheck.requestPath) ||
           (descPortSpec != (existingHealthCheck.httpHealthCheck.portSpecification ?: 'USE_FIXED_PORT')))
         break
       case GoogleHealthCheck.HealthCheckType.HTTPS:
-        shouldUpdate |= ((descriptionHealthCheck.port != existingHealthCheck.httpsHealthCheck.port) ||
+        shouldUpdate |= (portDiffers(existingHealthCheck.httpsHealthCheck.port) ||
           (descriptionHealthCheck.requestPath != existingHealthCheck.httpsHealthCheck.requestPath) ||
           (descPortSpec != (existingHealthCheck.httpsHealthCheck.portSpecification ?: 'USE_FIXED_PORT')))
         break
       case GoogleHealthCheck.HealthCheckType.HTTP2:
-        shouldUpdate |= ((descriptionHealthCheck.port != existingHealthCheck.http2HealthCheck.port) ||
+        shouldUpdate |= (portDiffers(existingHealthCheck.http2HealthCheck.port) ||
           (descriptionHealthCheck.requestPath != existingHealthCheck.http2HealthCheck.requestPath) ||
           (descPortSpec != (existingHealthCheck.http2HealthCheck.portSpecification ?: 'USE_FIXED_PORT')))
         break
       case GoogleHealthCheck.HealthCheckType.GRPC:
-        shouldUpdate |= ((descriptionHealthCheck.port != existingHealthCheck.grpcHealthCheck.port) ||
+        shouldUpdate |= (portDiffers(existingHealthCheck.grpcHealthCheck.port) ||
           (descriptionHealthCheck.grpcServiceName != existingHealthCheck.grpcHealthCheck.grpcServiceName) ||
           (descPortSpec != (existingHealthCheck.grpcHealthCheck.portSpecification ?: 'USE_FIXED_PORT')))
         break
       case GoogleHealthCheck.HealthCheckType.TCP:
-        shouldUpdate |= ((descriptionHealthCheck.port != existingHealthCheck.tcpHealthCheck.port) ||
+        shouldUpdate |= (portDiffers(existingHealthCheck.tcpHealthCheck.port) ||
           (descPortSpec != (existingHealthCheck.tcpHealthCheck.portSpecification ?: 'USE_FIXED_PORT')))
         break
       case GoogleHealthCheck.HealthCheckType.SSL:
-        shouldUpdate |= ((descriptionHealthCheck.port != existingHealthCheck.sslHealthCheck.port) ||
+        shouldUpdate |= (portDiffers(existingHealthCheck.sslHealthCheck.port) ||
           (descPortSpec != (existingHealthCheck.sslHealthCheck.portSpecification ?: 'USE_FIXED_PORT')))
         break
       case GoogleHealthCheck.HealthCheckType.UDP:
-        shouldUpdate |= ((descriptionHealthCheck.port != existingHealthCheck.udpHealthCheck.port) ||
+        shouldUpdate |= (portDiffers(existingHealthCheck.udpHealthCheck.port) ||
           (descPortSpec != (existingHealthCheck.udpHealthCheck.portSpecification ?: 'USE_FIXED_PORT')))
         break
       default:

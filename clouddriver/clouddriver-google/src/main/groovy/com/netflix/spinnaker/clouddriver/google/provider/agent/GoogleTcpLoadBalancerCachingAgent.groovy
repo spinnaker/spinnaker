@@ -26,7 +26,6 @@ import com.netflix.spectator.api.Registry
 import com.netflix.spinnaker.cats.provider.ProviderCache
 import com.netflix.spinnaker.clouddriver.google.cache.Keys
 import com.netflix.spinnaker.clouddriver.google.deploy.GCEUtil
-import com.netflix.spinnaker.clouddriver.google.model.GoogleHealthCheck
 import com.netflix.spinnaker.clouddriver.google.model.callbacks.Utils
 import com.netflix.spinnaker.clouddriver.google.model.health.GoogleLoadBalancerHealth
 import com.netflix.spinnaker.clouddriver.google.model.loadbalancing.*
@@ -307,61 +306,9 @@ class GoogleTcpLoadBalancerCachingAgent extends AbstractGoogleLoadBalancerCachin
   }
 
   private static void handleHealthCheck(HealthCheck healthCheck, GoogleBackendService service) {
-    if (!healthCheck) {
-      return
-    }
-    def port = null
-    def hcType = null
-    def requestPath = null
-    def grpcServiceName = null
-    def portSpecification = null
-    if (healthCheck.tcpHealthCheck) {
-      port = healthCheck.tcpHealthCheck.port
-      portSpecification = healthCheck.tcpHealthCheck.portSpecification
-      hcType = GoogleHealthCheck.HealthCheckType.TCP
-    } else if (healthCheck.sslHealthCheck) {
-      port = healthCheck.sslHealthCheck.port
-      portSpecification = healthCheck.sslHealthCheck.portSpecification
-      hcType = GoogleHealthCheck.HealthCheckType.SSL
-    } else if (healthCheck.httpHealthCheck) {
-      port = healthCheck.httpHealthCheck.port
-      portSpecification = healthCheck.httpHealthCheck.portSpecification
-      requestPath = healthCheck.httpHealthCheck.requestPath
-      hcType = GoogleHealthCheck.HealthCheckType.HTTP
-    } else if (healthCheck.httpsHealthCheck) {
-      port = healthCheck.httpsHealthCheck.port
-      portSpecification = healthCheck.httpsHealthCheck.portSpecification
-      requestPath = healthCheck.httpsHealthCheck.requestPath
-      hcType = GoogleHealthCheck.HealthCheckType.HTTPS
-    } else if (healthCheck.udpHealthCheck) {
-      port = healthCheck.udpHealthCheck.port
-      portSpecification = healthCheck.udpHealthCheck.portSpecification
-      hcType = GoogleHealthCheck.HealthCheckType.UDP
-    } else if (healthCheck.http2HealthCheck) {
-      port = healthCheck.http2HealthCheck.port
-      portSpecification = healthCheck.http2HealthCheck.portSpecification
-      requestPath = healthCheck.http2HealthCheck.requestPath
-      hcType = GoogleHealthCheck.HealthCheckType.HTTP2
-    } else if (healthCheck.grpcHealthCheck) {
-      port = healthCheck.grpcHealthCheck.port
-      portSpecification = healthCheck.grpcHealthCheck.portSpecification
-      grpcServiceName = healthCheck.grpcHealthCheck.grpcServiceName
-      hcType = GoogleHealthCheck.HealthCheckType.GRPC
-    }
-
-    if (hcType && (port || portSpecification == 'USE_SERVING_PORT')) {
-      service.healthCheck = new GoogleHealthCheck(
-        name: healthCheck.name,
-        healthCheckType: hcType,
-        port: port,
-        portSpecification: portSpecification,
-        requestPath: requestPath ?: "",
-        grpcServiceName: grpcServiceName ?: "",
-        checkIntervalSec: healthCheck.checkIntervalSec,
-        timeoutSec: healthCheck.timeoutSec,
-        unhealthyThreshold: healthCheck.unhealthyThreshold,
-        healthyThreshold: healthCheck.healthyThreshold,
-      )
+    def googleHealthCheck = GoogleLoadBalancerHealthCheckSupport.fromHealthCheckWithEmptyDefaults(healthCheck)
+    if (googleHealthCheck) {
+      service.healthCheck = googleHealthCheck
     }
   }
 
