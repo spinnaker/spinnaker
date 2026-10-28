@@ -133,7 +133,75 @@ export interface IEcsServerGroupCommand {
   capacityProviderStrategy: IEcsCapacityProviderStrategyItem[];
   useDefaultCapacityProviders: boolean;
   ecsClusterName: string;
+  /**
+   * 'ecs' (default) or 'ecs-native', toggled by the "Use native ECS deployment" checkbox on the
+   * Native ECS Deployment wizard page. See EcsServerGroupTransformer.
+   */
+  cloudProvider?: string;
+  strategy?: string;
+  deploymentCircuitBreakerRollback?: boolean;
+  alarmNames?: string[];
+  enableDeploymentAlarms?: boolean;
+  deploymentAlarmsRollback?: boolean;
+  deploymentStrategy?: string;
+  minimumHealthyPercent?: number;
+  maximumPercent?: number;
+  bakeTimeInMinutes?: number;
+  lifecyclePauseStage?: string;
+  lifecyclePauseTimeoutMinutes?: number;
+  lifecyclePauseTimeoutAction?: string;
+  alternateTargetGroupArn?: string;
+  productionListenerRule?: string;
+  testListenerRule?: string;
+  blueGreenRoleArn?: string;
 }
+
+/**
+ * Fields that only mean something to the ecs-native provider. They are removed from the command
+ * when "Use native ECS deployment" is unticked (and stripped again when a classic `ecs` command is
+ * serialized) so a classic deploy never carries a native-only payload. `enableDeploymentCircuitBreaker`
+ * and `useSourceCapacity` are not listed: classic ECS supports both.
+ */
+export const ECS_NATIVE_ONLY_FIELDS = [
+  'deploymentStrategy',
+  'deploymentCircuitBreakerRollback',
+  'alarmNames',
+  'enableDeploymentAlarms',
+  'deploymentAlarmsRollback',
+  'minimumHealthyPercent',
+  'maximumPercent',
+  'bakeTimeInMinutes',
+  'lifecyclePauseStage',
+  'lifecyclePauseTimeoutMinutes',
+  'lifecyclePauseTimeoutAction',
+  'alternateTargetGroupArn',
+  'productionListenerRule',
+  'testListenerRule',
+  'blueGreenRoleArn',
+] as const;
+
+/** The native fields the wizard only renders for the BLUE_GREEN strategy. */
+export const ECS_NATIVE_BLUE_GREEN_ONLY_FIELDS = [
+  'lifecyclePauseStage',
+  'lifecyclePauseTimeoutMinutes',
+  'lifecyclePauseTimeoutAction',
+  'alternateTargetGroupArn',
+  'productionListenerRule',
+  'testListenerRule',
+  'blueGreenRoleArn',
+] as const;
+
+/** Matches clouddriver, which compares the native strategy case-insensitively. */
+export const isEcsNativeBlueGreenStrategy = (strategy: unknown): boolean =>
+  typeof strategy === 'string' && strategy.trim().toUpperCase() === 'BLUE_GREEN';
+
+/**
+ * A strategy that is neither BLUE_GREEN nor something we can judge in Deck: an omitted value lets
+ * clouddriver keep the service's stored strategy on redeploy, and a SpEL expression is only known
+ * at runtime. Blue/green-only fields must survive both.
+ */
+export const isEcsNativeStrategyDecidedInDeck = (strategy: unknown): boolean =>
+  typeof strategy === 'string' && strategy.trim() !== '' && !strategy.includes('${');
 
 export class EcsServerGroupConfigurationService {
   public configureUpdateCommand(command: IEcsServerGroupCommand): void {
