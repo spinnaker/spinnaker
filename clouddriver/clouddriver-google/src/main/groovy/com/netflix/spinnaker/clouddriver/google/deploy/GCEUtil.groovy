@@ -2601,31 +2601,40 @@ class GCEUtil {
       descriptionHealthCheck.unhealthyThreshold != existingHealthCheck.getUnhealthyThreshold() ||
       descriptionHealthCheck.timeoutSec != existingHealthCheck.getTimeoutSec()
 
+    def descPortSpec = descriptionHealthCheck.portSpecification ?: 'USE_FIXED_PORT'
+
     switch (descriptionHealthCheck.healthCheckType) {
       case GoogleHealthCheck.HealthCheckType.HTTP:
-        shouldUpdate |= (descriptionHealthCheck.port != existingHealthCheck.httpHealthCheck.port ||
-          descriptionHealthCheck.requestPath != existingHealthCheck.httpHealthCheck.requestPath)
+        shouldUpdate |= ((descriptionHealthCheck.port != existingHealthCheck.httpHealthCheck.port) ||
+          (descriptionHealthCheck.requestPath != existingHealthCheck.httpHealthCheck.requestPath) ||
+          (descPortSpec != (existingHealthCheck.httpHealthCheck.portSpecification ?: 'USE_FIXED_PORT')))
         break
       case GoogleHealthCheck.HealthCheckType.HTTPS:
-        shouldUpdate |= (descriptionHealthCheck.port != existingHealthCheck.httpsHealthCheck.port ||
-          descriptionHealthCheck.requestPath != existingHealthCheck.httpsHealthCheck.requestPath)
+        shouldUpdate |= ((descriptionHealthCheck.port != existingHealthCheck.httpsHealthCheck.port) ||
+          (descriptionHealthCheck.requestPath != existingHealthCheck.httpsHealthCheck.requestPath) ||
+          (descPortSpec != (existingHealthCheck.httpsHealthCheck.portSpecification ?: 'USE_FIXED_PORT')))
         break
       case GoogleHealthCheck.HealthCheckType.HTTP2:
-        shouldUpdate |= (descriptionHealthCheck.port != existingHealthCheck.http2HealthCheck.port ||
-          descriptionHealthCheck.requestPath != existingHealthCheck.http2HealthCheck.requestPath)
+        shouldUpdate |= ((descriptionHealthCheck.port != existingHealthCheck.http2HealthCheck.port) ||
+          (descriptionHealthCheck.requestPath != existingHealthCheck.http2HealthCheck.requestPath) ||
+          (descPortSpec != (existingHealthCheck.http2HealthCheck.portSpecification ?: 'USE_FIXED_PORT')))
         break
       case GoogleHealthCheck.HealthCheckType.GRPC:
-        shouldUpdate |= (descriptionHealthCheck.port != existingHealthCheck.grpcHealthCheck.port ||
-          descriptionHealthCheck.requestPath != existingHealthCheck.grpcHealthCheck.requestPath)
+        shouldUpdate |= ((descriptionHealthCheck.port != existingHealthCheck.grpcHealthCheck.port) ||
+          (descriptionHealthCheck.grpcServiceName != existingHealthCheck.grpcHealthCheck.grpcServiceName) ||
+          (descPortSpec != (existingHealthCheck.grpcHealthCheck.portSpecification ?: 'USE_FIXED_PORT')))
         break
       case GoogleHealthCheck.HealthCheckType.TCP:
-        shouldUpdate |= descriptionHealthCheck.port != existingHealthCheck.tcpHealthCheck.port
+        shouldUpdate |= ((descriptionHealthCheck.port != existingHealthCheck.tcpHealthCheck.port) ||
+          (descPortSpec != (existingHealthCheck.tcpHealthCheck.portSpecification ?: 'USE_FIXED_PORT')))
         break
       case GoogleHealthCheck.HealthCheckType.SSL:
-        shouldUpdate |= descriptionHealthCheck.port != existingHealthCheck.sslHealthCheck.port
+        shouldUpdate |= ((descriptionHealthCheck.port != existingHealthCheck.sslHealthCheck.port) ||
+          (descPortSpec != (existingHealthCheck.sslHealthCheck.portSpecification ?: 'USE_FIXED_PORT')))
         break
       case GoogleHealthCheck.HealthCheckType.UDP:
-        shouldUpdate |= descriptionHealthCheck.port != existingHealthCheck.udpHealthCheck.port
+        shouldUpdate |= ((descriptionHealthCheck.port != existingHealthCheck.udpHealthCheck.port) ||
+          (descPortSpec != (existingHealthCheck.udpHealthCheck.portSpecification ?: 'USE_FIXED_PORT')))
         break
       default:
         throw new IllegalArgumentException("Description contains illegal health check type.")
@@ -2647,29 +2656,36 @@ class GCEUtil {
 
     switch (descriptionHealthCheck.healthCheckType) {
       case GoogleHealthCheck.HealthCheckType.HTTP:
-        existingHealthCheck.httpHealthCheck.port = descriptionHealthCheck.port
+        existingHealthCheck.httpHealthCheck.port = descriptionHealthCheck.portSpecification == 'USE_SERVING_PORT' ? null : descriptionHealthCheck.port
+        existingHealthCheck.httpHealthCheck.portSpecification = descriptionHealthCheck.portSpecification
         existingHealthCheck.httpHealthCheck.requestPath = descriptionHealthCheck.requestPath
         break
       case GoogleHealthCheck.HealthCheckType.HTTPS:
-        existingHealthCheck.httpsHealthCheck.port = descriptionHealthCheck.port
+        existingHealthCheck.httpsHealthCheck.port = descriptionHealthCheck.portSpecification == 'USE_SERVING_PORT' ? null : descriptionHealthCheck.port
+        existingHealthCheck.httpsHealthCheck.portSpecification = descriptionHealthCheck.portSpecification
         existingHealthCheck.httpsHealthCheck.requestPath = descriptionHealthCheck.requestPath
         break
       case GoogleHealthCheck.HealthCheckType.HTTP2:
-        existingHealthCheck.http2HealthCheck.port = descriptionHealthCheck.port
+        existingHealthCheck.http2HealthCheck.port = descriptionHealthCheck.portSpecification == 'USE_SERVING_PORT' ? null : descriptionHealthCheck.port
+        existingHealthCheck.http2HealthCheck.portSpecification = descriptionHealthCheck.portSpecification
         existingHealthCheck.http2HealthCheck.requestPath = descriptionHealthCheck.requestPath
         break
       case GoogleHealthCheck.HealthCheckType.GRPC:
-        existingHealthCheck.grpcHealthCheck.port = descriptionHealthCheck.port
-        existingHealthCheck.grpcHealthCheck.requestPath = descriptionHealthCheck.requestPath
+        existingHealthCheck.grpcHealthCheck.port = descriptionHealthCheck.portSpecification == 'USE_SERVING_PORT' ? null : descriptionHealthCheck.port
+        existingHealthCheck.grpcHealthCheck.portSpecification = descriptionHealthCheck.portSpecification
+        existingHealthCheck.grpcHealthCheck.grpcServiceName = descriptionHealthCheck.grpcServiceName
         break
       case GoogleHealthCheck.HealthCheckType.TCP:
-        existingHealthCheck.tcpHealthCheck.port = descriptionHealthCheck.port
+        existingHealthCheck.tcpHealthCheck.port = descriptionHealthCheck.portSpecification == 'USE_SERVING_PORT' ? null : descriptionHealthCheck.port
+        existingHealthCheck.tcpHealthCheck.portSpecification = descriptionHealthCheck.portSpecification
         break
       case GoogleHealthCheck.HealthCheckType.SSL:
-        existingHealthCheck.sslHealthCheck.port = descriptionHealthCheck.port
+        existingHealthCheck.sslHealthCheck.port = descriptionHealthCheck.portSpecification == 'USE_SERVING_PORT' ? null : descriptionHealthCheck.port
+        existingHealthCheck.sslHealthCheck.portSpecification = descriptionHealthCheck.portSpecification
         break
 //      case GoogleHealthCheck.HealthCheckType.UDP:
-//        existingHealthCheck.udpHealthCheck.port = descriptionHealthCheck.port
+//        existingHealthCheck.udpHealthCheck.port = descriptionHealthCheck.portSpecification == 'USE_SERVING_PORT' ? null : descriptionHealthCheck.port
+//        existingHealthCheck.udpHealthCheck.portSpecification = descriptionHealthCheck.portSpecification
 //        break
       default:
         throw new IllegalArgumentException("Description contains illegal health check type.")
@@ -2694,42 +2710,55 @@ class GCEUtil {
       case GoogleHealthCheck.HealthCheckType.HTTP:
         newHealthCheck.type = 'HTTP'
         newHealthCheck.httpHealthCheck = new HttpHealthCheck(
-          port: descriptionHealthCheck.port,
+          port: descriptionHealthCheck.portSpecification == 'USE_SERVING_PORT' ? null : descriptionHealthCheck.port,
+          portSpecification: descriptionHealthCheck.portSpecification,
           requestPath: descriptionHealthCheck.requestPath,
         )
         break
       case GoogleHealthCheck.HealthCheckType.HTTPS:
         newHealthCheck.type = 'HTTPS'
         newHealthCheck.httpsHealthCheck = new HttpsHealthCheck(
-          port: descriptionHealthCheck.port,
+          port: descriptionHealthCheck.portSpecification == 'USE_SERVING_PORT' ? null : descriptionHealthCheck.port,
+          portSpecification: descriptionHealthCheck.portSpecification,
           requestPath: descriptionHealthCheck.requestPath,
         )
         break
       case GoogleHealthCheck.HealthCheckType.HTTP2:
         newHealthCheck.type = 'HTTP2'
         newHealthCheck.http2HealthCheck = new HTTP2HealthCheck(
-          port: descriptionHealthCheck.port,
+          port: descriptionHealthCheck.portSpecification == 'USE_SERVING_PORT' ? null : descriptionHealthCheck.port,
+          portSpecification: descriptionHealthCheck.portSpecification,
           requestPath: descriptionHealthCheck.requestPath,
         )
         break
       case GoogleHealthCheck.HealthCheckType.GRPC:
         newHealthCheck.type = 'GRPC'
         newHealthCheck.grpcHealthCheck = new GRPCHealthCheck(
-          port: descriptionHealthCheck.port,
+          port: descriptionHealthCheck.portSpecification == 'USE_SERVING_PORT' ? null : descriptionHealthCheck.port,
+          portSpecification: descriptionHealthCheck.portSpecification,
           grpcServiceName: descriptionHealthCheck.grpcServiceName,
         )
         break
       case GoogleHealthCheck.HealthCheckType.TCP:
         newHealthCheck.type = 'TCP'
-        newHealthCheck.tcpHealthCheck = new TCPHealthCheck(port: descriptionHealthCheck.port)
+        newHealthCheck.tcpHealthCheck = new TCPHealthCheck(
+          port: descriptionHealthCheck.portSpecification == 'USE_SERVING_PORT' ? null : descriptionHealthCheck.port,
+          portSpecification: descriptionHealthCheck.portSpecification,
+        )
         break
       case GoogleHealthCheck.HealthCheckType.SSL:
         newHealthCheck.type = 'SSL'
-        newHealthCheck.sslHealthCheck = new SSLHealthCheck(port: descriptionHealthCheck.port)
+        newHealthCheck.sslHealthCheck = new SSLHealthCheck(
+          port: descriptionHealthCheck.portSpecification == 'USE_SERVING_PORT' ? null : descriptionHealthCheck.port,
+          portSpecification: descriptionHealthCheck.portSpecification,
+        )
         break
 //      case GoogleHealthCheck.HealthCheckType.UDP:
 //        newHealthCheck.type = 'UDP'
-//        newHealthCheck.udpHealthCheck = new UDPHealthCheck(port: descriptionHealthCheck.port)
+//        newHealthCheck.udpHealthCheck = new UDPHealthCheck(
+//          port: descriptionHealthCheck.portSpecification == 'USE_SERVING_PORT' ? null : descriptionHealthCheck.port,
+//          portSpecification: descriptionHealthCheck.portSpecification,
+//        )
 //        break
       default:
         throw new IllegalArgumentException("Description contains illegal health check type.")

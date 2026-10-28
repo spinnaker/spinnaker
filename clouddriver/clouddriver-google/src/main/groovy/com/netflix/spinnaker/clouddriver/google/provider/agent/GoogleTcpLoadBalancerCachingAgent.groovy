@@ -313,31 +313,50 @@ class GoogleTcpLoadBalancerCachingAgent extends AbstractGoogleLoadBalancerCachin
     def port = null
     def hcType = null
     def requestPath = null
+    def grpcServiceName = null
+    def portSpecification = null
     if (healthCheck.tcpHealthCheck) {
       port = healthCheck.tcpHealthCheck.port
+      portSpecification = healthCheck.tcpHealthCheck.portSpecification
       hcType = GoogleHealthCheck.HealthCheckType.TCP
     } else if (healthCheck.sslHealthCheck) {
       port = healthCheck.sslHealthCheck.port
+      portSpecification = healthCheck.sslHealthCheck.portSpecification
       hcType = GoogleHealthCheck.HealthCheckType.SSL
     } else if (healthCheck.httpHealthCheck) {
       port = healthCheck.httpHealthCheck.port
+      portSpecification = healthCheck.httpHealthCheck.portSpecification
       requestPath = healthCheck.httpHealthCheck.requestPath
       hcType = GoogleHealthCheck.HealthCheckType.HTTP
     } else if (healthCheck.httpsHealthCheck) {
       port = healthCheck.httpsHealthCheck.port
+      portSpecification = healthCheck.httpsHealthCheck.portSpecification
       requestPath = healthCheck.httpsHealthCheck.requestPath
       hcType = GoogleHealthCheck.HealthCheckType.HTTPS
     } else if (healthCheck.udpHealthCheck) {
       port = healthCheck.udpHealthCheck.port
+      portSpecification = healthCheck.udpHealthCheck.portSpecification
       hcType = GoogleHealthCheck.HealthCheckType.UDP
+    } else if (healthCheck.http2HealthCheck) {
+      port = healthCheck.http2HealthCheck.port
+      portSpecification = healthCheck.http2HealthCheck.portSpecification
+      requestPath = healthCheck.http2HealthCheck.requestPath
+      hcType = GoogleHealthCheck.HealthCheckType.HTTP2
+    } else if (healthCheck.grpcHealthCheck) {
+      port = healthCheck.grpcHealthCheck.port
+      portSpecification = healthCheck.grpcHealthCheck.portSpecification
+      grpcServiceName = healthCheck.grpcHealthCheck.grpcServiceName
+      hcType = GoogleHealthCheck.HealthCheckType.GRPC
     }
 
-    if (port && hcType) {
+    if (hcType && (port || portSpecification == 'USE_SERVING_PORT')) {
       service.healthCheck = new GoogleHealthCheck(
         name: healthCheck.name,
         healthCheckType: hcType,
         port: port,
+        portSpecification: portSpecification,
         requestPath: requestPath ?: "",
+        grpcServiceName: grpcServiceName ?: "",
         checkIntervalSec: healthCheck.checkIntervalSec,
         timeoutSec: healthCheck.timeoutSec,
         unhealthyThreshold: healthCheck.unhealthyThreshold,

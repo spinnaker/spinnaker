@@ -655,6 +655,96 @@ package com.netflix.spinnaker.clouddriver.google.deploy
   }
 
   @Unroll
+  void "should correctly create new health check with portSpecification #portSpec"() {
+    setup:
+    def description = new com.netflix.spinnaker.clouddriver.google.model.GoogleHealthCheck(
+      name: "hc-name",
+      healthCheckType: com.netflix.spinnaker.clouddriver.google.model.GoogleHealthCheck.HealthCheckType.HTTP,
+      port: port,
+      portSpecification: portSpec,
+      requestPath: "/health",
+      checkIntervalSec: 5,
+      timeoutSec: 5,
+      healthyThreshold: 2,
+      unhealthyThreshold: 2
+    )
+
+    when:
+    def hc = GCEUtil.createNewHealthCheck(description)
+
+    then:
+    hc.httpHealthCheck.port == expectedPort
+    hc.httpHealthCheck.portSpecification == portSpec
+
+    where:
+    port | portSpec            || expectedPort
+    80   | 'USE_FIXED_PORT'    || 80
+    null | 'USE_SERVING_PORT' || null
+    80   | null               || 80
+    }
+
+    void "should correctly create new GRPC health check with grpcServiceName and serving port"() {
+    setup:
+    def description = new com.netflix.spinnaker.clouddriver.google.model.GoogleHealthCheck(
+      name: "hc-name",
+      healthCheckType: com.netflix.spinnaker.clouddriver.google.model.GoogleHealthCheck.HealthCheckType.GRPC,
+      portSpecification: 'USE_SERVING_PORT',
+      grpcServiceName: "com.example.Service",
+      checkIntervalSec: 5,
+      timeoutSec: 5,
+      healthyThreshold: 2,
+      unhealthyThreshold: 2
+    )
+
+    when:
+    def hc = GCEUtil.createNewHealthCheck(description)
+
+    then:
+    hc.grpcHealthCheck.port == null
+    hc.grpcHealthCheck.portSpecification == 'USE_SERVING_PORT'
+    hc.grpcHealthCheck.grpcServiceName == "com.example.Service"
+    }
+
+    @Unroll
+    void "should correctly detect if health check should be updated (portSpecification: #portSpec -> #newPortSpec)"() {
+    setup:
+    def existingHC = new HealthCheck(
+      checkIntervalSec: 5,
+      timeoutSec: 5,
+      healthyThreshold: 2,
+      unhealthyThreshold: 2,
+      httpHealthCheck: new HttpHealthCheck(
+        port: port,
+        portSpecification: portSpec,
+        requestPath: "/health"
+      )
+    )
+    def description = new com.netflix.spinnaker.clouddriver.google.model.GoogleHealthCheck(
+      healthCheckType: com.netflix.spinnaker.clouddriver.google.model.GoogleHealthCheck.HealthCheckType.HTTP,
+      port: newPort,
+      portSpecification: newPortSpec,
+      requestPath: "/health",
+      checkIntervalSec: 5,
+      timeoutSec: 5,
+      healthyThreshold: 2,
+      unhealthyThreshold: 2
+    )
+
+    expect:
+    GCEUtil.healthCheckShouldBeUpdated(existingHC, description) == shouldUpdate
+
+    where:
+    port | portSpec           | newPort | newPortSpec         || shouldUpdate
+    80   | 'USE_FIXED_PORT'   | 80      | 'USE_FIXED_PORT'    || false
+    80   | null               | 80      | 'USE_FIXED_PORT'    || false
+    80   | 'USE_FIXED_PORT'   | 80      | null                || false
+    80   | 'USE_FIXED_PORT'   | 81      | 'USE_FIXED_PORT'    || true
+    80   | 'USE_FIXED_PORT'   | null    | 'USE_SERVING_PORT'  || true
+    null | 'USE_SERVING_PORT' | null    | 'USE_SERVING_PORT'  || false
+    null | 'USE_SERVING_PORT' | 80      | 'USE_FIXED_PORT'    || true
+  }
+
+  @Unroll
   void "canonicalizeTargetShape should return #expected for #targetShape"() {
     expect:
       GCEUtil.canonicalizeTargetShape(targetShape) == expected

@@ -90,6 +90,7 @@ export interface IGceLoadBalancerHealthCheck {
   host?: string;
   name?: string;
   port?: number | string;
+  portSpecification?: 'USE_FIXED_PORT' | 'USE_SERVING_PORT';
   proxyHeader?: string;
   requestPath?: string;
   timeoutSec?: number;

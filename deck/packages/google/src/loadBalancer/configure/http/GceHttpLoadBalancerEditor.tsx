@@ -279,7 +279,9 @@ export function validateGceHttpLoadBalancerCommand(command: IGceLoadBalancerComm
     if (!['HTTP', 'HTTPS', 'TCP', 'SSL'].includes(String(healthCheck.healthCheckType))) {
       errors.add('Health check protocol must be HTTP, HTTPS, TCP, or SSL.');
     }
-    if (!validPort(healthCheck.port)) errors.add('Health check port must be between 1 and 65535.');
+    if (healthCheck.portSpecification !== 'USE_SERVING_PORT' && !validPort(healthCheck.port)) {
+      errors.add('Health check port must be between 1 and 65535.');
+    }
     if (
       (healthCheck.healthCheckType === 'HTTP' || healthCheck.healthCheckType === 'HTTPS') &&
       !healthCheck.requestPath

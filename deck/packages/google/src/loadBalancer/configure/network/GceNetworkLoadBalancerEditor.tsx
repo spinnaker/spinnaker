@@ -88,7 +88,9 @@ export function validateGceNetworkLoadBalancerCommand(command: IGceNetworkLoadBa
   if (!validPortRange(listener?.portRange)) errors.push('Port range must contain ports between 1 and 65535.');
 
   if (healthCheck) {
-    if (!validPort(healthCheck.port)) errors.push('Health check port must be between 1 and 65535.');
+    if (healthCheck.portSpecification !== 'USE_SERVING_PORT' && !validPort(healthCheck.port)) {
+      errors.push('Health check port must be between 1 and 65535.');
+    }
     if (!healthCheck.requestPath) errors.push('Health check path is required.');
     if (negative(healthCheck.timeoutSec)) errors.push('Health check timeout must be zero or greater.');
     if (healthCheck.checkIntervalSec !== undefined && Number(healthCheck.checkIntervalSec) <= 0) {
@@ -186,7 +188,27 @@ export function GceNetworkLoadBalancerEditor({
       </div>
       {healthCheck && (
         <React.Fragment>
-          {numberField('Port', 'healthCheckPort', healthCheck.port, (port) => updateHealthCheck({ port }))}
+          <div className="form-group" data-field="portSpecification">
+            <label className="col-md-3 sm-label-right">Port specification</label>
+            <div className="col-md-7">
+              <select
+                className="form-control input-sm"
+                onChange={(event) => {
+                  const portSpecification = event.target.value;
+                  updateHealthCheck({
+                    portSpecification,
+                    ...(portSpecification === 'USE_SERVING_PORT' ? { port: undefined } : {}),
+                  });
+                }}
+                value={healthCheck.portSpecification || 'USE_FIXED_PORT'}
+              >
+                <option value="USE_FIXED_PORT">Fixed Port</option>
+                <option value="USE_SERVING_PORT">Use Serving Port</option>
+              </select>
+            </div>
+          </div>
+          {healthCheck.portSpecification !== 'USE_SERVING_PORT' &&
+            numberField('Port', 'healthCheckPort', healthCheck.port, (port) => updateHealthCheck({ port }))}
           {textField('Request path', 'requestPath', healthCheck.requestPath || '', (requestPath) =>
             updateHealthCheck({
               requestPath: requestPath && !requestPath.startsWith('/') ? `/${requestPath}` : requestPath,

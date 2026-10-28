@@ -184,7 +184,9 @@ export function validateGceProxyLoadBalancerCommand(command: IGceLoadBalancerCom
 
   if (!healthCheck?.name && !backend?.healthCheck?.name) errors.push('Health check name is required.');
   if (healthCheck) {
-    if (!validPort(healthCheck.port)) errors.push('Health check port must be between 1 and 65535.');
+    if (healthCheck.portSpecification !== 'USE_SERVING_PORT' && !validPort(healthCheck.port)) {
+      errors.push('Health check port must be between 1 and 65535.');
+    }
     if (
       (healthCheck.healthCheckType === 'HTTP' || healthCheck.healthCheckType === 'HTTPS') &&
       !healthCheck.requestPath
@@ -376,7 +378,27 @@ export function GceProxyLoadBalancerEditor({
         textField('Request path', 'requestPath', healthCheck.requestPath || '', (requestPath) =>
           updateHealthCheck({ requestPath }),
         )}
-      {numberField('Health check port', 'healthCheckPort', healthCheck.port, (port) => updateHealthCheck({ port }))}
+      <div className="form-group" data-field="portSpecification">
+        <label className="col-md-3 sm-label-right">Port specification</label>
+        <div className="col-md-7">
+          <select
+            className="form-control input-sm"
+            onChange={(event) => {
+              const portSpecification = event.target.value;
+              updateHealthCheck({
+                portSpecification,
+                ...(portSpecification === 'USE_SERVING_PORT' ? { port: undefined } : {}),
+              });
+            }}
+            value={healthCheck.portSpecification || 'USE_FIXED_PORT'}
+          >
+            <option value="USE_FIXED_PORT">Fixed Port</option>
+            <option value="USE_SERVING_PORT">Use Serving Port</option>
+          </select>
+        </div>
+      </div>
+      {healthCheck.portSpecification !== 'USE_SERVING_PORT' &&
+        numberField('Health check port', 'healthCheckPort', healthCheck.port, (port) => updateHealthCheck({ port }))}
       {numberField('Timeout', 'timeoutSec', healthCheck.timeoutSec, (timeoutSec) => updateHealthCheck({ timeoutSec }))}
       {numberField('Interval', 'checkIntervalSec', healthCheck.checkIntervalSec, (checkIntervalSec) =>
         updateHealthCheck({ checkIntervalSec }),
