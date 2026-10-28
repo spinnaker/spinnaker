@@ -227,8 +227,7 @@ public class PipelineCache implements MonitoredPoller {
   private Map<String, Object> hydrate(Map<String, Object> rawPipeline) {
     Predicate<Map<String, Object>> isV2Pipeline =
         p -> {
-          return p.getOrDefault("type", "").equals("templatedPipeline")
-              && p.getOrDefault("schema", "").equals("v2");
+          return "templatedPipeline".equals(p.get("type")) && "v2".equals(p.get("schema"));
         };
 
     return planPipelineIfNeeded(rawPipeline, isV2Pipeline);

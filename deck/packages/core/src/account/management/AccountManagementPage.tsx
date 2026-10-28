@@ -20,7 +20,7 @@ export function AccountManagementPage() {
   const [editing, setEditing] = useState<IAccountDefinition | null>(null);
 
   const providerSuggestions = Array.from(
-    new Set([...Object.keys(ACCOUNT_SAMPLES), ...CloudProviderRegistry.listRegisteredProviders()]),
+    new Set([...Object.keys(ACCOUNT_SAMPLES), ...CloudProviderRegistry.listRegisteredAccountTypes()]),
   ).sort();
 
   const load = useCallback(() => {
