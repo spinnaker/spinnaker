@@ -102,6 +102,9 @@ dependencies {
     //TODO:  jsch moved to com.github.mwiede/jsch
     api("com.jcraft:jsch:${versions.jsch}")
     api("org.elasticsearch:elasticsearch:${versions.elasticsearch}")
+    // CVE-2026-84939: this patch stays on 2.3.x.
+    // TODO: Remove the override when the Spring Boot BOM manages 2.3.35 or later.
+    api("org.freemarker:freemarker:2.3.35")
     api("com.jcraft:jsch.agentproxy.connector-factory:${versions.jschAgentProxy}")
     api("com.jcraft:jsch.agentproxy.jsch:${versions.jschAgentProxy}")
 
