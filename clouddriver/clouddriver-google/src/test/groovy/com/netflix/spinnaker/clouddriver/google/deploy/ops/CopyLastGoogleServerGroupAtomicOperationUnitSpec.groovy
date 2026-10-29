@@ -24,12 +24,14 @@ import com.google.api.services.compute.model.InstanceProperties
 import com.google.api.services.compute.model.InstanceTemplate
 import com.google.api.services.compute.model.Scheduling
 import com.google.api.services.compute.model.ShieldedInstanceConfig
+import com.google.api.services.compute.model.WorkloadIdentityConfig
 import com.netflix.spectator.api.DefaultRegistry
 import com.netflix.spinnaker.clouddriver.data.task.Task
 import com.netflix.spinnaker.clouddriver.data.task.TaskRepository
 import com.netflix.spinnaker.clouddriver.deploy.DeploymentResult
 import com.netflix.spinnaker.clouddriver.google.deploy.GCEUtil
 import com.netflix.spinnaker.clouddriver.google.deploy.description.BaseGoogleInstanceDescription
+import com.netflix.spinnaker.clouddriver.google.deploy.description.BaseGoogleInstanceDescription.WorkloadIdentityConfig as WorkloadIdentitySetting
 import com.netflix.spinnaker.clouddriver.google.deploy.description.BasicGoogleDeployDescription
 import com.netflix.spinnaker.clouddriver.google.deploy.handlers.BasicGoogleDeployHandler
 import com.netflix.spinnaker.clouddriver.google.model.GoogleAutoHealingPolicy
@@ -333,6 +335,53 @@ class CopyLastGoogleServerGroupAtomicOperationUnitSpec extends Specification {
 
     where:
       shieldedKey << ["shieldedInstanceConfig", "shieldedVmConfig"]
+  }
+
+  @Unroll
+  void "operation resolves workload identity config (ancestor: #ancestorConfig, request: #requestedConfig)"() {
+    setup:
+      instanceProperties.workloadIdentityConfig = ancestorConfig
+      def ancestorServerGroup = new GoogleServerGroup(
+        name: ANCESTOR_SERVER_GROUP_NAME,
+        zone: ZONE,
+        asg: [(GCEUtil.REGIONAL_LOAD_BALANCER_NAMES): LOAD_BALANCERS, desiredCapacity: 2],
+        launchConfig: [instanceTemplate: new InstanceTemplate(name: INSTANCE_TEMPLATE_NAME, properties: instanceProperties)]
+      ).view
+      def description = new BasicGoogleDeployDescription(
+        source: [region: REGION, serverGroupName: ANCESTOR_SERVER_GROUP_NAME],
+        region: REGION,
+        workloadIdentityConfig: requestedConfig,
+        accountName: ACCOUNT_NAME,
+        credentials: credentials
+      )
+      def deploymentResult = new DeploymentResult(serverGroupNames: ["$REGION:$NEW_SERVER_GROUP_NAME"])
+      def googleClusterProviderMock = Mock(GoogleClusterProvider)
+      def basicGoogleDeployHandlerMock = Mock(BasicGoogleDeployHandler)
+      @Subject def operation = new CopyLastGoogleServerGroupAtomicOperation(description)
+      operation.registry = registry
+      operation.googleClusterProvider = googleClusterProviderMock
+      operation.basicGoogleDeployHandler = basicGoogleDeployHandlerMock
+
+    when:
+      operation.operate([])
+
+    then:
+      1 * googleClusterProviderMock.getServerGroup(ACCOUNT_NAME, REGION, ANCESTOR_SERVER_GROUP_NAME) >> ancestorServerGroup
+      1 * basicGoogleDeployHandlerMock.handle({ BasicGoogleDeployDescription newDescription ->
+        newDescription.workloadIdentityConfig == expectedConfig
+      }, _) >> deploymentResult
+
+    where:
+      ancestorConfig                                                                  | requestedConfig                                                                   || expectedConfig
+      // Inherit the ancestor's setting when the request doesn't set one.
+      new WorkloadIdentityConfig(identity: "ancestor-identity", identityCertificateEnabled: true) | null                                                         || new WorkloadIdentitySetting(identity: "ancestor-identity", identityCertificateEnabled: true)
+      // The request overrides the ancestor's setting.
+      new WorkloadIdentityConfig(identity: "ancestor-identity", identityCertificateEnabled: true) | new WorkloadIdentitySetting(identity: "new-identity", identityCertificateEnabled: false) || new WorkloadIdentitySetting(identity: "new-identity", identityCertificateEnabled: false)
+      // An empty setting is passed through; the deploy handler turns it into no config.
+      new WorkloadIdentityConfig(identity: "ancestor-identity", identityCertificateEnabled: true) | new WorkloadIdentitySetting(identity: "", identityCertificateEnabled: false) || new WorkloadIdentitySetting(identity: "", identityCertificateEnabled: false)
+      // Without an ancestor setting, the request's setting is used as is.
+      null                                                                            | new WorkloadIdentitySetting(identity: "new-identity", identityCertificateEnabled: true) || new WorkloadIdentitySetting(identity: "new-identity", identityCertificateEnabled: true)
+      null                                                                            | null                                                                              || null
   }
 
   void "operation explicitly removes ancestor autoscaling policy"() {
