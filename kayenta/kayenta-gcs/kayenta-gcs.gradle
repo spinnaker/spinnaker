@@ -4,4 +4,14 @@ dependencies {
 
   api "io.spinnaker.kork:kork-exceptions"
   api "com.google.apis:google-api-services-storage"
+
+  testImplementation "org.junit.jupiter:junit-jupiter-api"
+  testImplementation "org.junit.jupiter:junit-jupiter-engine"
+  testImplementation "org.assertj:assertj-core"
+  testImplementation "org.mockito:mockito-core"
+  testImplementation "com.fasterxml.jackson.core:jackson-databind"
+  testImplementation "com.google.http-client:google-http-client-jackson2"
+  testImplementation "org.testcontainers:testcontainers"
+  testImplementation "org.testcontainers:junit-jupiter"
+  testRuntimeOnly "ch.qos.logback:logback-classic"
 }
