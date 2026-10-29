@@ -61,16 +61,19 @@ mv ports.conf /etc/apache2/ports.conf
 # Create a passphrase file to inject the SSL passphrase into apache's startup
 
 cp docker/passphrase.gen passphrase
+chmod +x passphrase
+mv passphrase /etc/apache2/passphrase
 
-sed -i "s|{%PASSPHRASE%}|$_PASSPHRASE|g" passphrase
+rm -f /etc/apache2/passphrase.txt
+if [ -n "$_PASSPHRASE" ];
+then
+	(umask 077; printf '%s\n' "$_PASSPHRASE" > /etc/apache2/passphrase.txt)
+fi
 
 # Clear password from env vars 
 
 _PASSPHRASE=""
 PASSPHRASE=""
-
-chmod +x passphrase
-mv passphrase /etc/apache2/passphrase
 
 if [ -e /opt/spinnaker/config/settings.js ];
 then 
