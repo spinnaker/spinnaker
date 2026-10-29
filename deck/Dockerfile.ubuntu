@@ -10,4 +10,6 @@ RUN docker/compress-assets.sh /opt/deck/html \
     && chown -R www-data:www-data /opt/deck
 USER www-data
 
-CMD docker/run-apache2.sh
+# SIGWINCH is Apache's graceful stop: finish in-flight requests, then exit.
+STOPSIGNAL SIGWINCH
+CMD ["docker/run-apache2.sh"]
