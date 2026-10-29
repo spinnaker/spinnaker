@@ -28,6 +28,9 @@ import spock.lang.Specification
 class WorkloadIdentitySpec extends Specification {
 
   private static final String SOURCE_IMAGE = "projects/debian-cloud/global/images/debian-11"
+  // A full resource URL in the managed project, as buildInstanceDescriptionFromTemplate derives the
+  // network's project for XPN handling.
+  private static final String NETWORK = "projects/test-project/global/networks/default"
 
   void "buildInstanceDescriptionFromTemplate should extract workloadIdentityConfig"() {
     setup:
@@ -93,7 +96,7 @@ class WorkloadIdentitySpec extends Specification {
       name: "test-template",
       properties: new InstanceProperties(
         machineType: "n1-standard-1",
-        networkInterfaces: [new NetworkInterface(network: "default")],
+        networkInterfaces: [new NetworkInterface(network: NETWORK)],
         disks: [new AttachedDisk(
           boot: true,
           initializeParams: new AttachedDiskInitializeParams(sourceImage: SOURCE_IMAGE))],
