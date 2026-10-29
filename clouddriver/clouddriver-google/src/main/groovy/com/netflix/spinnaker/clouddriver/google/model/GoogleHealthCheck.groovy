@@ -25,7 +25,8 @@ class GoogleHealthCheck {
   String requestPath
   String grpcServiceName
   String selfLink
-  int port
+  Integer port
+  String portSpecification
   HealthCheckType healthCheckType
 
   // Attributes
@@ -65,41 +66,32 @@ class GoogleHealthCheck {
    * Health check endpoint of the form '{PROTO}:{PORT}{PATH}'.
    */
   String getTarget() {
+    def portDisplay = portSpecification == 'USE_SERVING_PORT' ? 'USE_SERVING_PORT' : port
+    if (!portDisplay) {
+      return null
+    }
+
     switch (healthCheckType) {
       case HealthCheckType.HTTP:
-        return this.port ?
-          "HTTP:${this.port}${this.requestPath ?: '/'}" :
-          null
+        return "HTTP:${portDisplay}${this.requestPath ?: '/'}"
         break
       case HealthCheckType.HTTPS:
-        return this.port ?
-          "HTTPS:${this.port}${this.requestPath ?: '/'}" :
-          null
+        return "HTTPS:${portDisplay}${this.requestPath ?: '/'}"
         break
       case HealthCheckType.HTTP2:
-        return this.port ?
-          "HTTP2:${this.port}${this.requestPath ?: '/'}" :
-          null
+        return "HTTP2:${portDisplay}${this.requestPath ?: '/'}"
         break
       case HealthCheckType.GRPC:
-        return this.port ?
-          "GRPC:${this.port}${this.grpcServiceName ?: ''}" :
-          null
+        return "GRPC:${portDisplay}${this.grpcServiceName ?: ''}"
         break
       case HealthCheckType.SSL:
-        return this.port ?
-          "SSL:${this.port}" :
-          null
+        return "SSL:${portDisplay}"
         break
       case HealthCheckType.TCP:
-        return this.port ?
-          "TCP:${this.port}" :
-          null
+        return "TCP:${portDisplay}"
         break
       case HealthCheckType.UDP:
-        return this.port ?
-          "UDP:${this.port}" :
-          null
+        return "UDP:${portDisplay}"
         break
       default:
         break
@@ -115,7 +107,8 @@ class GoogleHealthCheck {
     int timeout
     int unhealthyThreshold
     int healthyThreshold
-    int port
+    Integer port
+    String portSpecification
     String requestPath
     String grpcServiceName
     String selfLink
@@ -131,6 +124,7 @@ class GoogleHealthCheck {
       unhealthyThreshold = googleHealthCheck.unhealthyThreshold
       healthyThreshold = googleHealthCheck.healthyThreshold
       port = googleHealthCheck.port
+      portSpecification = googleHealthCheck.portSpecification
       requestPath = googleHealthCheck.requestPath
       grpcServiceName = googleHealthCheck.grpcServiceName
       selfLink = googleHealthCheck.selfLink
