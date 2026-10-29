@@ -697,6 +697,7 @@ class GCEUtil {
     // templates created before the Compute v1 cutover. Legacy values arrive as Map/GenericJson
     // from wire JSON, so normalize rather than casting directly to ShieldedInstanceConfig.
     def shieldedConfig = resolveShieldedInstanceConfig(instanceTemplateProperties)
+    def workloadIdentityConfig = instanceTemplateProperties.workloadIdentityConfig
 
     return new BaseGoogleInstanceDescription(
       image: image,
@@ -713,7 +714,29 @@ class GCEUtil {
       authScopes: retrieveScopesFromServiceAccount(serviceAccountEmail, instanceTemplateProperties.serviceAccounts),
       enableSecureBoot: shieldedConfig?.enableSecureBoot,
       enableVtpm: shieldedConfig?.enableVtpm,
-      enableIntegrityMonitoring: shieldedConfig?.enableIntegrityMonitoring
+      enableIntegrityMonitoring: shieldedConfig?.enableIntegrityMonitoring,
+      workloadIdentityConfig: workloadIdentityConfig ? new BaseGoogleInstanceDescription.WorkloadIdentityConfig(
+        identity: workloadIdentityConfig.identity,
+        identityCertificateEnabled: workloadIdentityConfig.identityCertificateEnabled
+      ) : null
+    )
+  }
+
+  /**
+   * Converts a description's Workload Identity setting into the Compute API model.
+   *
+   * <p>Returns null when the setting is absent or empty (no identity and identity certificates
+   * disabled). Callers that modify an existing template treat a non-null but empty setting as a
+   * request to clear Workload Identity.
+   */
+  static WorkloadIdentityConfig buildWorkloadIdentityConfig(
+      BaseGoogleInstanceDescription.WorkloadIdentityConfig config) {
+    if (config == null || (!config.identity && !config.identityCertificateEnabled)) {
+      return null
+    }
+    return new WorkloadIdentityConfig(
+      identity: config.identity ?: null,
+      identityCertificateEnabled: config.identityCertificateEnabled
     )
   }
 
