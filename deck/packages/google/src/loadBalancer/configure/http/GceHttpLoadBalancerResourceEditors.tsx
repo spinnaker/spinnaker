@@ -1,6 +1,7 @@
 import React from 'react';
 
 import type {
+  GceHealthCheckPortSpecification,
   GceLoadBalancerType,
   IGceLoadBalancerBackendService,
   IGceLoadBalancerDataItem,
@@ -111,17 +112,37 @@ export function GceHttpLoadBalancerHealthCheckEditor({
         </label>
       )}
       <label>
-        Port
-        <input
-          data-testid="health-check-port"
-          max={65535}
-          min={1}
-          required
-          type="number"
-          value={healthCheck.port ?? ''}
-          onChange={(event) => updateNumber('port', event.target.value)}
-        />
+        Port specification
+        <select
+          data-testid="health-check-port-specification"
+          value={healthCheck.portSpecification || 'USE_FIXED_PORT'}
+          onChange={(event) => {
+            const portSpecification = event.target.value as GceHealthCheckPortSpecification;
+            const next = { ...healthCheck, portSpecification };
+            if (portSpecification === 'USE_SERVING_PORT') {
+              delete next.port;
+            }
+            onChange(next);
+          }}
+        >
+          <option value="USE_FIXED_PORT">Fixed Port</option>
+          <option value="USE_SERVING_PORT">Use Serving Port</option>
+        </select>
       </label>
+      {healthCheck.portSpecification !== 'USE_SERVING_PORT' && (
+        <label>
+          Port
+          <input
+            data-testid="health-check-port"
+            max={65535}
+            min={1}
+            required
+            type="number"
+            value={healthCheck.port ?? ''}
+            onChange={(event) => updateNumber('port', event.target.value)}
+          />
+        </label>
+      )}
       {[
         ['timeoutSec', 'Timeout'],
         ['checkIntervalSec', 'Interval'],
