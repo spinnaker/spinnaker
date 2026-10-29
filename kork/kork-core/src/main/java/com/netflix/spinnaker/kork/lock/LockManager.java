@@ -237,6 +237,7 @@ public interface LockManager {
   class LockOptions {
     private String lockName;
     private Duration maximumLockDuration;
+    private boolean heartbeatsUntilReleased;
     private Duration successInterval = Duration.ZERO;
     private Duration failureInterval = Duration.ZERO;
     private long version;
@@ -251,6 +252,18 @@ public interface LockManager {
 
     public LockOptions withMaximumLockDuration(Duration maximumLockDuration) {
       this.maximumLockDuration = maximumLockDuration;
+      this.heartbeatsUntilReleased = false;
+      return this;
+    }
+
+    /**
+     * Keep renewing a refreshable lock until its callback returns, rather than stopping after a
+     * fixed duration. The Redis lease still expires if the process stops renewing it. This does not
+     * fence a callback that continues running after loss of ownership.
+     */
+    public LockOptions withHeartbeatsUntilReleased() {
+      this.maximumLockDuration = Duration.ZERO;
+      this.heartbeatsUntilReleased = true;
       return this;
     }
 
@@ -281,6 +294,10 @@ public interface LockManager {
 
     public Duration getMaximumLockDuration() {
       return maximumLockDuration;
+    }
+
+    public boolean isHeartbeatsUntilReleased() {
+      return heartbeatsUntilReleased;
     }
 
     public Duration getSuccessInterval() {
@@ -324,6 +341,8 @@ public interface LockManager {
           + '\''
           + ", maximumLockDuration="
           + maximumLockDuration
+          + ", heartbeatsUntilReleased="
+          + heartbeatsUntilReleased
           + ", version="
           + version
           + ", attributes="

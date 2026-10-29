@@ -17,7 +17,7 @@
 package com.netflix.spinnaker.orca.lock;
 
 import com.netflix.spinnaker.kork.core.RetrySupport;
-import com.netflix.spinnaker.kork.lock.LockManager.LockOptions;
+import com.netflix.spinnaker.kork.lock.LockManager.LockCallbackException;
 import java.time.Duration;
 import java.util.function.Supplier;
 import lombok.*;
@@ -77,6 +77,10 @@ public class RetriableLock {
     public FailedToGetLockException(String lockName) {
       super("Failed to acquire lock: " + lockName);
     }
+
+    public FailedToGetLockException(String lockName, Throwable cause) {
+      super("Failed to acquire lock: " + lockName, cause);
+    }
   }
 
   @Getter
@@ -103,8 +107,6 @@ public class RetriableLock {
   @RequiredArgsConstructor
   private static final class LockAndRun implements Supplier<Boolean> {
 
-    private static final Duration MAX_LOCK_DURATION = Duration.ofSeconds(2L);
-
     private final RetriableLockOptions options;
     private final Runnable action;
     private final RunOnLockAcquired lockManager;
@@ -119,14 +121,22 @@ public class RetriableLock {
      */
     @Override
     public Boolean get() {
-      var options =
-          new LockOptions()
-              .withLockName(this.options.getLockName())
-              .withMaximumLockDuration(MAX_LOCK_DURATION);
-
       var lockName = options.getLockName();
       var response = lockManager.execute(action, lockName);
+      if (response.getException() != null) {
+        if (response.getLockAcquired() || response.getActionExecuted()) {
+          // Acquisition retries must never re-run a callback with potentially completed effects.
+          throw new LockCallbackException(
+                  "Failed executing action with lock: " + lockName, response.getException())
+              .setRetryable(false);
+        }
+        throw new FailedToGetLockException(lockName, response.getException());
+      }
       if (response.getLockAcquired()) {
+        if (!response.getActionExecuted()) {
+          throw new LockCallbackException("Lock acquired without executing action: " + lockName)
+              .setRetryable(false);
+        }
         log.debug("Successfully acquired lock: {}", lockName);
         // The result of this method is nowhere used - we need it to satisfy RetrySupport contract
         return true;
