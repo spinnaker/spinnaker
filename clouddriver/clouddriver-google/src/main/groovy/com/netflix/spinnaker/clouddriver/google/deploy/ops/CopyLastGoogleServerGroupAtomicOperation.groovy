@@ -28,6 +28,7 @@ import com.netflix.spinnaker.clouddriver.deploy.DeploymentResult
 import com.netflix.spinnaker.clouddriver.google.deploy.GCEServerGroupNameResolver
 import com.netflix.spinnaker.clouddriver.google.deploy.GCEUtil
 import com.netflix.spinnaker.clouddriver.google.deploy.SafeRetry
+import com.netflix.spinnaker.clouddriver.google.deploy.description.BaseGoogleInstanceDescription
 import com.netflix.spinnaker.clouddriver.google.deploy.description.BasicGoogleDeployDescription
 import com.netflix.spinnaker.clouddriver.google.deploy.handlers.BasicGoogleDeployHandler
 import com.netflix.spinnaker.clouddriver.google.model.GoogleAutoHealingPolicy
@@ -218,6 +219,15 @@ class CopyLastGoogleServerGroupAtomicOperation extends GoogleAtomicOperation<Dep
 
       if (labels != null) {
         newDescription.labels = description.labels != null ? description.labels : labels
+      }
+
+      def workloadIdentityConfig = ancestorInstanceProperties.workloadIdentityConfig
+
+      if (workloadIdentityConfig != null) {
+        newDescription.workloadIdentityConfig = description.workloadIdentityConfig != null ? description.workloadIdentityConfig : new BaseGoogleInstanceDescription.WorkloadIdentityConfig(
+          identity: workloadIdentityConfig.identity,
+          identityCertificateEnabled: workloadIdentityConfig.identityCertificateEnabled
+        )
       }
 
       def scheduling = ancestorInstanceProperties.scheduling
