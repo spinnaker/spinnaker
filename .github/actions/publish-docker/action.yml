@@ -112,8 +112,7 @@ runs:
     - name: Extract standard image SBOM
       if: env.has-standard == 'true' && inputs.push == 'true' && inputs.generate-sbom == 'true'
       shell: bash
-      run: |
-        docker buildx imagetools inspect "ghcr.io/spinnaker/${{ inputs.project }}@${{ steps.docker-standard.outputs.digest }}" --format '{{json (index .SBOM "linux/amd64").SPDX}}' > ${{ inputs.project }}-standard-image-sbom.spdx.json
+      run: bash "${{ github.action_path }}/trim-image-sbom.sh" "${{ inputs.project }}" standard "${{ steps.docker-standard.outputs.digest }}"
 
     - name: Attest standard image app SBOM
       if: env.has-standard == 'true' && inputs.push == 'true' && inputs.generate-sbom == 'true'
@@ -163,8 +162,7 @@ runs:
     - name: Extract slim image SBOM
       if: env.has-slim == 'true' && inputs.push == 'true' && inputs.generate-sbom == 'true'
       shell: bash
-      run: |
-        docker buildx imagetools inspect "ghcr.io/spinnaker/${{ inputs.project }}@${{ steps.docker-slim.outputs.digest }}" --format '{{json (index .SBOM "linux/amd64").SPDX}}' > ${{ inputs.project }}-slim-image-sbom.spdx.json
+      run: bash "${{ github.action_path }}/trim-image-sbom.sh" "${{ inputs.project }}" slim "${{ steps.docker-slim.outputs.digest }}"
 
     - name: Attest slim image app SBOM
       if: env.has-slim == 'true' && inputs.push == 'true' && inputs.generate-sbom == 'true'
@@ -212,17 +210,7 @@ runs:
     - name: Extract ubuntu image SBOM
       if: env.has-ubuntu == 'true' && inputs.push == 'true' && inputs.generate-sbom == 'true'
       shell: bash
-      run: |
-        docker buildx imagetools inspect "ghcr.io/spinnaker/${{ inputs.project }}@${{ steps.docker-ubuntu.outputs.digest }}" --format '{{json (index .SBOM "linux/amd64").SPDX}}' > ${{ inputs.project }}-ubuntu-image-sbom.full.spdx.json
-
-        # The full SPDX document lists every file in the image and can exceed the 16 MiB attestation
-        # predicate limit.  Keep the package inventory and drop the per-file entries and their relationships.
-        jq -c '
-          del(.files)
-          | .relationships |= map(select((.spdxElementId | startswith("SPDXRef-File")) or (.relatedSpdxElement | startswith("SPDXRef-File")) | not))
-        ' ${{ inputs.project }}-ubuntu-image-sbom.full.spdx.json > ${{ inputs.project }}-ubuntu-image-sbom.spdx.json
-        rm ${{ inputs.project }}-ubuntu-image-sbom.full.spdx.json
-        ls -l ${{ inputs.project }}-ubuntu-image-sbom.spdx.json
+      run: bash "${{ github.action_path }}/trim-image-sbom.sh" "${{ inputs.project }}" ubuntu "${{ steps.docker-ubuntu.outputs.digest }}"
 
     - name: Attest ubuntu image app SBOM
       if: env.has-ubuntu == 'true' && inputs.push == 'true' && inputs.generate-sbom == 'true'
