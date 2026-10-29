@@ -254,6 +254,43 @@ describe('GCE server group Advanced Settings page', () => {
     expectAdvancedError('gce-advanced-confidential-instance-type-error', 'Confidential instance type required.');
     expectAdvancedError('gce-advanced-auth-scopes-error', 'Auth scopes cannot be empty.');
   });
+
+  it('restores and edits the Workload Identity configuration', () => {
+    const values = command({
+      workloadIdentityConfig: { identity: 'existing-identity', identityCertificateEnabled: true },
+    });
+    const page = renderAdvanced(values);
+
+    expect(screen.getByTestId('workload-identity-identity')).toHaveValue('existing-identity');
+    expect(screen.getByTestId('workload-identity-certificate')).toBeChecked();
+
+    fireEvent.change(screen.getByTestId('workload-identity-identity'), { target: { value: 'new-identity' } });
+    expect(values.workloadIdentityConfig).toEqual({ identity: 'new-identity', identityCertificateEnabled: true });
+
+    page.rerenderPage(values);
+    fireEvent.click(screen.getByTestId('workload-identity-certificate'));
+    expect(values.workloadIdentityConfig).toEqual({ identity: 'new-identity', identityCertificateEnabled: false });
+  });
+
+  it('keeps an empty Workload Identity configuration so clearing it removes an inherited setting', () => {
+    const values = command({
+      workloadIdentityConfig: { identity: 'existing-identity', identityCertificateEnabled: false },
+    });
+    renderAdvanced(values);
+
+    fireEvent.change(screen.getByTestId('workload-identity-identity'), { target: { value: '' } });
+
+    expect(values.workloadIdentityConfig).toEqual({ identity: '', identityCertificateEnabled: false });
+  });
+
+  it('leaves the Workload Identity configuration unset until it is edited', () => {
+    const values = command();
+    renderAdvanced(values);
+
+    expect(screen.getByTestId('workload-identity-identity')).toHaveValue('');
+    expect(screen.getByTestId('workload-identity-certificate')).not.toBeChecked();
+    expect(values.workloadIdentityConfig).toBeUndefined();
+  });
 });
 
 function renderAdvanced(values: IGceServerGroupCommand) {
