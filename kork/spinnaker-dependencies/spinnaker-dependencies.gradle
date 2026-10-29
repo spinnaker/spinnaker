@@ -111,7 +111,7 @@ dependencies {
     api("com.google.api-client:google-api-client:2.9.1")
     api("com.google.apis:google-api-services-admin-directory:directory_v1-rev20260531-2.0.0")
     api("com.google.apis:google-api-services-cloudbuild:v1-rev20260511-2.0.0")
-    api("com.google.apis:google-api-services-compute:v1-rev20260520-2.0.0")
+    api("com.google.apis:google-api-services-compute:v1-rev20261016-2.0.0")
     api("com.google.apis:google-api-services-iam:v1-rev20250516-2.0.0")
     api("com.google.apis:google-api-services-monitoring:v3-rev20250515-2.0.0")
     api("com.google.apis:google-api-services-storage:v1-rev20260524-2.0.0")
