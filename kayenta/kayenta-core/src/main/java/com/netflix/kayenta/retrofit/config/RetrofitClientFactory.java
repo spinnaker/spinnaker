@@ -21,6 +21,7 @@ import com.netflix.spinnaker.kork.retrofit.ErrorHandlingExecutorCallAdapterFacto
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Paths;
+import java.util.Base64;
 import okhttp3.Credentials;
 import okhttp3.HttpUrl;
 import okhttp3.Interceptor;
@@ -28,7 +29,6 @@ import okhttp3.OkHttpClient;
 import okhttp3.Request;
 import okhttp3.Response;
 import org.apache.commons.lang3.StringUtils;
-import org.apache.tomcat.util.codec.binary.Base64;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 import retrofit2.Converter.Factory;
@@ -124,7 +124,7 @@ public class RetrofitClientFactory {
       String trimmedFileContent =
           new String(Files.readAllBytes(Paths.get(usernamePasswordFile))).trim();
 
-      credential = "Basic " + Base64.encodeBase64String(trimmedFileContent.getBytes());
+      credential = "Basic " + Base64.getEncoder().encodeToString(trimmedFileContent.getBytes());
     } else if (StringUtils.isNotEmpty(bearerToken)) {
       credential = "Bearer " + bearerToken;
     } else {
