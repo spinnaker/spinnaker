@@ -28,6 +28,7 @@ import com.google.api.services.compute.model.Operation
 import com.netflix.spectator.api.DefaultRegistry
 import com.netflix.spinnaker.clouddriver.data.task.Task
 import com.netflix.spinnaker.clouddriver.data.task.TaskRepository
+import com.netflix.spinnaker.clouddriver.google.GoogleApiTestUtils
 import com.netflix.spinnaker.clouddriver.google.config.GoogleConfigurationProperties
 import com.netflix.spinnaker.clouddriver.google.deploy.GoogleOperationPoller
 import com.netflix.spinnaker.clouddriver.google.deploy.SafeRetry
@@ -245,6 +246,65 @@ class DeleteGoogleRegionalExternalNetworkLoadBalancerAtomicOperationUnitSpec ext
       3 * regionOperationsGet.execute() >>> [deleteForwardingRuleOp, deleteBackendServiceOp, deleteHealthCheckOp]
   }
 
+  void "#outcome when the forwarding rule delete returns no operation because the rule is #state"() {
+    setup:
+      def compute = Mock(Compute)
+      def forwardingRules = Mock(Compute.ForwardingRules)
+      def forwardingRulesList = Mock(Compute.ForwardingRules.List)
+      def forwardingRulesGet = Mock(Compute.ForwardingRules.Get)
+      def forwardingRulesDelete = Mock(Compute.ForwardingRules.Delete)
+      def backendServices = Mock(Compute.RegionBackendServices)
+      def backendServicesGet = Mock(Compute.RegionBackendServices.Get)
+      def backendServicesDelete = Mock(Compute.RegionBackendServices.Delete)
+      def rule = forwardingRule(LOAD_BALANCER, "TCP", BACKEND_SERVICE_URL, "EXTERNAL")
+      def poller = Mock(GoogleOperationPoller)
+      @Subject def operation = operation(description(compute, false))
+      operation.googleOperationPoller = poller
+
+    when:
+      def error = null
+      try {
+        operation.operate([])
+      } catch (IllegalStateException e) {
+        error = e
+      }
+
+    then:
+      _ * compute.forwardingRules() >> forwardingRules
+      1 * forwardingRules.list(PROJECT, REGION) >> forwardingRulesList
+      1 * forwardingRulesList.execute() >> new ForwardingRuleList(items: [rule])
+      _ * forwardingRules.delete(PROJECT, REGION, LOAD_BALANCER) >> forwardingRulesDelete
+      (1.._) * forwardingRulesDelete.execute() >> {
+        throw GoogleApiTestUtils.makeGoogleJsonResponseException(deleteStatus, deleteReason)
+      }
+      1 * forwardingRules.get(PROJECT, REGION, LOAD_BALANCER) >> forwardingRulesGet
+      1 * forwardingRulesGet.execute() >> {
+        if (stillExists) {
+          return rule
+        }
+        throw GoogleApiTestUtils.makeGoogleJsonResponseException(404)
+      }
+
+      _ * compute.regionBackendServices() >> backendServices
+      1 * backendServices.get(PROJECT, REGION, BACKEND_SERVICE) >> backendServicesGet
+      1 * backendServicesGet.execute() >> new BackendService(
+        name: BACKEND_SERVICE,
+        loadBalancingScheme: "EXTERNAL",
+        healthChecks: [HEALTH_CHECK_URL])
+      (stillExists ? 0 : 1) * backendServices.delete(PROJECT, REGION, BACKEND_SERVICE) >> backendServicesDelete
+      (stillExists ? 0 : 1) * backendServicesDelete.execute() >> new Operation(name: "delete-backend-service", status: "DONE")
+
+      (stillExists ? 0 : 1) * poller.waitForRegionalOperation(*_)
+      stillExists ?
+        error.message.contains("Forwarding rule $LOAD_BALANCER in $REGION is still used by another resource") :
+        error == null
+
+    where:
+      state          | deleteStatus | deleteReason                     | stillExists || outcome
+      "still in use" | 400          | "resourceInUseByAnotherResource" | true        || "fails with a clear error"
+      "already gone" | 404          | null                             | false       || "keeps deleting"
+  }
+
   @Unroll
   void "does not delete wrong-shape forwarding rule: #reason"() {
     setup:
@@ -261,7 +321,8 @@ class DeleteGoogleRegionalExternalNetworkLoadBalancerAtomicOperationUnitSpec ext
       1 * compute.forwardingRules() >> forwardingRules
       1 * forwardingRules.list(PROJECT, REGION) >> forwardingRulesList
       1 * forwardingRulesList.execute() >> new ForwardingRuleList(items: [forwardingRule])
-      thrown GoogleResourceNotFoundException
+      def e = thrown(GoogleResourceNotFoundException)
+      e.message.contains("If an earlier delete removed it, its backend service and health check")
       0 * compute.regionBackendServices()
       0 * compute.regionHealthChecks()
 

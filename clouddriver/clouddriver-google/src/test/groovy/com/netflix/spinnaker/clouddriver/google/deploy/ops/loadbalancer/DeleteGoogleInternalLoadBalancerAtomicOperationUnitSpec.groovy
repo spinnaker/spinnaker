@@ -25,6 +25,7 @@ import com.google.api.services.compute.model.*
 import com.netflix.spectator.api.DefaultRegistry
 import com.netflix.spinnaker.clouddriver.data.task.Task
 import com.netflix.spinnaker.clouddriver.data.task.TaskRepository
+import com.netflix.spinnaker.clouddriver.google.GoogleApiTestUtils
 import com.netflix.spinnaker.clouddriver.google.config.GoogleConfigurationProperties
 import com.netflix.spinnaker.clouddriver.google.deploy.GoogleOperationPoller
 import com.netflix.spinnaker.clouddriver.google.deploy.SafeRetry
@@ -148,6 +149,83 @@ class DeleteGoogleInternalLoadBalancerAtomicOperationUnitSpec extends Specificat
       1 * computeMock.globalOperations() >> globalOperations
       1 * globalOperations.get(PROJECT_NAME, HEALTH_CHECK_DELETE_OP_NAME) >> healthCheckOperationGet
       1 * healthCheckOperationGet.execute() >> healthChecksDeleteOp
+  }
+
+  void "should #outcome when the forwarding rule delete returns no operation because the rule is #state"() {
+    setup:
+      def computeMock = Mock(Compute)
+      def forwardingRules = Mock(Compute.ForwardingRules)
+      def forwardingRulesList = Mock(Compute.ForwardingRules.List)
+      def forwardingRulesGet = Mock(Compute.ForwardingRules.Get)
+      def forwardingRulesDelete = Mock(Compute.ForwardingRules.Delete)
+      def forwardingRule = new ForwardingRule(backendService: BS_URL, loadBalancingScheme: INTERNAL, name: LOAD_BALANCER_NAME, region: REGION)
+      def backendServices = Mock(Compute.RegionBackendServices)
+      def backendServicesGet = Mock(Compute.RegionBackendServices.Get)
+      def backendServicesDelete = Mock(Compute.RegionBackendServices.Delete)
+      def backendService = new BackendService(loadBalancingScheme: INTERNAL, name: BS_NAME, healthChecks: [HTTP_HC_URL])
+      def healthChecks = Mock(Compute.HttpHealthChecks)
+      def healthChecksGet = Mock(Compute.HttpHealthChecks.Get)
+      def healthChecksDelete = Mock(Compute.HttpHealthChecks.Delete)
+      def poller = Mock(GoogleOperationPoller)
+
+      def credentials = new GoogleNamedAccountCredentials.Builder().project(PROJECT_NAME).compute(computeMock).build()
+      def description = new DeleteGoogleLoadBalancerDescription(
+        loadBalancerName: LOAD_BALANCER_NAME,
+        region: REGION,
+        loadBalancerType: INTERNAL,
+        accountName: ACCOUNT_NAME,
+        credentials: credentials)
+      @Subject def operation = new DeleteGoogleInternalLoadBalancerAtomicOperation(description)
+      operation.googleOperationPoller = poller
+      operation.registry = registry
+      operation.safeRetry = safeRetry
+
+    when:
+      def error = null
+      try {
+        operation.operate([])
+      } catch (IllegalStateException e) {
+        error = e
+      }
+
+    then:
+      _ * computeMock.forwardingRules() >> forwardingRules
+      1 * forwardingRules.list(PROJECT_NAME, REGION) >> forwardingRulesList
+      1 * forwardingRulesList.execute() >> [items: [forwardingRule]]
+      _ * forwardingRules.delete(PROJECT_NAME, REGION, LOAD_BALANCER_NAME) >> forwardingRulesDelete
+      (1.._) * forwardingRulesDelete.execute() >> {
+        throw GoogleApiTestUtils.makeGoogleJsonResponseException(deleteStatus, deleteReason)
+      }
+      1 * forwardingRules.get(PROJECT_NAME, REGION, LOAD_BALANCER_NAME) >> forwardingRulesGet
+      1 * forwardingRulesGet.execute() >> {
+        if (stillExists) {
+          return forwardingRule
+        }
+        throw GoogleApiTestUtils.makeGoogleJsonResponseException(404)
+      }
+
+      _ * computeMock.regionBackendServices() >> backendServices
+      1 * backendServices.get(PROJECT_NAME, REGION, BS_NAME) >> backendServicesGet
+      1 * backendServicesGet.execute() >> backendService
+      (stillExists ? 0 : 1) * backendServices.delete(PROJECT_NAME, REGION, BS_NAME) >> backendServicesDelete
+      (stillExists ? 0 : 1) * backendServicesDelete.execute() >> new Operation(name: BS_DELETE_OP, status: "DONE")
+
+      _ * computeMock.httpHealthChecks() >> healthChecks
+      1 * healthChecks.get(PROJECT_NAME, HEALTH_CHECK_NAME) >> healthChecksGet
+      1 * healthChecksGet.execute() >> new HttpHealthCheck(name: HEALTH_CHECK_NAME)
+      (stillExists ? 0 : 1) * healthChecks.delete(PROJECT_NAME, HEALTH_CHECK_NAME) >> healthChecksDelete
+      (stillExists ? 0 : 1) * healthChecksDelete.execute() >> new Operation(name: HEALTH_CHECK_DELETE_OP_NAME, status: "DONE")
+
+      (stillExists ? 0 : 1) * poller.waitForRegionalOperation(*_)
+      (stillExists ? 0 : 1) * poller.waitForGlobalOperation(*_)
+      stillExists ?
+        error.message.contains("Forwarding rule $LOAD_BALANCER_NAME in $REGION is still used by another resource") :
+        error == null
+
+    where:
+      state          | deleteStatus | deleteReason                     | stillExists || outcome
+      "still in use" | 400          | "resourceInUseByAnotherResource" | true        || "fail with a clear error"
+      "already gone" | 404          | null                             | false       || "keep deleting"
   }
 
   void "should delete an Internal Load Balancer with https health check"() {
