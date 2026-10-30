@@ -39,7 +39,7 @@ ext {
     swagger          : "2.2.49",
     httpcore5        : "5.4.3",
     logback          : "1.5.37",
-    tomcat           : "10.1.59", // CVE-2026-65182: 10.1.0-M1 through 10.1.57 affected
+    tomcat           : "11.0.24",
     commonsCompress  : "1.27.1",
     // Testcontainers module for the MiniStack AWS emulator. The module is a thin
     // GenericContainer wrapper, so the emulator version comes from the image tag
@@ -190,9 +190,8 @@ dependencies {
     // consumers to import as a platform), so we keep pinning these two explicitly.
     api("ch.qos.logback:logback-core:${versions.logback}")
     api("ch.qos.logback:logback-classic:${versions.logback}")
-    // No official Tomcat BOM exists (no tomcat-embed-bom is published); Tomcat expects
-    // consumers to pin org.apache.tomcat.embed:* artifacts individually, or via Spring
-    // Boot's BOM, so we keep pinning these explicitly with a shared version variable.
+    // Keep Tomcat on Boot 4's supported 11.x line, with an explicit version so
+    // security fixes can be applied before Spring Boot updates its BOM.
     api("org.apache.tomcat.embed:tomcat-embed-core:${versions.tomcat}")
     api("org.apache.tomcat.embed:tomcat-embed-el:${versions.tomcat}")
     api("org.apache.tomcat.embed:tomcat-embed-websocket:${versions.tomcat}")
