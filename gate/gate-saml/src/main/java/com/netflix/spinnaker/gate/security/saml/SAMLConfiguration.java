@@ -21,11 +21,15 @@ import com.netflix.spinnaker.gate.config.AuthConfig;
 import com.netflix.spinnaker.gate.security.AllowedAccountsSupport;
 import com.netflix.spinnaker.gate.security.SpinnakerAuthConfig;
 import com.netflix.spinnaker.gate.services.AuthenticationService;
+import java.time.Duration;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.ObjectFactory;
 import org.springframework.beans.factory.ObjectProvider;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
+import org.springframework.boot.context.properties.PropertyMapper;
+import org.springframework.boot.web.server.Cookie;
+import org.springframework.boot.web.server.autoconfigure.ServerProperties;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.core.annotation.Order;
@@ -58,6 +62,7 @@ public class SAMLConfiguration {
   @SpinnakerAuthConfig
   @RequiredArgsConstructor
   @ConditionalOnProperty("saml.enabled")
+  @EnableConfigurationProperties(ServerProperties.class)
   public static class WebSecurityConfig {
     private final SecuritySamlProperties properties;
     private final AuthConfig authConfig;
@@ -66,11 +71,23 @@ public class SAMLConfiguration {
     private final ObjectFactory<AuthenticationService> authenticationServiceFactory;
     private final ObjectFactory<AllowedAccountsSupport> allowedAccountsSupportFactory;
 
-    /** Disables the same-site requirement for cookies as configured in other SSO modules. */
+    /** Applies native session cookie settings while preserving the legacy unspecified SameSite. */
     @Bean
-    public DefaultCookieSerializer defaultCookieSerializer() {
+    public DefaultCookieSerializer defaultCookieSerializer(ServerProperties serverProperties) {
+      Cookie cookie = serverProperties.getServlet().getSession().getCookie();
       DefaultCookieSerializer serializer = new DefaultCookieSerializer();
       serializer.setSameSite(null);
+      // Match Boot's SessionAutoConfiguration mapping for this user-defined serializer.
+      PropertyMapper map = PropertyMapper.get();
+      map.from(cookie::getName).to(serializer::setCookieName);
+      map.from(cookie::getDomain).to(serializer::setDomainName);
+      map.from(cookie::getPath).to(serializer::setCookiePath);
+      map.from(cookie::getHttpOnly).to(serializer::setUseHttpOnlyCookie);
+      map.from(cookie::getSecure).to(serializer::setUseSecureCookie);
+      map.from(cookie::getMaxAge).asInt(Duration::getSeconds).to(serializer::setCookieMaxAge);
+      map.from(cookie::getSameSite)
+          .to(sameSite -> serializer.setSameSite(sameSite.attributeValue()));
+      map.from(cookie::getPartitioned).to(serializer::setPartitioned);
       return serializer;
     }
 
