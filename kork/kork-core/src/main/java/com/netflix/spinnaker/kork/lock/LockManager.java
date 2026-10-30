@@ -250,6 +250,9 @@ public interface LockManager {
       return this;
     }
 
+    /**
+     * Set a renewal budget, replacing any prior {@link #withHeartbeatsUntilReleased()} selection.
+     */
     public LockOptions withMaximumLockDuration(Duration maximumLockDuration) {
       this.maximumLockDuration = maximumLockDuration;
       this.heartbeatsUntilReleased = false;

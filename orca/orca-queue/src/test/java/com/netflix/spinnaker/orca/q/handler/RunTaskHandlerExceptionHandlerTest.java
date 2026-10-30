@@ -20,6 +20,7 @@ import static com.netflix.spinnaker.orca.api.pipeline.models.ExecutionType.PIPEL
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.ArgumentMatchers.isA;
 import static org.mockito.Mockito.doAnswer;
 import static org.mockito.Mockito.doReturn;
 import static org.mockito.Mockito.doThrow;
@@ -31,17 +32,25 @@ import static org.mockito.Mockito.when;
 import com.google.common.base.Throwables;
 import com.google.common.collect.ImmutableMap;
 import com.netflix.spectator.api.NoopRegistry;
+import com.netflix.spinnaker.kork.core.RetrySupport;
 import com.netflix.spinnaker.kork.dynamicconfig.DynamicConfigService;
+import com.netflix.spinnaker.kork.lock.LockManager;
+import com.netflix.spinnaker.kork.lock.LockManager.AcquireLockResponse;
+import com.netflix.spinnaker.kork.lock.LockManager.LockExpiredException;
+import com.netflix.spinnaker.kork.lock.LockManager.LockOptions;
+import com.netflix.spinnaker.kork.lock.LockManager.LockStatus;
 import com.netflix.spinnaker.kork.retrofit.exceptions.SpinnakerHttpException;
 import com.netflix.spinnaker.kork.retrofit.exceptions.SpinnakerServerException;
 import com.netflix.spinnaker.orca.TaskResolver;
 import com.netflix.spinnaker.orca.api.pipeline.Task;
 import com.netflix.spinnaker.orca.api.pipeline.TaskExecutionInterceptor;
+import com.netflix.spinnaker.orca.api.pipeline.TaskResult;
 import com.netflix.spinnaker.orca.api.pipeline.models.StageExecution;
 import com.netflix.spinnaker.orca.api.pipeline.models.TaskExecution;
 import com.netflix.spinnaker.orca.exceptions.DefaultExceptionHandler;
 import com.netflix.spinnaker.orca.exceptions.ExceptionHandler;
 import com.netflix.spinnaker.orca.lock.RetriableLock;
+import com.netflix.spinnaker.orca.lock.RunOnRedisLockAcquired;
 import com.netflix.spinnaker.orca.pipeline.StageDefinitionBuilderFactory;
 import com.netflix.spinnaker.orca.pipeline.model.PipelineExecutionImpl;
 import com.netflix.spinnaker.orca.pipeline.model.StageExecutionImpl;
@@ -49,11 +58,17 @@ import com.netflix.spinnaker.orca.pipeline.model.TaskExecutionImpl;
 import com.netflix.spinnaker.orca.pipeline.persistence.ExecutionRepository;
 import com.netflix.spinnaker.orca.pipeline.util.ContextParameterProcessor;
 import com.netflix.spinnaker.orca.pipeline.util.StageNavigator;
+import com.netflix.spinnaker.orca.q.CompleteTask;
 import com.netflix.spinnaker.orca.q.DummyTask;
 import com.netflix.spinnaker.orca.q.RunTask;
 import com.netflix.spinnaker.orca.retrofit.exceptions.SpinnakerServerExceptionHandler;
 import com.netflix.spinnaker.q.Queue;
+import com.netflix.spinnaker.q.QueueExecutor;
+import com.netflix.spinnaker.q.QueueProcessor;
+import com.netflix.spinnaker.q.metrics.EventPublisher;
+import com.netflix.spinnaker.q.metrics.HandlerThrewError;
 import java.time.Clock;
+import java.time.Duration;
 import java.time.Instant;
 import java.time.ZoneId;
 import java.time.temporal.ChronoUnit;
@@ -61,7 +76,10 @@ import java.util.Collection;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.Executor;
+import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.stream.Stream;
+import kotlin.Unit;
 import okhttp3.MediaType;
 import okhttp3.Protocol;
 import okhttp3.Request;
@@ -195,6 +213,63 @@ class RunTaskHandlerExceptionHandlerTest {
 
     when(executionRepository.retrieve(PIPELINE, runTaskMessage.getExecutionId()))
         .thenReturn(pipeline);
+  }
+
+  @Test
+  void ownershipLossAfterTaskCompletionLeavesTheMessageUnacknowledged() {
+    LockManager manager = mock(LockManager.class);
+    when(manager.acquireLock(any(LockOptions.class), any(Runnable.class)))
+        .thenAnswer(
+            invocation -> {
+              invocation.getArgument(1, Runnable.class).run();
+              return new AcquireLockResponse<Void>(
+                  null, null, LockStatus.EXPIRED, new LockExpiredException("lease lost"), false);
+            });
+    RetriableLock lock = new RetriableLock(new RunOnRedisLockAcquired(manager), new RetrySupport());
+    doAnswer(invocation -> lock.lock(invocation.getArgument(0), invocation.getArgument(1)))
+        .when(retriableLock)
+        .lock(any(), any());
+    when(dummyTask.execute(any())).thenReturn(TaskResult.SUCCEEDED);
+    EventPublisher publisher = mock(EventPublisher.class);
+    QueueExecutor<Executor> executor =
+        new QueueExecutor<>(Runnable::run) {
+          @Override
+          public boolean hasCapacity() {
+            return true;
+          }
+
+          @Override
+          public int availableCapacity() {
+            return 1;
+          }
+        };
+    QueueProcessor processor =
+        new QueueProcessor(
+            queue,
+            executor,
+            List.of(runTaskHandler),
+            List.of(),
+            publisher,
+            (failedQueue, failedMessage) -> Unit.INSTANCE,
+            true,
+            Duration.ZERO,
+            Duration.ZERO);
+    AtomicBoolean acknowledged = new AtomicBoolean();
+
+    processor
+        .getCallback()
+        .invoke(
+            runTaskMessage,
+            () -> {
+              acknowledged.set(true);
+              return Unit.INSTANCE;
+            });
+
+    verify(dummyTask).execute(any());
+    verify(queue).push(isA(CompleteTask.class));
+    verify(manager).acquireLock(any(LockOptions.class), any(Runnable.class));
+    verify(publisher).publishEvent(isA(HandlerThrewError.class));
+    assertThat(acknowledged).isFalse();
   }
 
   @ParameterizedTest(name = "{index} => taskThrowsSpinnakerHttpExceptionNoRetry {0}")

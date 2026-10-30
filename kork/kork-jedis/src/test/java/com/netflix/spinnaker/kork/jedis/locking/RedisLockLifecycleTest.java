@@ -75,7 +75,7 @@ class RedisLockLifecycleTest {
     try (Jedis client = redis.getJedis()) {
       client.flushDB();
     }
-    executor = Executors.newFixedThreadPool(4);
+    executor = Executors.newVirtualThreadPerTaskExecutor();
   }
 
   @AfterEach
@@ -126,6 +126,40 @@ class RedisLockLifecycleTest {
   }
 
   @Test
+  void slowHeartbeatsDoNotSerializeRenewalOfConcurrentCallbacks() throws Exception {
+    TrackingLockManager manager = manager("owner");
+    TrackingLockManager competitor = manager("competitor");
+    manager.heartbeatDelayMillis = 100;
+    int activeLocks = 16;
+    CountDownLatch callbacksStarted = new CountDownLatch(activeLocks);
+    CountDownLatch finishCallbacks = new CountDownLatch(1);
+    List<Future<AcquireLockResponse<String>>> callbacks = new ArrayList<>();
+    for (int i = 0; i < activeLocks; i++) {
+      callbacks.add(holdLock(manager, options("stage-" + i), callbacksStarted, finishCallbacks));
+    }
+
+    try {
+      await(callbacksStarted);
+      // Serial renewal takes at least 1.6s, exceeding the 1s lease in this test.
+      Thread.sleep(LEASE_MILLIS + 250);
+      for (int i = 0; i < activeLocks; i++) {
+        String name = "stage-" + i;
+        assertEquals(
+            LockStatus.TAKEN,
+            competitor.acquireLock(options(name), (Runnable) () -> {}).getLockStatus(),
+            "lost ownership of " + name);
+        assertTrue(manager.heartbeats(name) > 1, "missing renewals for " + name);
+      }
+    } finally {
+      finishCallbacks.countDown();
+    }
+
+    for (Future<AcquireLockResponse<String>> callback : callbacks) {
+      assertSuccessfullyReleased(callback);
+    }
+  }
+
+  @Test
   void completionWaitsForItsHeartbeatAndReleasesTheLatestVersion() throws Exception {
     TrackingLockManager manager = manager("owner");
     manager.pausedLock = "paused";
@@ -151,6 +185,16 @@ class RedisLockLifecycleTest {
       finishCallback.countDown();
       await(callbackReturning);
       assertThrows(TimeoutException.class, () -> callback.get(100, TimeUnit.MILLISECONDS));
+      assertEquals(1, manager.heartbeats("paused"), "overlapping renewals for the same request");
+      // Redis I/O must not occupy the request monitor while completion waits for its result.
+      executor
+          .submit(
+              () -> {
+                synchronized (manager.pausedHeartbeatRequest) {
+                  return null;
+                }
+              })
+          .get(500, TimeUnit.MILLISECONDS);
 
       // An unrelated callback and release must not wait on a global heartbeat monitor.
       Future<AcquireLockResponse<String>> unrelated =
@@ -256,6 +300,31 @@ class RedisLockLifecycleTest {
   }
 
   @Test
+  void boundedReleaseDoesNotGuessTheVersionAfterAnUnacknowledgedHeartbeat() throws Exception {
+    TrackingLockManager manager = manager("owner");
+    manager.dropHeartbeatResponse = true;
+
+    AcquireLockResponse<String> response =
+        manager.acquireLock(
+            new LockOptions()
+                .withLockName("bounded")
+                .withMaximumLockDuration(Duration.ofSeconds(1)),
+            (Callable<String>)
+                () -> {
+                  await(manager.heartbeatResponseDropped);
+                  return "done";
+                });
+
+    assertEquals(LockStatus.ACQUIRED, response.getLockStatus());
+    assertNull(response.getException());
+    assertFalse(response.isReleased());
+    assertTrue(exists("bounded"));
+    assertTrue(readLockVersion("bounded") > response.getLock().getVersion());
+    assertEquals(1, manager.releaseCalls.get());
+    awaitCondition(() -> !exists("bounded"));
+  }
+
+  @Test
   void errorExitStopsCallbackScopedRenewalAndReleasesTheLock() throws Exception {
     TrackingLockManager manager = manager("owner");
     manager.failHeartbeats = true;
@@ -357,10 +426,14 @@ class RedisLockLifecycleTest {
     private final ConcurrentMap<String, AtomicInteger> heartbeatCounts = new ConcurrentHashMap<>();
     private final CountDownLatch heartbeatPaused = new CountDownLatch(1);
     private final CountDownLatch continueHeartbeat = new CountDownLatch(1);
+    private final CountDownLatch heartbeatResponseDropped = new CountDownLatch(1);
     private final AtomicBoolean pauseOnce = new AtomicBoolean(true);
     private final AtomicInteger releaseCalls = new AtomicInteger();
     private volatile String pausedLock;
+    private volatile HeartbeatLockRequest pausedHeartbeatRequest;
     private volatile boolean failHeartbeats;
+    private volatile boolean dropHeartbeatResponse;
+    private volatile long heartbeatDelayMillis;
 
     TrackingLockManager(String owner) {
       super(
@@ -378,14 +451,28 @@ class RedisLockLifecycleTest {
       heartbeatCounts
           .computeIfAbsent(request.getLock().getName(), ignored -> new AtomicInteger())
           .incrementAndGet();
+      if (heartbeatDelayMillis > 0) {
+        try {
+          Thread.sleep(heartbeatDelayMillis);
+        } catch (InterruptedException e) {
+          Thread.currentThread().interrupt();
+          throw new IllegalStateException(e);
+        }
+      }
       if (request.getLock().getName().equals(pausedLock) && pauseOnce.compareAndSet(true, false)) {
+        pausedHeartbeatRequest = request;
         heartbeatPaused.countDown();
         await(continueHeartbeat);
       }
       if (failHeartbeats) {
         return new HeartbeatResponse(request.getLock(), LockHeartbeatStatus.ERROR);
       }
-      return super.heartbeat(request);
+      HeartbeatResponse response = super.heartbeat(request);
+      if (dropHeartbeatResponse && response.getLockStatus() == LockHeartbeatStatus.SUCCESS) {
+        heartbeatResponseDropped.countDown();
+        throw new IllegalStateException("response lost after Redis renewed the lease");
+      }
+      return response;
     }
 
     @Override

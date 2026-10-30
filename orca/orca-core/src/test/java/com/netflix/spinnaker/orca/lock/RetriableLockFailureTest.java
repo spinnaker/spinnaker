@@ -60,6 +60,23 @@ class RetriableLockFailureTest {
   }
 
   @Test
+  void shedlockAcquisitionExceptionsAreStillRetried() {
+    LockProvider provider = mock(LockProvider.class);
+    AtomicInteger releases = new AtomicInteger();
+    when(provider.lock(any()))
+        .thenThrow(new IllegalStateException("provider unavailable"))
+        .thenReturn(Optional.of(releases::incrementAndGet));
+    AtomicInteger executions = new AtomicInteger();
+
+    assertTrue(
+        lock(new RunOnShedLockAcquired(provider)).lock(options(), executions::incrementAndGet));
+
+    assertEquals(1, executions.get());
+    assertEquals(1, releases.get());
+    verify(provider, times(2)).lock(any());
+  }
+
+  @Test
   void unprotectedCallbackFailureIsNotRetriedAsLockContention() {
     assertCallbackFailureIsNotRetried(new NoOpRunOnLockAcquired());
   }
