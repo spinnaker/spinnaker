@@ -46,10 +46,9 @@ class TomcatConfiguration {
   TomcatConnectorCustomizer defaultTomcatConnectorCustomizer(
       TomcatConfigurationProperties tomcatConfigurationProperties,
       SslExtensionConfigurationProperties sslExtensionConfigurationProperties) {
-    if (tomcatConfigurationProperties.getRejectIllegalHeader() != null) {
-      System.setProperty(
-          "server.tomcat.reject-illegal-header",
-          tomcatConfigurationProperties.getRejectIllegalHeader().toString());
+    if (Boolean.FALSE.equals(tomcatConfigurationProperties.getRejectIllegalHeader())) {
+      log.warn(
+          "Tomcat 11 always rejects illegal HTTP headers; default.rejectIllegalHeader=false is ignored");
     }
     return new DefaultTomcatConnectorCustomizer(
         tomcatConfigurationProperties, sslExtensionConfigurationProperties);
