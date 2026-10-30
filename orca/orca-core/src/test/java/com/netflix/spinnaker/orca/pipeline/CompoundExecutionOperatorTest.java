@@ -17,12 +17,11 @@
 package com.netflix.spinnaker.orca.pipeline;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertNull;
+import static org.junit.jupiter.api.Assertions.assertSame;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.when;
 
 import com.netflix.spinnaker.kork.core.RetrySupport;
@@ -62,9 +61,10 @@ final class CompoundExecutionOperatorTest {
       new PipelineExecutionImpl(ExecutionType.PIPELINE, EXECUTION_ID, APPLICATION);
 
   @Test
-  void ownershipLossAfterStageUpdateDoesNotRepeatTheUpdateOrReschedule() {
+  void ownershipLossAfterStageUpdateStillReschedulesWithoutRepeatingTheUpdate() {
     execution = buildExpectedExecution(execution, false);
     when(repository.retrieve(ExecutionType.PIPELINE, EXECUTION_ID)).thenReturn(execution);
+    when(repository.handlesPartition(execution.getPartition())).thenReturn(true);
     RunOnLockAcquired manager = mock(RunOnLockAcquired.class);
     when(manager.execute(any(Runnable.class), anyString()))
         .thenAnswer(
@@ -83,11 +83,11 @@ final class CompoundExecutionOperatorTest {
         operator.updateStage(
             ExecutionType.PIPELINE, EXECUTION_ID, STAGE_ID, stage -> updates.incrementAndGet());
 
-    assertNull(result);
+    assertSame(execution, result);
     assertEquals(1, updates.get());
     verify(repository).storeStage(execution.stageById(STAGE_ID));
     verify(manager).execute(any(Runnable.class), anyString());
-    verifyNoInteractions(runner);
+    verify(runner).reschedule(execution);
   }
 
   @Test

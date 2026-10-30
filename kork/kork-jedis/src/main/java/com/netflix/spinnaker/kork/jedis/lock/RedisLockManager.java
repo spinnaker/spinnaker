@@ -62,7 +62,7 @@ public class RedisLockManager implements RefreshableLockManager {
   private long heartbeatRateMillis;
   private long leaseDurationMillis;
   private final Set<HeartbeatLockRequest> heartbeatQueue;
-  private final ConcurrentMap<HeartbeatLockRequest, CompletableFuture<Void>> pendingHeartbeats;
+  private final ConcurrentMap<HeartbeatLockRequest, Future<?>> pendingHeartbeats;
 
   public RedisLockManager(
       String ownerName,
@@ -251,10 +251,12 @@ public class RedisLockManager implements RefreshableLockManager {
         acquireDurationTimer.stop(timer);
       }
 
-      lock = stopHeartbeats(heartbeatLockRequest);
       releaseAttempted = true;
-      String releaseStatus =
-          tryLockReleaseQuietly(lock, true, lockOptions.isHeartbeatsUntilReleased());
+      LockReleaseResult release =
+          stopHeartbeatsAndRelease(
+              heartbeatLockRequest, true, lockOptions.isHeartbeatsUntilReleased());
+      lock = release.lock();
+      String releaseStatus = release.status();
       if (lockOptions.isHeartbeatsUntilReleased() && !SUCCESS.equals(releaseStatus)) {
         boolean ownershipLost =
             SUCCESS_GONE.equals(releaseStatus) || FAILED_NOT_OWNER.equals(releaseStatus);
@@ -266,26 +268,29 @@ public class RedisLockManager implements RefreshableLockManager {
             ownershipLost
                 ? new LockExpiredException(
                     "Lost ownership while executing callback for " + lock.getName())
-                : new LockException("Could not release callback lock " + lock.getName()),
+                : new LockException(
+                    "Could not release callback lock " + lock.getName(), release.exception()),
             false);
       }
       return new AcquireLockResponse<>(lock, workResult, status, null, wasReleased(releaseStatus));
     } catch (Exception e) {
       log.error(e.getMessage());
-      boolean lockWasReleased;
+      LockReleaseResult release;
+      releaseAttempted = true;
       if (heartbeatLockRequest != null) {
-        lock = stopHeartbeats(heartbeatLockRequest);
-        releaseAttempted = true;
-        lockWasReleased =
-            wasReleased(
-                tryLockReleaseQuietly(lock, false, lockOptions.isHeartbeatsUntilReleased()));
+        release =
+            stopHeartbeatsAndRelease(
+                heartbeatLockRequest, false, lockOptions.isHeartbeatsUntilReleased());
       } else {
-        lockWasReleased =
-            wasReleased(
-                tryLockReleaseQuietly(lock, false, lockOptions.isHeartbeatsUntilReleased()));
+        release = tryLockReleaseQuietly(lock, false, lockOptions.isHeartbeatsUntilReleased());
       }
+      lock = release.lock();
+      boolean lockWasReleased = wasReleased(release.status());
 
       if (e instanceof LockCallbackException) {
+        if (release.exception() != null) {
+          e.addSuppressed(release.exception());
+        }
         throw e;
       }
 
@@ -294,8 +299,8 @@ public class RedisLockManager implements RefreshableLockManager {
     } finally {
       if (heartbeatLockRequest != null && !releaseAttempted) {
         // Also stop renewal if user code exits with an Error rather than an Exception.
-        tryLockReleaseQuietly(
-            stopHeartbeats(heartbeatLockRequest), false, lockOptions.isHeartbeatsUntilReleased());
+        stopHeartbeatsAndRelease(
+            heartbeatLockRequest, false, lockOptions.isHeartbeatsUntilReleased());
       }
       registry
           .counter(
@@ -336,23 +341,24 @@ public class RedisLockManager implements RefreshableLockManager {
     for (HeartbeatLockRequest request : heartbeatQueue) {
       synchronized (request) {
         if (heartbeatQueue.contains(request) && !pendingHeartbeats.containsKey(request)) {
-          CompletableFuture<Void> pending = new CompletableFuture<>();
+          FutureTask<Void> pending =
+              new FutureTask<>(
+                  () -> {
+                    sendHeartbeat(request);
+                    return null;
+                  }) {
+                @Override
+                protected void done() {
+                  synchronized (request) {
+                    pendingHeartbeats.remove(request, this);
+                  }
+                }
+              };
           pendingHeartbeats.put(request, pending);
           try {
-            heartbeatExecutor.execute(
-                () -> {
-                  try {
-                    sendHeartbeat(request);
-                  } finally {
-                    synchronized (request) {
-                      pendingHeartbeats.remove(request);
-                      pending.complete(null);
-                    }
-                  }
-                });
+            heartbeatExecutor.execute(pending);
           } catch (RejectedExecutionException e) {
-            pendingHeartbeats.remove(request);
-            pending.complete(null);
+            pending.cancel(false);
             throw e;
           }
         }
@@ -360,18 +366,66 @@ public class RedisLockManager implements RefreshableLockManager {
     }
   }
 
-  private Lock stopHeartbeats(HeartbeatLockRequest request) {
-    CompletableFuture<Void> pending;
+  private LockReleaseResult stopHeartbeatsAndRelease(
+      HeartbeatLockRequest request, boolean wasWorkSuccessful, boolean requireOwnedLock) {
+    Future<?> pending;
     synchronized (request) {
       heartbeatQueue.remove(request);
       pending = pendingHeartbeats.get(request);
     }
-    // Wait for this request's latest version without holding its monitor during Redis I/O.
-    if (pending != null) {
-      pending.join();
+
+    Future<LockReleaseResult> cleanup;
+    try {
+      cleanup =
+          heartbeatExecutor.submit(
+              () -> {
+                if (pending != null) {
+                  pending.get();
+                }
+                return tryLockReleaseQuietly(
+                    request.getLock(), wasWorkSuccessful, requireOwnedLock);
+              });
+    } catch (RejectedExecutionException e) {
+      if (pending != null) {
+        pending.cancel(true);
+      }
+      return failedCleanup(request, e);
     }
-    return request.getLock();
+
+    // Bound renewal coordination and release I/O together. On cancellation, an unresolved renewal
+    // may still finish once, but no further renewals are dispatched and its lease can expire.
+    try {
+      return cleanup.get(leaseDurationMillis, TimeUnit.MILLISECONDS);
+    } catch (InterruptedException e) {
+      cancelCleanup(cleanup, pending);
+      Thread.currentThread().interrupt();
+      return failedCleanup(request, e);
+    } catch (TimeoutException e) {
+      cancelCleanup(cleanup, pending);
+      return failedCleanup(request, e);
+    } catch (ExecutionException e) {
+      return failedCleanup(request, e.getCause());
+    }
   }
+
+  private void cancelCleanup(Future<?> cleanup, Future<?> pendingHeartbeat) {
+    // Stop the cleanup waiter before canceling renewal, so cancellation cannot trigger release.
+    cleanup.cancel(true);
+    if (pendingHeartbeat != null) {
+      pendingHeartbeat.cancel(true);
+    }
+  }
+
+  private LockReleaseResult failedCleanup(HeartbeatLockRequest request, Throwable cause) {
+    Lock lock = request.getLock();
+    LockException failure =
+        new LockException(
+            "Could not finish lock cleanup within its lease: " + lock.getName(), cause);
+    log.warn("Lock cleanup incomplete; any remaining lease will expire for {}", lock, failure);
+    return new LockReleaseResult(lock, LockHeartbeatStatus.ERROR.toString(), failure);
+  }
+
+  private record LockReleaseResult(Lock lock, String status, Exception exception) {}
 
   private void sendHeartbeat(HeartbeatLockRequest heartbeatLockRequest) {
     if (heartbeatLockRequest.timesUp()) {
@@ -445,22 +499,23 @@ public class RedisLockManager implements RefreshableLockManager {
     }
   }
 
-  private String tryLockReleaseQuietly(
+  private LockReleaseResult tryLockReleaseQuietly(
       final Lock lock, boolean wasWorkSuccessful, boolean requireOwnedLock) {
     if (lock != null) {
       try {
-        if (requireOwnedLock) {
-          return releaseLockWithStatus(lock, wasWorkSuccessful);
-        }
         // Keep the existing extension point and response semantics for bounded callers.
-        return releaseLock(lock, wasWorkSuccessful) ? SUCCESS : FAILED_NOT_OWNER;
+        String status =
+            requireOwnedLock
+                ? releaseLockWithStatus(lock, wasWorkSuccessful)
+                : releaseLock(lock, wasWorkSuccessful) ? SUCCESS : FAILED_NOT_OWNER;
+        return new LockReleaseResult(lock, status, null);
       } catch (Exception e) {
         log.warn("Attempt to release lock {} failed", lock, e);
-        return LockHeartbeatStatus.ERROR.toString();
+        return new LockReleaseResult(lock, LockHeartbeatStatus.ERROR.toString(), e);
       }
     }
 
-    return SUCCESS_GONE;
+    return new LockReleaseResult(null, SUCCESS_GONE, null);
   }
 
   private boolean wasReleased(String status) {

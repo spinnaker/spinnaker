@@ -20,6 +20,7 @@ import com.netflix.spectator.api.BasicTag
 import com.netflix.spectator.api.Registry
 import com.netflix.spinnaker.kork.dynamicconfig.DynamicConfigService
 import com.netflix.spinnaker.kork.exceptions.UserException
+import com.netflix.spinnaker.kork.lock.LockManager.LockCleanupException
 import com.netflix.spinnaker.orca.api.pipeline.TaskExecutionInterceptor
 import com.netflix.spinnaker.orca.TaskResolver
 import com.netflix.spinnaker.orca.api.pipeline.OverridableTimeoutRetryableTask
@@ -295,7 +296,13 @@ class RunTaskHandler(
 
   private fun RunTask.withLocking(action: Runnable) {
     var lockOptions = RetriableLockOptions(this.stageId)
-    val lockAcquired = retriableLock.lock(lockOptions, action)
+    val lockAcquired = try {
+      retriableLock.lock(lockOptions, action)
+    } catch (e: LockCleanupException) {
+      // The task already produced its queue messages; acknowledge this delivery to avoid replay.
+      log.error("Lock cleanup failed after task {} for stage {} completed", taskId, stageId, e)
+      true
+    }
     if(!lockAcquired){
       log.warn("Failed to obtain lock for stage: {}. Pushing original message back to queue");
       queue.push(this)

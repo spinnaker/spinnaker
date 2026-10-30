@@ -382,6 +382,16 @@ public interface LockManager {
     }
   }
 
+  /**
+   * The callback completed, but lock cleanup or ownership verification failed. Callers can report
+   * the lock failure without repeating the completed callback's effects.
+   */
+  class LockCleanupException extends LockCallbackException {
+    public LockCleanupException(String message, Throwable cause) {
+      super(message, cause);
+    }
+  }
+
   class LockNotAcquiredException extends LockException {
     public LockNotAcquiredException(String message) {
       super(message);

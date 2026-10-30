@@ -23,6 +23,7 @@ import com.netflix.spinnaker.kork.core.RetrySupport;
 import com.netflix.spinnaker.kork.lock.LockManager;
 import com.netflix.spinnaker.kork.lock.LockManager.AcquireLockResponse;
 import com.netflix.spinnaker.kork.lock.LockManager.LockCallbackException;
+import com.netflix.spinnaker.kork.lock.LockManager.LockCleanupException;
 import com.netflix.spinnaker.kork.lock.LockManager.LockOptions;
 import com.netflix.spinnaker.kork.lock.LockManager.LockStatus;
 import java.time.Duration;
@@ -77,6 +78,61 @@ class RetriableLockFailureTest {
   }
 
   @Test
+  void shedlockUnlockFailureDoesNotRepeatACompletedCallback() {
+    LockProvider provider = mock(LockProvider.class);
+    IllegalStateException failure = new IllegalStateException("unlock failed");
+    when(provider.lock(any()))
+        .thenReturn(
+            Optional.of(
+                () -> {
+                  throw failure;
+                }));
+    AtomicInteger executions = new AtomicInteger();
+
+    LockCleanupException exception =
+        assertThrows(
+            LockCleanupException.class,
+            () ->
+                lock(new RunOnShedLockAcquired(provider))
+                    .lock(options(), executions::incrementAndGet));
+
+    assertSame(failure, exception.getCause());
+    assertEquals(Boolean.FALSE, exception.getRetryable());
+    assertEquals(1, executions.get());
+    verify(provider).lock(any());
+  }
+
+  @Test
+  void adapterThrowAfterCallbackFailureDoesNotRetryTheCallback() {
+    RunOnLockAcquired manager = mock(RunOnLockAcquired.class);
+    IllegalStateException failure = new IllegalStateException("callback failed");
+    when(manager.execute(any(Runnable.class), any()))
+        .thenAnswer(
+            invocation -> {
+              invocation.getArgument(0, Runnable.class).run();
+              return null;
+            });
+    AtomicInteger executions = new AtomicInteger();
+
+    LockCallbackException exception =
+        assertThrows(
+            LockCallbackException.class,
+            () ->
+                lock(manager)
+                    .lock(
+                        options(),
+                        () -> {
+                          executions.incrementAndGet();
+                          throw failure;
+                        }));
+
+    assertSame(failure, exception.getCause());
+    assertEquals(Boolean.FALSE, exception.getRetryable());
+    assertEquals(1, executions.get());
+    verify(manager).execute(any(Runnable.class), any());
+  }
+
+  @Test
   void unprotectedCallbackFailureIsNotRetriedAsLockContention() {
     assertCallbackFailureIsNotRetried(new NoOpRunOnLockAcquired());
   }
@@ -126,16 +182,33 @@ class RetriableLockFailureTest {
             });
     AtomicInteger executions = new AtomicInteger();
 
-    LockCallbackException failure =
+    LockCleanupException failure =
         assertThrows(
-            LockCallbackException.class,
+            LockCleanupException.class,
             () ->
                 lock(new RunOnRedisLockAcquired(manager))
                     .lock(options(), executions::incrementAndGet));
 
     assertSame(lost, failure.getCause());
+    assertEquals(Boolean.FALSE, failure.getRetryable());
     assertEquals(1, executions.get());
     verify(manager).acquireLock(any(LockOptions.class), any(Runnable.class));
+  }
+
+  @Test
+  void disablingAcquisitionExceptionsDoesNotSuppressCallbackFailures() {
+    RetriableLock.RetriableLockOptions options =
+        new RetriableLock.RetriableLockOptions("stage", 3, Duration.ZERO, false, false);
+
+    assertThrows(
+        LockCallbackException.class,
+        () ->
+            lock(new NoOpRunOnLockAcquired())
+                .lock(
+                    options,
+                    () -> {
+                      throw new IllegalStateException("callback failed");
+                    }));
   }
 
   @Test
