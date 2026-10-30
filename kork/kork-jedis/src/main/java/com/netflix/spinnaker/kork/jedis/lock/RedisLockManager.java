@@ -444,8 +444,10 @@ public class RedisLockManager implements RefreshableLockManager {
       try {
         HeartbeatResponse heartbeatResponse = heartbeat(heartbeatLockRequest);
         switch (heartbeatResponse.getLockStatus()) {
-          case EXPIRED:
           case ERROR:
+            retryHeartbeatAfterFailure(heartbeatLockRequest);
+            break;
+          case EXPIRED:
             log.warn(
                 "Lock status {} for {}",
                 heartbeatResponse.getLockStatus(),
@@ -459,10 +461,17 @@ public class RedisLockManager implements RefreshableLockManager {
       } catch (Exception e) {
         log.error(
             "Heartbeat {} for {} failed", heartbeatLockRequest, heartbeatLockRequest.getLock(), e);
-        if (!heartbeatLockRequest.shouldRetry()) {
-          heartbeatQueue.remove(heartbeatLockRequest);
-        }
+        retryHeartbeatAfterFailure(heartbeatLockRequest);
       }
+    }
+  }
+
+  private void retryHeartbeatAfterFailure(HeartbeatLockRequest heartbeatLockRequest) {
+    if (!heartbeatLockRequest.shouldRetry()) {
+      log.warn(
+          "Heartbeat retries exhausted; no longer renewing lock {}",
+          heartbeatLockRequest.getLock());
+      heartbeatQueue.remove(heartbeatLockRequest);
     }
   }
 

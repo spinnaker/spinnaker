@@ -48,6 +48,7 @@ import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.function.BooleanSupplier;
+import java.util.function.Function;
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeAll;
@@ -57,6 +58,8 @@ import org.springframework.context.annotation.AnnotationConfigApplicationContext
 import redis.clients.jedis.Jedis;
 import redis.clients.jedis.JedisPool;
 import redis.clients.jedis.JedisPoolConfig;
+import redis.clients.jedis.commands.JedisCommands;
+import redis.clients.jedis.exceptions.JedisConnectionException;
 
 class RedisLockLifecycleTest {
   private static final long HEARTBEAT_MILLIS = 25L;
@@ -443,6 +446,75 @@ class RedisLockLifecycleTest {
   }
 
   @Test
+  void callbackScopedRenewalRecoversFromATransientRedisError() throws Exception {
+    assertRenewalRecoversFromATransientRedisError(options("stage"));
+  }
+
+  @Test
+  void boundedRenewalRecoversFromATransientRedisError() throws Exception {
+    assertRenewalRecoversFromATransientRedisError(
+        new LockOptions().withLockName("stage").withMaximumLockDuration(Duration.ofSeconds(10)));
+  }
+
+  private void assertRenewalRecoversFromATransientRedisError(LockOptions options) throws Exception {
+    TrackingLockManager manager = manager("owner");
+    TrackingLockManager competitor = manager("competitor");
+    CountDownLatch callbackStarted = new CountDownLatch(1);
+    CountDownLatch finishCallback = new CountDownLatch(1);
+    Future<AcquireLockResponse<String>> callback =
+        holdLock(manager, options, callbackStarted, finishCallback);
+
+    try {
+      await(callbackStarted);
+      awaitCondition(() -> manager.heartbeats("stage") > 1);
+      manager.redisClientDelegate.failuresRemaining.set(1);
+      awaitCondition(() -> manager.redisClientDelegate.failures.get() == 1);
+      int attemptsAfterFailure = manager.heartbeats("stage");
+      awaitCondition(() -> manager.heartbeats("stage") > attemptsAfterFailure);
+
+      // Recovery must protect the callback beyond the lease held when Redis failed.
+      Thread.sleep(LEASE_MILLIS + 250);
+      assertEquals(
+          LockStatus.TAKEN,
+          competitor
+              .acquireLock(options("stage"), (Runnable) () -> fail("lock stolen"))
+              .getLockStatus());
+    } finally {
+      finishCallback.countDown();
+    }
+
+    assertSuccessfullyReleased(callback);
+    assertFalse(exists("stage"));
+  }
+
+  @Test
+  void expiredHeartbeatDoesNotUseTheRetryBudget() throws Exception {
+    TrackingLockManager manager = manager("owner");
+    manager.pausedLock = "stage";
+    CountDownLatch callbackStarted = new CountDownLatch(1);
+    CountDownLatch finishCallback = new CountDownLatch(1);
+    Future<AcquireLockResponse<String>> callback =
+        holdLock(manager, options("stage"), callbackStarted, finishCallback);
+
+    try {
+      await(callbackStarted);
+      await(manager.heartbeatPaused);
+      try (Jedis client = redis.getJedis()) {
+        client.del(manager.lockKey("stage"));
+      }
+      manager.continueHeartbeat.countDown();
+      await(manager.heartbeatFinished);
+      Thread.sleep(HEARTBEAT_MILLIS * 4);
+      assertEquals(1, manager.heartbeats("stage"));
+    } finally {
+      manager.continueHeartbeat.countDown();
+      finishCallback.countDown();
+    }
+
+    assertEquals(LockStatus.EXPIRED, callback.get(5, TimeUnit.SECONDS).getLockStatus());
+  }
+
+  @Test
   void leaseExpiryAfterHeartbeatFailureIsReportedAsFailure() throws Exception {
     TrackingLockManager manager = manager("owner");
     manager.failHeartbeats = true;
@@ -455,6 +527,7 @@ class RedisLockLifecycleTest {
       await(callbackStarted);
       awaitCondition(() -> manager.heartbeats("stage") > 0);
       awaitCondition(() -> !exists("stage"));
+      assertEquals(4, manager.heartbeats("stage"), "initial failure plus three retries");
     } finally {
       finishCallback.countDown();
     }
@@ -616,6 +689,7 @@ class RedisLockLifecycleTest {
   }
 
   private static class TrackingLockManager extends RedisLockManager {
+    private final FailingJedisClientDelegate redisClientDelegate;
     private final ConcurrentMap<String, AtomicInteger> heartbeatCounts = new ConcurrentHashMap<>();
     private final CountDownLatch heartbeatPaused = new CountDownLatch(1);
     private final CountDownLatch continueHeartbeat = new CountDownLatch(1);
@@ -636,14 +710,19 @@ class RedisLockLifecycleTest {
     private volatile long heartbeatDelayMillis;
 
     TrackingLockManager(String owner) {
+      this(owner, new FailingJedisClientDelegate());
+    }
+
+    private TrackingLockManager(String owner, FailingJedisClientDelegate redisClientDelegate) {
       super(
           owner,
           Clock.systemUTC(),
           new NoopRegistry(),
           new ObjectMapper(),
-          new JedisClientDelegate(redis.getPool()),
+          redisClientDelegate,
           Optional.of(HEARTBEAT_MILLIS),
           Optional.of(LEASE_MILLIS));
+      this.redisClientDelegate = redisClientDelegate;
     }
 
     @Override
@@ -703,6 +782,24 @@ class RedisLockLifecycleTest {
     int heartbeats(String name) {
       AtomicInteger count = heartbeatCounts.get(name);
       return count == null ? 0 : count.get();
+    }
+  }
+
+  private static class FailingJedisClientDelegate extends JedisClientDelegate {
+    private final AtomicInteger failuresRemaining = new AtomicInteger();
+    private final AtomicInteger failures = new AtomicInteger();
+
+    FailingJedisClientDelegate() {
+      super(redis.getPool());
+    }
+
+    @Override
+    public <R> R withScriptingClient(Function<JedisCommands, R> function) {
+      if (failuresRemaining.getAndUpdate(remaining -> Math.max(0, remaining - 1)) > 0) {
+        failures.incrementAndGet();
+        throw new JedisConnectionException("transient Redis failure");
+      }
+      return super.withScriptingClient(function);
     }
   }
 }

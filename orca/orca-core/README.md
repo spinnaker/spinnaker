@@ -35,6 +35,23 @@ opt-in with `LockOptions.withHeartbeatsUntilReleased()`.
 The last call to `withMaximumLockDuration` or `withHeartbeatsUntilReleased` selects
 the renewal policy.
 
+Callback-lifetime renewal deliberately has no duration cap. A hung callback can
+retain its lock for as long as the process keeps renewing it. Stopping renewal at
+a deadline would allow another worker to enter while the original callback still
+runs, so blocking operations need their own timeouts. The existing
+`kork.lock.acquire.duration` long-task timer, tagged by `lockName`, exposes the
+sum of active callback durations through `statistic=duration` (seconds) and their
+count through `statistic=activeTasks`. Monitor these to detect callbacks that
+exceed their expected duration; with one active callback for a lock, a duration
+above 300 seconds can be used as a five-minute alert threshold. No alert is
+configured by the lock manager.
+
+Heartbeat `ERROR` responses and thrown failures share the existing per-request
+budget of three retries on subsequent heartbeat ticks. An `EXPIRED` response
+stops renewal immediately. Retries do not extend the Redis lease themselves: a
+successful renewal must still arrive before the remaining lease expires. With
+the defaults, a single failed tick can consume the remaining renewal margin.
+
 Release now uses the request's latest confirmed version for both policies. The
 former owner-only Redis lookup could select a later acquisition by the same owner.
 If Redis accepts a heartbeat but its response is lost, the local version can be
