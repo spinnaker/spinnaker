@@ -39,6 +39,7 @@ ext {
     swagger          : "2.2.49",
     httpcore5        : "5.4.3",
     logback          : "1.5.37",
+    tomcat           : "11.0.24",
     commonsCompress  : "1.27.1",
     // Testcontainers module for the MiniStack AWS emulator. The module is a thin
     // GenericContainer wrapper, so the emulator version comes from the image tag
@@ -91,8 +92,6 @@ dependencies {
   // Manage the whole family: pinning only bcprov left PKIX/util on 1.74.
   // CVE-2026-58062, CVE-2026-59650 and CVE-2026-8763 require bcprov >= 1.85.
   api(platform("org.bouncycastle:bc-jdk15to18-bom:${versions.bouncycastleLegacyBom}"))
-  // Let Boot manage its supported Tomcat line. Direct constraints override the imported
-  // versions for consumers of the published Maven BOM, even when Gradle selects newer ones.
   api(platform("org.springframework.boot:spring-boot-dependencies:${versions.springBoot}"))
   api(platform("com.google.protobuf:protobuf-bom:${versions.protobuf}"))
   api(platform("com.google.cloud:libraries-bom:${versions.gcp}"))
@@ -191,6 +190,11 @@ dependencies {
     // consumers to import as a platform), so we keep pinning these two explicitly.
     api("ch.qos.logback:logback-core:${versions.logback}")
     api("ch.qos.logback:logback-classic:${versions.logback}")
+    // Keep Tomcat on Boot 4's supported 11.x line, with an explicit version so
+    // security fixes can be applied before Spring Boot updates its BOM.
+    api("org.apache.tomcat.embed:tomcat-embed-core:${versions.tomcat}")
+    api("org.apache.tomcat.embed:tomcat-embed-el:${versions.tomcat}")
+    api("org.apache.tomcat.embed:tomcat-embed-websocket:${versions.tomcat}")
     api("org.apache.commons:commons-exec:1.3")
     api("org.apache.logging.log4j:log4j-api-kotlin:${versions.log4jKotlin}")
     api("org.bitbucket.b_c:jose4j:0.9.7")
