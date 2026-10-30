@@ -36,8 +36,8 @@ public class TomcatConfigurationProperties {
 
   private List<String> cipherSuites = CipherSuites.getRecommendedCiphers();
 
-  // This property maps to spring boot property server.tomcat.reject-illegal-header,
-  // which is true by default.
+  // Retained for configuration compatibility. Tomcat 11 always rejects illegal headers;
+  // setting this legacy option to false is ignored with a startup warning.
   private Boolean rejectIllegalHeader;
 
   public int getLegacyServerPort() {
