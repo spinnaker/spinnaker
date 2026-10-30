@@ -145,6 +145,7 @@ class UpsertGoogleInternalHttpLoadBalancerAtomicOperationUnitSpec extends Specif
           targetLink: "url-map",
           name: URL_MAP_OP_NAME,
           status: DONE)
+      UrlMap insertedUrlMap = null
 
       def targetHttpProxies = Mock(Compute.RegionTargetHttpProxies)
       def targetHttpProxiesInsert = Mock(Compute.RegionTargetHttpProxies.Insert)
@@ -243,7 +244,10 @@ class UpsertGoogleInternalHttpLoadBalancerAtomicOperationUnitSpec extends Specif
       2 * computeMock.regionUrlMaps() >> urlMaps
       1 * urlMaps.get(PROJECT_NAME, REGION, description.loadBalancerName) >> urlMapsGet
       1 * urlMapsGet.execute() >> null
-      1 * urlMaps.insert(PROJECT_NAME, REGION, _) >> urlMapsInsert
+      1 * urlMaps.insert(PROJECT_NAME, REGION, _) >> { project, region, UrlMap urlMap ->
+        insertedUrlMap = urlMap
+        urlMapsInsert
+      }
       1 * urlMapsInsert.execute() >> urlMapsInsertOp
 
       1 * computeMock.regionTargetHttpProxies() >> targetHttpProxies
@@ -267,6 +271,10 @@ class UpsertGoogleInternalHttpLoadBalancerAtomicOperationUnitSpec extends Specif
       1 * targetHttpProxyOperationGet.execute() >> healthChecksInsertOp
       1 * regionOperations.get(PROJECT_NAME, REGION, LOAD_BALANCER_NAME) >> forwardingRuleOperationGet
       1 * forwardingRuleOperationGet.execute() >> forwardingRuleInsertOp
+
+    and:
+      insertedUrlMap.pathMatchers*.name.every()
+      insertedUrlMap.hostRules*.pathMatcher == insertedUrlMap.pathMatchers*.name
   }
 
   void "should create an Internal HTTP Load Balancer with minimal description"() {
@@ -497,7 +505,7 @@ class UpsertGoogleInternalHttpLoadBalancerAtomicOperationUnitSpec extends Specif
       0 * backendServices.insert(_, _, _)
   }
 
-  void "rejects a listener to delete that belongs to another scheme before changing anything"() {
+  void "rejects a listener to delete that #reason before changing anything"() {
     setup:
       def computeMock = Mock(Compute)
 
@@ -526,6 +534,8 @@ class UpsertGoogleInternalHttpLoadBalancerAtomicOperationUnitSpec extends Specif
       def forwardingRules = Mock(Compute.ForwardingRules)
       def forwardingRulesGet = Mock(Compute.ForwardingRules.Get)
       def listenerGet = Mock(Compute.ForwardingRules.Get)
+      def targetHttpProxies = Mock(Compute.RegionTargetHttpProxies)
+      def targetHttpProxiesGet = Mock(Compute.RegionTargetHttpProxies.Get)
 
       def input = [
         accountName        : ACCOUNT_NAME,
@@ -542,7 +552,7 @@ class UpsertGoogleInternalHttpLoadBalancerAtomicOperationUnitSpec extends Specif
         "hostRules"        : null,
         "network"          : "some-network",
         "subnet"           : "some-subnet",
-        "listenersToDelete": ["external-listener"],
+        "listenersToDelete": ["old-listener"],
       ]
       def description = converter.convertDescription(input)
       @Subject def operation = new UpsertGoogleInternalHttpLoadBalancerAtomicOperation(description)
@@ -573,24 +583,35 @@ class UpsertGoogleInternalHttpLoadBalancerAtomicOperationUnitSpec extends Specif
       2 * computeMock.forwardingRules() >> forwardingRules
       1 * forwardingRules.get(PROJECT_NAME, REGION, LOAD_BALANCER_NAME) >> forwardingRulesGet
       1 * forwardingRulesGet.execute() >> null
-      1 * forwardingRules.get(PROJECT_NAME, REGION, "external-listener") >> listenerGet
+      1 * forwardingRules.get(PROJECT_NAME, REGION, "old-listener") >> listenerGet
       1 * listenerGet.execute() >> new ForwardingRule(
-        name: "external-listener",
-        loadBalancingScheme: "EXTERNAL_MANAGED",
-        target: "projects/$PROJECT_NAME/regions/$REGION/targetHttpProxies/external-proxy")
+        name: "old-listener",
+        loadBalancingScheme: scheme,
+        target: "projects/$PROJECT_NAME/regions/$REGION/targetHttpProxies/old-proxy")
+
+      proxyReads * computeMock.regionTargetHttpProxies() >> targetHttpProxies
+      proxyReads * targetHttpProxies.get(PROJECT_NAME, REGION, "old-proxy") >> targetHttpProxiesGet
+      proxyReads * targetHttpProxiesGet.execute() >> new TargetHttpProxy(
+        urlMap: "projects/$PROJECT_NAME/regions/$REGION/urlMaps/other-url-map")
 
       thrown(GoogleOperationException)
       0 * healthChecks.insert(_, _, _)
       0 * forwardingRules.delete(_, _, _)
+
+    where:
+      reason                           | scheme             | proxyReads
+      "belongs to another scheme"      | "EXTERNAL_MANAGED" | 0
+      "is attached to another URL map" | "INTERNAL_MANAGED" | 1
   }
 
-  void "deletes its own listener without checking which URL map it points at"() {
+  void "deletes its own listener once it points at the expected URL map"() {
     setup:
       def compute = Mock(Compute)
       def forwardingRules = Mock(Compute.ForwardingRules)
       def forwardingRulesGet = Mock(Compute.ForwardingRules.Get)
       def forwardingRulesDelete = Mock(Compute.ForwardingRules.Delete)
       def targetHttpProxies = Mock(Compute.RegionTargetHttpProxies)
+      def targetHttpProxiesGet = Mock(Compute.RegionTargetHttpProxies.Get)
       def targetHttpProxiesDelete = Mock(Compute.RegionTargetHttpProxies.Delete)
       def proxyDeleteOperation = new Operation(name: "proxy-delete", status: DONE)
       @Subject def operation = new UpsertGoogleInternalHttpLoadBalancerAtomicOperation(
@@ -615,7 +636,9 @@ class UpsertGoogleInternalHttpLoadBalancerAtomicOperationUnitSpec extends Specif
         target: "projects/$PROJECT_NAME/regions/$REGION/targetHttpProxies/internal-proxy")
 
       _ * compute.regionTargetHttpProxies() >> targetHttpProxies
-      0 * targetHttpProxies.get(_, _, _)
+      1 * targetHttpProxies.get(PROJECT_NAME, REGION, "internal-proxy") >> targetHttpProxiesGet
+      1 * targetHttpProxiesGet.execute() >> new TargetHttpProxy(
+        urlMap: "projects/$PROJECT_NAME/regions/$REGION/urlMaps/expected-url-map")
 
       1 * forwardingRules.delete(PROJECT_NAME, REGION, "internal-listener") >> forwardingRulesDelete
       1 * forwardingRulesDelete.execute() >> new Operation(name: "rule-delete", status: DONE)

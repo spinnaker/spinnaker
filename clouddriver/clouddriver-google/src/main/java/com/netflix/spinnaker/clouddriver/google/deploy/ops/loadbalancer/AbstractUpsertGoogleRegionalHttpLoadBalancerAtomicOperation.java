@@ -68,8 +68,7 @@ import org.springframework.beans.factory.annotation.Autowired;
  * <p>Subclasses supply the scheme, network/subnet placement, certificate handling and forwarding
  * rule shape. Behavior added for the external scheme (immutable listener checks, the defaulted URL
  * map name comparison, and the regional-external metadata tag) is keyed off {@code
- * isExternalManaged()}. Apart from the scheme-ownership checks both schemes share, {@code
- * INTERNAL_MANAGED} behaves as it did before the external scheme was added.
+ * isExternalManaged()}.
  */
 public abstract class AbstractUpsertGoogleRegionalHttpLoadBalancerAtomicOperation
     extends UpsertGoogleLoadBalancerAtomicOperation {
@@ -674,11 +673,7 @@ public abstract class AbstractUpsertGoogleRegionalHttpLoadBalancerAtomicOperatio
           String pathMatcherName = PATH_MATCHER_PREFIX + "-" + UUID.randomUUID().toString();
           GooglePathMatcher pathMatcher = hostRule.getPathMatcher();
           PathMatcher matcher = new PathMatcher();
-          // The host rule below refers to this matcher by name. INTERNAL_MANAGED's create path has
-          // never set it, and that behavior is kept unchanged; the update path names it for both.
-          if (isExternalManaged()) {
-            matcher.setName(pathMatcherName);
-          }
+          matcher.setName(pathMatcherName);
           matcher.setDefaultService(
               GCEUtil.buildRegionBackendServiceUrl(
                   project, region, pathMatcher.getDefaultService().getName()));
@@ -1277,9 +1272,6 @@ public abstract class AbstractUpsertGoogleRegionalHttpLoadBalancerAtomicOperatio
       throw new GoogleOperationException(
           "Listener " + forwardingRuleName + " does not target a regional HTTP(S) proxy.");
     }
-    if (!isExternalManaged()) {
-      return true;
-    }
 
     GenericJson targetProxy;
     String targetProxyName = GCEUtil.getLocalName(forwardingRule.getTarget());
@@ -1360,9 +1352,6 @@ public abstract class AbstractUpsertGoogleRegionalHttpLoadBalancerAtomicOperatio
     return true;
   }
 
-  // Both schemes delete only their own scheme's listeners that target a regional HTTP(S) proxy.
-  // Every other listener guard, including the URL map ownership check, applies to the external
-  // scheme only, so INTERNAL_MANAGED keeps its historical upsert contract.
   private boolean isExternalManaged() {
     return "EXTERNAL_MANAGED".equals(getLoadBalancingScheme());
   }
