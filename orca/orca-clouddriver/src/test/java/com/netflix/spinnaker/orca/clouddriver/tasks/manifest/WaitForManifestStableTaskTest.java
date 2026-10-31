@@ -17,8 +17,11 @@
 package com.netflix.spinnaker.orca.clouddriver.tasks.manifest;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.Mockito.*;
 
+import com.fasterxml.jackson.core.type.TypeReference;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 import com.netflix.spinnaker.orca.api.pipeline.TaskResult;
@@ -26,13 +29,19 @@ import com.netflix.spinnaker.orca.api.pipeline.models.ExecutionStatus;
 import com.netflix.spinnaker.orca.api.pipeline.models.ExecutionType;
 import com.netflix.spinnaker.orca.clouddriver.OortService;
 import com.netflix.spinnaker.orca.clouddriver.model.Manifest;
+import com.netflix.spinnaker.orca.jackson.OrcaObjectMapper;
 import com.netflix.spinnaker.orca.pipeline.model.PipelineExecutionImpl;
 import com.netflix.spinnaker.orca.pipeline.model.StageExecutionImpl;
+import java.io.IOException;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Optional;
+import java.util.Set;
 import java.util.concurrent.TimeUnit;
+import java.util.stream.Collectors;
 import org.assertj.core.api.AssertionsForClassTypes;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
@@ -48,10 +57,12 @@ final class WaitForManifestStableTaskTest {
   private static final String MANIFEST_1 = "my-manifest-1";
   private static final String MANIFEST_2 = "my-manifest-2";
 
+  private final ObjectMapper objectMapper = OrcaObjectMapper.getInstance();
+
   @Test
   void terminalWhenFailedStable() {
     OortService oortService = mock(OortService.class);
-    WaitForManifestStableTask task = new WaitForManifestStableTask(oortService);
+    WaitForManifestStableTask task = new WaitForManifestStableTask(oortService, objectMapper);
 
     StageExecutionImpl myStage =
         createStageWithManifests(ImmutableMap.of(NAMESPACE, ImmutableList.of(MANIFEST_1)));
@@ -68,7 +79,7 @@ final class WaitForManifestStableTaskTest {
   @Test
   void terminalWhenFailedUnstable() {
     OortService oortService = mock(OortService.class);
-    WaitForManifestStableTask task = new WaitForManifestStableTask(oortService);
+    WaitForManifestStableTask task = new WaitForManifestStableTask(oortService, objectMapper);
 
     StageExecutionImpl myStage =
         createStageWithManifests(ImmutableMap.of(NAMESPACE, ImmutableList.of(MANIFEST_1)));
@@ -85,7 +96,7 @@ final class WaitForManifestStableTaskTest {
   @Test
   void runningWhenUnstable() {
     OortService oortService = mock(OortService.class);
-    WaitForManifestStableTask task = new WaitForManifestStableTask(oortService);
+    WaitForManifestStableTask task = new WaitForManifestStableTask(oortService, objectMapper);
 
     StageExecutionImpl myStage =
         createStageWithManifests(ImmutableMap.of(NAMESPACE, ImmutableList.of(MANIFEST_1)));
@@ -102,7 +113,7 @@ final class WaitForManifestStableTaskTest {
   @Test
   void succeededWhenStable() {
     OortService oortService = mock(OortService.class);
-    WaitForManifestStableTask task = new WaitForManifestStableTask(oortService);
+    WaitForManifestStableTask task = new WaitForManifestStableTask(oortService, objectMapper);
 
     StageExecutionImpl myStage =
         createStageWithManifests(ImmutableMap.of(NAMESPACE, ImmutableList.of(MANIFEST_1)));
@@ -119,7 +130,7 @@ final class WaitForManifestStableTaskTest {
   @Test
   void runningWhenUnknown() {
     OortService oortService = mock(OortService.class);
-    WaitForManifestStableTask task = new WaitForManifestStableTask(oortService);
+    WaitForManifestStableTask task = new WaitForManifestStableTask(oortService, objectMapper);
 
     StageExecutionImpl myStage =
         createStageWithManifests(ImmutableMap.of(NAMESPACE, ImmutableList.of(MANIFEST_1)));
@@ -136,7 +147,7 @@ final class WaitForManifestStableTaskTest {
   @Test
   void doesNotRecheckManifests() {
     OortService oortService = mock(OortService.class);
-    WaitForManifestStableTask task = new WaitForManifestStableTask(oortService);
+    WaitForManifestStableTask task = new WaitForManifestStableTask(oortService, objectMapper);
 
     StageExecutionImpl myStage =
         createStageWithManifests(
@@ -169,7 +180,7 @@ final class WaitForManifestStableTaskTest {
   @Test
   void waitsForMultipleManifests() {
     OortService oortService = mock(OortService.class);
-    WaitForManifestStableTask task = new WaitForManifestStableTask(oortService);
+    WaitForManifestStableTask task = new WaitForManifestStableTask(oortService, objectMapper);
 
     StageExecutionImpl myStage =
         createStageWithManifests(
@@ -205,7 +216,7 @@ final class WaitForManifestStableTaskTest {
   @Test
   void waitsForAllManifestsWhenOneFailed() {
     OortService oortService = mock(OortService.class);
-    WaitForManifestStableTask task = new WaitForManifestStableTask(oortService);
+    WaitForManifestStableTask task = new WaitForManifestStableTask(oortService, objectMapper);
 
     StageExecutionImpl myStage =
         createStageWithManifests(
@@ -244,7 +255,7 @@ final class WaitForManifestStableTaskTest {
   @Test
   void waitsForAllManifestsWhenOneFailedAndOneUnknown() {
     OortService oortService = mock(OortService.class);
-    WaitForManifestStableTask task = new WaitForManifestStableTask(oortService);
+    WaitForManifestStableTask task = new WaitForManifestStableTask(oortService, objectMapper);
 
     StageExecutionImpl myStage =
         createStageWithManifests(
@@ -280,7 +291,7 @@ final class WaitForManifestStableTaskTest {
   @Test
   void defaultTimeoutIs30Minutes() {
     OortService oortService = mock(OortService.class);
-    WaitForManifestStableTask task = new WaitForManifestStableTask(oortService);
+    WaitForManifestStableTask task = new WaitForManifestStableTask(oortService, objectMapper);
 
     StageExecutionImpl stage =
         createStageWithManifests(ImmutableMap.of(NAMESPACE, ImmutableList.of(MANIFEST_1)));
@@ -291,7 +302,7 @@ final class WaitForManifestStableTaskTest {
   @Test
   void dynamicTimeoutReadsStableManifestTimeoutMinutes() {
     OortService oortService = mock(OortService.class);
-    WaitForManifestStableTask task = new WaitForManifestStableTask(oortService);
+    WaitForManifestStableTask task = new WaitForManifestStableTask(oortService, objectMapper);
 
     StageExecutionImpl stage =
         createStageWithContext(
@@ -309,7 +320,7 @@ final class WaitForManifestStableTaskTest {
   @Test
   void dynamicTimeoutFallsBackToDefaultWhenFieldAbsent() {
     OortService oortService = mock(OortService.class);
-    WaitForManifestStableTask task = new WaitForManifestStableTask(oortService);
+    WaitForManifestStableTask task = new WaitForManifestStableTask(oortService, objectMapper);
 
     StageExecutionImpl stage =
         createStageWithManifests(ImmutableMap.of(NAMESPACE, ImmutableList.of(MANIFEST_1)));
@@ -320,7 +331,7 @@ final class WaitForManifestStableTaskTest {
   @Test
   void dynamicTimeoutAcceptsStringValue() {
     OortService oortService = mock(OortService.class);
-    WaitForManifestStableTask task = new WaitForManifestStableTask(oortService);
+    WaitForManifestStableTask task = new WaitForManifestStableTask(oortService, objectMapper);
 
     StageExecutionImpl stage =
         createStageWithContext(
@@ -338,7 +349,7 @@ final class WaitForManifestStableTaskTest {
   @Test
   void failureMessageFromTheClusterIsRenderedLiterally() {
     OortService oortService = mock(OortService.class);
-    WaitForManifestStableTask task = new WaitForManifestStableTask(oortService);
+    WaitForManifestStableTask task = new WaitForManifestStableTask(oortService, objectMapper);
 
     StageExecutionImpl myStage =
         createStageWithManifests(ImmutableMap.of(NAMESPACE, ImmutableList.of(MANIFEST_1)));
@@ -387,6 +398,298 @@ final class WaitForManifestStableTaskTest {
     assertThat(WaitForManifestStableTask.asInlineCode("  ")).isEqualTo("  ");
   }
 
+  @Test
+  void waitsForAllManifestsWhenOneFailedWithEvents() throws IOException {
+    // setup
+    String k8sDeploymentName = "deployment " + MANIFEST_1;
+    String replicaSetName = "replicaSet example-service-867f486c5";
+    String podName = "pod example-service-web-867f486c5-cvprp";
+    OortService oortService = mock(OortService.class);
+    WaitForManifestStableTask task = new WaitForManifestStableTask(oortService, objectMapper);
+
+    StageExecutionImpl myStage =
+        createStageWithManifests(
+            ImmutableMap.of(NAMESPACE, ImmutableList.of(k8sDeploymentName, MANIFEST_2)), true);
+
+    List<Object> manifestEvents =
+        objectMapper.readValue(
+            WaitForManifestStableTaskTest.class.getResourceAsStream(("deployment-events.json")),
+            new TypeReference<>() {});
+    // deployment manifest
+    when(oortService.getManifest(ACCOUNT, NAMESPACE, k8sDeploymentName, true))
+        .thenReturn(
+            Calls.response(
+                manifestBuilder()
+                    .name(k8sDeploymentName)
+                    .events(manifestEvents)
+                    .stable(false)
+                    .failed(true)
+                    .build()));
+    // any other K8s manifest
+    when(oortService.getManifest(ACCOUNT, NAMESPACE, MANIFEST_2, true))
+        .thenReturn(Calls.response(manifestBuilder().stable(false).failed(false).build()));
+
+    // when
+    TaskResult result = task.execute(myStage);
+
+    // then
+    // verify Manifest 2 hasn't stabilized yet and Manifest 1 has failed
+    AssertionsForClassTypes.assertThat(result.getStatus()).isEqualTo(ExecutionStatus.RUNNING);
+
+    assertThat(getMessages(result))
+        .containsExactly(failedMessage(k8sDeploymentName), waitingToStabilizeMessage(MANIFEST_2));
+    assertThat(getErrors(result)).contains(failedMessage(k8sDeploymentName));
+    Map<String, Set<WaitForManifestStableTask.KubernetesManifestMetadata>>
+        manifestsMetadataByNamespace =
+            objectMapper.convertValue(
+                result.getContext().get("manifestsMetadataByNamespace"),
+                new TypeReference<
+                    Map<String, Set<WaitForManifestStableTask.KubernetesManifestMetadata>>>() {});
+    assertThat(manifestsMetadataByNamespace.get(NAMESPACE).size()).isEqualTo(2);
+    assertThat(
+            manifestsMetadataByNamespace.get(NAMESPACE).stream()
+                .map(WaitForManifestStableTask.KubernetesManifestMetadata::getName)
+                .collect(Collectors.toSet()))
+        .containsExactlyInAnyOrder("not set", k8sDeploymentName);
+
+    reset(oortService);
+
+    // deployment manifest
+    when(oortService.getManifest(ACCOUNT, NAMESPACE, k8sDeploymentName, true))
+        .thenReturn(
+            Calls.response(
+                manifestBuilder()
+                    .name(k8sDeploymentName)
+                    .events(manifestEvents)
+                    .stable(false)
+                    .failed(true)
+                    .build()));
+    // now manifest 2 has stabilized
+    when(oortService.getManifest(ACCOUNT, NAMESPACE, MANIFEST_2, true))
+        .thenReturn(Calls.response(manifestBuilder().stable(true).failed(false).build()));
+
+    manifestEvents =
+        objectMapper.readValue(
+            WaitForManifestStableTaskTest.class.getResourceAsStream(("replica-set-events.json")),
+            new TypeReference<>() {});
+    when(oortService.getManifest(ACCOUNT, NAMESPACE, replicaSetName, true))
+        .thenReturn(
+            Calls.response(
+                manifestBuilder()
+                    .name(replicaSetName)
+                    .events(manifestEvents)
+                    .stable(true)
+                    .failed(false)
+                    .build()));
+
+    manifestEvents =
+        objectMapper.readValue(
+            WaitForManifestStableTaskTest.class.getResourceAsStream(("pod-events.json")),
+            new TypeReference<>() {});
+    when(oortService.getManifest(ACCOUNT, NAMESPACE, podName, true))
+        .thenReturn(
+            Calls.response(
+                manifestBuilder()
+                    .name(podName)
+                    .events(manifestEvents)
+                    .stable(false)
+                    .failed(false)
+                    .build()));
+
+    // when:
+    result =
+        task.execute(
+            createStageWithContext(
+                ImmutableMap.<String, Object>builder()
+                    .putAll(myStage.getContext())
+                    .putAll(result.getContext())
+                    .build()));
+
+    // verify that we see the right messages
+    AssertionsForClassTypes.assertThat(result.getStatus()).isEqualTo(ExecutionStatus.TERMINAL);
+    assertThat(getMessages(result))
+        .containsExactly(failedMessage(k8sDeploymentName), waitingToStabilizeMessage(MANIFEST_2));
+    assertThat(getErrors(result))
+        .containsExactly(
+            failedMessage(k8sDeploymentName),
+            String.format(
+                "Resource: '%s' in '%s' for account %s is not stable.",
+                podName, NAMESPACE, ACCOUNT),
+            "* Events (Please check the most recent event which is shown first):",
+            "	1. Event: FailedScheduling. First Seen: 2024-04-03T04:06:26Z. Last Seen: 2024-04-09T21:16:53Z"
+                + ". Message: 0/7 nodes are available: 1 node(s) had untolerated taint {example.com/infra: true},"
+                + " 3 node(s) didn't match Pod's node affinity/selector, 3 node(s) had untolerated taint"
+                + " {node-role.kubernetes.io/control-plane: }."
+                + " preemption: 0/7 nodes are available: 7 Preemption is not helpful for scheduling..");
+    verify(oortService, times(0)).getManifest(ACCOUNT, NAMESPACE, k8sDeploymentName, true);
+    verify(oortService, times(1)).getManifest(ACCOUNT, NAMESPACE, MANIFEST_2, true);
+    verify(oortService, times(1)).getManifest(ACCOUNT, NAMESPACE, replicaSetName, true);
+    verify(oortService, times(1)).getManifest(ACCOUNT, NAMESPACE, podName, true);
+    assertTrue(result.getContext().containsKey("manifestsMetadataByNamespace"));
+    manifestsMetadataByNamespace =
+        objectMapper.convertValue(
+            result.getContext().get("manifestsMetadataByNamespace"),
+            new TypeReference<
+                Map<String, Set<WaitForManifestStableTask.KubernetesManifestMetadata>>>() {});
+    assertThat(manifestsMetadataByNamespace.get(NAMESPACE).size()).isEqualTo(4);
+
+    assertThat(
+            manifestsMetadataByNamespace.get(NAMESPACE).stream()
+                .map(WaitForManifestStableTask.KubernetesManifestMetadata::getName)
+                .collect(Collectors.toSet()))
+        .containsExactlyInAnyOrder("not set", k8sDeploymentName, podName, replicaSetName);
+  }
+
+  @Test
+  void waitsForAllManifestsWhenOneFailedWithMultipleUnhealthyEventsLimitedto3() throws IOException {
+    // setup
+    String k8sDeploymentName = "deployment " + MANIFEST_1;
+    String replicaSetName = "replicaSet example-service-867f486c5";
+    String podName = "pod example-service-web-867f486c5-cvprp";
+    OortService oortService = mock(OortService.class);
+    WaitForManifestStableTask task = new WaitForManifestStableTask(oortService, objectMapper);
+
+    StageExecutionImpl myStage =
+        createStageWithManifests(
+            ImmutableMap.of(NAMESPACE, ImmutableList.of(k8sDeploymentName, MANIFEST_2)), true);
+
+    List<Object> manifestEvents =
+        objectMapper.readValue(
+            WaitForManifestStableTaskTest.class.getResourceAsStream(("deployment-events.json")),
+            new TypeReference<>() {});
+    // deployment manifest
+    when(oortService.getManifest(ACCOUNT, NAMESPACE, k8sDeploymentName, true))
+        .thenReturn(
+            Calls.response(
+                manifestBuilder()
+                    .name(k8sDeploymentName)
+                    .events(manifestEvents)
+                    .stable(false)
+                    .failed(true)
+                    .build()));
+    // any other K8s manifest
+    when(oortService.getManifest(ACCOUNT, NAMESPACE, MANIFEST_2, true))
+        .thenReturn(Calls.response(manifestBuilder().stable(false).failed(false).build()));
+
+    // when
+    TaskResult result = task.execute(myStage);
+
+    // then
+    // verify Manifest 2 hasn't stabilized yet and Manifest 1 has failed
+    AssertionsForClassTypes.assertThat(result.getStatus()).isEqualTo(ExecutionStatus.RUNNING);
+
+    assertThat(getMessages(result))
+        .containsExactly(failedMessage(k8sDeploymentName), waitingToStabilizeMessage(MANIFEST_2));
+    assertThat(getErrors(result)).contains(failedMessage(k8sDeploymentName));
+    Map<String, Set<WaitForManifestStableTask.KubernetesManifestMetadata>>
+        manifestsMetadataByNamespace =
+            objectMapper.convertValue(
+                result.getContext().get("manifestsMetadataByNamespace"),
+                new TypeReference<
+                    Map<String, Set<WaitForManifestStableTask.KubernetesManifestMetadata>>>() {});
+    assertThat(manifestsMetadataByNamespace.get(NAMESPACE).size()).isEqualTo(2);
+    assertThat(
+            manifestsMetadataByNamespace.get(NAMESPACE).stream()
+                .map(WaitForManifestStableTask.KubernetesManifestMetadata::getName)
+                .collect(Collectors.toSet()))
+        .containsExactlyInAnyOrder("not set", k8sDeploymentName);
+
+    reset(oortService);
+
+    // deployment manifest
+    when(oortService.getManifest(ACCOUNT, NAMESPACE, k8sDeploymentName, true))
+        .thenReturn(
+            Calls.response(
+                manifestBuilder()
+                    .name(k8sDeploymentName)
+                    .events(manifestEvents)
+                    .stable(false)
+                    .failed(true)
+                    .build()));
+    // now manifest 2 has stabilized
+    when(oortService.getManifest(ACCOUNT, NAMESPACE, MANIFEST_2, true))
+        .thenReturn(Calls.response(manifestBuilder().stable(true).failed(false).build()));
+
+    manifestEvents =
+        objectMapper.readValue(
+            WaitForManifestStableTaskTest.class.getResourceAsStream(("replica-set-events.json")),
+            new TypeReference<>() {});
+    when(oortService.getManifest(ACCOUNT, NAMESPACE, replicaSetName, true))
+        .thenReturn(
+            Calls.response(
+                manifestBuilder()
+                    .name(replicaSetName)
+                    .events(manifestEvents)
+                    .stable(true)
+                    .failed(false)
+                    .build()));
+
+    Map response =
+        objectMapper.readValue(
+            WaitForManifestStableTaskTest.class.getResourceAsStream(
+                ("multiple-unhealthy-events.json")),
+            new TypeReference<>() {});
+
+    manifestEvents = (List<Object>) response.get("items");
+    when(oortService.getManifest(ACCOUNT, NAMESPACE, podName, true))
+        .thenReturn(
+            Calls.response(
+                manifestBuilder()
+                    .name(podName)
+                    .events(manifestEvents)
+                    .stable(false)
+                    .failed(false)
+                    .build()));
+
+    // when:
+    result =
+        task.execute(
+            createStageWithContext(
+                ImmutableMap.<String, Object>builder()
+                    .putAll(myStage.getContext())
+                    .putAll(result.getContext())
+                    .build()));
+
+    // verify that we see the right messages
+    AssertionsForClassTypes.assertThat(result.getStatus()).isEqualTo(ExecutionStatus.TERMINAL);
+    assertThat(getMessages(result))
+        .containsExactly(failedMessage(k8sDeploymentName), waitingToStabilizeMessage(MANIFEST_2));
+    assertThat(getErrors(result))
+        .containsExactly(
+            failedMessage(k8sDeploymentName),
+            String.format(
+                "Resource: '%s' in '%s' for account %s is not stable.",
+                podName, NAMESPACE, ACCOUNT),
+            "* Events (Please check the most recent event which is shown first):",
+            "\t1. Event: BackOff. First Seen: 2024-07-08T23:18:54Z. Last Seen: 2024-07-08T23:33:29Z. Message: Back-off restarting failed"
+                + " container web-group1-sandbox-7082cc7-web in pod example-service-web-867f486c5-cvprp_example-service(30942905-3eab-475d-bbbf-c8c700dbe916)",
+            "\t2. Event: Unhealthy. First Seen: 2024-07-08T22:42:03Z. Last Seen: 2024-07-08T23:03:33Z. Message: Startup probe failed: ",
+            "\t3. Event: FailedScheduling. First Seen: 2024-07-08T22:38:13Z. Last Seen: 2024-07-08T22:38:13Z. Message: 0/112 nodes are available:"
+                + " 2 node(s) had untolerated taint {example.com/node-type: example}, 3 node(s) had untolerated taint"
+                + " {example.com/node-not-ready: true}, 3 node(s) had untolerated taint {example.com/disruption: disrupting},"
+                + " 3 node(s) had untolerated taint {kubernetes.io/arch: arm64},"
+                + " 4 node(s) had untolerated taint {node.kubernetes.io/disk-pressure: }, 84 Insufficient memory, 93 Insufficient cpu."
+                + " preemption: 0/112 nodes are available: 15 Preemption is not helpful for scheduling,"
+                + " 97 No preemption victims found for incoming pod.");
+    verify(oortService, times(0)).getManifest(ACCOUNT, NAMESPACE, k8sDeploymentName, true);
+    verify(oortService, times(1)).getManifest(ACCOUNT, NAMESPACE, MANIFEST_2, true);
+    verify(oortService, times(1)).getManifest(ACCOUNT, NAMESPACE, replicaSetName, true);
+    verify(oortService, times(1)).getManifest(ACCOUNT, NAMESPACE, podName, true);
+    assertTrue(result.getContext().containsKey("manifestsMetadataByNamespace"));
+    manifestsMetadataByNamespace =
+        objectMapper.convertValue(
+            result.getContext().get("manifestsMetadataByNamespace"),
+            new TypeReference<
+                Map<String, Set<WaitForManifestStableTask.KubernetesManifestMetadata>>>() {});
+    assertThat(manifestsMetadataByNamespace.get(NAMESPACE).size()).isEqualTo(4);
+
+    assertThat(
+            manifestsMetadataByNamespace.get(NAMESPACE).stream()
+                .map(WaitForManifestStableTask.KubernetesManifestMetadata::getName)
+                .collect(Collectors.toSet()))
+        .containsExactlyInAnyOrder("not set", k8sDeploymentName, podName, replicaSetName);
+  }
+
   private static String waitingToStabilizeMessage(String manifest) {
     return String.format(
         "'%s' in '%s' for account %s: waiting for manifest to stabilize",
@@ -400,6 +703,11 @@ final class WaitForManifestStableTaskTest {
 
   private StageExecutionImpl createStageWithManifests(
       ImmutableMap<String, ImmutableList<String>> manifestsByNamespace) {
+    return createStageWithManifests(manifestsByNamespace, false);
+  }
+
+  private StageExecutionImpl createStageWithManifests(
+      ImmutableMap<String, ImmutableList<String>> manifestsByNamespace, boolean includeEvents) {
     return new StageExecutionImpl(
         new PipelineExecutionImpl(ExecutionType.PIPELINE, "test"),
         "test",
@@ -408,7 +716,9 @@ final class WaitForManifestStableTaskTest {
                 "account.name",
                 ACCOUNT,
                 "outputs.manifestNamesByNamespace",
-                manifestsByNamespace)));
+                manifestsByNamespace,
+                "includeEvents",
+                includeEvents)));
   }
 
   @SuppressWarnings("unchecked")
@@ -446,6 +756,10 @@ final class WaitForManifestStableTaskTest {
     private boolean stable;
     private boolean failed;
 
+    private List<Object> eventsList = new ArrayList<>();
+
+    private String name = "not set";
+
     ManifestBuilder stable(boolean state) {
       stable = state;
       return this;
@@ -456,6 +770,16 @@ final class WaitForManifestStableTaskTest {
       return this;
     }
 
+    ManifestBuilder events(List<Object> manifestEvents) {
+      eventsList = manifestEvents;
+      return this;
+    }
+
+    ManifestBuilder name(String name) {
+      this.name = Objects.requireNonNullElse(name, "not set");
+      return this;
+    }
+
     private Manifest.Status getStatus() {
       Manifest.Condition stableCondition = stable ? Manifest.Condition.emptyTrue() : UNSTABLE;
       Manifest.Condition failedCondition = failed ? FAILED : Manifest.Condition.emptyFalse();
@@ -463,7 +787,15 @@ final class WaitForManifestStableTaskTest {
     }
 
     public Manifest build() {
-      return Manifest.builder().status(getStatus()).build();
+      Map<String, Object> manifest = new HashMap<>();
+      manifest.put("kind", "Deployment");
+      return Manifest.builder()
+          .name(name)
+          .location(NAMESPACE)
+          .manifest(manifest)
+          .status(getStatus())
+          .events(eventsList)
+          .build();
     }
   }
 }
