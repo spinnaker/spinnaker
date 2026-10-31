@@ -16,6 +16,8 @@
 package com.netflix.spinnaker.gate.ratelimit;
 
 import jakarta.servlet.http.HttpServletResponse;
+import java.time.Duration;
+import java.time.Instant;
 
 public class Rate {
 
@@ -23,6 +25,8 @@ public class Rate {
   static final String REMAINING_HEADER = "X-RateLimit-Remaining";
   static final String RESET_HEADER = "X-RateLimit-Reset";
   static final String LEARNING_HEADER = "X-RateLimit-Learning";
+  static final String RULE_HEADER = "X-RateLimit-Rule";
+  static final String RETRY_AFTER_HEADER = "Retry-After";
 
   Integer capacity;
   Integer rateSeconds;
@@ -32,6 +36,10 @@ public class Rate {
 
   public boolean isThrottled() {
     return throttled;
+  }
+
+  Duration untilReset() {
+    return Duration.between(Instant.now(), Instant.ofEpochMilli(reset));
   }
 
   public void assignHttpHeaders(HttpServletResponse response, Boolean learning) {

@@ -15,12 +15,22 @@
  */
 package com.netflix.spinnaker.gate.ratelimit;
 
+import java.util.Collection;
+import java.util.function.Supplier;
+
 public interface RateLimitPrincipalProvider {
-  String DECK_APP = "deck";
+
+  /** The shared principal for every unauthenticated caller. */
+  String ANONYMOUS = "anonymous";
 
   RateLimitPrincipal getPrincipal(String name, String sourceApp);
 
-  default boolean supports(String sourceApp) {
-    return !DECK_APP.equalsIgnoreCase(sourceApp);
+  /**
+   * @param roles supplies the caller's roles. Looking roles up can be expensive, so implementations
+   *     should only call it when roles can influence the result.
+   */
+  default RateLimitPrincipal getPrincipal(
+      String name, String sourceApp, Supplier<Collection<String>> roles) {
+    return getPrincipal(name, sourceApp);
   }
 }

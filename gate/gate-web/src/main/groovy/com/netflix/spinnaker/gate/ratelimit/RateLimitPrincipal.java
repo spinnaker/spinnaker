@@ -15,33 +15,12 @@
  */
 package com.netflix.spinnaker.gate.ratelimit;
 
+import lombok.Value;
+
+@Value
 public class RateLimitPrincipal {
-
-  private final String name;
-  private final int rateSeconds;
-  private final int capacity;
-  private final boolean learning;
-
-  public RateLimitPrincipal(String name, int rateSeconds, int capacity, boolean learning) {
-    this.name = name;
-    this.rateSeconds = rateSeconds;
-    this.capacity = capacity;
-    this.learning = learning;
-  }
-
-  public String getName() {
-    return name;
-  }
-
-  public int getRateSeconds() {
-    return rateSeconds;
-  }
-
-  public int getCapacity() {
-    return capacity;
-  }
-
-  public boolean isLearning() {
-    return learning;
-  }
+  String name;
+  int rateSeconds;
+  int capacity;
+  boolean learning;
 }
