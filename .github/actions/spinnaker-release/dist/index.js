@@ -81222,11 +81222,16 @@ const docsRepo = util.getInput('docs-repo-location');
 const partitions = [
     {
         title: 'Breaking Changes',
-        pattern: /(.*?BREAKING CHANGE.*)/,
+        // Either a "BREAKING CHANGE" mention or a conventional commit with a "!" marker, e.g. "fix(gate)!: ..."
+        pattern: /(.*?BREAKING CHANGE.*|^\S+ \w+(?:\([^)]*\))?!:.*)/,
     },
     {
         title: 'Features',
         pattern: /((?:feat|feature)[(:].*)/,
+    },
+    {
+        title: 'Performance',
+        pattern: /(perf[(:].*)/,
     },
     {
         title: 'Configuration',
@@ -81241,7 +81246,9 @@ const partitions = [
         pattern: /.*/,
     },
 ];
-const conventionalCommit = /.+\((.+)\):\s*(.+)/;
+const previewPage = 'content/en/docs/releases/next-release-preview/index.md';
+const previewHeading = /^## Coming Soon in .*$/m;
+const conventionalCommit = /.+\((.+)\)!?:\s*(.+)/;
 async function forVersion(version, previousVersion) {
     if (!previousVersion) {
         const parsed = versions_1.Version.parse(version);
@@ -81330,6 +81337,9 @@ async function generate(version, previousVersion) {
     });
     // Render partitions
     for (const partition of partitioned) {
+        if (!partition.commits.length) {
+            continue;
+        }
         markdown += `\n#### ${partition.title}\n\n`;
         const lines = partition.commits
             .map((commit) => {
@@ -81367,6 +81377,34 @@ class Changelog {
         this.markdownWithHeader = markdownHeaderless;
         this.prUrl = '';
     }
+    // The first release of a train (X.Y.0) carries the hand-written notes collected in the docs
+    // repo's "next release preview" page: prepend them to the generated changelog and reset the
+    // page for the following release. Patch releases leave it alone.
+    withPreviewNotes(changelog, docsCwd) {
+        const parsed = versions_1.Version.parse(this.version);
+        if (!parsed || parsed.patch !== 0) {
+            return changelog;
+        }
+        const previewPath = `${docsCwd}/${previewPage}`;
+        if (!fs.existsSync(previewPath)) {
+            core.warning(`No next release preview page at ${previewPath}`);
+            return changelog;
+        }
+        const preview = fs.readFileSync(previewPath).toString();
+        const heading = preview.match(previewHeading);
+        if (!heading || heading.index === undefined) {
+            core.warning(`Could not find "${previewHeading}" in ${previewPath}`);
+            return changelog;
+        }
+        const notes = preview.slice(heading.index + heading[0].length).trim();
+        if (!notes) {
+            return changelog;
+        }
+        fs.writeFileSync(previewPath, `${preview.slice(0, heading.index)}## Coming Soon in the Next Release\n`);
+        // Keep the generated changelog's front matter ahead of the notes
+        const frontMatterEnd = changelog.indexOf('---\n', 4) + '---\n'.length;
+        return `${changelog.slice(0, frontMatterEnd)}\n${notes}\n${changelog.slice(frontMatterEnd)}`;
+    }
     async publish() {
         const { v4: uuidv4 } = await __nccwpck_require__.e(/* import() */ 167).then(__nccwpck_require__.bind(__nccwpck_require__, 9167));
         const [owner, repo] = docsRepo.split('/', 2);
@@ -81387,7 +81425,7 @@ class Changelog {
         const branch = `auto-changelog-spinnaker-${this.version}`;
         git.gitCmd(`git checkout -b ${branch}`, { cwd: docsCwd });
         const docsRepoPathTarget = `${docsCwd}/content/en/changelogs/${this.version}-changelog.md`;
-        fs.writeFileSync(docsRepoPathTarget, this.markdownWithHeader);
+        fs.writeFileSync(docsRepoPathTarget, this.withPreviewNotes(this.markdownWithHeader, docsCwd));
         const commitMsg = `Automatic changelog for Spinnaker ${this.version}`;
         git.gitCmd(`git add --all`, { cwd: docsCwd });
         git.gitCmd(`git commit -a -m '${commitMsg}'`, { cwd: docsCwd });
@@ -82335,7 +82373,10 @@ exports.head = head;
 function changelogCommits(tag, previousTag) {
     // Default to HEAD if the current tag does not yet exist
     const tagOrHead = parseTag(tag)?.name ?? 'HEAD';
-    return gitCmdMulti(`git log ${tagOrHead}...${previousTag} --oneline --no-abbrev-commit`);
+    // Two dots: only commits reachable from the new release and not from the previous one.
+    // Three dots (symmetric difference) would also list everything that exists only on the
+    // previous release's branch, e.g. the 3.x backports when cutting the first 4.x release.
+    return gitCmdMulti(`git log ${previousTag}..${tagOrHead} --oneline --no-abbrev-commit`);
 }
 exports.changelogCommits = changelogCommits;
 function parseTag(name) {
