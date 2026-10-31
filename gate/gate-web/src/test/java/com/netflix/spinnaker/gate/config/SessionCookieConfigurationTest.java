@@ -14,36 +14,54 @@
  * limitations under the License.
  */
 
-package com.netflix.spinnaker.gate.security.saml;
+package com.netflix.spinnaker.gate.config;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.mock;
 
-import com.netflix.spinnaker.gate.config.AuthConfig;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.CsvSource;
 import org.junit.jupiter.params.provider.ValueSource;
-import org.springframework.boot.test.context.TestConfiguration;
+import org.springframework.boot.autoconfigure.AutoConfigurations;
+import org.springframework.boot.context.properties.EnableConfigurationProperties;
+import org.springframework.boot.session.autoconfigure.SessionAutoConfiguration;
+import org.springframework.boot.test.context.ConfigDataApplicationContextInitializer;
 import org.springframework.boot.test.context.runner.WebApplicationContextRunner;
+import org.springframework.boot.tomcat.autoconfigure.servlet.TomcatServletWebServerAutoConfiguration;
+import org.springframework.boot.web.server.autoconfigure.ServerProperties;
+import org.springframework.boot.web.server.servlet.context.AnnotationConfigServletWebServerApplicationContext;
 import org.springframework.context.ApplicationContext;
-import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.Configuration;
 import org.springframework.mock.web.MockHttpServletRequest;
 import org.springframework.mock.web.MockHttpServletResponse;
-import org.springframework.security.saml2.provider.service.registration.RelyingPartyRegistrationRepository;
+import org.springframework.session.SessionRepository;
 import org.springframework.session.web.http.CookieSerializer;
 import org.springframework.session.web.http.DefaultCookieSerializer;
 
-class SAMLSessionCookieTest {
+/**
+ * Gate relies on Spring Boot to build the session cookie serializer from {@code
+ * server.servlet.session.cookie.*}, with defaults from the {@code application.properties} that
+ * ships in gate-web. These tests emit a real {@code Set-Cookie} header so a change to that wiring
+ * or to the shipped defaults is noticed.
+ */
+class SessionCookieConfigurationTest {
 
+  // Boot only applies the cookie properties to an embedded web server context; a mock web context
+  // is treated as a war deployment, where the servlet container owns the cookie.
   private final WebApplicationContextRunner runner =
-      new WebApplicationContextRunner()
-          .withUserConfiguration(SAMLConfiguration.class, TestDependencies.class)
-          .withPropertyValues("saml.enabled=true");
+      new WebApplicationContextRunner(AnnotationConfigServletWebServerApplicationContext::new)
+          .withInitializer(new ConfigDataApplicationContextInitializer())
+          .withConfiguration(
+              AutoConfigurations.of(
+                  TomcatServletWebServerAutoConfiguration.class, SessionAutoConfiguration.class))
+          .withPropertyValues("server.port=0")
+          .withUserConfiguration(BindServerProperties.class)
+          .withBean(SessionRepository.class, () -> mock(SessionRepository.class));
 
   @ParameterizedTest
   @ValueSource(booleans = {false, true})
-  void preservesLegacyDefaultsWhenCookiePropertiesAreUnspecified(boolean secureRequest) {
+  void omitsSameSiteByDefault(boolean secureRequest) {
     runner.run(
         context -> {
           assertThat(context).hasNotFailed().hasSingleBean(DefaultCookieSerializer.class);
@@ -65,17 +83,6 @@ class SAMLSessionCookieTest {
               assertThat(cookieHeader(context, false))
                   .contains("; SameSite=" + expected)
                   .doesNotContain("; Secure");
-            });
-  }
-
-  @Test
-  void honorsExplicitOmittedSameSite() {
-    runner
-        .withPropertyValues("server.servlet.session.cookie.same-site=omitted")
-        .run(
-            context -> {
-              assertThat(context).hasNotFailed();
-              assertThat(cookieHeader(context, false)).doesNotContain("SameSite=");
             });
   }
 
@@ -134,13 +141,6 @@ class SAMLSessionCookieTest {
             });
   }
 
-  @Test
-  void doesNotCreateSamlCookieSerializerWhenSamlIsDisabled() {
-    runner
-        .withPropertyValues("saml.enabled=false")
-        .run(context -> assertThat(context).hasNotFailed().doesNotHaveBean(CookieSerializer.class));
-  }
-
   private static String cookieHeader(ApplicationContext context, boolean secureRequest) {
     MockHttpServletRequest request = new MockHttpServletRequest();
     request.setSecure(secureRequest);
@@ -152,16 +152,7 @@ class SAMLSessionCookieTest {
     return response.getHeader("Set-Cookie");
   }
 
-  @TestConfiguration(proxyBeanMethods = false)
-  static class TestDependencies {
-    @Bean
-    AuthConfig authConfig() {
-      return mock(AuthConfig.class);
-    }
-
-    @Bean
-    RelyingPartyRegistrationRepository registrations() {
-      return mock(RelyingPartyRegistrationRepository.class);
-    }
-  }
+  @Configuration(proxyBeanMethods = false)
+  @EnableConfigurationProperties(ServerProperties.class)
+  static class BindServerProperties {}
 }
