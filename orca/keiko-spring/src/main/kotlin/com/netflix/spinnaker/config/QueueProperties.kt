@@ -27,4 +27,7 @@ class QueueProperties {
   var fillExecutorEachCycle: Boolean = true
   var requeueDelaySeconds: Long = 0
   var requeueMaxJitterSeconds: Long = 0
+
+  /** How long to let running message handlers finish at shutdown before interrupting them. */
+  var shutdownWaitSeconds: Long = 20
 }
