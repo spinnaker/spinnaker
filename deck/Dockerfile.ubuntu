@@ -5,9 +5,9 @@ WORKDIR /opt/deck
 COPY docker        /opt/deck/docker
 RUN docker/setup-apache2.sh
 
-COPY packages/app/dist /opt/deck/html
+COPY --chown=www-data:www-data packages/app/dist /opt/deck/html
 RUN docker/compress-assets.sh /opt/deck/html \
-    && chown -R www-data:www-data /opt/deck
+    && chown www-data:www-data /opt/deck
 USER www-data
 
 # SIGWINCH is Apache's graceful stop: finish in-flight requests, then exit.
