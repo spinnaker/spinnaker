@@ -85,6 +85,9 @@ class RedisActiveExecutionsMonitor(
           refreshGauges()
         } catch (e: Exception) {
           log.error("Unable to refresh active execution gauges", e)
+        } catch (e: Error) {
+          log.error("Fatal error refreshing active execution gauges, they will stop refreshing", e)
+          throw e
         }
       },
       0,
@@ -98,6 +101,9 @@ class RedisActiveExecutionsMonitor(
           cleanup()
         } catch (e: Exception) {
           log.error("Unable to cleanup orphaned active executions", e)
+        } catch (e: Error) {
+          log.error("Fatal error cleaning up orphaned active executions, cleanup will stop", e)
+          throw e
         }
       },
       0,
