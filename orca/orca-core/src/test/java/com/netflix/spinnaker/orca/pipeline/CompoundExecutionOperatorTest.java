@@ -17,16 +17,21 @@
 package com.netflix.spinnaker.orca.pipeline;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertSame;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 import com.netflix.spinnaker.kork.core.RetrySupport;
+import com.netflix.spinnaker.kork.lock.LockManager.LockExpiredException;
 import com.netflix.spinnaker.orca.api.pipeline.models.ExecutionType;
 import com.netflix.spinnaker.orca.api.pipeline.models.PipelineExecution;
 import com.netflix.spinnaker.orca.api.pipeline.models.StageExecution;
 import com.netflix.spinnaker.orca.lock.RetriableLock;
+import com.netflix.spinnaker.orca.lock.RunOnLockAcquired;
+import com.netflix.spinnaker.orca.lock.RunOnLockResult;
 import com.netflix.spinnaker.orca.pipeline.model.PipelineExecutionImpl;
 import com.netflix.spinnaker.orca.pipeline.model.StageExecutionImpl;
 import com.netflix.spinnaker.orca.pipeline.persistence.ExecutionRepository;
@@ -34,6 +39,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.atomic.AtomicInteger;
 import org.junit.jupiter.api.Test;
 
 final class CompoundExecutionOperatorTest {
@@ -53,6 +59,36 @@ final class CompoundExecutionOperatorTest {
       new CompoundExecutionOperator(repository, runner, retrySupport, retriableLock);
   private PipelineExecution execution =
       new PipelineExecutionImpl(ExecutionType.PIPELINE, EXECUTION_ID, APPLICATION);
+
+  @Test
+  void ownershipLossAfterStageUpdateStillReschedulesWithoutRepeatingTheUpdate() {
+    execution = buildExpectedExecution(execution, false);
+    when(repository.retrieve(ExecutionType.PIPELINE, EXECUTION_ID)).thenReturn(execution);
+    when(repository.handlesPartition(execution.getPartition())).thenReturn(true);
+    RunOnLockAcquired manager = mock(RunOnLockAcquired.class);
+    when(manager.execute(any(Runnable.class), anyString()))
+        .thenAnswer(
+            invocation -> {
+              invocation.getArgument(0, Runnable.class).run();
+              return new RunOnLockResult<Void>(
+                  true, true, new LockExpiredException("lease lost after stage update"), null);
+            });
+    RetrySupport retries = new RetrySupport();
+    CompoundExecutionOperator operator =
+        new CompoundExecutionOperator(
+            repository, runner, retries, new RetriableLock(manager, retries));
+    AtomicInteger updates = new AtomicInteger();
+
+    PipelineExecution result =
+        operator.updateStage(
+            ExecutionType.PIPELINE, EXECUTION_ID, STAGE_ID, stage -> updates.incrementAndGet());
+
+    assertSame(execution, result);
+    assertEquals(1, updates.get());
+    verify(repository).storeStage(execution.stageById(STAGE_ID));
+    verify(manager).execute(any(Runnable.class), anyString());
+    verify(runner).reschedule(execution);
+  }
 
   @Test
   void restartStageWithValidExpression() {

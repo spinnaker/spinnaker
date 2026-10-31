@@ -37,6 +37,7 @@ public interface RefreshableLockManager extends LockManager {
     private final Instant startedAt;
     private final Clock clock;
     private final boolean reuseLockVersion;
+    private final boolean heartbeatsUntilReleased;
 
     public HeartbeatLockRequest(
         Lock lock,
@@ -44,12 +45,23 @@ public interface RefreshableLockManager extends LockManager {
         Clock clock,
         Duration heartbeatDuration,
         boolean reuseLockVersion) {
+      this(lock, retriesOnFailure, clock, heartbeatDuration, reuseLockVersion, false);
+    }
+
+    public HeartbeatLockRequest(
+        Lock lock,
+        AtomicInteger retriesOnFailure,
+        Clock clock,
+        Duration heartbeatDuration,
+        boolean reuseLockVersion,
+        boolean heartbeatsUntilReleased) {
       this.lock = new AtomicReference<>(lock);
       this.retriesOnFailure = retriesOnFailure;
       this.clock = clock;
       this.startedAt = clock.instant();
       this.heartbeatDuration = heartbeatDuration;
       this.reuseLockVersion = reuseLockVersion;
+      this.heartbeatsUntilReleased = heartbeatsUntilReleased;
       this.requestId = lock.getName() + lock.getOwnerName() + clock.millis();
     }
 
@@ -70,7 +82,12 @@ public interface RefreshableLockManager extends LockManager {
     }
 
     public boolean timesUp() {
-      return Duration.between(startedAt, clock.instant()).compareTo(heartbeatDuration) >= 0;
+      return !heartbeatsUntilReleased
+          && Duration.between(startedAt, clock.instant()).compareTo(heartbeatDuration) >= 0;
+    }
+
+    public boolean isHeartbeatsUntilReleased() {
+      return heartbeatsUntilReleased;
     }
 
     public Duration getRemainingLockDuration() {

@@ -34,6 +34,7 @@ import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
+import java.util.Set;
 import java.util.concurrent.*;
 import java.util.concurrent.atomic.AtomicInteger;
 import org.slf4j.Logger;
@@ -51,6 +52,7 @@ public class RedisLockManager implements RefreshableLockManager {
   private final ObjectMapper objectMapper;
   private final RedisClientDelegate redisClientDelegate;
   private final ScheduledExecutorService scheduledExecutorService;
+  private final ExecutorService heartbeatExecutor;
 
   private final Id acquireId;
   private final Id releaseId;
@@ -59,7 +61,8 @@ public class RedisLockManager implements RefreshableLockManager {
 
   private long heartbeatRateMillis;
   private long leaseDurationMillis;
-  private BlockingDeque<HeartbeatLockRequest> heartbeatQueue;
+  private final Set<HeartbeatLockRequest> heartbeatQueue;
+  private final ConcurrentMap<HeartbeatLockRequest, Future<?>> pendingHeartbeats;
 
   public RedisLockManager(
       String ownerName,
@@ -75,7 +78,9 @@ public class RedisLockManager implements RefreshableLockManager {
     this.objectMapper = objectMapper;
     this.redisClientDelegate = redisClientDelegate;
     this.scheduledExecutorService = Executors.newSingleThreadScheduledExecutor();
-    this.heartbeatQueue = new LinkedBlockingDeque<>();
+    this.heartbeatExecutor = Executors.newVirtualThreadPerTaskExecutor();
+    this.heartbeatQueue = ConcurrentHashMap.newKeySet();
+    this.pendingHeartbeats = new ConcurrentHashMap<>();
     this.heartbeatRateMillis = heartbeatRateMillis.orElse(DEFAULT_HEARTBEAT_RATE_MILLIS);
     this.leaseDurationMillis = leaseDurationMillis.orElse(DEFAULT_TTL_MILLIS);
 
@@ -140,6 +145,14 @@ public class RedisLockManager implements RefreshableLockManager {
 
   @Override
   public boolean releaseLock(@Nonnull final Lock lock, boolean wasWorkSuccessful) {
+    return wasReleased(releaseLockWithStatus(lock, wasWorkSuccessful));
+  }
+
+  /**
+   * Return the Redis release status, distinguishing an owned lease from one that already expired.
+   * Subclasses customizing release for callback-scoped locks can override this hook.
+   */
+  protected String releaseLockWithStatus(final Lock lock, boolean wasWorkSuccessful) {
     // we are aware that the cardinality can get high. To revisit if concerns arise.
     Id lockRelease = releaseId.withTag("lockName", lock.getName());
     String status = tryReleaseLock(lock, wasWorkSuccessful);
@@ -149,14 +162,14 @@ public class RedisLockManager implements RefreshableLockManager {
       case SUCCESS:
       case SUCCESS_GONE:
         log.info("Released lock (wasWorkSuccessful: {}, {})", wasWorkSuccessful, lock);
-        return true;
+        return status;
 
       case FAILED_NOT_OWNER:
         log.warn(
             "Failed releasing lock, not owner (wasWorkSuccessful: {}, {})",
             wasWorkSuccessful,
             lock);
-        return false;
+        return status;
 
       default:
         log.error(
@@ -164,7 +177,7 @@ public class RedisLockManager implements RefreshableLockManager {
             status,
             wasWorkSuccessful,
             lock);
-        return false;
+        return status;
     }
   }
 
@@ -175,12 +188,13 @@ public class RedisLockManager implements RefreshableLockManager {
 
   @Override
   public void queueHeartbeat(HeartbeatLockRequest heartbeatLockRequest) {
-    if (!heartbeatQueue.contains(heartbeatLockRequest)) {
+    if (heartbeatQueue.add(heartbeatLockRequest)) {
       log.info(
-          "Lock {} will heartbeats for {}ms",
+          "Lock {} will receive heartbeats {}",
           heartbeatLockRequest.getLock(),
-          heartbeatLockRequest.getHeartbeatDuration().toMillis());
-      heartbeatQueue.add(heartbeatLockRequest);
+          heartbeatLockRequest.isHeartbeatsUntilReleased()
+              ? "until its callback returns"
+              : "for " + heartbeatLockRequest.getHeartbeatDuration().toMillis() + "ms");
     }
   }
 
@@ -193,6 +207,7 @@ public class RedisLockManager implements RefreshableLockManager {
     R workResult = null;
     LockStatus status = LockStatus.TAKEN;
     HeartbeatLockRequest heartbeatLockRequest = null;
+    boolean releaseAttempted = false;
     if (lockOptions.getVersion() == null || !lockOptions.isReuseVersion()) {
       lockOptions.setVersion(clock.millis());
     }
@@ -211,7 +226,7 @@ public class RedisLockManager implements RefreshableLockManager {
       log.info("Acquired Lock {}.", lock);
       long timer = acquireDurationTimer.start();
 
-      // Queues the acquired lock to receive heartbeats for the defined max lock duration.
+      // Register this callback's lock for heartbeat renewal.
       AtomicInteger heartbeatRetriesOnFailure = new AtomicInteger(MAX_HEARTBEAT_RETRIES);
       heartbeatLockRequest =
           new HeartbeatLockRequest(
@@ -219,41 +234,74 @@ public class RedisLockManager implements RefreshableLockManager {
               heartbeatRetriesOnFailure,
               clock,
               lockOptions.getMaximumLockDuration(),
-              lockOptions.isReuseVersion());
+              lockOptions.isReuseVersion(),
+              lockOptions.isHeartbeatsUntilReleased());
 
       queueHeartbeat(heartbeatLockRequest);
-      synchronized (heartbeatLockRequest.getLock()) {
-        try {
-          if (onLockAcquiredCallbackCallable.isPresent()) {
-            workResult = onLockAcquiredCallbackCallable.get().call();
-          } else {
-            onLockAcquiredCallbackRunnable.ifPresent(Runnable::run);
-          }
-        } catch (Exception e) {
-          log.error("Callback failed using lock {}", lock, e);
-          throw new LockCallbackException(e);
-        } finally {
-          acquireDurationTimer.stop(timer);
+      try {
+        if (onLockAcquiredCallbackCallable.isPresent()) {
+          workResult = onLockAcquiredCallbackCallable.get().call();
+        } else {
+          onLockAcquiredCallbackRunnable.ifPresent(Runnable::run);
         }
+      } catch (Exception e) {
+        log.error("Callback failed using lock {}", lock, e);
+        throw new LockCallbackException(e);
+      } finally {
+        acquireDurationTimer.stop(timer);
       }
 
-      heartbeatQueue.remove(heartbeatLockRequest);
-      lock = findAuthoritativeLockOrNull(lock);
-      return new AcquireLockResponse<>(
-          lock, workResult, status, null, tryLockReleaseQuietly(lock, true));
+      releaseAttempted = true;
+      LockReleaseResult release =
+          stopHeartbeatsAndRelease(
+              heartbeatLockRequest, true, lockOptions.isHeartbeatsUntilReleased());
+      lock = release.lock();
+      String releaseStatus = release.status();
+      if (lockOptions.isHeartbeatsUntilReleased() && !SUCCESS.equals(releaseStatus)) {
+        boolean ownershipLost =
+            SUCCESS_GONE.equals(releaseStatus) || FAILED_NOT_OWNER.equals(releaseStatus);
+        status = ownershipLost ? LockStatus.EXPIRED : LockStatus.ERROR;
+        return new AcquireLockResponse<>(
+            lock,
+            workResult,
+            status,
+            ownershipLost
+                ? new LockExpiredException(
+                    "Lost ownership while executing callback for " + lock.getName())
+                : new LockException(
+                    "Could not release callback lock " + lock.getName(), release.exception()),
+            false);
+      }
+      return new AcquireLockResponse<>(lock, workResult, status, null, wasReleased(releaseStatus));
     } catch (Exception e) {
       log.error(e.getMessage());
-      heartbeatQueue.remove(heartbeatLockRequest);
-      lock = findAuthoritativeLockOrNull(lock);
-      boolean lockWasReleased = tryLockReleaseQuietly(lock, false);
+      LockReleaseResult release;
+      releaseAttempted = true;
+      if (heartbeatLockRequest != null) {
+        release =
+            stopHeartbeatsAndRelease(
+                heartbeatLockRequest, false, lockOptions.isHeartbeatsUntilReleased());
+      } else {
+        release = tryLockReleaseQuietly(lock, false, lockOptions.isHeartbeatsUntilReleased());
+      }
+      lock = release.lock();
+      boolean lockWasReleased = wasReleased(release.status());
 
       if (e instanceof LockCallbackException) {
+        if (release.exception() != null) {
+          e.addSuppressed(release.exception());
+        }
         throw e;
       }
 
       status = LockStatus.ERROR;
       return new AcquireLockResponse<>(lock, workResult, status, e, lockWasReleased);
     } finally {
+      if (heartbeatLockRequest != null && !releaseAttempted) {
+        // Also stop renewal if user code exits with an Error rather than an Exception.
+        stopHeartbeatsAndRelease(
+            heartbeatLockRequest, false, lockOptions.isHeartbeatsUntilReleased());
+      }
       registry
           .counter(
               acquireId
@@ -276,6 +324,7 @@ public class RedisLockManager implements RefreshableLockManager {
   @PreDestroy
   private void shutdownHeartbeatScheduler() {
     scheduledExecutorService.shutdown();
+    heartbeatExecutor.shutdown();
   }
 
   private void scheduleHeartbeats() {
@@ -284,16 +333,101 @@ public class RedisLockManager implements RefreshableLockManager {
   }
 
   /**
-   * Send heartbeats to queued locks. Monitors maximum heartbeat count when provided. If a max
-   * heartbeat is provided, the underlying lock will receive at most the provided maximum
-   * heartbeats.
+   * Dispatch renewals independently so a slow Redis call does not delay every other lock. Each
+   * request has at most one pending heartbeat. Redis pool contention and renewal latency must still
+   * fit within the lease remaining after the heartbeat interval.
    */
   private void sendHeartbeats() {
-    if (heartbeatQueue.isEmpty()) {
-      return;
+    for (HeartbeatLockRequest request : heartbeatQueue) {
+      synchronized (request) {
+        if (heartbeatQueue.contains(request) && !pendingHeartbeats.containsKey(request)) {
+          FutureTask<Void> pending =
+              new FutureTask<>(
+                  () -> {
+                    sendHeartbeat(request);
+                    return null;
+                  }) {
+                @Override
+                protected void done() {
+                  synchronized (request) {
+                    pendingHeartbeats.remove(request, this);
+                  }
+                }
+              };
+          pendingHeartbeats.put(request, pending);
+          try {
+            heartbeatExecutor.execute(pending);
+          } catch (RejectedExecutionException e) {
+            pending.cancel(false);
+            throw e;
+          }
+        }
+      }
+    }
+  }
+
+  private LockReleaseResult stopHeartbeatsAndRelease(
+      HeartbeatLockRequest request, boolean wasWorkSuccessful, boolean requireOwnedLock) {
+    Future<?> pending;
+    synchronized (request) {
+      heartbeatQueue.remove(request);
+      pending = pendingHeartbeats.get(request);
     }
 
-    HeartbeatLockRequest heartbeatLockRequest = heartbeatQueue.getFirst();
+    Future<LockReleaseResult> cleanup;
+    try {
+      cleanup =
+          heartbeatExecutor.submit(
+              () -> {
+                if (pending != null) {
+                  pending.get();
+                }
+                return tryLockReleaseQuietly(
+                    request.getLock(), wasWorkSuccessful, requireOwnedLock);
+              });
+    } catch (RejectedExecutionException e) {
+      if (pending != null) {
+        pending.cancel(true);
+      }
+      return failedCleanup(request, e);
+    }
+
+    // Bound renewal coordination and release I/O together. On cancellation, an unresolved renewal
+    // may still finish once, but no further renewals are dispatched and its lease can expire.
+    try {
+      return cleanup.get(leaseDurationMillis, TimeUnit.MILLISECONDS);
+    } catch (InterruptedException e) {
+      cancelCleanup(cleanup, pending);
+      Thread.currentThread().interrupt();
+      return failedCleanup(request, e);
+    } catch (TimeoutException e) {
+      cancelCleanup(cleanup, pending);
+      return failedCleanup(request, e);
+    } catch (ExecutionException e) {
+      return failedCleanup(request, e.getCause());
+    }
+  }
+
+  private void cancelCleanup(Future<?> cleanup, Future<?> pendingHeartbeat) {
+    // Stop the cleanup waiter before canceling renewal, so cancellation cannot trigger release.
+    cleanup.cancel(true);
+    if (pendingHeartbeat != null) {
+      pendingHeartbeat.cancel(true);
+    }
+  }
+
+  private LockReleaseResult failedCleanup(HeartbeatLockRequest request, Throwable cause) {
+    Lock lock = request.getLock();
+    LockException failure =
+        new LockException(
+            "Could not finish lock cleanup within its lease: " + lock.getName(), cause);
+    log.warn("Lock cleanup incomplete; any remaining lease will expire for {}", lock, failure);
+    return new LockReleaseResult(lock, LockHeartbeatStatus.ERROR.toString(), failure);
+  }
+
+  private record LockReleaseResult(Lock lock, String status, Exception exception) {}
+
+  private void sendHeartbeat(HeartbeatLockRequest heartbeatLockRequest) {
     if (heartbeatLockRequest.timesUp()) {
       // Informational warning. Lock may expire as it no longer receive heartbeats.
       log.warn(
@@ -310,8 +444,10 @@ public class RedisLockManager implements RefreshableLockManager {
       try {
         HeartbeatResponse heartbeatResponse = heartbeat(heartbeatLockRequest);
         switch (heartbeatResponse.getLockStatus()) {
-          case EXPIRED:
           case ERROR:
+            retryHeartbeatAfterFailure(heartbeatLockRequest);
+            break;
+          case EXPIRED:
             log.warn(
                 "Lock status {} for {}",
                 heartbeatResponse.getLockStatus(),
@@ -319,19 +455,23 @@ public class RedisLockManager implements RefreshableLockManager {
             heartbeatQueue.remove(heartbeatLockRequest);
             break;
           default:
-            log.debug(
-                "Remaining lock duration {}ms. Refreshed lock {}",
-                heartbeatLockRequest.getRemainingLockDuration().toMillis(),
-                heartbeatResponse.getLock());
+            log.debug("Refreshed lock {}", heartbeatResponse.getLock());
             heartbeatLockRequest.setLock(heartbeatResponse.getLock());
         }
       } catch (Exception e) {
         log.error(
             "Heartbeat {} for {} failed", heartbeatLockRequest, heartbeatLockRequest.getLock(), e);
-        if (!heartbeatLockRequest.shouldRetry()) {
-          heartbeatQueue.remove(heartbeatLockRequest);
-        }
+        retryHeartbeatAfterFailure(heartbeatLockRequest);
       }
+    }
+  }
+
+  private void retryHeartbeatAfterFailure(HeartbeatLockRequest heartbeatLockRequest) {
+    if (!heartbeatLockRequest.shouldRetry()) {
+      log.warn(
+          "Heartbeat retries exhausted; no longer renewing lock {}",
+          heartbeatLockRequest.getLock());
+      heartbeatQueue.remove(heartbeatLockRequest);
     }
   }
 
@@ -368,41 +508,31 @@ public class RedisLockManager implements RefreshableLockManager {
     }
   }
 
-  private boolean tryLockReleaseQuietly(final Lock lock, boolean wasWorkSuccessful) {
+  private LockReleaseResult tryLockReleaseQuietly(
+      final Lock lock, boolean wasWorkSuccessful, boolean requireOwnedLock) {
     if (lock != null) {
       try {
-        return releaseLock(lock, wasWorkSuccessful);
+        // Keep the existing extension point and response semantics for bounded callers.
+        String status =
+            requireOwnedLock
+                ? releaseLockWithStatus(lock, wasWorkSuccessful)
+                : releaseLock(lock, wasWorkSuccessful) ? SUCCESS : FAILED_NOT_OWNER;
+        return new LockReleaseResult(lock, status, null);
       } catch (Exception e) {
         log.warn("Attempt to release lock {} failed", lock, e);
-        return false;
+        return new LockReleaseResult(lock, LockHeartbeatStatus.ERROR.toString(), e);
       }
     }
 
-    return true;
+    return new LockReleaseResult(null, SUCCESS_GONE, null);
+  }
+
+  private boolean wasReleased(String status) {
+    return SUCCESS.equals(status) || SUCCESS_GONE.equals(status);
   }
 
   private boolean matchesLock(LockOptions lockOptions, Lock lock) {
     return ownerName.equals(lock.getOwnerName()) && lockOptions.getVersion() == lock.getVersion();
-  }
-
-  private Lock findAuthoritativeLockOrNull(Lock lock) {
-    Object payload =
-        redisClientDelegate.withScriptingClient(
-            c -> {
-              return c.eval(
-                  FIND_SCRIPT, Arrays.asList(lockKey(lock.getName())), Arrays.asList(ownerName));
-            });
-
-    if (payload == null) {
-      return null;
-    }
-
-    try {
-      return objectMapper.readValue(payload.toString(), Lock.class);
-    } catch (IOException e) {
-      log.error("Failed to get lock info for {}", lock, e);
-      return null;
-    }
   }
 
   @Override
@@ -525,6 +655,7 @@ public class RedisLockManager implements RefreshableLockManager {
             + "end "
             + "return redis.call('GET', KEYS[1])";
 
+    /** Legacy owner-only lookup; it does not establish ownership of a particular acquisition. */
     String FIND_SCRIPT =
         ""
             + "local payload = redis.call('GET', KEYS[1]) "

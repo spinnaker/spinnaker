@@ -17,6 +17,7 @@
 package com.netflix.spinnaker.orca.pipeline;
 
 import com.netflix.spinnaker.kork.core.RetrySupport;
+import com.netflix.spinnaker.kork.lock.LockManager.LockCleanupException;
 import com.netflix.spinnaker.orca.api.pipeline.models.ExecutionType;
 import com.netflix.spinnaker.orca.api.pipeline.models.PipelineExecution;
 import com.netflix.spinnaker.orca.api.pipeline.models.StageExecution;
@@ -190,7 +191,15 @@ public class CompoundExecutionOperator {
       String executionId) {
     PipelineExecution toReturn = null;
     try {
-      repositoryAction.run();
+      try {
+        repositoryAction.run();
+      } catch (LockCleanupException e) {
+        log.error(
+            "Lock cleanup failed after updating execution with executionType={} and executionId={}",
+            executionType,
+            executionId,
+            e);
+      }
 
       toReturn =
           runWithRetries(

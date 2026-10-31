@@ -141,39 +141,48 @@ class RunOnRedisLockAcquired(
 
   private fun lockOptions(name: String) = LockManager.LockOptions()
     .withLockName(name)
-    .withMaximumLockDuration(Duration.ofSeconds(1L))
+    .withHeartbeatsUntilReleased()
 
   override fun execute(action: Runnable, keyName: String): RunOnLockResult<Void> {
+    var actionStarted = false
+    var actionExecuted = false
     return try {
-      val acquireLock = lockManager.acquireLock(lockOptions(keyName), action)
-      if (!acquireLock.lockStatus.equals(ACQUIRED)) {
-        return RunOnLockResult(lockAcquired = false)
-      }
+      val acquireLock = lockManager.acquireLock(lockOptions(keyName), Runnable {
+        actionStarted = true
+        action.run()
+        actionExecuted = true
+      })
 
       RunOnLockResult(
-        lockAcquired = true,
-        actionExecuted = true,
+        lockAcquired = actionStarted || acquireLock.lockStatus == ACQUIRED,
+        actionExecuted = actionExecuted,
+        exception = acquireLock.exception,
         result = acquireLock.onLockAcquiredCallbackResult
       )
     } catch (e: Exception) {
-      RunOnLockResult(lockAcquired = true, exception = e)
+      RunOnLockResult(lockAcquired = actionStarted, actionExecuted = actionExecuted, exception = e)
     }
   }
 
   override fun <R> execute(action: Callable<R>, keyName: String): RunOnLockResult<R?> {
+    var actionStarted = false
+    var actionExecuted = false
     return try {
-      val acquireLock = lockManager.acquireLock(lockOptions(keyName), action)
-      if (!acquireLock.lockStatus.equals(ACQUIRED)) {
-        return RunOnLockResult(lockAcquired = false)
-      }
+      val acquireLock = lockManager.acquireLock(lockOptions(keyName), Callable {
+        actionStarted = true
+        val result = action.call()
+        actionExecuted = true
+        result
+      })
 
       RunOnLockResult(
-        lockAcquired = true,
-        actionExecuted = true,
+        lockAcquired = actionStarted || acquireLock.lockStatus == ACQUIRED,
+        actionExecuted = actionExecuted,
+        exception = acquireLock.exception,
         result = acquireLock.onLockAcquiredCallbackResult
       )
     } catch (e: Exception) {
-      RunOnLockResult(lockAcquired = true, exception = e)
+      RunOnLockResult(lockAcquired = actionStarted, actionExecuted = actionExecuted, exception = e)
     }
   }
 
@@ -194,7 +203,7 @@ class NoOpRunOnLockAcquired : RunOnLockAcquired {
     } catch (e: Exception) {
       log.error("An exception was thrown while executing action with no locking for key: {}", keyName)
       log.error(e.message)
-      RunOnLockResult(exception = e)
+      RunOnLockResult(lockAcquired = true, exception = e)
     }
   }
 
@@ -202,7 +211,7 @@ class NoOpRunOnLockAcquired : RunOnLockAcquired {
     return try {
       RunOnLockResult(lockAcquired = true, actionExecuted = true, result = action.call())
     } catch (e: Exception) {
-      RunOnLockResult(exception = e)
+      RunOnLockResult(lockAcquired = true, exception = e)
     }
   }
 
