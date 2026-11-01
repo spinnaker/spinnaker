@@ -40,7 +40,6 @@ import org.springframework.security.oauth2.client.web.OAuth2AuthorizationRequest
 import org.springframework.security.oauth2.client.web.OAuth2LoginAuthenticationFilter;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.savedrequest.HttpSessionRequestCache;
-import org.springframework.session.web.http.DefaultCookieSerializer;
 import org.springframework.stereotype.Component;
 import org.springframework.web.client.RestTemplate;
 
@@ -55,7 +54,6 @@ public class OAuth2SsoConfig {
   @Autowired private AuthConfig authConfig;
   @Autowired private SpinnakerOAuth2UserInfoService customOAuth2UserService;
   @Autowired private SpinnakerOIDCUserInfoService oidcUserInfoService;
-  @Autowired private DefaultCookieSerializer defaultCookieSerializer;
   @Autowired private ClientRegistrationRepository clientRegistrationRepository;
   @Autowired private OAuthUserInfoServiceHelper userInfoServiceHelper;
 
@@ -69,7 +67,6 @@ public class OAuth2SsoConfig {
   // ManagedDeliverySchemaEndpointConfiguration#schemaSecurityFilterChain should go first
   @Order(3)
   SecurityFilterChain securityFilterChain(HttpSecurity httpSecurity) throws Exception {
-    defaultCookieSerializer.setSameSite(null);
     authConfig.configure(httpSecurity);
     String registrationId = getFirstRegistrationId();
     HttpSessionRequestCache requestCache = new HttpSessionRequestCache();
