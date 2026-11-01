@@ -11,7 +11,6 @@ dependencies {
   implementation "org.apache.groovy:groovy-json"
   implementation "org.springframework.boot:spring-boot-starter-oauth2-client"
   implementation "org.springframework.boot:spring-boot-starter-restclient"
-  implementation "org.springframework.session:spring-session-core"
 
   testImplementation "com.squareup.retrofit2:retrofit-mock"
   testImplementation "io.spinnaker.kork:kork-core"
