@@ -18,13 +18,19 @@ package com.netflix.kayenta.retrofit.config;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
 import static org.mockserver.model.HttpRequest.request;
 import static org.mockserver.model.HttpResponse.response;
+import static org.mockserver.verify.VerificationTimes.exactly;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.netflix.spinnaker.config.OkHttp3ClientConfiguration;
 import com.netflix.spinnaker.kork.retrofit.ErrorHandlingExecutorCallAdapterFactory;
 import com.netflix.spinnaker.kork.retrofit.exceptions.SpinnakerConversionException;
 import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Path;
 import okhttp3.Credentials;
 import okhttp3.Interceptor;
 import okhttp3.OkHttpClient;
@@ -35,6 +41,7 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.io.TempDir;
 import org.mockserver.client.MockServerClient;
 import org.mockserver.model.MediaType;
 import org.mockserver.netty.MockServer;
@@ -112,6 +119,43 @@ public class RetrofitClientFactoryTest {
   public void cleanup() {
     mockServer.close();
     mockServer.stop();
+  }
+
+  @Test
+  @DisplayName("Client sends Basic auth from a trimmed credentials file on its first request")
+  public void createsClientUsingCredentialsFromFile(@TempDir Path directory) throws IOException {
+    Path credentialsFile =
+        Files.writeString(
+            directory.resolve("credentials"), " \n prometheus-user:secret-password \n ");
+    String expectedCredential = "Basic cHJvbWV0aGV1cy11c2VyOnNlY3JldC1wYXNzd29yZA==";
+    stubPrometheusLikeServer(expectedCredential);
+
+    RetrofitClientFactory factory = new RetrofitClientFactory();
+    factory.okHttp3ClientConfig = mock(OkHttp3ClientConfiguration.class);
+    when(factory.okHttp3ClientConfig.createForRetrofit2()).thenReturn(new OkHttpClient.Builder());
+    RemoteService remoteService = new RemoteService();
+    remoteService.setBaseUrl("http://localhost:" + mockServer.getPort());
+
+    TestService service =
+        factory.createClient(
+            TestService.class,
+            JacksonConverterFactory.create(),
+            remoteService,
+            null,
+            null,
+            credentialsFile.toString(),
+            null);
+    retrofit2.Response<PrometheusResponse> result = service.query().execute();
+
+    assertThat(result.isSuccessful()).isTrue();
+    assertThat(result.body()).isNotNull();
+    assertThat(result.body().status).isEqualTo("success");
+    mockServerClient.verify(
+        request()
+            .withMethod("GET")
+            .withPath("/api/v1/query")
+            .withHeader("Authorization", expectedCredential),
+        exactly(1));
   }
 
   // ---------------------------------------------------------------------------

@@ -21,7 +21,6 @@ import com.netflix.spinnaker.kork.tomcat.x509.BlocklistingSSLImplementation;
 import com.netflix.spinnaker.kork.tomcat.x509.SslExtensionConfigurationProperties;
 import org.apache.catalina.connector.Connector;
 import org.apache.coyote.ProtocolHandler;
-import org.apache.coyote.http11.AbstractHttp11JsseProtocol;
 import org.apache.coyote.http11.AbstractHttp11Protocol;
 import org.apache.tomcat.util.net.SSLHostConfig;
 import org.slf4j.Logger;
@@ -52,7 +51,6 @@ class DefaultTomcatConnectorCustomizer implements TomcatConnectorCustomizer {
   public void customize(Connector connector) {
     this.applySSLSettings(connector);
     this.applyRelaxedURIProperties(connector);
-    this.applyRejectIllegalHeaderSetting(connector);
   }
 
   Ssl copySslConfigurationWithClientAuth(TomcatServletWebServerFactory tomcat) {
@@ -69,23 +67,19 @@ class DefaultTomcatConnectorCustomizer implements TomcatConnectorCustomizer {
 
   void applySSLSettings(Connector connector) {
     ProtocolHandler handler = connector.getProtocolHandler();
-    if (handler instanceof AbstractHttp11JsseProtocol) {
-      if (((AbstractHttp11JsseProtocol) handler).isSSLEnabled()) {
-        SSLHostConfig[] sslConfigs = connector.findSslHostConfigs();
-        if (sslConfigs.length != 1) {
-          throw new RuntimeException(
-              String.format("Ssl configs: found %d, expected 1.", sslConfigs.length));
-        }
-        ((AbstractHttp11JsseProtocol<?>) handler)
-            .setSslImplementationName(BlocklistingSSLImplementation.class.getName());
-        SSLHostConfig sslHostConfig = sslConfigs[0];
-        sslHostConfig.setHonorCipherOrder(true);
-        sslHostConfig.setCiphers(String.join(",", tomcatConfigurationProperties.getCipherSuites()));
-        sslHostConfig.setProtocols(
-            String.join(",", tomcatConfigurationProperties.getTlsVersions()));
-        sslHostConfig.setCertificateRevocationListFile(
-            sslExtensionConfigurationProperties.getCrlFile());
+    if (handler instanceof AbstractHttp11Protocol<?> protocol && protocol.isSSLEnabled()) {
+      SSLHostConfig[] sslConfigs = connector.findSslHostConfigs();
+      if (sslConfigs.length != 1) {
+        throw new RuntimeException(
+            String.format("Ssl configs: found %d, expected 1.", sslConfigs.length));
       }
+      protocol.setSslImplementationName(BlocklistingSSLImplementation.class.getName());
+      SSLHostConfig sslHostConfig = sslConfigs[0];
+      sslHostConfig.setHonorCipherOrder(true);
+      sslHostConfig.setCiphers(String.join(",", tomcatConfigurationProperties.getCipherSuites()));
+      sslHostConfig.setProtocols(String.join(",", tomcatConfigurationProperties.getTlsVersions()));
+      sslHostConfig.setCertificateRevocationListFile(
+          sslExtensionConfigurationProperties.getCrlFile());
     }
   }
 
@@ -106,23 +100,6 @@ class DefaultTomcatConnectorCustomizer implements TomcatConnectorCustomizer {
     } else {
       log.warn(
           "Can't apply relaxedPath/Query config to connector of type $connector.protocolHandlerClassName");
-    }
-  }
-
-  void applyRejectIllegalHeaderSetting(Connector connector) {
-    Boolean rejectIllegalHeader = tomcatConfigurationProperties.getRejectIllegalHeader();
-    if (rejectIllegalHeader == null) {
-      return;
-    }
-
-    ProtocolHandler protocolHandler = connector.getProtocolHandler();
-    if (protocolHandler instanceof AbstractHttp11Protocol<?> protocol) {
-      protocol.setRejectIllegalHeader(rejectIllegalHeader);
-      log.debug("Set rejectIllegalHeader to {} for connector", rejectIllegalHeader);
-    } else {
-      log.warn(
-          "Can't apply rejectIllegalHeader config to connector of type {}",
-          connector.getProtocolHandlerClassName());
     }
   }
 }
