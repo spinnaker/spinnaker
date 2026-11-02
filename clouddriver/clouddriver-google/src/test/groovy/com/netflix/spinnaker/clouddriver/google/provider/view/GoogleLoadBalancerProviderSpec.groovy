@@ -16,9 +16,11 @@
 
 package com.netflix.spinnaker.clouddriver.google.provider.view
 
+import com.fasterxml.jackson.databind.DeserializationFeature
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.netflix.spinnaker.cats.cache.CacheData
 import com.netflix.spinnaker.cats.cache.Cache
+import com.netflix.spinnaker.clouddriver.google.model.GoogleHealthCheck
 import com.netflix.spinnaker.clouddriver.google.model.loadbalancing.*
 import spock.lang.Specification
 import spock.lang.Subject
@@ -203,6 +205,45 @@ class GoogleLoadBalancerProviderSpec extends Specification {
     then:
       summaries*.backendServices == [["internal-backend-service"]]
       details*.backendServiceHealthChecks == [["internal-backend-service": null]]
+  }
+
+  void "lists and describes a cached global HTTP load balancer that redirects"() {
+    given:
+      // Like Spring Boot's mapper, which the provider gets: GoogleHealthCheck writes a derived `target`.
+      def objectMapper = new ObjectMapper().disable(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES)
+      // The global agent writes a redirect entry as a backend service without a name or health check.
+      def loadBalancer = new GoogleHttpLoadBalancer(
+        name: LOAD_BALANCER_NAME,
+        account: ACCOUNT_NAME,
+        region: "global",
+        portRange: "80",
+        urlMapName: "http-url-map",
+        defaultService: new GoogleBackendService(),
+        hostRules: [new GoogleHostRule(
+          hostPatterns: ["*"],
+          pathMatcher: new GooglePathMatcher(
+            defaultService: new GoogleBackendService(
+              name: "web-backend-service",
+              healthCheck: new GoogleHealthCheck(name: "web-health-check")),
+            pathRules: [new GooglePathRule(paths: ["/old/*"], backendService: new GoogleBackendService())]))])
+      def loadBalancerCacheData = Mock(CacheData)
+      loadBalancerCacheData.getAttributes() >> objectMapper.convertValue(loadBalancer, Map)
+      loadBalancerCacheData.getRelationships() >> [(SERVER_GROUPS.ns): []]
+      def cacheView = Mock(Cache)
+      cacheView.filterIdentifiers(LOAD_BALANCERS.ns, _) >> ["http_lb_identifier"]
+      cacheView.filterIdentifiers(SERVER_GROUPS.ns, _) >> []
+      cacheView.getAll(SERVER_GROUPS.ns, _) >> []
+      cacheView.getAll(LOAD_BALANCERS.ns, _, _) >> [loadBalancerCacheData]
+      @Subject def provider = new GoogleLoadBalancerProvider(cacheView: cacheView, objectMapper: objectMapper)
+
+    when:
+      def summaries = provider.list()*.mappedAccounts*.get(ACCOUNT_NAME)*.mappedRegions*.get("global")*.loadBalancers.flatten()
+      def details = provider.byAccountAndRegionAndName(ACCOUNT_NAME, "global", LOAD_BALANCER_NAME)
+
+    then:
+      summaries*.backendServices == [["web-backend-service"]]
+      details*.backendServiceHealthChecks*.keySet() == [["web-backend-service"] as Set]
+      details[0].backendServiceHealthChecks["web-backend-service"].name == "web-health-check"
   }
 
   void "should deserialize regional external network load balancer details"() {

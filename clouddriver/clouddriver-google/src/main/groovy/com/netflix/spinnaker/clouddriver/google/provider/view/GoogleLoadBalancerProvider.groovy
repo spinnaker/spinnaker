@@ -219,7 +219,7 @@ class GoogleLoadBalancerProvider implements LoadBalancerProvider<GoogleLoadBalan
         switch (loadBalancerType) {
           case (GoogleLoadBalancerType.HTTP):
             GoogleHttpLoadBalancer.View httpView = view as GoogleHttpLoadBalancer.View
-            backendServices = Utils.getBackendServicesFromHttpLoadBalancerView(httpView).collect { it.name }
+            backendServices = Utils.getBackendServicesFromHttpLoadBalancerView(httpView).findAll { it?.name }.collect { it.name }
             urlMapName = httpView.urlMapName
             break
           case (GoogleLoadBalancerType.INTERNAL_MANAGED):
@@ -299,8 +299,9 @@ class GoogleLoadBalancerProvider implements LoadBalancerProvider<GoogleLoadBalan
         instancePort = 'http'
         loadBalancerPort = Utils.derivePortOrPortRange(view.portRange)
         GoogleHttpLoadBalancer.View httpView = view as GoogleHttpLoadBalancer.View
-        List<GoogleBackendService> backendServices = Utils.getBackendServicesFromHttpLoadBalancerView(httpView)
-        backendServiceHealthChecks = backendServices.collectEntries { [it.name, it.healthCheck.view] }
+        // The global agent caches a redirect as a backend service without a name or health check.
+        List<GoogleBackendService> backendServices = Utils.getBackendServicesFromHttpLoadBalancerView(httpView).findAll { it?.name }
+        backendServiceHealthChecks = backendServices.collectEntries { [it.name, it.healthCheck?.view] }
         break
       case GoogleLoadBalancerType.INTERNAL_MANAGED:
         instancePort = 'http'
