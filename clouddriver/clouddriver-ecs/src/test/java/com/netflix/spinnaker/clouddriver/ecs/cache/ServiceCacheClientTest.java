@@ -25,6 +25,7 @@ import static org.mockito.Mockito.when;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.netflix.spinnaker.cats.cache.DefaultCacheData;
 import com.netflix.spinnaker.clouddriver.aws.jackson.AwsSdkV2Module;
+import com.netflix.spinnaker.clouddriver.ecs.EcsConfigurationProperties;
 import com.netflix.spinnaker.clouddriver.ecs.EcsNativeServiceTag;
 import com.netflix.spinnaker.clouddriver.ecs.TestCredential;
 import com.netflix.spinnaker.clouddriver.ecs.cache.client.ServiceCacheClient;
@@ -237,6 +238,17 @@ public class ServiceCacheClientTest extends CommonCacheClient {
 
     when(cacheView.supportsGetAllByApplication()).thenReturn(false);
     assertFalse(new ServiceCacheClient(cacheView, mapper, true).canFindByApplication());
+  }
+
+  @Test
+  public void shouldDefaultQueryByApplicationToOffFromProperties() {
+    when(cacheView.supportsGetAllByApplication()).thenReturn(true);
+
+    EcsConfigurationProperties properties = new EcsConfigurationProperties();
+    assertFalse(new ServiceCacheClient(cacheView, mapper, properties).canFindByApplication());
+
+    properties.getCache().setQueryByApplication(true);
+    assertTrue(new ServiceCacheClient(cacheView, mapper, properties).canFindByApplication());
   }
 
   @Test

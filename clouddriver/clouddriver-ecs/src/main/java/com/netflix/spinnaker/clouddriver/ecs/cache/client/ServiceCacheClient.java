@@ -21,6 +21,7 @@ import static com.netflix.spinnaker.clouddriver.ecs.cache.Keys.Namespace.SERVICE
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.netflix.spinnaker.cats.cache.Cache;
 import com.netflix.spinnaker.cats.cache.CacheData;
+import com.netflix.spinnaker.clouddriver.ecs.EcsConfigurationProperties;
 import com.netflix.spinnaker.clouddriver.ecs.cache.model.Service;
 import com.netflix.spinnaker.moniker.Moniker;
 import java.util.ArrayList;
@@ -30,7 +31,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 import software.amazon.awssdk.services.ecs.model.LoadBalancer;
 
@@ -43,16 +43,15 @@ public class ServiceCacheClient extends AbstractCacheClient<Service> {
     this(cacheView, objectMapper, false);
   }
 
-  /**
-   * @param queryByApplication enables {@link #findByApplication}. Services only carry the indexed
-   *     application once their caching agent has re-cached them, so this should only be enabled
-   *     after the agents have completed a cycle with the application attribute.
-   */
+  /** See {@link EcsConfigurationProperties.CacheProperties#queryByApplication}. */
   @Autowired
   public ServiceCacheClient(
-      Cache cacheView,
-      ObjectMapper objectMapper,
-      @Value("${ecs.cache.query-by-application:false}") boolean queryByApplication) {
+      Cache cacheView, ObjectMapper objectMapper, EcsConfigurationProperties properties) {
+    this(cacheView, objectMapper, properties.getCache().isQueryByApplication());
+  }
+
+  public ServiceCacheClient(
+      Cache cacheView, ObjectMapper objectMapper, boolean queryByApplication) {
     super(cacheView, SERVICES.toString());
     this.objectMapper = objectMapper;
     this.queryByApplication = queryByApplication;
