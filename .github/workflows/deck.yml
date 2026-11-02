@@ -71,7 +71,18 @@ jobs:
           path: ./deck
           format: cyclonedx-json
           output-file: deck-app-sbom.cdx.json
-          artifact-name: sbom-deck
+          # Upload below instead: anchore's own upload names the file after the artifact (`sbom-deck`),
+          # but the release workflow expects `deck-app-sbom.cdx.json` like every other service.
+          upload-artifact: false
+
+      - name: Upload SBOM artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: sbom-deck
+          path: deck-app-sbom.cdx.json
+          if-no-files-found: error
+          # Re-running the job (e.g. publishing retries) must not fail on the existing artifact
+          overwrite: true
 
       - name: Summarize SBOM
         shell: bash
