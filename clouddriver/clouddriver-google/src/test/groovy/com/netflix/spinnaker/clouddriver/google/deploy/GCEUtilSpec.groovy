@@ -35,6 +35,7 @@ package com.netflix.spinnaker.clouddriver.google.deploy
   import com.netflix.spinnaker.clouddriver.google.deploy.exception.GoogleOperationException
   import com.netflix.spinnaker.clouddriver.google.deploy.exception.GoogleResourceNotFoundException
   import com.netflix.spinnaker.clouddriver.google.model.GoogleAutoscalingPolicy
+  import com.netflix.spinnaker.clouddriver.google.model.GoogleHealthCheck
   import com.netflix.spinnaker.clouddriver.google.model.GoogleServerGroup
   import com.netflix.spinnaker.clouddriver.google.model.loadbalancing.GoogleBackendService
   import com.netflix.spinnaker.clouddriver.google.model.loadbalancing.GoogleExternalHttpLoadBalancer
@@ -652,6 +653,98 @@ package com.netflix.spinnaker.clouddriver.google.deploy
         "",
         "https://compute.googleapis.com/compute/v1/my-test-project/global/firewalls/name-a"
       ]
+  }
+
+  @Unroll
+  void "should create a new health check with portSpecification #portSpec"() {
+    setup:
+      def description = new GoogleHealthCheck(
+        name: "hc-name",
+        healthCheckType: GoogleHealthCheck.HealthCheckType.HTTP,
+        port: port,
+        portSpecification: portSpec,
+        requestPath: "/health",
+        checkIntervalSec: 5,
+        timeoutSec: 5,
+        healthyThreshold: 2,
+        unhealthyThreshold: 2
+      )
+
+    when:
+      def hc = GCEUtil.createNewHealthCheck(description)
+
+    then:
+      hc.httpHealthCheck.port == expectedPort
+      hc.httpHealthCheck.portSpecification == portSpec
+
+    where:
+      port | portSpec           || expectedPort
+      80   | 'USE_FIXED_PORT'   || 80
+      null | 'USE_SERVING_PORT' || null
+      80   | null               || 80
+  }
+
+  void "should create a new GRPC health check with grpcServiceName and serving port"() {
+    setup:
+      def description = new GoogleHealthCheck(
+        name: "hc-name",
+        healthCheckType: GoogleHealthCheck.HealthCheckType.GRPC,
+        portSpecification: 'USE_SERVING_PORT',
+        grpcServiceName: "com.example.Service",
+        checkIntervalSec: 5,
+        timeoutSec: 5,
+        healthyThreshold: 2,
+        unhealthyThreshold: 2
+      )
+
+    when:
+      def hc = GCEUtil.createNewHealthCheck(description)
+
+    then:
+      hc.grpcHealthCheck.port == null
+      hc.grpcHealthCheck.portSpecification == 'USE_SERVING_PORT'
+      hc.grpcHealthCheck.grpcServiceName == "com.example.Service"
+  }
+
+  @Unroll
+  void "should detect whether a health check needs an update (#port/#portSpec -> #newPort/#newPortSpec)"() {
+    setup:
+      def existingHC = new HealthCheck(
+        checkIntervalSec: 5,
+        timeoutSec: 5,
+        healthyThreshold: 2,
+        unhealthyThreshold: 2,
+        httpHealthCheck: new HttpHealthCheck(
+          port: port,
+          portSpecification: portSpec,
+          requestPath: "/health"
+        )
+      )
+      def description = new GoogleHealthCheck(
+        healthCheckType: GoogleHealthCheck.HealthCheckType.HTTP,
+        port: newPort,
+        portSpecification: newPortSpec,
+        requestPath: "/health",
+        checkIntervalSec: 5,
+        timeoutSec: 5,
+        healthyThreshold: 2,
+        unhealthyThreshold: 2
+      )
+
+    expect:
+      GCEUtil.healthCheckShouldBeUpdated(existingHC, description) == shouldUpdate
+
+    where:
+      port | portSpec           | newPort | newPortSpec        || shouldUpdate
+      80   | 'USE_FIXED_PORT'   | 80      | 'USE_FIXED_PORT'   || false
+      80   | null               | 80      | 'USE_FIXED_PORT'   || false
+      80   | 'USE_FIXED_PORT'   | 80      | null               || false
+      80   | 'USE_FIXED_PORT'   | 81      | 'USE_FIXED_PORT'   || true
+      80   | 'USE_FIXED_PORT'   | null    | 'USE_SERVING_PORT' || true
+      null | 'USE_SERVING_PORT' | null    | 'USE_SERVING_PORT' || false
+      // A leftover port alongside USE_SERVING_PORT must not cause an update on every upsert.
+      null | 'USE_SERVING_PORT' | 80      | 'USE_SERVING_PORT' || false
+      null | 'USE_SERVING_PORT' | 80      | 'USE_FIXED_PORT'   || true
   }
 
   @Unroll

@@ -45,6 +45,10 @@ export interface IGceServerGroupCommand {
     mode: GceServerGroupOperationMode;
     [key: string]: any;
   };
+  workloadIdentityConfig?: {
+    identity?: string;
+    identityCertificateEnabled?: boolean;
+  };
   zone?: string | null;
   [key: string]: any;
 }
