@@ -123,12 +123,13 @@ class UpsertGoogleLoadBalancerDescriptionValidator extends
             portRange: description.portRange
         )
         List<GoogleBackendService> services = Utils.getBackendServicesFromHttpLoadBalancerView(googleHttpLoadBalancer.view)
-        services?.each { GoogleBackendService service ->
+        services?.findAll { it != null }?.each { GoogleBackendService service ->
           if (!service.healthCheck) {
             errors.rejectValue("defaultService OR hostRules.pathMatcher.defaultService OR hostRules.pathMatcher.pathRules.backendService",
               "upsertGoogleLoadBalancerDescription.backendServices.healthCheckRequired")
           }
         }
+        validateUrlMapServices(description, errors)
         break
       case GoogleLoadBalancerType.INTERNAL_MANAGED:
         helper.validateRegion(description.region, description.credentials)
@@ -172,7 +173,7 @@ class UpsertGoogleLoadBalancerDescriptionValidator extends
               "upsertGoogleLoadBalancerDescription.backendServices.healthCheckRequired")
           }
         }
-        validateManagedUrlMapServices(description, errors)
+        validateUrlMapServices(description, errors)
         break
       case GoogleLoadBalancerType.EXTERNAL_MANAGED:
         helper.validateRegion(description.region, description.credentials)
@@ -209,7 +210,7 @@ class UpsertGoogleLoadBalancerDescriptionValidator extends
         }
 
         validatePort(description.portRange, "portRange", errors)
-        validateManagedUrlMapServices(description, errors)
+        validateUrlMapServices(description, errors)
 
         // Each backend service must have a health check.
         def googleExternalHttpLoadBalancer = new GoogleExternalHttpLoadBalancer(
@@ -338,8 +339,8 @@ class UpsertGoogleLoadBalancerDescriptionValidator extends
     }
   }
 
-  // The regional upsert writes each URL map entry as a backend service URL and can't write a redirect.
-  private static void validateManagedUrlMapServices(
+  // The HTTP(S) upserts write each URL map entry as a backend service URL and can't write a redirect.
+  private static void validateUrlMapServices(
     UpsertGoogleLoadBalancerDescription description,
     ValidationErrors errors) {
     if (!description.defaultService?.name) {

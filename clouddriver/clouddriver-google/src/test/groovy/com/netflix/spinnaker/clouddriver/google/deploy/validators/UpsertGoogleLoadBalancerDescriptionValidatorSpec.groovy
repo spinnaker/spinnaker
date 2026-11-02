@@ -532,6 +532,9 @@ class UpsertGoogleLoadBalancerDescriptionValidatorSpec extends Specification {
       GoogleLoadBalancerType.INTERNAL_MANAGED | "pathRule"    || "hostRules.pathMatcher.pathRules.backendService"
       GoogleLoadBalancerType.EXTERNAL_MANAGED | "pathMatcher" || "hostRules.pathMatcher.defaultService"
       GoogleLoadBalancerType.EXTERNAL_MANAGED | "pathRule"    || "hostRules.pathMatcher.pathRules.backendService"
+      GoogleLoadBalancerType.HTTP             | "default"     || "defaultService"
+      GoogleLoadBalancerType.HTTP             | "pathMatcher" || "hostRules.pathMatcher.defaultService"
+      GoogleLoadBalancerType.HTTP             | "pathRule"    || "hostRules.pathMatcher.pathRules.backendService"
   }
 
   @Unroll
@@ -571,6 +574,9 @@ class UpsertGoogleLoadBalancerDescriptionValidatorSpec extends Specification {
       GoogleLoadBalancerType.EXTERNAL_MANAGED | "null host rule"    || "hostRules.pathMatcher.defaultService"
       GoogleLoadBalancerType.EXTERNAL_MANAGED | "null path matcher" || "hostRules.pathMatcher.defaultService"
       GoogleLoadBalancerType.EXTERNAL_MANAGED | "null path rule"    || "hostRules.pathMatcher.pathRules.backendService"
+      GoogleLoadBalancerType.HTTP             | "null host rule"    || "hostRules.pathMatcher.defaultService"
+      GoogleLoadBalancerType.HTTP             | "null path matcher" || "hostRules.pathMatcher.defaultService"
+      GoogleLoadBalancerType.HTTP             | "null path rule"    || "hostRules.pathMatcher.pathRules.backendService"
   }
 
   void "pass validation when regional external network optional address and networkTier are omitted"() {
