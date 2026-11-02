@@ -243,6 +243,21 @@ export class GceServerGroupCommandBuilder {
       });
     }
 
+    function populateWorkloadIdentityConfig(serverGroup, command) {
+      if (
+        serverGroup.launchConfig &&
+        serverGroup.launchConfig.instanceTemplate &&
+        serverGroup.launchConfig.instanceTemplate.properties &&
+        serverGroup.launchConfig.instanceTemplate.properties.workloadIdentityConfig
+      ) {
+        const config = serverGroup.launchConfig.instanceTemplate.properties.workloadIdentityConfig;
+        command.workloadIdentityConfig = {
+          identity: config.identity,
+          identityCertificateEnabled: !!config.identityCertificateEnabled,
+        };
+      }
+    }
+
     function populateCustomMetadata(metadataItems, command) {
       // Hide metadata items in the wizard.
       if (metadataItems) {
@@ -528,6 +543,7 @@ export class GceServerGroupCommandBuilder {
           populateTags(serverGroup.launchConfig.instanceTemplate.properties.tags, command);
           populateLabels(serverGroup.instanceTemplateLabels, command);
           populateAuthScopes(serverGroup.launchConfig.instanceTemplate.properties.serviceAccounts, command);
+          populateWorkloadIdentityConfig(serverGroup, command);
           populateResourceManagerTags(
             serverGroup.launchConfig.instanceTemplate.properties.resourceManagerTags,
             command,

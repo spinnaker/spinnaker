@@ -146,6 +146,39 @@ spring:
 
 ---
 
+## Session Cookies
+
+SAML sessions honor Spring Boot's `server.servlet.session.cookie.*` settings, including
+`same-site`, `secure`, `http-only`, `name`, `domain`, `path`, `max-age`, and `partitioned`.
+When these properties are unset, Gate preserves its existing SAML cookie behavior:
+the `SameSite` attribute is omitted, `HttpOnly` is enabled, and `Secure` follows whether
+the request is secure. Setting `same-site: omitted` also explicitly omits that attribute.
+
+Choose the SameSite policy for your deployment. Browsers generally treat an omitted
+attribute as `Lax`, which can prevent an existing session cookie from accompanying an
+identity provider's cross-site SAML POST. Deployments that need cookies on that POST
+can configure the following over HTTPS:
+
+```yaml
+server:
+  servlet:
+    session:
+      cookie:
+        same-site: none
+        secure: true
+```
+
+Browsers require `Secure` for `SameSite=None`. Gate honors these two settings independently;
+setting `same-site` does not force `secure`. Explicit `secure: true` also marks cookies
+secure when Gate receives HTTP from a proxy that terminates TLS. Keep the default
+`HttpOnly` protection unless your deployment specifically requires otherwise.
+`Lax` and `Strict` remain available but can restrict cross-site SAML responses.
+
+These settings apply to the SAML serializer. Other authentication modes retain their
+existing cookie behavior.
+
+---
+
 ## Halyard Users
 
 Halyard's `hal config security authn saml` commands still work and generate the `saml.*`

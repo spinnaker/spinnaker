@@ -41,7 +41,6 @@ import org.springframework.security.web.SecurityFilterChain
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter
 import org.springframework.security.web.authentication.www.BasicAuthenticationFilter
 import org.springframework.security.web.savedrequest.HttpSessionRequestCache
-import org.springframework.session.web.http.DefaultCookieSerializer
 import org.springframework.stereotype.Component
 
 @ConditionalOnExpression('${ldap.enabled:false}')
@@ -58,9 +57,6 @@ class LdapSsoConfig {
 
   @Autowired
   LdapUserContextMapper ldapUserContextMapper
-
-  @Autowired
-  DefaultCookieSerializer defaultCookieSerializer
 
   @Autowired
   protected void configure(AuthenticationManagerBuilder auth) throws Exception {
@@ -94,7 +90,6 @@ class LdapSsoConfig {
   @Order(3)
   SecurityFilterChain securityFilterChain(HttpSecurity http, AuthenticationConfiguration authConfiguration) throws Exception {
     def authenticationManager = authConfiguration.getAuthenticationManager()
-    defaultCookieSerializer.setSameSite(null)
     HttpSessionRequestCache requestCache = new HttpSessionRequestCache();
     requestCache.setMatchingRequestParameterName(null);
     // Configure request cache to save original requests
