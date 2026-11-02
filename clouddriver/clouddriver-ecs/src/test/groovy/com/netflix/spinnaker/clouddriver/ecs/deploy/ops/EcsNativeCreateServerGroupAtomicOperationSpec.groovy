@@ -29,14 +29,17 @@ import com.netflix.spinnaker.clouddriver.names.NamerRegistry
 import com.netflix.spinnaker.clouddriver.model.ServerGroup
 import software.amazon.awssdk.services.ecs.model.CapacityProviderStrategyItem
 import software.amazon.awssdk.services.ecs.model.CreateServiceRequest
+import software.amazon.awssdk.services.ecs.model.Deployment
 import software.amazon.awssdk.services.ecs.model.DeploymentConfiguration
 import software.amazon.awssdk.services.ecs.model.DescribeServicesRequest
 import software.amazon.awssdk.services.ecs.model.DescribeServicesResponse
+import software.amazon.awssdk.services.ecs.model.ListServiceDeploymentsResponse
 import software.amazon.awssdk.services.ecs.model.LoadBalancer
 import software.amazon.awssdk.services.ecs.model.NetworkConfiguration
 import software.amazon.awssdk.services.ecs.model.PlacementConstraint
 import software.amazon.awssdk.services.ecs.model.PlacementStrategy
 import software.amazon.awssdk.services.ecs.model.Service
+import software.amazon.awssdk.services.ecs.model.ServiceDeploymentBrief
 import software.amazon.awssdk.services.ecs.model.ServiceRegistry
 import software.amazon.awssdk.services.ecs.model.TaskDefinition
 import software.amazon.awssdk.services.ecs.model.UpdateServiceRequest
@@ -674,6 +677,35 @@ class EcsNativeCreateServerGroupAtomicOperationSpec extends CommonAtomicOperatio
     tagged << [true, false]
   }
 
+  def 'the initial create pins the service deployment ECS lists for the new service'() {
+    given: 'CreateService returned the new service without currentServiceDeployment, as ECS does'
+    def description = new EcsNativeCreateServerGroupDescription(
+        application: 'mygreatapp', stack: 'stack1', freeFormDetails: 'details2',
+        ecsClusterName: 'my-cluster', account: 'test',
+        availabilityZones: ['us-west-1': ['us-west-1a']])
+    def operation = Spy(EcsNativeCreateServerGroupAtomicOperation, constructorArgs: [description])
+    operation.getAmazonEcsClient() >> ecs
+    operation.serviceDeploymentPollMillis = 0
+    def created = Service.builder()
+        .serviceName('mygreatapp-stack1-details2')
+        .taskDefinition('arn:task-definition/mygreatapp-stack1-details2:1')
+        .deployments(Deployment.builder().id('ecs-svc/7423281893596915809').status('PRIMARY').build())
+        .build()
+
+    when:
+    def result = operation.makeDeploymentResult(created)
+
+    then:
+    _ * ecs.describeServices(_) >> DescribeServicesResponse.builder().services(created).build()
+    _ * ecs.listServiceDeployments(_) >> ListServiceDeploymentsResponse.builder().serviceDeployments(
+        ServiceDeploymentBrief.builder()
+            .serviceDeploymentArn('arn:service-deployment:created')
+            .targetServiceRevisionArn('arn:aws:ecs:us-west-1:123456789012:service-revision/my-cluster/mygreatapp-stack1-details2/7423281893596915809')
+            .build()).build()
+    result.deployments.first().metadata.ecsNativeExpectedServiceDeploymentArn == 'arn:service-deployment:created'
+    result.deployments.first().metadata.ecsNativeExpectedTaskDefinition == 'arn:task-definition/mygreatapp-stack1-details2:1'
+  }
+
   def 'operate always rolls the existing durable service in place via UpdateService (no CreateService)'() {
     given:
     def serviceName = 'mygreatapp-stack1-details2'
@@ -735,6 +767,7 @@ class EcsNativeCreateServerGroupAtomicOperationSpec extends CommonAtomicOperatio
         availabilityZones: ['us-west-1': ['us-west-1a']],
         capacity: new ServerGroup.Capacity(1, 2, 3))
     def operation = Spy(EcsNativeCreateServerGroupAtomicOperation, constructorArgs: [description])
+    operation.serviceDeploymentPollMillis = 0
     def updateRequest
     operation.getAmazonEcsClient() >> ecs
     operation.getCredentials() >> Mock(AmazonCredentials)
@@ -799,6 +832,7 @@ class EcsNativeCreateServerGroupAtomicOperationSpec extends CommonAtomicOperatio
         capacity: new ServerGroup.Capacity(1, 2, 3))
     useSourceCapacity(description)
     def operation = Spy(EcsNativeCreateServerGroupAtomicOperation, constructorArgs: [description])
+    operation.serviceDeploymentPollMillis = 0
     def updateRequest
     operation.getAmazonEcsClient() >> ecs
     operation.getCredentials() >> Mock(AmazonCredentials)
@@ -853,6 +887,7 @@ class EcsNativeCreateServerGroupAtomicOperationSpec extends CommonAtomicOperatio
         platformVersion: '1.4.0',
         healthCheckGracePeriodSeconds: 120)
     def operation = Spy(EcsNativeCreateServerGroupAtomicOperation, constructorArgs: [description])
+    operation.serviceDeploymentPollMillis = 0
     def updateRequest
     operation.getAmazonEcsClient() >> ecs
     operation.getCredentials() >> Mock(AmazonCredentials)
@@ -903,6 +938,7 @@ class EcsNativeCreateServerGroupAtomicOperationSpec extends CommonAtomicOperatio
         useSourceCapacity: false,
         capacity: new ServerGroup.Capacity(1, 2, 3))
     def operation = Spy(EcsNativeCreateServerGroupAtomicOperation, constructorArgs: [description])
+    operation.serviceDeploymentPollMillis = 0
     def updateRequest
     operation.getAmazonEcsClient() >> ecs
     operation.getCredentials() >> Mock(AmazonCredentials)
@@ -943,6 +979,7 @@ class EcsNativeCreateServerGroupAtomicOperationSpec extends CommonAtomicOperatio
         useSourceCapacity: false,
         capacity: new ServerGroup.Capacity(1, 2, 3))
     def operation = Spy(EcsNativeCreateServerGroupAtomicOperation, constructorArgs: [description])
+    operation.serviceDeploymentPollMillis = 0
     def updateRequest
     operation.getAmazonEcsClient() >> ecs
     operation.getCredentials() >> Mock(AmazonCredentials)

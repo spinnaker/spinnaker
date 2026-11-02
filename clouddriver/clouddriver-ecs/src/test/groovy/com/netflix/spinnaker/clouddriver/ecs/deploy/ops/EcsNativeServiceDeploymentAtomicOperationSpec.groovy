@@ -22,13 +22,18 @@ import com.netflix.spinnaker.clouddriver.aws.security.AmazonClientProvider
 import com.netflix.spinnaker.clouddriver.ecs.TestCredential
 import software.amazon.awssdk.services.ecs.EcsClient
 import software.amazon.awssdk.services.ecs.model.ContinueServiceDeploymentRequest
+import software.amazon.awssdk.services.ecs.model.Deployment
 import software.amazon.awssdk.services.ecs.model.DeploymentLifecycleHookAction
 import software.amazon.awssdk.services.ecs.model.DeploymentLifecycleHookDetail
 import software.amazon.awssdk.services.ecs.model.DeploymentLifecycleHookStatus
 import software.amazon.awssdk.services.ecs.model.DescribeServiceDeploymentsRequest
 import software.amazon.awssdk.services.ecs.model.DescribeServiceDeploymentsResponse
 import software.amazon.awssdk.services.ecs.model.DescribeServicesResponse
+import software.amazon.awssdk.services.ecs.model.EcsException
+import software.amazon.awssdk.services.ecs.model.ListServiceDeploymentsRequest
+import software.amazon.awssdk.services.ecs.model.ListServiceDeploymentsResponse
 import software.amazon.awssdk.services.ecs.model.ServiceDeployment
+import software.amazon.awssdk.services.ecs.model.ServiceDeploymentBrief
 import software.amazon.awssdk.services.ecs.model.StopServiceDeploymentStopType
 import software.amazon.awssdk.services.ecs.model.Service
 import software.amazon.awssdk.services.ecs.model.StopServiceDeploymentRequest
@@ -205,6 +210,74 @@ class EcsNativeServiceDeploymentAtomicOperationSpec extends Specification {
     expect:
     operation.resolveCurrentServiceDeployment(
       Service.builder().serviceName('service').currentServiceDeployment('arn:deployment:1').build(), 'cluster-arn') == 'arn:deployment:1'
+  }
+
+  def 'finds the deployment of a created service via ListServiceDeployments when currentServiceDeployment stays unset'() {
+    given: 'a service as ECS describes it after CreateService: a PRIMARY deployment but no currentServiceDeployment'
+    def ecs = Mock(EcsClient)
+    def operation = lifecycleOperation(new EcsNativeContinueServiceDeploymentAtomicOperation(description([:])), ecs)
+    operation.serviceDeploymentPollMillis = 0
+    def created = Service.builder().serviceName('service')
+      .deployments(Deployment.builder().id('ecs-svc/7423281893596915809').status('PRIMARY').build())
+      .build()
+
+    when:
+    def arn = operation.resolveCurrentServiceDeployment(created, 'cluster-arn')
+
+    then: 'the deployment is not listed yet on the first attempt'
+    2 * ecs.describeServices(_) >> DescribeServicesResponse.builder().services(created).build()
+    2 * ecs.listServiceDeployments({ ListServiceDeploymentsRequest req ->
+      req.cluster() == 'cluster-arn' && req.service() == 'service'
+    } as ListServiceDeploymentsRequest) >>> [
+      ListServiceDeploymentsResponse.builder().serviceDeployments([]).build(),
+      ListServiceDeploymentsResponse.builder().serviceDeployments(
+        ServiceDeploymentBrief.builder()
+          .serviceDeploymentArn('arn:service-deployment:older')
+          .targetServiceRevisionArn('arn:aws:ecs:eu-central-1:123456789012:service-revision/cluster/service/1111').build(),
+        ServiceDeploymentBrief.builder()
+          .serviceDeploymentArn('arn:service-deployment:created')
+          .targetServiceRevisionArn('arn:aws:ecs:eu-central-1:123456789012:service-revision/cluster/service/7423281893596915809').build()
+      ).build()]
+    arn == 'arn:service-deployment:created'
+  }
+
+  def 'keeps polling DescribeServices when listing service deployments is not permitted'() {
+    given:
+    def ecs = Mock(EcsClient)
+    def operation = lifecycleOperation(new EcsNativeContinueServiceDeploymentAtomicOperation(description([:])), ecs)
+    operation.serviceDeploymentPollMillis = 0
+    def primary = Deployment.builder().id('ecs-svc/42').status('PRIMARY').build()
+    def bare = Service.builder().serviceName('service').deployments(primary).build()
+    def attached = Service.builder().serviceName('service').deployments(primary).currentServiceDeployment('arn:deployment:9').build()
+
+    when:
+    def arn = operation.resolveCurrentServiceDeployment(bare, 'cluster-arn')
+
+    then:
+    2 * ecs.describeServices(_) >>> [
+      DescribeServicesResponse.builder().services(bare).build(),
+      DescribeServicesResponse.builder().services(attached).build()]
+    1 * ecs.listServiceDeployments(_) >> { throw EcsException.builder().message('not authorized').build() }
+    arn == 'arn:deployment:9'
+  }
+
+  def 'gives up after the configured attempts when ECS never reports the deployment'() {
+    given:
+    def ecs = Mock(EcsClient)
+    def operation = lifecycleOperation(new EcsNativeContinueServiceDeploymentAtomicOperation(description([:])), ecs)
+    operation.serviceDeploymentPollMillis = 0
+    operation.serviceDeploymentPollAttempts = 3
+    def created = Service.builder().serviceName('service')
+      .deployments(Deployment.builder().id('ecs-svc/42').status('PRIMARY').build())
+      .build()
+
+    when:
+    def arn = operation.resolveCurrentServiceDeployment(created, 'cluster-arn')
+
+    then:
+    3 * ecs.describeServices(_) >> DescribeServicesResponse.builder().services(created).build()
+    3 * ecs.listServiceDeployments(_) >> ListServiceDeploymentsResponse.builder().serviceDeployments([]).build()
+    arn == null
   }
 
   def 'rejects a lifecycle request without the pinned ARN before an AWS write'() {
