@@ -30,7 +30,10 @@ import software.amazon.awssdk.services.ecs.model.DescribeServiceDeploymentsReque
 import software.amazon.awssdk.services.ecs.model.DescribeServiceDeploymentsResponse
 import software.amazon.awssdk.services.ecs.model.DescribeServiceRevisionsRequest
 import software.amazon.awssdk.services.ecs.model.DescribeServiceRevisionsResponse
+import software.amazon.awssdk.services.ecs.model.ListServiceDeploymentsRequest
+import software.amazon.awssdk.services.ecs.model.ListServiceDeploymentsResponse
 import software.amazon.awssdk.services.ecs.model.ServiceDeployment
+import software.amazon.awssdk.services.ecs.model.ServiceDeploymentBrief
 import software.amazon.awssdk.services.ecs.model.ServiceRevision
 import software.amazon.awssdk.services.ecs.model.ServiceRevisionSummary
 import spock.lang.Unroll
@@ -56,7 +59,7 @@ class EcsNativeServiceDeploymentControllerSpec extends Specification {
     credentialsRepository.getOne('test') >> Mock(NetflixECSCredentials) { getName() >> 'test' }
 
     when:
-    def response = controller.getDeploymentStatus('test', 'us-west-2', 'myapp', null)
+    def response = controller.getDeploymentStatus('test', 'us-west-2', 'myapp', null, null)
 
     then:
     response.statusCode == HttpStatus.BAD_REQUEST
@@ -67,7 +70,7 @@ class EcsNativeServiceDeploymentControllerSpec extends Specification {
     credentialsRepository.getOne('test') >> null
 
     when:
-    def response = controller.getDeploymentStatus('test', 'us-west-2', 'myapp', 'arn:aws:ecs:us-west-2:123:service-deployment/myapp/1')
+    def response = controller.getDeploymentStatus('test', 'us-west-2', 'myapp', 'arn:aws:ecs:us-west-2:123:service-deployment/myapp/1', null)
 
     then:
     response.statusCode == HttpStatus.BAD_REQUEST
@@ -81,7 +84,7 @@ class EcsNativeServiceDeploymentControllerSpec extends Specification {
 
     when:
     def response = controller.getDeploymentStatus(
-      'FGATE-PS-PRODUCTION', 'eu-central-1', 'myapp', 'arn:aws:ecs:us-west-2:123:service-deployment/myapp/1')
+      'FGATE-PS-PRODUCTION', 'eu-central-1', 'myapp', 'arn:aws:ecs:us-west-2:123:service-deployment/myapp/1', null)
 
     then:
     response.statusCode == HttpStatus.NOT_FOUND
@@ -93,7 +96,7 @@ class EcsNativeServiceDeploymentControllerSpec extends Specification {
     serviceCacheClient.get(_) >> null
 
     when:
-    def response = controller.getDeploymentStatus('test', 'us-west-2', 'myapp', 'arn:aws:ecs:us-west-2:123:service-deployment/myapp/1')
+    def response = controller.getDeploymentStatus('test', 'us-west-2', 'myapp', 'arn:aws:ecs:us-west-2:123:service-deployment/myapp/1', null)
 
     then:
     response.statusCode == HttpStatus.NOT_FOUND
@@ -107,7 +110,7 @@ class EcsNativeServiceDeploymentControllerSpec extends Specification {
     amazonClientProvider.getAmazonEcsV2(_, 'us-west-2') >> ecs
 
     when:
-    def response = controller.getDeploymentStatus('test', 'us-west-2', 'myapp', DEPLOYMENT_ARN)
+    def response = controller.getDeploymentStatus('test', 'us-west-2', 'myapp', DEPLOYMENT_ARN, null)
 
     then:
     1 * ecs.describeServiceDeployments(_) >> DescribeServiceDeploymentsResponse.builder().build()
@@ -122,7 +125,7 @@ class EcsNativeServiceDeploymentControllerSpec extends Specification {
     amazonClientProvider.getAmazonEcsV2(_, 'us-west-2') >> ecs
 
     when:
-    def response = controller.getDeploymentStatus('test', 'us-west-2', 'myapp', DEPLOYMENT_ARN)
+    def response = controller.getDeploymentStatus('test', 'us-west-2', 'myapp', DEPLOYMENT_ARN, null)
 
     then:
     0 * ecs.listServiceDeployments(_)
@@ -150,7 +153,7 @@ class EcsNativeServiceDeploymentControllerSpec extends Specification {
       .build()
 
     when:
-    def response = controller.getDeploymentStatus('test', 'us-west-2', 'myapp', DEPLOYMENT_ARN)
+    def response = controller.getDeploymentStatus('test', 'us-west-2', 'myapp', DEPLOYMENT_ARN, null)
 
     then:
     response.statusCode == HttpStatus.CONFLICT
@@ -188,7 +191,7 @@ class EcsNativeServiceDeploymentControllerSpec extends Specification {
       .build()
 
     when:
-    def response = controller.getDeploymentStatus('test', 'us-west-2', 'myapp', DEPLOYMENT_ARN)
+    def response = controller.getDeploymentStatus('test', 'us-west-2', 'myapp', DEPLOYMENT_ARN, null)
 
     then:
     response.statusCode == HttpStatus.OK
@@ -221,10 +224,117 @@ class EcsNativeServiceDeploymentControllerSpec extends Specification {
       .build()
 
     when:
-    def response = controller.getDeploymentStatus('test', 'us-west-2', 'myapp', 'new-service-deployment-arn')
+    def response = controller.getDeploymentStatus('test', 'us-west-2', 'myapp', 'new-service-deployment-arn', null)
 
     then:
     response.statusCode == HttpStatus.NOT_FOUND
+  }
+
+  def 'resolves the deployment by its target task definition when no ARN is known'() {
+    given:
+    credentialsRepository.getOne('test') >> Mock(NetflixECSCredentials) { getName() >> 'test' }
+    serviceCacheClient.get(_) >> cachedService()
+    amazonClientProvider.getAmazonEcsV2(_, 'us-west-2') >> ecs
+
+    when:
+    def response = controller.getDeploymentStatus('test', 'us-west-2', 'myapp', null, 'task-def:15')
+
+    then: 'all pages of the service deployment history are listed'
+    1 * ecs.listServiceDeployments({ ListServiceDeploymentsRequest request ->
+      request.cluster() == CLUSTER_ARN && request.service() == 'myapp' && request.nextToken() == null
+    } as ListServiceDeploymentsRequest) >> ListServiceDeploymentsResponse.builder()
+      .serviceDeployments(brief('arn:deployment:old', 'arn:revision:old'))
+      .nextToken('page-2')
+      .build()
+    1 * ecs.listServiceDeployments({ ListServiceDeploymentsRequest request -> request.nextToken() == 'page-2' } as ListServiceDeploymentsRequest) >>
+      ListServiceDeploymentsResponse.builder().serviceDeployments(brief(DEPLOYMENT_ARN, REVISION_ARN)).build()
+
+    then: 'the deployment whose target revision runs the task definition is selected'
+    1 * ecs.describeServiceRevisions({ DescribeServiceRevisionsRequest request ->
+      request.serviceRevisionArns() == ['arn:revision:old', REVISION_ARN]
+    } as DescribeServiceRevisionsRequest) >> DescribeServiceRevisionsResponse.builder()
+      .serviceRevisions(
+        ServiceRevision.builder().serviceRevisionArn('arn:revision:old').taskDefinition('task-def:14').build(),
+        ServiceRevision.builder().serviceRevisionArn(REVISION_ARN).taskDefinition('task-def:15').build())
+      .build()
+
+    then: 'and reported like a deployment identified by ARN'
+    1 * ecs.describeServiceDeployments({ DescribeServiceDeploymentsRequest request ->
+      request.serviceDeploymentArns() == [DEPLOYMENT_ARN]
+    } as DescribeServiceDeploymentsRequest) >> DescribeServiceDeploymentsResponse.builder()
+      .serviceDeployments(deployment(SERVICE_ARN, CLUSTER_ARN).status('IN_PROGRESS').build())
+      .build()
+    1 * ecs.describeServiceRevisions(_) >> DescribeServiceRevisionsResponse.builder()
+      .serviceRevisions(ServiceRevision.builder().serviceRevisionArn(REVISION_ARN).taskDefinition('task-def:15').build())
+      .build()
+    response.statusCode == HttpStatus.OK
+    response.body.serviceDeploymentArn == DEPLOYMENT_ARN
+    response.body.targetTaskDefinition == 'task-def:15'
+  }
+
+  def 'returns 404 while no listed deployment targets the task definition'() {
+    given:
+    credentialsRepository.getOne('test') >> Mock(NetflixECSCredentials) { getName() >> 'test' }
+    serviceCacheClient.get(_) >> cachedService()
+    amazonClientProvider.getAmazonEcsV2(_, 'us-west-2') >> ecs
+    ecs.listServiceDeployments(_) >> ListServiceDeploymentsResponse.builder()
+      .serviceDeployments(brief('arn:deployment:old', 'arn:revision:old'))
+      .build()
+    ecs.describeServiceRevisions(_) >> DescribeServiceRevisionsResponse.builder()
+      .serviceRevisions(ServiceRevision.builder().serviceRevisionArn('arn:revision:old').taskDefinition('task-def:14').build())
+      .build()
+
+    when:
+    def response = controller.getDeploymentStatus('test', 'us-west-2', 'myapp', null, 'task-def:15')
+
+    then:
+    response.statusCode == HttpStatus.NOT_FOUND
+    0 * ecs.describeServiceDeployments(_)
+  }
+
+  def 'returns 409 when several deployments target the task definition'() {
+    given:
+    credentialsRepository.getOne('test') >> Mock(NetflixECSCredentials) { getName() >> 'test' }
+    serviceCacheClient.get(_) >> cachedService()
+    amazonClientProvider.getAmazonEcsV2(_, 'us-west-2') >> ecs
+    ecs.listServiceDeployments(_) >> ListServiceDeploymentsResponse.builder()
+      .serviceDeployments(brief('arn:deployment:a', 'arn:revision:a'), brief('arn:deployment:b', 'arn:revision:b'))
+      .build()
+    ecs.describeServiceRevisions(_) >> DescribeServiceRevisionsResponse.builder()
+      .serviceRevisions(
+        ServiceRevision.builder().serviceRevisionArn('arn:revision:a').taskDefinition('task-def:15').build(),
+        ServiceRevision.builder().serviceRevisionArn('arn:revision:b').taskDefinition('task-def:15').build())
+      .build()
+
+    when:
+    def response = controller.getDeploymentStatus('test', 'us-west-2', 'myapp', null, 'task-def:15')
+
+    then:
+    response.statusCode == HttpStatus.CONFLICT
+    0 * ecs.describeServiceDeployments(_)
+  }
+
+  def 'describes target revisions in batches of 20'() {
+    given:
+    credentialsRepository.getOne('test') >> Mock(NetflixECSCredentials) { getName() >> 'test' }
+    serviceCacheClient.get(_) >> cachedService()
+    amazonClientProvider.getAmazonEcsV2(_, 'us-west-2') >> ecs
+    def briefs = (1..25).collect { brief("arn:deployment:${it}", "arn:revision:${it}") }
+    ecs.listServiceDeployments(_) >> ListServiceDeploymentsResponse.builder().serviceDeployments(briefs).build()
+
+    when:
+    def response = controller.getDeploymentStatus('test', 'us-west-2', 'myapp', null, 'task-def:15')
+
+    then:
+    1 * ecs.describeServiceRevisions({ DescribeServiceRevisionsRequest request -> request.serviceRevisionArns().size() == 20 } as DescribeServiceRevisionsRequest) >>
+      DescribeServiceRevisionsResponse.builder().build()
+    1 * ecs.describeServiceRevisions({ DescribeServiceRevisionsRequest request -> request.serviceRevisionArns().size() == 5 } as DescribeServiceRevisionsRequest) >>
+      DescribeServiceRevisionsResponse.builder().build()
+    response.statusCode == HttpStatus.NOT_FOUND
+  }
+
+  private static ServiceDeploymentBrief brief(String deploymentArn, String revisionArn) {
+    ServiceDeploymentBrief.builder().serviceDeploymentArn(deploymentArn).targetServiceRevisionArn(revisionArn).build()
   }
 
   private static Service cachedService() {
