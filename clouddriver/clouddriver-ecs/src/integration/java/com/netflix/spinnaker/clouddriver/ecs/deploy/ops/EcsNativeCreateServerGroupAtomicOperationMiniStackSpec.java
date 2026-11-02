@@ -242,6 +242,9 @@ class EcsNativeCreateServerGroupAtomicOperationMiniStackSpec {
         .when(securityGroupSelector)
         .resolveSecurityGroupNames(any(), any(), any(), any());
     operation.securityGroupSelector = securityGroupSelector;
+    // MiniStack implements neither currentServiceDeployment nor ListServiceDeployments, so the
+    // deployment-ARN lookup never succeeds here; don't sleep through its 30 attempts per deploy.
+    operation.serviceDeploymentPollMillis = 0;
     return operation;
   }
 
