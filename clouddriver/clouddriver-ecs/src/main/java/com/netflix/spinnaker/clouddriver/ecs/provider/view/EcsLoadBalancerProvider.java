@@ -116,10 +116,12 @@ public class EcsLoadBalancerProvider implements LoadBalancerProvider<EcsLoadBala
   @Override
   public Set<EcsLoadBalancer> getApplicationLoadBalancers(String application) {
     // Find the load balancers currently in use by ECS services in this application
-    Collection<Service> candidates;
-    if (application != null && ecsServiceCacheClient.canFindByApplication()) {
-      candidates = ecsServiceCacheClient.findByApplication(application);
-    } else {
+    Collection<Service> candidates =
+        application != null && ecsServiceCacheClient.canFindByApplication()
+            ? ecsServiceCacheClient.findByApplication(application)
+            : Collections.emptyList();
+    if (candidates.isEmpty()) {
+      // Also the path when the services have not been re-cached with the indexed application yet.
       // Name-prefix glob only: with the tag naming strategy the application comes from the service
       // tags, so the name is not guaranteed to be "app-*". The cached application name filters
       // below.

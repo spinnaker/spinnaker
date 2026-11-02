@@ -48,6 +48,7 @@ import com.netflix.spinnaker.clouddriver.names.NamerRegistry;
 import com.netflix.spinnaker.credentials.CredentialsRepository;
 import com.netflix.spinnaker.moniker.Moniker;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
@@ -181,14 +182,21 @@ public class EcsServerClusterProvider implements ClusterProvider<EcsServerCluste
       Collection<String> serviceNamePatterns,
       boolean includeDetails) {
 
+    // The application comes from tags for these accounts, so look it up through the application
+    // index rather than reading every service in the account/region. An empty index result may just
+    // mean the services have not been re-cached with the indexed application yet, so fall back to
+    // the scan below.
+    Collection<Service> indexed =
+        application != null
+                && monikerFromTags(credentials)
+                && serviceCacheClient.canFindByApplication()
+            ? serviceCacheClient.findByApplication(application)
+            : Collections.emptyList();
+
     Collection<Service> services;
-    if (application != null
-        && monikerFromTags(credentials)
-        && serviceCacheClient.canFindByApplication()) {
-      // The application comes from tags, so look it up through the application index rather than
-      // reading every service in the account/region.
+    if (!indexed.isEmpty()) {
       services =
-          serviceCacheClient.findByApplication(application).stream()
+          indexed.stream()
               .filter(
                   service ->
                       credentials.getName().equals(service.getAccount())

@@ -28,6 +28,7 @@ import com.netflix.spinnaker.clouddriver.model.ApplicationProvider;
 import com.netflix.spinnaker.credentials.CredentialsRepository;
 import com.netflix.spinnaker.moniker.Moniker;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
@@ -51,10 +52,12 @@ public class EcsApplicationProvider implements ApplicationProvider {
 
   @Override
   public Application getApplication(String name) {
-    Collection<Service> services;
-    if (serviceCacheClient.canFindByApplication()) {
-      services = serviceCacheClient.findByApplication(name);
-    } else {
+    Collection<Service> services =
+        serviceCacheClient.canFindByApplication()
+            ? serviceCacheClient.findByApplication(name)
+            : Collections.emptyList();
+    if (services.isEmpty()) {
+      // Also the path when the services have not been re-cached with the indexed application yet.
       String glob = Keys.getServiceKey("*", "*", name + "*");
       services = serviceCacheClient.getAll(serviceCacheClient.filterIdentifiers(glob));
     }
