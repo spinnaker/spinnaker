@@ -181,17 +181,31 @@ public class EcsServerClusterProvider implements ClusterProvider<EcsServerCluste
       Collection<String> serviceNamePatterns,
       boolean includeDetails) {
 
-    Set<String> ecsServices = new HashSet<>();
-    for (String pattern : serviceNamePatterns) {
-      ecsServices.addAll(
-          serviceCacheClient.filterIdentifiers(
-              Keys.getServiceKey(credentials.getName(), awsRegion.getName(), pattern)));
+    Collection<Service> services;
+    if (application != null
+        && monikerFromTags(credentials)
+        && serviceCacheClient.canFindByApplication()) {
+      // The application comes from tags, so look it up through the application index rather than
+      // reading every service in the account/region.
+      services =
+          serviceCacheClient.findByApplication(application).stream()
+              .filter(
+                  service ->
+                      credentials.getName().equals(service.getAccount())
+                          && awsRegion.getName().equals(service.getRegion()))
+              .collect(Collectors.toList());
+    } else {
+      Set<String> ecsServices = new HashSet<>();
+      for (String pattern : serviceNamePatterns) {
+        ecsServices.addAll(
+            serviceCacheClient.filterIdentifiers(
+                Keys.getServiceKey(credentials.getName(), awsRegion.getName(), pattern)));
+      }
+      if (ecsServices.isEmpty()) {
+        return clusterMap;
+      }
+      services = serviceCacheClient.getAll(ecsServices);
     }
-    if (ecsServices.isEmpty()) {
-      return clusterMap;
-    }
-
-    Collection<Service> services = serviceCacheClient.getAll(ecsServices);
     if (services.isEmpty()) {
       return clusterMap;
     }

@@ -51,9 +51,14 @@ public class EcsApplicationProvider implements ApplicationProvider {
 
   @Override
   public Application getApplication(String name) {
-    String glob = Keys.getServiceKey("*", "*", name + "*");
-    Collection<String> ecsServices = serviceCacheClient.filterIdentifiers(glob);
-    for (Application application : populateApplicationSet(ecsServices, true)) {
+    Collection<Service> services;
+    if (serviceCacheClient.canFindByApplication()) {
+      services = serviceCacheClient.findByApplication(name);
+    } else {
+      String glob = Keys.getServiceKey("*", "*", name + "*");
+      services = serviceCacheClient.getAll(serviceCacheClient.filterIdentifiers(glob));
+    }
+    for (Application application : populateApplicationSet(services, true)) {
       if (name.equals(application.getName())) {
         return application;
       }
@@ -103,10 +108,8 @@ public class EcsApplicationProvider implements ApplicationProvider {
     return applicationHashMap;
   }
 
-  private Set<EcsApplication> populateApplicationSet(
-      Collection<String> identifiers, boolean expand) {
+  private Set<EcsApplication> populateApplicationSet(Collection<Service> services, boolean expand) {
     HashMap<String, EcsApplication> applicationHashMap = new HashMap<>();
-    Collection<Service> services = serviceCacheClient.getAll(identifiers);
 
     for (Service service : services) {
       if (credentialsRepository.has(service.getAccount())) {
