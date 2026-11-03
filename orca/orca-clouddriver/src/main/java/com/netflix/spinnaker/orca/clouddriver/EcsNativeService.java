@@ -24,7 +24,8 @@ import retrofit2.http.Query;
 
 /**
  * Client for ecs-native service-deployment status. The expected service-deployment ARN pins the
- * read to the service deployment created by the preceding write operation.
+ * read to the service deployment created by the preceding write operation; when the write could not
+ * report that ARN, the task definition revision it registered identifies the deployment instead.
  */
 public interface EcsNativeService {
 
@@ -33,5 +34,6 @@ public interface EcsNativeService {
       @Path("account") String account,
       @Path("region") String region,
       @Path("serverGroupName") String serverGroupName,
-      @Query("expectedServiceDeploymentArn") String expectedServiceDeploymentArn);
+      @Query("expectedServiceDeploymentArn") String expectedServiceDeploymentArn,
+      @Query("expectedTaskDefinition") String expectedTaskDefinition);
 }
