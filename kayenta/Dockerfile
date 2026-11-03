@@ -23,9 +23,12 @@ FROM alpine:3.24
 
 LABEL maintainer="delivery-engineering@netflix.com"
 
-RUN apk --no-cache add --update openjdk17-jre
-# Pick up the latest CA bundle and fail the build if the JVM still trusts emSign ECC Root CA - G3.
-RUN apk --no-cache upgrade && ! keytool -list -cacerts -storepass changeit | grep -qiE 'emsign.*ecc.*g3'
+RUN apk --no-cache add --update 'openjdk17-jre>=17.0.21.0.3_p1-r0'
+# Refresh the CA bundle, remove G1, and reject images trusting compromised roots.
+RUN apk --no-cache upgrade && \
+    sed -i 's@^mozilla/emSign_Root_CA_-_G1.crt$@!mozilla/emSign_Root_CA_-_G1.crt@' /etc/ca-certificates.conf && \
+    update-ca-certificates && \
+    ! keytool -list -cacerts -storepass changeit | grep -qiE 'emsign.*root.*g[123]|comodo.*aaa|aaa.*certificate.*services'
 
 # Set where to look for config from
 ENV KAYENTA_OPTS=-Dspring.config.location=file:/opt/kayenta/config/kayenta.yml
