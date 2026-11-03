@@ -17,6 +17,7 @@
 package com.netflix.spinnaker.echo.config;
 
 import jakarta.validation.Valid;
+import jakarta.validation.constraints.AssertTrue;
 import jakarta.validation.constraints.NotEmpty;
 import java.time.Duration;
 import java.util.List;
@@ -48,7 +49,11 @@ public class RestProperties {
     String headersFile;
     Boolean flatten = false;
 
-    /** Total number of attempts (not additional retries); see exponentialBackoff for spacing. */
+    /**
+     * Total number of attempts (not additional retries); see exponentialBackoff for spacing.
+     * Retries and their backoff run synchronously, so they delay delivery of the same event to
+     * later REST endpoints and to other echo event listeners.
+     */
     int retryCount = 1;
 
     /** true = waits retryBackoff, 2x, 4x...; false or null (default) = fixed retryBackoff. */
@@ -60,5 +65,10 @@ public class RestProperties {
     Duration retryBackoff = Duration.ofMillis(200);
 
     Boolean circuitBreakerEnabled = false;
+
+    @AssertTrue(message = "retryBackoff must not be negative")
+    public boolean isRetryBackoffValid() {
+      return retryBackoff == null || !retryBackoff.isNegative();
+    }
   }
 }
