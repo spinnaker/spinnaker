@@ -12,12 +12,19 @@ ARG PACKER_PLUGINS="amazon azure googlecompute"
 
 WORKDIR /packer
 
+<<<<<<< HEAD
 RUN apk --no-cache add --update bash wget curl openssl openjdk17-jre git openssh-client && \
+=======
+RUN apk --no-cache add --update bash wget curl openssl 'openjdk25-jre>=25.0.5.0.3_p1-r0' git openssh-client && \
+>>>>>>> 1a24274 (fix(security): remove compromised eMudhra roots from JRE images (#8325))
   wget https://releases.hashicorp.com/packer/${PACKER_VERSION}/packer_${PACKER_VERSION}_linux_${TARGETARCH}.zip && \
   unzip packer_${PACKER_VERSION}_linux_${TARGETARCH}.zip && \
   rm packer_${PACKER_VERSION}_linux_${TARGETARCH}.zip
-# Pick up the latest CA bundle and fail the build if the JVM still trusts emSign ECC Root CA - G3.
-RUN apk --no-cache upgrade && ! keytool -list -cacerts -storepass changeit | grep -qiE 'emsign.*ecc.*g3'
+# Refresh the CA bundle, remove G1, and reject images trusting compromised roots.
+RUN apk --no-cache upgrade && \
+    sed -i 's@^mozilla/emSign_Root_CA_-_G1.crt$@!mozilla/emSign_Root_CA_-_G1.crt@' /etc/ca-certificates.conf && \
+    update-ca-certificates && \
+    ! keytool -list -cacerts -storepass changeit | grep -qiE 'emsign.*root.*g[123]|comodo.*aaa|aaa.*certificate.*services'
 
 ENV PATH "/packer:$PATH"
 
