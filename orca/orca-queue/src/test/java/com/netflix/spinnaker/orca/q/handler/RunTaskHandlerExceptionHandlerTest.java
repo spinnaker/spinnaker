@@ -20,28 +20,40 @@ import static com.netflix.spinnaker.orca.api.pipeline.models.ExecutionType.PIPEL
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.ArgumentMatchers.isA;
 import static org.mockito.Mockito.doAnswer;
 import static org.mockito.Mockito.doReturn;
 import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.never;
+import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 import com.google.common.base.Throwables;
 import com.google.common.collect.ImmutableMap;
 import com.netflix.spectator.api.NoopRegistry;
+import com.netflix.spinnaker.kork.core.RetrySupport;
 import com.netflix.spinnaker.kork.dynamicconfig.DynamicConfigService;
+import com.netflix.spinnaker.kork.lock.LockManager;
+import com.netflix.spinnaker.kork.lock.LockManager.AcquireLockResponse;
+import com.netflix.spinnaker.kork.lock.LockManager.LockExpiredException;
+import com.netflix.spinnaker.kork.lock.LockManager.LockOptions;
+import com.netflix.spinnaker.kork.lock.LockManager.LockStatus;
 import com.netflix.spinnaker.kork.retrofit.exceptions.SpinnakerHttpException;
 import com.netflix.spinnaker.kork.retrofit.exceptions.SpinnakerServerException;
+import com.netflix.spinnaker.kork.test.time.MutableClock;
 import com.netflix.spinnaker.orca.TaskResolver;
 import com.netflix.spinnaker.orca.api.pipeline.Task;
 import com.netflix.spinnaker.orca.api.pipeline.TaskExecutionInterceptor;
+import com.netflix.spinnaker.orca.api.pipeline.TaskResult;
+import com.netflix.spinnaker.orca.api.pipeline.models.ExecutionStatus;
 import com.netflix.spinnaker.orca.api.pipeline.models.StageExecution;
 import com.netflix.spinnaker.orca.api.pipeline.models.TaskExecution;
 import com.netflix.spinnaker.orca.exceptions.DefaultExceptionHandler;
 import com.netflix.spinnaker.orca.exceptions.ExceptionHandler;
 import com.netflix.spinnaker.orca.lock.RetriableLock;
+import com.netflix.spinnaker.orca.lock.RunOnRedisLockAcquired;
 import com.netflix.spinnaker.orca.pipeline.StageDefinitionBuilderFactory;
 import com.netflix.spinnaker.orca.pipeline.model.PipelineExecutionImpl;
 import com.netflix.spinnaker.orca.pipeline.model.StageExecutionImpl;
@@ -49,11 +61,18 @@ import com.netflix.spinnaker.orca.pipeline.model.TaskExecutionImpl;
 import com.netflix.spinnaker.orca.pipeline.persistence.ExecutionRepository;
 import com.netflix.spinnaker.orca.pipeline.util.ContextParameterProcessor;
 import com.netflix.spinnaker.orca.pipeline.util.StageNavigator;
+import com.netflix.spinnaker.orca.q.CompleteTask;
 import com.netflix.spinnaker.orca.q.DummyTask;
 import com.netflix.spinnaker.orca.q.RunTask;
 import com.netflix.spinnaker.orca.retrofit.exceptions.SpinnakerServerExceptionHandler;
 import com.netflix.spinnaker.q.Queue;
+import com.netflix.spinnaker.q.QueueExecutor;
+import com.netflix.spinnaker.q.QueueProcessor;
+import com.netflix.spinnaker.q.memory.InMemoryQueue;
+import com.netflix.spinnaker.q.metrics.EventPublisher;
+import com.netflix.spinnaker.q.metrics.HandlerThrewError;
 import java.time.Clock;
+import java.time.Duration;
 import java.time.Instant;
 import java.time.ZoneId;
 import java.time.temporal.ChronoUnit;
@@ -61,7 +80,10 @@ import java.util.Collection;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.Executor;
+import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.stream.Stream;
+import kotlin.Unit;
 import okhttp3.MediaType;
 import okhttp3.Protocol;
 import okhttp3.Request;
@@ -70,6 +92,7 @@ import org.jetbrains.annotations.NotNull;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.EnumSource;
 import org.junit.jupiter.params.provider.MethodSource;
 import org.springframework.beans.BeansException;
 import org.springframework.beans.factory.ObjectProvider;
@@ -121,6 +144,7 @@ class RunTaskHandlerExceptionHandlerTest {
   private List<TaskExecutionInterceptor> taskExecutionInterceptors = List.of();
 
   private RunTaskHandler runTaskHandler;
+  private DynamicConfigService dynamicConfigService = mock(DynamicConfigService.class);
 
   StageExecution stageExecution;
 
@@ -137,7 +161,6 @@ class RunTaskHandlerExceptionHandlerTest {
     doReturn(dummyTask.getClass()).when(dummyTask).getExtensionClass();
     taskResolver = new TaskResolver(tasksProvider);
 
-    DynamicConfigService dynamicConfigService = mock(DynamicConfigService.class);
     doReturn(0)
         .when(dynamicConfigService)
         .getConfig(any(), eq("tasks.warningInvocationTimeMs"), any());
@@ -155,20 +178,7 @@ class RunTaskHandlerExceptionHandlerTest {
         .when(retriableLock)
         .lock(any(RetriableLock.RetriableLockOptions.class), any(Runnable.class));
 
-    runTaskHandler =
-        new RunTaskHandler(
-            queue,
-            executionRepository,
-            mock(StageNavigator.class),
-            mock(StageDefinitionBuilderFactory.class),
-            mock(ContextParameterProcessor.class),
-            taskResolver,
-            clock,
-            exceptionHandlers,
-            taskExecutionInterceptors,
-            new NoopRegistry(),
-            dynamicConfigService,
-            retriableLock);
+    runTaskHandler = handler(queue);
 
     PipelineExecutionImpl pipeline = new PipelineExecutionImpl(PIPELINE, "test-application");
 
@@ -195,6 +205,136 @@ class RunTaskHandlerExceptionHandlerTest {
 
     when(executionRepository.retrieve(PIPELINE, runTaskMessage.getExecutionId()))
         .thenReturn(pipeline);
+  }
+
+  @ParameterizedTest
+  @EnumSource(
+      value = LockStatus.class,
+      names = {"EXPIRED", "ERROR"})
+  void cleanupFailureAfterTaskCompletionDoesNotCauseRedelivery(LockStatus status) {
+    stageExecution.taskById(runTaskMessage.getTaskId()).setName("test-task");
+    LockManager manager = mock(LockManager.class);
+    when(manager.acquireLock(any(LockOptions.class), any(Runnable.class)))
+        .thenAnswer(
+            invocation -> {
+              invocation.getArgument(1, Runnable.class).run();
+              return new AcquireLockResponse<Void>(
+                  null,
+                  null,
+                  status,
+                  status == LockStatus.EXPIRED
+                      ? new LockExpiredException("lease lost")
+                      : new LockManager.LockException("release acknowledgement lost"),
+                  false);
+            });
+    RetriableLock lock = new RetriableLock(new RunOnRedisLockAcquired(manager), new RetrySupport());
+    doAnswer(invocation -> lock.lock(invocation.getArgument(0), invocation.getArgument(1)))
+        .when(retriableLock)
+        .lock(any(), any());
+    when(dummyTask.execute(any())).thenReturn(TaskResult.SUCCEEDED);
+    EventPublisher publisher = mock(EventPublisher.class);
+    MutableClock queueClock = new MutableClock(clock.instant());
+    InMemoryQueue retryQueue =
+        new InMemoryQueue(queueClock, Duration.ofMinutes(1), List.of(), false, publisher);
+    QueueProcessor processor = processor(retryQueue, handler(retryQueue), publisher);
+    stageExecution.getExecution().setStatus(ExecutionStatus.RUNNING);
+    retryQueue.push(runTaskMessage, Duration.ZERO);
+
+    processor.poll();
+
+    // CompleteTask can finish while other stages keep the execution running.
+    retryQueue.poll(
+        (message, ack) -> {
+          assertThat(message).isInstanceOf(CompleteTask.class);
+          stageExecution.taskById(runTaskMessage.getTaskId()).setStatus(ExecutionStatus.SUCCEEDED);
+          stageExecution.setStatus(ExecutionStatus.SUCCEEDED);
+          ack.invoke();
+          return Unit.INSTANCE;
+        });
+    queueClock.incrementBy(Duration.ofMinutes(11));
+    retryQueue.retry();
+    processor.poll();
+
+    verify(dummyTask, times(1)).execute(any());
+    verify(manager).acquireLock(any(LockOptions.class), any(Runnable.class));
+    verify(publisher, never()).publishEvent(isA(HandlerThrewError.class));
+    assertThat(retryQueue.readState().getDepth()).isZero();
+    assertThat(retryQueue.readState().getUnacked()).isZero();
+  }
+
+  @Test
+  void callbackFailureStillLeavesTheMessageUnacknowledged() {
+    LockManager manager = mock(LockManager.class);
+    when(manager.acquireLock(any(LockOptions.class), any(Runnable.class)))
+        .thenAnswer(
+            invocation -> {
+              invocation.getArgument(1, Runnable.class).run();
+              return new AcquireLockResponse<Void>(null, null, LockStatus.ACQUIRED, null, true);
+            });
+    RetriableLock lock = new RetriableLock(new RunOnRedisLockAcquired(manager), new RetrySupport());
+    doAnswer(invocation -> lock.lock(invocation.getArgument(0), invocation.getArgument(1)))
+        .when(retriableLock)
+        .lock(any(), any());
+    when(executionRepository.retrieve(PIPELINE, runTaskMessage.getExecutionId()))
+        .thenThrow(new IllegalStateException("repository unavailable"));
+    EventPublisher publisher = mock(EventPublisher.class);
+    QueueProcessor processor = processor(queue, runTaskHandler, publisher);
+    AtomicBoolean acknowledged = new AtomicBoolean();
+
+    processor
+        .getCallback()
+        .invoke(
+            runTaskMessage,
+            () -> {
+              acknowledged.set(true);
+              return Unit.INSTANCE;
+            });
+
+    verify(manager).acquireLock(any(LockOptions.class), any(Runnable.class));
+    verify(publisher).publishEvent(isA(HandlerThrewError.class));
+    assertThat(acknowledged).isFalse();
+  }
+
+  private RunTaskHandler handler(Queue handlerQueue) {
+    return new RunTaskHandler(
+        handlerQueue,
+        executionRepository,
+        mock(StageNavigator.class),
+        mock(StageDefinitionBuilderFactory.class),
+        mock(ContextParameterProcessor.class),
+        taskResolver,
+        clock,
+        exceptionHandlers,
+        taskExecutionInterceptors,
+        new NoopRegistry(),
+        dynamicConfigService,
+        retriableLock);
+  }
+
+  private QueueProcessor processor(
+      Queue processorQueue, RunTaskHandler handler, EventPublisher publisher) {
+    QueueExecutor<Executor> executor =
+        new QueueExecutor<>(Runnable::run) {
+          @Override
+          public boolean hasCapacity() {
+            return true;
+          }
+
+          @Override
+          public int availableCapacity() {
+            return 1;
+          }
+        };
+    return new QueueProcessor(
+        processorQueue,
+        executor,
+        List.of(handler),
+        List.of(),
+        publisher,
+        (failedQueue, failedMessage) -> Unit.INSTANCE,
+        true,
+        Duration.ZERO,
+        Duration.ZERO);
   }
 
   @ParameterizedTest(name = "{index} => taskThrowsSpinnakerHttpExceptionNoRetry {0}")
