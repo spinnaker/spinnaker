@@ -1,8 +1,12 @@
 FROM ubuntu:jammy
 LABEL maintainer="sig-platform@spinnaker.io"
 RUN rm /var/lib/dpkg/info/libc-bin.* && apt-get clean && apt-get update && apt-get -y install curl openjdk-17-jre-headless wget
-# Pick up the latest CA bundle and fail the build if the JVM still trusts emSign ECC Root CA - G3.
-RUN apt-get update && apt-get -y install --only-upgrade ca-certificates ca-certificates-java && rm -rf /var/lib/apt/lists/* && ! keytool -list -cacerts -storepass changeit | grep -qiE 'emsign.*ecc.*g3'
+# Refresh the CA bundle, remove G1, and rebuild the JVM truststore from scratch.
+RUN apt-get update && apt-get -y install --only-upgrade ca-certificates ca-certificates-java && \
+    sed -i 's@^mozilla/emSign_Root_CA_-_G1.crt$@!mozilla/emSign_Root_CA_-_G1.crt@' /etc/ca-certificates.conf && \
+    rm -f /etc/ssl/certs/java/cacerts && update-ca-certificates --fresh && \
+    rm -rf /var/lib/apt/lists/* && \
+    ! keytool -list -cacerts -storepass changeit | grep -qiE 'emsign.*root.*g[123]|comodo.*aaa|aaa.*certificate.*services'
 RUN adduser --system --uid 10111 --group spinnaker
 COPY front50-web/build/install/front50 /opt/front50
 RUN mkdir -p /opt/front50/plugins && chown -R spinnaker:nogroup /opt/front50/plugins
