@@ -674,6 +674,30 @@ class EcsNativeCreateServerGroupAtomicOperationSpec extends CommonAtomicOperatio
     tagged << [true, false]
   }
 
+  def 'the initial create hands orca the task definition when ECS reports no service deployment'() {
+    given: 'CreateService returned the new service without currentServiceDeployment, as ECS does'
+    def description = new EcsNativeCreateServerGroupDescription(
+        application: 'mygreatapp', stack: 'stack1', freeFormDetails: 'details2',
+        ecsClusterName: 'my-cluster', account: 'test',
+        availabilityZones: ['us-west-1': ['us-west-1a']])
+    def operation = Spy(EcsNativeCreateServerGroupAtomicOperation, constructorArgs: [description])
+    operation.getAmazonEcsClient() >> ecs
+    operation.serviceDeploymentPollMillis = 0
+    def created = Service.builder()
+        .serviceName('mygreatapp-stack1-details2')
+        .taskDefinition('arn:task-definition/mygreatapp-stack1-details2:1')
+        .build()
+
+    when:
+    def result = operation.makeDeploymentResult(created)
+
+    then: 'orca resolves the deployment by task definition'
+    _ * ecs.describeServices(_) >> DescribeServicesResponse.builder().services(created).build()
+    0 * ecs.listServiceDeployments(_)
+    result.deployments.first().metadata.ecsNativeExpectedTaskDefinition == 'arn:task-definition/mygreatapp-stack1-details2:1'
+    !result.deployments.first().metadata.containsKey('ecsNativeExpectedServiceDeploymentArn')
+  }
+
   def 'operate always rolls the existing durable service in place via UpdateService (no CreateService)'() {
     given:
     def serviceName = 'mygreatapp-stack1-details2'
