@@ -60,6 +60,9 @@ public class WaitForEcsNativeServiceDeploymentTask implements OverridableTimeout
   public static final String EXPECTED_SERVICE_DEPLOYMENT_ARN =
       "ecsNativeExpectedServiceDeploymentArn";
   static final String NOT_FOUND_RETRY_COUNT = "ecsNativeDeploymentStatus.notFoundRetryCount";
+  static final String EXPECTED_TASK_DEFINITION = "ecsNativeExpectedTaskDefinition";
+  static final String RESOLVED_SERVICE_DEPLOYMENT_ARN =
+      "ecsNativeDeploymentStatus.resolvedServiceDeploymentArn";
 
   /**
    * Consecutive 404s tolerated before failing. clouddriver answers 404 while ECS has not exposed
@@ -150,6 +153,20 @@ public class WaitForEcsNativeServiceDeploymentTask implements OverridableTimeout
     String region = resolveRegion(context);
     String serverGroupName = resolveServerGroupName(context, region);
     String expectedServiceDeploymentArn = resolveExpectedServiceDeploymentArn(stage);
+    // clouddriver cannot always report the ARN of a deployment this stage started (ECS lists the
+    // deployment of a newly created service only after CreateService returned). The task
+    // definition revision the stage registered identifies that deployment just as uniquely; the
+    // ARN resolved through it on an earlier poll is kept in this stage's own context.
+    String expectedTaskDefinition = null;
+    if (expectedServiceDeploymentArn == null) {
+      expectedServiceDeploymentArn = ownString(context, RESOLVED_SERVICE_DEPLOYMENT_ARN);
+    }
+    if (expectedServiceDeploymentArn == null) {
+      expectedTaskDefinition = ownExpectedTaskDefinition(context);
+    }
+    boolean resolvedByTaskDefinition =
+        expectedTaskDefinition != null
+            || ownString(context, RESOLVED_SERVICE_DEPLOYMENT_ARN) != null;
 
     if (account == null || region == null || serverGroupName == null) {
       throw new IllegalArgumentException(
@@ -157,7 +174,8 @@ public class WaitForEcsNativeServiceDeploymentTask implements OverridableTimeout
               + "(either directly in the stage context, or via a preceding deploy stage's "
               + "deploy.server.groups output)");
     }
-    if (expectedServiceDeploymentArn == null || expectedServiceDeploymentArn.isBlank()) {
+    if ((expectedServiceDeploymentArn == null || expectedServiceDeploymentArn.isBlank())
+        && expectedTaskDefinition == null) {
       throw new IllegalArgumentException(
           "waitForEcsNativeServiceDeployment requires ecsNativeExpectedServiceDeploymentArn; "
               + "deployment status cannot safely select an unpinned service deployment");
@@ -167,7 +185,28 @@ public class WaitForEcsNativeServiceDeploymentTask implements OverridableTimeout
       EcsServiceDeploymentStatus status =
           Retrofit2SyncCall.execute(
               ecsNativeService.getServiceDeploymentStatus(
-                  account, region, serverGroupName, expectedServiceDeploymentArn));
+                  account,
+                  region,
+                  serverGroupName,
+                  expectedServiceDeploymentArn,
+                  expectedTaskDefinition));
+      if (expectedServiceDeploymentArn == null) {
+        expectedServiceDeploymentArn = status.getServiceDeploymentArn();
+        if (expectedServiceDeploymentArn == null || expectedServiceDeploymentArn.isBlank()) {
+          log.warn(
+              "ecs-native service deployment of task definition {} for {} came back without an"
+                  + " ARN; treating as terminal",
+              expectedTaskDefinition,
+              serverGroupName);
+          return result(ExecutionStatus.TERMINAL, status, null);
+        }
+        log.info(
+            "ecs-native service deployment of task definition {} for {} resolved to {}",
+            expectedTaskDefinition,
+            serverGroupName,
+            expectedServiceDeploymentArn);
+      }
+      String pinnedArn = resolvedByTaskDefinition ? expectedServiceDeploymentArn : null;
 
       String serviceDeploymentStatus =
           status.getStatus() != null ? status.getStatus() : status.getRolloutState();
@@ -186,11 +225,11 @@ public class WaitForEcsNativeServiceDeploymentTask implements OverridableTimeout
             "ecs-native service deployment response identified {}, expected {}; treating as terminal",
             status.getServiceDeploymentArn(),
             expectedServiceDeploymentArn);
-        return result(ExecutionStatus.TERMINAL, status);
+        return result(ExecutionStatus.TERMINAL, status, pinnedArn);
       }
 
       if ("SUCCESSFUL".equals(serviceDeploymentStatus)) {
-        return result(ExecutionStatus.SUCCEEDED, status);
+        return result(ExecutionStatus.SUCCEEDED, status, pinnedArn);
       }
       // A configured PAUSE lifecycle hook is the only point where ECS waits for a Continue. The
       // deploy stage is done once the hook awaits action; ECS applies the hook's timeout action
@@ -198,25 +237,25 @@ public class WaitForEcsNativeServiceDeploymentTask implements OverridableTimeout
       if (Boolean.TRUE.equals(context.get(WAIT_FOR_LIFECYCLE_GATE))
           && LIFECYCLE_GATE_STATUS.equals(serviceDeploymentStatus)
           && hasHookAwaitingAction(status)) {
-        return result(ExecutionStatus.SUCCEEDED, status);
+        return result(ExecutionStatus.SUCCEEDED, status, pinnedArn);
       }
       // A user-requested rollback (Continue with ROLLBACK, Stop) legitimately ends in
       // ROLLBACK_SUCCESSFUL.
       if ("ROLLBACK_SUCCESSFUL".equals(serviceDeploymentStatus)
           && Boolean.TRUE.equals(context.get(ACCEPT_ROLLBACK))) {
-        return result(ExecutionStatus.SUCCEEDED, status);
+        return result(ExecutionStatus.SUCCEEDED, status, pinnedArn);
       }
       if (Boolean.TRUE.equals(context.get(WAIT_FOR_STOPPED))
           && "STOPPED".equals(serviceDeploymentStatus)) {
-        return result(ExecutionStatus.SUCCEEDED, status);
+        return result(ExecutionStatus.SUCCEEDED, status, pinnedArn);
       }
       if (TERMINAL_FAILURE_STATUSES.contains(serviceDeploymentStatus)) {
-        return result(ExecutionStatus.TERMINAL, status);
+        return result(ExecutionStatus.TERMINAL, status, pinnedArn);
       }
       // PENDING, IN_PROGRESS, ROLLBACK_REQUESTED, ROLLBACK_IN_PROGRESS, STOP_REQUESTED,
       // STOP_IN_PROGRESS, and unknown future states remain running. In particular, a completed
       // rollback is terminal and can never be accepted as success for the requested deployment.
-      return result(ExecutionStatus.RUNNING, status);
+      return result(ExecutionStatus.RUNNING, status, pinnedArn);
     } catch (SpinnakerHttpException e) {
       if (e.getResponseCode() != HttpStatus.NOT_FOUND.value()) {
         throw e;
@@ -228,7 +267,9 @@ public class WaitForEcsNativeServiceDeploymentTask implements OverridableTimeout
       if (notFoundRetryCount >= MAX_NOT_FOUND_RETRIES) {
         log.warn(
             "ecs-native service deployment {} for {} still not found after {} attempts; failing",
-            expectedServiceDeploymentArn,
+            expectedServiceDeploymentArn != null
+                ? expectedServiceDeploymentArn
+                : "of task definition " + expectedTaskDefinition,
             serverGroupName,
             notFoundRetryCount);
         throw e;
@@ -239,12 +280,44 @@ public class WaitForEcsNativeServiceDeploymentTask implements OverridableTimeout
     }
   }
 
+  /**
+   * {@code pinnedArn} is set when the deployment was found through its task definition: it pins
+   * this task's later polls and is published like an ARN clouddriver reported, so Continue/Stop
+   * stages referencing this deploy find it.
+   */
   private static TaskResult result(
-      ExecutionStatus executionStatus, EcsServiceDeploymentStatus status) {
-    return TaskResult.builder(executionStatus)
-        .context("ecsNativeDeploymentStatus", status)
-        .context(NOT_FOUND_RETRY_COUNT, 0)
-        .build();
+      ExecutionStatus executionStatus, EcsServiceDeploymentStatus status, String pinnedArn) {
+    TaskResult.TaskResultBuilder builder =
+        TaskResult.builder(executionStatus)
+            .context("ecsNativeDeploymentStatus", status)
+            .context(NOT_FOUND_RETRY_COUNT, 0);
+    if (pinnedArn != null) {
+      builder
+          .context(RESOLVED_SERVICE_DEPLOYMENT_ARN, pinnedArn)
+          .output(EXPECTED_SERVICE_DEPLOYMENT_ARN, pinnedArn);
+    }
+    return builder.build();
+  }
+
+  /**
+   * The task definition revision recorded in this stage's own clouddriver task results, the last
+   * one if several, or null when the stage did not start a deployment.
+   */
+  private static String ownExpectedTaskDefinition(Map<String, Object> context) {
+    return ownKatoTaskDeployments(context).stream()
+        .map(deployment -> deployment.get("metadata"))
+        .filter(Map.class::isInstance)
+        .map(metadata -> ((Map<?, ?>) metadata).get(EXPECTED_TASK_DEFINITION))
+        .filter(String.class::isInstance)
+        .map(String.class::cast)
+        .filter(value -> !value.isBlank())
+        .reduce((first, second) -> second)
+        .orElse(null);
+  }
+
+  private static String ownString(Map<String, Object> context, String key) {
+    Object value = ownValue(context, key);
+    return value instanceof String && !((String) value).isBlank() ? (String) value : null;
   }
 
   private static int notFoundRetryCount(Map<String, Object> context) {

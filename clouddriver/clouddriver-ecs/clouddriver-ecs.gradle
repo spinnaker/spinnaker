@@ -39,6 +39,7 @@ dependencies {
   implementation "org.apache.groovy:groovy"
   implementation "org.springframework.boot:spring-boot-starter-web"
 
+  testImplementation project(":clouddriver-saga")
   testImplementation "cglib:cglib-nodep"
   // Explicit: jackson-datatype-jsr310 no longer arrives transitively (aws-java-sdk
   // v1 removal + Boot 4 Jackson line); ECS cache specs register JavaTimeModule.
@@ -46,6 +47,7 @@ dependencies {
   testImplementation "com.squareup.retrofit2:retrofit-mock"
   testImplementation "io.spinnaker.kork:kork-core"
   testImplementation "io.spinnaker.kork:kork-security"
+  testImplementation "io.spinnaker.kork:kork-web"
   testImplementation "org.mockito:mockito-core"
   testImplementation "org.objenesis:objenesis"
   testImplementation "org.spockframework:spock-core"
