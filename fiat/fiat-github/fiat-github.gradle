@@ -10,6 +10,7 @@ dependencies {
   implementation "jakarta.validation:jakarta.validation-api"
   implementation "jakarta.annotation:jakarta.annotation-api"
 
+  testImplementation testFixtures("io.spinnaker.kork:kork-github")
   testImplementation "org.junit.jupiter:junit-jupiter"
   testImplementation "org.mockito:mockito-core"
   testImplementation "org.mockito:mockito-junit-jupiter"

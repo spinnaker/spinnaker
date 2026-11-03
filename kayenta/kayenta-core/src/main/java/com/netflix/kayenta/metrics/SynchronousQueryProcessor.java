@@ -18,6 +18,7 @@ package com.netflix.kayenta.metrics;
 
 import com.netflix.kayenta.canary.CanaryConfig;
 import com.netflix.kayenta.canary.CanaryMetricConfig;
+import com.netflix.kayenta.canary.CanaryMetricSetQueryConfig;
 import com.netflix.kayenta.canary.CanaryScope;
 import com.netflix.kayenta.storage.ObjectType;
 import com.netflix.kayenta.storage.StorageService;
@@ -39,6 +40,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Component;
+import org.springframework.util.StringUtils;
 
 @Component
 @Slf4j
@@ -71,12 +73,13 @@ public class SynchronousQueryProcessor {
 
     StorageService storageService = storageServiceRepository.getRequiredOne(storageAccountName);
 
+    CanaryMetricConfig canaryMetricConfig = canaryConfig.getMetrics().get(metricIndex);
+
     Id queryId =
         registry
             .createId("canary.telemetry.query")
-            .withTag("metricsStore", metricsService.getType());
-
-    CanaryMetricConfig canaryMetricConfig = canaryConfig.getMetrics().get(metricIndex);
+            .withTag("metricsStore", metricsService.getType())
+            .withTag("queryMode", queryMode(canaryMetricConfig));
     List<MetricSet> metricSetList = null;
 
     // TODO: retry mechanism should be extracted to separate class
@@ -144,6 +147,27 @@ public class SynchronousQueryProcessor {
         storageAccountName, ObjectType.METRIC_SET_LIST, metricSetListId, metricSetList);
 
     return metricSetListId;
+  }
+
+  /**
+   * Low-cardinality description of how the metric's query is authored: {@code template} (a
+   * per-metric template), {@code namedTemplate} (legacy pointer into the config's templates map) or
+   * {@code guided} (structured provider fields).
+   */
+  @SuppressWarnings("deprecation")
+  static String queryMode(CanaryMetricConfig canaryMetricConfig) {
+    CanaryMetricSetQueryConfig query =
+        canaryMetricConfig == null ? null : canaryMetricConfig.getQuery();
+
+    if (query == null) {
+      return "guided";
+    }
+
+    if (!StringUtils.isEmpty(query.getCustomInlineTemplate())) {
+      return "template";
+    }
+
+    return StringUtils.isEmpty(query.getCustomFilterTemplate()) ? "guided" : "namedTemplate";
   }
 
   private long getBackoffPeriodMs(int retryAttemptNumber) {

@@ -46,9 +46,7 @@ public class SignalFxQueryBuilderServiceTest {
 
     CanaryConfig canaryConfig = CanaryConfig.builder().build();
     SignalFxCanaryMetricSetQueryConfig metricSetQueryConfig =
-        SignalFxCanaryMetricSetQueryConfig.builder()
-            .customInlineTemplate(customInlineTemplate)
-            .build();
+        SignalFxCanaryMetricSetQueryConfig.builder().template(customInlineTemplate).build();
     CanaryScope canaryScope = CanaryScope.builder().build();
     SignalFxScopeConfiguration scopeConfiguration = SignalFxScopeConfiguration.builder().build();
     SignalFxCanaryScope scope = new SignalFxCanaryScope();
@@ -93,9 +91,7 @@ public class SignalFxQueryBuilderServiceTest {
     SignalFxCanaryScope scope = new SignalFxCanaryScope();
     CanaryConfig canaryConfig = CanaryConfig.builder().build();
     SignalFxCanaryMetricSetQueryConfig metricSetQueryConfig =
-        SignalFxCanaryMetricSetQueryConfig.builder()
-            .customInlineTemplate(customInlineTemplate)
-            .build();
+        SignalFxCanaryMetricSetQueryConfig.builder().template(customInlineTemplate).build();
     CanaryScope canaryScope = CanaryScope.builder().build();
     canaryScope.setExtendedScopeParams(ImmutableMap.of("some_key", "some_value"));
     SignalFxScopeConfiguration scopeConfiguration = SignalFxScopeConfiguration.builder().build();
@@ -109,5 +105,27 @@ public class SignalFxQueryBuilderServiceTest {
         expected,
         signalFxQueryBuilderService.buildQuery(
             canaryConfig, metricSetQueryConfig, canaryScope, scopeConfiguration, scope));
+  }
+
+  @Test
+  public void test_deck_starter_example() {
+    // Starter example shown in Deck; must match the example in
+    // deck/packages/kayenta/src/kayenta/edit/templateProviderVariables.ts
+    String example =
+        "data('request.count', filters=filter('cluster', '${scope}') and filter('region', '${location}')).sum().publish()";
+    SignalFxCanaryMetricSetQueryConfig metricSetQueryConfig =
+        SignalFxCanaryMetricSetQueryConfig.builder().template(example).build();
+    SignalFxCanaryScope scope = new SignalFxCanaryScope();
+    scope.setScope("my-cluster");
+    scope.setLocation("us-east-1");
+
+    assertEquals(
+        "data('request.count', filters=filter('cluster', 'my-cluster') and filter('region', 'us-east-1')).sum().publish()",
+        signalFxQueryBuilderService.buildQuery(
+            CanaryConfig.builder().build(),
+            metricSetQueryConfig,
+            scope,
+            SignalFxScopeConfiguration.builder().build(),
+            scope));
   }
 }

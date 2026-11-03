@@ -269,4 +269,36 @@ public class StackdriverMetricsServiceTest {
     // Verify that the values are extracted as Double
     assertThat(queriedMetrics.get(0).getValues()).contains(3.14);
   }
+
+  @Test
+  void deckStarterExampleIsAndedOntoMandatoryBaseFilter() {
+    // Must match the example in deck/packages/kayenta/src/kayenta/edit/templateProviderVariables.ts
+    // (which deliberately does not include metric.type: the backend always prepends it).
+    String example =
+        "metadata.user_labels.\"spinnaker-server-group\"=${scope} AND metadata.user_labels.\"spinnaker-region\"=${location}";
+    CanaryMetricConfig canaryMetricConfig =
+        CanaryMetricConfig.builder()
+            .name("metricConfig")
+            .query(
+                StackdriverCanaryMetricSetQueryConfig.builder()
+                    .resourceType("gce_instance")
+                    .metricType("compute.googleapis.com/instance/cpu/utilization")
+                    .template(example)
+                    .build())
+            .build();
+    StackdriverCanaryScope canaryScope = new StackdriverCanaryScope();
+    canaryScope.setProject("my-project");
+    canaryScope.setScope("myapp-prod-v002");
+    canaryScope.setLocation("us-central1");
+
+    String query =
+        stackdriverMetricsService.buildQuery(
+            ACCOUNT, new CanaryConfig(), canaryMetricConfig, canaryScope);
+
+    assertThat(query)
+        .isEqualTo(
+            "metric.type=\"compute.googleapis.com/instance/cpu/utilization\" AND resource.type=gce_instance"
+                + " AND metadata.user_labels.\"spinnaker-server-group\"=myapp-prod-v002"
+                + " AND metadata.user_labels.\"spinnaker-region\"=us-central1");
+  }
 }

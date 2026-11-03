@@ -43,8 +43,11 @@ export function changelogCommits(
 ): Array<string> | undefined {
   // Default to HEAD if the current tag does not yet exist
   const tagOrHead = parseTag(tag)?.name ?? 'HEAD';
+  // Two dots: only commits reachable from the new release and not from the previous one.
+  // Three dots (symmetric difference) would also list everything that exists only on the
+  // previous release's branch, e.g. the 3.x backports when cutting the first 4.x release.
   return gitCmdMulti(
-    `git log ${tagOrHead}...${previousTag} --oneline --no-abbrev-commit`,
+    `git log ${previousTag}..${tagOrHead} --oneline --no-abbrev-commit`,
   );
 }
 

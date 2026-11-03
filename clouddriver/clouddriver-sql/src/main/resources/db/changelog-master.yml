@@ -33,5 +33,8 @@ databaseChangeLog:
     file: changelog/20250908-pubsub-scheduler.yml
     relativeToChangelogFile: true
 - include:
+    file: changelog/20261001-task-ordering.yml
+    relativeToChangelogFile: true
+- include:
     file: changelog/20260820-entity-tags.yml
     relativeToChangelogFile: true

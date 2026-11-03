@@ -30,7 +30,7 @@ class ClickhouseMetricsServiceSpec extends Specification {
     given:
     ClickhouseCanaryMetricSetQueryConfig queryConfig =
       ClickhouseCanaryMetricSetQueryConfig.builder()
-        .customInlineTemplate("SELECT avg(Value) FROM otel_metrics_gauge WHERE MetricName = 'requests'")
+        .template("SELECT avg(Value) FROM otel_metrics_gauge WHERE MetricName = 'requests'")
         .build()
     CanaryMetricConfig canaryMetricConfig =
       CanaryMetricConfig.builder().name("requests").query(queryConfig).build()

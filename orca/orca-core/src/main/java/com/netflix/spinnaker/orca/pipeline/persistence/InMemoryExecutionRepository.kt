@@ -39,6 +39,12 @@ class InMemoryExecutionRepository : ExecutionRepository {
     retrieve(type, id).status = status
   }
 
+  override fun updateStatusIfExpected(execution: PipelineExecution, expectedStatus: ExecutionStatus): Boolean {
+    // Callers share the stored instance, so there is no stale copy to guard against.
+    updateStatus(execution)
+    return true
+  }
+
   override fun addStage(stage: StageExecution) {
     // Do nothing, in-memory this would actually already be done.
   }

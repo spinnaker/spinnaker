@@ -18,6 +18,7 @@
 package com.netflix.spinnaker.clouddriver.artifacts.http;
 
 import com.netflix.spinnaker.credentials.CredentialsTypeProperties;
+import com.netflix.spinnaker.credentials.definition.InvalidCredentialsConfigurationException;
 import java.util.List;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -54,6 +55,8 @@ class HttpArtifactConfiguration {
             a -> {
               try {
                 return new HttpArtifactCredentials(a, httpOkHttpClient);
+              } catch (InvalidCredentialsConfigurationException e) {
+                throw e;
               } catch (Exception e) {
                 log.warn("Failure instantiating Http artifact account {}: ", a, e);
                 return null;

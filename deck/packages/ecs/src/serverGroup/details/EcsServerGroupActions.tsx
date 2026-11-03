@@ -15,6 +15,7 @@ import {
 } from '@spinnaker/core';
 
 import { EcsResizeServerGroupModal } from './resize/EcsResizeServerGroupModal';
+import { EcsNativeRollbackServerGroupModal } from './rollback/EcsNativeRollbackServerGroupModal';
 import { EcsRollbackServerGroupModal } from './rollback/EcsRollbackServerGroupModal';
 
 type ConfirmedAction = 'destroy' | 'disable' | 'enable';
@@ -37,6 +38,23 @@ export function EcsServerGroupActionsComponent({
   }
 
   const showEntityTags = SETTINGS.feature && SETTINGS.feature.entityTags;
+  // The classic rollback re-enables a disabled sibling server group; an ecs-native service is a
+  // single durable service, so it rolls back to an earlier task-definition revision instead.
+  //
+  // We can't key off cloudProvider/type: clouddriver's read path (EcsServerClusterProvider) stamps
+  // both as "ecs" on every ECS server group, native ones included. Instead clouddriver sets an
+  // explicit `isNative` flag on the payload (via EcsServerGroup.getExtraAttributes), derived from
+  // the durable `spinnaker:provider=ecs-native` ECS service tag that ecs-native deploys write. The
+  // service name is not ownership evidence (externally created services can be unversioned too),
+  // and rollout fields (taskDefinitionRevision / rolloutState) are NOT a reliable signal either --
+  // classic ECS services carry those too.
+  // Native Continue/Stop stages reference the deploy stage, from which Orca resolves the exact
+  // deployment ARN; the details view does not derive one from the service payload.
+  const isNative = (serverGroup as any).isNative === true;
+  const openRollback = () =>
+    isNative
+      ? EcsNativeRollbackServerGroupModal.show({ application: app, serverGroup }, runtimeServices)
+      : EcsRollbackServerGroupModal.show({ application: app, serverGroup }, runtimeServices);
   const entityTagTargets: IOwnerOption[] = ClusterTargetBuilder.buildClusterTargets(serverGroup);
   const enableLocked =
     serverGroup.isDisabled &&
@@ -94,11 +112,7 @@ export function EcsServerGroupActionsComponent({
       <Dropdown.Toggle className="btn btn-sm btn-primary dropdown-toggle">Server Group Actions</Dropdown.Toggle>
       <Dropdown.Menu className="dropdown-menu">
         {!serverGroup.isDisabled && (
-          <ManagedMenuItem
-            resource={serverGroup}
-            application={app}
-            onClick={() => EcsRollbackServerGroupModal.show({ application: app, serverGroup }, runtimeServices)}
-          >
+          <ManagedMenuItem resource={serverGroup} application={app} onClick={openRollback}>
             Rollback
           </ManagedMenuItem>
         )}

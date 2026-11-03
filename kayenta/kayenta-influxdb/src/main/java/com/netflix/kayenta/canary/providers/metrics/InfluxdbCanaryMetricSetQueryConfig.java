@@ -17,40 +17,32 @@
 package com.netflix.kayenta.canary.providers.metrics;
 
 import com.fasterxml.jackson.annotation.JsonTypeName;
-import com.netflix.kayenta.canary.CanaryMetricSetQueryConfig;
 import java.util.List;
 import javax.annotation.Nullable;
-import lombok.AllArgsConstructor;
-import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.ToString;
-import org.springframework.util.StringUtils;
+import lombok.experimental.SuperBuilder;
 
-@Builder(toBuilder = true)
+@SuperBuilder(toBuilder = true)
 @ToString
 @NoArgsConstructor
-@AllArgsConstructor
 @JsonTypeName("influxdb")
-public class InfluxdbCanaryMetricSetQueryConfig implements CanaryMetricSetQueryConfig {
+public class InfluxdbCanaryMetricSetQueryConfig extends AbstractCanaryMetricSetQueryConfig {
 
   public static final String SERVICE_TYPE = "influxdb";
 
-  @Nullable @Getter private String metricName;
+  /**
+   * @deprecated use {@link #getCustomInlineTemplate()} or {@link #getCustomFilterTemplate()}
+   *     instead; planned for removal in a future release
+   */
+  @Deprecated @Nullable @Getter private String metricName;
 
-  @Getter private List<String> fields;
-  @Nullable @Getter private String customInlineTemplate;
-
-  @Override
-  public CanaryMetricSetQueryConfig cloneWithEscapedInlineTemplate() {
-    if (StringUtils.isEmpty(customInlineTemplate)) {
-      return this;
-    } else {
-      return this.toBuilder()
-          .customInlineTemplate(customInlineTemplate.replace("${", "$\\{"))
-          .build();
-    }
-  }
+  /**
+   * @deprecated use {@link #getCustomInlineTemplate()} or {@link #getCustomFilterTemplate()}
+   *     instead; planned for removal in a future release
+   */
+  @Deprecated @Getter private List<String> fields;
 
   @Override
   public String getServiceType() {

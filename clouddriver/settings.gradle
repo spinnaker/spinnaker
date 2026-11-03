@@ -32,7 +32,6 @@ def cloudProviderProjects = [
   'kubernetes': [':clouddriver-kubernetes'],
   'oracle': [':clouddriver-oracle'],
   'tencentcloud': [':clouddriver-tencentcloud'],
-  'yandex': [':clouddriver-yandex'],
   'cloudrun':  [':clouddriver-cloudrun', ':clouddriver-google-common']
 ]
 cloudProviderProjects.put('gcp', cloudProviderProjects['appengine'] + cloudProviderProjects['gce'] + cloudProviderProjects['kubernetes'])

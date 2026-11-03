@@ -69,6 +69,7 @@ public class StackdriverFetchController {
       summary =
           "Exercise the Stackdriver Metrics Service directly, without any orchestration or judging")
   @RequestMapping(value = "/query", method = RequestMethod.POST)
+  @SuppressWarnings("deprecation")
   public Map queryMetrics(
       @RequestParam(required = false) final String metricsAccountName,
       @RequestParam(required = false) final String storageAccountName,
@@ -149,7 +150,7 @@ public class StackdriverFetchController {
     }
 
     if (!StringUtils.isEmpty(customFilter)) {
-      stackdriverCanaryMetricSetQueryConfigBuilder.customInlineTemplate(customFilter);
+      stackdriverCanaryMetricSetQueryConfigBuilder.template(customFilter);
     }
 
     CanaryMetricConfig canaryMetricConfig =

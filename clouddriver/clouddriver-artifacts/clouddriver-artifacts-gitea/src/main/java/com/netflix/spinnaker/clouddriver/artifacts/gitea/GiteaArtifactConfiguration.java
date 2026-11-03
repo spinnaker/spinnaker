@@ -17,6 +17,7 @@
 package com.netflix.spinnaker.clouddriver.artifacts.gitea;
 
 import com.netflix.spinnaker.credentials.CredentialsTypeProperties;
+import com.netflix.spinnaker.credentials.definition.InvalidCredentialsConfigurationException;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import okhttp3.OkHttpClient;
@@ -50,6 +51,8 @@ class GiteaArtifactConfiguration {
             a -> {
               try {
                 return new GiteaArtifactCredentials(a, giteaOkHttpClient);
+              } catch (InvalidCredentialsConfigurationException e) {
+                throw e;
               } catch (Exception e) {
                 log.warn("Failure instantiating Gitea artifact account {}: ", a, e);
                 return null;

@@ -58,6 +58,7 @@ import com.netflix.spinnaker.clouddriver.google.deploy.GCEUtil;
 import com.netflix.spinnaker.clouddriver.google.deploy.GoogleOperationPoller;
 import com.netflix.spinnaker.clouddriver.google.deploy.SafeRetry;
 import com.netflix.spinnaker.clouddriver.google.deploy.converters.BasicGoogleDeployAtomicOperationConverter;
+import com.netflix.spinnaker.clouddriver.google.deploy.description.BaseGoogleInstanceDescription;
 import com.netflix.spinnaker.clouddriver.google.deploy.description.BasicGoogleDeployDescription;
 import com.netflix.spinnaker.clouddriver.google.deploy.exception.GoogleOperationException;
 import com.netflix.spinnaker.clouddriver.google.deploy.ops.GoogleUserDataProvider;
@@ -151,6 +152,7 @@ public class BasicGoogleDeployHandlerTest {
     mockTask = mock(Task.class);
     mockedGCEUtil = mockStatic(GCEUtil.class);
     mockedGCEUtil.when(() -> GCEUtil.canonicalizeTargetShape(anyString())).thenCallRealMethod();
+    mockedGCEUtil.when(() -> GCEUtil.buildWorkloadIdentityConfig(any())).thenCallRealMethod();
     mockedUtils = mockStatic(Utils.class);
     mockAutoscalingPolicy = mock(GoogleAutoscalingPolicy.class);
 
@@ -2733,6 +2735,58 @@ public class BasicGoogleDeployHandlerTest {
     assertEquals(scheduling, result.getScheduling());
     assertEquals(serviceAccounts, result.getServiceAccounts());
     assertTrue(result.getResourceManagerTags().isEmpty());
+  }
+
+  @Test
+  void buildInstancePropertiesFromInput_withWorkloadIdentityConfig_setsConfig() {
+    BaseGoogleInstanceDescription.WorkloadIdentityConfig workloadIdentityConfig =
+        new BaseGoogleInstanceDescription.WorkloadIdentityConfig();
+    workloadIdentityConfig.setIdentity("my-identity");
+    workloadIdentityConfig.setIdentityCertificateEnabled(true);
+    mockDescription.setWorkloadIdentityConfig(workloadIdentityConfig);
+
+    InstanceProperties result = buildMinimalInstanceProperties();
+
+    assertEquals("my-identity", result.getWorkloadIdentityConfig().getIdentity());
+    assertTrue(result.getWorkloadIdentityConfig().getIdentityCertificateEnabled());
+  }
+
+  @Test
+  void buildInstancePropertiesFromInput_withEmptyWorkloadIdentityConfig_omitsConfig() {
+    BaseGoogleInstanceDescription.WorkloadIdentityConfig workloadIdentityConfig =
+        new BaseGoogleInstanceDescription.WorkloadIdentityConfig();
+    workloadIdentityConfig.setIdentity("");
+    workloadIdentityConfig.setIdentityCertificateEnabled(false);
+    mockDescription.setWorkloadIdentityConfig(workloadIdentityConfig);
+
+    InstanceProperties result = buildMinimalInstanceProperties();
+
+    assertNull(result.getWorkloadIdentityConfig());
+  }
+
+  @Test
+  void buildInstancePropertiesFromInput_withoutWorkloadIdentityConfig_omitsConfig() {
+    mockDescription.setWorkloadIdentityConfig(null);
+
+    InstanceProperties result = buildMinimalInstanceProperties();
+
+    assertNull(result.getWorkloadIdentityConfig());
+  }
+
+  private InstanceProperties buildMinimalInstanceProperties() {
+    mockDescription.setAcceleratorConfigs(null);
+    mockDescription.setCanIpForward(false);
+    mockDescription.setResourceManagerTags(Collections.emptyMap());
+    return basicGoogleDeployHandler.buildInstancePropertiesFromInput(
+        mockDescription,
+        "n1-standard-1",
+        List.of(new AttachedDisk()),
+        new NetworkInterface(),
+        new Metadata(),
+        new Tags(),
+        List.of(new ServiceAccount()),
+        new Scheduling(),
+        Map.of());
   }
 
   @Test

@@ -34,7 +34,7 @@ class SqlProviderCache(private val backingStore: WriteableCache) : ProviderCache
    * @param identifiers the identifiers for the items
    * @return the list of identifiers that are present in the cache from the provided identifiers
    */
-  override fun existingIdentifiers(type: String, identifiers: MutableCollection<String>): MutableCollection<String> {
+  override fun existingIdentifiers(type: String, identifiers: MutableCollection<String>): MutableSet<String> {
     return backingStore.existingIdentifiers(type, identifiers)
   }
 
@@ -45,7 +45,7 @@ class SqlProviderCache(private val backingStore: WriteableCache) : ProviderCache
    * @param glob The glob to match against the identifiers
    * @return the identifiers for the type that match the glob
    */
-  override fun filterIdentifiers(type: String?, glob: String?): MutableCollection<String> {
+  override fun filterIdentifiers(type: String?, glob: String?): MutableSet<String> {
     return backingStore.filterIdentifiers(type, glob)
   }
 
@@ -151,7 +151,7 @@ class SqlProviderCache(private val backingStore: WriteableCache) : ProviderCache
    * @param type the type for which to retrieve identifiers
    * @return the identifiers for the type
    */
-  override fun getIdentifiers(type: String): MutableCollection<String> {
+  override fun getIdentifiers(type: String): MutableSet<String> {
     validateTypes(type)
     return backingStore.getIdentifiers(type)
   }

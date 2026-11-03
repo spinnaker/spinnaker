@@ -68,11 +68,10 @@ export class AccountSelectInput extends React.Component<IAccountSelectInputProps
         primaryAccounts = accountNames.sort();
       }
       if (accountNames && accountNames.length && details.length) {
-        primaryAccounts = accountNames
-          .filter((account) => {
-            return details.some((detail) => detail.name === account && detail.primaryAccount);
-          })
-          .sort();
+        const primaryAccountNames = new Set(
+          details.filter((detail) => detail.primaryAccount).map((detail) => detail.name),
+        );
+        primaryAccounts = accountNames.filter((account) => primaryAccountNames.has(account)).sort();
         secondaryAccounts = xor(accountNames, primaryAccounts).sort();
         mergedAccounts = flatten([primaryAccounts, secondaryAccounts]);
       }
@@ -152,7 +151,8 @@ export class AccountSelectInput extends React.Component<IAccountSelectInputProps
           clearable={false}
           required={true}
           options={options}
-          mode="PLAIN"
+          // Renders only the visible options, so large account lists stay responsive
+          mode="VIRTUALIZED"
           menuContainerStyle={{ minWidth: '150px' }}
         />
       );

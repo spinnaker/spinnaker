@@ -55,16 +55,16 @@ class QueryConfigUtilsSpec extends Specification {
   }
 
   @Unroll
-  void "Custom inline template #customInlineTemplate is escaped to protect it from premature expression evaluation by orca"() {
+  void "Template #template is escaped to protect it from premature expression evaluation by orca"() {
     expect:
     CanaryMetricConfig canaryMetricConfig =
-      CanaryMetricConfig.builder().query(new TestCanaryMetricSetQueryConfig(customInlineTemplate: customInlineTemplate)).build()
+      CanaryMetricConfig.builder().query(new TestCanaryMetricSetQueryConfig(template: template)).build()
     CanaryConfig canaryConfig = CanaryConfig.builder().metric(canaryMetricConfig).build()
-    QueryConfigUtils.escapeTemplates(canaryConfig).getMetrics()[0].getQuery().getCustomInlineTemplate() ==
-      expectedEscapedCustomInlineTemplate
+    QueryConfigUtils.escapeTemplates(canaryConfig).getMetrics()[0].getQuery().getTemplate() ==
+      expectedEscapedTemplate
 
     where:
-    customInlineTemplate                 || expectedEscapedCustomInlineTemplate
+    template                             || expectedEscapedTemplate
     'A test: key1=${key1}.'              || 'A test: key1=$\\{key1}.'
     'A test: key1=${key1} key2=${key2}.' || 'A test: key1=$\\{key1} key2=$\\{key2}.'
     'A test: key1=val1.'                 || 'A test: key1=val1.'

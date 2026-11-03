@@ -91,6 +91,7 @@ runs:
       with:
         context: ${{ inputs.project }}
         file: ${{ inputs.project }}/Dockerfile
+        pull: true
         platforms: linux/amd64,linux/arm64
         push: ${{ inputs.push == 'true' }}
         sbom: ${{ inputs.generate-sbom == 'true' }}
@@ -111,8 +112,7 @@ runs:
     - name: Extract standard image SBOM
       if: env.has-standard == 'true' && inputs.push == 'true' && inputs.generate-sbom == 'true'
       shell: bash
-      run: |
-        docker buildx imagetools inspect "ghcr.io/spinnaker/${{ inputs.project }}@${{ steps.docker-standard.outputs.digest }}" --format '{{json (index .SBOM "linux/amd64").SPDX}}' > ${{ inputs.project }}-standard-image-sbom.spdx.json
+      run: bash "${{ github.action_path }}/trim-image-sbom.sh" "${{ inputs.project }}" standard "${{ steps.docker-standard.outputs.digest }}"
 
     - name: Attest standard image app SBOM
       if: env.has-standard == 'true' && inputs.push == 'true' && inputs.generate-sbom == 'true'
@@ -140,6 +140,7 @@ runs:
       with:
         context: ${{ inputs.project }}
         file: ${{ inputs.project }}/Dockerfile.slim
+        pull: true
         platforms: linux/amd64,linux/arm64
         push: ${{ inputs.push == 'true' }}
         sbom: ${{ inputs.generate-sbom == 'true' }}
@@ -161,8 +162,7 @@ runs:
     - name: Extract slim image SBOM
       if: env.has-slim == 'true' && inputs.push == 'true' && inputs.generate-sbom == 'true'
       shell: bash
-      run: |
-        docker buildx imagetools inspect "ghcr.io/spinnaker/${{ inputs.project }}@${{ steps.docker-slim.outputs.digest }}" --format '{{json (index .SBOM "linux/amd64").SPDX}}' > ${{ inputs.project }}-slim-image-sbom.spdx.json
+      run: bash "${{ github.action_path }}/trim-image-sbom.sh" "${{ inputs.project }}" slim "${{ steps.docker-slim.outputs.digest }}"
 
     - name: Attest slim image app SBOM
       if: env.has-slim == 'true' && inputs.push == 'true' && inputs.generate-sbom == 'true'
@@ -190,6 +190,7 @@ runs:
       with:
         context: ${{ inputs.project }}
         file: ${{ inputs.project }}/Dockerfile.ubuntu
+        pull: true
         platforms: linux/amd64,linux/arm64
         push: ${{ inputs.push == 'true' }}
         sbom: ${{ inputs.generate-sbom == 'true' }}
@@ -209,8 +210,7 @@ runs:
     - name: Extract ubuntu image SBOM
       if: env.has-ubuntu == 'true' && inputs.push == 'true' && inputs.generate-sbom == 'true'
       shell: bash
-      run: |
-        docker buildx imagetools inspect "ghcr.io/spinnaker/${{ inputs.project }}@${{ steps.docker-ubuntu.outputs.digest }}" --format '{{json (index .SBOM "linux/amd64").SPDX}}' > ${{ inputs.project }}-ubuntu-image-sbom.spdx.json
+      run: bash "${{ github.action_path }}/trim-image-sbom.sh" "${{ inputs.project }}" ubuntu "${{ steps.docker-ubuntu.outputs.digest }}"
 
     - name: Attest ubuntu image app SBOM
       if: env.has-ubuntu == 'true' && inputs.push == 'true' && inputs.generate-sbom == 'true'

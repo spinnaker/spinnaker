@@ -59,6 +59,7 @@ export class PipelineGraph extends React.Component<IPipelineGraphProps, IPipelin
   private element: JQuery;
   private graphResizeObserver: ResizeObserver;
   private graphStatusHash: string;
+  private graphStructure: string;
   private graphVerticalPadding = 11;
   private lastElementWidth = 0;
   private layoutRetryFrame: number | null = null;
@@ -438,6 +439,7 @@ export class PipelineGraph extends React.Component<IPipelineGraphProps, IPipelin
       newState = clone(this.defaultState);
       newState.showGraph = false;
     } else if (!statesOnly) {
+      this.graphStructure = this.getGraphStructure(props.pipeline);
       newState = clone(this.defaultState);
       const groupedNodes = this.applyPhasesAndLink(props, nodes, newState);
       this.applyPhaseWidth(props, newState);
@@ -508,6 +510,19 @@ export class PipelineGraph extends React.Component<IPipelineGraphProps, IPipelin
     this.graphResizeObserver.observe(this.element[0]);
   }
 
+  // The stage fields the configuration graph draws. Layout measures each node in the DOM, so skip it when these
+  // are unchanged.
+  private getGraphStructure(pipeline: IPipeline): string {
+    return JSON.stringify(
+      (pipeline?.stages ?? []).map((stage) => [
+        stage.refId,
+        stage.name,
+        stage.requisiteStageRefIds,
+        stage.graphRowOverride,
+      ]),
+    );
+  }
+
   @Debounce(300)
   private validatePipeline(pipeline: IPipeline): void {
     PipelineConfigValidator.validatePipeline(pipeline).catch(() => {});
@@ -528,7 +543,9 @@ export class PipelineGraph extends React.Component<IPipelineGraphProps, IPipelin
 
     if (nextProps.pipeline !== this.props.pipeline) {
       updateGraph = true;
-      stateOnly = false;
+      if (this.getGraphStructure(nextProps.pipeline) !== this.graphStructure) {
+        stateOnly = false;
+      }
       if (this.props.shouldValidate) {
         this.validatePipeline(nextProps.pipeline);
       }

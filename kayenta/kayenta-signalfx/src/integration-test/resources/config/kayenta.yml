@@ -42,6 +42,3 @@ spectator:
 spring:
   liquibase:
     change-log: classpath:db/changelog-master.yml
-  autoconfigure:
-    exclude: >
-      org.springframework.boot.autoconfigure.jdbc.DataSourceAutoConfiguration,

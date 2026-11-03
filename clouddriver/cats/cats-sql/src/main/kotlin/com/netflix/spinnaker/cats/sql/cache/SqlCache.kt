@@ -352,7 +352,7 @@ class SqlCache(
    * @param type the type for which to retrieve identifiers
    * @return the identifiers for the type
    */
-  override fun getIdentifiers(type: String): MutableCollection<String> {
+  override fun getIdentifiers(type: String): MutableSet<String> {
     val ids = try {
       withRetry(RetryCategory.READ) {
         jooq.select(field("id"))
@@ -362,7 +362,7 @@ class SqlCache(
       }
     } catch (e: BadSqlGrammarException) {
       suppressedLog("Failed getting ids for type $type", e)
-      return mutableListOf()
+      return mutableSetOf()
     }
 
     cacheMetrics.get(
@@ -384,10 +384,10 @@ class SqlCache(
    * @param identifiers the identifiers for the items
    * @return the list of identifiers that are present in the cache from the provided identifiers
    */
-  override fun existingIdentifiers(type: String, identifiers: MutableCollection<String>): MutableCollection<String> {
+  override fun existingIdentifiers(type: String, identifiers: MutableCollection<String>): MutableSet<String> {
     var selects = 0
     var withAsync = false
-    val existing = mutableListOf<String>()
+    val existing = mutableSetOf<String>()
     val batchSize = dynamicConfigService.getConfig(Int::class.java, "sql.cache.read-batch-size", 500)
 
     if (coroutineContext.useAsync(identifiers.size, this::useAsync)) {
@@ -434,7 +434,7 @@ class SqlCache(
    * @param glob The glob to match against the identifiers
    * @return the identifiers for the type that match the glob
    */
-  override fun filterIdentifiers(type: String, glob: String?): MutableCollection<String> {
+  override fun filterIdentifiers(type: String, glob: String?): MutableSet<String> {
     if (glob == null) {
       return mutableSetOf()
     }
@@ -442,12 +442,12 @@ class SqlCache(
     val sql = if (glob.matches(useRegexp)) {
       val filter = glob.replace("?", ".", true).replace("*", ".*").replace(cleanRegexp, ".*")
       jooq
-        .select(field("id"))
+        .selectDistinct(field("id"))
         .from(table(sqlNames.resourceTableName(type)))
         .where(field("id").likeRegex("^$filter$"))
     } else {
       jooq
-        .select(field("id"))
+        .selectDistinct(field("id"))
         .from(table(sqlNames.resourceTableName(type)))
         // The underscore is treated as a single character wildcard in currently supported sql backends (mysql/psql)
         // leading to inconsistencies in current usages of `filterIdentifiers()`.
@@ -459,7 +459,7 @@ class SqlCache(
     val ids = try {
       withRetry(RetryCategory.READ) {
         sql
-          .fetch(field("id"), String::class.java)
+          .fetchSet(field("id"), String::class.java)
       }
     } catch (e: Exception) {
       suppressedLog("Failed searching for identifiers type: $type glob: $glob reason: ${e.message}", e)

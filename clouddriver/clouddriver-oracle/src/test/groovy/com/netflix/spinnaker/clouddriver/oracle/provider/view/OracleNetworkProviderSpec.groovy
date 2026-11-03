@@ -21,7 +21,6 @@ class OracleNetworkProviderSpec extends Specification {
     setup:
     def cache = Mock(Cache)
     def networkProvider = new OracleNetworkProvider(cache, new ObjectMapper())
-    def identifiers = Mock(Collection)
     def attributes = ["displayName": "My Vcn", "id": "ocid.vcn.123"]
     def mockData = Mock(CacheData)
     Collection<CacheData> cacheData = [mockData]
@@ -31,8 +30,8 @@ class OracleNetworkProviderSpec extends Specification {
     def results = networkProvider.getAll()
 
     then:
-    1 * cache.filterIdentifiers(Keys.Namespace.NETWORKS.ns, "${OracleCloudProvider.ID}:$Keys.Namespace.NETWORKS:*:*:*:*") >> identifiers
-    1 * cache.getAll(Keys.Namespace.NETWORKS.ns, identifiers, _) >> cacheData
+    1 * cache.filterIdentifiers(Keys.Namespace.NETWORKS.ns, _) >> ([id] as Set)
+    1 * cache.getAll(Keys.Namespace.NETWORKS.ns, _ as Collection, _) >> cacheData
     1 * mockData.attributes >> attributes
     1 * mockData.id >> id
     results?.first()?.name == attributes["displayName"]

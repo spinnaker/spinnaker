@@ -91,6 +91,7 @@ import com.netflix.spinnaker.moniker.Namer;
 import groovy.lang.Closure;
 import jakarta.annotation.PostConstruct;
 import java.io.IOException;
+import java.io.UncheckedIOException;
 import java.util.*;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
@@ -1006,6 +1007,8 @@ public class BasicGoogleDeployHandler
         .setLabels(labels)
         .setScheduling(scheduling)
         .setServiceAccounts(serviceAccounts)
+        .setWorkloadIdentityConfig(
+            GCEUtil.buildWorkloadIdentityConfig(description.getWorkloadIdentityConfig()))
         .setResourceManagerTags(description.getResourceManagerTags());
   }
 
@@ -1375,7 +1378,7 @@ public class BasicGoogleDeployHandler
                             backendService),
                         "Load balancer backend service",
                         task,
-                        List.of(400, 412),
+                        List.of(400, 412, 500, 503),
                         Collections.emptyList(),
                         Map.of(
                             "action",
@@ -1441,7 +1444,7 @@ public class BasicGoogleDeployHandler
                             region),
                         "Internal load balancer backend service",
                         task,
-                        List.of(400, 412),
+                        List.of(400, 412, 500, 503),
                         Collections.emptyList(),
                         Map.of(
                             "action",
@@ -1778,8 +1781,8 @@ public class BasicGoogleDeployHandler
               SCOPE_GLOBAL);
         } catch (IOException e) {
           log.error("Failed to update backend service {}: {}", backendServiceName, e.getMessage());
+          throw new UncheckedIOException(e);
         }
-        return null;
       }
     };
   }
@@ -1797,8 +1800,9 @@ public class BasicGoogleDeployHandler
    * @param backendServiceName Name of the regional backend service to update
    * @param backendService Backend service configuration with new backends to add
    * @param region GCP region where the backend service is located
-   * @return Closure that returns the update Operation, or null when the update request fails; that
-   *     failure is only logged, and the caller still reports the backend service as associated
+   * @return Closure that returns the update Operation. A failed update request is rethrown as an
+   *     {@link UncheckedIOException} so the surrounding safe-retry wrapper can retry it; once
+   *     retries are exhausted, or for a non-retryable error, the deploy fails
    */
   private Closure updateBackendServices(
       Compute compute,
@@ -1865,8 +1869,8 @@ public class BasicGoogleDeployHandler
               "Failed to update regional backend service {}: {}",
               backendServiceName,
               e.getMessage());
+          throw new UncheckedIOException(e);
         }
-        return null;
       }
     };
   }

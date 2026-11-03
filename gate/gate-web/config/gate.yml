@@ -120,6 +120,11 @@ mcp:
     # When true (the default) and Echo is configured (services.echo.enabled), every mutating
     # tool call is also published as an event to Echo, alongside every other Spinnaker write.
     audit-echo-events: true
+    # Names of the MCP tools to expose. When unset, every tool is exposed; when set, all other
+    # tools are left out of the MCP server entirely.
+    # allowed-tools:
+    #   - get_application
+    #   - trigger_pipeline
 
 spring:
   jackson:

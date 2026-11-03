@@ -32,6 +32,11 @@ public class ProviderException extends IntegrationException {
     this.provider = provider;
   }
 
+  public ProviderException(Class provider, String message, Throwable cause) {
+    super(message, cause);
+    this.provider = provider;
+  }
+
   @Override
   public String getMessage() {
     return "(Provider: " + provider.getSimpleName() + ") " + super.getMessage();
