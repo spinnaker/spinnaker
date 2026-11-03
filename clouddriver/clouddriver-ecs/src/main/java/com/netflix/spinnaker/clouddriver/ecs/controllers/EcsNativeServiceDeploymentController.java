@@ -25,6 +25,11 @@ import com.netflix.spinnaker.clouddriver.ecs.security.EcsCredentialsResolver;
 import com.netflix.spinnaker.clouddriver.ecs.security.NetflixECSCredentials;
 import com.netflix.spinnaker.credentials.CredentialsRepository;
 import java.time.Instant;
+import java.util.ArrayList;
+import java.util.LinkedHashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Objects;
 import java.util.Optional;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -41,7 +46,10 @@ import software.amazon.awssdk.services.ecs.model.DescribeServiceDeploymentsReque
 import software.amazon.awssdk.services.ecs.model.DescribeServiceDeploymentsResponse;
 import software.amazon.awssdk.services.ecs.model.DescribeServiceRevisionsRequest;
 import software.amazon.awssdk.services.ecs.model.DescribeServiceRevisionsResponse;
+import software.amazon.awssdk.services.ecs.model.ListServiceDeploymentsRequest;
+import software.amazon.awssdk.services.ecs.model.ListServiceDeploymentsResponse;
 import software.amazon.awssdk.services.ecs.model.ServiceDeployment;
+import software.amazon.awssdk.services.ecs.model.ServiceDeploymentBrief;
 import software.amazon.awssdk.services.ecs.model.ServiceRevision;
 
 @RestController
@@ -77,6 +85,11 @@ public class EcsNativeServiceDeploymentController {
    * Returns the ECS service deployment identified by the ARN produced by the write operation. The
    * expected identity is mandatory: selecting the current PRIMARY deployment would allow an ECS
    * rollback deployment to appear successful for the failed deployment that preceded it.
+   *
+   * <p>When the write operation could not report the ARN (ECS lists the deployment of a newly
+   * created service only after CreateService has returned), the caller may identify the deployment
+   * by the task definition revision the write registered instead. Every deploy registers a new
+   * revision, so it names exactly one deployment of the service.
    */
   @RequestMapping(value = "/deploymentStatus", method = RequestMethod.GET)
   @PreAuthorize("hasPermission(#account, 'ACCOUNT', 'READ')")
@@ -85,10 +98,14 @@ public class EcsNativeServiceDeploymentController {
       @PathVariable String region,
       @PathVariable String serverGroupName,
       @RequestParam(name = "expectedServiceDeploymentArn", required = false)
-          String expectedServiceDeploymentArn) {
-    if (expectedServiceDeploymentArn == null || expectedServiceDeploymentArn.isBlank()) {
+          String expectedServiceDeploymentArn,
+      @RequestParam(name = "expectedTaskDefinition", required = false)
+          String expectedTaskDefinition) {
+    if (StringUtils.isBlank(expectedServiceDeploymentArn)
+        && StringUtils.isBlank(expectedTaskDefinition)) {
       return new ResponseEntity<>(
-          "expectedServiceDeploymentArn is required to identify the ecs-native deployment",
+          "expectedServiceDeploymentArn or expectedTaskDefinition is required to identify the"
+              + " ecs-native deployment",
           HttpStatus.BAD_REQUEST);
     }
 
@@ -116,21 +133,37 @@ public class EcsNativeServiceDeploymentController {
     // durable service accumulates history, and the expected deployment could fall off the first
     // page anyway.
     EcsClient ecs = amazonClientProvider.getAmazonEcsV2(credentials, region);
+    String deploymentArn = expectedServiceDeploymentArn;
+    if (StringUtils.isBlank(deploymentArn)) {
+      List<String> matching =
+          serviceDeploymentsTargeting(
+              ecs, cachedService.get().getClusterArn(), serverGroupName, expectedTaskDefinition);
+      if (matching.isEmpty()) {
+        // Not listed yet right after create/update; Orca retries on 404.
+        return notFound(
+            serverGroupName,
+            "ECS has not listed a service deployment of task definition " + expectedTaskDefinition);
+      }
+      if (matching.size() > 1) {
+        return new ResponseEntity<>(
+            String.format(
+                "Task definition %s is the target of %d service deployments of server group %s: %s",
+                expectedTaskDefinition, matching.size(), serverGroupName, matching),
+            HttpStatus.CONFLICT);
+      }
+      deploymentArn = matching.get(0);
+    }
+    String selectedArn = deploymentArn;
     DescribeServiceDeploymentsResponse described =
         ecs.describeServiceDeployments(
-            DescribeServiceDeploymentsRequest.builder()
-                .serviceDeploymentArns(expectedServiceDeploymentArn)
-                .build());
+            DescribeServiceDeploymentsRequest.builder().serviceDeploymentArns(selectedArn).build());
     Optional<ServiceDeployment> deployment =
         described.serviceDeployments().stream()
-            .filter(
-                candidate -> expectedServiceDeploymentArn.equals(candidate.serviceDeploymentArn()))
+            .filter(candidate -> selectedArn.equals(candidate.serviceDeploymentArn()))
             .findFirst();
     if (deployment.isEmpty()) {
       // Not visible yet right after create/update; Orca retries on 404.
-      return notFound(
-          serverGroupName,
-          "ECS has not exposed service deployment " + expectedServiceDeploymentArn);
+      return notFound(serverGroupName, "ECS has not exposed service deployment " + selectedArn);
     }
 
     ServiceDeployment selectedDeployment = deployment.get();
@@ -139,14 +172,13 @@ public class EcsNativeServiceDeploymentController {
       return new ResponseEntity<>(
           String.format(
               "Service deployment %s does not belong to server group %s",
-              expectedServiceDeploymentArn, serverGroupName),
+              selectedArn, serverGroupName),
           HttpStatus.CONFLICT);
     }
     if (selectedDeployment.targetServiceRevision() == null
         || selectedDeployment.targetServiceRevision().arn() == null) {
       return notFound(
-          serverGroupName,
-          "ECS service deployment " + expectedServiceDeploymentArn + " has no target revision");
+          serverGroupName, "ECS service deployment " + selectedArn + " has no target revision");
     }
     String targetRevisionArn = selectedDeployment.targetServiceRevision().arn();
     DescribeServiceRevisionsResponse revisions =
@@ -166,6 +198,51 @@ public class EcsNativeServiceDeploymentController {
             selectedDeployment,
             selectedRevision),
         HttpStatus.OK);
+  }
+
+  /**
+   * ARNs of the service's deployments whose target revision runs {@code taskDefinition}. Revisions
+   * are described in batches of 20, the DescribeServiceRevisions limit. Deployments are grouped by
+   * revision, so several deployments of one revision all count towards an ambiguous match.
+   */
+  private static List<String> serviceDeploymentsTargeting(
+      EcsClient ecs, String cluster, String serviceName, String taskDefinition) {
+    Map<String, List<String>> deploymentsByRevision = new LinkedHashMap<>();
+    String nextToken = null;
+    do {
+      ListServiceDeploymentsResponse page =
+          ecs.listServiceDeployments(
+              ListServiceDeploymentsRequest.builder()
+                  .cluster(cluster)
+                  .service(serviceName)
+                  .nextToken(nextToken)
+                  .build());
+      for (ServiceDeploymentBrief brief : page.serviceDeployments()) {
+        if (StringUtils.isNotBlank(brief.targetServiceRevisionArn())
+            && StringUtils.isNotBlank(brief.serviceDeploymentArn())) {
+          deploymentsByRevision
+              .computeIfAbsent(brief.targetServiceRevisionArn(), revision -> new ArrayList<>())
+              .add(brief.serviceDeploymentArn());
+        }
+      }
+      nextToken = page.nextToken();
+    } while (StringUtils.isNotBlank(nextToken));
+
+    List<String> revisionArns = new ArrayList<>(deploymentsByRevision.keySet());
+    List<String> matching = new ArrayList<>();
+    for (int from = 0; from < revisionArns.size(); from += 20) {
+      List<String> batch = revisionArns.subList(from, Math.min(from + 20, revisionArns.size()));
+      ecs
+          .describeServiceRevisions(
+              DescribeServiceRevisionsRequest.builder().serviceRevisionArns(batch).build())
+          .serviceRevisions()
+          .stream()
+          .filter(revision -> taskDefinition.equals(revision.taskDefinition()))
+          .map(revision -> deploymentsByRevision.get(revision.serviceRevisionArn()))
+          .filter(Objects::nonNull)
+          .forEach(matching::addAll);
+    }
+    return matching;
   }
 
   /**
