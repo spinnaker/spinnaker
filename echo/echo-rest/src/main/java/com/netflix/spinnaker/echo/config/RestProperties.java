@@ -18,6 +18,7 @@ package com.netflix.spinnaker.echo.config;
 
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotEmpty;
+import java.time.Duration;
 import java.util.List;
 import java.util.Map;
 import lombok.Data;
@@ -46,7 +47,18 @@ public class RestProperties {
     Map<String, String> headers;
     String headersFile;
     Boolean flatten = false;
+
+    /** Total number of attempts (not additional retries); see exponentialBackoff for spacing. */
     int retryCount = 1;
+
+    /** true = waits retryBackoff, 2x, 4x...; false or null (default) = fixed retryBackoff. */
+    Boolean exponentialBackoff = false;
+
+    /**
+     * Base wait between attempts (default 200ms); with exponentialBackoff: retryBackoff, 2x, 4x...
+     */
+    Duration retryBackoff = Duration.ofMillis(200);
+
     Boolean circuitBreakerEnabled = false;
   }
 }

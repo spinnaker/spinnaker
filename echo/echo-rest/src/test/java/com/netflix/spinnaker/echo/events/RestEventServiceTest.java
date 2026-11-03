@@ -22,24 +22,32 @@ import static com.github.tomakehurst.wiremock.client.WireMock.postRequestedFor;
 import static com.github.tomakehurst.wiremock.client.WireMock.stubFor;
 import static com.github.tomakehurst.wiremock.client.WireMock.urlEqualTo;
 import static com.github.tomakehurst.wiremock.client.WireMock.verify;
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.github.tomakehurst.wiremock.WireMockServer;
 import com.github.tomakehurst.wiremock.client.WireMock;
 import com.github.tomakehurst.wiremock.core.WireMockConfiguration;
+import com.github.tomakehurst.wiremock.http.Fault;
+import com.github.tomakehurst.wiremock.stubbing.Scenario;
 import com.netflix.spinnaker.echo.api.events.Event;
 import com.netflix.spinnaker.echo.config.RestProperties;
 import com.netflix.spinnaker.echo.config.RestUrls;
 import com.netflix.spinnaker.echo.rest.RestService;
 import com.netflix.spinnaker.kork.core.RetrySupport;
+import com.netflix.spinnaker.kork.exceptions.SpinnakerException;
 import com.netflix.spinnaker.kork.retrofit.ErrorHandlingExecutorCallAdapterFactory;
 import io.github.resilience4j.circuitbreaker.CircuitBreakerConfig;
 import io.github.resilience4j.circuitbreaker.CircuitBreakerRegistry;
+import java.time.Duration;
 import java.util.Map;
 import okhttp3.OkHttpClient;
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
+import org.mockito.ArgumentCaptor;
+import org.mockito.Mockito;
 import retrofit2.Retrofit;
 import retrofit2.converter.jackson.JacksonConverterFactory;
 
@@ -47,6 +55,8 @@ public class RestEventServiceTest {
   private static Map<String, Object> eventMap;
   private static RestEventService restEventService;
   private static RestUrls.Service service;
+  private static RestService restService;
+  private static CircuitBreakerRegistry circuitBreakerRegistry;
 
   static WireMockServer wireMockServer;
   static int port;
@@ -64,7 +74,7 @@ public class RestEventServiceTest {
     baseUrl = baseUrl.replaceFirst("PORT", String.valueOf(port));
 
     // Create the RestService
-    RestService restService =
+    restService =
         new Retrofit.Builder()
             .baseUrl("http://not-used.com")
             .client(new OkHttpClient())
@@ -82,7 +92,7 @@ public class RestEventServiceTest {
             .build();
 
     // Create a CircuitBreakerRegistry with a custom configuration
-    CircuitBreakerRegistry circuitBreakerRegistry = CircuitBreakerRegistry.of(circuitBreakerConfig);
+    circuitBreakerRegistry = CircuitBreakerRegistry.of(circuitBreakerConfig);
 
     // Get the CircuitBreaker from the CircuitBreakerRegistry with a custom configuration
     circuitBreakerRegistry.circuitBreaker("circuitBreakerTest", circuitBreakerConfig);
@@ -110,5 +120,127 @@ public class RestEventServiceTest {
   void testSendEvent() {
     restEventService.sendEvent(eventMap, service);
     verify(1, postRequestedFor(urlEqualTo("/api")));
+  }
+
+  private static RestProperties.RestEndpointConfiguration retryConfig(int retryCount) {
+    return new RestProperties.RestEndpointConfiguration().setRetryCount(retryCount);
+  }
+
+  // Small backoff so tests using the real RetrySupport do not sleep for seconds
+  private static RestProperties.RestEndpointConfiguration fastRetryConfig(int retryCount) {
+    return retryConfig(retryCount).setRetryBackoff(Duration.ofMillis(10));
+  }
+
+  private RestUrls.Service serviceFor(String path, RestProperties.RestEndpointConfiguration cfg) {
+    return RestUrls.Service.builder()
+        .client(restService)
+        .config(cfg.setUrl(baseUrl.replaceFirst("/api$", "") + path))
+        .build();
+  }
+
+  private void assertBackoffArgs(
+      RestProperties.RestEndpointConfiguration cfg,
+      boolean expectedExponential,
+      Duration expectedBackoff) {
+    RetrySupport retrySupport = Mockito.mock(RetrySupport.class);
+    RestEventService svc = new RestEventService(retrySupport, circuitBreakerRegistry);
+
+    svc.sendEvent(eventMap, serviceFor("/args", cfg));
+
+    ArgumentCaptor<Duration> backoff = ArgumentCaptor.forClass(Duration.class);
+    Mockito.verify(retrySupport)
+        .retry(
+            Mockito.any(),
+            Mockito.eq(cfg.getRetryCount()),
+            backoff.capture(),
+            Mockito.eq(expectedExponential));
+    assertThat(backoff.getValue()).isEqualTo(expectedBackoff);
+  }
+
+  @Test
+  void sendEventDefaultsMatchPreviousBehavior() {
+    RestProperties.RestEndpointConfiguration defaults =
+        new RestProperties.RestEndpointConfiguration();
+    assertThat(defaults.getRetryCount()).isEqualTo(1);
+    assertThat(defaults.getExponentialBackoff()).isFalse();
+    assertThat(defaults.getRetryBackoff()).isEqualTo(Duration.ofMillis(200));
+    assertBackoffArgs(retryConfig(5), false, Duration.ofMillis(200));
+  }
+
+  @Test
+  void sendEventPassesConfiguredRetryBackoffAndExponentialFlag() {
+    assertBackoffArgs(
+        retryConfig(5).setRetryBackoff(Duration.ofMillis(250)).setExponentialBackoff(true),
+        true,
+        Duration.ofMillis(250));
+  }
+
+  @Test
+  void sendEventFallsBackTo200msWhenRetryBackoffIsNull() {
+    assertBackoffArgs(retryConfig(5).setRetryBackoff(null), false, Duration.ofMillis(200));
+  }
+
+  @Test
+  void sendEventUsesFixedBackoffWhenExponentialBackoffIsFalse() {
+    assertBackoffArgs(retryConfig(5).setExponentialBackoff(false), false, Duration.ofMillis(200));
+  }
+
+  @Test
+  void sendEventTreatsNullExponentialBackoffAsFixed() {
+    assertBackoffArgs(retryConfig(5).setExponentialBackoff(null), false, Duration.ofMillis(200));
+  }
+
+  @Test
+  void networkFailuresAreRetriedUntilSuccess() {
+    String scenario = "flaky";
+    String path = "/flaky";
+    stubFor(
+        post(urlEqualTo(path))
+            .inScenario(scenario)
+            .whenScenarioStateIs(Scenario.STARTED)
+            .willReturn(aResponse().withFault(Fault.CONNECTION_RESET_BY_PEER))
+            .willSetStateTo("second"));
+    stubFor(
+        post(urlEqualTo(path))
+            .inScenario(scenario)
+            .whenScenarioStateIs("second")
+            .willReturn(aResponse().withFault(Fault.CONNECTION_RESET_BY_PEER))
+            .willSetStateTo("third"));
+    stubFor(
+        post(urlEqualTo(path))
+            .inScenario(scenario)
+            .whenScenarioStateIs("third")
+            .willReturn(aResponse().withStatus(200)));
+
+    restEventService.sendEvent(eventMap, serviceFor(path, fastRetryConfig(3)));
+
+    verify(3, postRequestedFor(urlEqualTo(path)));
+  }
+
+  @Test
+  void persistentFailureThrowsAfterRetryCountAttempts() {
+    String path = "/down";
+    stubFor(
+        post(urlEqualTo(path)).willReturn(aResponse().withFault(Fault.CONNECTION_RESET_BY_PEER)));
+
+    assertThatThrownBy(
+            () -> restEventService.sendEvent(eventMap, serviceFor(path, fastRetryConfig(3))))
+        .isInstanceOf(SpinnakerException.class);
+
+    verify(3, postRequestedFor(urlEqualTo(path)));
+  }
+
+  @Test
+  void nonRetryableHttpErrorsAreNotRetried() {
+    for (int status : new int[] {400, 404}) {
+      String path = "/status" + status;
+      stubFor(post(urlEqualTo(path)).willReturn(aResponse().withStatus(status)));
+
+      assertThatThrownBy(
+              () -> restEventService.sendEvent(eventMap, serviceFor(path, fastRetryConfig(3))))
+          .isInstanceOf(SpinnakerException.class);
+
+      verify(1, postRequestedFor(urlEqualTo(path)));
+    }
   }
 }
