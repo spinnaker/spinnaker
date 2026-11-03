@@ -23,6 +23,9 @@ import org.springframework.context.annotation.Configuration;
 /**
  * Spring Boot auto-configuration that registers {@link AwsSdkV2Module} as a bean. Any {@code
  * ObjectMapper} that is auto-configured by Spring Boot will pick this module up automatically.
+ *
+ * <p>Also registers {@link AwsSdkV2Jackson3Module}: Boot 4 serves HTTP JSON with Jackson 3, which
+ * ignores Jackson 2 modules.
  */
 @Configuration
 public class AwsSdkV2JacksonConfiguration {
@@ -30,5 +33,10 @@ public class AwsSdkV2JacksonConfiguration {
   @Bean
   Module awsSdkV2Module() {
     return new AwsSdkV2Module();
+  }
+
+  @Bean
+  tools.jackson.databind.JacksonModule awsSdkV2Jackson3Module() {
+    return new AwsSdkV2Jackson3Module();
   }
 }

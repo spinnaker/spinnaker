@@ -16,9 +16,10 @@
 
 package com.netflix.spinnaker.clouddriver.kubernetes.names;
 
-import static org.assertj.core.api.AssertionsForClassTypes.assertThat;
+import static org.assertj.core.api.Assertions.assertThat;
 
 import com.netflix.spinnaker.clouddriver.kubernetes.description.manifest.KubernetesApiVersion;
+import com.netflix.spinnaker.clouddriver.kubernetes.description.manifest.KubernetesDeployManifestDescription;
 import com.netflix.spinnaker.clouddriver.kubernetes.description.manifest.KubernetesKind;
 import com.netflix.spinnaker.clouddriver.kubernetes.description.manifest.KubernetesManifest;
 import com.netflix.spinnaker.moniker.Moniker;
@@ -36,6 +37,44 @@ public class KubernetesManifestNamerTest {
 
     // then:
     assertThat(moniker.getApp()).isEqualTo("testapp");
+  }
+
+  @Test
+  public void testApplyProvenanceAnnotationsWhenFlagEnabled() {
+    // setup:
+    KubernetesManifestNamer kubernetesManifestNamer = new KubernetesManifestNamer(true, "", true);
+    KubernetesManifest manifest = deploymentManifest("testapp-abc");
+    KubernetesDeployManifestDescription description = new KubernetesDeployManifestDescription();
+    description.setDeployedBy("user@example.com");
+    description.setExecutionId("exec-123");
+
+    // when:
+    kubernetesManifestNamer.applyMoniker(
+        manifest, Moniker.builder().app("testapp").build(), description);
+
+    // then:
+    assertThat(manifest.getAnnotations())
+        .containsEntry("provenance.spinnaker.io/deployed-by", "user@example.com");
+    assertThat(manifest.getAnnotations())
+        .containsEntry("provenance.spinnaker.io/execution-id", "exec-123");
+  }
+
+  @Test
+  public void testDoesNotApplyProvenanceAnnotationsByDefault() {
+    // setup:
+    KubernetesManifestNamer kubernetesManifestNamer = new KubernetesManifestNamer();
+    KubernetesManifest manifest = deploymentManifest("testapp-abc");
+    KubernetesDeployManifestDescription description = new KubernetesDeployManifestDescription();
+    description.setDeployedBy("user@example.com");
+    description.setExecutionId("exec-123");
+
+    // when:
+    kubernetesManifestNamer.applyMoniker(
+        manifest, Moniker.builder().app("testapp").build(), description);
+
+    // then:
+    assertThat(manifest.getAnnotations()).doesNotContainKey("provenance.spinnaker.io/deployed-by");
+    assertThat(manifest.getAnnotations()).doesNotContainKey("provenance.spinnaker.io/execution-id");
   }
 
   /** A test Deployment manifest */

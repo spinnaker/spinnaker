@@ -98,14 +98,6 @@
         "builtIn" : true
       }
     },
-    "image" : {
-      "type" : "object",
-      "_meta" : {
-        "condition" : {
-          "cloudProviders" : [ "titus" ]
-        }
-      }
-    },
     "notifications" : {
       "type" : "array",
       "_meta" : {
@@ -139,14 +131,6 @@
       "_meta" : {
         "condition" : {
           "cloudProviders" : [ "aws" ]
-        }
-      }
-    },
-    "repository" : {
-      "type" : "object",
-      "_meta" : {
-        "condition" : {
-          "cloudProviders" : [ "titus" ]
         }
       }
     },

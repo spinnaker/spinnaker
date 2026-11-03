@@ -1,4 +1,6 @@
 export * from './ArtifactIconService';
+export * from './artifactDelimiter';
+export * from './artifactName';
 export * from './ArtifactReferenceService';
 export * from './expectedArtifact.service';
 export * from './react/ExecutionArtifactTab';

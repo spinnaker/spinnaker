@@ -1,3 +1,4 @@
+import type { Mock } from 'vitest';
 import { AmazonSecurityGroupDetailsComponent as AmazonSecurityGroupDetails } from './AmazonSecurityGroupDetails';
 import { VpcReader } from '../../vpc/VpcReader';
 
@@ -5,7 +6,7 @@ const tick = () => new Promise((resolve) => setTimeout(resolve));
 
 describe('AmazonSecurityGroupDetails', () => {
   it('replaces missing details through the injected state service', () => {
-    const stateService = { go: jasmine.createSpy('go') };
+    const stateService = { go: vi.fn() };
     const component = new AmazonSecurityGroupDetails({
       app: { isStandalone: false },
       resolvedSecurityGroup: { accountId: 'test-account', name: 'missing', region: 'us-west-2' },
@@ -28,14 +29,14 @@ describe('AmazonSecurityGroupDetails', () => {
       vpcId: 'vpc-1',
     };
     const securityGroupReader = {
-      getApplicationSecurityGroup: jasmine.createSpy('getApplicationSecurityGroup').and.returnValue(details),
-      getSecurityGroupDetails: jasmine.createSpy('getSecurityGroupDetails').and.returnValue(Promise.resolve(details)),
+      getApplicationSecurityGroup: vi.fn().mockReturnValue(details),
+      getSecurityGroupDetails: vi.fn().mockReturnValue(Promise.resolve(details)),
     };
     let resolveVpcName: (vpcName: string) => void;
     const vpcName = new Promise<string>((resolve) => {
       resolveVpcName = resolve;
     });
-    spyOn(VpcReader, 'getVpcName').and.returnValue(vpcName);
+    vi.spyOn(VpcReader, 'getVpcName').mockReturnValue(vpcName);
     const component = new AmazonSecurityGroupDetails({
       app: { isStandalone: false } as any,
       resolvedSecurityGroup: {
@@ -46,12 +47,12 @@ describe('AmazonSecurityGroupDetails', () => {
       },
       securityGroupReader: securityGroupReader as any,
     });
-    spyOn(component, 'setState');
+    vi.spyOn(component, 'setState').mockReturnValue(undefined);
 
     (component as any).loadSecurityGroup();
     await tick();
     expect(VpcReader.getVpcName).toHaveBeenCalledWith('vpc-1');
-    (component.setState as jasmine.Spy).calls.reset();
+    (component.setState as Mock).mockClear();
 
     component.componentWillUnmount();
     resolveVpcName('Main VPC');

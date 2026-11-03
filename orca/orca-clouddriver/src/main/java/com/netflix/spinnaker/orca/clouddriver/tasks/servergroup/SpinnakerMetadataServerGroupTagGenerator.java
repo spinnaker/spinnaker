@@ -121,7 +121,7 @@ public class SpinnakerMetadataServerGroupTagGenerator implements ServerGroupEnti
 
     // When forceCacheRefresh is disabled (i.e. via the
     // stages.createServerGroupStage.forceCacheRefresh.enabled
-    // property), or unsupported by the cloudProvider (true for titus), NEWEST may reflect the
+    // property), or unsupported by the cloudProvider, NEWEST may reflect the
     // ancestor and not
     // the serverGroup just created. If not, an explicit ANCESTOR lookup is attempted.
     Map<String, Object> newestServerGroup =

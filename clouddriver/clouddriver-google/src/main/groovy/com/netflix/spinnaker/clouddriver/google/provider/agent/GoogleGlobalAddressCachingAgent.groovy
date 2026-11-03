@@ -80,7 +80,7 @@ class GoogleGlobalAddressCachingAgent extends AbstractGoogleCachingAgent {
   private CacheResult buildCacheResult(ProviderCache _, List<Address> addressList) {
     log.debug("Describing items in ${agentType}")
 
-    def cacheResultBuilder = new CacheResultBuilder()
+    def cacheResultBuilder = new CacheResultBuilder(providedDataTypes)
 
     addressList.each { Address address ->
       def addressKey = Keys.getAddressKey(accountName, 'global', address.getName())

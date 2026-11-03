@@ -36,7 +36,7 @@ import java.util.concurrent.TimeUnit;
  * <p>An exception thrown while reporting executionFailure will abort the schedule for the
  * CachingAgent.
  */
-public class DefaultAgentScheduler extends CatsModuleAware implements AgentScheduler<AgentLock> {
+public class DefaultAgentScheduler extends CatsModuleAware implements AgentScheduler {
   private static final long DEFAULT_INTERVAL = 60000;
 
   private final ScheduledExecutorService scheduledExecutorService;
@@ -98,21 +98,6 @@ public class DefaultAgentScheduler extends CatsModuleAware implements AgentSched
       agentFutures.get(agent).cancel(false);
       agentFutures.remove(agent);
     }
-  }
-
-  @Override
-  public AgentLock tryLock(Agent agent) {
-    return null;
-  }
-
-  @Override
-  public boolean tryRelease(AgentLock lock) {
-    return false;
-  }
-
-  @Override
-  public boolean isAtomic() {
-    return false;
   }
 
   private static class AgentExecutionRunnable implements Runnable {

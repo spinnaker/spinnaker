@@ -1,14 +1,10 @@
-import { shallow } from 'enzyme';
+import { fireEvent, screen, waitFor } from '@testing-library/react';
+import userEvent from '@testing-library/user-event';
 import React from 'react';
 
-import {
-  PlatformHealthOverride,
-  ReactModal,
-  SpinFormik,
-  TaskMonitorWrapper,
-  TaskReason,
-  UserVerification,
-} from '@spinnaker/core';
+import { AccountService, DeckRuntimeContext, ReactModal, TaskReader } from '@spinnaker/core';
+import { ModalContext } from '../../../../../core/src/presentation/modal/ModalContext';
+import { renderWithRouter } from '../../../../../core/src/utils/testUtils/rtl';
 
 import { EcsResizeServerGroupModal, validateEcsResizeValues } from './index';
 
@@ -23,18 +19,33 @@ describe('EcsResizeServerGroupModal', () => {
   function application(attributes: any = {}) {
     return {
       attributes,
-      serverGroups: { refresh: jasmine.createSpy('refresh') },
+      getDataSource: vi.fn(),
+      serverGroups: { refresh: vi.fn() },
     } as any;
   }
 
   function props(app = application()) {
     return {
       application: app,
-      closeModal: jasmine.createSpy('closeModal'),
-      dismissModal: jasmine.createSpy('dismissModal'),
+      closeModal: vi.fn(),
+      dismissModal: vi.fn(),
       serverGroup: serverGroup as any,
     };
   }
+
+  function renderModal(modalProps = props(), runtimeServices: any = {}) {
+    return renderWithRouter(
+      <ModalContext.Provider value={{ onRequestClose: vi.fn() }}>
+        <DeckRuntimeContext.Provider value={{ services: runtimeServices } as any}>
+          <EcsResizeServerGroupModal {...modalProps} />
+        </DeckRuntimeContext.Provider>
+      </ModalContext.Provider>,
+    );
+  }
+
+  beforeEach(() => {
+    vi.spyOn(AccountService, 'challengeDestructiveActions').mockResolvedValue(true);
+  });
 
   it('validates non-negative min, max, and desired capacities in range', () => {
     expect(validateEcsResizeValues({ capacity: { desired: 4, max: 8, min: -1 } })).toEqual({
@@ -52,79 +63,63 @@ describe('EcsResizeServerGroupModal', () => {
     expect(validateEcsResizeValues({ capacity: { desired: 4, max: 8, min: 2 } })).toEqual({});
   });
 
-  it('submits the exact shared resize writer contract through its task monitor', () => {
+  it('submits the exact shared resize writer contract through its task monitor', async () => {
     const app = application({ platformHealthOnly: true, platformHealthOnlyShowOverride: true });
-    const writer = { resizeServerGroup: jasmine.createSpy('resizeServerGroup').and.returnValue(Promise.resolve()) };
-    const component = new EcsResizeServerGroupModal(props(app));
-    (component as any).context = { services: { serverGroupWriter: writer } };
-    component.setState = ((update: any) => {
-      component.state = { ...component.state, ...(typeof update === 'function' ? update(component.state) : update) };
-    }) as any;
-    component.setState({ verified: true });
-    spyOn(component.state.taskMonitor, 'submit').and.callFake((submitMethod: any) => submitMethod());
+    const resizeServerGroup = vi.fn().mockResolvedValue({ id: 'task-id' });
+    vi.spyOn(TaskReader, 'waitUntilTaskCompletes').mockResolvedValue({} as any);
+    renderModal(props(app), { serverGroupWriter: { resizeServerGroup } });
 
-    (component as any).submit({
+    fireEvent.change(screen.getByRole('spinbutton', { name: 'Minimum capacity' }), { target: { value: '3' } });
+    fireEvent.change(screen.getByRole('spinbutton', { name: 'Maximum capacity' }), { target: { value: '10' } });
+    fireEvent.change(screen.getByRole('spinbutton', { name: 'Desired capacity' }), { target: { value: '6' } });
+    await userEvent.type(screen.getByRole('textbox', { name: 'Reason' }), '  preserve this resize reason exactly  ');
+    await userEvent.type(screen.getByRole('textbox', { name: 'Confirm account test-account' }), 'test-account');
+    await waitFor(() => expect(screen.getByRole('button', { name: 'Submit' })).toBeEnabled());
+    fireEvent.click(screen.getByRole('button', { name: 'Submit' }));
+
+    expect(resizeServerGroup).toHaveBeenCalledExactlyOnceWith(serverGroup, app, {
       capacity: { desired: 6, max: 10, min: 3 },
       interestingHealthProviderNames: ['Ecs'],
       reason: '  preserve this resize reason exactly  ',
     });
-
-    expect(component.state.taskMonitor.submit).toHaveBeenCalled();
-    expect(writer.resizeServerGroup).toHaveBeenCalledOnceWith(serverGroup, app, {
-      capacity: { desired: 6, max: 10, min: 3 },
-      interestingHealthProviderNames: ['Ecs'],
-      reason: '  preserve this resize reason exactly  ',
-    });
+    await waitFor(() => expect(app.serverGroups.refresh).toHaveBeenCalledExactlyOnceWith());
   });
 
-  it('does not submit invalid or unverified resize commands', () => {
-    const writer = { resizeServerGroup: jasmine.createSpy('resizeServerGroup') };
-    const component = new EcsResizeServerGroupModal(props());
-    (component as any).context = { services: { serverGroupWriter: writer } };
-    spyOn(component.state.taskMonitor, 'submit');
+  it('does not submit invalid or unverified resize commands', async () => {
+    const resizeServerGroup = vi.fn();
+    renderModal(props(), { serverGroupWriter: { resizeServerGroup } });
+    const submit = screen.getByRole('button', { name: 'Submit' });
 
-    (component as any).submit({ capacity: { desired: 9, max: 8, min: 2 } });
-    component.state.verified = true;
-    (component as any).submit({ capacity: { desired: 9, max: 8, min: 2 } });
+    expect(submit).toBeDisabled();
+    fireEvent.change(screen.getByRole('spinbutton', { name: 'Desired capacity' }), { target: { value: '9' } });
+    await userEvent.type(screen.getByRole('textbox', { name: 'Confirm account test-account' }), 'test-account');
 
-    expect(component.state.taskMonitor.submit).not.toHaveBeenCalled();
-    expect(writer.resizeServerGroup).not.toHaveBeenCalled();
+    expect(await screen.findByText('Desired cannot be larger than Max')).toBeInTheDocument();
+    expect(submit).toBeDisabled();
+    fireEvent.click(submit);
+    expect(resizeServerGroup).not.toHaveBeenCalled();
   });
 
   it('renders task, capacity, verification, reason, and ECS platform-health controls', () => {
     const app = application({ platformHealthOnly: true, platformHealthOnlyShowOverride: true });
-    const wrapper = shallow(<EcsResizeServerGroupModal {...props(app)} />);
-    const formik = wrapper.find(SpinFormik);
-    expect(wrapper.find(TaskMonitorWrapper).prop('monitor')).toBe((wrapper.instance() as any).state.taskMonitor);
+    renderModal(props(app));
 
-    const content = shallow(
-      <div>
-        {(formik.prop('render') as any)({
-          errors: {},
-          isValid: true,
-          setFieldValue: jasmine.createSpy('setFieldValue'),
-          values: formik.prop('initialValues'),
-        })}
-      </div>,
-    );
-
-    expect(content.find(UserVerification).prop('account')).toBe('test-account');
-    expect(content.find(TaskReason).exists()).toBe(true);
-    expect(content.find('[name="capacity.min"]').exists()).toBe(true);
-    expect(content.find('[name="capacity.max"]').exists()).toBe(true);
-    expect(content.find('[name="capacity.desired"]').exists()).toBe(true);
-    expect(content.find(PlatformHealthOverride).props()).toEqual(
-      jasmine.objectContaining({ interestingHealthProviderNames: ['Ecs'], platformHealthType: 'Ecs' }),
-    );
+    expect(screen.getByText('Resize fnord-main-v004')).toBeInTheDocument();
+    expect(screen.getByRole('spinbutton', { name: 'Minimum capacity' })).toHaveValue(2);
+    expect(screen.getByRole('spinbutton', { name: 'Maximum capacity' })).toHaveValue(8);
+    expect(screen.getByRole('spinbutton', { name: 'Desired capacity' })).toHaveValue(4);
+    expect(screen.getByRole('textbox', { name: 'Reason' })).toBeInTheDocument();
+    expect(screen.getByText(/Type the name of the account/)).toHaveTextContent('test-account');
+    expect(screen.getByRole('checkbox', { name: 'Consider only Ecs health' })).toBeChecked();
   });
 
   it('exports a show primitive for later actions integration', () => {
-    const show = spyOn(ReactModal, 'show').and.returnValue(Promise.resolve() as any);
+    const show = vi.spyOn(ReactModal, 'show').mockReturnValue(Promise.resolve() as any);
     const modalProps = props();
     const runtimeServices = {} as any;
 
     EcsResizeServerGroupModal.show(modalProps, runtimeServices);
 
-    expect(show).toHaveBeenCalledOnceWith(EcsResizeServerGroupModal, modalProps, undefined, runtimeServices);
+    expect(show).toHaveBeenCalledExactlyOnceWith(EcsResizeServerGroupModal, modalProps, undefined, runtimeServices);
   });
 });

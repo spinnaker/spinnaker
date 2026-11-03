@@ -20,4 +20,11 @@ class BakeRecipe {
   String name
   String version
   List<String> command
+
+  /**
+   * Environment variables to set (in addition to the job executor's own environment) when
+   * running {@link #command}. Used e.g. by helmfile bakes to pass HELMFILE_DISABLE_HOOKS /
+   * HELMFILE_DISABLE_INSECURE_FEATURES to the helmfile subprocess.
+   */
+  Map<String, String> env = [:]
 }

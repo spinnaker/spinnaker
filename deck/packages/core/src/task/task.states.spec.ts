@@ -19,7 +19,7 @@ describe('task states', () => {
     const state = getTasksState();
 
     expect(state.views.insight).toEqual(
-      jasmine.objectContaining({
+      expect.objectContaining({
         $type: 'react',
       }),
     );
@@ -27,8 +27,8 @@ describe('task states', () => {
   });
 
   it('resolves a task permalink through a real direct transition', async () => {
-    spyOn(TaskReader, 'getTask').and.resolveTo({ application: 'payments' } as any);
-    spyOn(ApplicationReader, 'getApplication').and.resolveTo({ name: 'payments', dataSources: [] } as any);
+    vi.spyOn(TaskReader, 'getTask').mockResolvedValue({ application: 'payments' } as any);
+    vi.spyOn(ApplicationReader, 'getApplication').mockResolvedValue({ name: 'payments', dataSources: [] } as any);
     const router = new UIRouterReact();
     const runtime = createDeckRuntime(router);
     router.disposable(runtime);
@@ -37,8 +37,8 @@ describe('task states', () => {
 
     await router.stateService.go('home.taskLookup', { taskId: 'task-123' }, { location: false });
 
-    expect(TaskReader.getTask).toHaveBeenCalledOnceWith('task-123');
+    expect(TaskReader.getTask).toHaveBeenCalledExactlyOnceWith('task-123');
     expect(router.stateService.current.name).toBe('home.applications.application.tasks.taskDetails');
-    expect(router.globals.params).toEqual(jasmine.objectContaining({ application: 'payments', taskId: 'task-123' }));
+    expect(router.globals.params).toEqual(expect.objectContaining({ application: 'payments', taskId: 'task-123' }));
   });
 });

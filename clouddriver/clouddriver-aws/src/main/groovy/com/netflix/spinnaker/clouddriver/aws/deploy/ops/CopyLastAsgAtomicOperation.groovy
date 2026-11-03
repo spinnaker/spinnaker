@@ -206,6 +206,20 @@ class CopyLastAsgAtomicOperation implements AtomicOperation<DeploymentResult> {
               if (description.associateIPv6Address == null) {
                 newDescription.associateIPv6Address = networkInterface.ipv6AddressCount() > 0 ? true : false
               }
+              // Carry forward connection tracking timeouts not explicitly requested, so a clone does not
+              // silently revert the ancestor to the AWS default (350s on Nitro v6 instance types).
+              def ancestorConnectionTracking = networkInterface.connectionTrackingSpecification()
+              if (ancestorConnectionTracking != null) {
+                if (description.tcpEstablishedTimeout == null) {
+                  newDescription.tcpEstablishedTimeout = ancestorConnectionTracking.tcpEstablishedTimeout()
+                }
+                if (description.udpStreamTimeout == null) {
+                  newDescription.udpStreamTimeout = ancestorConnectionTracking.udpStreamTimeout()
+                }
+                if (description.udpTimeout == null) {
+                  newDescription.udpTimeout = ancestorConnectionTracking.udpTimeout()
+                }
+              }
             }
           }
 

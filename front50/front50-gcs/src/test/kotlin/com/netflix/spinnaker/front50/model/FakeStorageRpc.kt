@@ -347,4 +347,18 @@ internal class FakeStorageRpc(private val clock: Clock) : StorageRpc {
   override fun deleteNotification(bucket: String?, notification: String?): Boolean {
     TODO("Not yet implemented")
   }
+
+  override fun restore(storageObject: StorageObject?, options: MutableMap<Option, *>?): StorageObject {
+    TODO("Not yet implemented")
+  }
+
+  override fun moveObject(
+    bucket: String?,
+    sourceObject: String?,
+    targetObject: String?,
+    sourceOptions: MutableMap<Option, *>?,
+    targetOptions: MutableMap<Option, *>?
+  ): StorageObject {
+    TODO("Not yet implemented")
+  }
 }

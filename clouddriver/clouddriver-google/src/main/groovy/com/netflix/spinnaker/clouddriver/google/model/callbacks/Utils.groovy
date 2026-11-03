@@ -27,6 +27,8 @@ import com.netflix.spinnaker.clouddriver.google.deploy.GCEUtil
 import com.netflix.spinnaker.clouddriver.google.model.GoogleServerGroup
 import com.netflix.spinnaker.clouddriver.google.model.loadbalancing.GoogleBackendService
 import com.netflix.spinnaker.clouddriver.google.model.loadbalancing.GoogleHostRule
+import com.netflix.spinnaker.clouddriver.google.model.loadbalancing.GoogleExternalHttpLoadBalancer
+import com.netflix.spinnaker.clouddriver.google.model.loadbalancing.GoogleExternalHttpLoadBalancer.ExternalHttpLbView
 import com.netflix.spinnaker.clouddriver.google.model.loadbalancing.GoogleHttpLoadBalancer
 import com.netflix.spinnaker.clouddriver.google.model.loadbalancing.GoogleInternalHttpLoadBalancer
 import com.netflix.spinnaker.clouddriver.google.model.loadbalancing.GoogleInternalHttpLoadBalancer.InternalHttpLbView;
@@ -34,6 +36,7 @@ import com.netflix.spinnaker.clouddriver.google.model.loadbalancing.GoogleIntern
 import com.netflix.spinnaker.clouddriver.google.model.loadbalancing.GoogleLoadBalancedBackend
 import com.netflix.spinnaker.clouddriver.google.model.loadbalancing.GooglePathMatcher
 import com.netflix.spinnaker.clouddriver.google.model.loadbalancing.GooglePathRule
+import com.netflix.spinnaker.clouddriver.google.model.loadbalancing.GoogleRegionalExternalNetworkLoadBalancer
 import com.netflix.spinnaker.clouddriver.google.model.loadbalancing.GoogleSslLoadBalancer
 import com.netflix.spinnaker.clouddriver.google.model.loadbalancing.GoogleTargetProxyType
 import com.netflix.spinnaker.clouddriver.google.model.loadbalancing.GoogleTcpLoadBalancer
@@ -282,6 +285,13 @@ class Utils {
     return backendServices
   }
 
+  static List<GoogleBackendService> getBackendServicesFromExternalHttpLoadBalancerView(ExternalHttpLbView googleLoadBalancer) {
+    List<GoogleBackendService> backendServices = [googleLoadBalancer.defaultService]
+    collectBackendServicesFromHostRules(googleLoadBalancer?.hostRules, backendServices)
+    // The caching agent leaves redirect entries null.
+    return backendServices.findAll { it != null }
+  }
+
   static void collectBackendServicesFromHostRules(List<GoogleHostRule> hostRules, List<GoogleBackendService> backendServices) {
     List<GooglePathMatcher> pathMatchers = hostRules.collect { GoogleHostRule hostRule -> hostRule.pathMatcher }
     pathMatchers?.each { GooglePathMatcher pathMatcher ->
@@ -300,7 +310,8 @@ class Utils {
         backendServices << GCEUtil.getLocalName(pathRule.service)
       }
     }
-    return backendServices
+    // A redirect has no backend service.
+    return backendServices.findAll { it != null }
   }
 
   static boolean determineHttpLoadBalancerDisabledState(GoogleHttpLoadBalancer loadBalancer,
@@ -322,6 +333,20 @@ class Utils {
     def loadBalancersFromMetadata = serverGroup.asg.get(REGIONAL_LOAD_BALANCER_NAMES)
     def backendServicesFromMetadata = serverGroup.asg.get(REGION_BACKEND_SERVICE_NAMES)
     List<List<GoogleLoadBalancedBackend>> serviceBackends = getBackendServicesFromInternalHttpLoadBalancerView(loadBalancer.view)
+        .findAll { it && it.name in backendServicesFromMetadata }
+        .collect { it.backends }
+    List<String> backendGroupNames = serviceBackends.flatten()
+        .findAll { serverGroup.region == Utils.getRegionFromGroupUrl(it.serverGroupUrl) }
+        .collect { GCEUtil.getLocalName(it.serverGroupUrl) }
+
+    return loadBalancer.name in loadBalancersFromMetadata && !(serverGroup.name in backendGroupNames)
+  }
+
+  static boolean determineExternalHttpLoadBalancerDisabledState(GoogleExternalHttpLoadBalancer loadBalancer,
+                                                                GoogleServerGroup serverGroup) {
+    def loadBalancersFromMetadata = serverGroup.asg.get(REGIONAL_LOAD_BALANCER_NAMES)
+    def backendServicesFromMetadata = serverGroup.asg.get(REGION_BACKEND_SERVICE_NAMES)
+    List<List<GoogleLoadBalancedBackend>> serviceBackends = getBackendServicesFromExternalHttpLoadBalancerView(loadBalancer.view)
         .findAll { it && it.name in backendServicesFromMetadata }
         .collect { it.backends }
     List<String> backendGroupNames = serviceBackends.flatten()
@@ -353,6 +378,21 @@ class Utils {
       log.warn("Malformed internal load balancer encountered: ${loadBalancer}")
     }
     List<GoogleLoadBalancedBackend> serviceBackends = loadBalancer?.backendService?.backends
+    List<String> backendGroupNames = serviceBackends
+      .findAll { serverGroup.region == Utils.getRegionFromGroupUrl(it.serverGroupUrl) }
+      .collect { GCEUtil.getLocalName(it.serverGroupUrl) }
+    return loadBalancer.name in regionalLoadBalancersFromMetadata && !(serverGroup.name in backendGroupNames)
+  }
+
+  static boolean determineRegionalExternalNetworkLoadBalancerDisabledState(GoogleRegionalExternalNetworkLoadBalancer loadBalancer,
+                                                                           GoogleServerGroup serverGroup) {
+    def regionalLoadBalancersFromMetadata = serverGroup.asg.get(REGIONAL_LOAD_BALANCER_NAMES)
+
+    if (loadBalancer.backendService == null) {
+      log.warn("Malformed regional external network load balancer encountered: ${loadBalancer}")
+      return false
+    }
+    List<GoogleLoadBalancedBackend> serviceBackends = loadBalancer.backendService.backends
     List<String> backendGroupNames = serviceBackends
       .findAll { serverGroup.region == Utils.getRegionFromGroupUrl(it.serverGroupUrl) }
       .collect { GCEUtil.getLocalName(it.serverGroupUrl) }

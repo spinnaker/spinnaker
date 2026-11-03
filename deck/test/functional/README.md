@@ -7,7 +7,7 @@ to be running.
 
 From deck project root, run `pnpm functional`.
 
-This will build deck into `/build/webpack` (using `pnpm build`).
+This will build deck into `packages/app/dist` (using `pnpm build`).
 Then it installs and launches cypress from `/test/functional` (using `pnpm test`).
 
 ## Writing Tests

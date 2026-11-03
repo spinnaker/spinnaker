@@ -14,7 +14,7 @@ describe('traverseObject', () => {
   });
 
   it('does not throw on null or undefined', () => {
-    const spyCallback = jasmine.createSpy();
+    const spyCallback = vi.fn();
 
     expect(() => {
       traverseObject(null, spyCallback);

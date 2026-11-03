@@ -19,8 +19,7 @@ const IMAGE_SOURCES = [
 
 export class ServerGroupImageSettings extends GceServerGroupWizardPage {
   public validate(values: IGceServerGroupCommand): IGceServerGroupCommandValidationErrors {
-    const image = validateGceServerGroupCommand(values).image;
-    return image ? { image } : {};
+    return validateGceServerGroupImageSettings(values);
   }
 
   private imageArtifactEdited = (artifact: any): void => {
@@ -144,6 +143,13 @@ export class ServerGroupImageSettings extends GceServerGroupWizardPage {
       </div>
     );
   }
+}
+
+export function validateGceServerGroupImageSettings(
+  values: IGceServerGroupCommand,
+): IGceServerGroupCommandValidationErrors {
+  const image = validateGceServerGroupCommand(values).image;
+  return image ? { image } : {};
 }
 
 function imageOptions(rawImages: readonly any[], persistedImage: string | null | undefined): IImageOption[] {

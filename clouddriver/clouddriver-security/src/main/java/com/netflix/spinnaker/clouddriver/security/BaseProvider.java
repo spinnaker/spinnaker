@@ -40,7 +40,7 @@ public abstract class BaseProvider extends AgentSchedulerAware implements Provid
   public final void addAgents(Collection<? extends Agent> agentsToSchedule) {
     agents.addAll(agentsToSchedule);
 
-    AgentScheduler<?> agentScheduler = getAgentScheduler();
+    AgentScheduler agentScheduler = getAgentScheduler();
     if (agentScheduler instanceof CatsModuleAware) {
       CatsModule catsModule = ((CatsModuleAware) agentScheduler).getCatsModule();
       agentsToSchedule.forEach(
@@ -55,7 +55,7 @@ public abstract class BaseProvider extends AgentSchedulerAware implements Provid
   public final void removeAgentsForAccounts(Collection<String> namesOfDeletedAccounts) {
     namesOfDeletedAccounts.forEach(
         nameOfDeletedAccount -> {
-          AgentScheduler<?> scheduler = getAgentScheduler();
+          AgentScheduler scheduler = getAgentScheduler();
           List<Agent> agentsToDelete =
               agents.stream()
                   .filter(agent -> agent.handlesAccount(nameOfDeletedAccount))

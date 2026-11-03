@@ -1,34 +1,22 @@
-import { mount } from 'enzyme';
-import React from 'react';
-
+import { renderHookHarness } from '../../utils/testUtils/hookHarness';
 import { usePrevious } from './usePrevious.hook';
-
-const TestComponent = ({ value, valueCallback }: { value: any; valueCallback: (value: any) => any }) => {
-  const previousValue = usePrevious(value);
-  valueCallback(previousValue);
-  return null as JSX.Element;
-};
 
 describe('usePrevious', () => {
   it('should give back undefined on initial mount', () => {
-    let valueFromHook: any;
-    const valueCallback = (value: any) => (valueFromHook = value);
-    mount(<TestComponent value={'first value'} valueCallback={valueCallback} />);
+    const rendered = renderHookHarness(({ value }) => usePrevious(value), { value: 'first value' });
 
-    expect(valueFromHook).toBe(undefined);
+    expect(rendered.result.current).toBe(undefined);
   });
 
   it('should give back the value before the most recent render', () => {
-    let valueFromHook: any;
-    const valueCallback = (value: any) => (valueFromHook = value);
-    const component = mount(<TestComponent value={'first value'} valueCallback={valueCallback} />);
+    const rendered = renderHookHarness(({ value }) => usePrevious(value), { value: 'first value' });
 
-    component.setProps({ value: 'second value' });
+    rendered.rerenderHook({ value: 'second value' });
 
-    expect(valueFromHook).toBe('first value');
+    expect(rendered.result.current).toBe('first value');
 
-    component.setProps({ value: 'third value' });
+    rendered.rerenderHook({ value: 'third value' });
 
-    expect(valueFromHook).toBe('second value');
+    expect(rendered.result.current).toBe('second value');
   });
 });

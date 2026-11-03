@@ -64,7 +64,7 @@ class EcsClusterProviderSpec extends Specification {
       cacheData.add(new DefaultCacheData(clusterKey, attributes, Collections.emptyMap()))
     }
     cacheView.filterIdentifiers(_, _) >> ecsClustersIdentifiers
-    cacheView.getAll(_, ecsClustersIdentifiers) >> cacheData
+    cacheView.getAll(_, _ as Collection) >> cacheData
 
     for (int x = 0; x < numberOfClusters; x++) {
       Cluster cluster = Cluster.builder()
@@ -133,7 +133,7 @@ class EcsClusterProviderSpec extends Specification {
     cacheData.add(new DefaultCacheData(clusterKey, attributes, Collections.emptyMap()))
 
     cacheView.filterIdentifiers(_, _) >> ecsClustersIdentifiers
-    cacheView.getAll(_, ecsClustersIdentifiers) >> cacheData
+    cacheView.getAll(_, _ as Collection) >> cacheData
 
     //Adding only two clusters in the response which belongs to the expected region.
     for (int x = 0; x < 2; x++) {

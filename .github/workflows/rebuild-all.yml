@@ -25,7 +25,7 @@ jobs:
           app-id: ${{ secrets.RELEASE_APP_ID }}
           private-key: ${{ secrets.RELEASE_PRIVATE_KEY }}
       - name: Trigger Deck Release
-        uses: actions/github-script@v8
+        uses: actions/github-script@v9
         with:
           github-token: ${{ steps.app-token.outputs.token }}
           script: |
@@ -77,8 +77,4 @@ jobs:
   spin:
     if: github.event_name == 'workflow_dispatch' || (github.event_name == 'create' && startsWith(github.ref, 'refs/heads/release-'))
     uses: ./.github/workflows/spin.yml
-    secrets: inherit
-  libs:
-    if: github.event_name == 'workflow_dispatch' || (github.event_name == 'create' && startsWith(github.ref, 'refs/heads/release-'))
-    uses: ./.github/workflows/spinnaker-libraries.yml
     secrets: inherit

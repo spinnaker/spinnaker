@@ -7,13 +7,7 @@ import { FormikStageConfig } from '@spinnaker/core';
 
 import { FindArtifactsFromResourceStageForm } from './FindArtifactsFromResourceStageForm';
 
-export function FindArtifactsFromResourceConfig({
-  application,
-  pipeline,
-  stage,
-  updateStage,
-  stageFieldUpdated,
-}: IStageConfigProps) {
+export function FindArtifactsFromResourceConfig({ application, pipeline, stage, updateStage }: IStageConfigProps) {
   useEffect(() => {
     defaults(stage, {
       app: application.name,
@@ -27,9 +21,7 @@ export function FindArtifactsFromResourceConfig({
       pipeline={pipeline}
       stage={stage}
       onChange={updateStage}
-      render={(props: IFormikStageConfigInjectedProps) => (
-        <FindArtifactsFromResourceStageForm {...props} stageFieldUpdated={stageFieldUpdated} />
-      )}
+      render={(props: IFormikStageConfigInjectedProps) => <FindArtifactsFromResourceStageForm {...props} />}
     />
   );
 }

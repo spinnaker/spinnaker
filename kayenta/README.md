@@ -1,6 +1,6 @@
 Kayenta
 ====
-[![Build Status](https://travis-ci.org/spinnaker/kayenta.svg?branch=master)](https://travis-ci.org/spinnaker/kayenta)
+[![Build Status](https://github.com/spinnaker/spinnaker/actions/workflows/kayenta.yml/badge.svg)](https://github.com/spinnaker/spinnaker/actions/workflows/kayenta.yml)
 
 Kayenta is a platform for Automated Canary Analysis (ACA). It is used by Spinnaker to enable automated canary deployments. Please see the comprehensive [canary documentation](https://www.spinnaker.io/guides/user/canary/stage/) for more details.
 
@@ -20,9 +20,9 @@ See the [Canary Config Object model](docs/canary-config.md) for how a canary con
 
 ### Debugging
 
-To start the JVM in debug mode, set the Java system property `DEBUG=true`:
+To start the JVM in debug mode, set the Java system property `DEBUG=true` (run from the monorepo root):
 ```
-./gradlew -DDEBUG=true
+./gradlew kayenta -DDEBUG=true
 ```
 
 The JVM will then listen for a debugger to be attached on port 8191.  The JVM will _not_ wait for the debugger

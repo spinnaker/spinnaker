@@ -14,7 +14,7 @@ data class ServerGroupCollection<T : BaseServerGroup>(
 )
 
 /**
- * Fields common to all of the different kinds of server groups (EC2, Titus)
+ * Fields common to all of the different kinds of server groups
  */
 interface BaseServerGroup {
   val name: String

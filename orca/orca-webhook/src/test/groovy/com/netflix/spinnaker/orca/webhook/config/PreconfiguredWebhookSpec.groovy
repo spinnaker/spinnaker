@@ -17,7 +17,6 @@
 
 package com.netflix.spinnaker.orca.webhook.config
 
-import org.springframework.http.HttpHeaders
 import org.springframework.http.HttpMethod
 import spock.lang.Specification
 import spock.lang.Unroll
@@ -79,8 +78,7 @@ class PreconfiguredWebhookSpec extends Specification {
   }
 
   static WebhookProperties.PreconfiguredWebhook createPreconfiguredWebhook() {
-    def customHeaders = new HttpHeaders()
-    customHeaders.put("header", ["value1", "value2"])
+    def customHeaders = ["header": ["value1", "value2"]]
     return new WebhookProperties.PreconfiguredWebhook(
       url: "url", customHeaders: customHeaders, method: HttpMethod.POST, payload: "payload",
       failFastStatusCodes: [500, 501], waitForCompletion: true, statusUrlResolution: webhookResponse,

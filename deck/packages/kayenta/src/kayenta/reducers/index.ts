@@ -31,7 +31,6 @@ export interface ICanaryState {
 
 const combined = combineReducers<ICanaryState>({
   app,
-  configValidationErrors: () => null,
   data,
   selectedConfig,
   selectedRun,

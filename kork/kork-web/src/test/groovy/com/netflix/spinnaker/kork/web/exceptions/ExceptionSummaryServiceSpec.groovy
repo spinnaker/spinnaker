@@ -27,24 +27,24 @@ class ExceptionSummaryServiceSpec extends Specification {
 
   def "converts a chain of exceptions to a summary"() {
     given:
-    Exception rootException = new ExternalLibraryException("INVALID_ARGUMENT: TitusServiceException: Image xyz/abcd:20190822_152019_934d150 does not exist in registry")
+    Exception rootException = new ExternalLibraryException("INVALID_ARGUMENT: ContainerServiceException: Image xyz/abcd:20190822_152019_934d150 does not exist in registry")
     Exception intermediateException = new CloudProviderException("Let's pretend it was caught elsewhere", rootException)
     Exception nonSpinnakerException = new RuntimeException("And here's another intermediate but it isn't SpinnakerException", intermediateException)
-    Exception topException = new IntegrationException("Failed to apply action SubmitTitusJob for TitusDeployHandler/sha1", nonSpinnakerException)
+    Exception topException = new IntegrationException("Failed to apply action SubmitJob for ContainerDeployHandler/sha1", nonSpinnakerException)
 
     when:
     def result = exceptionSummaryService.summary(topException)
 
     then:
-    result.message == "Failed to apply action SubmitTitusJob for TitusDeployHandler/sha1"
-    result.cause == "INVALID_ARGUMENT: TitusServiceException: Image xyz/abcd:20190822_152019_934d150 does not exist in registry"
+    result.message == "Failed to apply action SubmitJob for ContainerDeployHandler/sha1"
+    result.cause == "INVALID_ARGUMENT: ContainerServiceException: Image xyz/abcd:20190822_152019_934d150 does not exist in registry"
     result.retryable == null
     result.details.size() == 4
     result.details*.message == [
-      "INVALID_ARGUMENT: TitusServiceException: Image xyz/abcd:20190822_152019_934d150 does not exist in registry",
+      "INVALID_ARGUMENT: ContainerServiceException: Image xyz/abcd:20190822_152019_934d150 does not exist in registry",
       "Let's pretend it was caught elsewhere",
       "And here's another intermediate but it isn't SpinnakerException",
-      "Failed to apply action SubmitTitusJob for TitusDeployHandler/sha1"
+      "Failed to apply action SubmitJob for ContainerDeployHandler/sha1"
     ]
   }
 

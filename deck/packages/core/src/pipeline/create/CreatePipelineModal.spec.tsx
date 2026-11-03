@@ -1,3 +1,4 @@
+import type { Mock } from 'vitest';
 import React from 'react';
 import ReactDOM from 'react-dom';
 import { act } from 'react-dom/test-utils';
@@ -41,7 +42,7 @@ function createApplication(
 ): Application {
   const pipelineConfigs = {
     data: pipelines,
-    refresh: jasmine.createSpy('refresh').and.returnValue(Promise.resolve()),
+    refresh: vi.fn().mockReturnValue(Promise.resolve()),
   };
   const strategyConfigs = { data: strategies };
   const dataSources = { pipelineConfigs, strategyConfigs };
@@ -73,14 +74,14 @@ async function rejectBoundary(boundary: IDeferred<void>, reason: unknown): Promi
 describe('CreatePipelineModal', () => {
   let container: HTMLDivElement;
   let component: CreatePipelineModal;
-  let pipelineSavedCallback: jasmine.Spy;
+  let pipelineSavedCallback: Mock;
 
   function renderModal(application: Application): void {
     const props: ICreatePipelineModalProps = {
       application,
       pipelineSavedCallback,
       show: false,
-      showCallback: jasmine.createSpy('showCallback'),
+      showCallback: vi.fn(),
     };
     act(() => {
       ReactDOM.render(
@@ -105,15 +106,15 @@ describe('CreatePipelineModal', () => {
     const refreshCompletion = refresh.promise.then(() => {
       application.pipelineConfigs.data = [...application.pipelineConfigs.data, savedPipeline];
     });
-    const savePipeline = spyOn(PipelineConfigService, 'savePipeline').and.returnValue(save.promise);
-    application.pipelineConfigs.refresh.and.returnValue(refreshCompletion);
+    const savePipeline = vi.spyOn(PipelineConfigService, 'savePipeline').mockReturnValue(save.promise);
+    application.pipelineConfigs.refresh.mockReturnValue(refreshCompletion);
     return { refresh, refreshCompletion, save, savePipeline };
   }
 
   beforeEach(() => {
     container = document.createElement('div');
-    pipelineSavedCallback = jasmine.createSpy('pipelineSavedCallback');
-    spyOn(diagnosticLogger, 'warn');
+    pipelineSavedCallback = vi.fn();
+    vi.spyOn(diagnosticLogger, 'warn').mockReturnValue(undefined);
   });
 
   afterEach(() => {
@@ -154,8 +155,8 @@ describe('CreatePipelineModal', () => {
 
     const expectedPayload = { ...sourceConfig, name: 'Copied pipeline', index: 2 };
     delete expectedPayload.id;
-    expect(boundaries.savePipeline).toHaveBeenCalledOnceWith(expectedPayload as IPipeline);
-    const submitted = boundaries.savePipeline.calls.mostRecent().args[0];
+    expect(boundaries.savePipeline).toHaveBeenCalledExactlyOnceWith(expectedPayload as IPipeline);
+    const submitted = boundaries.savePipeline.mock.lastCall[0];
     expect(submitted).not.toBe(sourceConfig as IPipeline);
     expect(submitted.stages).not.toBe(sourceConfig.stages);
     expect(sourceConfig).toEqual(sourceSnapshot);
@@ -173,7 +174,7 @@ describe('CreatePipelineModal', () => {
     updateCommand({ name: '  New pipeline  ' });
 
     act(() => component.submit());
-    expect(boundaries.savePipeline).toHaveBeenCalledOnceWith({
+    expect(boundaries.savePipeline).toHaveBeenCalledExactlyOnceWith({
       ...DEFAULT_CONFIG,
       name: 'New pipeline',
       index: 1,
@@ -187,7 +188,7 @@ describe('CreatePipelineModal', () => {
     expect(component.state.saveError).toBe(false);
     expect(component.state.command.name).toBe('');
     expect(component.state.command.config.name).toBe('None');
-    expect(pipelineSavedCallback).toHaveBeenCalledOnceWith('saved-id');
+    expect(pipelineSavedCallback).toHaveBeenCalledExactlyOnceWith('saved-id');
   });
 
   [
@@ -204,7 +205,7 @@ describe('CreatePipelineModal', () => {
   ].forEach(({ description, response, message }) => {
     it(`${description}, clears submitting, and does not report a saved pipeline`, async () => {
       const save = deferred<void>();
-      spyOn(PipelineConfigService, 'savePipeline').and.returnValue(save.promise);
+      vi.spyOn(PipelineConfigService, 'savePipeline').mockReturnValue(save.promise);
       renderModal(createApplication());
       updateCommand({ name: 'Rejected pipeline' });
 

@@ -38,6 +38,6 @@ public class MainSpec {
 
   @Test
   public void startupTest() {
-    assertThat(serviceClientProvider != null);
+    assertThat(serviceClientProvider).isNotNull();
   }
 }

@@ -10,7 +10,7 @@ import com.netflix.spinnaker.keel.api.Moniker
 import com.netflix.spinnaker.keel.api.SimpleLocations
 import com.netflix.spinnaker.keel.api.ec2.SecurityGroupSpec
 import com.netflix.spinnaker.keel.core.name
-import org.springframework.boot.jackson.JsonComponent
+import org.springframework.boot.jackson2.JsonComponent
 
 @JsonComponent
 class SecurityGroupSpecDeserializer : StdNodeBasedDeserializer<SecurityGroupSpec>(SecurityGroupSpec::class.java) {

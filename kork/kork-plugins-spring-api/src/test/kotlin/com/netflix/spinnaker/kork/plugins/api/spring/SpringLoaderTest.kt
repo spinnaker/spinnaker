@@ -19,7 +19,7 @@ package com.netflix.spinnaker.kork.plugins.api.spring
 import dev.minutest.junit.JUnit5Minutests
 import dev.minutest.rootContext
 import io.mockk.mockk
-import org.springframework.boot.web.servlet.context.AnnotationConfigServletWebServerApplicationContext
+import org.springframework.boot.web.context.servlet.AnnotationConfigServletWebApplicationContext
 import org.springframework.context.annotation.AnnotationConfigApplicationContext
 
 class SpringLoaderTest : JUnit5Minutests {
@@ -44,7 +44,7 @@ class SpringLoaderTest : JUnit5Minutests {
 
   private inner class Fixture {
     val pluginContext: AnnotationConfigApplicationContext = mockk(relaxed = true)
-    val appContext: AnnotationConfigServletWebServerApplicationContext = mockk(relaxed = true)
+    val appContext: AnnotationConfigServletWebApplicationContext = mockk(relaxed = true)
     val pluginClassLoader: ClassLoader = javaClass.classLoader
     var packagesToScan = listOf("io.armory.plugin.example.spring")
     val classesToRegister = listOf(

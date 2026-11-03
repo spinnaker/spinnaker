@@ -23,6 +23,7 @@ import com.google.common.base.Strings;
 import com.netflix.spinnaker.clouddriver.kubernetes.config.CustomKubernetesResource;
 import com.netflix.spinnaker.clouddriver.kubernetes.description.manifest.KubernetesKind;
 import com.netflix.spinnaker.clouddriver.kubernetes.op.handler.CustomKubernetesHandlerFactory;
+import com.netflix.spinnaker.clouddriver.kubernetes.op.handler.CustomResourceStatusEvaluator;
 import com.netflix.spinnaker.clouddriver.kubernetes.op.handler.KubernetesHandler;
 import java.util.Objects;
 import javax.annotation.Nonnull;
@@ -39,7 +40,7 @@ public class KubernetesResourceProperties {
   }
 
   public static KubernetesResourceProperties fromCustomResource(
-      CustomKubernetesResource customResource) {
+      CustomKubernetesResource customResource, CustomResourceStatusEvaluator statusEvaluator) {
     String deployPriority = customResource.getDeployPriority();
     int deployPriorityValue;
     if (Strings.isNullOrEmpty(deployPriority)) {
@@ -58,7 +59,8 @@ public class KubernetesResourceProperties {
             KubernetesKind.fromString(customResource.getKubernetesKind()),
             SpinnakerKind.fromString(customResource.getSpinnakerKind()),
             customResource.isVersioned(),
-            deployPriorityValue);
+            deployPriorityValue,
+            statusEvaluator);
 
     return new KubernetesResourceProperties(handler, customResource.isVersioned());
   }

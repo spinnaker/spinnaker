@@ -1,48 +1,42 @@
-import { mount } from 'enzyme';
+import type { Transition } from '@uirouter/core';
+import { act, screen } from '@testing-library/react';
 import React from 'react';
+import { Subject } from 'rxjs';
 
 import { ProjectHeader } from './ProjectHeader';
-import { wrapWithRouter } from '../utils/testUtils';
+import type { IProject } from '../domain';
+import { renderWithRouter } from '../utils/testUtils/rtl';
 
 describe('<ProjectHeader />', () => {
-  const transition = {
-    router: {
-      globals: {
-        success$: {
-          pipe: () => ({
-            subscribe: (callback: any) => {
-              callback({
-                to: () => ({ name: 'home.project.dashboard' }),
-                params: () => ({}),
-              });
-              return { unsubscribe: () => null };
-            },
-          }),
-        },
-      },
-      stateService: {},
-    },
-  } as any;
-
   it('renders the dashboard header in a direct React route', () => {
-    const wrapper = mount(
-      wrapWithRouter(
-        <ProjectHeader
-          projectConfiguration={
-            {
-              name: 'kubernetesproject',
-              config: { applications: ['kubernetesapp'] },
-            } as any
-          }
-          transition={transition}
-        />,
-      ),
+    const success$ = new Subject<Transition>();
+    const transition = ({
+      router: {
+        globals: { success$ },
+        stateService: {},
+      },
+    } as unknown) as Transition;
+    const projectConfiguration = {
+      name: 'kubernetesproject',
+      config: { applications: ['kubernetesapp'] },
+    } as IProject;
+
+    const { unmount } = renderWithRouter(
+      <ProjectHeader projectConfiguration={projectConfiguration} transition={transition} />,
     );
+    act(() => {
+      success$.next(({
+        to: () => ({ name: 'home.project.dashboard' }),
+        params: () => ({}),
+      } as unknown) as Transition);
+    });
 
-    expect(wrapper.find('.project-name').text()).toContain('kubernetesproject /');
-    expect(wrapper.find('h2 .project-view .dropdown span.clickable').hostNodes().length).toBe(1);
-    expect(wrapper.find('.configure-project-link').text()).toContain('Project Configuration');
+    expect(screen.getByRole('heading', { level: 2 })).toHaveTextContent('kubernetesproject / Project Dashboard');
+    expect(screen.getByText('Project Dashboard', { selector: '.clickable' })).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: /Project Configuration/ })).toBeInTheDocument();
+    expect(success$.observers).toHaveLength(1);
 
-    wrapper.unmount();
+    unmount();
+    expect(success$.observers).toHaveLength(0);
   });
 });

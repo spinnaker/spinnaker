@@ -117,4 +117,13 @@ final class CacheResultBuilderTest {
     assertThat(cacheResults.get("auth2")).extracting(CacheData::getId).containsExactly("id2");
     assertThat(cacheResults.get("auth3")).extracting(CacheData::getId).containsExactly("id3");
   }
+
+  @Test
+  public void dataTypesAndStartTimeConstructorSetsBoth() {
+    CacheResultBuilder cacheResultBuilder =
+        new CacheResultBuilder(ImmutableSet.of(AUTHORITATIVE.forType("auth1")), 12345L);
+
+    assertThat(cacheResultBuilder.getStartTime()).isEqualTo(12345L);
+    assertThat(cacheResultBuilder.build().getCacheResults().get("auth1")).isEmpty();
+  }
 }

@@ -1,12 +1,12 @@
-import { shallow } from 'enzyme';
+import { render } from '@testing-library/react';
 import React from 'react';
 
 import { AccountTag } from './AccountTag';
 
 describe('AccountTag', () => {
   it('renders nothing for missing account values', () => {
-    const wrapper = shallow(<AccountTag account={null} />);
+    const { container } = render(<AccountTag account={null} />);
 
-    expect(wrapper.isEmptyRender()).toBe(true);
+    expect(container).toBeEmptyDOMElement();
   });
 });

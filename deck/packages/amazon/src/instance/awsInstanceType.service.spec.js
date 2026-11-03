@@ -1,14 +1,16 @@
 'use strict';
 import { map } from 'lodash';
-import { mockHttpClient } from 'core/api/mock/jasmine';
+import { mockHttpClient } from 'core/api/mock/mockHttpSupport';
 
 import { AwsInstanceTypeService } from './awsInstanceType.service';
 
+const testContext = {};
+
 describe('Service: InstanceType', function () {
   beforeEach(function () {
-    this.awsInstanceTypeService = new AwsInstanceTypeService();
+    testContext.awsInstanceTypeService = new AwsInstanceTypeService();
 
-    this.allTypes = [
+    testContext.allTypes = [
       {
         account: 'test',
         region: 'us-west-2',
@@ -141,10 +143,10 @@ describe('Service: InstanceType', function () {
   describe('getAllTypesByRegion', function () {
     it('returns types, indexed by region', async function () {
       const http = mockHttpClient();
-      http.expectGET('/instanceTypes').respond(200, this.allTypes);
+      http.expectGET('/instanceTypes').respond(200, testContext.allTypes);
 
       let results = null;
-      this.awsInstanceTypeService.getAllTypesByRegion().then(function (result) {
+      testContext.awsInstanceTypeService.getAllTypesByRegion().then(function (result) {
         results = result;
       });
 
@@ -157,12 +159,12 @@ describe('Service: InstanceType', function () {
   describe('getAvailableTypesForRegions', function () {
     it('returns results for a single region', async function () {
       const http = mockHttpClient();
-      http.expectGET('/instanceTypes').respond(200, this.allTypes);
+      http.expectGET('/instanceTypes').respond(200, testContext.allTypes);
 
       let results = null,
-        service = this.awsInstanceTypeService;
+        service = testContext.awsInstanceTypeService;
 
-      this.awsInstanceTypeService.getAllTypesByRegion().then(function (result) {
+      testContext.awsInstanceTypeService.getAllTypesByRegion().then(function (result) {
         results = service.getAvailableTypesForRegions(result, ['us-west-2']);
       });
 
@@ -193,12 +195,12 @@ describe('Service: InstanceType', function () {
 
     it('returns empty list for region with no instance types', async function () {
       const http = mockHttpClient();
-      http.expectGET('/instanceTypes').respond(200, this.allTypes);
+      http.expectGET('/instanceTypes').respond(200, testContext.allTypes);
 
       let results = null,
-        service = this.awsInstanceTypeService;
+        service = testContext.awsInstanceTypeService;
 
-      this.awsInstanceTypeService.getAllTypesByRegion().then(function (result) {
+      testContext.awsInstanceTypeService.getAllTypesByRegion().then(function (result) {
         results = service.getAvailableTypesForRegions(result, ['us-west-3']);
       });
 
@@ -208,12 +210,12 @@ describe('Service: InstanceType', function () {
 
     it('returns an intersection when multiple regions are provided', async function () {
       const http = mockHttpClient();
-      http.expectGET('/instanceTypes').respond(200, this.allTypes);
+      http.expectGET('/instanceTypes').respond(200, testContext.allTypes);
 
       let results = null,
-        service = this.awsInstanceTypeService;
+        service = testContext.awsInstanceTypeService;
 
-      this.awsInstanceTypeService.getAllTypesByRegion().then(function (result) {
+      testContext.awsInstanceTypeService.getAllTypesByRegion().then(function (result) {
         results = service.getAvailableTypesForRegions(result, ['us-west-2', 'eu-west-1']);
       });
 
@@ -223,12 +225,12 @@ describe('Service: InstanceType', function () {
 
     it('sorts instance types by family then class size', async function () {
       const http = mockHttpClient();
-      http.expectGET('/instanceTypes').respond(200, this.allTypes);
+      http.expectGET('/instanceTypes').respond(200, testContext.allTypes);
 
       let results = null,
-        service = this.awsInstanceTypeService;
+        service = testContext.awsInstanceTypeService;
 
-      this.awsInstanceTypeService.getAllTypesByRegion().then(function (result) {
+      testContext.awsInstanceTypeService.getAllTypesByRegion().then(function (result) {
         results = service.getAvailableTypesForRegions(result, ['us-east-1']);
       });
 
@@ -303,7 +305,7 @@ describe('Service: InstanceType', function () {
     ];
 
     it('filters instance types by VPC, virtualization type and architecture, only if the information exists', function () {
-      const service = this.awsInstanceTypeService;
+      const service = testContext.awsInstanceTypeService;
       expect(map(service.filterInstanceTypes(instanceTypes, 'hvm', true, 'x86_64'), 'name')).toEqual([
         'test.type.incomplete',
         'm1.small',
@@ -331,7 +333,7 @@ describe('Service: InstanceType', function () {
     });
 
     it('matches architecture case-insensitively', function () {
-      const service = this.awsInstanceTypeService;
+      const service = testContext.awsInstanceTypeService;
       const armInstanceTypes = [
         {
           account: 'test',
@@ -350,7 +352,7 @@ describe('Service: InstanceType', function () {
     });
 
     it('matches virtualization type case-insensitively when the AMI attribute is uppercase', function () {
-      const service = this.awsInstanceTypeService;
+      const service = testContext.awsInstanceTypeService;
       const armInstanceTypes = [
         {
           account: 'test',
@@ -384,7 +386,7 @@ describe('Service: InstanceType', function () {
 
     testInputs.forEach((testInput) => {
       it(`identifies if bursting is supported for all instance types passed correctly for ${testInput.types}`, function () {
-        const actualResult = this.awsInstanceTypeService.isBurstingSupportedForAllTypes(testInput.types);
+        const actualResult = testContext.awsInstanceTypeService.isBurstingSupportedForAllTypes(testInput.types);
         expect(actualResult).toEqual(testInput.result);
       });
     });
@@ -408,7 +410,7 @@ describe('Service: InstanceType', function () {
 
     testInputs.forEach((testInput) => {
       it(`identifies instance types in category correctly for ${testInput.types}`, function () {
-        const actual = this.awsInstanceTypeService.getInstanceTypesInCategory(testInput.types, testInput.cat);
+        const actual = testContext.awsInstanceTypeService.getInstanceTypesInCategory(testInput.types, testInput.cat);
         expect(actual).toEqual(testInput.result);
       });
     });

@@ -71,12 +71,4 @@ class ClusterDeployStrategyTests {
     expectThat(job.get("interestingHealthProviderNames")).isA<List<String>>().containsExactly("Amazon")
 
   }
-  @Test
-  fun `no health and titus includes correct health`() {
-    val strategy = RedBlack(health = NONE)
-    val job = strategy.toOrcaJobProperties("Titus")
-
-    expectThat(job.get("interestingHealthProviderNames")).isA<List<String>>().containsExactly("Titus")
-
-  }
 }

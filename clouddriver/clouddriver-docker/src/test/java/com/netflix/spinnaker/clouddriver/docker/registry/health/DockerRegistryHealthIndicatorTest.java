@@ -34,8 +34,8 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
-import org.springframework.boot.actuate.health.Health;
-import org.springframework.boot.actuate.health.Status;
+import org.springframework.boot.health.contributor.Health;
+import org.springframework.boot.health.contributor.Status;
 
 @ExtendWith(MockitoExtension.class)
 class DockerRegistryHealthIndicatorTest {
@@ -65,7 +65,7 @@ class DockerRegistryHealthIndicatorTest {
         new DockerRegistryHealthIndicator(REGISTRY, repository);
 
     healthIndicator.checkHealth();
-    Health result = healthIndicator.getHealth(true);
+    Health result = healthIndicator.health(true);
 
     assertThat(result.getStatus()).isEqualTo(Status.UP);
     assertThat(result.getDetails()).isEmpty();
@@ -88,7 +88,7 @@ class DockerRegistryHealthIndicatorTest {
         new DockerRegistryHealthIndicator(REGISTRY, repository);
 
     healthIndicator.checkHealth();
-    Health result = healthIndicator.getHealth(true);
+    Health result = healthIndicator.health(true);
 
     assertThat(result.getStatus()).isEqualTo(Status.UP);
     assertThat(result.getDetails()).isEmpty();
@@ -110,7 +110,7 @@ class DockerRegistryHealthIndicatorTest {
     DockerRegistryHealthIndicator healthIndicator =
         new DockerRegistryHealthIndicator(REGISTRY, repository);
     healthIndicator.checkHealth();
-    Health result = healthIndicator.getHealth(true);
+    Health result = healthIndicator.health(true);
 
     assertThat(result.getStatus()).isEqualTo(Status.UP);
     assertEquals(1, result.getDetails().size());
@@ -161,7 +161,7 @@ class DockerRegistryHealthIndicatorTest {
         new DockerRegistryHealthIndicator(REGISTRY, repository);
 
     healthIndicator.checkHealth();
-    Health result = healthIndicator.getHealth(true);
+    Health result = healthIndicator.health(true);
 
     assertThat(result.getStatus()).isEqualTo(Status.UP);
     assertEquals(2, result.getDetails().size());

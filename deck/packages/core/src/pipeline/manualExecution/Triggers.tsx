@@ -20,7 +20,7 @@ export interface ITriggersProps {
 }
 
 export class Triggers extends React.Component<ITriggersProps> {
-  private destroy$ = new Subject();
+  private destroy$ = new Subject<void>();
 
   public componentDidMount() {
     this.updateTriggerDescription(this.props.formik.values.trigger);

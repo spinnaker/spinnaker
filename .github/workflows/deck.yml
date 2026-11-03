@@ -70,27 +70,39 @@ jobs:
         with:
           path: ./deck
           format: cyclonedx-json
-          output-file: deck-sbom.json
-          artifact-name: sbom-deck
+          output-file: deck-app-sbom.cdx.json
+          # Upload below instead: anchore's own upload names the file after the artifact (`sbom-deck`),
+          # but the release workflow expects `deck-app-sbom.cdx.json` like every other service.
+          upload-artifact: false
+
+      - name: Upload SBOM artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: sbom-deck
+          path: deck-app-sbom.cdx.json
+          if-no-files-found: error
+          # Re-running the job (e.g. publishing retries) must not fail on the existing artifact
+          overwrite: true
 
       - name: Summarize SBOM
         shell: bash
         run: |
-          COMPONENT_COUNT=$(jq '.components | length' deck-sbom.json)
+          COMPONENT_COUNT=$(jq '.components | length' deck-app-sbom.cdx.json)
           cat <<EOF >> "$GITHUB_STEP_SUMMARY"
           ### SBOM (CycloneDX)
           Generated for \`deck\`: $COMPONENT_COUNT components.
-          Full deck-sbom.json available in the \`sbom-deck\` workflow artifact.
+          Full deck-app-sbom.cdx.json available in the \`sbom-deck\` workflow artifact.
           EOF
 
       - uses: ./.github/actions/generic-build-publish
         with:
           project: deck
-          docker-build-command: ':deck:webpack'
+          docker-build-command: ':deck:viteBuild'
           publish: ${{ github.event_name != 'pull_request' }}
           publish-containers: ${{ github.event_name == 'push' || inputs.publish-containers == true }}
           publish-debs: ${{ inputs.publish-debs == true }}
-          publish-npm: ${{ github.event_name == 'push' || inputs.publish-npm == true }}
+          # npm packages are only published for full releases, which always pass an explicit version
+          publish-npm: ${{ inputs.publish-npm == true && inputs.version-override != '' }}
           version-override: ${{ inputs.version-override }}
           integration-test: false
           github-token: ${{ secrets.GITHUB_TOKEN }}

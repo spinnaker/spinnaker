@@ -23,7 +23,7 @@ describe('ScrollToService', () => {
 
   it('schedules scrolls with a local native timeout', () => {
     $.fx.off = true;
-    const timeout = spyOn(window, 'setTimeout').and.callFake((callback: TimerHandler) => {
+    const timeout = vi.spyOn(window, 'setTimeout').mockImplementation((callback: TimerHandler) => {
       if (typeof callback === 'function') {
         callback();
       }
@@ -32,6 +32,6 @@ describe('ScrollToService', () => {
 
     ScrollToService.scrollTo('[data-page-id=target]', '.container', 0, 25);
 
-    expect(timeout).toHaveBeenCalledWith(jasmine.any(Function), 25);
+    expect(timeout).toHaveBeenCalledWith(expect.any(Function), 25);
   });
 });

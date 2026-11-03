@@ -1,0 +1,31 @@
+apply plugin: "java-library"
+apply from: "$rootDir/gradle/lombok.gradle"
+
+dependencies {
+  api(platform(project(":spinnaker-dependencies")))
+
+  implementation project(":kork-artifacts")
+  implementation project(":kork-sql")
+  implementation project(":kork-security")
+  implementation "org.springframework.boot:spring-boot-autoconfigure"
+  implementation "org.springframework.boot:spring-boot-starter-web"
+  implementation "org.apache.logging.log4j:log4j-api"
+
+  // jOOQ's org.jooq.conf.Settings uses jakarta.xml.bind annotations but declares
+  // jakarta.xml.bind-api as optional. Without this, javac warns:
+  // unknown enum constant XmlAccessType.FIELD
+  compileOnly("jakarta.xml.bind:jakarta.xml.bind-api")
+
+  testImplementation "org.assertj:assertj-core"
+  testImplementation "org.junit.jupiter:junit-jupiter-api"
+  testImplementation "org.junit.jupiter:junit-jupiter-params"
+  testImplementation "org.mockito:mockito-core"
+  testImplementation "org.springframework.boot:spring-boot-starter-test"
+  testImplementation project(":kork-core")
+  testImplementation project(":kork-sql-test")
+  testImplementation "com.h2database:h2"
+
+  testRuntimeOnly "org.junit.jupiter:junit-jupiter-engine"
+  testRuntimeOnly "com.mysql:mysql-connector-j"
+  testRuntimeOnly "org.postgresql:postgresql"
+}

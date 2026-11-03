@@ -18,7 +18,9 @@ package com.netflix.spinnaker.clouddriver.artifacts.maven;
 
 import com.google.common.base.Strings;
 import com.netflix.spinnaker.clouddriver.artifacts.config.ArtifactAccount;
+import com.netflix.spinnaker.fiat.model.resources.Permissions;
 import com.netflix.spinnaker.kork.annotations.NonnullByDefault;
+import java.util.Optional;
 import javax.annotation.ParametersAreNullableByDefault;
 import lombok.Builder;
 import lombok.Value;
@@ -29,12 +31,14 @@ import org.springframework.boot.context.properties.bind.ConstructorBinding;
 public class MavenArtifactAccount implements ArtifactAccount {
   private final String name;
   private final String repositoryUrl;
+  private final Permissions.Builder permissions;
 
   @Builder
   @ConstructorBinding
   @ParametersAreNullableByDefault
-  public MavenArtifactAccount(String name, String repositoryUrl) {
+  public MavenArtifactAccount(String name, String repositoryUrl, Permissions.Builder permissions) {
     this.name = Strings.nullToEmpty(name);
     this.repositoryUrl = Strings.nullToEmpty(repositoryUrl);
+    this.permissions = Optional.ofNullable(permissions).orElseGet(Permissions.Builder::new);
   }
 }

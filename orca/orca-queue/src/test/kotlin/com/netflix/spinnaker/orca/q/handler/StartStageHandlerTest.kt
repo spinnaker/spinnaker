@@ -65,7 +65,7 @@ import com.netflix.spinnaker.orca.q.zeroTaskStage
 import com.netflix.spinnaker.q.Queue
 import com.netflix.spinnaker.spek.and
 import com.netflix.spinnaker.time.fixedClock
-import io.micrometer.core.instrument.Tag
+import io.micrometer.core.instrument.Tags
 import io.micrometer.core.instrument.simple.SimpleMeterRegistry
 import org.mockito.kotlin.any
 import org.mockito.kotlin.anyOrNull
@@ -1030,7 +1030,7 @@ object StartStageHandlerTest : SubjectSpek<StartStageHandler>({
 
       it("tracks result with stage tags") {
         val nameCaptor = argumentCaptor<String>()
-        val tagsCaptor = argumentCaptor<Iterable<Tag>>()
+        val tagsCaptor = argumentCaptor<Tags>()
         verify(registry, atLeastOnce()).counter(nameCaptor.capture(), tagsCaptor.capture())
         assertThat(nameCaptor.firstValue).isEqualTo("stage.invocations")
         val tags = tagsCaptor.firstValue

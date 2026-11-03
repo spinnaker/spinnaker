@@ -1,4 +1,4 @@
-import { shallow } from 'enzyme';
+import { fireEvent, render, screen } from '@testing-library/react';
 import React from 'react';
 
 import type { ICustomBannerConfig } from './CustomBannerConfig';
@@ -7,57 +7,47 @@ import { noop } from '../../../utils';
 
 describe('<CustomBannerConfig />', () => {
   let bannerConfigs: ICustomBannerConfig[];
-  let wrapper: any;
+  let container: HTMLElement;
 
   beforeEach(() => {
     bannerConfigs = getTestBannerConfigs();
-    wrapper = shallow(
+    ({ container } = render(
       <CustomBannerConfig
         bannerConfigs={bannerConfigs}
         isSaving={false}
         saveError={false}
         updateBannerConfigs={noop}
       />,
-    );
+    ));
   });
 
   describe('view', () => {
     it('renders a row for each banner config', () => {
-      expect(wrapper.find('.custom-banner-config-row').length).toEqual(bannerConfigs.length);
+      expect(container.querySelectorAll('.custom-banner-config-row')).toHaveLength(bannerConfigs.length);
     });
     it('renders an "add" button', () => {
-      expect(wrapper.find('.add-new').length).toEqual(1);
+      expect(screen.getByRole('button', { name: /add banner/i })).toBeInTheDocument();
     });
   });
 
   describe('functionality', () => {
     it('update banner config', () => {
-      expect(wrapper.state('bannerConfigsEditing')).toEqual(bannerConfigs);
-      wrapper
-        .find('input[type="checkbox"]')
-        .at(1)
-        .simulate('change', { target: { checked: true } });
-      const updatedConfigs = [
-        {
-          ...bannerConfigs[0],
-          enabled: false,
-        },
-        {
-          ...bannerConfigs[1],
-          enabled: true,
-        },
-      ];
-      expect(wrapper.state('bannerConfigsEditing')).toEqual(updatedConfigs);
+      const checkboxes = screen.getAllByRole('checkbox');
+      expect(checkboxes[0]).toBeChecked();
+      expect(checkboxes[1]).not.toBeChecked();
+      fireEvent.click(checkboxes[1]);
+      expect(checkboxes[0]).not.toBeChecked();
+      expect(checkboxes[1]).toBeChecked();
     });
     it('add banner config', () => {
-      expect(wrapper.state('bannerConfigsEditing').length).toEqual(2);
-      wrapper.find('.add-new').simulate('click');
-      expect(wrapper.state('bannerConfigsEditing').length).toEqual(3);
+      fireEvent.click(screen.getByRole('button', { name: /add banner/i }));
+      expect(container.querySelectorAll('.custom-banner-config-row')).toHaveLength(3);
+      expect(screen.getByDisplayValue('Your custom banner text')).toBeInTheDocument();
     });
     it('remove banner config', () => {
-      expect(wrapper.state('bannerConfigsEditing').length).toEqual(2);
-      wrapper.find('.custom-banner-config-remove').at(1).simulate('click');
-      expect(wrapper.state('bannerConfigsEditing').length).toEqual(1);
+      fireEvent.click(screen.getByRole('button', { name: 'Remove banner 2' }));
+      expect(container.querySelectorAll('.custom-banner-config-row')).toHaveLength(1);
+      expect(screen.queryByDisplayValue(/production freeze/i)).not.toBeInTheDocument();
     });
   });
 });

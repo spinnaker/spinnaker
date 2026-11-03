@@ -1,8 +1,9 @@
-import type { ReactWrapper, ShallowWrapper } from 'enzyme';
-import { mount, shallow } from 'enzyme';
+import { fireEvent, render, waitFor, within } from '@testing-library/react';
 import React from 'react';
 
 import type { Application, IMoniker, IServerGroup } from '@spinnaker/core';
+
+import { getFormGroupByLabel } from '../../../../../core/src/utils/testUtils/rtl';
 
 import type { IAccountRegionClusterSelectorProps } from './AccountRegionClusterSelector';
 import { AccountRegionClusterSelector } from './AccountRegionClusterSelector';
@@ -24,9 +25,31 @@ describe('<AccountRegionClusterSelector />', () => {
     } as IServerGroup;
   }
 
-  async function flushComponent(component: ReactWrapper | ShallowWrapper): Promise<void> {
-    await new Promise((resolve) => setTimeout(resolve, 0));
-    component.update();
+  function getSelect(label: string): HTMLInputElement {
+    return within(getFormGroupByLabel(label)).getByRole('combobox') as HTMLInputElement;
+  }
+
+  async function selectOption(label: string, value: string): Promise<void> {
+    const field = getFormGroupByLabel(label);
+    const input = within(field).getByRole('combobox');
+    fireEvent.mouseDown(input);
+    fireEvent.change(input, { target: { value } });
+    await waitFor(() => {
+      const match = within(field)
+        .getAllByRole('option')
+        .find((candidate) => candidate.closest('.Select-menu') && candidate.textContent?.includes(value));
+      expect(match).toBeDefined();
+    });
+    fireEvent.keyDown(input, { key: 'Enter', code: 'Enter', keyCode: 13, which: 13 });
+  }
+
+  async function expectSelectOptions(label: string, options: string[]): Promise<void> {
+    const field = getFormGroupByLabel(label);
+    fireEvent.mouseDown(within(field).getByRole('combobox'));
+    await within(field).findByRole('listbox');
+    options.forEach((option) =>
+      expect(within(field).getAllByRole('option', { name: option }).length).toBeGreaterThan(0),
+    );
   }
 
   beforeEach(() => {
@@ -63,20 +86,11 @@ describe('<AccountRegionClusterSelector />', () => {
       },
     };
 
-    const component = shallow<AccountRegionClusterSelector>(
-      <AccountRegionClusterSelector {...accountRegionClusterProps} />,
-    );
-    await flushComponent(component);
+    render(<AccountRegionClusterSelector {...accountRegionClusterProps} />);
 
-    expect(component.state().availableRegions.length).toBe(3, 'number of available regions does not match');
-    expect(component.state().availableRegions).toContain('region-one');
-    expect(component.state().availableRegions).toContain('region-two');
-    expect(component.state().availableRegions).toContain('region-three');
-    expect(component.state().clusters.length).toBe(2, 'number of clusters does not match');
-    expect(component.state().clusters).toContain('app-stack-detailOne');
-    expect(component.state().clusters).toContain('app-stack-detailThree');
-    expect(component.state().clusterField).toBe('cluster');
-    expect(component.state().componentName).toBe('');
+    await expectSelectOptions('Region', ['region-one', 'region-two', 'region-three']);
+    await expectSelectOptions('Cluster', ['app-stack-detailOne', 'app-stack-detailThree']);
+    expect(document.querySelector('input[name="credentials"]')).toBeInTheDocument();
   });
 
   it('retrieves the correct list of regions when account is changed', async () => {
@@ -113,28 +127,13 @@ describe('<AccountRegionClusterSelector />', () => {
       },
     };
 
-    const component = mount<AccountRegionClusterSelector>(
-      <AccountRegionClusterSelector {...accountRegionClusterProps} />,
-    );
-    await flushComponent(component);
+    render(<AccountRegionClusterSelector {...accountRegionClusterProps} />);
 
-    expect(component.state().availableRegions.length).toBe(3, 'number of available regions does not match');
-    expect(component.state().availableRegions).toContain('region-one');
-    expect(component.state().availableRegions).toContain('region-two');
-    expect(component.state().availableRegions).toContain('region-three');
-    expect(component.state().clusters.length).toBe(2, 'number of clusters does not match');
-    expect(component.state().clusters).toContain('app-stack-detailOne');
-    expect(component.state().clusters).toContain('app-stack-detailThree');
+    await expectSelectOptions('Region', ['region-one', 'region-two', 'region-three']);
+    await expectSelectOptions('Cluster', ['app-stack-detailOne', 'app-stack-detailThree']);
+    await selectOption('Account', 'account-name-two');
 
-    const accountSelectComponent = component.find('Select[name="credentials"] .Select-control input');
-    accountSelectComponent.simulate('mouseDown');
-    accountSelectComponent.simulate('change', { target: { value: 'account-name-two' } });
-    accountSelectComponent.simulate('keyDown', { keyCode: 9, key: 'Tab' });
-    await flushComponent(component);
-
-    expect(component.state().availableRegions.length).toBe(1, 'number of available regions does not match');
-    expect(component.state().availableRegions).toContain('region-two');
-    expect(component.state().clusters.length).toBe(0, 'number of clusters does not match');
+    await expectSelectOptions('Region', ['region-two']);
     expect(region).toEqual('', 'selected region is not cleared');
     expect(regions.length).toBe(0, 'selected regions list is not cleared');
     expect(credentials).toContain('account-name-two');
@@ -172,29 +171,11 @@ describe('<AccountRegionClusterSelector />', () => {
       },
     };
 
-    const component = mount<AccountRegionClusterSelector>(
-      <AccountRegionClusterSelector {...accountRegionClusterProps} />,
-    );
-    await flushComponent(component);
+    render(<AccountRegionClusterSelector {...accountRegionClusterProps} />);
 
-    expect(component.state().availableRegions.length).toBe(3, 'number of available regions does not match');
-    expect(component.state().availableRegions).toContain('region-one');
-    expect(component.state().availableRegions).toContain('region-two');
-    expect(component.state().availableRegions).toContain('region-three');
-    expect(component.state().clusters.length).toBe(2, 'number of clusters does not match');
-    expect(component.state().clusters).toContain('app-stack-detailOne');
-    expect(component.state().clusters).toContain('app-stack-detailThree');
+    await selectOption('Region', 'region-three');
 
-    const accountSelectComponent = component.find('Select[name="regions"] .Select-control input');
-    accountSelectComponent.simulate('mouseDown');
-    accountSelectComponent.simulate('change', { target: { value: 'region-three' } });
-    accountSelectComponent.simulate('keyDown', { keyCode: 9, key: 'Tab' });
-    await flushComponent(component);
-
-    expect(component.state().clusters.length).toBe(3, 'number of clusters does not match');
-    expect(component.state().clusters).toContain('app-stack-detailOne');
-    expect(component.state().clusters).toContain('app-stack-detailThree');
-    expect(component.state().clusters).toContain('app-stack-detailFour');
+    await expectSelectOptions('Cluster', ['app-stack-detailOne', 'app-stack-detailThree', 'app-stack-detailFour']);
     expect(cluster).toBeUndefined('selected cluster is not cleared');
     expect(regions.length).toBe(2);
     expect(regions).toContain('region-one');
@@ -228,18 +209,10 @@ describe('<AccountRegionClusterSelector />', () => {
       isSingleRegion: true,
     };
 
-    const component = mount<AccountRegionClusterSelector>(
-      <AccountRegionClusterSelector {...accountRegionClusterProps} />,
-    );
-    await flushComponent(component);
+    render(<AccountRegionClusterSelector {...accountRegionClusterProps} />);
 
-    expect(component.state().availableRegions.length).toBe(3, 'number of available regions does not match');
-    expect(component.state().availableRegions).toContain('region-one');
-    expect(component.state().availableRegions).toContain('region-two');
-    expect(component.state().availableRegions).toContain('region-three');
-    expect(component.state().clusters.length).toBe(2, 'number of clusters does not match');
-    expect(component.state().clusters).toContain('app-stack-detailOne');
-    expect(component.state().clusters).toContain('app-stack-detailThree');
+    await expectSelectOptions('Region', ['region-one', 'region-two', 'region-three']);
+    await expectSelectOptions('Cluster', ['app-stack-detailOne', 'app-stack-detailThree']);
   });
 
   it('the cluster value is updated in the component when cluster is changed', async () => {
@@ -282,24 +255,9 @@ describe('<AccountRegionClusterSelector />', () => {
       sequence: null,
     } as IMoniker;
 
-    const component = mount<AccountRegionClusterSelector>(
-      <AccountRegionClusterSelector {...accountRegionClusterProps} />,
-    );
-    await flushComponent(component);
+    render(<AccountRegionClusterSelector {...accountRegionClusterProps} />);
 
-    expect(component.state().availableRegions.length).toBe(3, 'number of available regions does not match');
-    expect(component.state().availableRegions).toContain('region-one');
-    expect(component.state().availableRegions).toContain('region-two');
-    expect(component.state().availableRegions).toContain('region-three');
-    expect(component.state().clusters.length).toBe(2, 'number of clusters does not match');
-    expect(component.state().clusters).toContain('app-stack-detailOne');
-    expect(component.state().clusters).toContain('app-stack-detailThree');
-
-    const clusterSelectComponent = component.find('Select[name="newCluster"] .Select-control input');
-    clusterSelectComponent.simulate('mouseDown');
-    clusterSelectComponent.simulate('change', { target: { value: 'app-stack-detailThree' } });
-    clusterSelectComponent.simulate('keyDown', { keyCode: 9, key: 'Tab' });
-    await flushComponent(component);
+    await selectOption('Cluster', 'app-stack-detailThree');
 
     expect(cluster).toBe('app-stack-detailThree');
     expect(moniker).toEqual(expectedMoniker);
@@ -337,20 +295,12 @@ describe('<AccountRegionClusterSelector />', () => {
       },
     };
 
-    const component = mount<AccountRegionClusterSelector>(
-      <AccountRegionClusterSelector {...accountRegionClusterProps} />,
-    );
-    await flushComponent(component);
+    render(<AccountRegionClusterSelector {...accountRegionClusterProps} />);
 
-    const clusterSelectComponent = component.find('Select[name="newCluster"] .Select-control input');
-    clusterSelectComponent.simulate('mouseDown');
-    clusterSelectComponent.simulate('change', { target: { value: 'app-stack-freeform' } });
-    clusterSelectComponent.simulate('keyDown', { keyCode: 9, key: 'Tab' });
-    await flushComponent(component);
+    await selectOption('Cluster', 'app-stack-freeform');
 
     expect(cluster).toBe('app-stack-freeform');
     expect(moniker).toBeUndefined();
-    expect(component.state().clusters).toContain('app-stack-freeform');
   });
 
   it('initialize with form names', async () => {
@@ -368,16 +318,18 @@ describe('<AccountRegionClusterSelector />', () => {
       onComponentUpdate: noop,
       componentName: 'form',
       component: {
+        cluster: 'app-stack-detailOne',
         credentials: 'account-name-one',
         regions: ['region-one'],
       },
     };
 
-    const component = shallow(<AccountRegionClusterSelector {...accountRegionClusterProps} />);
-    await flushComponent(component);
+    render(<AccountRegionClusterSelector {...accountRegionClusterProps} />);
 
-    expect(component.find('Select[name="form.credentials"]').length).toBe(1, 'select for account not found');
-    expect(component.find('Select[name="form.regions"]').length).toBe(1, 'select for regions not found');
-    expect(component.find('StageConfigField [name="form.cluster"]').length).toBe(1, 'select for cluster not found');
+    await waitFor(() => {
+      expect(document.querySelector('input[name="form.credentials"]')).toBeInTheDocument();
+      expect(document.querySelector('input[name="form.regions"]')).toBeInTheDocument();
+      expect(document.querySelector('input[name="form.cluster"]')).toBeInTheDocument();
+    });
   });
 });

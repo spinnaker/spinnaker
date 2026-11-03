@@ -26,7 +26,6 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.github.tomakehurst.wiremock.client.WireMock;
 import com.github.tomakehurst.wiremock.http.HttpHeaders;
 import com.github.tomakehurst.wiremock.junit5.WireMockExtension;
-import com.github.tomakehurst.wiremock.junit5.WireMockRuntimeInfo;
 import com.netflix.spinnaker.kork.retrofit.ErrorHandlingExecutorCallAdapterFactory;
 import com.netflix.spinnaker.orca.clouddriver.OortService;
 import com.netflix.spinnaker.orca.pipeline.model.PipelineExecutionImpl;
@@ -56,10 +55,10 @@ public class ClusterSizePreconditionTaskTest {
       WireMockExtension.newInstance().options(wireMockConfig().dynamicPort()).build();
 
   @BeforeAll
-  public static void setupOnce(WireMockRuntimeInfo wmRuntimeInfo) {
+  public static void setupOnce() {
     oortService =
         new Retrofit.Builder()
-            .baseUrl(wmRuntimeInfo.getHttpBaseUrl())
+            .baseUrl(wireMock.baseUrl())
             .client(new OkHttpClient())
             .addCallAdapterFactory(ErrorHandlingExecutorCallAdapterFactory.getInstance())
             .addConverterFactory(JacksonConverterFactory.create())

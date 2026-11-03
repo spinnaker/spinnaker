@@ -18,7 +18,7 @@ package com.netflix.spinnaker.clouddriver.artifacts.gitRepo;
 
 import com.google.common.base.Strings;
 import com.google.common.collect.ImmutableList;
-import com.netflix.spinnaker.clouddriver.artifacts.config.ArtifactCredentials;
+import com.netflix.spinnaker.clouddriver.artifacts.config.AbstractArtifactCredentials;
 import com.netflix.spinnaker.kork.annotations.NonnullByDefault;
 import com.netflix.spinnaker.kork.artifacts.model.Artifact;
 import jakarta.annotation.Nullable;
@@ -37,7 +37,7 @@ import org.jetbrains.annotations.NotNull;
 
 @NonnullByDefault
 @Slf4j
-public class GitRepoArtifactCredentials implements ArtifactCredentials {
+public class GitRepoArtifactCredentials extends AbstractArtifactCredentials {
   public static final String CREDENTIALS_TYPE = "git/repo";
   private static final Pattern GENERIC_URL_PATTERN = Pattern.compile("^.*/(.*)$");
 
@@ -50,6 +50,7 @@ public class GitRepoArtifactCredentials implements ArtifactCredentials {
 
   public GitRepoArtifactCredentials(
       GitJobExecutor executor, GitRepoFileSystem gitRepoFileSystem, List<String> allowedHosts) {
+    super(executor.getAccount());
     this.executor = executor;
     this.gitRepoFileSystem = gitRepoFileSystem;
     this.allowedHosts = allowedHosts;

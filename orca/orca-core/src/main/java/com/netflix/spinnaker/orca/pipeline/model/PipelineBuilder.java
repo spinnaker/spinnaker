@@ -19,7 +19,6 @@ package com.netflix.spinnaker.orca.pipeline.model;
 import com.google.common.base.Strings;
 import com.netflix.spinnaker.orca.api.pipeline.models.PipelineExecution;
 import com.netflix.spinnaker.orca.api.pipeline.models.Trigger;
-import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -85,8 +84,7 @@ public class PipelineBuilder {
   }
 
   public PipelineBuilder withStage(String type, String name, Map<String, Object> context) {
-    if (context.get("providerType") != null
-        && !(Arrays.asList("aws", "titus")).contains(context.get("providerType"))) {
+    if (context.get("providerType") != null && !"aws".equals(context.get("providerType"))) {
       type += "_" + context.get("providerType");
     }
     pipeline.getStages().add(new StageExecutionImpl(pipeline, type, name, context));

@@ -28,17 +28,17 @@ describe('deck plugin registerPluginExtensions', () => {
       },
     }).then(() => (settled = true));
 
-    expect(initializeStarted).toBeTrue();
+    expect(initializeStarted).toBe(true);
     await Promise.resolve();
 
-    expect(settled).toBeFalse();
+    expect(settled).toBe(false);
     resolveInitialize();
     await registrationPromise;
-    expect(settled).toBeTrue();
+    expect(settled).toBe(true);
   });
 
   it('initialize() receives the IDeckPlugin object as the first argument', async () => {
-    const plugin: IDeckPlugin = { initialize: jasmine.createSpy('initialize') };
+    const plugin: IDeckPlugin = { initialize: vi.fn() };
     const registrationPromise = registerPluginExtensions(plugin);
 
     expect(plugin.initialize).toHaveBeenCalledWith(plugin);
@@ -46,7 +46,7 @@ describe('deck plugin registerPluginExtensions', () => {
   });
 
   it('registers stages synchronously', async () => {
-    const registerSpy = spyOn(Registry.pipeline, 'registerStage');
+    const registerSpy = vi.spyOn(Registry.pipeline, 'registerStage').mockReturnValue(undefined);
     const stage = { key: 'test' };
     const registrationPromise = registerPluginExtensions({ stages: [stage] });
 
@@ -56,7 +56,7 @@ describe('deck plugin registerPluginExtensions', () => {
   });
 
   it('registers preconfigured job stages synchronously', async () => {
-    const registerSpy = spyOn(Registry.pipeline, 'registerPreconfiguredJobStage');
+    const registerSpy = vi.spyOn(Registry.pipeline, 'registerPreconfiguredJobStage').mockReturnValue(undefined);
     const stage = { key: 'test' };
     const registrationPromise = registerPluginExtensions({ preconfiguredJobStages: [stage] });
 
@@ -69,7 +69,7 @@ describe('deck plugin registerPluginExtensions', () => {
     let resolveRegistration!: (stage: IStageTypeConfig) => void;
     const stage = { key: 'test' } as IStageTypeConfig;
     const deferredRegistration = new Promise<IStageTypeConfig>((resolve) => (resolveRegistration = resolve));
-    spyOn(Registry.pipeline, 'registerPreconfiguredJobStage').and.returnValue(deferredRegistration);
+    vi.spyOn(Registry.pipeline, 'registerPreconfiguredJobStage').mockReturnValue(deferredRegistration);
     let settled = false;
 
     const registrationPromise = registerPluginExtensions({ preconfiguredJobStages: [stage] }).then(
@@ -77,10 +77,10 @@ describe('deck plugin registerPluginExtensions', () => {
     );
     await Promise.resolve();
 
-    expect(settled).toBeFalse();
+    expect(settled).toBe(false);
     resolveRegistration(stage);
     await registrationPromise;
-    expect(settled).toBeTrue();
+    expect(settled).toBe(true);
   });
 
   it('rejects when asynchronous preconfigured job stage registration fails', async () => {
@@ -89,7 +89,7 @@ describe('deck plugin registerPluginExtensions', () => {
     const registrationError = new Error('registration failed');
     const deferredRegistration = new Promise<IStageTypeConfig>((_, reject) => (rejectRegistration = reject));
     const observedRegistration = deferredRegistration.catch(() => undefined);
-    spyOn(Registry.pipeline, 'registerPreconfiguredJobStage').and.returnValue(deferredRegistration);
+    vi.spyOn(Registry.pipeline, 'registerPreconfiguredJobStage').mockReturnValue(deferredRegistration);
 
     const registrationPromise = registerPluginExtensions({ preconfiguredJobStages: [stage] });
     rejectRegistration(registrationError);
@@ -103,8 +103,10 @@ describe('deck plugin registerPluginExtensions', () => {
     const stage = { key: 'test' } as IStageTypeConfig;
     const registrationError = new Error('help registration failed');
     const deferredRegistration = new Promise<IStageTypeConfig>((resolve) => (resolveRegistration = resolve));
-    spyOn(Registry.pipeline, 'registerPreconfiguredJobStage').and.returnValue(deferredRegistration);
-    spyOn(HelpContentsRegistry, 'register').and.throwError(registrationError);
+    vi.spyOn(Registry.pipeline, 'registerPreconfiguredJobStage').mockReturnValue(deferredRegistration);
+    vi.spyOn(HelpContentsRegistry, 'register').mockImplementation(() => {
+      throw registrationError;
+    });
     let settled = false;
 
     const registrationPromise = registerPluginExtensions({
@@ -118,25 +120,25 @@ describe('deck plugin registerPluginExtensions', () => {
     );
     await Promise.resolve();
 
-    expect(settled).toBeFalse();
+    expect(settled).toBe(false);
     resolveRegistration(stage);
     await rejectionExpectation;
     await observedRegistration;
   });
 
   it('registers help synchronously', async () => {
-    const registerSpy = spyOn(HelpContentsRegistry, 'register');
+    const registerSpy = vi.spyOn(HelpContentsRegistry, 'register').mockReturnValue(undefined);
     const help = { key: 'value', key2: 'value2' };
     const registrationPromise = registerPluginExtensions({ help });
 
     expect(registerSpy).toHaveBeenCalledTimes(2);
-    expect(registerSpy.calls.first().args).toEqual(['key', 'value']);
-    expect(registerSpy.calls.mostRecent().args).toEqual(['key2', 'value2']);
+    expect(registerSpy.mock.calls[0]).toEqual(['key', 'value']);
+    expect(registerSpy.mock.lastCall).toEqual(['key2', 'value2']);
     await registrationPromise;
   });
 
   it('registers search synchronously', async () => {
-    const registerSpy = spyOn(searchResultTypeRegistry, 'register');
+    const registerSpy = vi.spyOn(searchResultTypeRegistry, 'register').mockReturnValue(undefined);
     const search = {} as SearchResultType;
     const registrationPromise = registerPluginExtensions({ search: [search] });
 

@@ -68,6 +68,7 @@ export class PagerDutySelectField extends React.Component<IPagerDutySelectFieldP
         </div>
         <div className="col-sm-9">
           <ReactSelectInput
+            aria-label="PagerDuty service"
             inputClassName="form-control input-sm"
             isLoading={!this.state.servicesLoaded}
             mode="VIRTUALIZED"

@@ -90,6 +90,8 @@ public class KubernetesRunJobOperation
     deployManifestDescription.setCredentials(description.getCredentials());
     deployManifestDescription.setAccount(description.getAccount());
     deployManifestDescription.setMoniker(moniker);
+    deployManifestDescription.setDeployedBy(description.getDeployedBy());
+    deployManifestDescription.setExecutionId(description.getExecutionId());
 
     KubernetesDeployManifestOperation deployManifestOperation =
         new KubernetesDeployManifestOperation(deployManifestDescription, resourceVersioner);

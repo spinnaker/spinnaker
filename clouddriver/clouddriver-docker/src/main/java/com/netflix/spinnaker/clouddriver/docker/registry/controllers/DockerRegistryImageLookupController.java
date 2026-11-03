@@ -23,7 +23,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 @RestController
-@RequestMapping({"/dockerRegistry/images", "/titus/images"})
+@RequestMapping("/dockerRegistry/images")
 public class DockerRegistryImageLookupController extends AbstractDockerRegistryLookupController {
 
   @Override

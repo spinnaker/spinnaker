@@ -32,21 +32,21 @@ describe('AzureLoadBalancerModal', () => {
   }
 
   it('owns its refresh subscription and ignores a late refresh after unmount', () => {
-    const firstUnsubscribe = jasmine.createSpy('firstUnsubscribe');
-    const secondUnsubscribe = jasmine.createSpy('secondUnsubscribe');
+    const firstUnsubscribe = vi.fn();
+    const secondUnsubscribe = vi.fn();
     const callbacks: Array<() => void> = [];
     const loadBalancers = {
-      onNextRefresh: jasmine.createSpy('onNextRefresh').and.callFake((callback: () => void) => {
+      onNextRefresh: vi.fn().mockImplementation((callback: () => void) => {
         callbacks.push(callback);
         return callbacks.length === 1 ? firstUnsubscribe : secondUnsubscribe;
       }),
-      refresh: jasmine.createSpy('refresh'),
+      refresh: vi.fn(),
     };
-    const closeModal = jasmine.createSpy('closeModal');
-    const dismissModal = jasmine.createSpy('dismissModal');
+    const closeModal = vi.fn();
+    const dismissModal = vi.fn();
     const stateService = {
-      go: jasmine.createSpy('go'),
-      includes: jasmine.createSpy('includes'),
+      go: vi.fn(),
+      includes: vi.fn(),
     };
     const application = {
       defaultCredentials: { azure: 'test' },
@@ -67,7 +67,7 @@ describe('AzureLoadBalancerModal', () => {
       stateService,
     } as any);
     modal.componentDidMount();
-    const setState = spyOn(modal, 'setState');
+    const setState = vi.spyOn(modal, 'setState').mockReturnValue(undefined);
     const stateBeforeRefresh = modal.state;
 
     expect((modal as any).mounted).toBe(true);
@@ -75,9 +75,9 @@ describe('AzureLoadBalancerModal', () => {
     (modal as any).onTaskComplete();
 
     expect(loadBalancers.refresh).toHaveBeenCalledTimes(1);
-    expect(loadBalancers.onNextRefresh).toHaveBeenCalledOnceWith((modal as any).onApplicationRefresh);
-    expect(loadBalancers.onNextRefresh.calls.first().invocationOrder).toBeLessThan(
-      loadBalancers.refresh.calls.first().invocationOrder,
+    expect(loadBalancers.onNextRefresh).toHaveBeenCalledExactlyOnceWith((modal as any).onApplicationRefresh);
+    expect(loadBalancers.onNextRefresh.mock.invocationCallOrder[0]).toBeLessThan(
+      loadBalancers.refresh.mock.invocationCallOrder[0],
     );
 
     (modal as any).onTaskComplete();
@@ -505,10 +505,10 @@ describe('AzureLoadBalancerModal', () => {
 
   describe('submit', () => {
     it('returns the normalized command without submitting a task for pipeline configuration', () => {
-      const closeModal = jasmine.createSpy('closeModal');
-      const upsertLoadBalancer = spyOn(LoadBalancerWriter, 'upsertLoadBalancer').and.callFake(
-        () => Promise.reject({}) as any,
-      );
+      const closeModal = vi.fn();
+      const upsertLoadBalancer = vi
+        .spyOn(LoadBalancerWriter, 'upsertLoadBalancer')
+        .mockImplementation(() => Promise.reject({}) as any);
       const application = {
         defaultCredentials: { azure: 'test' },
         defaultRegions: { azure: 'westus' },
@@ -543,7 +543,7 @@ describe('AzureLoadBalancerModal', () => {
 
       expect(upsertLoadBalancer).not.toHaveBeenCalled();
       expect(closeModal).toHaveBeenCalledWith(
-        jasmine.objectContaining({
+        expect.objectContaining({
           loadBalancerType: 'Azure Load Balancer',
           name: 'fnord-frontend',
           type: 'upsertLoadBalancer',
@@ -552,32 +552,34 @@ describe('AzureLoadBalancerModal', () => {
     });
 
     it('submits the normalized command through TaskMonitor outside pipeline configuration', () => {
-      const upsertLoadBalancer = spyOn(LoadBalancerWriter, 'upsertLoadBalancer').and.returnValue(
-        Promise.resolve({} as any),
-      );
+      const upsertLoadBalancer = vi
+        .spyOn(LoadBalancerWriter, 'upsertLoadBalancer')
+        .mockReturnValue(Promise.resolve({} as any));
       const application = {
         defaultCredentials: { azure: 'test' },
         defaultRegions: { azure: 'westus' },
         getDataSource: () => null,
         loadBalancers: {
-          onNextRefresh: jasmine.createSpy('onNextRefresh'),
-          refresh: jasmine.createSpy('refresh'),
+          onNextRefresh: vi.fn(),
+          refresh: vi.fn(),
         },
         name: 'fnord',
       };
       const modal = new AzureLoadBalancerModal({
         app: application,
         application,
-        closeModal: jasmine.createSpy('closeModal'),
+        closeModal: vi.fn(),
         forPipelineConfig: false,
         isNew: true,
         loadBalancer: null,
         loadBalancerType: AzureLoadBalancerTypes[0],
       } as any);
-      spyOn(modal as any, 'setState').and.callFake((state: any) => {
+      vi.spyOn(modal as any, 'setState').mockImplementation((state: any) => {
         modal.state = { ...modal.state, ...state };
       });
-      const submitTask = spyOn(modal.state.taskMonitor, 'submit').and.callFake((submitMethod: any) => submitMethod());
+      const submitTask = vi
+        .spyOn(modal.state.taskMonitor, 'submit')
+        .mockImplementation((submitMethod: any) => submitMethod());
 
       modal.state = {
         ...modal.state,
@@ -598,7 +600,7 @@ describe('AzureLoadBalancerModal', () => {
 
       expect(submitTask).toHaveBeenCalled();
       expect(upsertLoadBalancer).toHaveBeenCalledWith(
-        jasmine.objectContaining({
+        expect.objectContaining({
           loadBalancerType: 'Azure Load Balancer',
           name: 'fnord-frontend',
           type: 'upsertLoadBalancer',

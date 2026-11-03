@@ -27,6 +27,6 @@ describe('RoutingState', () => {
     state.dispose();
     expect(state.routing).toBe(false);
     expect(values).toEqual([false, true, false]);
-    expect(state.begin()).toEqual(jasmine.any(Function));
+    expect(state.begin()).toEqual(expect.any(Function));
   });
 });

@@ -19,11 +19,13 @@ package com.netflix.spinnaker.clouddriver.artifacts.github;
 
 import com.google.common.base.Strings;
 import com.netflix.spinnaker.clouddriver.artifacts.config.BasicAuth;
-import com.netflix.spinnaker.clouddriver.artifacts.config.HttpUrlRestrictions;
 import com.netflix.spinnaker.clouddriver.artifacts.config.TokenAuth;
 import com.netflix.spinnaker.clouddriver.artifacts.config.UserInputValidatedArtifactAccount;
+import com.netflix.spinnaker.fiat.model.resources.Permissions;
 import com.netflix.spinnaker.kork.annotations.NonnullByDefault;
 import com.netflix.spinnaker.kork.github.GitHubAppCredentials;
+import com.netflix.spinnaker.kork.web.url.UrlRestrictionsProperties;
+import java.util.List;
 import java.util.Optional;
 import javax.annotation.ParametersAreNullableByDefault;
 import lombok.Builder;
@@ -35,6 +37,22 @@ import org.springframework.boot.context.properties.bind.ConstructorBinding;
 @Value
 public class GitHubArtifactAccount extends UserInputValidatedArtifactAccount
     implements BasicAuth, TokenAuth {
+  /**
+   * The hosts of github.com that an account fetches from: the reference itself, the contents API,
+   * the raw content URLs that the contents API returns, and the hosts those redirect to (each
+   * redirect hop is validated against the allowed domains too). An account with credentials and no
+   * {@code urlRestrictions.allowedDomains} is limited to these, so a GitHub Enterprise account has
+   * to configure its own hosts.
+   */
+  public static final List<String> DEFAULT_ALLOWED_DOMAINS =
+      List.of(
+          "github\\.com",
+          "api\\.github\\.com",
+          "codeload\\.github\\.com",
+          "raw\\.githubusercontent\\.com",
+          "media\\.githubusercontent\\.com",
+          "objects\\.githubusercontent\\.com");
+
   /*
    One of the following are required for auth:
     - username and password
@@ -65,10 +83,15 @@ public class GitHubArtifactAccount extends UserInputValidatedArtifactAccount
       GitHubAppCredentials githubApp,
       String githubAPIVersion,
       boolean useContentAPI,
-      HttpUrlRestrictions urlRestrictions) {
+      UrlRestrictionsProperties urlRestrictions,
+      Permissions.Builder permissions) {
     super(
         Strings.nullToEmpty(name),
-        Optional.ofNullable(urlRestrictions).orElse(HttpUrlRestrictions.builder().build()));
+        orDefault(
+            urlRestrictions,
+            hasCredentials(username, password, usernamePasswordFile, token, tokenFile, githubApp),
+            DEFAULT_ALLOWED_DOMAINS),
+        Optional.ofNullable(permissions).orElseGet(Permissions.Builder::new));
     this.username = Optional.ofNullable(Strings.emptyToNull(username));
     this.password = Optional.ofNullable(Strings.emptyToNull(password));
     this.usernamePasswordFile = Optional.ofNullable(Strings.emptyToNull(usernamePasswordFile));
@@ -77,5 +100,24 @@ public class GitHubArtifactAccount extends UserInputValidatedArtifactAccount
     this.githubApp = Optional.ofNullable(githubApp);
     this.githubAPIVersion = StringUtils.defaultString(githubAPIVersion, "v3");
     this.useContentAPI = useContentAPI;
+  }
+
+  private static boolean hasCredentials(
+      String username,
+      String password,
+      String usernamePasswordFile,
+      String token,
+      String tokenFile,
+      GitHubAppCredentials githubApp) {
+    return githubApp != null
+        || !Strings.isNullOrEmpty(usernamePasswordFile)
+        || (!Strings.isNullOrEmpty(username) && !Strings.isNullOrEmpty(password))
+        || !Strings.isNullOrEmpty(token)
+        || !Strings.isNullOrEmpty(tokenFile);
+  }
+
+  @Override
+  public boolean hasCredentials() {
+    return githubApp.isPresent() || super.hasCredentials();
   }
 }

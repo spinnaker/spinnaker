@@ -59,8 +59,9 @@ class StaticManifestSelectorHandler implements ISelectorHandler {
   public handles = (mode: SelectorMode): boolean => mode === SelectorMode.Static;
 
   public handleModeChange = (): void => {
-    const { selector } = this.component.state;
-    this.handleKindChange(selector.kind);
+    const selector = { ...this.component.state.selector };
+    const { name } = parseSpinnakerName(selector.manifestName);
+    selector.manifestName = selector.kind ? (name ? `${selector.kind} ${name}` : selector.kind) : name;
     Object.assign(selector, SelectorModeDataMap.static.selectorDefaults);
     this.component.setStateAndUpdateStage({ selector });
   };
@@ -80,7 +81,7 @@ class DynamicManifestSelectorHandler implements ISelectorHandler {
   public handles = (mode: SelectorMode): boolean => mode === SelectorMode.Dynamic;
 
   public handleModeChange = (): void => {
-    const { selector } = this.component.state;
+    const selector = { ...this.component.state.selector };
     const { kind } = parseSpinnakerName(selector.manifestName);
     selector.kind = kind || null;
     Object.assign(selector, SelectorModeDataMap.dynamic.selectorDefaults);
@@ -100,7 +101,7 @@ class LabelManifestSelectorHandler implements ISelectorHandler {
   public handles = (mode: SelectorMode): boolean => mode === SelectorMode.Label;
 
   public handleModeChange = (): void => {
-    const { selector } = this.component.state;
+    const selector = { ...this.component.state.selector };
     Object.assign(selector, SelectorModeDataMap.label.selectorDefaults);
     this.component.setStateAndUpdateStage({ selector });
   };
@@ -254,8 +255,8 @@ export class ManifestSelector extends React.Component<IManifestSelectorProps, IM
   };
 
   private handleModeSelect = (mode: SelectorMode) => {
-    this.state.selector.mode = mode;
-    this.setStateAndUpdateStage({ selector: this.state.selector }, () => {
+    const selector = { ...this.state.selector, mode };
+    this.setStateAndUpdateStage({ selector }, () => {
       this.modeDelegate().handleModeChange();
     });
   };
@@ -336,7 +337,7 @@ export class ManifestSelector extends React.Component<IManifestSelectorProps, IM
             value={selector.account}
             onChange={(evt: any) => this.handleAccountChange(evt.target.value)}
             accounts={accounts}
-            provider="'kubernetes'"
+            provider="kubernetes"
           />
         </StageConfigField>
         <StageConfigField label="Namespace">

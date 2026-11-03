@@ -27,7 +27,7 @@ import com.netflix.spinnaker.clouddriver.google.provider.agent.StubComputeFactor
 import com.netflix.spinnaker.clouddriver.google.security.GoogleNamedAccountCredentials
 import com.netflix.spinnaker.credentials.CredentialsRepository
 import com.netflix.spinnaker.credentials.CredentialsTypeBaseConfiguration
-import org.springframework.boot.actuate.health.Status
+import org.springframework.boot.health.contributor.Status
 import org.springframework.context.ApplicationContext
 import spock.lang.Specification
 import spock.lang.Unroll

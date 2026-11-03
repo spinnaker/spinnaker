@@ -17,6 +17,7 @@
 
 package com.netflix.spinnaker.clouddriver.kubernetes.security
 
+import com.netflix.spinnaker.clouddriver.kubernetes.op.handler.CustomResourceStatusEvaluator
 import com.google.common.collect.ImmutableList
 import io.micrometer.core.instrument.MeterRegistry
 import io.micrometer.core.instrument.simple.SimpleMeterRegistry
@@ -46,7 +47,7 @@ class KubernetesCredentialsSpec extends Specification {
   KubernetesNamerRegistry namerRegistry = new KubernetesNamerRegistry([new KubernetesManifestNamer()])
   ConfigFileService configFileService = new ConfigFileService()
   KubernetesSpinnakerKindMap kubernetesSpinnakerKindMap = new KubernetesSpinnakerKindMap(ImmutableList.of())
-  GlobalResourcePropertyRegistry globalResourcePropertyRegistry = new GlobalResourcePropertyRegistry(ImmutableList.of(), new KubernetesUnregisteredCustomResourceHandler())
+  GlobalResourcePropertyRegistry globalResourcePropertyRegistry = new GlobalResourcePropertyRegistry(ImmutableList.of(), new KubernetesUnregisteredCustomResourceHandler(CustomResourceStatusEvaluator.disabled()))
 
   KubernetesCredentials.Factory credentialFactory = new KubernetesCredentials.Factory(
     new SimpleMeterRegistry(),
@@ -56,7 +57,8 @@ class KubernetesCredentialsSpec extends Specification {
     resourcePropertyRegistryFactory,
     kindRegistryFactory,
     kubernetesSpinnakerKindMap,
-    globalResourcePropertyRegistry
+    globalResourcePropertyRegistry,
+    CustomResourceStatusEvaluator.disabled()
   )
 
 

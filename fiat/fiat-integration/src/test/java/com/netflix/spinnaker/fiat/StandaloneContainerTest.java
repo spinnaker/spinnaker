@@ -72,7 +72,7 @@ class StandaloneContainerTest {
   static int front50Port;
 
   private static final GenericContainer redis =
-      new GenericContainer(DockerImageName.parse("library/redis:5-alpine"))
+      new GenericContainer(DockerImageName.parse("valkey/valkey:8"))
           .withNetwork(network)
           .withNetworkAliases(REDIS_NETWORK_ALIAS)
           .withExposedPorts(REDIS_PORT);
@@ -103,6 +103,10 @@ class StandaloneContainerTest {
 
     wmClouddriver.stubFor(
         WireMock.get(urlPathEqualTo("/credentials"))
+            .willReturn(aResponse().withStatus(200).withBody("[]")));
+
+    wmClouddriver.stubFor(
+        WireMock.get(urlPathEqualTo("/artifacts/credentials/all"))
             .willReturn(aResponse().withStatus(200).withBody("[]")));
 
     String fullDockerImageName = System.getenv("FULL_DOCKER_IMAGE_NAME");

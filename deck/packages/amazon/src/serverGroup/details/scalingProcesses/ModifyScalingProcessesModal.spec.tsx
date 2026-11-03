@@ -48,16 +48,16 @@ describe('ModifyScalingProcessesModal', () => {
   });
 
   it('submits the changed-state diff through the task monitor', () => {
-    const execute = spyOn(TaskExecutor, 'executeTask').and.returnValue(Promise.resolve({} as any));
-    const application = { name: 'deck', serverGroups: { refresh: jasmine.createSpy('refresh') } } as any;
+    const execute = vi.spyOn(TaskExecutor, 'executeTask').mockReturnValue(Promise.resolve({} as any));
+    const application = { name: 'deck', serverGroups: { refresh: vi.fn() } } as any;
     const modal = new ModifyScalingProcessesModal({
       application,
       serverGroup: {
         ...serverGroup,
         asg: { suspendedProcesses: [] },
       },
-      closeModal: jasmine.createSpy('closeModal'),
-      dismissModal: jasmine.createSpy('dismissModal'),
+      closeModal: vi.fn(),
+      dismissModal: vi.fn(),
     } as any) as any;
     modal.state.processes[0].enabled = false;
     modal.state.reason = 'maintenance';
@@ -68,7 +68,7 @@ describe('ModifyScalingProcessesModal', () => {
     expect(execute).toHaveBeenCalledWith({
       application,
       description: 'Update Auto Scaling Processes for deck-main-v001',
-      job: [jasmine.objectContaining({ action: 'suspend', processes: ['Launch'], reason: 'maintenance' })],
+      job: [expect.objectContaining({ action: 'suspend', processes: ['Launch'], reason: 'maintenance' })],
     });
   });
 });

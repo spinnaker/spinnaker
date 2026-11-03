@@ -30,9 +30,11 @@ describe('PipelineTemplateV2Service', () => {
       variables: [],
     };
 
-    beforeAll(() => {
-      spyOn(UUIDGenerator, 'generateUuid').and.returnValue(mockId);
-      spyOn(HumanReadableIds, 'random').and.returnValue(mockName);
+    // Set in beforeEach (not beforeAll): the suite runs with restoreMocks, which restores spies
+    // before each test, so beforeAll-registered spies would not survive to the test body.
+    beforeEach(() => {
+      vi.spyOn(UUIDGenerator, 'generateUuid').mockReturnValue(mockId);
+      vi.spyOn(HumanReadableIds, 'random').mockReturnValue(mockName);
     });
 
     it('returns a template successfully', () => {

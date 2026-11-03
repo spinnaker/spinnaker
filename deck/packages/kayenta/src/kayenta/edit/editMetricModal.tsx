@@ -11,21 +11,17 @@ import { CanarySettings } from '../canary.settings';
 import type { ICanaryMetricConfig } from '../domain';
 import EditMetricEffectSizes from './editMetricEffectSizes';
 import type { ICanaryMetricValidationErrors } from './editMetricValidation';
-import FilterTemplateSelector from './filterTemplateSelector';
-import InlineTemplateEditor from './inlineTemplateEditor';
 import { DISABLE_EDIT_CONFIG, DisableableInput, DisableableSelect } from '../layout/disableable';
 import FormRow from '../layout/formRow';
 import RadioChoice from '../layout/radioChoice';
 import Styleguide from '../layout/styleguide';
 import MetricConfigurerDelegator from './metricConfigurerDelegator';
-import metricStoreConfigService from '../metricStore/metricStoreConfig.service';
 import type { ICanaryState } from '../reducers';
 import { editingMetricValidationErrorsSelector } from '../selectors';
-import { isTemplateValidSelector, useInlineTemplateEditorSelector } from '../selectors/filterTemplatesSelectors';
 
 import './editMetricModal.less';
 
-interface IEditMetricModalDispatchProps {
+export interface IEditMetricModalDispatchProps {
   rename: (event: any) => void;
   changeGroup: (event: any) => void;
   updateDirection: (event: any) => void;
@@ -37,11 +33,9 @@ interface IEditMetricModalDispatchProps {
   cancel: () => void;
 }
 
-interface IEditMetricModalStateProps {
+export interface IEditMetricModalStateProps {
   metric: ICanaryMetricConfig;
   groups: string[];
-  isTemplateValid: boolean;
-  useInlineTemplateEditor: boolean;
   disableEdit: boolean;
   validationErrors: ICanaryMetricValidationErrors;
 }
@@ -56,13 +50,11 @@ function EditMetricModal({
   groups,
   confirm,
   cancel,
-  isTemplateValid,
   updateDirection,
   updateNanStrategy,
   updateOutlierStrategy,
   updateCriticality,
   updateDataRequired,
-  useInlineTemplateEditor,
   disableEdit,
   validationErrors,
 }: IEditMetricModalDispatchProps & IEditMetricModalStateProps) {
@@ -75,24 +67,22 @@ function EditMetricModal({
   const outlierStrategy = metric.analysisConfigurations?.canary?.outliers?.strategy ?? 'default';
   const critical = metric.analysisConfigurations?.canary?.critical ?? false;
   const dataRequired = metric.analysisConfigurations?.canary?.mustHaveData ?? false;
+  const modalTitle = disableEdit || CanarySettings.disableConfigEdit ? 'Metric Details' : 'Configure Metric';
   const isConfirmDisabled =
-    !isTemplateValid ||
-    disableEdit ||
-    CanarySettings.disableConfigEdit ||
-    values(validationErrors).some((e) => !isNull(e));
+    disableEdit || CanarySettings.disableConfigEdit || values(validationErrors).some((e) => !isNull(e));
 
   const metricGroup = metric.groups.length ? metric.groups[0] : groups[0];
-  const templatesEnabled =
-    metricStoreConfigService.getDelegate(metric.query.type) &&
-    metricStoreConfigService.getDelegate(metric.query.type).useTemplates &&
-    CanarySettings.templatesEnabled;
   return (
-    <Modal bsSize="large" show={true} onHide={noop} className={classNames('kayenta-edit-metric-modal')}>
+    <Modal
+      bsSize="large"
+      show={true}
+      onHide={noop}
+      className={classNames('kayenta-edit-metric-modal')}
+      aria-labelledby="edit-metric-modal-title"
+    >
       <Styleguide>
         <Modal.Header>
-          <Modal.Title>
-            {disableEdit || CanarySettings.disableConfigEdit ? 'Metric Details' : 'Configure Metric'}
-          </Modal.Title>
+          <Modal.Title id="edit-metric-modal-title">{modalTitle}</Modal.Title>
         </Modal.Header>
         <Modal.Body>
           <FormRow label="Group" inputOnly={true}>
@@ -139,6 +129,7 @@ function EditMetricModal({
               name="direction"
               current={direction}
               action={updateDirection}
+              metricId={metric.id}
             />
             <RadioChoice
               value="decrease"
@@ -146,14 +137,23 @@ function EditMetricModal({
               name="direction"
               current={direction}
               action={updateDirection}
+              metricId={metric.id}
             />
-            <RadioChoice value="either" label="Either" name="direction" current={direction} action={updateDirection} />
+            <RadioChoice
+              value="either"
+              label="Either"
+              name="direction"
+              current={direction}
+              action={updateDirection}
+              metricId={metric.id}
+            />
           </FormRow>
           <FormRow label="Criticality" checkbox={true}>
             <label>
               <DisableableInput
                 type="checkbox"
                 name="criticality"
+                data-id={metric.id}
                 checked={critical}
                 onChange={updateCriticality}
                 disabled={CanarySettings.disableConfigEdit}
@@ -167,6 +167,7 @@ function EditMetricModal({
               <DisableableInput
                 type="checkbox"
                 name="dataRequired"
+                data-id={metric.id}
                 checked={dataRequired}
                 onChange={updateDataRequired}
                 disabled={CanarySettings.disableConfigEdit}
@@ -182,6 +183,7 @@ function EditMetricModal({
               name="nanStrategy"
               current={nanStrategy}
               action={updateNanStrategy}
+              metricId={metric.id}
             />
             <RadioChoice
               value="replace"
@@ -189,6 +191,7 @@ function EditMetricModal({
               name="nanStrategy"
               current={nanStrategy}
               action={updateNanStrategy}
+              metricId={metric.id}
             />
             <RadioChoice
               value="remove"
@@ -196,6 +199,7 @@ function EditMetricModal({
               name="nanStrategy"
               current={nanStrategy}
               action={updateNanStrategy}
+              metricId={metric.id}
             />
           </FormRow>
           <FormRow label="Outlier Strategy" helpId="canary.config.outlierStrategy">
@@ -205,6 +209,7 @@ function EditMetricModal({
               name="outlierStrategy"
               current={outlierStrategy}
               action={updateOutlierStrategy}
+              metricId={metric.id}
             />
             <RadioChoice
               value="remove"
@@ -212,6 +217,7 @@ function EditMetricModal({
               name="outlierStrategy"
               current={outlierStrategy}
               action={updateOutlierStrategy}
+              metricId={metric.id}
             />
             <RadioChoice
               value="keep"
@@ -219,12 +225,11 @@ function EditMetricModal({
               name="outlierStrategy"
               current={outlierStrategy}
               action={updateOutlierStrategy}
+              metricId={metric.id}
             />
           </FormRow>
           <EditMetricEffectSizes />
           <MetricConfigurerDelegator />
-          {templatesEnabled && !useInlineTemplateEditor && <FilterTemplateSelector />}
-          {templatesEnabled && useInlineTemplateEditor && <InlineTemplateEditor />}
         </Modal.Body>
         <Modal.Footer>
           <ul className="list-inline pull-right">
@@ -255,11 +260,9 @@ function mapDispatchToProps(dispatch: any): IEditMetricModalDispatchProps {
     },
     cancel: () => {
       dispatch(Creators.editMetricCancel());
-      dispatch(Creators.editTemplateCancel());
     },
     confirm: () => {
       dispatch(Creators.editMetricConfirm());
-      dispatch(Creators.editTemplateCancel());
     },
     updateDirection: ({ target }: React.ChangeEvent<HTMLInputElement>) => {
       dispatch(Creators.updateMetricDirection({ id: target.dataset.id, direction: target.value }));
@@ -283,9 +286,6 @@ function mapStateToProps(state: ICanaryState): IEditMetricModalStateProps {
   return {
     metric: state.selectedConfig.editingMetric,
     groups: state.selectedConfig.group.list.sort(),
-    isTemplateValid: isTemplateValidSelector(state),
-    // eslint-disable-next-line react-hooks/rules-of-hooks
-    useInlineTemplateEditor: useInlineTemplateEditorSelector(state),
     disableEdit: state.app.disableConfigEdit || CanarySettings.disableConfigEdit,
     validationErrors: editingMetricValidationErrorsSelector(state),
   };

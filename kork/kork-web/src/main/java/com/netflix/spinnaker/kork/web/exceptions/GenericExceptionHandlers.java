@@ -77,15 +77,14 @@ public class GenericExceptionHandlers extends BaseExceptionHandlers {
     // (and as of 30-oct-21, AdminController.DiscoveryUnchangeableException in
     // orca does), so handle it, as opposed to calling response.sendError
     // directly.
-    handleResponseStatusAnnotatedException(e, response);
+    handleResponseStatusAnnotatedException(e, response, request);
   }
 
   @ExceptionHandler(Exception.class)
   public void handleException(Exception e, HttpServletResponse response, HttpServletRequest request)
       throws IOException {
-    logger.warn("Handled error in generic exception handler", e);
     storeException(request, response, e);
-    handleResponseStatusAnnotatedException(e, response);
+    handleResponseStatusAnnotatedException(e, response, request);
   }
 
   /**
@@ -94,18 +93,19 @@ public class GenericExceptionHandlers extends BaseExceptionHandlers {
    *
    * @param e the exception to process
    * @param response a response
+   * @param request the request that failed, named in the log
    */
-  private void handleResponseStatusAnnotatedException(Exception e, HttpServletResponse response)
-      throws IOException {
+  private void handleResponseStatusAnnotatedException(
+      Exception e, HttpServletResponse response, HttpServletRequest request) throws IOException {
     ResponseStatus responseStatus =
         AnnotationUtils.findAnnotation(e.getClass(), ResponseStatus.class);
 
     if (responseStatus != null) {
       HttpStatus httpStatus = responseStatus.value();
       if (httpStatus.is5xxServerError()) {
-        logger.error(httpStatus.getReasonPhrase(), e);
+        logger.error("{} ({})", httpStatus.getReasonPhrase(), describe(request), e);
       } else if (httpStatus != HttpStatus.NOT_FOUND) {
-        logger.error(httpStatus.getReasonPhrase() + ": " + e.toString());
+        logger.error("{} ({}): {}", httpStatus.getReasonPhrase(), describe(request), e.toString());
       }
 
       String message = e.getMessage();
@@ -114,7 +114,7 @@ public class GenericExceptionHandlers extends BaseExceptionHandlers {
       }
       response.sendError(httpStatus.value(), exceptionMessageDecorator.decorate(e, message));
     } else {
-      logger.error("Internal Server Error", e);
+      logger.error("Internal Server Error ({})", describe(request), e);
       response.sendError(
           HttpStatus.INTERNAL_SERVER_ERROR.value(),
           exceptionMessageDecorator.decorate(e, e.getMessage()));

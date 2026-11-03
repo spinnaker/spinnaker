@@ -66,7 +66,7 @@ describe('AuthenticationService', function () {
     });
 
     it('can unsubscribe an authentication event', function () {
-      const event = jasmine.createSpy('event');
+      const event = vi.fn();
       const unsubscribe = AuthenticationService.onAuthentication(event);
       authenticationUnsubscribes.push(unsubscribe);
 
@@ -79,8 +79,8 @@ describe('AuthenticationService', function () {
 
     it('reports a failing event and continues notifying the remaining events', function () {
       const listenerError = new Error('listener failed');
-      const reportError = spyOn(console, 'error');
-      const nextEvent = jasmine.createSpy('nextEvent');
+      const reportError = vi.spyOn(console, 'error').mockReturnValue(undefined);
+      const nextEvent = vi.fn();
       authenticationUnsubscribes.push(
         AuthenticationService.onAuthentication(() => {
           throw listenerError;
@@ -93,7 +93,7 @@ describe('AuthenticationService', function () {
       ).not.toThrow();
 
       expect(nextEvent).toHaveBeenCalledTimes(1);
-      expect(reportError).toHaveBeenCalledOnceWith('Authentication listener failed', listenerError);
+      expect(reportError).toHaveBeenCalledExactlyOnceWith('Authentication listener failed', listenerError);
     });
   });
 });

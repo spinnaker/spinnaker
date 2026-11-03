@@ -26,13 +26,13 @@ describe('GceUpsertAutoscalingPolicyModal', () => {
 
   it('retains edited policy state when task creation is rejected', async () => {
     const rejection = { failureMessage: 'No permission' };
-    spyOn(GceAutoscalingPolicyWriter, 'upsertAutoscalingPolicy').and.returnValue(Promise.reject(rejection));
+    vi.spyOn(GceAutoscalingPolicyWriter, 'upsertAutoscalingPolicy').mockReturnValue(Promise.reject(rejection));
     const modal = new GceUpsertAutoscalingPolicyModal({
       application: { name: 'my-app' },
       serverGroup: { account: 'my-account', name: 'my-app-main-v001', region: 'us-central1' },
       policy: { minNumReplicas: 0, cpuUtilization: { utilizationTarget: 0.5 } },
-      closeModal: jasmine.createSpy('closeModal'),
-      dismissModal: jasmine.createSpy('dismissModal'),
+      closeModal: vi.fn(),
+      dismissModal: vi.fn(),
     } as any);
     const editedPolicy = { minNumReplicas: 0, cpuUtilization: { utilizationTarget: 0 } };
     modal.state.policy = editedPolicy;

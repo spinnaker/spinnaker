@@ -17,8 +17,8 @@ package com.netflix.spinnaker.orca.sql
 
 import com.netflix.spinnaker.kork.dynamicconfig.DynamicConfigService
 import org.jooq.SQLDialect
-import org.springframework.boot.actuate.health.AbstractHealthIndicator
-import org.springframework.boot.actuate.health.Health
+import org.springframework.boot.health.contributor.AbstractHealthIndicator
+import org.springframework.boot.health.contributor.Health
 
 /**
  * Overrides the default Spring DataSourceHealthIndicator, which performs

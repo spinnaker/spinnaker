@@ -32,6 +32,6 @@ dependencies {
 
   testImplementation(project(":orca-test"))
   testImplementation(project(":orca-test-kotlin"))
-  testImplementation("com.github.tomakehurst:wiremock-jre8-standalone")
+  testImplementation("org.wiremock:wiremock")
   testImplementation("com.squareup.retrofit2:retrofit-mock")
 }

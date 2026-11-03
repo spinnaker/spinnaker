@@ -18,8 +18,14 @@ package com.netflix.spinnaker.clouddriver.artifacts.config;
 
 import static org.junit.jupiter.api.Assertions.*;
 
+import com.netflix.spinnaker.fiat.model.resources.Permissions;
+import com.netflix.spinnaker.kork.artifacts.model.Artifact;
+import com.netflix.spinnaker.kork.web.url.UrlRestrictions;
+import com.netflix.spinnaker.kork.web.url.UrlRestrictionsProperties;
 import java.io.IOException;
+import java.io.InputStream;
 import java.util.Arrays;
+import java.util.List;
 import okhttp3.OkHttpClient;
 import okhttp3.mockwebserver.MockResponse;
 import okhttp3.mockwebserver.MockWebServer;
@@ -52,13 +58,14 @@ class BaseHttpArtifactCredentialsTest {
   @Test
   void testSSRFPreventionViaRedirect() throws Exception {
     // Set up URL restrictions that allow the malicious server but block localhost
-    HttpUrlRestrictions restrictions =
-        HttpUrlRestrictions.builder()
+    UrlRestrictions restrictions =
+        UrlRestrictionsProperties.builder()
             .allowedHostnamesRegex(".*")
             .rejectLocalhost(true)
             .rejectLinkLocal(true)
             .allowedSchemes(Arrays.asList("http", "https"))
-            .build();
+            .build()
+            .toUrlRestrictions();
 
     TestArtifactAccount account = new TestArtifactAccount();
     account.setUrlRestrictions(restrictions);
@@ -110,12 +117,13 @@ class BaseHttpArtifactCredentialsTest {
 
   @Test
   void testLegitimateRedirectsAreFollowed() throws Exception {
-    HttpUrlRestrictions restrictions =
-        HttpUrlRestrictions.builder()
+    UrlRestrictions restrictions =
+        UrlRestrictionsProperties.builder()
             .allowedHostnamesRegex(".*")
             .rejectLocalhost(false) // Allow localhost for this test
             .allowedSchemes(Arrays.asList("http", "https"))
-            .build();
+            .build()
+            .toUrlRestrictions();
 
     TestArtifactAccount account = new TestArtifactAccount();
     account.setUrlRestrictions(restrictions);
@@ -139,12 +147,13 @@ class BaseHttpArtifactCredentialsTest {
 
   @Test
   void testRedirectLoopPrevention() throws Exception {
-    HttpUrlRestrictions restrictions =
-        HttpUrlRestrictions.builder()
+    UrlRestrictions restrictions =
+        UrlRestrictionsProperties.builder()
             .allowedHostnamesRegex(".*")
             .rejectLocalhost(false)
             .allowedSchemes(Arrays.asList("http", "https"))
-            .build();
+            .build()
+            .toUrlRestrictions();
 
     TestArtifactAccount account = new TestArtifactAccount();
     account.setUrlRestrictions(restrictions);
@@ -176,12 +185,13 @@ class BaseHttpArtifactCredentialsTest {
 
   @Test
   void testRelativeRedirectResolution() throws Exception {
-    HttpUrlRestrictions restrictions =
-        HttpUrlRestrictions.builder()
+    UrlRestrictions restrictions =
+        UrlRestrictionsProperties.builder()
             .allowedHostnamesRegex(".*")
             .rejectLocalhost(false)
             .allowedSchemes(Arrays.asList("http", "https"))
-            .build();
+            .build()
+            .toUrlRestrictions();
 
     TestArtifactAccount account = new TestArtifactAccount();
     account.setUrlRestrictions(restrictions);
@@ -207,18 +217,18 @@ class BaseHttpArtifactCredentialsTest {
 
   // Test implementation classes
   static class TestArtifactAccount extends UserInputValidatedArtifactAccount {
-    private HttpUrlRestrictions mutableRestrictions;
+    private UrlRestrictions mutableRestrictions;
 
     TestArtifactAccount() {
-      super("test-account", null);
+      super("test-account", null, new Permissions.Builder());
     }
 
     @Override
-    public HttpUrlRestrictions getUrlRestrictions() {
+    public UrlRestrictions getUrlRestrictions() {
       return mutableRestrictions;
     }
 
-    public void setUrlRestrictions(HttpUrlRestrictions restrictions) {
+    public void setUrlRestrictions(UrlRestrictions restrictions) {
       this.mutableRestrictions = restrictions;
     }
   }
@@ -226,6 +236,26 @@ class BaseHttpArtifactCredentialsTest {
   static class TestArtifactCredentials extends BaseHttpArtifactCredentials<TestArtifactAccount> {
     protected TestArtifactCredentials(OkHttpClient okHttpClient, TestArtifactAccount account) {
       super(okHttpClient, account);
+    }
+
+    @Override
+    public String getName() {
+      return getAccount().getName();
+    }
+
+    @Override
+    public String getType() {
+      return "test";
+    }
+
+    @Override
+    public List<String> getTypes() {
+      return List.of();
+    }
+
+    @Override
+    public InputStream download(Artifact artifact) {
+      throw new UnsupportedOperationException();
     }
   }
 }

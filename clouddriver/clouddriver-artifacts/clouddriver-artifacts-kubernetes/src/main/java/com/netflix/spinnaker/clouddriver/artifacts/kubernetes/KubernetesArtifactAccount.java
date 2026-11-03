@@ -18,12 +18,15 @@
 package com.netflix.spinnaker.clouddriver.artifacts.kubernetes;
 
 import com.netflix.spinnaker.clouddriver.artifacts.config.ArtifactAccount;
+import com.netflix.spinnaker.fiat.model.resources.Permissions;
 import com.netflix.spinnaker.kork.annotations.NonnullByDefault;
 import lombok.Value;
 
 @NonnullByDefault
 @Value
 final class KubernetesArtifactAccount implements ArtifactAccount {
+  private final Permissions.Builder permissions = new Permissions.Builder();
+
   @Override
   public String getName() {
     return "kubernetes";

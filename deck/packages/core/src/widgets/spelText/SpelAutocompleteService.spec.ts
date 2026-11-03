@@ -23,7 +23,7 @@ describe('SpelAutocompleteService', () => {
       const results = spelAutocompleteService.buildTextCompleteConfig(pipeline);
 
       const helperFunctionsConfig = results.find((r) => r.id === 'helper functions');
-      const callbackSpy = jasmine.createSpy();
+      const callbackSpy = vi.fn();
       helperFunctionsConfig.search('cfS', callbackSpy);
       expect(callbackSpy).toHaveBeenCalledWith([]);
     });
@@ -53,7 +53,7 @@ describe('SpelAutocompleteService', () => {
       const results = spelAutocompleteService.buildTextCompleteConfig(pipeline);
 
       const helperFunctionsConfig = results.find((r) => r.id === 'helper functions');
-      const callbackSpy = jasmine.createSpy();
+      const callbackSpy = vi.fn();
       helperFunctionsConfig.search('cfS', callbackSpy);
       expect(callbackSpy).toHaveBeenCalledWith(['cfServiceKey']);
     });
@@ -84,7 +84,7 @@ describe('SpelAutocompleteService', () => {
     const results = spelAutocompleteService.buildTextCompleteConfig(pipeline);
 
     const helperFunctionsConfig = results.find((r) => r.id === 'helper functions');
-    const callbackSpy = jasmine.createSpy();
+    const callbackSpy = vi.fn();
     helperFunctionsConfig.search('to', callbackSpy);
     expect(callbackSpy).toHaveBeenCalledWith(['toBoolean', 'toFloat', 'toInt', 'toJson', 'toBase64']);
   });

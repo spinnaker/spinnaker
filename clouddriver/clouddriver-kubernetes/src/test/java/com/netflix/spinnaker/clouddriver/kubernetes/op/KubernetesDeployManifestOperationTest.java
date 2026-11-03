@@ -51,6 +51,7 @@ import com.netflix.spinnaker.clouddriver.kubernetes.description.manifest.Kuberne
 import com.netflix.spinnaker.clouddriver.kubernetes.description.manifest.KubernetesManifestTraffic;
 import com.netflix.spinnaker.clouddriver.kubernetes.names.KubernetesManifestNamer;
 import com.netflix.spinnaker.clouddriver.kubernetes.op.handler.*;
+import com.netflix.spinnaker.clouddriver.kubernetes.op.handler.CustomResourceStatusEvaluator;
 import com.netflix.spinnaker.clouddriver.kubernetes.op.manifest.KubernetesDeployManifestOperation;
 import com.netflix.spinnaker.clouddriver.kubernetes.security.KubernetesCredentials;
 import com.netflix.spinnaker.clouddriver.kubernetes.security.KubernetesNamedAccountCredentials;
@@ -76,7 +77,8 @@ final class KubernetesDeployManifestOperationTest {
               new KubernetesReplicaSetHandler(),
               new KubernetesServiceHandler(),
               new KubernetesConfigMapHandler()),
-          new KubernetesUnregisteredCustomResourceHandler());
+          new KubernetesUnregisteredCustomResourceHandler(
+              CustomResourceStatusEvaluator.disabled()));
   private static final Namer<KubernetesManifest> NAMER = new KubernetesManifestNamer();
   private static final String ACCOUNT = "my-account";
 
@@ -373,9 +375,9 @@ final class KubernetesDeployManifestOperationTest {
         ManifestFetcher.getManifest(KubernetesDeployManifestOperationTest.class, manifestFile)
             .get(1);
     existingConfigMap.setName("myconfig-v001");
-    Map<KubernetesKind, Artifact> existingArtifacts =
+    Map<KubernetesManifest, Artifact> existingArtifacts =
         ImmutableMap.of(
-            KubernetesKind.CONFIG_MAP,
+            description.getManifests().get(1),
             Artifact.builder()
                 .type("kubernetes/configMap")
                 .name("myconfig")
@@ -510,12 +512,33 @@ final class KubernetesDeployManifestOperationTest {
     deploy(deployManifestDescription);
   }
 
+  @Test
+  void appliesProvenanceAnnotationsWhenFlagEnabled() {
+    KubernetesDeployManifestDescription deployManifestDescription =
+        baseDeployDescription(
+            "deploy/replicaset.yml", false, new KubernetesManifestNamer(true, "", true));
+    deployManifestDescription.setDeployedBy("user@example.com");
+    deployManifestDescription.setExecutionId("exec-123");
+    OperationResult result = deploy(deployManifestDescription);
+
+    KubernetesManifest manifest = Iterables.getOnlyElement(result.getManifests());
+    assertThat(manifest.getAnnotations())
+        .containsEntry("provenance.spinnaker.io/deployed-by", "user@example.com");
+    assertThat(manifest.getAnnotations())
+        .containsEntry("provenance.spinnaker.io/execution-id", "exec-123");
+  }
+
   private static KubernetesDeployManifestDescription baseDeployDescription(String manifest) {
     return baseDeployDescription(manifest, false);
   }
 
   private static KubernetesDeployManifestDescription baseDeployDescription(
       String manifest, boolean deployReturnsNull) {
+    return baseDeployDescription(manifest, deployReturnsNull, NAMER);
+  }
+
+  private static KubernetesDeployManifestDescription baseDeployDescription(
+      String manifest, boolean deployReturnsNull, Namer<KubernetesManifest> namer) {
     KubernetesDeployManifestDescription deployManifestDescription =
         new KubernetesDeployManifestDescription()
             .setManifests(
@@ -523,12 +546,12 @@ final class KubernetesDeployManifestOperationTest {
             .setMoniker(new Moniker())
             .setSource(KubernetesDeployManifestDescription.Source.text);
     deployManifestDescription.setAccount(ACCOUNT);
-    deployManifestDescription.setCredentials(getNamedAccountCredentials(deployReturnsNull));
+    deployManifestDescription.setCredentials(getNamedAccountCredentials(deployReturnsNull, namer));
     return deployManifestDescription;
   }
 
   private static KubernetesNamedAccountCredentials getNamedAccountCredentials(
-      boolean deployReturnsNull) {
+      boolean deployReturnsNull, Namer<KubernetesManifest> namer) {
     ManagedAccount managedAccount = new ManagedAccount();
     managedAccount.setName("my-account");
 
@@ -537,13 +560,14 @@ final class KubernetesDeployManifestOperationTest {
         .withAccount(managedAccount.getName())
         .setNamer(KubernetesManifest.class, new KubernetesManifestNamer());
 
-    KubernetesCredentials mockCredentials = getMockKubernetesCredentials(deployReturnsNull);
+    KubernetesCredentials mockCredentials = getMockKubernetesCredentials(deployReturnsNull, namer);
     KubernetesCredentials.Factory credentialFactory = mock(KubernetesCredentials.Factory.class);
     when(credentialFactory.build(managedAccount)).thenReturn(mockCredentials);
     return new KubernetesNamedAccountCredentials(managedAccount, credentialFactory);
   }
 
-  private static KubernetesCredentials getMockKubernetesCredentials(boolean deployReturnsNull) {
+  private static KubernetesCredentials getMockKubernetesCredentials(
+      boolean deployReturnsNull, Namer<KubernetesManifest> namer) {
     KubernetesCredentials credentialsMock = mock(KubernetesCredentials.class);
     when(credentialsMock.getKindProperties(any(KubernetesKind.class)))
         .thenAnswer(
@@ -589,17 +613,17 @@ final class KubernetesDeployManifestOperationTest {
                 return result;
               });
     }
-    when(credentialsMock.getNamer()).thenReturn(NAMER);
+    when(credentialsMock.getNamer()).thenReturn(namer);
     return credentialsMock;
   }
 
   private static OperationResult deploy(KubernetesDeployManifestDescription description) {
     ArtifactProvider artifactProvider = mock(ArtifactProvider.class);
     when(artifactProvider.getArtifacts(
-            any(KubernetesKind.class),
+            any(KubernetesManifest.class),
             any(String.class),
-            any(String.class),
-            any(KubernetesCredentials.class)))
+            any(KubernetesCredentials.class),
+            any(KubernetesSelectorList.class)))
         .thenReturn(ImmutableList.of());
     ResourceVersioner resourceVersioner = new ResourceVersioner(artifactProvider);
     return new KubernetesDeployManifestOperation(description, resourceVersioner)
@@ -608,20 +632,20 @@ final class KubernetesDeployManifestOperationTest {
 
   private static OperationResult deploy(
       KubernetesDeployManifestDescription description,
-      Map<KubernetesKind, Artifact> artifactsByKind) {
+      Map<KubernetesManifest, Artifact> artifactsByManifest) {
     ArtifactProvider artifactProvider = mock(ArtifactProvider.class);
     when(artifactProvider.getArtifacts(
-            any(KubernetesKind.class),
+            any(KubernetesManifest.class),
             any(String.class),
-            any(String.class),
-            any(KubernetesCredentials.class)))
+            any(KubernetesCredentials.class),
+            any(KubernetesSelectorList.class)))
         .thenReturn(ImmutableList.of());
-    for (Map.Entry<KubernetesKind, Artifact> entry : artifactsByKind.entrySet()) {
+    for (Map.Entry<KubernetesManifest, Artifact> entry : artifactsByManifest.entrySet()) {
       when(artifactProvider.getArtifacts(
               eq(entry.getKey()),
               any(String.class),
-              any(String.class),
-              any(KubernetesCredentials.class)))
+              any(KubernetesCredentials.class),
+              any(KubernetesSelectorList.class)))
           .thenReturn(ImmutableList.of(entry.getValue()));
     }
     ResourceVersioner resourceVersioner = new ResourceVersioner(artifactProvider);

@@ -1,11 +1,12 @@
 import { UISref } from '@uirouter/react';
 import { UIRouterReact } from '@uirouter/react';
-import { mount, shallow } from 'enzyme';
 import React from 'react';
-import { act } from 'react-dom/test-utils';
+import { act, screen, waitFor } from '@testing-library/react';
 import { BehaviorSubject } from 'rxjs';
 
-import { CollapsibleSection, createDeckRuntime, DeckRuntimeContext, LoadBalancerReader } from '@spinnaker/core';
+import { createDeckRuntime, DeckRuntimeContext, LoadBalancerReader } from '@spinnaker/core';
+import { renderHookHarness } from '../../../../core/src/utils/testUtils/hookHarness';
+import { renderWithRouter } from '../../../../core/src/utils/testUtils/rtl';
 
 import {
   AzureLoadBalancerDetailsSection,
@@ -20,7 +21,6 @@ describe('AzureLoadBalancerDetails', () => {
   const RuntimeWrapper = ({ children }: React.PropsWithChildren<{}>) => (
     <DeckRuntimeContext.Provider value={runtime}>{children}</DeckRuntimeContext.Provider>
   );
-  const mountWithRuntime = (component: React.ReactElement) => mount(component, { wrappingComponent: RuntimeWrapper });
 
   beforeEach(() => {
     runtime = createDeckRuntime(new UIRouterReact());
@@ -53,6 +53,18 @@ describe('AzureLoadBalancerDetails', () => {
     return { promise, resolve: resolve! };
   }
 
+  function findElement(root: React.ReactNode, type: React.ElementType): React.ReactElement<any> | undefined {
+    if (!React.isValidElement(root)) {
+      return undefined;
+    }
+    if (root.type === type) {
+      return root;
+    }
+    return React.Children.toArray(root.props.children)
+      .map((child) => findElement(child, type))
+      .find(Boolean);
+  }
+
   it('does not refetch details when a rerender recreates callbacks and route params', async () => {
     const summary = {
       account: 'test-account',
@@ -67,37 +79,24 @@ describe('AzureLoadBalancerDetails', () => {
       data: [summary],
     });
     const app = {
-      getDataSource: jasmine.createSpy('getDataSource').and.returnValue({
+      getDataSource: vi.fn().mockReturnValue({
         status$,
-        refresh: jasmine.createSpy('refresh'),
+        refresh: vi.fn(),
       }),
     } as any;
-    const getLoadBalancerDetails = spyOn(LoadBalancerReader.prototype, 'getLoadBalancerDetails').and.returnValue(
-      new Promise(() => undefined),
+    const getLoadBalancerDetails = vi
+      .spyOn(LoadBalancerReader.prototype, 'getLoadBalancerDetails')
+      .mockReturnValue(new Promise(() => undefined));
+
+    const hook = renderHookHarness(
+      useAzureLoadBalancerDetails,
+      { app, loadBalancerParams: { ...params }, autoClose: () => undefined } as any,
+      { wrapper: RuntimeWrapper },
     );
-
-    function TestComponent({ renderCount }: { renderCount: number }) {
-      useAzureLoadBalancerDetails({
-        app,
-        loadBalancerParams: { ...params },
-        autoClose: () => undefined,
-      } as any);
-      return <span>{renderCount}</span>;
-    }
-
-    let wrapper: any;
-    await act(async () => {
-      wrapper = mountWithRuntime(<TestComponent renderCount={0} />);
-      await new Promise((resolve) => setTimeout(resolve, 0));
-    });
-
-    await act(async () => {
-      wrapper.setProps({ renderCount: 1 });
-      await new Promise((resolve) => setTimeout(resolve, 0));
-    });
+    await waitFor(() => expect(getLoadBalancerDetails).toHaveBeenCalledTimes(1));
+    hook.rerenderHook({ app, loadBalancerParams: { ...params }, autoClose: () => undefined } as any);
 
     expect(getLoadBalancerDetails).toHaveBeenCalledTimes(1);
-    wrapper.unmount();
   });
 
   it('does not let an older route request overwrite newer load balancer details', async () => {
@@ -110,53 +109,43 @@ describe('AzureLoadBalancerDetails', () => {
       data: [oldSummary, newSummary],
     });
     const app = {
-      getDataSource: jasmine.createSpy('getDataSource').and.returnValue({
+      getDataSource: vi.fn().mockReturnValue({
         status$,
-        refresh: jasmine.createSpy('refresh'),
+        refresh: vi.fn(),
       }),
     } as any;
     const oldRequest = deferred<any[]>();
     const newRequest = deferred<any[]>();
-    const getLoadBalancerDetails = spyOn(LoadBalancerReader.prototype, 'getLoadBalancerDetails').and.returnValues(
-      oldRequest.promise,
-      newRequest.promise,
+    const getLoadBalancerDetails = vi
+      .spyOn(LoadBalancerReader.prototype, 'getLoadBalancerDetails')
+      .mockReturnValueOnce(oldRequest.promise)
+      .mockReturnValueOnce(newRequest.promise);
+
+    const hook = renderHookHarness(
+      useAzureLoadBalancerDetails,
+      { app, loadBalancerParams: { ...params, name: 'old-lb' }, autoClose: () => undefined } as any,
+      { wrapper: RuntimeWrapper },
     );
+    await waitFor(() => expect(getLoadBalancerDetails).toHaveBeenCalledTimes(1));
+    hook.rerenderHook({
+      app,
+      loadBalancerParams: { ...params, name: 'new-lb' },
+      autoClose: () => undefined,
+    } as any);
 
-    function TestComponent({ name }: { name: string }) {
-      const result = useAzureLoadBalancerDetails({
-        app,
-        loadBalancerParams: { ...params, name },
-        autoClose: () => undefined,
-      } as any);
-      return <span>{result.data?.name || ''}</span>;
-    }
-
-    let wrapper: any;
-    await act(async () => {
-      wrapper = mountWithRuntime(<TestComponent name="old-lb" />);
-      await Promise.resolve();
-    });
-    await act(async () => {
-      wrapper.setProps({ name: 'new-lb' });
-      await Promise.resolve();
-    });
-
-    expect(getLoadBalancerDetails).toHaveBeenCalledTimes(2);
+    await waitFor(() => expect(getLoadBalancerDetails).toHaveBeenCalledTimes(2));
 
     await act(async () => {
       newRequest.resolve([{ name: 'new-lb' }]);
       await newRequest.promise;
     });
-    wrapper.update();
-    expect(wrapper.text()).toBe('new-lb');
+    expect(hook.result.current.data?.name).toBe('new-lb');
 
     await act(async () => {
       oldRequest.resolve([{ name: 'old-lb' }]);
       await oldRequest.promise;
     });
-    wrapper.update();
-    expect(wrapper.text()).toBe('new-lb');
-    wrapper.unmount();
+    expect(hook.result.current.data?.name).toBe('new-lb');
   });
 
   it('stops loading when a data source error invalidates an active details request', async () => {
@@ -169,33 +158,23 @@ describe('AzureLoadBalancerDetails', () => {
       error: null,
     });
     const app = {
-      getDataSource: jasmine.createSpy('getDataSource').and.returnValue({
+      getDataSource: vi.fn().mockReturnValue({
         status$,
-        refresh: jasmine.createSpy('refresh'),
+        refresh: vi.fn(),
       }),
     } as any;
     const request = deferred<any[]>();
-    const getLoadBalancerDetails = spyOn(LoadBalancerReader.prototype, 'getLoadBalancerDetails').and.returnValue(
-      request.promise,
+    const getLoadBalancerDetails = vi
+      .spyOn(LoadBalancerReader.prototype, 'getLoadBalancerDetails')
+      .mockReturnValue(request.promise);
+
+    const hook = renderHookHarness(
+      useAzureLoadBalancerDetails,
+      { app, loadBalancerParams: params, autoClose: () => undefined } as any,
+      { wrapper: RuntimeWrapper },
     );
-
-    function TestComponent() {
-      const result = useAzureLoadBalancerDetails({
-        app,
-        loadBalancerParams: params,
-        autoClose: () => undefined,
-      } as any);
-      return <span data-loading={result.loading}>{result.data?.name || ''}</span>;
-    }
-
-    let wrapper: any;
-    await act(async () => {
-      wrapper = mountWithRuntime(<TestComponent />);
-      await new Promise((resolve) => setTimeout(resolve, 0));
-    });
-    wrapper.update();
-    expect(getLoadBalancerDetails).toHaveBeenCalledTimes(1);
-    expect(wrapper.find('span').prop('data-loading')).toBe(true);
+    await waitFor(() => expect(getLoadBalancerDetails).toHaveBeenCalledTimes(1));
+    expect(hook.result.current.loading).toBe(true);
 
     await act(async () => {
       status$.next({
@@ -207,16 +186,13 @@ describe('AzureLoadBalancerDetails', () => {
       });
       await Promise.resolve();
     });
-    wrapper.update();
-    expect(wrapper.find('span').prop('data-loading')).toBe(false);
+    expect(hook.result.current.loading).toBe(false);
 
     await act(async () => {
       request.resolve([{ name: 'fnord-frontend' }]);
       await request.promise;
     });
-    wrapper.update();
-    expect(wrapper.text()).toBe('');
-    wrapper.unmount();
+    expect(hook.result.current.data).toBeUndefined();
   });
 
   it('does not update state when a details request resolves after unmount', async () => {
@@ -228,33 +204,29 @@ describe('AzureLoadBalancerDetails', () => {
       data: [summary],
     });
     const app = {
-      getDataSource: jasmine.createSpy('getDataSource').and.returnValue({
+      getDataSource: vi.fn().mockReturnValue({
         status$,
-        refresh: jasmine.createSpy('refresh'),
+        refresh: vi.fn(),
       }),
     } as any;
     const request = deferred<any[]>();
-    spyOn(LoadBalancerReader.prototype, 'getLoadBalancerDetails').and.returnValue(request.promise);
+    vi.spyOn(LoadBalancerReader.prototype, 'getLoadBalancerDetails').mockReturnValue(request.promise);
 
-    function TestComponent() {
-      useAzureLoadBalancerDetails({ app, loadBalancerParams: params, autoClose: () => undefined } as any);
-      return null;
-    }
-
-    let wrapper: any;
-    await act(async () => {
-      wrapper = mountWithRuntime(<TestComponent />);
-      await Promise.resolve();
-    });
-    const consoleError = spyOn(console, 'error');
-    wrapper.unmount();
+    const hook = renderHookHarness(
+      useAzureLoadBalancerDetails,
+      { app, loadBalancerParams: params, autoClose: () => undefined } as any,
+      { wrapper: RuntimeWrapper },
+    );
+    await waitFor(() => expect(LoadBalancerReader.prototype.getLoadBalancerDetails).toHaveBeenCalled());
+    const consoleError = vi.spyOn(console, 'error').mockReturnValue(undefined);
+    hook.unmount();
 
     await act(async () => {
       request.resolve([{ name: 'fnord-frontend' }]);
       await request.promise;
     });
 
-    const errors = consoleError.calls.allArgs().flat().map(String).join(' ');
+    const errors = consoleError.mock.calls.flat().map(String).join(' ');
     expect(errors).not.toContain('state update on an unmounted component');
   });
 
@@ -278,10 +250,10 @@ describe('AzureLoadBalancerDetails', () => {
       },
     ];
     const loadBalancerReader = {
-      getLoadBalancerDetails: jasmine.createSpy('getLoadBalancerDetails').and.returnValue(Promise.resolve(details)),
+      getLoadBalancerDetails: vi.fn().mockReturnValue(Promise.resolve(details)),
     };
     const securityGroupReader = {
-      getApplicationSecurityGroup: jasmine.createSpy('getApplicationSecurityGroup').and.callFake(
+      getApplicationSecurityGroup: vi.fn().mockImplementation(
         (_app: any, account: string, region: string, id: string) =>
           ({
             'sg-1': { id: 'sg-1', name: 'z-firewall', account, region },
@@ -289,7 +261,7 @@ describe('AzureLoadBalancerDetails', () => {
           }[id]),
       ),
     };
-    const autoClose = jasmine.createSpy('autoClose');
+    const autoClose = vi.fn();
 
     const loadBalancer = await loadAzureLoadBalancerDetails({
       app: buildApp([otherSummary, summary]),
@@ -306,7 +278,7 @@ describe('AzureLoadBalancerDetails', () => {
       'fnord-frontend',
     );
     expect(securityGroupReader.getApplicationSecurityGroup).toHaveBeenCalledWith(
-      jasmine.anything(),
+      expect.anything(),
       'test-account',
       'westus',
       'sg-2',
@@ -336,42 +308,36 @@ describe('AzureLoadBalancerDetails', () => {
       data: [summary],
     });
     const app = {
-      getDataSource: jasmine.createSpy('getDataSource').and.returnValue({
+      getDataSource: vi.fn().mockReturnValue({
         status$,
-        refresh: jasmine.createSpy('refresh'),
+        refresh: vi.fn(),
       }),
       loadBalancers: { data: [summary] },
     } as any;
-    const getLoadBalancerDetails = spyOn(LoadBalancerReader.prototype, 'getLoadBalancerDetails').and.resolveTo([
-      { name: 'fnord-frontend', securityGroups: ['firewall-id'] },
-    ] as any);
-    const getApplicationSecurityGroup = spyOn(
-      runtime.services.securityGroupReader,
-      'getApplicationSecurityGroup',
-    ).and.returnValue({ id: 'firewall-id', name: 'firewall' } as any);
+    const getLoadBalancerDetails = vi
+      .spyOn(LoadBalancerReader.prototype, 'getLoadBalancerDetails')
+      .mockResolvedValue([{ name: 'fnord-frontend', securityGroups: ['firewall-id'] }] as any);
+    const getApplicationSecurityGroup = vi
+      .spyOn(runtime.services.securityGroupReader, 'getApplicationSecurityGroup')
+      .mockReturnValue({ id: 'firewall-id', name: 'firewall' } as any);
 
-    function TestComponent() {
-      useAzureLoadBalancerDetails({ app, loadBalancerParams: params, autoClose: () => undefined } as any);
-      return null;
-    }
+    const hook = renderHookHarness(
+      useAzureLoadBalancerDetails,
+      { app, loadBalancerParams: params, autoClose: () => undefined } as any,
+      { wrapper: RuntimeWrapper },
+    );
+    await waitFor(() => expect(getApplicationSecurityGroup).toHaveBeenCalled());
 
-    let wrapper: any;
-    await act(async () => {
-      wrapper = mountWithRuntime(<TestComponent />);
-      await Promise.resolve();
-      await Promise.resolve();
-    });
-
-    expect(getLoadBalancerDetails.calls.mostRecent().object).toBe(runtime.services.loadBalancerReader);
+    expect(getLoadBalancerDetails.mock.instances.at(-1)).toBe(runtime.services.loadBalancerReader);
     expect(getApplicationSecurityGroup).toHaveBeenCalledWith(app, 'test-account', 'westus', 'firewall-id');
-    wrapper.unmount();
+    hook.unmount();
   });
 
   it('closes the details panel when no matching summary exists', async () => {
     const loadBalancerReader = {
-      getLoadBalancerDetails: jasmine.createSpy('getLoadBalancerDetails'),
+      getLoadBalancerDetails: vi.fn(),
     };
-    const autoClose = jasmine.createSpy('autoClose');
+    const autoClose = vi.fn();
 
     const loadBalancer = await loadAzureLoadBalancerDetails({
       app: buildApp([{ name: 'fnord-frontend', account: 'test-account', region: 'eastus', provider: 'azure' }]),
@@ -391,9 +357,9 @@ describe('AzureLoadBalancerDetails', () => {
     const freshSummary = { name: 'fnord-frontend', account: 'test-account', region: 'westus', provider: 'azure' };
     const details = [{ name: 'fnord-frontend' }];
     const loadBalancerReader = {
-      getLoadBalancerDetails: jasmine.createSpy('getLoadBalancerDetails').and.returnValue(Promise.resolve(details)),
+      getLoadBalancerDetails: vi.fn().mockReturnValue(Promise.resolve(details)),
     };
-    const autoClose = jasmine.createSpy('autoClose');
+    const autoClose = vi.fn();
 
     const loadBalancer = await loadAzureLoadBalancerDetails({
       app: buildApp([staleSummary]),
@@ -432,12 +398,10 @@ describe('AzureLoadBalancerDetails', () => {
       serverGroups: [{ name: 'fnord-v001', account: 'test-account', region: 'westus', isDisabled: false }],
     };
 
-    const wrapper = shallow(<AzureLoadBalancerDetailsSection loadBalancer={loadBalancer as any} />);
-    const sectionContent = shallow(<div>{wrapper.find(CollapsibleSection).prop('children')}</div>);
-    const link = sectionContent.find(UISref);
+    const link = findElement(AzureLoadBalancerDetailsSection({ loadBalancer: loadBalancer as any }), UISref);
 
-    expect(link.prop('to')).toBe('^.serverGroup');
-    expect(link.prop('params')).toEqual({
+    expect(link?.props.to).toBe('^.serverGroup');
+    expect(link?.props.params).toEqual({
       region: 'westus',
       accountId: 'test-account',
       serverGroup: 'fnord-v001',
@@ -454,12 +418,14 @@ describe('AzureLoadBalancerDetails', () => {
       securityGroups: [{ id: 'sg-1', name: 'frontend-firewall' }],
     };
 
-    const wrapper = shallow(<AzureLoadBalancerFirewallsSection loadBalancer={loadBalancer as any} />);
-    const sectionContent = shallow(<div>{wrapper.find(CollapsibleSection).prop('children')}</div>);
-    const link = sectionContent.find(UISref);
+    renderWithRouter(
+      <AzureLoadBalancerFirewallsSection loadBalancer={{ ...loadBalancer, securityGroups: [] } as any} />,
+    );
+    expect(screen.getByRole('heading', { name: 'Firewalls' })).toBeInTheDocument();
+    const link = findElement(AzureLoadBalancerFirewallsSection({ loadBalancer: loadBalancer as any }), UISref);
 
-    expect(link.prop('to')).toBe('^.firewallDetails');
-    expect(link.prop('params')).toEqual({
+    expect(link?.props.to).toBe('^.firewallDetails');
+    expect(link?.props.params).toEqual({
       name: 'frontend-firewall',
       accountId: 'test-account',
       region: 'westus',

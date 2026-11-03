@@ -42,7 +42,7 @@ class ResourceFetcher(
     DgsData(parentType = DgsConstants.MD_ARTIFACT.TYPE_NAME, field = DgsConstants.MD_ARTIFACT.Resources),
   )
   fun artifactResources(dfe: DataFetchingEnvironment): List<MdResource>? {
-    val artifact: MdArtifact = dfe.getSource()
+    val artifact: MdArtifact = dfe.getSource()!!
     val config = applicationFetcherSupport.getDeliveryConfigFromContext(dfe)
     return artifact.environment?.let {
       config.resourcesUsing(artifact.reference, artifact.environment).map { it.toDgs(config, artifact.environment) }
@@ -54,7 +54,7 @@ class ResourceFetcher(
     DgsData(parentType = DgsConstants.MD_RESOURCE.TYPE_NAME, field = DgsConstants.MD_RESOURCE.State),
   )
   fun resourceStatus(dfe: DgsDataFetchingEnvironment): MdResourceActuationState {
-    val resource: MdResource = dfe.getSource()
+    val resource: MdResource = dfe.getSource()!!
     val state = resourceStatusService.getActuationState(resource.id)
     return MdResourceActuationState(
       resourceId = resource.id,
@@ -69,7 +69,7 @@ class ResourceFetcher(
     DgsData(parentType = DgsConstants.MD_RESOURCEACTUATIONSTATE.TYPE_NAME, field = DgsConstants.MD_RESOURCEACTUATIONSTATE.Tasks),
   )
   fun resourceTask(dfe: DgsDataFetchingEnvironment): List<MdResourceTask> {
-    val resourcceState: MdResourceActuationState = dfe.getSource()
+    val resourcceState: MdResourceActuationState = dfe.getSource()!!
     val tasks = taskTrackingRepository.getLatestBatchOfTasks(resourceId = resourcceState.resourceId)
     return tasks.map { it.toDgs() }
   }
@@ -80,7 +80,7 @@ class ResourceFetcher(
     DgsData(parentType = DgsConstants.MD_RESOURCETASK.TYPE_NAME, field = DgsConstants.MD_RESOURCETASK.Summary),
   )
   fun taskSummary(dfe: DgsDataFetchingEnvironment): MdExecutionSummary {
-    val task: MdResourceTask = dfe.getSource()
+    val task: MdResourceTask = dfe.getSource()!!
     val summary = executionSummaryService.getSummary(task.id)
     return summary.toDgs()
   }

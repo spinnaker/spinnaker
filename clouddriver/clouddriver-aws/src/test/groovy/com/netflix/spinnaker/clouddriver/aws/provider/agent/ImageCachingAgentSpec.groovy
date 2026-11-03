@@ -124,6 +124,37 @@ class ImageCachingAgentSpec extends Specification {
                                    Keys.getImageKey('ami-2', accountName, region))
   }
 
+  void "named image attributes hold AWS's wire values, not SDK enum names"() {
+    given: 'an image whose enum-typed attributes arrive as wire values, as they do from EC2'
+    Image image = Image.builder()
+      .imageId('ami-3')
+      .name('enums')
+      .virtualizationType('hvm')
+      .architecture('arm64')
+      .build()
+
+    and:
+    def agent = getAgent(false)
+    def request = DescribeImagesRequest.builder().filters(Filter.builder().name('is-public').values(['false']).build()).build()
+
+    when:
+    def result = agent.loadData(providerCache)
+
+    then:
+    1 * ec2.describeImages(request) >> DescribeImagesResponse.builder().images(image).build()
+    0 * _
+
+    and: 'the named image caches them unchanged'
+    def namedImage = result.cacheResults[NAMED_IMAGES.ns].find { it.id == Keys.getNamedImageKey(accountName, 'enums') }
+    namedImage.attributes.virtualizationType == 'hvm'
+    namedImage.attributes.architecture == 'arm64'
+
+    and: 'and so agrees with the image namespace, which goes through SdkPojoSerializer'
+    def cachedImage = result.cacheResults[IMAGES.ns].find { it.id == Keys.getImageKey('ami-3', accountName, region) }
+    cachedImage.attributes.virtualizationType == namedImage.attributes.virtualizationType
+    cachedImage.attributes.architecture == namedImage.attributes.architecture
+  }
+
   void "include the filter corresponding to the configured image states"() {
     given:
     def imageStates = ['available', 'failed']

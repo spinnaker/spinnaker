@@ -25,7 +25,6 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.ObjectFactory;
 import org.springframework.beans.factory.ObjectProvider;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
-import org.springframework.boot.autoconfigure.session.DefaultCookieSerializerCustomizer;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -33,7 +32,7 @@ import org.springframework.core.annotation.Order;
 import org.springframework.security.authentication.ProviderManager;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
-import org.springframework.security.saml2.provider.service.authentication.OpenSaml4AuthenticationProvider;
+import org.springframework.security.saml2.provider.service.authentication.OpenSaml5AuthenticationProvider;
 import org.springframework.security.saml2.provider.service.registration.RelyingPartyRegistrationRepository;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.savedrequest.HttpSessionRequestCache;
@@ -66,12 +65,6 @@ public class SAMLConfiguration {
     private final ObjectFactory<AuthenticationService> authenticationServiceFactory;
     private final ObjectFactory<AllowedAccountsSupport> allowedAccountsSupportFactory;
 
-    /** Disables the same-site requirement for cookies as configured in other SSO modules. */
-    @Bean
-    public static DefaultCookieSerializerCustomizer defaultCookieSerializerCustomizer() {
-      return cookieSerializer -> cookieSerializer.setSameSite(null);
-    }
-
     @Bean
     public ResponseAuthenticationConverter responseAuthenticationConverter() {
       return new ResponseAuthenticationConverter(
@@ -99,7 +92,7 @@ public class SAMLConfiguration {
 
       http.saml2Login(
           saml -> {
-            var authenticationProvider = new OpenSaml4AuthenticationProvider();
+            var authenticationProvider = new OpenSaml5AuthenticationProvider();
             authenticationProvider.setResponseAuthenticationConverter(
                 responseAuthenticationConverter());
             saml.authenticationManager(new ProviderManager(authenticationProvider));

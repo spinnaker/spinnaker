@@ -18,7 +18,6 @@ package com.netflix.spinnaker.cats.sql.cluster
 import com.google.common.util.concurrent.ThreadFactoryBuilder
 import com.netflix.spinnaker.cats.agent.Agent
 import com.netflix.spinnaker.cats.agent.AgentExecution
-import com.netflix.spinnaker.cats.agent.AgentLock
 import com.netflix.spinnaker.cats.agent.AgentScheduler
 import com.netflix.spinnaker.cats.agent.AgentSchedulerAware
 import com.netflix.spinnaker.cats.agent.ExecutionInstrumentation
@@ -66,7 +65,7 @@ class SqlClusteredAgentScheduler(
     ThreadFactoryBuilder().setNameFormat(SqlClusteredAgentScheduler::class.java.simpleName + "-%d").build()
   ),
   private val shardingFilter: ShardingFilter
-) : CatsModuleAware(), AgentScheduler<AgentLock>, Runnable {
+) : CatsModuleAware(), AgentScheduler, Runnable {
 
   private val log = LoggerFactory.getLogger(javaClass)
 

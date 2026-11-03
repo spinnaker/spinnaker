@@ -14,7 +14,7 @@ export interface IGitTriggerConfigProps {
   triggerUpdated: (trigger: IGitTrigger) => void;
 }
 
-const gitTriggerTypes = SETTINGS.gitSources || ['stash', 'github', 'bitbucket', 'gitlab'];
+const gitTriggerTypes = SETTINGS.gitSources || ['stash', 'github', 'bitbucket', 'gitlab', 'gitea'];
 
 const displayTexts = {
   bitbucket: {
@@ -22,6 +22,12 @@ const displayTexts = {
     projectPlaceholder: 'Team or User name, i.e. spinnaker for bitbucket.org/spinnaker/echo',
     slugLabel: 'Repo name',
     slugPlaceholder: 'Repository name (not the url), i.e, echo for bitbucket.org/spinnaker/echo',
+  },
+  gitea: {
+    projectLabel: 'Organization or User',
+    projectPlaceholder: 'Organization or User name, i.e. spinnaker for gitea.example.com/spinnaker/echo',
+    slugLabel: 'Repository',
+    slugPlaceholder: 'Repository name (not the url), i.e. echo for gitea.example.com/spinnaker/echo',
   },
   github: {
     projectLabel: 'Organization or User',
@@ -61,7 +67,7 @@ export function GitTrigger(gitTriggerProps: IGitTriggerConfigProps) {
   }, []);
 
   React.useEffect(() => {
-    if (trigger.source !== 'github') {
+    if (trigger.source !== 'github' && trigger.source !== 'gitea') {
       formik.setFieldValue('secret', undefined);
     }
   }, [trigger.source]);
@@ -113,11 +119,19 @@ export function GitTrigger(gitTriggerProps: IGitTriggerConfigProps) {
         input={(props) => <TextInput {...props} />}
       />
 
-      {source === 'github' && (
+      {(source === 'github' || source === 'gitea') && (
         <FormikFormField
           name="secret"
           label="Secret"
-          help={<HelpField id="pipeline.config.git.trigger.githubSecret" />}
+          help={
+            <HelpField
+              id={
+                source === 'gitea'
+                  ? 'pipeline.config.git.trigger.giteaSecret'
+                  : 'pipeline.config.git.trigger.githubSecret'
+              }
+            />
+          }
           input={(props) => <TextInput {...props} />}
         />
       )}

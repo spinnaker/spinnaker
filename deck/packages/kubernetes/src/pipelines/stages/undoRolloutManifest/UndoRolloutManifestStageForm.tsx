@@ -6,20 +6,13 @@ import { NumberInput, StageConfigField } from '@spinnaker/core';
 import type { IManifestSelector } from '../../../manifest/selector/IManifestSelector';
 import { SelectorMode } from '../../../manifest/selector/IManifestSelector';
 import { ManifestSelector } from '../../../manifest/selector/ManifestSelector';
+import { applyManifestSelector } from '../../../manifest/selector/applyManifestSelector';
 
-interface IUndoRolloutManifestStageConfigFormProps {
-  stageFieldUpdated: () => void;
-}
-
-export function UndoRolloutManifestStageForm({
-  application,
-  formik,
-  stageFieldUpdated,
-}: IUndoRolloutManifestStageConfigFormProps & IFormikStageConfigInjectedProps) {
+export function UndoRolloutManifestStageForm({ application, formik }: IFormikStageConfigInjectedProps) {
   const stage = formik.values;
 
-  const onManifestSelectorChange = () => {
-    stageFieldUpdated();
+  const onManifestSelectorChange = (selector: IManifestSelector) => {
+    applyManifestSelector(formik, selector);
   };
 
   const onRevisionsChange = (e: React.ChangeEvent<any>) => {

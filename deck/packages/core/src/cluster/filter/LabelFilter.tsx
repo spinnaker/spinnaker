@@ -14,6 +14,27 @@ export interface ILabelFilterProps {
   updateLabelFilters: (labelFilters: ILabelFilter[]) => void;
 }
 
+export const getLabelKeyOptions = (
+  labelsMap: { [key: string]: string[] },
+  labelFilters: ILabelFilter[],
+  index: number,
+): Array<Option<string>> => {
+  const otherFilters = labelFilters.filter((_filter, filterIndex) => filterIndex !== index);
+  return without(Object.keys(labelsMap), ...otherFilters.map((filter) => filter.key)).map((key) => ({
+    label: key,
+    value: key,
+  }));
+};
+
+export const getLabelValueOptions = (labelsMap: { [key: string]: string[] }, key: string): Array<Option<string>> =>
+  get(labelsMap, key, []).map((value) => ({ label: value, value }));
+
+export const updateLabelFilterKey = (labelFilters: ILabelFilter[], index: number, key: string): ILabelFilter[] =>
+  labelFilters.map((filter, filterIndex) => (filterIndex === index ? { key, value: null } : filter));
+
+export const updateLabelFilterValue = (labelFilters: ILabelFilter[], index: number, value: string): ILabelFilter[] =>
+  labelFilters.map((filter, filterIndex) => (filterIndex === index ? { key: filter.key, value } : filter));
+
 export default class LabelFilter extends React.Component<ILabelFilterProps> {
   public static defaultProps: ILabelFilterProps = {
     labelsMap: {},
@@ -37,41 +58,19 @@ export default class LabelFilter extends React.Component<ILabelFilterProps> {
   };
 
   private handleKeyChange = (option: Option<string>, idx: number) => {
-    const nextLabelFilters = this.props.labelFilters.map((filter, i) => {
-      if (i !== idx) {
-        return filter;
-      }
-      return {
-        key: option.value,
-        value: null,
-      };
-    });
-    this.props.updateLabelFilters(nextLabelFilters);
+    this.props.updateLabelFilters(updateLabelFilterKey(this.props.labelFilters, idx, option.value));
   };
 
   private handleValueChange = (option: Option<string>, idx: number) => {
-    const nextLabelFilters = this.props.labelFilters.map((filter, i) => {
-      if (i !== idx) {
-        return filter;
-      }
-      return {
-        key: filter.key,
-        value: option.value,
-      };
-    });
-    this.props.updateLabelFilters(nextLabelFilters);
+    this.props.updateLabelFilters(updateLabelFilterValue(this.props.labelFilters, idx, option.value));
   };
 
   private getKeyOptions = (idx: number): Array<Option<string>> => {
-    const allLabelKeys = Object.keys(this.props.labelsMap);
-    const otherFilters = this.props.labelFilters.filter((_e, i) => i !== idx);
-    const availableKeys = without(allLabelKeys, ...otherFilters.map((e) => e.key));
-    return availableKeys.map((key: string) => ({ label: key, value: key }));
+    return getLabelKeyOptions(this.props.labelsMap, this.props.labelFilters, idx);
   };
 
   private getValueOptions = (key: string): Array<Option<string>> => {
-    const values = get(this.props.labelsMap, key, []);
-    return values.map((val) => ({ label: val, value: val }));
+    return getLabelValueOptions(this.props.labelsMap, key);
   };
 
   public render() {
@@ -138,7 +137,12 @@ export const LabelFilterSelect = ({
         />
       </div>
       <div className="label-filter-remove">
-        <button className="link" onClick={onDelete}>
+        <button
+          aria-label={`Remove ${selectedKey || 'empty'} label filter`}
+          className="link"
+          onClick={onDelete}
+          type="button"
+        >
           <span className="glyphicon glyphicon-trash" />
         </button>
       </div>

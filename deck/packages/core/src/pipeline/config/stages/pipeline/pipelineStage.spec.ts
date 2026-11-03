@@ -11,7 +11,7 @@ const registeredPipelineStage = Registry.pipeline.getStageConfig({ type: 'pipeli
 describe('pipelineStage', () => {
   it('registers the Pipeline stage as a React stage config', () => {
     expect(registeredPipelineStage).toEqual(
-      jasmine.objectContaining({
+      expect.objectContaining({
         label: 'Pipeline',
         description: 'Runs a pipeline',
         key: 'pipeline',

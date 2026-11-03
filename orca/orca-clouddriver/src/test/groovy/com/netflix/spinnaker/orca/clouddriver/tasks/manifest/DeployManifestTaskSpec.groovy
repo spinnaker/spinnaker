@@ -16,10 +16,13 @@
 
 package com.netflix.spinnaker.orca.clouddriver.tasks.manifest
 
+import com.netflix.spinnaker.orca.api.pipeline.models.ExecutionType
+import com.netflix.spinnaker.orca.api.pipeline.models.PipelineExecution
 import com.netflix.spinnaker.orca.clouddriver.KatoService
 import com.netflix.spinnaker.orca.clouddriver.model.TaskId
 import com.netflix.spinnaker.orca.pipeline.model.PipelineExecutionImpl
 import com.netflix.spinnaker.orca.pipeline.model.StageExecutionImpl
+import com.netflix.spinnaker.security.AuthenticatedRequest
 import spock.lang.Specification
 import spock.lang.Subject
 
@@ -107,6 +110,41 @@ class DeployManifestTaskSpec extends Specification {
     0 * katoService._
   }
 
+
+  def "adds provenance annotations from authenticated request"() {
+    given:
+    def stage = createStage([:])
+    AuthenticatedRequest.setUser("mdc-user")
+
+    when:
+    def ops = DeployManifestTask.getOperation(stage)
+
+    then:
+    ops.deployManifest."provenance.deployedBy" == "mdc-user"
+    ops.deployManifest."provenance.executionId" == stage.getExecution().getId()
+
+    cleanup:
+    AuthenticatedRequest.clear()
+  }
+
+  def "falls back to execution authentication when request context is empty"() {
+    given:
+    def execution = new PipelineExecutionImpl(ExecutionType.PIPELINE, "test")
+    execution.setAuthentication(new PipelineExecution.AuthenticationDetails("execution-user", new String[0]))
+    def stage = new StageExecutionImpl(execution, "deployManifest", [
+      account: "my-k8s-account",
+      cloudProvider: "kubernetes",
+      source: "text",
+      manifests: []
+    ])
+
+    when:
+    def ops = DeployManifestTask.getOperation(stage)
+
+    then:
+    ops.deployManifest."provenance.deployedBy" == "execution-user"
+    ops.deployManifest."provenance.executionId" == execution.getId()
+  }
 
   def createStage(Map extraParams) {
     return new StageExecutionImpl(Stub(PipelineExecutionImpl), "deployManifest", [

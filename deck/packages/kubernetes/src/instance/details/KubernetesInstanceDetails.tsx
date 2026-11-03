@@ -6,6 +6,7 @@ import {
   AccountTag,
   CollapsibleSection,
   ConsoleOutputLink,
+  CopyToClipboard,
   InstanceDetailsHeader,
   InstanceLinks,
   InstanceReader,
@@ -24,6 +25,7 @@ import { AnnotationCustomSections } from '../../manifest/AnnotationCustomSection
 import { ManifestLabels } from '../../manifest/ManifestLabels';
 import { ManifestQos } from '../../manifest/ManifestQos';
 import { ManifestResources } from '../../manifest/ManifestResources';
+import { ManifestArtifact } from '../../manifest/artifact/ManifestArtifact';
 import { DeleteModal } from '../../manifest/delete/DeleteModal';
 import { KubernetesManifestCommandBuilder } from '../../manifest/manifestCommandBuilder.service';
 import { ManifestCondition } from '../../manifest/status/ManifestCondition';
@@ -242,6 +244,22 @@ export class KubernetesInstanceDetailsComponent extends React.Component<
           <CollapsibleSection heading="Labels" defaultExpanded={true}>
             <ManifestLabels manifest={manifestBody} />
           </CollapsibleSection>
+          {manifest.artifacts?.length > 0 && (
+            <CollapsibleSection heading="Images" defaultExpanded={true}>
+              <ul>
+                {manifest.artifacts.map((artifact, index) => (
+                  <li key={artifact.reference || `${artifact.type}-${index}`}>
+                    <CopyToClipboard
+                      className="sp-margin-s-right copy-to-clipboard copy-to-clipboard-sm"
+                      text={artifact.reference}
+                      toolTip="Copy to clipboard"
+                    />
+                    <ManifestArtifact artifact={artifact} />
+                  </li>
+                ))}
+              </ul>
+            </CollapsibleSection>
+          )}
           {this.renderInstanceLinks('afterSections', instance)}
         </div>
       </div>

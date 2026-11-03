@@ -52,6 +52,12 @@ export interface IEcsResizeServerGroupErrors {
   capacity?: Partial<Record<keyof IEcsResizeCapacity, string>>;
 }
 
+const capacityLabels: Record<keyof IEcsResizeCapacity, string> = {
+  desired: 'Desired',
+  max: 'Maximum',
+  min: 'Minimum',
+};
+
 interface IEcsResizeServerGroupModalState {
   initialValues: IEcsResizeServerGroupValues;
   taskMonitor: TaskMonitor;
@@ -183,6 +189,7 @@ export class EcsResizeServerGroupModal extends React.Component<
                       {(['min', 'max', 'desired'] as Array<keyof IEcsResizeCapacity>).map((field) => (
                         <div className="col-sm-2" key={field}>
                           <input
+                            aria-label={`Current ${capacityLabels[field].toLowerCase()} capacity`}
                             className="form-control input-sm"
                             disabled={true}
                             type="number"
@@ -197,7 +204,9 @@ export class EcsResizeServerGroupModal extends React.Component<
                         <div className="col-sm-2" key={field}>
                           <FormikFormField
                             name={`capacity.${field}`}
-                            input={(props) => <NumberInput {...props} min={0} />}
+                            input={(props) => (
+                              <NumberInput {...props} aria-label={`${capacityLabels[field]} capacity`} min={0} />
+                            )}
                             layout={({ input }) => <>{input}</>}
                             touched={true}
                           />

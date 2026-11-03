@@ -39,7 +39,7 @@ export class InstanceDetails extends React.Component<IInstanceDetailsProps, IIns
     provider: null,
   };
 
-  private destroy$ = new Subject();
+  private destroy$ = new Subject<void>();
   private props$ = new Subject<IInstanceDetailsProps>();
 
   public componentDidMount() {

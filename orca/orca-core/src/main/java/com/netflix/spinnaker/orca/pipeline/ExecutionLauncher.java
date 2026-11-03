@@ -214,6 +214,16 @@ public class ExecutionLauncher {
       }
     }
 
+    String failureReason = reason;
+    registry.ifPresent(
+        r ->
+            r.counter(
+                    "execution.trigger.system.errors",
+                    "type",
+                    execution.getType().toString(),
+                    "reason",
+                    failureReason)
+                .increment());
     if (failure instanceof UserException) {
       log.warn(
           "Failed to start {} {} due to user error or misconfiguration",
@@ -296,7 +306,7 @@ public class ExecutionLauncher {
       String type = context.remove("type").toString();
 
       String providerType = getString(context, "providerType");
-      if (providerType != null && !providerType.equals("aws") && !providerType.equals("titus")) {
+      if (providerType != null && !providerType.equals("aws")) {
         type += format("_%s", providerType);
       }
 

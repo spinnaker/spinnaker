@@ -7,7 +7,7 @@ import { JenkinsStageConfig } from './JenkinsStageConfig';
 describe('Jenkins stage registration', () => {
   it('registers Jenkins as a React-configured restartable CI stage', () => {
     expect(jenkinsStage).toEqual(
-      jasmine.objectContaining({
+      expect.objectContaining({
         key: 'jenkins',
         label: 'Jenkins',
         description: 'Runs a Jenkins job',

@@ -14,7 +14,7 @@ describe('StepExecutionDetails router context', () => {
       detailsSections: [],
       stateParams: { details: 'injected-details' },
     } as any);
-    spyOn(component, 'setState');
+    vi.spyOn(component, 'setState').mockReturnValue(undefined);
 
     component.updateCurrentSection();
 
@@ -26,7 +26,7 @@ describe('StepExecutionDetails router context', () => {
       detailsSections: [],
       stateParams: { details: 'first-details' },
     } as any);
-    spyOn(component, 'setState');
+    vi.spyOn(component, 'setState').mockReturnValue(undefined);
 
     component.componentWillReceiveProps({
       detailsSections: [],

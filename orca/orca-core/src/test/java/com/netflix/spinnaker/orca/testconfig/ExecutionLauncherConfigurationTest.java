@@ -38,6 +38,7 @@ import com.netflix.spinnaker.orca.sql.PipelineRefTriggerDeserializerSupplier;
 import com.netflix.spinnaker.orca.sql.pipeline.persistence.PipelineRefTrigger;
 import com.netflix.spinnaker.orca.test.YamlFileApplicationContextInitializer;
 import io.micrometer.core.instrument.MeterRegistry;
+import io.micrometer.core.instrument.simple.SimpleMeterRegistry;
 import java.time.Clock;
 import java.util.Map;
 import java.util.Optional;
@@ -209,16 +210,55 @@ public class ExecutionLauncherConfigurationTest extends YamlFileApplicationConte
         executionLauncher.start(
             ExecutionType.ORCHESTRATION, getConfigJson("ad-hoc/save-pipeline-blocked-user.json"));
 
+    String expectedReason =
+        "Failed on startup: ad-hoc execution of type: savePipeline has been"
+            + " disabled for user: not-explicitly-permitted-user@abc.com";
     // then
     verify(executionRepository).store(pipelineExecution);
     // verify that the failure reason is what we expect
     verify(executionRepository)
-        .cancel(
-            ExecutionType.ORCHESTRATION,
-            pipelineExecution.getId(),
-            "system",
-            "Failed on startup: ad-hoc execution of type: savePipeline has been"
-                + " disabled for user: not-explicitly-permitted-user@abc.com");
+        .cancel(ExecutionType.ORCHESTRATION, pipelineExecution.getId(), "system", expectedReason);
+  }
+
+  @DisplayName("when a pipeline fails to start, validate that a counter is set correctly")
+  @Test
+  public void testThatSystemErrorCounterIsSetCorrectly() throws Exception {
+    // when:
+    SimpleMeterRegistry meterRegistry = new SimpleMeterRegistry();
+    registry = Optional.of(meterRegistry);
+
+    executionLauncher =
+        new ExecutionLauncher(
+            objectMapper,
+            executionRepository,
+            executionRunner,
+            clock,
+            applicationEventPublisher,
+            pipelineValidator,
+            registry,
+            executionConfigurationProperties,
+            providedIdRequestFilterConfigurationProperties);
+
+    PipelineExecution pipelineExecution =
+        executionLauncher.start(
+            ExecutionType.ORCHESTRATION, getConfigJson("ad-hoc/save-pipeline-blocked-user.json"));
+
+    String expectedReason =
+        "Failed on startup: ad-hoc execution of type: savePipeline has been"
+            + " disabled for user: not-explicitly-permitted-user@abc.com";
+    // then
+    verify(executionRepository).store(pipelineExecution);
+    // verify that the failure reason is what we expect
+    verify(executionRepository)
+        .cancel(ExecutionType.ORCHESTRATION, pipelineExecution.getId(), "system", expectedReason);
+
+    assertThat(
+            meterRegistry
+                .get("execution.trigger.system.errors")
+                .tags("type", ExecutionType.ORCHESTRATION.toString(), "reason", expectedReason)
+                .counter()
+                .count())
+        .isEqualTo(1.0);
   }
 
   @DisplayName(

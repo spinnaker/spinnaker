@@ -11,25 +11,25 @@ describe('GceServerGroupCommandBuilder', () => {
   let xpnNamingService;
 
   beforeEach(() => {
-    spyOn(AccountService, 'listAccounts').and.resolveTo([{ name: 'test-account' }]);
-    spyOn(ExpectedArtifactService, 'getExpectedArtifactsAvailableToStage').and.returnValue([]);
-    instanceTypeService = jasmine.createSpyObj('instanceTypeService', [
-      'getCategories',
-      'getInstanceTypeDetails',
-      'getCategoryForInstanceType',
-    ]);
-    instanceTypeService.getCategories.and.resolveTo([
+    vi.spyOn(AccountService, 'listAccounts').mockResolvedValue([{ name: 'test-account' }]);
+    vi.spyOn(ExpectedArtifactService, 'getExpectedArtifactsAvailableToStage').mockReturnValue([]);
+    instanceTypeService = {
+      getCategories: vi.fn(),
+      getInstanceTypeDetails: vi.fn(),
+      getCategoryForInstanceType: vi.fn(),
+    };
+    instanceTypeService.getCategories.mockResolvedValue([
       { type: 'custom', families: [{ instanceTypes: [{ name: 'n1-standard-1' }] }] },
     ]);
-    instanceTypeService.getInstanceTypeDetails.and.resolveTo({
+    instanceTypeService.getInstanceTypeDetails.mockResolvedValue({
       storage: { localSSDSupported: false, size: 10, count: 1 },
     });
-    instanceTypeService.getCategoryForInstanceType.and.resolveTo('custom');
-    customInstanceBuilder = jasmine.createSpyObj('customInstanceBuilder', ['parseInstanceTypeString']);
-    customInstanceBuilder.parseInstanceTypeString.and.returnValue({});
-    xpnNamingService = jasmine.createSpyObj('xpnNamingService', ['deriveProjectId', 'decorateXpnResourceIfNecessary']);
-    xpnNamingService.deriveProjectId.and.returnValue('test-project');
-    xpnNamingService.decorateXpnResourceIfNecessary.and.callFake((_projectId, resource) => resource);
+    instanceTypeService.getCategoryForInstanceType.mockResolvedValue('custom');
+    customInstanceBuilder = { parseInstanceTypeString: vi.fn() };
+    customInstanceBuilder.parseInstanceTypeString.mockReturnValue({});
+    xpnNamingService = { deriveProjectId: vi.fn(), decorateXpnResourceIfNecessary: vi.fn() };
+    xpnNamingService.deriveProjectId.mockReturnValue('test-project');
+    xpnNamingService.decorateXpnResourceIfNecessary.mockImplementation((_projectId, resource) => resource);
 
     const promiseService = { all: (values) => Promise.all(values), resolve: (value) => Promise.resolve(value) };
     builder = new GceServerGroupCommandBuilder(
@@ -151,6 +151,26 @@ describe('GceServerGroupCommandBuilder', () => {
     expect(command.instanceFlexibilityPolicy).not.toBe(serverGroup.instanceFlexibilityPolicy);
     command.instanceFlexibilityPolicy.instanceSelections.preferred.machineTypes.push('c3-standard-8');
     expect(serverGroup.instanceFlexibilityPolicy.instanceSelections.preferred.machineTypes).toEqual(['n2-standard-8']);
+  });
+
+  it('keeps Clouddriver-managed load balancer metadata out of clone instance metadata', async () => {
+    const promiseService = { all: (values) => Promise.all(values), resolve: (value) => Promise.resolve(value) };
+    const defaultHiddenKeysBuilder = new GceServerGroupCommandBuilder(
+      promiseService,
+      instanceTypeService,
+      customInstanceBuilder,
+      xpnNamingService,
+    );
+    const serverGroup = buildServerGroup();
+    serverGroup.launchConfig.instanceTemplate.properties.metadata.items = [
+      { key: 'load-balancer-names', value: 'listener-a,listener-b' },
+      { key: 'regional-external-load-balancer-names', value: 'listener-a,listener-b' },
+      { key: 'team', value: 'payments' },
+    ];
+
+    const command = await defaultHiddenKeysBuilder.buildServerGroupCommandFromExisting(application(), serverGroup);
+
+    expect(command.instanceMetadata).toEqual({ team: 'payments' });
   });
 
   it('preserves absent versus explicitly empty clone flexibility policies', async () => {

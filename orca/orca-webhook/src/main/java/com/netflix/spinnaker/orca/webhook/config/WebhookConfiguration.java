@@ -22,8 +22,8 @@ import static net.logstash.logback.argument.StructuredArguments.kv;
 import com.netflix.spinnaker.kork.crypto.TrustStores;
 import com.netflix.spinnaker.kork.crypto.X509Identity;
 import com.netflix.spinnaker.kork.crypto.X509IdentitySource;
+import com.netflix.spinnaker.kork.web.url.UrlRestrictions;
 import com.netflix.spinnaker.okhttp.OkHttpClientConfigurationProperties;
-import com.netflix.spinnaker.orca.config.UserConfiguredUrlRestrictions;
 import com.netflix.spinnaker.orca.webhook.util.UnionX509TrustManager;
 import com.netflix.spinnaker.orca.webhook.util.WebhookLoggingEventListener;
 import java.io.FileInputStream;
@@ -64,7 +64,6 @@ import org.springframework.http.HttpInputMessage;
 import org.springframework.http.HttpOutputMessage;
 import org.springframework.http.MediaType;
 import org.springframework.http.client.ClientHttpRequestFactory;
-import org.springframework.http.client.OkHttp3ClientHttpRequestFactory;
 import org.springframework.http.converter.AbstractHttpMessageConverter;
 import org.springframework.http.converter.HttpMessageNotReadableException;
 import org.springframework.http.converter.HttpMessageNotWritableException;
@@ -103,7 +102,7 @@ public class WebhookConfiguration {
   public ClientHttpRequestFactory webhookRequestFactory(
       Environment environment,
       OkHttpClientConfigurationProperties okHttpClientConfigurationProperties,
-      UserConfiguredUrlRestrictions userConfiguredUrlRestrictions,
+      UrlRestrictions userConfiguredUrlRestrictions,
       WebhookProperties webhookProperties)
       throws IOException {
     var trustManager = webhookX509TrustManager();
@@ -171,7 +170,7 @@ public class WebhookConfiguration {
     }
 
     var client = builder.build();
-    var requestFactory = new OkHttp3ClientHttpRequestFactory(client);
+    var requestFactory = new SpinnakerOkHttpClientRequestFactory(client);
     long readTimeoutMs =
         (environment.containsProperty("webhook.readTimeoutMs")
                 || environment.containsProperty("webhook.read-timeout-ms"))

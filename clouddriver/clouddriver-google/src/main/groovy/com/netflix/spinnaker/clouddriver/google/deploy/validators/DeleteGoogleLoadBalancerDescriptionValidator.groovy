@@ -41,7 +41,10 @@ class DeleteGoogleLoadBalancerDescriptionValidator extends
     def loadBalancerType = description.loadBalancerType
     helper.validateCredentials(description.accountName, credentialsRepository)
     helper.validateName(description.loadBalancerName, "loadBalancerName")
-    if (loadBalancerType == GoogleLoadBalancerType.NETWORK || loadBalancerType == GoogleLoadBalancerType.INTERNAL) {
+    if (loadBalancerType == GoogleLoadBalancerType.NETWORK ||
+        loadBalancerType == GoogleLoadBalancerType.INTERNAL ||
+        loadBalancerType == GoogleLoadBalancerType.REGIONAL_EXTERNAL_NETWORK ||
+        loadBalancerType == GoogleLoadBalancerType.EXTERNAL_MANAGED) {
       helper.validateRegion(description.region, description.credentials)
     }
   }

@@ -1,4 +1,4 @@
-[![Build Status](https://api.travis-ci.org/spinnaker/kork.svg?branch=master)](https://travis-ci.org/spinnaker/kork)
+[![Build Status](https://github.com/spinnaker/spinnaker/actions/workflows/kork.yml/badge.svg)](https://github.com/spinnaker/spinnaker/actions/workflows/kork.yml)
 
 Kork provides some basic service building blocks for Spinnaker.
 

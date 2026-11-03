@@ -17,6 +17,7 @@
 package com.netflix.spinnaker.clouddriver.artifacts.jenkins;
 
 import com.netflix.spinnaker.credentials.CredentialsTypeProperties;
+import com.netflix.spinnaker.credentials.definition.InvalidCredentialsConfigurationException;
 import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -52,12 +53,18 @@ class JenkinsArtifactConfiguration {
                     .map(
                         m ->
                             new JenkinsArtifactAccount(
-                                m.getName(), m.getUsername(), m.getPassword(), m.getAddress()))
+                                m.getName(),
+                                m.getUsername(),
+                                m.getPassword(),
+                                m.getAddress(),
+                                null))
                     .collect(Collectors.toList()))
         .credentialsParser(
             a -> {
               try {
                 return new JenkinsArtifactCredentials(a, jenkinsOkHttpClient);
+              } catch (InvalidCredentialsConfigurationException e) {
+                throw e;
               } catch (Exception e) {
                 log.warn("Failure instantiating jenkins artifact account {}: ", a, e);
                 return null;

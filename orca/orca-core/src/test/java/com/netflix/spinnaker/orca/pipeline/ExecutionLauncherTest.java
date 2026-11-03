@@ -59,7 +59,7 @@ public class ExecutionLauncherTest {
           Clock.systemUTC(),
           applicationEventPublisher,
           Optional.empty() /* pipelineValidator */,
-          Optional.empty() /* registry */,
+          Optional.empty(),
           executionConfigurationProperties,
           providedIdRequestFilterConfigurationProperties);
 

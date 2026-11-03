@@ -37,4 +37,7 @@ dependencies {
   testImplementation "io.strikt:strikt-core"
   testImplementation "dev.minutest:minutest"
   testImplementation "io.mockk:mockk"
+  // Needed by ObjectMappingTest's findAndRegisterModules() for Instant fields;
+  // in Boot 3 this arrived transitively via the Jackson starter.
+  testImplementation "com.fasterxml.jackson.datatype:jackson-datatype-jsr310"
 }

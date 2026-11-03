@@ -21,17 +21,16 @@ import com.netflix.spinnaker.kork.tomcat.x509.BlocklistingSSLImplementation;
 import com.netflix.spinnaker.kork.tomcat.x509.SslExtensionConfigurationProperties;
 import org.apache.catalina.connector.Connector;
 import org.apache.coyote.ProtocolHandler;
-import org.apache.coyote.http11.AbstractHttp11JsseProtocol;
 import org.apache.coyote.http11.AbstractHttp11Protocol;
 import org.apache.tomcat.util.net.SSLHostConfig;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.BeanUtils;
-import org.springframework.boot.web.embedded.tomcat.TomcatConnectorCustomizer;
-import org.springframework.boot.web.embedded.tomcat.TomcatServletWebServerFactory;
+import org.springframework.boot.tomcat.TomcatConnectorCustomizer;
+import org.springframework.boot.tomcat.servlet.TomcatServletWebServerFactory;
 import org.springframework.boot.web.server.Ssl;
 import org.springframework.stereotype.Component;
-import org.springframework.util.StringUtils;
+import org.springframework.util.ObjectUtils;
 
 @Component
 class DefaultTomcatConnectorCustomizer implements TomcatConnectorCustomizer {
@@ -52,7 +51,6 @@ class DefaultTomcatConnectorCustomizer implements TomcatConnectorCustomizer {
   public void customize(Connector connector) {
     this.applySSLSettings(connector);
     this.applyRelaxedURIProperties(connector);
-    this.applyRejectIllegalHeaderSetting(connector);
   }
 
   Ssl copySslConfigurationWithClientAuth(TomcatServletWebServerFactory tomcat) {
@@ -69,62 +67,39 @@ class DefaultTomcatConnectorCustomizer implements TomcatConnectorCustomizer {
 
   void applySSLSettings(Connector connector) {
     ProtocolHandler handler = connector.getProtocolHandler();
-    if (handler instanceof AbstractHttp11JsseProtocol) {
-      if (((AbstractHttp11JsseProtocol) handler).isSSLEnabled()) {
-        SSLHostConfig[] sslConfigs = connector.findSslHostConfigs();
-        if (sslConfigs.length != 1) {
-          throw new RuntimeException(
-              String.format("Ssl configs: found %d, expected 1.", sslConfigs.length));
-        }
-        ((AbstractHttp11JsseProtocol<?>) handler)
-            .setSslImplementationName(BlocklistingSSLImplementation.class.getName());
-        SSLHostConfig sslHostConfig = sslConfigs[0];
-        sslHostConfig.setHonorCipherOrder(true);
-        sslHostConfig.setCiphers(String.join(",", tomcatConfigurationProperties.getCipherSuites()));
-        sslHostConfig.setProtocols(
-            String.join(",", tomcatConfigurationProperties.getTlsVersions()));
-        sslHostConfig.setCertificateRevocationListFile(
-            sslExtensionConfigurationProperties.getCrlFile());
+    if (handler instanceof AbstractHttp11Protocol<?> protocol && protocol.isSSLEnabled()) {
+      SSLHostConfig[] sslConfigs = connector.findSslHostConfigs();
+      if (sslConfigs.length != 1) {
+        throw new RuntimeException(
+            String.format("Ssl configs: found %d, expected 1.", sslConfigs.length));
       }
+      protocol.setSslImplementationName(BlocklistingSSLImplementation.class.getName());
+      SSLHostConfig sslHostConfig = sslConfigs[0];
+      sslHostConfig.setHonorCipherOrder(true);
+      sslHostConfig.setCiphers(String.join(",", tomcatConfigurationProperties.getCipherSuites()));
+      sslHostConfig.setProtocols(String.join(",", tomcatConfigurationProperties.getTlsVersions()));
+      sslHostConfig.setCertificateRevocationListFile(
+          sslExtensionConfigurationProperties.getCrlFile());
     }
   }
 
   void applyRelaxedURIProperties(Connector connector) {
-    if (StringUtils.isEmpty(tomcatConfigurationProperties.getRelaxedPathCharacters())
-        && StringUtils.isEmpty(tomcatConfigurationProperties.getRelaxedQueryCharacters())) {
+    if (ObjectUtils.isEmpty(tomcatConfigurationProperties.getRelaxedPathCharacters())
+        && ObjectUtils.isEmpty(tomcatConfigurationProperties.getRelaxedQueryCharacters())) {
       return;
     }
 
     ProtocolHandler protocolHandler = connector.getProtocolHandler();
-    if (protocolHandler instanceof AbstractHttp11Protocol) {
-      if (!StringUtils.isEmpty(tomcatConfigurationProperties.getRelaxedPathCharacters())) {
-        ((AbstractHttp11Protocol) protocolHandler)
-            .setRelaxedPathChars(tomcatConfigurationProperties.getRelaxedPathCharacters());
+    if (protocolHandler instanceof AbstractHttp11Protocol protocol) {
+      if (!ObjectUtils.isEmpty(tomcatConfigurationProperties.getRelaxedPathCharacters())) {
+        protocol.setRelaxedPathChars(tomcatConfigurationProperties.getRelaxedPathCharacters());
       }
-      if (!StringUtils.isEmpty(tomcatConfigurationProperties.getRelaxedQueryCharacters())) {
-        ((AbstractHttp11Protocol) protocolHandler)
-            .setRelaxedPathChars(tomcatConfigurationProperties.getRelaxedPathCharacters());
+      if (!ObjectUtils.isEmpty(tomcatConfigurationProperties.getRelaxedQueryCharacters())) {
+        protocol.setRelaxedQueryChars(tomcatConfigurationProperties.getRelaxedQueryCharacters());
       }
     } else {
       log.warn(
           "Can't apply relaxedPath/Query config to connector of type $connector.protocolHandlerClassName");
-    }
-  }
-
-  void applyRejectIllegalHeaderSetting(Connector connector) {
-    Boolean rejectIllegalHeader = tomcatConfigurationProperties.getRejectIllegalHeader();
-    if (rejectIllegalHeader == null) {
-      return;
-    }
-
-    ProtocolHandler protocolHandler = connector.getProtocolHandler();
-    if (protocolHandler instanceof AbstractHttp11Protocol) {
-      ((AbstractHttp11Protocol<?>) protocolHandler).setRejectIllegalHeader(rejectIllegalHeader);
-      log.debug("Set rejectIllegalHeader to {} for connector", rejectIllegalHeader);
-    } else {
-      log.warn(
-          "Can't apply rejectIllegalHeader config to connector of type {}",
-          connector.getProtocolHandlerClassName());
     }
   }
 }

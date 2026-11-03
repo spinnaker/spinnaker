@@ -19,6 +19,7 @@ package com.netflix.spinnaker.clouddriver.artifacts.jenkins;
 import com.google.common.base.Strings;
 import com.netflix.spinnaker.clouddriver.artifacts.config.BasicAuth;
 import com.netflix.spinnaker.clouddriver.artifacts.config.UserInputValidatedArtifactAccount;
+import com.netflix.spinnaker.fiat.model.resources.Permissions;
 import com.netflix.spinnaker.kork.annotations.NonnullByDefault;
 import java.util.Optional;
 import javax.annotation.ParametersAreNullableByDefault;
@@ -37,8 +38,13 @@ public class JenkinsArtifactAccount extends UserInputValidatedArtifactAccount im
   @Builder
   @ConstructorBinding
   @ParametersAreNullableByDefault
-  JenkinsArtifactAccount(String name, String username, String password, String address) {
-    super(name, null);
+  JenkinsArtifactAccount(
+      String name,
+      String username,
+      String password,
+      String address,
+      Permissions.Builder permissions) {
+    super(name, null, Optional.ofNullable(permissions).orElseGet(Permissions.Builder::new));
     this.name = Strings.nullToEmpty(name);
     this.username = Optional.ofNullable(Strings.emptyToNull(username));
     this.password = Optional.ofNullable(Strings.emptyToNull(password));

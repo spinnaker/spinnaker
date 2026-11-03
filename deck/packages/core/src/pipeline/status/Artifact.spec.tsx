@@ -1,34 +1,28 @@
-import type { ShallowWrapper } from 'enzyme';
-import { shallow } from 'enzyme';
+import { render, screen } from '@testing-library/react';
 import React from 'react';
 
-import type { IArtifactProps } from './Artifact';
 import { Artifact } from './Artifact';
 import type { IArtifact } from '../../domain';
+import { setupUser } from '../../utils/testUtils';
 
 const ARTIFACT_TYPE = 'docker/image';
 const ARTIFACT_NAME = 'example.com/container';
 const ARTIFACT_REFERENCE = 'docker.io/example.com/container:latest';
 
 describe('<Artifact/>', () => {
-  let component: ShallowWrapper<IArtifactProps>;
-
-  it("renders an artifact's name", function () {
+  it("renders an artifact's name without a version when no version is provided", function () {
     const artifact: IArtifact = {
       id: 'abcd',
       type: ARTIFACT_TYPE,
       name: ARTIFACT_NAME,
     };
 
-    component = shallow(<Artifact artifact={artifact} />);
+    render(<Artifact artifact={artifact} />);
 
-    const artifactName = component.find('.artifact-name');
-
-    expect(artifactName.length).toEqual(1);
-    expect(artifactName.text()).toEqual(ARTIFACT_NAME);
+    expect(screen.getByText(ARTIFACT_NAME, { selector: 'span' })).toBeVisible();
   });
 
-  it('renders an artifact version if present', function () {
+  it('renders a docker artifact as name:version', function () {
     const version = 'v001';
     const artifact: IArtifact = {
       id: 'abcd',
@@ -36,12 +30,77 @@ describe('<Artifact/>', () => {
       name: ARTIFACT_NAME,
       version,
     };
-    component = shallow(<Artifact artifact={artifact} />);
+    render(<Artifact artifact={artifact} />);
 
-    const artifactVersion = component.find('.artifact-version');
+    expect(screen.getByText(`${ARTIFACT_NAME}:${version}`, { selector: 'span' })).toBeVisible();
+  });
 
-    expect(artifactVersion.length).toEqual(1);
-    expect(artifactVersion.text()).toEqual(` - ${version}`);
+  it('renders a non-docker artifact as name - version', function () {
+    const version = 'v001';
+    const artifact: IArtifact = {
+      id: 'abcd',
+      type: 'gcs/object',
+      name: ARTIFACT_NAME,
+      version,
+    };
+    render(<Artifact artifact={artifact} />);
+
+    expect(screen.getByText(`${ARTIFACT_NAME} - ${version}`, { selector: 'span' })).toBeVisible();
+  });
+
+  it('renders a versionless non-docker artifact without a version suffix', function () {
+    const artifact: IArtifact = {
+      id: 'abcd',
+      type: 's3/object',
+      name: 'myfile.txt',
+    };
+    render(<Artifact artifact={artifact} />);
+
+    expect(screen.getByText('myfile.txt', { selector: 'span' })).toBeVisible();
+  });
+
+  it('falls back to the reference when no name is provided', function () {
+    const artifact: IArtifact = {
+      id: 'abcd',
+      type: ARTIFACT_TYPE,
+      reference: ARTIFACT_REFERENCE,
+    };
+    render(<Artifact artifact={artifact} />);
+
+    expect(screen.getByText(ARTIFACT_REFERENCE, { selector: 'span' })).toBeVisible();
+  });
+
+  it('adds a copy-to-clipboard button for docker artifacts', async function () {
+    const user = setupUser();
+    const version = 'v001';
+    const artifact: IArtifact = {
+      id: 'abcd',
+      type: ARTIFACT_TYPE,
+      name: ARTIFACT_NAME,
+      version,
+    };
+    render(<Artifact artifact={artifact} />);
+
+    const copyButton = screen.getByRole('button', { name: 'Copy to clipboard' });
+    expect(screen.getAllByRole('button', { name: 'Copy to clipboard' })).toHaveLength(1);
+    expect(screen.getByDisplayValue(`${ARTIFACT_NAME}:${version}`)).toBeInTheDocument();
+
+    await user.hover(copyButton);
+
+    expect(await screen.findByRole('tooltip')).toHaveTextContent('Copy to clipboard');
+  });
+
+  it('does not add a copy-to-clipboard button for non-docker artifacts', function () {
+    const artifact: IArtifact = {
+      id: 'abcd',
+      type: 'gcs/object',
+      name: ARTIFACT_NAME,
+      version: 'v001',
+    };
+    render(<Artifact artifact={artifact} />);
+
+    expect(screen.queryByRole('button', { name: 'Copy to clipboard' })).not.toBeInTheDocument();
+    expect(screen.queryByRole('textbox')).not.toBeInTheDocument();
   });
 
   it('includes the artifact reference in the tootip', function () {
@@ -51,11 +110,12 @@ describe('<Artifact/>', () => {
       name: ARTIFACT_NAME,
       reference: ARTIFACT_REFERENCE,
     };
-    component = shallow(<Artifact artifact={artifact} />);
-    const dl = component.find('dl');
-    expect(dl.length).toEqual(1);
-    const title = dl.at(0).prop('title');
-    expect(title).toMatch('Reference: ' + ARTIFACT_REFERENCE);
+    const { container } = render(<Artifact artifact={artifact} />);
+    expect(container.querySelectorAll('dl')).toHaveLength(1);
+    expect(container.querySelector('dl')).toHaveAttribute(
+      'title',
+      expect.stringContaining(`Reference: ${ARTIFACT_REFERENCE}`),
+    );
   });
 
   it('does not include a reference in the tooltip if none is specified', function () {
@@ -64,10 +124,8 @@ describe('<Artifact/>', () => {
       type: ARTIFACT_TYPE,
       name: ARTIFACT_NAME,
     };
-    component = shallow(<Artifact artifact={artifact} />);
-    const dl = component.find('dl');
-    expect(dl.length).toEqual(1);
-    const title = dl.at(0).prop('title');
-    expect(title).not.toMatch('Reference: ');
+    const { container } = render(<Artifact artifact={artifact} />);
+    expect(container.querySelectorAll('dl')).toHaveLength(1);
+    expect(container.querySelector('dl')).not.toHaveAttribute('title', expect.stringContaining('Reference: '));
   });
 });

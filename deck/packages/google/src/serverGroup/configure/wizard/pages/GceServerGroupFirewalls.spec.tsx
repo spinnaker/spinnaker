@@ -1,9 +1,10 @@
-import { shallow } from 'enzyme';
 import type { FormikProps } from 'formik';
+import type { Mocked } from 'vitest';
+import { fireEvent, render, screen, waitFor, within } from '@testing-library/react';
 import React from 'react';
 
-import { GceServerGroupFirewalls } from './GceServerGroupFirewalls';
 import type { IGceServerGroupCommand, IGceServerGroupWizardAdapter } from '../GceServerGroupWizard.types';
+import { GceServerGroupFirewalls } from './GceServerGroupFirewalls';
 
 describe('GCE server group Firewalls page', () => {
   it('separates network scoped explicit and implicit firewalls and preserves unavailable selections', () => {
@@ -12,22 +13,21 @@ describe('GCE server group Firewalls page', () => {
       viewState: { mode: 'clone', dirty: {}, listImplicitSecurityGroups: true },
     });
     const { formik } = testProps(values);
-    const wrapper = shallow(<GceServerGroupFirewalls app={{} as any} formik={formik} />);
+    render(<GceServerGroupFirewalls app={{} as any} formik={formik} />);
 
-    expect(selectOptions(wrapper)).toEqual([
+    expect(selectOptions()).toEqual([
       ['api-firewall', 'api-firewall (api-firewall)'],
       ['web-firewall', 'web-firewall (web-firewall)'],
       ['persisted-firewall', 'persisted-firewall (unavailable)'],
     ]);
-    expect(wrapper.find('select[aria-label="Firewalls"]').prop('value')).toEqual([
-      'web-firewall',
-      'persisted-firewall',
-    ]);
-    expect(wrapper.find('label[htmlFor="gce-server-group-firewalls"]').text()).toBe('Firewalls');
-    expect(wrapper.find('label[htmlFor="gce-show-implicit-firewalls"]').text()).toContain('Show implicit firewalls');
-    expect(wrapper.find('ul[aria-label="Implicit firewalls"] li').map((item) => item.text())).toEqual([
-      'implicit-firewall',
-    ]);
+    expect(selectedValues(screen.getByLabelText('Firewalls'))).toEqual(['web-firewall', 'persisted-firewall']);
+    expect(screen.getByText('Firewalls', { selector: 'label' })).toHaveAttribute('for', 'gce-server-group-firewalls');
+    expect(screen.getByText(/Show implicit firewalls/, { selector: 'label' })).toHaveAttribute(
+      'for',
+      'gce-show-implicit-firewalls',
+    );
+    expect(within(screen.getByRole('list', { name: 'Implicit firewalls' })).getAllByRole('listitem')).toHaveLength(1);
+    expect(screen.getByRole('listitem')).toHaveTextContent('implicit-firewall');
   });
 
   it('routes explicit firewall changes through networkChanged without losing selections or tags', async () => {
@@ -36,24 +36,20 @@ describe('GCE server group Firewalls page', () => {
       tags: [{ value: 'existing-tag' }],
     });
     const { adapter, formik } = testProps(values);
-    adapter.applyCommandHandler.and.callFake(async (nextCommand) => ({
+    adapter.applyCommandHandler.mockImplementation(async (nextCommand) => ({
       command: { ...nextCommand, securityGroups: [], tags: [] },
       result: { dirty: { securityGroups: ['persisted-firewall'] } },
     }));
-    const wrapper = shallow(<GceServerGroupFirewalls app={{} as any} formik={formik} adapter={adapter} />);
+    render(<GceServerGroupFirewalls app={{} as any} adapter={adapter} formik={formik} />);
 
-    wrapper.find('select[aria-label="Firewalls"]').simulate('change', {
-      target: {
-        selectedOptions: [{ value: 'web-firewall' }, { value: 'persisted-firewall' }, { value: 'web-firewall' }],
-      },
-    });
-    await flush();
+    changeMultiSelect(screen.getByLabelText('Firewalls'), ['web-firewall', 'persisted-firewall']);
 
-    const changedCommand = adapter.applyCommandHandler.calls.mostRecent().args[0];
+    await waitFor(() => expect(formik.setValues).toHaveBeenCalled());
+    const changedCommand = adapter.applyCommandHandler.mock.lastCall[0];
     expect(changedCommand.securityGroups).toEqual(['web-firewall', 'persisted-firewall']);
     expect(adapter.applyCommandHandler).toHaveBeenCalledWith(changedCommand, 'networkChanged');
     expect(formik.setValues).toHaveBeenCalledWith(
-      jasmine.objectContaining({
+      expect.objectContaining({
         securityGroups: ['web-firewall', 'persisted-firewall'],
         tags: [{ value: 'existing-tag' }],
       }),
@@ -66,19 +62,17 @@ describe('GCE server group Firewalls page', () => {
       tags: [{ value: 'existing-tag' }, { value: 'existing-tag' }],
     });
     const { adapter, formik } = testProps(values);
-    const wrapper = shallow(<GceServerGroupFirewalls app={{} as any} formik={formik} adapter={adapter} />);
+    render(<GceServerGroupFirewalls app={{} as any} adapter={adapter} formik={formik} />);
 
-    wrapper
-      .find('input[aria-label="Target tag shared for firewall web-firewall"]')
-      .simulate('change', { target: { checked: true } });
-    await flush();
+    fireEvent.click(screen.getByLabelText('Target tag shared for firewall web-firewall'));
 
-    const changedCommand = adapter.applyCommandHandler.calls.mostRecent().args[0];
+    await waitFor(() => expect(formik.setValues).toHaveBeenCalled());
+    const changedCommand = adapter.applyCommandHandler.mock.lastCall[0];
     expect(changedCommand.securityGroups).toEqual(['web-firewall', 'api-firewall']);
     expect(changedCommand.tags).toEqual([{ value: 'existing-tag' }, { value: 'shared' }]);
     expect(adapter.applyCommandHandler).toHaveBeenCalledWith(changedCommand, 'networkChanged');
     expect(formik.setValues).toHaveBeenCalledWith(
-      jasmine.objectContaining({
+      expect.objectContaining({
         securityGroups: ['web-firewall', 'api-firewall'],
         tags: [{ value: 'existing-tag' }, { value: 'shared' }],
       }),
@@ -91,14 +85,12 @@ describe('GCE server group Firewalls page', () => {
       tags: [{ value: 'existing-tag' }, { value: 'shared' }],
     });
     const { adapter, formik } = testProps(values);
-    const wrapper = shallow(<GceServerGroupFirewalls app={{} as any} formik={formik} adapter={adapter} />);
+    render(<GceServerGroupFirewalls app={{} as any} adapter={adapter} formik={formik} />);
 
-    wrapper
-      .find('input[aria-label="Target tag shared for firewall web-firewall"]')
-      .simulate('change', { target: { checked: false } });
-    await flush();
+    fireEvent.click(screen.getByLabelText('Target tag shared for firewall web-firewall'));
 
-    const changedCommand = adapter.applyCommandHandler.calls.mostRecent().args[0];
+    await waitFor(() => expect(formik.setValues).toHaveBeenCalled());
+    const changedCommand = adapter.applyCommandHandler.mock.lastCall[0];
     expect(changedCommand.securityGroups).toEqual(['persisted-firewall']);
     expect(changedCommand.tags).toEqual([{ value: 'existing-tag' }]);
   });
@@ -109,7 +101,7 @@ describe('GCE server group Firewalls page', () => {
       tags: [{ value: 'existing-tag' }],
     });
     const { adapter, formik } = testProps(values);
-    adapter.applyConfigurationRefresh.and.resolveTo({
+    adapter.applyConfigurationRefresh.mockResolvedValue({
       command: {
         ...values,
         backingData: { ...values.backingData, refreshed: true },
@@ -118,15 +110,15 @@ describe('GCE server group Firewalls page', () => {
       },
       result: { dirty: {} },
     });
-    const wrapper = shallow(<GceServerGroupFirewalls app={{} as any} formik={formik} adapter={adapter} />);
+    render(<GceServerGroupFirewalls app={{} as any} adapter={adapter} formik={formik} />);
 
-    wrapper.find('button[aria-label="Refresh firewalls"]').simulate('click');
-    await flush();
+    fireEvent.click(screen.getByRole('button', { name: 'Refresh firewalls' }));
 
+    await waitFor(() => expect(formik.setValues).toHaveBeenCalled());
     expect(adapter.applyConfigurationRefresh).toHaveBeenCalledWith(values, 'refreshSecurityGroups');
     expect(formik.setValues).toHaveBeenCalledWith(
-      jasmine.objectContaining({
-        backingData: jasmine.objectContaining({ refreshed: true }),
+      expect.objectContaining({
+        backingData: expect.objectContaining({ refreshed: true }),
         securityGroups: ['persisted-firewall'],
         tags: [{ value: 'existing-tag' }],
       }),
@@ -134,26 +126,39 @@ describe('GCE server group Firewalls page', () => {
   });
 });
 
-function selectOptions(wrapper: ReturnType<typeof shallow>): string[][] {
-  return wrapper
-    .find('select[aria-label="Firewalls"] option')
-    .map((option) => [option.prop('value') as string, option.text()]);
+function selectOptions(): string[][] {
+  return within(screen.getByLabelText('Firewalls'))
+    .getAllByRole('option')
+    .map((option) => [(option as HTMLOptionElement).value, option.textContent || '']);
+}
+
+function selectedValues(select: HTMLElement): string[] {
+  return Array.from((select as HTMLSelectElement).selectedOptions).map((option) => option.value);
+}
+
+function changeMultiSelect(select: HTMLElement, values: string[]): void {
+  Array.from((select as HTMLSelectElement).options).forEach((option) => {
+    option.selected = values.includes(option.value);
+  });
+  fireEvent.change(select);
 }
 
 function testProps(values = command()) {
   const formik = ({
     values,
-    setFieldValue: jasmine.createSpy('setFieldValue'),
-    setValues: jasmine.createSpy('setValues'),
+    setFieldValue: vi.fn(),
+    setValues: vi.fn(),
   } as unknown) as FormikProps<IGceServerGroupCommand>;
   const adapter = ({
-    applyCommandHandler: jasmine
-      .createSpy('applyCommandHandler')
-      .and.callFake(async (nextCommand: IGceServerGroupCommand) => ({ command: nextCommand, result: { dirty: {} } })),
-    applyConfigurationRefresh: jasmine
-      .createSpy('applyConfigurationRefresh')
-      .and.callFake(async (nextCommand: IGceServerGroupCommand) => ({ command: nextCommand, result: { dirty: {} } })),
-  } as unknown) as jasmine.SpyObj<IGceServerGroupWizardAdapter>;
+    applyCommandHandler: vi.fn().mockImplementation(async (nextCommand: IGceServerGroupCommand) => ({
+      command: nextCommand,
+      result: { dirty: {} },
+    })),
+    applyConfigurationRefresh: vi.fn().mockImplementation(async (nextCommand: IGceServerGroupCommand) => ({
+      command: nextCommand,
+      result: { dirty: {} },
+    })),
+  } as unknown) as Mocked<IGceServerGroupWizardAdapter>;
   return { adapter, formik };
 }
 
@@ -189,8 +194,4 @@ function command(overrides: Partial<IGceServerGroupCommand> = {}): IGceServerGro
     viewState: { mode: 'create', dirty: {} },
     ...overrides,
   };
-}
-
-function flush(): Promise<void> {
-  return new Promise((resolve) => setTimeout(resolve));
 }

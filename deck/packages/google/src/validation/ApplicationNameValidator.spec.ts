@@ -32,7 +32,7 @@ describe('Google application name validator', () => {
   });
 
   it('is registered directly when the Google module is imported', async () => {
-    spyOn(AccountService, 'listProviders').and.returnValue(Promise.resolve(['gce']));
+    vi.spyOn(AccountService, 'listProviders').mockReturnValue(Promise.resolve(['gce']));
 
     const result = await ApplicationNameValidator.validate('invalid-name', ['gce']);
 

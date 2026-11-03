@@ -1,4 +1,4 @@
-import { mount, shallow } from 'enzyme';
+import { fireEvent, render, screen, waitFor, within } from '@testing-library/react';
 import React from 'react';
 
 import {
@@ -7,21 +7,28 @@ import {
   BakeryReader,
   CloudProviderRegistry,
   ExecutionDetailsTasks,
-  PlatformHealthOverride,
   Registry,
   SETTINGS,
-  Spinner,
-  StageConfigField,
 } from '@spinnaker/core';
+import { getFormGroupByLabel, renderWithRouter } from '../../core/src/utils/testUtils/rtl';
 
 import './index';
 import { AzureImageReader } from './image/image.reader';
 import { AzureInstanceTypeService } from './instance/azureInstanceType.service';
 import { AzureLoadBalancerTransformer } from './loadBalancer/loadBalancer.transformer';
 import { AzureBakeStageConfig } from './pipeline/stages/bake/azureBakeStage';
-import { AzureDestroyAsgStageConfig } from './pipeline/stages/destroyAsg/azureDestroyAsgStage';
-import { AzureDisableAsgStageConfig } from './pipeline/stages/disableAsg/azureDisableAsgStage';
-import { AzureEnableAsgStageConfig } from './pipeline/stages/enableAsg/azureEnableAsgStage';
+import {
+  AzureDestroyAsgExecutionLabel,
+  AzureDestroyAsgStageConfig,
+} from './pipeline/stages/destroyAsg/azureDestroyAsgStage';
+import {
+  AzureDisableAsgExecutionLabel,
+  AzureDisableAsgStageConfig,
+} from './pipeline/stages/disableAsg/azureDisableAsgStage';
+import {
+  AzureEnableAsgExecutionLabel,
+  AzureEnableAsgStageConfig,
+} from './pipeline/stages/enableAsg/azureEnableAsgStage';
 import { registerAzurePipelineStages } from './azure.module';
 import { AzureSecurityGroupReader } from './securityGroup/securityGroup.reader';
 import { AzureSecurityGroupTransformer } from './securityGroup/securityGroup.transformer';
@@ -31,144 +38,28 @@ import { AzureServerGroupTransformer } from './serverGroup/serverGroup.transform
 
 describe('Azure package registration', () => {
   function expectRegistered(path: string): void {
-    expect(CloudProviderRegistry.getValue('azure', path)).withContext(path).not.toBeNull();
+    expect(CloudProviderRegistry.getValue('azure', path), path).not.toBeNull();
   }
 
   function expectNonEmptyRegistration(path: string): void {
     const value = CloudProviderRegistry.getValue('azure', path);
     const entries = Array.isArray(value) ? value : [];
-    expect(Array.isArray(value)).withContext(path).toBe(true);
-    expect(entries.length).withContext(path).toBeGreaterThan(0);
+    expect(Array.isArray(value), path).toBe(true);
+    expect(entries.length, path).toBeGreaterThan(0);
   }
 
   function expectStageComponent(stageTypes: any[], provides: string, component: any): any {
     const stage = stageTypes.find((candidate) => candidate.provides === provides);
-    expect(stage).withContext(`azure ${provides} stage`).toBeDefined();
-    expect(stage?.component).withContext(`azure ${provides} stage component`).toBe(component);
+    expect(stage, `azure ${provides} stage`).toBeDefined();
+    expect(stage?.component, `azure ${provides} stage component`).toBe(component);
     return stage;
-  }
-
-  function renderStageConfig(stageConfig: any) {
-    const updateStageField = jasmine.createSpy('updateStageField');
-    const stage = { isNew: true };
-
-    const wrapper = shallow(
-      React.createElement(stageConfig.component, {
-        application: {
-          attributes: {},
-          defaultCredentials: { azure: 'test-account' },
-          defaultRegions: { azure: 'eastus' },
-        },
-        stage,
-        updateStageField,
-      }),
-      { disableLifecycleMethods: true },
-    );
-
-    if (wrapper.find(Spinner).exists()) {
-      wrapper.setState({
-        accounts: ['test-account'],
-        baseLabelOptions: ['release'],
-        baseOsOptions: [{ id: 'ubuntu' }],
-        loading: false,
-        regions: ['eastus'],
-      });
-      wrapper.update();
-    }
-
-    return { stage, updateStageField, wrapper };
-  }
-
-  function expectStageFields(stageConfig: any, expectedLabels: string[]): void {
-    const { wrapper } = renderStageConfig(stageConfig);
-
-    const labels = wrapper.find(StageConfigField).map((field) => field.prop('label'));
-    expect(labels).withContext(`azure ${stageConfig.provides} stage fields`).toEqual(expectedLabels);
-  }
-
-  function expectTargetControl(stageConfig: any): void {
-    const { wrapper, updateStageField } = renderStageConfig(stageConfig);
-    const targetField = wrapper
-      .find(StageConfigField)
-      .findWhere((field) => field.prop('label') === 'Target')
-      .first();
-
-    expect(targetField.exists()).withContext(`azure ${stageConfig.provides} target field`).toBe(true);
-
-    targetField.find('select').simulate('change', { target: { value: 'oldest' } });
-
-    expect(updateStageField).withContext(`azure ${stageConfig.provides} target update`).toHaveBeenCalledWith({
-      target: 'oldest',
-    });
-  }
-
-  function expectAzureHealthOverride(stageConfig: any): void {
-    const stage = { isNew: true };
-    const updateStageField = jasmine.createSpy('updateStageField');
-    const wrapper = shallow(
-      React.createElement(stageConfig.component, {
-        application: {
-          attributes: { platformHealthOnlyShowOverride: true },
-          defaultCredentials: { azure: 'test-account' },
-          defaultRegions: { azure: 'eastus' },
-        },
-        stage,
-        updateStageField,
-      }),
-    );
-    const healthOverride = wrapper.find(PlatformHealthOverride);
-
-    expect(healthOverride.exists()).withContext(`azure ${stageConfig.provides} health override`).toBe(true);
-    expect(healthOverride.prop('platformHealthType'))
-      .withContext(`azure ${stageConfig.provides} health type`)
-      .toBe('azureService');
-
-    healthOverride.prop('onChange')(['azureService']);
-
-    expect(updateStageField)
-      .withContext(`azure ${stageConfig.provides} health override update`)
-      .toHaveBeenCalledWith({
-        interestingHealthProviderNames: ['azureService'],
-      });
-
-    const hiddenWrapper = shallow(
-      React.createElement(stageConfig.component, {
-        application: {
-          attributes: { platformHealthOnlyShowOverride: false },
-          defaultCredentials: { azure: 'test-account' },
-          defaultRegions: { azure: 'eastus' },
-        },
-        stage: { isNew: true },
-        updateStageField: jasmine.createSpy('hiddenUpdateStageField'),
-      }),
-    );
-
-    expect(hiddenWrapper.find(PlatformHealthOverride).exists())
-      .withContext(`azure ${stageConfig.provides} hidden health override`)
-      .toBe(false);
-  }
-
-  function expectExecutionLabel(stageConfig: any, label: string): void {
-    expect(stageConfig.executionLabelComponent)
-      .withContext(`azure ${stageConfig.provides} execution label component`)
-      .toBeDefined();
-
-    const wrapper = shallow(
-      React.createElement(stageConfig.executionLabelComponent, {
-        stage: { masterStage: { context: { region: 'eastus', serverGroupName: 'azureapp-v001' } } },
-      }),
-    );
-
-    expect(wrapper.text())
-      .withContext(`azure ${stageConfig.provides} execution label text`)
-      .toContain(`${label}: azureapp-v001 (eastus)`);
   }
 
   function expectRequiredFields(stageConfig: any, expectedFields: string[]): void {
     const requiredFields = stageConfig.validators
       .filter((validator: any) => validator.type === 'requiredField')
       .map((validator: any) => validator.fieldName);
-    expect(requiredFields).withContext(`azure ${stageConfig.provides} required fields`).toEqual(expectedFields);
+    expect(requiredFields, `azure ${stageConfig.provides} required fields`).toEqual(expectedFields);
   }
 
   function deferred<T>() {
@@ -181,15 +72,23 @@ describe('Azure package registration', () => {
     return { promise, resolve, reject };
   }
 
-  function bakeStageProps(stage: any, updateStage = jasmine.createSpy('updateStage')): any {
+  function bakeStageProps(stage: any, updateStage = vi.fn()): any {
     return {
       application: { attributes: {}, defaultCredentials: { azure: 'bakery' }, defaultRegions: { azure: 'eastus' } },
       pipeline: {},
       stage,
-      stageFieldUpdated: jasmine.createSpy('stageFieldUpdated'),
+      stageFieldUpdated: vi.fn(),
       updateStage,
-      updateStageField: jasmine.createSpy('updateStageField'),
+      updateStageField: vi.fn(),
     };
+  }
+
+  function mockBakeOptions(regions = ['eastus', 'westus']): void {
+    vi.spyOn(AuthenticationService, 'getAuthenticatedUser').mockReturnValue({ name: 'user@example.com' } as any);
+    vi.spyOn(AccountService, 'getCredentialsKeyedByAccount').mockResolvedValue({ bakery: { name: 'bakery' } } as any);
+    vi.spyOn(BakeryReader, 'getRegions').mockResolvedValue(regions as any);
+    vi.spyOn(BakeryReader, 'getBaseOsOptions').mockResolvedValue({ baseImages: [{ id: 'ubuntu' }] } as any);
+    vi.spyOn(BakeryReader, 'getBaseLabelOptions').mockResolvedValue(['release']);
   }
 
   function applicationWithServerGroups(serverGroups: any[]): any {
@@ -241,20 +140,27 @@ describe('Azure package registration', () => {
       const disableStage = expectStageComponent(stageTypes, 'disableServerGroup', AzureDisableAsgStageConfig);
       const enableStage = expectStageComponent(stageTypes, 'enableServerGroup', AzureEnableAsgStageConfig);
 
-      expectStageFields(bakeStage, ['Account', 'Regions', 'Base OS', 'Package', 'Base Label', 'Base Name']);
       expectRequiredFields(bakeStage, ['package', 'regions']);
       expect(bakeStage.executionDetailsSections).toBeDefined();
       expect(bakeStage.executionDetailsSections[1]).toBe(ExecutionDetailsTasks);
 
       [destroyStage, disableStage, enableStage].forEach((stage) => {
-        expectTargetControl(stage);
         expectRequiredFields(stage, ['cluster', 'target', 'regions', 'credentials']);
       });
-
-      [disableStage, enableStage].forEach(expectAzureHealthOverride);
-      expectExecutionLabel(destroyStage, 'Destroy Server Group');
-      expectExecutionLabel(disableStage, 'Disable Server Group');
-      expectExecutionLabel(enableStage, 'Enable Server Group');
+      [
+        [destroyStage, AzureDestroyAsgExecutionLabel, 'Destroy Server Group'],
+        [disableStage, AzureDisableAsgExecutionLabel, 'Disable Server Group'],
+        [enableStage, AzureEnableAsgExecutionLabel, 'Enable Server Group'],
+      ].forEach(([stage, expectedComponent, action]: any[]) => {
+        expect(stage.executionLabelComponent).toBe(expectedComponent);
+        const label = render(
+          React.createElement(stage.executionLabelComponent, {
+            stage: { masterStage: { context: { region: 'eastus', serverGroupName: 'azureapp-v001' } } },
+          }),
+        );
+        expect(label.container).toHaveTextContent(`${action}: azureapp-v001 (eastus)`);
+        label.unmount();
+      });
     } finally {
       Registry.pipeline = previousPipelineRegistry;
       Registry.urlBuilder = previousUrlBuilderRegistry;
@@ -275,7 +181,7 @@ describe('Azure package registration', () => {
         .getStageTypes()
         .find((stage) => stage.cloudProvider === 'azure' && stage.provides === 'bake') as any;
       const BakeExecutionDetails = bakeStage.executionDetailsSections[0];
-      const wrapper = shallow(
+      renderWithRouter(
         React.createElement(BakeExecutionDetails, {
           current: 'bakeConfig',
           execution: { trigger: { rebake: true } },
@@ -298,12 +204,14 @@ describe('Azure package registration', () => {
       );
 
       expect((BakeExecutionDetails as any).title).toBe('bakeConfig');
-      const section = wrapper.dive();
-      expect(section.text()).toContain('Azure');
-      expect(section.text()).toContain('azure-image-v001');
-      expect(section.text()).toContain('my-package');
-      expect(section.text()).toContain('template.json');
-      expect(section.find('a[href="/bakery/eastus/bake-123"]').exists()).toBe(true);
+      expect(screen.getByText('Azure')).toBeInTheDocument();
+      expect(screen.getByText('azure-image-v001')).toBeInTheDocument();
+      expect(screen.getByText('my-package')).toBeInTheDocument();
+      expect(screen.getByText('template.json')).toBeInTheDocument();
+      expect(screen.getByRole('link', { name: 'View Bakery Details' })).toHaveAttribute(
+        'href',
+        '/bakery/eastus/bake-123',
+      );
     } finally {
       SETTINGS.bakeryDetailUrl = previousBakeryDetailUrl;
       Registry.pipeline = previousPipelineRegistry;
@@ -312,12 +220,14 @@ describe('Azure package registration', () => {
   });
 
   it('loads destroy stage region from selected Azure account details', async () => {
-    spyOn(AccountService, 'getAccountDetails').and.returnValue(Promise.resolve({ org: 'westus' } as any));
+    vi.spyOn(AccountService, 'listAccounts').mockResolvedValue([{ name: 'test-account' }] as any);
+    vi.spyOn(AccountService, 'getUniqueAttributeForAllAccounts').mockResolvedValue(['westus'] as any);
+    vi.spyOn(AccountService, 'getAccountDetails').mockReturnValue(Promise.resolve({ org: 'westus' } as any));
 
-    const updateStageField = jasmine.createSpy('updateStageField');
+    const updateStageField = vi.fn();
     const stage = { credentials: 'test-account' };
 
-    shallow(
+    render(
       React.createElement(AzureDestroyAsgStageConfig, {
         application: {
           attributes: {},
@@ -329,18 +239,18 @@ describe('Azure package registration', () => {
       }),
     );
 
-    await new Promise((resolve) => setTimeout(resolve, 0));
-
     expect(AccountService.getAccountDetails).toHaveBeenCalledWith('test-account');
-    expect(updateStageField).toHaveBeenCalledWith({ regions: ['westus'] });
+    await waitFor(() => expect(updateStageField).toHaveBeenCalledWith({ regions: ['westus'] }));
   });
 
   it('renders account, region, and cluster selectors for Azure server group stages', async () => {
-    spyOn(AccountService, 'listAccounts').and.returnValue(Promise.resolve([{ name: 'prod' }, { name: 'test' }] as any));
-    spyOn(AccountService, 'getUniqueAttributeForAllAccounts').and.returnValue(
+    vi.spyOn(AccountService, 'listAccounts').mockReturnValue(
+      Promise.resolve([{ name: 'prod' }, { name: 'test' }] as any),
+    );
+    vi.spyOn(AccountService, 'getUniqueAttributeForAllAccounts').mockReturnValue(
       Promise.resolve(['eastus', 'westus']) as any,
     );
-    spyOn(AccountService, 'getAccountDetails').and.returnValue(Promise.resolve({ org: 'eastus' } as any));
+    vi.spyOn(AccountService, 'getAccountDetails').mockReturnValue(Promise.resolve({} as any));
 
     const application = applicationWithServerGroups([
       {
@@ -358,15 +268,15 @@ describe('Azure package registration', () => {
     ]);
 
     for (const component of [AzureDestroyAsgStageConfig, AzureDisableAsgStageConfig, AzureEnableAsgStageConfig]) {
-      const updateStageField = jasmine.createSpy('updateStageField');
+      const updateStageField = vi.fn();
       const stage = {
         cloudProvider: 'azure',
         cluster: 'app',
         credentials: 'prod',
         moniker: { app: 'app', cluster: 'app', sequence: 1 },
-        regions: ['eastus'],
+        regions: ['eastus', 'westus'],
       } as any;
-      const wrapper = mount(
+      const rendered = render(
         React.createElement(component, {
           application,
           pipeline: {},
@@ -375,59 +285,48 @@ describe('Azure package registration', () => {
         }),
       );
 
-      await new Promise((resolve) => setTimeout(resolve, 0));
-      wrapper.update();
+      const accountField = await waitFor(() => getFormGroupByLabel('Account', rendered.container));
+      const accountSelect = within(accountField).getByRole('combobox');
+      expect(within(accountSelect).getByRole('option', { name: 'prod' })).toBeInTheDocument();
 
-      const accountSelect = wrapper.find('select[name="credentials"]');
-      expect(accountSelect.exists()).withContext(`${component.name} account select`).toBe(true);
-      expect(accountSelect.find('option[value="prod"]').exists())
-        .withContext(`${component.name} prod account option`)
-        .toBe(true);
+      const eastusCheckbox = screen.getByRole('checkbox', { name: 'eastus' });
+      const westusCheckbox = screen.getByRole('checkbox', { name: 'westus' });
+      const clusterSelect = within(getFormGroupByLabel('Cluster', rendered.container)).getByRole('combobox');
+      expect(within(clusterSelect).getByRole('option', { name: 'app' })).toBeInTheDocument();
 
-      const eastusCheckbox = wrapper
-        .find('input[type="checkbox"][name="regions"]')
-        .findWhere((input) => input.prop('value') === 'eastus');
-      expect(eastusCheckbox.exists()).withContext(`${component.name} region checklist`).toBe(true);
+      fireEvent.change(clusterSelect, { target: { value: 'api' } });
+      expect(updateStageField, `${component.name} cluster update sets moniker`).toHaveBeenCalledWith(
+        expect.objectContaining({
+          cluster: 'api',
+          moniker: expect.objectContaining({ cluster: 'api', sequence: null }),
+        }),
+      );
 
-      const clusterSelect = wrapper.find('select[name="cluster"]');
-      expect(clusterSelect.exists()).withContext(`${component.name} cluster select`).toBe(true);
-      expect(clusterSelect.find('option[value="app"]').exists())
-        .withContext(`${component.name} app cluster option`)
-        .toBe(true);
+      fireEvent.click(eastusCheckbox);
+      fireEvent.click(westusCheckbox);
+      expect(updateStageField, `${component.name} region update clears cluster`).toHaveBeenCalledWith(
+        expect.objectContaining({ cluster: undefined, moniker: undefined, regions: [] }),
+      );
 
-      eastusCheckbox.simulate('change', { target: { checked: false } });
-      expect(updateStageField)
-        .withContext(`${component.name} region update clears cluster`)
-        .toHaveBeenCalledWith(jasmine.objectContaining({ cluster: undefined, moniker: undefined, regions: [] }));
+      fireEvent.change(accountSelect, { target: { value: 'test' } });
+      expect(updateStageField, `${component.name} account update clears dependent fields`).toHaveBeenCalledWith(
+        expect.objectContaining({ credentials: 'test', cluster: undefined, moniker: undefined, regions: [] }),
+      );
 
-      clusterSelect.simulate('change', { target: { value: 'api' } });
-      expect(updateStageField)
-        .withContext(`${component.name} cluster update sets moniker`)
-        .toHaveBeenCalledWith(
-          jasmine.objectContaining({
-            cluster: 'api',
-            moniker: jasmine.objectContaining({ cluster: 'api', sequence: null }),
-          }),
-        );
-
-      accountSelect.simulate('change', { target: { value: 'test' } });
-      expect(updateStageField)
-        .withContext(`${component.name} account update clears dependent fields`)
-        .toHaveBeenCalledWith(
-          jasmine.objectContaining({ credentials: 'test', cluster: undefined, moniker: undefined, regions: [] }),
-        );
-
-      wrapper.unmount();
+      const targetSelect = within(getFormGroupByLabel('Target', rendered.container)).getByRole('combobox');
+      fireEvent.change(targetSelect, { target: { value: 'oldest_asg_dynamic' } });
+      expect(updateStageField).toHaveBeenCalledWith({ target: 'oldest_asg_dynamic' });
+      rendered.unmount();
     }
   });
 
   it('preserves selected Azure cluster while selected regions still include that cluster', async () => {
-    spyOn(AccountService, 'listAccounts').and.returnValue(Promise.resolve([{ name: 'prod' }] as any));
-    spyOn(AccountService, 'getUniqueAttributeForAllAccounts').and.returnValue(
+    vi.spyOn(AccountService, 'listAccounts').mockReturnValue(Promise.resolve([{ name: 'prod' }] as any));
+    vi.spyOn(AccountService, 'getUniqueAttributeForAllAccounts').mockReturnValue(
       Promise.resolve(['eastus', 'westus']) as any,
     );
 
-    const updateStageField = jasmine.createSpy('updateStageField');
+    const updateStageField = vi.fn();
     const stage = {
       cloudProvider: 'azure',
       cluster: 'app',
@@ -435,7 +334,7 @@ describe('Azure package registration', () => {
       moniker: { app: 'app', cluster: 'app', sequence: 1 },
       regions: ['eastus', 'westus'],
     } as any;
-    const wrapper = mount(
+    const rendered = render(
       React.createElement(AzureDisableAsgStageConfig, {
         application: applicationWithServerGroups([
           {
@@ -451,36 +350,31 @@ describe('Azure package registration', () => {
       }),
     );
 
-    await new Promise((resolve) => setTimeout(resolve, 0));
-    wrapper.update();
-
-    wrapper
-      .find('input[type="checkbox"][name="regions"]')
-      .findWhere((input) => input.prop('value') === 'westus')
-      .simulate('change', { target: { checked: false } });
+    const westusCheckbox = await screen.findByRole('checkbox', { name: 'westus' });
+    fireEvent.click(westusCheckbox);
 
     expect(updateStageField).toHaveBeenCalledWith({ regions: ['eastus'] });
     expect(updateStageField).not.toHaveBeenCalledWith(
-      jasmine.objectContaining({ cluster: undefined, moniker: undefined }),
+      expect.objectContaining({ cluster: undefined, moniker: undefined }),
     );
 
-    wrapper.unmount();
+    rendered.unmount();
   });
 
   it('supports free-text Azure cluster entry when the selected cluster is not discovered', async () => {
-    spyOn(AccountService, 'listAccounts').and.returnValue(Promise.resolve([{ name: 'prod' }] as any));
-    spyOn(AccountService, 'getUniqueAttributeForAllAccounts').and.returnValue(
+    vi.spyOn(AccountService, 'listAccounts').mockReturnValue(Promise.resolve([{ name: 'prod' }] as any));
+    vi.spyOn(AccountService, 'getUniqueAttributeForAllAccounts').mockReturnValue(
       Promise.resolve(['eastus', 'westus']) as any,
     );
 
-    const updateStageField = jasmine.createSpy('updateStageField');
+    const updateStageField = vi.fn();
     const stage = {
       cloudProvider: 'azure',
       cluster: 'custom-cluster',
       credentials: 'prod',
       regions: ['eastus'],
     } as any;
-    const wrapper = mount(
+    const rendered = render(
       React.createElement(AzureDisableAsgStageConfig, {
         application: applicationWithServerGroups([]),
         pipeline: {},
@@ -489,32 +383,26 @@ describe('Azure package registration', () => {
       }),
     );
 
-    await new Promise((resolve) => setTimeout(resolve, 0));
-    wrapper.update();
+    const clusterInput = await within(getFormGroupByLabel('Cluster', rendered.container)).findByRole('textbox');
+    expect(clusterInput).toHaveValue('custom-cluster');
 
-    const clusterInput = wrapper.find('input[type="text"][name="cluster"]');
-    expect(clusterInput.exists()).toBe(true);
-    expect(clusterInput.prop('value')).toBe('custom-cluster');
-
-    clusterInput.simulate('change', { target: { value: 'new-custom-cluster' } });
+    fireEvent.change(clusterInput, { target: { value: 'new-custom-cluster' } });
     expect(updateStageField).toHaveBeenCalledWith({ cluster: 'new-custom-cluster', moniker: undefined });
 
-    wrapper
-      .find('a')
-      .filterWhere((link) => link.text().includes('list of existing clusters'))
-      .simulate('click', {
-        preventDefault: jasmine.createSpy('preventDefault'),
-      });
+    fireEvent.click(screen.getByText(/list of existing clusters/));
     expect(updateStageField).toHaveBeenCalledWith({ cluster: undefined, moniker: undefined });
 
-    wrapper.unmount();
+    rendered.unmount();
   });
 
   it('preserves existing Azure health override selections on new disable and enable stages', () => {
+    vi.spyOn(AccountService, 'listAccounts').mockResolvedValue([{ name: 'test-account' }] as any);
+    vi.spyOn(AccountService, 'getUniqueAttributeForAllAccounts').mockResolvedValue(['eastus'] as any);
     [AzureDisableAsgStageConfig, AzureEnableAsgStageConfig].forEach((component) => {
       const stage = { isNew: true, interestingHealthProviderNames: ['azureService'] } as any;
+      const updateStageField = vi.fn();
 
-      shallow(
+      const rendered = render(
         React.createElement(component, {
           application: {
             attributes: { platformHealthOnlyShowOverride: true },
@@ -522,30 +410,65 @@ describe('Azure package registration', () => {
             defaultRegions: { azure: 'eastus' },
           },
           stage,
-          updateStageField: jasmine.createSpy('updateStageField'),
+          updateStageField,
         }),
       );
 
+      expect(screen.getByRole('checkbox', { name: 'Consider only azureService health' })).toBeChecked();
       expect(stage.interestingHealthProviderNames).toEqual(['azureService']);
+      updateStageField.mockClear();
+      fireEvent.click(screen.getByRole('checkbox', { name: 'Consider only azureService health' }));
+      rendered.rerender(
+        React.createElement(component, {
+          application: {
+            attributes: { platformHealthOnlyShowOverride: true },
+            defaultCredentials: { azure: 'test-account' },
+            defaultRegions: { azure: 'eastus' },
+          },
+          stage,
+          updateStageField,
+        }),
+      );
+      fireEvent.click(screen.getByRole('checkbox', { name: 'Consider only azureService health' }));
+      expect(stage.interestingHealthProviderNames).toEqual(['azureService']);
+      expect(updateStageField.mock.calls).toEqual([
+        [{ interestingHealthProviderNames: null }],
+        [{ interestingHealthProviderNames: ['azureService'] }],
+      ]);
+      rendered.unmount();
+
+      const hidden = render(
+        React.createElement(component, {
+          application: {
+            attributes: { platformHealthOnlyShowOverride: false },
+            defaultCredentials: { azure: 'test-account' },
+            defaultRegions: { azure: 'eastus' },
+          },
+          stage: { isNew: true },
+          updateStageField: vi.fn(),
+        }),
+      );
+      expect(screen.queryByRole('checkbox', { name: 'Consider only azureService health' })).not.toBeInTheDocument();
+      hidden.unmount();
     });
   });
 
   it('ignores stale destroy account detail responses and clears regions when credentials change', async () => {
     const firstAccount = deferred<any>();
     const secondAccount = deferred<any>();
-    spyOn(AccountService, 'listAccounts').and.returnValue(
+    vi.spyOn(AccountService, 'listAccounts').mockReturnValue(
       Promise.resolve([{ name: 'first-account' }, { name: 'second-account' }] as any),
     );
-    spyOn(AccountService, 'getUniqueAttributeForAllAccounts').and.returnValue(
+    vi.spyOn(AccountService, 'getUniqueAttributeForAllAccounts').mockReturnValue(
       Promise.resolve(['first-region', 'second-region']) as any,
     );
-    spyOn(AccountService, 'getAccountDetails').and.callFake((account: string) => {
+    vi.spyOn(AccountService, 'getAccountDetails').mockImplementation((account: string) => {
       return account === 'first-account' ? firstAccount.promise : secondAccount.promise;
     });
 
-    const updateStageField = jasmine.createSpy('updateStageField');
+    const updateStageField = vi.fn();
     const stage = { credentials: 'first-account', regions: ['stale-region'] } as any;
-    const wrapper = mount(
+    const rendered = render(
       React.createElement(AzureDestroyAsgStageConfig, {
         application: applicationWithServerGroups([]),
         pipeline: {},
@@ -554,15 +477,13 @@ describe('Azure package registration', () => {
       }),
     );
 
-    await new Promise((resolve) => setTimeout(resolve, 0));
-    wrapper.update();
-
-    wrapper.find('select[name="credentials"]').simulate('change', {
-      target: { value: 'second-account' },
-    });
+    const accountSelect = within(await waitFor(() => getFormGroupByLabel('Account', rendered.container))).getByRole(
+      'combobox',
+    );
+    fireEvent.change(accountSelect, { target: { value: 'second-account' } });
 
     expect(updateStageField).toHaveBeenCalledWith(
-      jasmine.objectContaining({ credentials: 'second-account', regions: [] }),
+      expect.objectContaining({ credentials: 'second-account', regions: [] }),
     );
 
     firstAccount.resolve({ org: 'first-region' });
@@ -574,19 +495,19 @@ describe('Azure package registration', () => {
     await new Promise((resolve) => setTimeout(resolve, 0));
 
     expect(updateStageField).toHaveBeenCalledWith({ regions: ['second-region'] });
-    wrapper.unmount();
+    rendered.unmount();
   });
 
   it('leaves destroy regions empty when account detail loading fails after credentials change', async () => {
-    spyOn(AccountService, 'listAccounts').and.returnValue(
+    vi.spyOn(AccountService, 'listAccounts').mockReturnValue(
       Promise.resolve([{ name: 'first-account' }, { name: 'bad-account' }] as any),
     );
-    spyOn(AccountService, 'getUniqueAttributeForAllAccounts').and.returnValue(Promise.resolve(['eastus']) as any);
-    spyOn(AccountService, 'getAccountDetails').and.returnValue(Promise.reject(new Error('boom')));
+    vi.spyOn(AccountService, 'getUniqueAttributeForAllAccounts').mockReturnValue(Promise.resolve(['eastus']) as any);
+    vi.spyOn(AccountService, 'getAccountDetails').mockReturnValue(Promise.reject(new Error('boom')));
 
-    const updateStageField = jasmine.createSpy('updateStageField');
+    const updateStageField = vi.fn();
     const stage = { credentials: 'first-account', regions: ['stale-region'] } as any;
-    const wrapper = mount(
+    const rendered = render(
       React.createElement(AzureDestroyAsgStageConfig, {
         application: applicationWithServerGroups([]),
         pipeline: {},
@@ -595,327 +516,289 @@ describe('Azure package registration', () => {
       }),
     );
 
-    await new Promise((resolve) => setTimeout(resolve, 0));
-    wrapper.update();
-
-    wrapper.find('select[name="credentials"]').simulate('change', {
-      target: { value: 'bad-account' },
-    });
+    const accountSelect = within(await waitFor(() => getFormGroupByLabel('Account', rendered.container))).getByRole(
+      'combobox',
+    );
+    fireEvent.change(accountSelect, { target: { value: 'bad-account' } });
     await new Promise((resolve) => setTimeout(resolve, 0));
 
     expect(stage.regions).toEqual([]);
-    expect(updateStageField).toHaveBeenCalledWith(
-      jasmine.objectContaining({ credentials: 'bad-account', regions: [] }),
-    );
-    wrapper.unmount();
+    expect(updateStageField).toHaveBeenCalledWith(expect.objectContaining({ credentials: 'bad-account', regions: [] }));
+    rendered.unmount();
   });
 
   it('initializes Azure bake options and defaults from services', async () => {
-    spyOn(AuthenticationService, 'getAuthenticatedUser').and.returnValue({ name: 'user@example.com' } as any);
-    spyOn(AccountService, 'getCredentialsKeyedByAccount').and.returnValue(
+    vi.spyOn(AuthenticationService, 'getAuthenticatedUser').mockReturnValue({ name: 'user@example.com' } as any);
+    vi.spyOn(AccountService, 'getCredentialsKeyedByAccount').mockReturnValue(
       Promise.resolve({ bakery: { name: 'bakery' } } as any),
     );
-    spyOn(BakeryReader, 'getRegions').and.returnValue(Promise.resolve(['rosco-east', 'rosco-west']) as any);
-    spyOn(BakeryReader, 'getBaseOsOptions').and.returnValue(
+    vi.spyOn(BakeryReader, 'getRegions').mockReturnValue(Promise.resolve(['rosco-east', 'rosco-west']) as any);
+    vi.spyOn(BakeryReader, 'getBaseOsOptions').mockReturnValue(
       Promise.resolve({ baseImages: [{ id: 'ubuntu', shortDescription: 'Ubuntu' }] } as any),
     );
-    spyOn(BakeryReader, 'getBaseLabelOptions').and.returnValue(Promise.resolve(['release', 'candidate']));
+    vi.spyOn(BakeryReader, 'getBaseLabelOptions').mockReturnValue(Promise.resolve(['release', 'candidate']));
 
-    const updateStage = jasmine.createSpy('updateStage');
-    const wrapper = shallow(
+    const updateStage = vi.fn();
+    const rendered = render(
       React.createElement(AzureBakeStageConfig, {
         application: { attributes: {}, defaultCredentials: { azure: 'bakery' }, defaultRegions: { azure: 'eastus' } },
         pipeline: {},
         stage: { package: 'my-package' },
-        stageFieldUpdated: jasmine.createSpy('stageFieldUpdated'),
+        stageFieldUpdated: vi.fn(),
         updateStage,
-        updateStageField: jasmine.createSpy('updateStageField'),
+        updateStageField: vi.fn(),
       } as any),
     );
 
-    expect(wrapper.find(Spinner).exists()).toBe(true);
-    await new Promise((resolve) => setTimeout(resolve, 0));
-    wrapper.update();
+    expect(screen.queryByText('Account')).not.toBeInTheDocument();
 
     expect(AccountService.getCredentialsKeyedByAccount).toHaveBeenCalledWith('azure');
     expect(BakeryReader.getRegions).toHaveBeenCalledWith('azure');
     expect(BakeryReader.getBaseOsOptions).toHaveBeenCalledWith('azure');
-    expect(updateStage).toHaveBeenCalledWith(
-      jasmine.objectContaining({
-        extendedAttributes: {},
-        regions: ['eastus'],
-        user: 'user@example.com',
-      }),
+    await waitFor(() =>
+      expect(updateStage).toHaveBeenCalledWith(
+        expect.objectContaining({
+          extendedAttributes: {},
+          regions: ['eastus'],
+          user: 'user@example.com',
+        }),
+      ),
     );
-    expect(wrapper.find(Spinner).exists()).toBe(false);
+    await waitFor(() => getFormGroupByLabel('Account', rendered.container));
+    ['Account', 'Regions', 'Base OS', 'Package', 'Base Label', 'Base Name'].forEach((label) =>
+      expect(getFormGroupByLabel(label, rendered.container)).toBeInTheDocument(),
+    );
   });
 
-  it('clears the Azure bake scalar region when that region is deselected', () => {
+  it('clears the Azure bake scalar region when that region is deselected', async () => {
+    mockBakeOptions();
     const stage = { account: 'bakery', region: 'eastus', regions: ['eastus', 'westus'] } as any;
-    const updateStage = jasmine.createSpy('updateStage');
-    const wrapper = shallow(React.createElement(AzureBakeStageConfig, bakeStageProps(stage, updateStage)), {
-      disableLifecycleMethods: true,
-    });
-    wrapper.setState({ loading: false, regions: ['eastus', 'westus'] });
+    const updateStage = vi.fn();
+    render(React.createElement(AzureBakeStageConfig, bakeStageProps(stage, updateStage)));
 
-    wrapper
-      .find('input[type="checkbox"]')
-      .at(0)
-      .simulate('change', { target: { checked: false } });
+    fireEvent.click(await screen.findByRole('checkbox', { name: 'eastus' }));
 
-    expect(updateStage).toHaveBeenCalledWith(jasmine.objectContaining({ region: undefined, regions: ['westus'] }));
+    expect(updateStage).toHaveBeenCalledWith(expect.objectContaining({ region: undefined, regions: ['westus'] }));
   });
 
-  it('preserves the Azure bake scalar region when a different region is deselected', () => {
+  it('preserves the Azure bake scalar region when a different region is deselected', async () => {
+    mockBakeOptions();
     const stage = { account: 'bakery', region: 'eastus', regions: ['eastus', 'westus'] } as any;
-    const updateStage = jasmine.createSpy('updateStage');
-    const wrapper = shallow(React.createElement(AzureBakeStageConfig, bakeStageProps(stage, updateStage)), {
-      disableLifecycleMethods: true,
-    });
-    wrapper.setState({ loading: false, regions: ['eastus', 'westus'] });
+    const updateStage = vi.fn();
+    render(React.createElement(AzureBakeStageConfig, bakeStageProps(stage, updateStage)));
 
-    wrapper
-      .find('input[type="checkbox"]')
-      .at(1)
-      .simulate('change', { target: { checked: false } });
+    fireEvent.click(await screen.findByRole('checkbox', { name: 'westus' }));
 
-    expect(updateStage).toHaveBeenCalledWith(jasmine.objectContaining({ region: 'eastus', regions: ['eastus'] }));
+    expect(updateStage).toHaveBeenCalledWith(expect.objectContaining({ region: 'eastus', regions: ['eastus'] }));
   });
 
   it('preserves Azure bake source-image mode field clearing and managed image behavior', async () => {
-    spyOn(AuthenticationService, 'getAuthenticatedUser').and.returnValue({ name: 'user@example.com' } as any);
-    spyOn(AccountService, 'getCredentialsKeyedByAccount').and.returnValue(
-      Promise.resolve({ bakery: { name: 'bakery' } } as any),
+    vi.spyOn(AuthenticationService, 'getAuthenticatedUser').mockReturnValue({ name: 'user@example.com' } as any);
+    vi.spyOn(AccountService, 'getCredentialsKeyedByAccount').mockReturnValue(
+      Promise.resolve({ bakery: { name: 'bakery' }, 'next-account': { name: 'next-account' } } as any),
     );
-    spyOn(AccountService, 'getRegionsForAccount').and.returnValue(Promise.resolve([{ name: 'account-east' }] as any));
-    spyOn(BakeryReader, 'getRegions').and.returnValue(Promise.resolve(['rosco-east']) as any);
-    spyOn(BakeryReader, 'getBaseOsOptions').and.returnValue(Promise.resolve({ baseImages: [{ id: 'ubuntu' }] } as any));
-    spyOn(BakeryReader, 'getBaseLabelOptions').and.returnValue(Promise.resolve(['release']));
-    spyOn(AzureImageReader.prototype, 'findImages').and.returnValue(
+    vi.spyOn(AccountService, 'getRegionsForAccount').mockReturnValue(
+      Promise.resolve([{ name: 'account-east' }] as any),
+    );
+    vi.spyOn(BakeryReader, 'getRegions').mockReturnValue(Promise.resolve(['rosco-east']) as any);
+    vi.spyOn(BakeryReader, 'getBaseOsOptions').mockReturnValue(
+      Promise.resolve({ baseImages: [{ id: 'ubuntu' }] } as any),
+    );
+    vi.spyOn(BakeryReader, 'getBaseLabelOptions').mockReturnValue(Promise.resolve(['release']));
+    vi.spyOn(AzureImageReader.prototype, 'findImages').mockReturnValue(
       Promise.resolve([{ imageName: 'managed-ubuntu', ostype: 'Linux' }] as any),
     );
 
-    const updateStage = jasmine.createSpy('updateStage');
+    const updateStage = vi.fn();
     const stage = { account: 'bakery', baseOs: 'ubuntu', packageType: 'DEB' } as any;
-    const wrapper = shallow(
+    const rendered = render(
       React.createElement(AzureBakeStageConfig, {
         application: { attributes: {}, defaultCredentials: { azure: 'bakery' }, defaultRegions: { azure: 'eastus' } },
         pipeline: {},
         stage,
-        stageFieldUpdated: jasmine.createSpy('stageFieldUpdated'),
+        stageFieldUpdated: vi.fn(),
         updateStage,
-        updateStageField: jasmine.createSpy('updateStageField'),
+        updateStageField: vi.fn(),
       } as any),
     );
 
-    await new Promise((resolve) => setTimeout(resolve, 0));
-    wrapper.update();
-
-    wrapper
-      .find('button')
-      .filterWhere((button) => button.text() === 'Managed Images')
-      .simulate('click');
+    fireEvent.click(await screen.findByRole('button', { name: 'Managed Images' }));
     expect(AzureImageReader.prototype.findImages).toHaveBeenCalledWith({
       provider: 'azure',
       managedImages: true,
       account: 'bakery',
     });
-    expect(updateStage).toHaveBeenCalledWith(jasmine.objectContaining({ baseOs: null, packageType: null }));
+    expect(updateStage).toHaveBeenCalledWith(expect.objectContaining({ baseOs: null, packageType: null }));
 
-    await new Promise((resolve) => setTimeout(resolve, 0));
-    wrapper.update();
-
-    wrapper.find('select[name="managedImage"]').simulate('change', { target: { value: 'managed-ubuntu' } });
+    const managedImageSelect = await waitFor(() => {
+      const select = within(getFormGroupByLabel('Managed Image', rendered.container)).getByRole('combobox');
+      expect(within(select).getByRole('option', { name: 'managed-ubuntu' })).toBeInTheDocument();
+      return select;
+    });
+    fireEvent.change(managedImageSelect, { target: { value: 'managed-ubuntu' } });
     expect(updateStage).toHaveBeenCalledWith(
-      jasmine.objectContaining({ managedImage: 'managed-ubuntu', osType: 'linux', packageType: null }),
+      expect.objectContaining({ managedImage: 'managed-ubuntu', osType: 'linux', packageType: null }),
     );
 
-    wrapper.find('select[name="account"]').simulate('change', { target: { value: 'next-account' } });
-    await new Promise((resolve) => setTimeout(resolve, 0));
+    fireEvent.change(within(getFormGroupByLabel('Account', rendered.container)).getByRole('combobox'), {
+      target: { value: 'next-account' },
+    });
 
     expect(AccountService.getRegionsForAccount).toHaveBeenCalledWith('next-account');
     expect(updateStage).toHaveBeenCalledWith(
-      jasmine.objectContaining({ account: 'next-account', osType: null, packageType: null, managedImage: null }),
+      expect.objectContaining({ account: 'next-account', osType: null, packageType: null, managedImage: null }),
     );
   });
 
   it('ignores stale Azure bake account-specific region responses', async () => {
-    spyOn(AuthenticationService, 'getAuthenticatedUser').and.returnValue({ name: 'user@example.com' } as any);
-    spyOn(AccountService, 'getCredentialsKeyedByAccount').and.returnValue(
+    vi.spyOn(AuthenticationService, 'getAuthenticatedUser').mockReturnValue({ name: 'user@example.com' } as any);
+    vi.spyOn(AccountService, 'getCredentialsKeyedByAccount').mockReturnValue(
       Promise.resolve({ bakery: { name: 'bakery' }, newer: { name: 'newer' } } as any),
     );
     const staleRegions = deferred<any[]>();
     const currentRegions = deferred<any[]>();
-    spyOn(AccountService, 'getRegionsForAccount').and.callFake((account: string) => {
+    vi.spyOn(AccountService, 'getRegionsForAccount').mockImplementation((account: string) => {
       return account === 'stale' ? staleRegions.promise : currentRegions.promise;
     });
-    spyOn(BakeryReader, 'getRegions').and.returnValue(Promise.resolve(['rosco-east']) as any);
-    spyOn(BakeryReader, 'getBaseOsOptions').and.returnValue(Promise.resolve({ baseImages: [{ id: 'ubuntu' }] } as any));
-    spyOn(BakeryReader, 'getBaseLabelOptions').and.returnValue(Promise.resolve(['release']));
+    vi.spyOn(BakeryReader, 'getRegions').mockReturnValue(Promise.resolve(['rosco-east']) as any);
+    vi.spyOn(BakeryReader, 'getBaseOsOptions').mockReturnValue(
+      Promise.resolve({ baseImages: [{ id: 'ubuntu' }] } as any),
+    );
+    vi.spyOn(BakeryReader, 'getBaseLabelOptions').mockReturnValue(Promise.resolve(['release']));
 
-    const wrapper = shallow(React.createElement(AzureBakeStageConfig, bakeStageProps({ account: 'bakery' })));
-    await new Promise((resolve) => setTimeout(resolve, 0));
-    wrapper.update();
+    const rendered = render(React.createElement(AzureBakeStageConfig, bakeStageProps({ account: 'bakery' })));
+    await screen.findByRole('option', { name: 'newer' });
+    const accountSelect = within(getFormGroupByLabel('Account', rendered.container)).getByRole('combobox');
 
-    wrapper.find('select[name="account"]').simulate('change', { target: { value: 'stale' } });
-    wrapper.find('select[name="account"]').simulate('change', { target: { value: 'newer' } });
+    fireEvent.change(accountSelect, { target: { value: 'stale' } });
+    fireEvent.change(accountSelect, { target: { value: 'newer' } });
 
     staleRegions.resolve([{ name: 'stale-region' }] as any);
-    await new Promise((resolve) => setTimeout(resolve, 0));
-    expect((wrapper.state() as any).regions).not.toEqual(['stale-region']);
+    await Promise.resolve();
+    expect(screen.queryByRole('checkbox', { name: 'stale-region' })).not.toBeInTheDocument();
 
     currentRegions.resolve([{ name: 'current-region' }] as any);
-    await new Promise((resolve) => setTimeout(resolve, 0));
-    wrapper.update();
-
-    expect((wrapper.state() as any).regions).toEqual(['current-region']);
+    expect(await screen.findByRole('checkbox', { name: 'current-region' })).toBeInTheDocument();
+    rendered.unmount();
   });
 
   it('ignores stale Azure bake managed image responses', async () => {
-    spyOn(AuthenticationService, 'getAuthenticatedUser').and.returnValue({ name: 'user@example.com' } as any);
-    spyOn(AccountService, 'getCredentialsKeyedByAccount').and.returnValue(
+    vi.spyOn(AuthenticationService, 'getAuthenticatedUser').mockReturnValue({ name: 'user@example.com' } as any);
+    vi.spyOn(AccountService, 'getCredentialsKeyedByAccount').mockReturnValue(
       Promise.resolve({ bakery: { name: 'bakery' }, newer: { name: 'newer' } } as any),
     );
-    spyOn(AccountService, 'getRegionsForAccount').and.returnValue(Promise.resolve([{ name: 'current-region' }] as any));
-    spyOn(BakeryReader, 'getRegions').and.returnValue(Promise.resolve(['rosco-east']) as any);
-    spyOn(BakeryReader, 'getBaseOsOptions').and.returnValue(Promise.resolve({ baseImages: [{ id: 'ubuntu' }] } as any));
-    spyOn(BakeryReader, 'getBaseLabelOptions').and.returnValue(Promise.resolve(['release']));
+    vi.spyOn(AccountService, 'getRegionsForAccount').mockReturnValue(
+      Promise.resolve([{ name: 'current-region' }] as any),
+    );
+    vi.spyOn(BakeryReader, 'getRegions').mockReturnValue(Promise.resolve(['rosco-east']) as any);
+    vi.spyOn(BakeryReader, 'getBaseOsOptions').mockReturnValue(
+      Promise.resolve({ baseImages: [{ id: 'ubuntu' }] } as any),
+    );
+    vi.spyOn(BakeryReader, 'getBaseLabelOptions').mockReturnValue(Promise.resolve(['release']));
     const staleImages = deferred<any[]>();
     const currentImages = deferred<any[]>();
-    spyOn(AzureImageReader.prototype, 'findImages').and.callFake((params: any) => {
+    vi.spyOn(AzureImageReader.prototype, 'findImages').mockImplementation((params: any) => {
       return params.account === 'bakery' ? staleImages.promise : currentImages.promise;
     });
 
-    const wrapper = shallow(React.createElement(AzureBakeStageConfig, bakeStageProps({ account: 'bakery' })));
-    await new Promise((resolve) => setTimeout(resolve, 0));
-    wrapper.update();
-
-    wrapper
-      .find('button')
-      .filterWhere((button) => button.text() === 'Managed Images')
-      .simulate('click');
-    wrapper.find('select[name="account"]').simulate('change', { target: { value: 'newer' } });
+    const rendered = render(React.createElement(AzureBakeStageConfig, bakeStageProps({ account: 'bakery' })));
+    fireEvent.click(await screen.findByRole('button', { name: 'Managed Images' }));
+    fireEvent.change(within(getFormGroupByLabel('Account', rendered.container)).getByRole('combobox'), {
+      target: { value: 'newer' },
+    });
 
     staleImages.resolve([{ imageName: 'stale-image', ostype: 'Linux' }] as any);
-    await new Promise((resolve) => setTimeout(resolve, 0));
-    expect((wrapper.state() as any).managedImageOptions).toEqual([]);
+    await Promise.resolve();
+    expect(screen.queryByRole('option', { name: 'stale-image' })).not.toBeInTheDocument();
 
     currentImages.resolve([{ imageName: 'current-image', ostype: 'Windows' }] as any);
-    await new Promise((resolve) => setTimeout(resolve, 0));
-    wrapper.update();
-
-    expect((wrapper.state() as any).managedImageOptions).toEqual([
-      { id: 'current-image', name: 'current-image', osType: 'Windows' },
-    ]);
+    expect(await screen.findByRole('option', { name: 'current-image' })).toBeInTheDocument();
   });
 
   it('clears loaded Azure bake managed image options immediately when account changes', async () => {
-    spyOn(AuthenticationService, 'getAuthenticatedUser').and.returnValue({ name: 'user@example.com' } as any);
-    spyOn(AccountService, 'getCredentialsKeyedByAccount').and.returnValue(
+    vi.spyOn(AuthenticationService, 'getAuthenticatedUser').mockReturnValue({ name: 'user@example.com' } as any);
+    vi.spyOn(AccountService, 'getCredentialsKeyedByAccount').mockReturnValue(
       Promise.resolve({ bakery: { name: 'bakery' }, newer: { name: 'newer' } } as any),
     );
-    spyOn(AccountService, 'getRegionsForAccount').and.returnValue(Promise.resolve([{ name: 'current-region' }] as any));
-    spyOn(BakeryReader, 'getRegions').and.returnValue(Promise.resolve(['rosco-east']) as any);
-    spyOn(BakeryReader, 'getBaseOsOptions').and.returnValue(Promise.resolve({ baseImages: [{ id: 'ubuntu' }] } as any));
-    spyOn(BakeryReader, 'getBaseLabelOptions').and.returnValue(Promise.resolve(['release']));
-    spyOn(AzureImageReader.prototype, 'findImages').and.returnValue(
+    vi.spyOn(AccountService, 'getRegionsForAccount').mockReturnValue(
+      Promise.resolve([{ name: 'current-region' }] as any),
+    );
+    vi.spyOn(BakeryReader, 'getRegions').mockReturnValue(Promise.resolve(['rosco-east']) as any);
+    vi.spyOn(BakeryReader, 'getBaseOsOptions').mockReturnValue(
+      Promise.resolve({ baseImages: [{ id: 'ubuntu' }] } as any),
+    );
+    vi.spyOn(BakeryReader, 'getBaseLabelOptions').mockReturnValue(Promise.resolve(['release']));
+    vi.spyOn(AzureImageReader.prototype, 'findImages').mockReturnValue(
       Promise.resolve([{ imageName: 'bakery-image', ostype: 'Linux' }] as any),
     );
 
-    const wrapper = shallow(React.createElement(AzureBakeStageConfig, bakeStageProps({ account: 'bakery' })));
-    await new Promise((resolve) => setTimeout(resolve, 0));
-    wrapper.update();
+    const rendered = render(React.createElement(AzureBakeStageConfig, bakeStageProps({ account: 'bakery' })));
+    fireEvent.click(await screen.findByRole('button', { name: 'Managed Images' }));
+    expect(await screen.findByRole('option', { name: 'bakery-image' })).toBeInTheDocument();
 
-    wrapper
-      .find('button')
-      .filterWhere((button) => button.text() === 'Managed Images')
-      .simulate('click');
-    await new Promise((resolve) => setTimeout(resolve, 0));
-    wrapper.update();
+    fireEvent.change(within(getFormGroupByLabel('Account', rendered.container)).getByRole('combobox'), {
+      target: { value: 'newer' },
+    });
 
-    expect((wrapper.state() as any).managedImageOptions).toEqual([
-      { id: 'bakery-image', name: 'bakery-image', osType: 'Linux' },
-    ]);
-
-    wrapper.find('select[name="account"]').simulate('change', { target: { value: 'newer' } });
-
-    expect((wrapper.state() as any).managedImageOptions).toEqual([]);
+    expect(screen.queryByRole('option', { name: 'bakery-image' })).not.toBeInTheDocument();
   });
 
   it('clears loaded Azure bake managed image options immediately when returning to managed images for a new account', async () => {
-    spyOn(AuthenticationService, 'getAuthenticatedUser').and.returnValue({ name: 'user@example.com' } as any);
-    spyOn(AccountService, 'getCredentialsKeyedByAccount').and.returnValue(
+    vi.spyOn(AuthenticationService, 'getAuthenticatedUser').mockReturnValue({ name: 'user@example.com' } as any);
+    vi.spyOn(AccountService, 'getCredentialsKeyedByAccount').mockReturnValue(
       Promise.resolve({ bakery: { name: 'bakery' }, newer: { name: 'newer' } } as any),
     );
-    spyOn(AccountService, 'getRegionsForAccount').and.returnValue(Promise.resolve([{ name: 'current-region' }] as any));
-    spyOn(BakeryReader, 'getRegions').and.returnValue(Promise.resolve(['rosco-east']) as any);
-    spyOn(BakeryReader, 'getBaseOsOptions').and.returnValue(Promise.resolve({ baseImages: [{ id: 'ubuntu' }] } as any));
-    spyOn(BakeryReader, 'getBaseLabelOptions').and.returnValue(Promise.resolve(['release']));
+    vi.spyOn(AccountService, 'getRegionsForAccount').mockReturnValue(
+      Promise.resolve([{ name: 'current-region' }] as any),
+    );
+    vi.spyOn(BakeryReader, 'getRegions').mockReturnValue(Promise.resolve(['rosco-east']) as any);
+    vi.spyOn(BakeryReader, 'getBaseOsOptions').mockReturnValue(
+      Promise.resolve({ baseImages: [{ id: 'ubuntu' }] } as any),
+    );
+    vi.spyOn(BakeryReader, 'getBaseLabelOptions').mockReturnValue(Promise.resolve(['release']));
     const nextAccountImages = deferred<any[]>();
-    spyOn(AzureImageReader.prototype, 'findImages').and.callFake((params: any) => {
+    vi.spyOn(AzureImageReader.prototype, 'findImages').mockImplementation((params: any) => {
       return params.account === 'newer'
         ? nextAccountImages.promise
         : Promise.resolve([{ imageName: 'bakery-image', ostype: 'Linux' }] as any);
     });
 
-    const wrapper = shallow(React.createElement(AzureBakeStageConfig, bakeStageProps({ account: 'bakery' })));
-    await new Promise((resolve) => setTimeout(resolve, 0));
-    wrapper.update();
+    const rendered = render(React.createElement(AzureBakeStageConfig, bakeStageProps({ account: 'bakery' })));
+    fireEvent.click(await screen.findByRole('button', { name: 'Managed Images' }));
+    expect(await screen.findByRole('option', { name: 'bakery-image' })).toBeInTheDocument();
 
-    wrapper
-      .find('button')
-      .filterWhere((button) => button.text() === 'Managed Images')
-      .simulate('click');
-    await new Promise((resolve) => setTimeout(resolve, 0));
-    wrapper.update();
+    fireEvent.click(screen.getByRole('button', { name: 'Default Images' }));
+    fireEvent.change(within(getFormGroupByLabel('Account', rendered.container)).getByRole('combobox'), {
+      target: { value: 'newer' },
+    });
+    fireEvent.click(screen.getByRole('button', { name: 'Managed Images' }));
 
-    expect((wrapper.state() as any).managedImageOptions).toEqual([
-      { id: 'bakery-image', name: 'bakery-image', osType: 'Linux' },
-    ]);
-
-    wrapper
-      .find('button')
-      .filterWhere((button) => button.text() === 'Default Images')
-      .simulate('click');
-    wrapper.find('select[name="account"]').simulate('change', { target: { value: 'newer' } });
-    wrapper
-      .find('button')
-      .filterWhere((button) => button.text() === 'Managed Images')
-      .simulate('click');
-
-    expect((wrapper.state() as any).managedImageOptions).toEqual([]);
+    expect(screen.queryByRole('option', { name: 'bakery-image' })).not.toBeInTheDocument();
 
     nextAccountImages.resolve([{ imageName: 'newer-image', ostype: 'Windows' }] as any);
-    await new Promise((resolve) => setTimeout(resolve, 0));
-    wrapper.update();
-
-    expect((wrapper.state() as any).managedImageOptions).toEqual([
-      { id: 'newer-image', name: 'newer-image', osType: 'Windows' },
-    ]);
+    expect(await screen.findByRole('option', { name: 'newer-image' })).toBeInTheDocument();
   });
 
   it('removes empty Azure bake fields when users clear text inputs', async () => {
-    spyOn(AuthenticationService, 'getAuthenticatedUser').and.returnValue({ name: 'user@example.com' } as any);
-    spyOn(AccountService, 'getCredentialsKeyedByAccount').and.returnValue(
+    vi.spyOn(AuthenticationService, 'getAuthenticatedUser').mockReturnValue({ name: 'user@example.com' } as any);
+    vi.spyOn(AccountService, 'getCredentialsKeyedByAccount').mockReturnValue(
       Promise.resolve({ bakery: { name: 'bakery' } } as any),
     );
-    spyOn(BakeryReader, 'getRegions').and.returnValue(Promise.resolve(['rosco-east']) as any);
-    spyOn(BakeryReader, 'getBaseOsOptions').and.returnValue(Promise.resolve({ baseImages: [{ id: 'ubuntu' }] } as any));
-    spyOn(BakeryReader, 'getBaseLabelOptions').and.returnValue(Promise.resolve(['release']));
+    vi.spyOn(BakeryReader, 'getRegions').mockReturnValue(Promise.resolve(['rosco-east']) as any);
+    vi.spyOn(BakeryReader, 'getBaseOsOptions').mockReturnValue(
+      Promise.resolve({ baseImages: [{ id: 'ubuntu' }] } as any),
+    );
+    vi.spyOn(BakeryReader, 'getBaseLabelOptions').mockReturnValue(Promise.resolve(['release']));
 
-    const updateStage = jasmine.createSpy('updateStage');
+    const updateStage = vi.fn();
     const stage = { account: 'bakery', baseName: 'old-base-name' } as any;
-    const wrapper = shallow(React.createElement(AzureBakeStageConfig, bakeStageProps(stage, updateStage)));
-    await new Promise((resolve) => setTimeout(resolve, 0));
-    wrapper.update();
-
-    wrapper
-      .find(StageConfigField)
-      .findWhere((field) => field.prop('label') === 'Base Name')
-      .find('input')
-      .simulate('change', { target: { value: '' } });
+    const rendered = render(React.createElement(AzureBakeStageConfig, bakeStageProps(stage, updateStage)));
+    await screen.findByRole('button', { name: 'Managed Images' });
+    fireEvent.change(within(getFormGroupByLabel('Base Name', rendered.container)).getByRole('textbox'), {
+      target: { value: '' },
+    });
 
     expect(stage.baseName).toBeUndefined();
-    expect(updateStage.calls.mostRecent().args[0].baseName).toBeUndefined();
+    expect(updateStage.mock.lastCall[0].baseName).toBeUndefined();
   });
 });

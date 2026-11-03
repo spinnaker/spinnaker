@@ -1,12 +1,13 @@
+const fs = require('node:fs');
+const commentJson = require('comment-json');
 const { assertJsonFile } = require('../asserters/assertJsonFile');
 const { assertFileExists } = require('../asserters/assertFileExists');
-const { readJson } = require('@spinnaker/scripts/read-write-json');
 
 function checkTsconfig(report) {
   const exists = assertFileExists(report, 'tsconfig.json');
 
   if (exists) {
-    const tsConfigJson = readJson('tsconfig.json');
+    const tsConfigJson = commentJson.parse(fs.readFileSync('tsconfig.json', 'utf8'));
 
     const checkTsconfigField = assertJsonFile(report, 'tsconfig.json', tsConfigJson);
 

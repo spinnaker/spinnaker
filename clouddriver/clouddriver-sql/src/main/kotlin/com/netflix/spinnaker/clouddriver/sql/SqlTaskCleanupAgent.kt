@@ -20,6 +20,7 @@ import com.netflix.spinnaker.clouddriver.cache.CustomScheduledAgent
 import com.netflix.spinnaker.clouddriver.core.provider.CoreProvider
 import com.netflix.spinnaker.clouddriver.data.task.TaskState.COMPLETED
 import com.netflix.spinnaker.clouddriver.data.task.TaskState.FAILED
+import com.netflix.spinnaker.clouddriver.data.task.TaskState.FAILED_RETRYABLE
 import com.netflix.spinnaker.config.ConnectionPools
 import com.netflix.spinnaker.config.SqlTaskCleanupAgentProperties
 import com.netflix.spinnaker.kork.sql.routing.withPool
@@ -29,16 +30,18 @@ import java.util.Arrays
 import java.util.concurrent.TimeUnit
 import org.jooq.DSLContext
 import org.jooq.impl.DSL.field
+import org.jooq.impl.DSL.notExists
 import org.slf4j.LoggerFactory
 
 /**
- * Cleans up completed Tasks after a configurable TTL.
+ * Cleans up finished Tasks after a configurable TTL. Retryable failures have their own, longer TTL.
  */
-class SqlTaskCleanupAgent(
+class SqlTaskCleanupAgent @JvmOverloads constructor(
   private val jooq: DSLContext,
   private val clock: Clock,
   private val registry: MeterRegistry,
-  private val properties: SqlTaskCleanupAgentProperties
+  private val properties: SqlTaskCleanupAgentProperties,
+  private val retries: SqlRetries = SqlRetries()
 ) : RunnableAgent, CustomScheduledAgent {
 
   private val log = LoggerFactory.getLogger(javaClass)
@@ -48,22 +51,8 @@ class SqlTaskCleanupAgent(
 
   override fun run() {
     withPool(ConnectionPools.TASKS.value) {
-      val candidates = jooq.read { j ->
-        val candidates = j.select(field("id"), field("task_id"))
-          .from(taskStatesTable)
-          .where(
-            field("state").`in`(COMPLETED.toString(), FAILED.toString())
-              .and(
-                field("created_at").lessOrEqual(
-                  clock.instant().minusMillis(properties.completedTtlMs).toEpochMilli()
-                )
-              )
-          )
-          .fetch()
-
-        val candidateTaskIds = candidates.map { r -> r.field("task_id")?.getValue(r)?.toString() }
-          .filterNotNull()
-          .toList()
+      val candidates = jooq.read(retries) { j ->
+        val candidateTaskIds = (expiredTaskIds(j) + expiredLegacyTaskIds(j)).distinct()
 
         val candidateTaskStateIds = mutableListOf<String>()
         val candidateResultIds = mutableListOf<String>()
@@ -116,7 +105,7 @@ class SqlTaskCleanupAgent(
 
         registry.timer(timingMetricName).record(Runnable {
           candidates.resultIds.chunked(properties.batchSize) { chunk ->
-            jooq.transactional { ctx ->
+            jooq.transactional(retries) { ctx ->
               ctx.deleteFrom(taskResultsTable)
                 .where(field("id").`in`(*chunk.toTypedArray()))
                 .execute()
@@ -124,7 +113,7 @@ class SqlTaskCleanupAgent(
           }
 
           candidates.stateIds.chunked(properties.batchSize) { chunk ->
-            jooq.transactional { ctx ->
+            jooq.transactional(retries) { ctx ->
               ctx.deleteFrom(taskStatesTable)
                 .where(field("id").`in`(*chunk.toTypedArray()))
                 .execute()
@@ -132,7 +121,7 @@ class SqlTaskCleanupAgent(
           }
 
           candidates.outputIds.chunked(properties.batchSize) { chunk ->
-            jooq.transactional { ctx ->
+            jooq.transactional(retries) { ctx ->
               ctx.deleteFrom(taskOutputsTable)
                 .where(field("id").`in`(*chunk.toTypedArray()))
                 .execute()
@@ -140,7 +129,7 @@ class SqlTaskCleanupAgent(
           }
 
           candidates.taskIds.chunked(properties.batchSize) { chunk ->
-            jooq.transactional { ctx ->
+            jooq.transactional(retries) { ctx ->
               ctx.deleteFrom(tasksTable)
                 .where(field("id").`in`(*chunk.toTypedArray()))
                 .execute()
@@ -151,6 +140,62 @@ class SqlTaskCleanupAgent(
         registry.counter(deletedMetricName).increment(candidates.taskIds.size.toDouble())
       }
     }
+  }
+
+  /**
+   * Tasks that finished before their TTL, found through the `tasks(current_state, completed_at)` index without
+   * touching `task_states`.
+   */
+  private fun expiredTaskIds(j: DSLContext): List<String> {
+    val now = clock.instant()
+    return j.select(field("id"))
+      .from(tasksTable)
+      .where(
+        field("current_state").`in`(COMPLETED.toString(), FAILED.toString())
+          .and(field("completed_at").lessOrEqual(now.minusMillis(properties.completedTtlMs).toEpochMilli()))
+          .or(
+            field("current_state").eq(FAILED_RETRYABLE.toString())
+              .and(field("completed_at").lessOrEqual(now.minusMillis(properties.failedRetryableTtlMs).toEpochMilli()))
+          )
+      )
+      .fetch("id", String::class.java)
+      .filterNotNull()
+  }
+
+  /**
+   * Tasks written before `tasks.current_state` existed never have it set once they finish, so they are found
+   * from their history instead.
+   *
+   * TODO: remove once every pre-upgrade task is older than the longest TTL.
+   */
+  private fun expiredLegacyTaskIds(j: DSLContext): List<String> {
+    val now = clock.instant()
+    val s = taskStatesTable.`as`("s")
+    val later = taskStatesTable.`as`("later")
+    return j.select(field("s.task_id"))
+      .from(s)
+      .join(tasksTable.`as`("t")).on(field("t.id").eq(field("s.task_id")))
+      .where(
+        field("t.current_state").isNull
+          .and(
+            field("s.state").`in`(COMPLETED.toString(), FAILED.toString())
+              .and(field("s.created_at").lessOrEqual(now.minusMillis(properties.completedTtlMs).toEpochMilli()))
+              .or(
+                // A legacy retry writes a later state, so only a retryable failure that is still the latest counts.
+                field("s.state").eq(FAILED_RETRYABLE.toString())
+                  .and(field("s.created_at").lessOrEqual(now.minusMillis(properties.failedRetryableTtlMs).toEpochMilli()))
+                  .and(
+                    notExists(
+                      j.selectOne().from(later)
+                        .where(field("later.task_id").eq(field("s.task_id")))
+                        .and(field("later.created_at").gt(field("s.created_at")))
+                    )
+                  )
+              )
+          )
+      )
+      .fetch("s.task_id", String::class.java)
+      .filterNotNull()
   }
 
   override fun getAgentType(): String = javaClass.simpleName

@@ -2,6 +2,24 @@
 
 The purpose of this doc is to describe the schema for Canary Configurations using [Markdown Syntax for Object Notation (MSON)]. 
 
+## Query configuration: the `template` field
+
+Every `CanaryMetricSetQueryConfig` provider supports a template-based query via a single `template` field: a raw query string with `${variable}` placeholders expanded at execution time. In Deck this is the **default** for new metrics. Existing metrics open in whichever form matches their data, so nothing changes for them. Operators who want to keep only the provider-specific "Guided" forms can set `canary.templatesEnabled: false` in Deck's `settings.js` (`TEMPLATES_ENABLED=false` in the stock settings file). The backend always accepts `template` regardless of that flag. InfluxDB is templated too, but keeps its own smaller, fixed `${timeFilter}`/`${scope}`/`${step}` vocabulary rather than the shared one described here -- see its provider doc.
+
+`template` used to be split across two fields, `customInlineTemplate` (a literal per-metric template) and `customFilterTemplate` (a name referencing a shared entry in the top-level `templates` map below). Existing configs keep working with no forced migration:
+
+- The legacy `customInlineTemplate` JSON key still loads directly into `template`. For compatibility with older Kayenta versions (rolling deploys, rollbacks) Kayenta writes the value under **both** `template` and `customInlineTemplate`.
+- `customFilterTemplate` and the top-level `templates` map are left in place. When a config is read or written through the API and a metric only references a named template, its text is also copied into the metric's `template`. `template` wins from then on, so later edits to the shared `templates` entry no longer affect that metric.
+- A `customFilterTemplate` that does not resolve against `templates` still fails the analysis rather than silently falling back to the guided query.
+
+### Rollout notes
+
+- Deck and Kayenta must be upgraded together: Deck only reads `query.template`, and an older Kayenta only returns `customInlineTemplate`.
+- `GET` of a canary config through the API now returns metrics with `template` populated (see above); GitOps/API consumers that diff the stored config against what they read back will see that addition.
+- Operators can see adoption and failure rates through the `canary.telemetry.query` metric, which carries a `queryMode` tag of `template`, `namedTemplate` or `guided` alongside `metricsStore`.
+
+The older "guided" structured fields (e.g. provider-specific `resourceType`/`metricType` dropdowns) are **deprecated** and will be removed after the **2027.1.x** release (supported in 2026.4.0, 2027.0 and 2027.1). Until then they remain fully functional for existing configs -- nothing breaks, and there is no forced migration. Each provider's doc under `kayenta-<provider>/docs/metric-set-query-config.md` includes a worked `template` example with that provider's actual variable bindings.
+
 ## Canary Config Object model (object)
 
 The canary config object is how users of the Kayenta API describe how they want Kayenta to compare the canary metrics against the baseline metrics for their applications.
@@ -46,15 +64,15 @@ Metric source interface for describing how to query for a given metric or metric
 ### Properties
 
 - One of
-  - AtlasCanaryMetricSetQueryConfig
-  - DatadogCanaryMetricSetQueryConfig
-  - GraphiteCanaryMetricSetQueryConfig
-  - InfluxdbCanaryMetricSetQueryConfig
+  - [AtlasCanaryMetricSetQueryConfig](../kayenta-atlas/docs/metric-set-query-config.md)
+  - [DatadogCanaryMetricSetQueryConfig](../kayenta-datadog/docs/metric-set-query-config.md)
+  - [GraphiteCanaryMetricSetQueryConfig](../kayenta-graphite/docs/metric-set-query-config.md)
+  - [InfluxdbCanaryMetricSetQueryConfig](../kayenta-influxdb/docs/metric-set-query-config.md)
   - [NewRelicInsightsCanaryMetricSetQueryConfig](../kayenta-newrelic-insights/docs/metric-set-query-config.md)
-  - PrometheusCanaryMetricSetQueryConfig
+  - [PrometheusCanaryMetricSetQueryConfig](../kayenta-prometheus/docs/metric-set-query-config.md)
   - [SignalFxCanaryMetricSetQueryConfig](../kayenta-signalfx/docs/metric-set-query-config.md)
-  - StackdriverCanaryMetricSetQueryConfig
-  - WavefrontCanaryMetricSetQueryConfig
+  - [StackdriverCanaryMetricSetQueryConfig](../kayenta-stackdriver/docs/metric-set-query-config.md)
+  - [WavefrontCanaryMetricSetQueryConfig](../kayenta-wavefront/docs/metric-set-query-config.md)
 
 ## AnalysisConfiguration (object)
 

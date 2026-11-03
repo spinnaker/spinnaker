@@ -25,8 +25,8 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.BeanUtils;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnExpression;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
-import org.springframework.boot.web.embedded.tomcat.TomcatConnectorCustomizer;
-import org.springframework.boot.web.embedded.tomcat.TomcatServletWebServerFactory;
+import org.springframework.boot.tomcat.TomcatConnectorCustomizer;
+import org.springframework.boot.tomcat.servlet.TomcatServletWebServerFactory;
 import org.springframework.boot.web.server.Ssl;
 import org.springframework.boot.web.server.WebServerFactory;
 import org.springframework.boot.web.server.WebServerFactoryCustomizer;
@@ -46,10 +46,9 @@ class TomcatConfiguration {
   TomcatConnectorCustomizer defaultTomcatConnectorCustomizer(
       TomcatConfigurationProperties tomcatConfigurationProperties,
       SslExtensionConfigurationProperties sslExtensionConfigurationProperties) {
-    if (tomcatConfigurationProperties.getRejectIllegalHeader() != null) {
-      System.setProperty(
-          "server.tomcat.reject-illegal-header",
-          tomcatConfigurationProperties.getRejectIllegalHeader().toString());
+    if (Boolean.FALSE.equals(tomcatConfigurationProperties.getRejectIllegalHeader())) {
+      log.warn(
+          "Tomcat 11 always rejects illegal HTTP headers; default.rejectIllegalHeader=false is ignored");
     }
     return new DefaultTomcatConnectorCustomizer(
         tomcatConfigurationProperties, sslExtensionConfigurationProperties);
@@ -84,7 +83,7 @@ class TomcatConfiguration {
           httpConnector.setPort(tomcatConfigurationProperties.getLegacyServerPort());
 
           applyCompressionSettings(httpConnector, tomcat);
-          tomcat.addAdditionalTomcatConnectors(httpConnector);
+          tomcat.addAdditionalConnectors(httpConnector);
         }
 
         if (tomcatConfigurationProperties.getApiPort() > 0) {
@@ -104,7 +103,7 @@ class TomcatConfiguration {
           newFactory.setSsl(ssl);
           newFactory.customizeSslConnector(apiConnector);
           defaultTomcatConnectorCustomizer.customize(apiConnector);
-          tomcat.addAdditionalTomcatConnectors(apiConnector);
+          tomcat.addAdditionalConnectors(apiConnector);
         }
       }
     };

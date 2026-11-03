@@ -1,11 +1,14 @@
-import { shallow } from 'enzyme';
+import { render, screen } from '@testing-library/react';
+import { hashLocationPlugin, servicesPlugin, UIRouterContext, UIRouterReact, UIViewContext } from '@uirouter/react';
 import React from 'react';
 
+import { AccountService } from '@spinnaker/core';
 import { mockInstance } from '@spinnaker/mocks';
 
 import { InstanceInformation } from './InstanceInformation';
 
 describe('InstanceInformation', () => {
+  let router: UIRouterReact;
   const testInstance = {
     ...mockInstance,
     instanceType: 'm5.large',
@@ -14,8 +17,36 @@ describe('InstanceInformation', () => {
     serverGroup: 'test_sg',
   };
 
+  const expectValue = (label: string, value: string) => {
+    const term = screen.getByText(label, { selector: 'dt' });
+    expect(term.nextElementSibling).toHaveTextContent(value);
+  };
+
+  const renderInformation = (component: React.ReactElement) =>
+    render(
+      <UIRouterContext.Provider value={router}>
+        <UIViewContext.Provider
+          value={{ fqn: 'application.instance', context: router.stateRegistry.get('application.instance') as any }}
+        >
+          {component}
+        </UIViewContext.Provider>
+      </UIRouterContext.Provider>,
+    );
+
+  beforeEach(() => {
+    vi.spyOn(AccountService, 'challengeDestructiveActions').mockResolvedValue(false);
+    router = new UIRouterReact();
+    router.plugin(servicesPlugin);
+    router.plugin(hashLocationPlugin);
+    ['application', 'application.instance', 'application.serverGroup'].forEach((name) =>
+      router.stateRegistry.register({ name, url: `/${name.split('.').pop()}` }),
+    );
+  });
+
+  afterEach(() => router.dispose());
+
   it('should render correct state when all attributes exist', () => {
-    const wrapper = shallow(
+    renderInformation(
       <InstanceInformation
         account={testInstance.account}
         availabilityZone={testInstance.availabilityZone}
@@ -29,22 +60,15 @@ describe('InstanceInformation', () => {
       />,
     );
 
-    const labeledValues = wrapper.find('LabeledValue');
-    expect(labeledValues.length).toEqual(5);
-
-    expect(wrapper.childAt(0).prop('label')).toEqual('Launched');
-    expect(wrapper.childAt(1).prop('label')).toEqual('In');
-    expect(wrapper.childAt(2).prop('label')).toEqual('Type');
-    expect(wrapper.childAt(3).prop('label')).toEqual('Capacity Type');
-    expect(wrapper.childAt(4).prop('label')).toEqual('Server Group');
-
-    expect(wrapper.childAt(0).prop('value')).toEqual('1970-01-14 22:37:37 PST');
-    expect(wrapper.childAt(2).prop('value')).toEqual(testInstance.instanceType);
-    expect(wrapper.childAt(3).prop('value')).toEqual(testInstance.capacityType);
+    expectValue('Launched', '1970-01-14 22:37:37 PST');
+    expectValue('In', testInstance.availabilityZone);
+    expectValue('Type', testInstance.instanceType);
+    expectValue('Capacity Type', testInstance.capacityType);
+    expect(screen.getByRole('link', { name: testInstance.serverGroup })).toBeInTheDocument();
   });
 
   it('should render correct state when attributes are missing', () => {
-    const wrapper = shallow(
+    renderInformation(
       <InstanceInformation
         account={testInstance.account}
         availabilityZone={undefined}
@@ -58,14 +82,10 @@ describe('InstanceInformation', () => {
       />,
     );
 
-    const labeledValues = wrapper.find('LabeledValue');
-    expect(labeledValues.length).toEqual(3);
-
-    expect(wrapper.childAt(0).prop('label')).toEqual('Launched');
-    expect(wrapper.childAt(1).prop('label')).toEqual('In');
-    expect(wrapper.childAt(2).prop('label')).toEqual('Type');
-
-    expect(wrapper.childAt(0).prop('value')).toEqual('Unknown');
-    expect(wrapper.childAt(2).prop('value')).toEqual('Unknown');
+    expectValue('Launched', 'Unknown');
+    expectValue('In', 'Unknown');
+    expectValue('Type', 'Unknown');
+    expect(screen.queryByText('Capacity Type', { selector: 'dt' })).not.toBeInTheDocument();
+    expect(screen.queryByText('Server Group', { selector: 'dt' })).not.toBeInTheDocument();
   });
 });

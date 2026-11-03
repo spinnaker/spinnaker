@@ -1,9 +1,9 @@
+import { render, screen } from '@testing-library/react';
 import React from 'react';
-import { mount } from 'enzyme';
 
-import { SETTINGS } from '../../config/settings';
 import { AuthenticationService } from '../AuthenticationService';
 import { UserMenu } from './UserMenu';
+import { SETTINGS } from '../../config/settings';
 
 describe('UserMenu', () => {
   beforeEach(() => {
@@ -15,6 +15,9 @@ describe('UserMenu', () => {
   afterEach(() => SETTINGS.resetToOriginal());
 
   it('does not render a dropdown while the user is unauthenticated', () => {
-    expect(() => mount(<UserMenu />)).not.toThrow();
+    let container: HTMLElement;
+    expect(() => ({ container } = render(<UserMenu />))).not.toThrow();
+    expect(container).toBeEmptyDOMElement();
+    expect(screen.queryByRole('button')).not.toBeInTheDocument();
   });
 });

@@ -199,6 +199,12 @@ public class AutoScalingWorker {
         licenseSpecifications;
     private Boolean enableEnclave;
 
+    /** Connection tracking idle timeouts (seconds) for the primary network interface. */
+    private Integer tcpEstablishedTimeout;
+
+    private Integer udpStreamTimeout;
+    private Integer udpTimeout;
+
     /** Mixed Instances Policy properties * */
     private String onDemandAllocationStrategy;
 

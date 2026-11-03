@@ -17,6 +17,7 @@
 package com.netflix.spinnaker.credentials.definition;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.reset;
@@ -101,6 +102,38 @@ public class BasicCredentialsLoaderTest {
     reset(handler);
     loader.load();
     assertThat(repository.getOne("cred1")).isNotNull();
+  }
+
+  @Test
+  public void testInvalidConfigurationFailsLoadAfterOtherDefinitionsAreLoaded() {
+    CredentialsDefinitionSource<CredentialsDefinition> source =
+        mock(CredentialsDefinitionSource.class);
+    CredentialsRepository<FakeCredentials> repository =
+        new MapBackedCredentialsRepository<>(TEST_TYPE, null);
+
+    BasicCredentialsLoader<CredentialsDefinition, FakeCredentials> loader =
+        new BasicCredentialsLoader<>(
+            source,
+            account -> {
+              if (account.getName().equals("bad")) {
+                throw new InvalidCredentialsConfigurationException("bad is misconfigured");
+              }
+              return new FakeCredentials(account.getName());
+            },
+            repository);
+
+    CredentialsDefinition bad = mock(CredentialsDefinition.class);
+    when(bad.getName()).thenReturn("bad");
+    CredentialsDefinition good = mock(CredentialsDefinition.class);
+    when(good.getName()).thenReturn("good");
+    when(source.getCredentialsDefinitions()).thenReturn(Arrays.asList(bad, good));
+
+    assertThatThrownBy(loader::load)
+        .isInstanceOf(InvalidCredentialsConfigurationException.class)
+        .hasMessage("bad is misconfigured");
+
+    assertThat(repository.getOne("good")).isNotNull();
+    assertThat(repository.getOne("bad")).isNull();
   }
 
   @Test

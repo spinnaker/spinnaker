@@ -3,12 +3,12 @@ buildscript {
     mavenCentral()
   }
   dependencies {
-    // Apache 2.0, https://github.com/ozimov/embedded-redis#license
-    classpath 'it.ozimov:embedded-redis:0.7.2'
+    classpath 'org.testcontainers:testcontainers:2.0.5'
   }
 }
 
-import redis.embedded.RedisServer
+import org.testcontainers.containers.GenericContainer
+import org.testcontainers.utility.DockerImageName
 
 sourceSets {
   integrationTest {
@@ -26,41 +26,17 @@ configurations {
   integrationTestRuntime.extendsFrom testRuntime
 }
 
-int getOpenPort() {
-  ServerSocket socket
-  try {
-    socket = new ServerSocket(0)
-    socket.setReuseAddress(true)
-    def port = socket.getLocalPort()
-    logger.lifecycle("Using port: ${port} for Redis")
-    socket.close()
-    return port
-  } catch (Exception e) {
-    logger.lifecycle("Failed to find open port for Redis", e)
-    if (socket != null) {
-      socket.close()
-    }
-    throw new RuntimeException(e)
-  }
-}
-
 //noinspection GroovyAssignabilityCheck
 task startEmbeddedRedis() {
   group 'Application'
-  description 'Starts an embedded Redis server on an open port.'
+  description 'Starts an embedded Valkey server on an open port.'
 
   doLast {
-    def redisPort = getOpenPort()
-    String redisBinPath = getRequiredSystemProp('redis.path')
-    File redisBin = new File(redisBinPath)
-    if (!redisBin.exists()) {
-      //noinspection GroovyAssignabilityCheck
-      throw new GradleScriptException("The redis executable at '${redisBinPath}' did not exist")
-    }
-    def redisServer = new RedisServer(redisBin, redisPort)
-    redisServer.start()
-    startEmbeddedRedis.ext.redisServer = redisServer
-    startEmbeddedRedis.ext.redisPort = redisPort
+    def redisContainer = new GenericContainer(DockerImageName.parse("valkey/valkey:8"))
+            .withExposedPorts(6379)
+    redisContainer.start()
+    startEmbeddedRedis.ext.redisContainer = redisContainer
+    startEmbeddedRedis.ext.redisPort = redisContainer.getMappedPort(6379)
   }
 }
 
@@ -68,20 +44,11 @@ task startEmbeddedRedis() {
 task stopEmbeddedRedis() {
   dependsOn startEmbeddedRedis
   group 'Application'
-  description 'Stops the embedded Redis server.'
+  description 'Stops the embedded Valkey server.'
 
   doLast {
-    startEmbeddedRedis.ext.redisServer.stop()
+    startEmbeddedRedis.ext.redisContainer.stop()
   }
-}
-
-@SuppressWarnings("GrMethodMayBeStatic")
-String getRequiredSystemProp(String key) {
-  String value = System.getProperty(key)
-  if (value == null || value == "") {
-    throw new IllegalStateException("The system property ${key} was not supplied to the gradle script via a -D param".toString())
-  }
-  return value
 }
 
 //noinspection GroovyAssignabilityCheck

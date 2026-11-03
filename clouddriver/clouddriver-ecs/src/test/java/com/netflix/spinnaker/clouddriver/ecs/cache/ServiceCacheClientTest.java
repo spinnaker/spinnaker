@@ -23,6 +23,7 @@ import static org.mockito.Mockito.when;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.netflix.spinnaker.cats.cache.DefaultCacheData;
 import com.netflix.spinnaker.clouddriver.aws.jackson.AwsSdkV2Module;
+import com.netflix.spinnaker.clouddriver.ecs.EcsNativeServiceTag;
 import com.netflix.spinnaker.clouddriver.ecs.TestCredential;
 import com.netflix.spinnaker.clouddriver.ecs.cache.client.ServiceCacheClient;
 import com.netflix.spinnaker.clouddriver.ecs.cache.model.Service;
@@ -85,6 +86,7 @@ public class ServiceCacheClientTest extends CommonCacheClient {
                             .build())
                     .build())
             .loadBalancers(loadBalancer)
+            .tags(EcsNativeServiceTag.tag())
             .desiredCount(9001)
             .createdAt(createdAt)
             .build();
@@ -166,6 +168,8 @@ public class ServiceCacheClientTest extends CommonCacheClient {
             + service.taskDefinition()
             + " but got "
             + ecsService.getTaskDefinition());
+
+    assertTrue(ecsService.isEcsNative(), "Expected the service ownership marker to round-trip");
 
     assertTrue(
         service.desiredCount() == ecsService.getDesiredCount(),

@@ -20,13 +20,16 @@ allprojects {
   }
 
   dependencies {
+    implementation project(":clouddriver-api")
     implementation project(":clouddriver-core")
     implementation "com.squareup.okhttp3:okhttp"
+    implementation "io.spinnaker.fiat:fiat-core"
     implementation "io.spinnaker.kork:kork-artifacts"
     implementation "io.spinnaker.kork:kork-credentials"
+    implementation "io.spinnaker.kork:kork-web"
     implementation "org.springframework.boot:spring-boot-starter-web"
 
-    testImplementation "com.github.tomakehurst:wiremock-jre8-standalone"
+    testImplementation "org.wiremock:wiremock"
     testImplementation "com.squareup.okhttp3:mockwebserver"
     testImplementation "org.assertj:assertj-core"
     testImplementation "org.junit-pioneer:junit-pioneer:0.3.0"
@@ -73,7 +76,6 @@ subprojects {
 }
 
 dependencies {
-  implementation "io.spinnaker.kork:kork-web"
   implementation "commons-codec:commons-codec"
   implementation "commons-io:commons-io"
 }

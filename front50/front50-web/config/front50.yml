@@ -1,6 +1,14 @@
 server:
   port: 8080
 
+spring:
+  # Front50ApiModule's Pipeline and Timestamped mixins are Jackson 2 only. On Jackson 3, pipeline
+  # fields that Pipeline doesn't declare are dropped on save, so HTTP bodies have to go through
+  # Jackson 2 until the mixins move to Jackson 3.
+  http:
+    converters:
+      preferred-json-mapper: jackson2
+
 management:
   health:
     redis:

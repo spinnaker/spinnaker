@@ -68,7 +68,7 @@ class GoogleInstanceCachingAgent extends AbstractGoogleCachingAgent {
   }
 
   CacheResult buildCacheResults(ProviderCache providerCache, List<GoogleInstance> googleInstances) {
-    CacheResultBuilder cacheResultBuilder = new CacheResultBuilder()
+    CacheResultBuilder cacheResultBuilder = new CacheResultBuilder(providedDataTypes)
 
     googleInstances.each { GoogleInstance instance ->
       def moniker = instance.view.moniker

@@ -22,6 +22,8 @@ import com.netflix.spinnaker.kork.annotations.NonnullByDefault;
 import io.micrometer.core.instrument.MeterRegistry;
 import io.micrometer.core.instrument.Tag;
 import io.micrometer.core.instrument.Tags;
+import java.io.IOException;
+import java.io.UncheckedIOException;
 import java.net.SocketTimeoutException;
 import java.util.List;
 import java.util.Map;
@@ -161,12 +163,28 @@ public final class GoogleCommonSafeRetry {
   private static <V> V attemptOperation(Callable<V> operation, List<Integer> successCodes)
       throws Exception {
     try {
-      return operation.call();
+      return callUnwrapped(operation);
     } catch (GoogleJsonResponseException e) {
       if (successCodes.contains(e.getStatusCode())) {
         return null;
       }
       throw e;
+    }
+  }
+
+  /**
+   * Invokes the operation, unwrapping an {@link UncheckedIOException} into its {@link IOException}
+   * cause. Operations that cannot throw checked exceptions (for example, closures passed from Java
+   * call sites) wrap Google API errors in {@link UncheckedIOException}; unwrapping here means the
+   * retry codes, success codes and {@link GoogleApiException} translation apply to them exactly as
+   * they do to unwrapped exceptions.
+   */
+  @Nullable
+  private static <V> V callUnwrapped(Callable<V> operation) throws Exception {
+    try {
+      return operation.call();
+    } catch (UncheckedIOException e) {
+      throw e.getCause();
     }
   }
 }

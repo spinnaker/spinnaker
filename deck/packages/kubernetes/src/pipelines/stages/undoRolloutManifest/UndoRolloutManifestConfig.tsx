@@ -6,13 +6,7 @@ import { FormikStageConfig } from '@spinnaker/core';
 
 import { UndoRolloutManifestStageForm } from './UndoRolloutManifestStageForm';
 
-export function UndoRolloutManifestConfig({
-  application,
-  pipeline,
-  stage,
-  updateStage,
-  stageFieldUpdated,
-}: IStageConfigProps) {
+export function UndoRolloutManifestConfig({ application, pipeline, stage, updateStage }: IStageConfigProps) {
   useEffect(() => {
     defaults(stage, {
       cloudProvider: 'kubernetes',
@@ -29,9 +23,7 @@ export function UndoRolloutManifestConfig({
       pipeline={pipeline}
       stage={stage}
       onChange={updateStage}
-      render={(props: IFormikStageConfigInjectedProps) => (
-        <UndoRolloutManifestStageForm {...props} stageFieldUpdated={stageFieldUpdated} />
-      )}
+      render={(props: IFormikStageConfigInjectedProps) => <UndoRolloutManifestStageForm {...props} />}
     />
   );
 }

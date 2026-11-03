@@ -3,6 +3,7 @@ import React from 'react';
 import type { Option, OptionValues, ReactSelectProps } from 'react-select';
 import Select, { Creatable } from 'react-select';
 import VirtualizedSelect from 'react-virtualized-select';
+import type { VirtualizedOptionRenderOptions } from 'react-virtualized-select';
 
 import { StringsAsOptions } from './StringsAsOptions';
 import { TetheredSelect } from '../../TetheredSelect';
@@ -17,6 +18,8 @@ export interface IReactSelectInputProps<T = OptionValues>
   stringOptions?: string[];
   mode?: 'TETHERED' | 'VIRTUALIZED' | 'PLAIN' | 'CREATABLE';
 }
+
+let nextReactSelectInputInstanceId = 0;
 
 // TODO: use standard css classes (from style guide?)
 // Currently the form-control class is needed for invalid styles, but messes up the rendering of react-select
@@ -69,6 +72,7 @@ export function ReactSelectInput<T = string>(props: IReactSelectInputProps<T>) {
     options: optionOptions,
     ignoreAccents: accents,
     inputClassName,
+    instanceId: suppliedInstanceId,
     ...otherProps
   } = props;
 
@@ -79,6 +83,11 @@ export function ReactSelectInput<T = string>(props: IReactSelectInputProps<T>) {
   const { category } = useValidationData(validation.messageNode, validation.touched);
   const style = category === 'error' ? reactSelectValidationErrorStyle : {};
   const fieldValue = props.multi ? (isNil(value) ? [] : value) : orEmptyString(value);
+  const instanceIdRef = React.useRef<string>();
+  if (!instanceIdRef.current) {
+    instanceIdRef.current = suppliedInstanceId || `react-select-input-${++nextReactSelectInputInstanceId}`;
+  }
+  const instanceId = instanceIdRef.current;
 
   const fieldProps = {
     name,
@@ -87,13 +96,55 @@ export function ReactSelectInput<T = string>(props: IReactSelectInputProps<T>) {
     onChange: reactSelectOnChangeAdapter(name, onChange),
   };
 
-  const commonProps = { className, style, ignoreAccents, ...fieldProps, ...otherProps } as any;
+  const commonProps = { className, style, ignoreAccents, instanceId, ...fieldProps, ...otherProps } as any;
+
+  const renderVirtualizedOption = ({
+    focusedOption,
+    focusOption,
+    key,
+    labelKey,
+    option,
+    options,
+    selectValue,
+    style: optionStyle,
+    valueArray,
+  }: VirtualizedOptionRenderOptions<Option<T>>) => {
+    const selected = valueArray?.includes(option) || false;
+    const classNames = [
+      'VirtualizedSelectOption',
+      option === focusedOption && 'VirtualizedSelectFocusedOption',
+      option.disabled && 'VirtualizedSelectDisabledOption',
+      selected && 'VirtualizedSelectSelectedOption',
+      option.className,
+    ].filter(Boolean);
+    const events = option.disabled
+      ? {}
+      : {
+          onClick: () => selectValue(option),
+          onMouseEnter: () => focusOption(option),
+        };
+
+    return (
+      <div
+        aria-selected={selected}
+        className={classNames.join(' ')}
+        id={`react-select-${instanceId}--option-${options.indexOf(option)}`}
+        key={key}
+        role="option"
+        style={optionStyle}
+        title={option.title}
+        {...events}
+      >
+        {otherProps.optionRenderer ? otherProps.optionRenderer(option) : option[labelKey]}
+      </div>
+    );
+  };
 
   const renderSelectElement = (options: ReactSelectProps<any>['options']) =>
     mode === 'TETHERED' ? (
       <TetheredSelect {...commonProps} options={options} />
     ) : mode === 'VIRTUALIZED' ? (
-      <VirtualizedSelect {...commonProps} options={options} optionRenderer={null} />
+      <VirtualizedSelect {...commonProps} options={options} optionRenderer={renderVirtualizedOption} />
     ) : mode === 'CREATABLE' ? (
       <CreatableSelect {...commonProps} options={options} />
     ) : (

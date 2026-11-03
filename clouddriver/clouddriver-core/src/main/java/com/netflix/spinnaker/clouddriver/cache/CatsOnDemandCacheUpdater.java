@@ -15,9 +15,6 @@
  */
 package com.netflix.spinnaker.clouddriver.cache;
 
-import com.netflix.spinnaker.cats.agent.Agent;
-import com.netflix.spinnaker.cats.agent.AgentLock;
-import com.netflix.spinnaker.cats.agent.AgentScheduler;
 import com.netflix.spinnaker.cats.cache.CacheData;
 import com.netflix.spinnaker.cats.module.CatsModule;
 import com.netflix.spinnaker.cats.provider.Provider;
@@ -36,19 +33,11 @@ public class CatsOnDemandCacheUpdater implements OnDemandCacheUpdater {
 
   private final List<Provider> providers;
   private final CatsModule catsModule;
-  // TODO(rz): Deliberately not using <? extends AgentLock> since it results in
-  //  compilation errors. This is a side-effect of migrating away from Groovy.
-  //  I'm sure there's a way, but it's the early morning and I'm pretty tired!
-  private final AgentScheduler agentScheduler;
 
   @Autowired
-  public CatsOnDemandCacheUpdater(
-      List<Provider> providers,
-      CatsModule catsModule,
-      AgentScheduler<? extends AgentLock> agentScheduler) {
+  public CatsOnDemandCacheUpdater(List<Provider> providers, CatsModule catsModule) {
     this.providers = providers;
     this.catsModule = catsModule;
-    this.agentScheduler = agentScheduler;
   }
 
   private Collection<OnDemandAgent> getOnDemandAgents() {
@@ -78,13 +67,6 @@ public class CatsOnDemandCacheUpdater implements OnDemandCacheUpdater {
     Map<String, List<String>> cachedIdentifiersByType = new HashMap<>();
     for (OnDemandAgent agent : onDemandAgents) {
       try {
-        AgentLock lock = agentScheduler.tryLock((Agent) agent);
-        if (agentScheduler.isAtomic() && lock == null) {
-          // force Orca to retry
-          hasOnDemandResults = true;
-          continue;
-        }
-
         final long startTime = System.nanoTime();
         final ProviderCache providerCache =
             catsModule.getProviderRegistry().getProviderCache(agent.getProviderName());
@@ -94,12 +76,6 @@ public class CatsOnDemandCacheUpdater implements OnDemandCacheUpdater {
 
         final OnDemandAgent.OnDemandResult result = agent.handle(providerCache, data);
         if (result != null) {
-          if (agentScheduler.isAtomic() && !agentScheduler.lockValid(lock)) {
-            // force Orca to retry
-            hasOnDemandResults = true;
-            continue;
-          }
-
           if (agent.getMetricsSupport() == null) {
             continue;
           }
@@ -145,11 +121,6 @@ public class CatsOnDemandCacheUpdater implements OnDemandCacheUpdater {
                     });
           }
 
-          if (agentScheduler.isAtomic() && !(agentScheduler.tryRelease(lock))) {
-            throw new IllegalStateException(
-                "We likely just wrote stale data. If you're seeing this, file a github issue: https://github.com/spinnaker/spinnaker/issues");
-          }
-
           final long elapsed = System.nanoTime() - startTime;
           agent.getMetricsSupport().recordTotalRunTimeNanos(elapsed);
 
@@ -182,20 +153,15 @@ public class CatsOnDemandCacheUpdater implements OnDemandCacheUpdater {
   }
 
   private boolean agentHasOnDemandResults(Map<String, Collection<CacheData>> results) {
-    return !agentScheduler.isAtomic()
-        && !(Optional.ofNullable(results).orElseGet(HashMap::new).values().stream()
-                .mapToLong(Collection::size)
-                .sum()
-            == 0);
+    return !(Optional.ofNullable(results).orElseGet(HashMap::new).values().stream()
+            .mapToLong(Collection::size)
+            .sum()
+        == 0);
   }
 
   @Override
   public Collection<Map<String, Object>> pendingOnDemandRequests(
       final OnDemandType type, final String cloudProvider) {
-    if (agentScheduler.isAtomic()) {
-      return new ArrayList<>();
-    }
-
     return onDemandAgentStream(type, cloudProvider)
         .flatMap(
             it -> {
@@ -209,10 +175,6 @@ public class CatsOnDemandCacheUpdater implements OnDemandCacheUpdater {
   @Override
   public Map<String, Object> pendingOnDemandRequest(
       final OnDemandType type, final String cloudProvider, final String id) {
-    if (agentScheduler.isAtomic()) {
-      return null;
-    }
-
     return onDemandAgentStream(type, cloudProvider)
         .map(
             it -> {

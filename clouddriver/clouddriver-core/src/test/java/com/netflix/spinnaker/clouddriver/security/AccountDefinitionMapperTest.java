@@ -30,13 +30,13 @@ import java.util.Set;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.autoconfigure.ImportAutoConfiguration;
-import org.springframework.boot.autoconfigure.jackson.JacksonAutoConfiguration;
+import org.springframework.boot.jackson2.autoconfigure.Jackson2AutoConfiguration;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.context.annotation.ComponentScan;
 import org.springframework.test.context.TestPropertySource;
 
 @SpringBootTest(classes = AccountDefinitionConfiguration.class)
-@ImportAutoConfiguration(JacksonAutoConfiguration.class)
+@ImportAutoConfiguration(Jackson2AutoConfiguration.class)
 @TestPropertySource(
     properties = "account.storage.additionalScanPackages = io.spinnaker.test.security")
 @ComponentScan("com.netflix.spinnaker.kork.secrets")

@@ -127,7 +127,9 @@ public class JedisTask implements Task {
 
   @Override
   public void addSagaId(@Nonnull SagaId sagaId) {
+    checkMutable();
     this.sagaIds.add(sagaId);
+    repository.set(this.id, this);
   }
 
   @Override

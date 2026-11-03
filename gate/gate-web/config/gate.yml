@@ -120,9 +120,21 @@ mcp:
     # When true (the default) and Echo is configured (services.echo.enabled), every mutating
     # tool call is also published as an event to Echo, alongside every other Spinnaker write.
     audit-echo-events: true
+    # Names of the MCP tools to expose. When unset, every tool is exposed; when set, all other
+    # tools are left out of the MCP server entirely.
+    # allowed-tools:
+    #   - get_application
+    #   - trigger_pipeline
 
 spring:
   jackson:
+    mapper:
+      SORT_PROPERTIES_ALPHABETICALLY: true
+    serialization:
+      ORDER_MAP_ENTRIES_BY_KEYS: true
+  # Gate's JSON/YAML converters and Retrofit clients are built from the Jackson 2 builder, which
+  # Spring Boot 4 configures from spring.jackson2.* only.
+  jackson2:
     mapper:
       SORT_PROPERTIES_ALPHABETICALLY: true
     serialization:

@@ -26,7 +26,7 @@ describe('AzureServerGroupCommandBuilder', function () {
       { imageName: 'ubuntu-west', amis: { westus: ['ami-west'] } },
       { imageName: 'ubuntu-east', amis: { eastus: ['ami-east'] } },
     ];
-    spyOn(AzureImageReader.prototype, 'findImages').and.returnValue(Promise.resolve(images));
+    vi.spyOn(AzureImageReader.prototype, 'findImages').mockReturnValue(Promise.resolve(images));
 
     const command = await new AzureServerGroupCommandBuilder(nativePromiseService).buildServerGroupCommandFromExisting(
       { name: 'fnord' },
@@ -41,7 +41,7 @@ describe('AzureServerGroupCommandBuilder', function () {
 
   it('builds clone commands with image options and the current custom image preserved', async function () {
     const images = [{ imageName: 'ubuntu-west', amis: { westus: ['ami-west'] } }];
-    spyOn(AzureImageReader.prototype, 'findImages').and.returnValue(Promise.resolve(images));
+    vi.spyOn(AzureImageReader.prototype, 'findImages').mockReturnValue(Promise.resolve(images));
 
     const command = await new AzureServerGroupCommandBuilder(nativePromiseService).buildServerGroupCommandFromExisting(
       { name: 'fnord' },

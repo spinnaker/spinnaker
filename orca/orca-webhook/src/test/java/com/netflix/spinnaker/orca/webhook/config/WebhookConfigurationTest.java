@@ -26,9 +26,9 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.github.tomakehurst.wiremock.junit5.WireMockExtension;
 import com.netflix.spinnaker.fiat.shared.FiatService;
 import com.netflix.spinnaker.kork.web.filters.ProvidedIdRequestFilterConfigurationProperties;
+import com.netflix.spinnaker.kork.web.url.UrlRestrictions;
 import com.netflix.spinnaker.okhttp.OkHttpClientConfigurationProperties;
 import com.netflix.spinnaker.orca.clouddriver.OortService;
-import com.netflix.spinnaker.orca.config.UserConfiguredUrlRestrictions;
 import com.netflix.spinnaker.orca.webhook.util.WebhookLoggingEventListener;
 import java.lang.reflect.Field;
 import okhttp3.Call;
@@ -45,7 +45,6 @@ import org.springframework.boot.test.context.assertj.AssertableApplicationContex
 import org.springframework.boot.test.context.runner.ApplicationContextRunner;
 import org.springframework.context.annotation.Bean;
 import org.springframework.http.HttpStatus;
-import org.springframework.http.client.OkHttp3ClientHttpRequestFactory;
 import org.springframework.util.ReflectionUtils;
 import org.springframework.web.client.RestTemplate;
 
@@ -262,14 +261,14 @@ class WebhookConfigurationTest {
             });
   }
 
-  /** Retrieve the client member from the OkHttp3ClientHttpRequestFactory bean */
+  /** Retrieve the client member from the SpinnakerOkHttpClientRequestFactory bean */
   private static OkHttpClient getOkHttpClient(AssertableApplicationContext ctx) {
-    OkHttp3ClientHttpRequestFactory requestFactory =
-        ctx.getBean(OkHttp3ClientHttpRequestFactory.class);
+    SpinnakerOkHttpClientRequestFactory requestFactory =
+        ctx.getBean(SpinnakerOkHttpClientRequestFactory.class);
     assertThat(requestFactory).isNotNull();
     Field clientField =
         ReflectionUtils.findField(
-            OkHttp3ClientHttpRequestFactory.class, "client", OkHttpClient.class);
+            SpinnakerOkHttpClientRequestFactory.class, "client", OkHttpClient.class);
     assertThat(clientField).isNotNull();
     clientField.setAccessible(true);
     OkHttpClient client = (OkHttpClient) ReflectionUtils.getField(clientField, requestFactory);
@@ -279,8 +278,8 @@ class WebhookConfigurationTest {
 
   private static class WebhookTestConfiguration {
     @Bean
-    UserConfiguredUrlRestrictions userConfiguredUrlRestrictions() {
-      return new UserConfiguredUrlRestrictions.Builder().build();
+    UrlRestrictions userConfiguredUrlRestrictions() {
+      return UrlRestrictions.defaults();
     }
 
     /**

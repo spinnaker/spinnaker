@@ -29,10 +29,10 @@ import com.netflix.spinnaker.cats.cache.DefaultCacheData;
 import com.netflix.spinnaker.cats.mem.InMemoryCache;
 import com.netflix.spinnaker.cats.provider.DefaultProviderCache;
 import com.netflix.spinnaker.clouddriver.ecs.cache.Keys;
+import io.micrometer.core.instrument.simple.SimpleMeterRegistry;
 import java.time.Instant;
 import java.util.Collection;
 import java.util.Collections;
-import java.util.Date;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.LinkedList;
@@ -197,7 +197,7 @@ public class TaskCachingAgentTest extends CommonCachingAgent {
 
       String key = Keys.getServiceKey(otherAccount, otherRegion, "service-" + randomId);
       Map<String, Object> attrs = new HashMap<>();
-      attrs.put("cacheTime", new Date());
+      attrs.put("cacheTime", System.currentTimeMillis());
       testProviderCache.putCacheData(
           ON_DEMAND.toString(), new DefaultCacheData(key, attrs, Collections.emptyMap()));
     }
@@ -206,7 +206,7 @@ public class TaskCachingAgentTest extends CommonCachingAgent {
     for (int i = 0; i < 10; i++) {
       String key = Keys.getServiceKey(ACCOUNT, REGION, "service-" + i);
       Map<String, Object> attrs = new HashMap<>();
-      attrs.put("cacheTime", new Date());
+      attrs.put("cacheTime", System.currentTimeMillis());
       testProviderCache.putCacheData(
           ON_DEMAND.toString(), new DefaultCacheData(key, attrs, Collections.emptyMap()));
     }
@@ -244,7 +244,7 @@ public class TaskCachingAgentTest extends CommonCachingAgent {
     // Given: A cache with entries in different namespaces, accounts, and regions
     DefaultProviderCache testProviderCache = new DefaultProviderCache(new InMemoryCache());
 
-    Map<String, Object> exampleAttrs = Map.of("cacheTime", new Date());
+    Map<String, Object> exampleAttrs = Map.of("cacheTime", System.currentTimeMillis());
     testProviderCache.putCacheData(
         ON_DEMAND.toString(),
         new DefaultCacheData(
@@ -294,5 +294,23 @@ public class TaskCachingAgentTest extends CommonCachingAgent {
                 + results.size()
                 + " returned fo the account/region of the provider.  ")
         .hasSize(2);
+  }
+
+  @Test
+  @DisplayName("on-demand timestamps are numeric epoch millis")
+  void shouldReturnNumericTimestampsForNewOnDemandRequest() {
+    DefaultProviderCache testProviderCache = new DefaultProviderCache(new InMemoryCache());
+    TaskCachingAgent testAgent =
+        new TaskCachingAgent(
+            netflixAmazonCredentials, REGION, clientProvider, new SimpleMeterRegistry());
+
+    testAgent.storeOnDemand(testProviderCache, Map.of("serverGroupName", SERVICE_NAME_1));
+
+    Collection<Map<String, Object>> results = testAgent.pendingOnDemandRequests(testProviderCache);
+
+    assertThat(results).hasSize(1);
+    Map<String, Object> result = results.iterator().next();
+    assertThat(result.get("cacheTime")).isInstanceOf(Number.class);
+    assertThat(result.get("processedTime")).isInstanceOf(Number.class);
   }
 }

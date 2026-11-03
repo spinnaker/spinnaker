@@ -44,7 +44,7 @@ class PrometheusMetricsServiceSpec extends Specification {
         .metricName("some-metric-name")
         .labelBindings(labelBindings)
         .customFilterTemplate(customFilterTemplate)
-        .customInlineTemplate(customInlineTemplate)
+        .template(customInlineTemplate)
         .build()
     CanaryMetricConfig canaryMetricConfig =
       CanaryMetricConfig.builder()
@@ -88,5 +88,48 @@ class PrometheusMetricsServiceSpec extends Specification {
     null          | null                         | 'PromQL:histogram_quantile(0.5, prometheus_http_response_size_bytes_bucket{instance="localhost:9090",handler="/graph"})'           | null               | null                | null                || 'histogram_quantile(0.5, prometheus_http_response_size_bytes_bucket{instance="localhost:9090",handler="/graph"})'
     null          | null                         | 'PromQL:histogram_quantile(0.5, prometheus_http_response_size_bytes_bucket{instance="localhost:9090",handler="${scope}"})'         | null               | "/graph"            | null                || 'histogram_quantile(0.5, prometheus_http_response_size_bytes_bucket{instance="localhost:9090",handler="/graph"})'
     null          | null                         | 'PromQL:histogram_quantile(${quantile}, prometheus_http_response_size_bytes_bucket{instance="localhost:9090",handler="${scope}"})' | null               | "/graph"            | [quantile: 0.99]    || 'histogram_quantile(0.99, prometheus_http_response_size_bytes_bucket{instance="localhost:9090",handler="/graph"})'
+  }
+
+  private String build(PrometheusCanaryMetricSetQueryConfig queryConfig, String scope) {
+    CanaryMetricConfig canaryMetricConfig = CanaryMetricConfig.builder().query(queryConfig).build()
+    CanaryConfig canaryConfig = CanaryConfig.builder().metric(canaryMetricConfig).build()
+    PrometheusCanaryScope canaryScope = new PrometheusCanaryScope().setScope(scope).setLocation("us-central1")
+    return prometheusMetricsService.buildQuery(null, canaryConfig, canaryMetricConfig, canaryScope)
+  }
+
+  void "Deck starter example is used verbatim as a full PromQL expression"() {
+    given:
+    // Must match the example in deck/packages/kayenta/src/kayenta/edit/templateProviderVariables.ts
+    String example = 'sum(rate(http_requests_total{autoscaling_group="${scope}"}[5m]))'
+
+    expect:
+    build(PrometheusCanaryMetricSetQueryConfig.builder().template(example).build(), "my-asg") ==
+      'sum(rate(http_requests_total{autoscaling_group="my-asg"}[5m]))'
+  }
+
+  void "Template with the PromQL: marker has the marker stripped"() {
+    expect:
+    build(PrometheusCanaryMetricSetQueryConfig.builder().template('PromQL:up{job="${scope}"}').build(), "x") ==
+      'up{job="x"}'
+  }
+
+  void "Template without marker and without metricName is a full PromQL expression"() {
+    expect:
+    build(PrometheusCanaryMetricSetQueryConfig.builder().template('up{job="${scope}"}').build(), "x") ==
+      'up{job="x"}'
+  }
+
+  void "Template without marker but with a guided metricName is legacy label matchers"() {
+    expect:
+    build(PrometheusCanaryMetricSetQueryConfig.builder().metricName("cpu").template('job=${scope},a=b').build(), "x") ==
+      'avg(cpu{job=x,a=b})'
+  }
+
+  void "Guided config without metricName or template still fails"() {
+    when:
+    build(PrometheusCanaryMetricSetQueryConfig.builder().resourceType("gce_instance").build(), "x")
+
+    then:
+    thrown(IllegalArgumentException)
   }
 }

@@ -383,3 +383,6 @@ databaseChangeLog:
 - include:
     file: changelog/20211014-artifact-is-preview-column.yml
     relativeToChangelogFile: true
+- include:
+    file: changelog/20260926-remove-titus-resources.yml
+    relativeToChangelogFile: true

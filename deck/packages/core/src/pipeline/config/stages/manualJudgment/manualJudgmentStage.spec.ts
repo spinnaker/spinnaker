@@ -16,7 +16,7 @@ describe('manualJudgmentStage', () => {
     const stageConfig = Registry.pipeline.getStageConfig({ type: 'manualJudgment' } as any);
 
     expect(stageConfig).toEqual(
-      jasmine.objectContaining({
+      expect.objectContaining({
         label: 'Manual Judgment',
         description: 'Waits for user approval before continuing',
         key: 'manualJudgment',

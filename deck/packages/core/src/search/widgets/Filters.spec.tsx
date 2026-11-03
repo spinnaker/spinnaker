@@ -1,14 +1,11 @@
-import type { ReactWrapper } from 'enzyme';
-import { mount } from 'enzyme';
+import { render } from '@testing-library/react';
 import React from 'react';
 
-import type { IFiltersLayout, IFiltersProps } from './Filters';
+import type { IFiltersLayout } from './Filters';
 import { Filters } from './Filters';
 import type { IFilterType } from './SearchFilterTypeRegistry';
 
 describe('<Filters/>', () => {
-  let component: ReactWrapper<IFiltersProps, any>;
-
   function getNewFilterType(seed: number): IFilterType {
     return {
       key: `filter-type-${seed}`,
@@ -23,9 +20,9 @@ describe('<Filters/>', () => {
     };
   }
 
-  function getNewFilters(isOpen: boolean): ReactWrapper<IFiltersProps, any> {
+  function getNewFilters(isOpen: boolean) {
     const activeFilter = getNewFilterType(1);
-    return mount(
+    return render(
       <Filters
         activeFilter={activeFilter}
         layouts={[1, 2].map((seed: number) => getNewLayout(seed))}
@@ -35,21 +32,18 @@ describe('<Filters/>', () => {
   }
 
   it('should render a list of filters', () => {
-    component = getNewFilters(true);
-    expect(component.render().hasClass('filter-list')).toBeTruthy();
+    expect(getNewFilters(true).container.firstChild).toHaveClass('filter-list');
   });
 
   it('should open the filter list when isOpen is true', () => {
-    component = getNewFilters(true);
-    expect(component.render().hasClass('filter-list')).toBeTruthy();
-    expect(component.render().hasClass('filter-list__open')).toBeTruthy();
-    expect(component.render().hasClass('filter-list__closed')).toBeFalsy();
+    const { container } = getNewFilters(true);
+    expect(container.firstChild).toHaveClass('filter-list', 'filter-list__open');
+    expect(container.firstChild).not.toHaveClass('filter-list__closed');
   });
 
   it('should close the filter list when isOpen is false', () => {
-    component = getNewFilters(false);
-    expect(component.render().hasClass('filter-list')).toBeTruthy();
-    expect(component.render().hasClass('filter-list__open')).toBeFalsy();
-    expect(component.render().hasClass('filter-list__closed')).toBeTruthy();
+    const { container } = getNewFilters(false);
+    expect(container.firstChild).toHaveClass('filter-list', 'filter-list__closed');
+    expect(container.firstChild).not.toHaveClass('filter-list__open');
   });
 });

@@ -1,5 +1,5 @@
 import { PipelineConfigService } from './PipelineConfigService';
-import { mockHttpClient } from '../../../api/mock/jasmine';
+import { mockHttpClient } from '../../../api/mock/mockHttpSupport';
 import type { IPipeline } from '../../../domain/IPipeline';
 import type { IStage } from '../../../domain/IStage';
 
@@ -52,12 +52,12 @@ describe('PipelineConfigService', () => {
         ],
       });
 
-      const postSpy = spyOn(http, 'post');
+      const postSpy = vi.spyOn(http, 'post').mockReturnValue(undefined);
 
       await PipelineConfigService.savePipeline(pipeline);
       expect(postSpy).toHaveBeenCalled();
 
-      const payload = postSpy.calls.first().args[0].data;
+      const payload = postSpy.mock.calls[0][0].data;
       expect(payload).toBeDefined();
 
       expect(payload.stages[0].name).toBe('explicit name');
@@ -114,7 +114,7 @@ describe('PipelineConfigService', () => {
 
       const posted: any[] = [];
       http.expectGET('/applications/app/pipelineConfigs').respond(200, fromServer);
-      spyOn(http, 'post').and.callFake((request: any) => {
+      vi.spyOn(http, 'post').mockImplementation((request: any) => {
         posted.push(request.data);
         return Promise.resolve(undefined);
       });
@@ -124,9 +124,9 @@ describe('PipelineConfigService', () => {
       await pipelinesPromise;
 
       expect(posted.length).toEqual(3);
-      expect(posted[0]).toEqual(jasmine.objectContaining({ name: 'first', index: 0 }));
-      expect(posted[1]).toEqual(jasmine.objectContaining({ name: 'duplicateIndex', index: 2 }));
-      expect(posted[2]).toEqual(jasmine.objectContaining({ name: 'last', index: 3 }));
+      expect(posted[0]).toEqual(expect.objectContaining({ name: 'first', index: 0 }));
+      expect(posted[1]).toEqual(expect.objectContaining({ name: 'duplicateIndex', index: 2 }));
+      expect(posted[2]).toEqual(expect.objectContaining({ name: 'last', index: 3 }));
     });
   });
 

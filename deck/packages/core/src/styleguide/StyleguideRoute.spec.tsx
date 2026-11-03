@@ -1,15 +1,16 @@
-import { shallow } from 'enzyme';
+import { render, screen } from '@testing-library/react';
 import React from 'react';
 
 import { StyleguideRoute } from './StyleguideRoute';
 
 describe('<StyleguideRoute />', () => {
   it('StyleguideRoute renders the styleguide iframe', () => {
-    const wrapper = shallow(<StyleguideRoute />);
-    const iframe = wrapper.find('iframe');
+    render(<StyleguideRoute />);
+    const iframe = screen.getByTitle('Spinnaker styleguide');
 
-    expect(iframe.prop('src')).toBe('/styleguide.html');
-    expect(iframe.prop('title')).toBe('Spinnaker styleguide');
-    expect(iframe.prop('style')).toEqual({ border: 0, height: 'calc(100vh - 60px)', width: '100%' });
+    expect(iframe).toHaveAttribute('src', '/styleguide.html');
+    expect(iframe.style.border).toBe('0px');
+    expect(iframe.style.height).toBe('calc(100vh - 60px)');
+    expect(iframe.style.width).toBe('100%');
   });
 });

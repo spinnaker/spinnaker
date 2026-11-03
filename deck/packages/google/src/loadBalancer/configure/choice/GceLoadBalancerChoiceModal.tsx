@@ -7,6 +7,7 @@ import type { GceLoadBalancerEditorMode, GceLoadBalancerType } from '../common';
 import { GceProxyLoadBalancerModal } from '../common/GceProxyLoadBalancerModal';
 import { GceHttpLoadBalancerModal } from '../http/GceHttpLoadBalancerModal';
 import { GceNetworkLoadBalancerModal } from '../network/GceNetworkLoadBalancerModal';
+import { GceRegionalExternalNetworkLoadBalancerModal } from '../network/GceRegionalExternalNetworkLoadBalancerModal';
 
 import './GceLoadBalancerChoiceModal.less';
 
@@ -31,6 +32,16 @@ export const GCE_LOAD_BALANCER_CHOICES: IGceLoadBalancerChoice[] = [
     label: 'Internal HTTP(S)',
     description: 'Regional internal managed HTTP(S) load balancer.',
   },
+  {
+    type: 'EXTERNAL_MANAGED',
+    label: 'External managed HTTP(S)',
+    description: 'Regional external managed HTTP(S) load balancer.',
+  },
+  {
+    type: 'REGIONAL_EXTERNAL_NETWORK',
+    label: 'Regional external network',
+    description: 'Regional external pass-through network load balancer.',
+  },
 ];
 
 export interface IGceLoadBalancerChoiceModalProps extends IModalComponentProps {
@@ -47,7 +58,8 @@ interface IGceLoadBalancerChoiceModalState {
 
 export function getGceLoadBalancerModal(type: GceLoadBalancerType): IGceLoadBalancerModal {
   if (type === 'NETWORK') return GceNetworkLoadBalancerModal;
-  if (type === 'HTTP' || type === 'INTERNAL_MANAGED') return GceHttpLoadBalancerModal;
+  if (type === 'HTTP' || type === 'INTERNAL_MANAGED' || type === 'EXTERNAL_MANAGED') return GceHttpLoadBalancerModal;
+  if (type === 'REGIONAL_EXTERNAL_NETWORK') return GceRegionalExternalNetworkLoadBalancerModal;
   return GceProxyLoadBalancerModal;
 }
 

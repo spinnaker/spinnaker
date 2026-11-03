@@ -24,7 +24,7 @@ export class CreateServiceInstanceDirectInput extends React.Component<
   ICreateServiceInstanceDirectInputProps,
   ICreateServiceInstanceDirectInputState
 > {
-  private destroy$ = new Subject();
+  private destroy$ = new Subject<void>();
   constructor(props: ICreateServiceInstanceDirectInputProps) {
     super(props);
     this.state = { serviceNamesAndPlans: [] };

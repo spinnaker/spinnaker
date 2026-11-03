@@ -1,5 +1,8 @@
 # Preview Environments V1
 
+> **Note:** This is the original (2021) design proposal and is kept for historical context. Its examples use
+> `titus/cluster@v1`, and the Titus provider has since been removed from Spinnaker.
+
 This document describes a design proposal to support Preview Environments in Managed Delivery. It's split in two main parts: the first focuses on use cases and the experience; the second contains a high-level design proposal meant to identify major technical challenges and design directions early, and help guide implementation later.
 
 Author(s): @luispollo

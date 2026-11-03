@@ -48,7 +48,7 @@ import okhttp3.Protocol
 import okhttp3.Request
 import okhttp3.ResponseBody.Companion.toResponseBody
 import org.springframework.beans.factory.annotation.Autowired
-import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc
+import org.springframework.boot.webmvc.test.autoconfigure.AutoConfigureMockMvc
 import org.springframework.boot.test.context.SpringBootTest
 import org.springframework.boot.test.context.SpringBootTest.WebEnvironment.MOCK
 import org.springframework.http.MediaType
@@ -193,7 +193,7 @@ internal class DeliveryConfigControllerTests
         |environments:
         |- name: test
         |  locations: &locations
-        |    account: "titustestvpc"
+        |    account: "testvpc"
         |    regions:
         |      - name: us-west-2
         |  resources:

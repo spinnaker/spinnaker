@@ -30,7 +30,6 @@ import org.springframework.context.annotation.Configuration
 import org.springframework.core.annotation.Order
 import org.springframework.ldap.core.DirContextAdapter
 import org.springframework.ldap.core.DirContextOperations
-import org.springframework.security.config.Customizer
 import org.springframework.security.config.annotation.authentication.builders.AuthenticationManagerBuilder
 import org.springframework.security.config.annotation.authentication.configuration.AuthenticationConfiguration
 import org.springframework.security.config.annotation.web.builders.HttpSecurity
@@ -42,7 +41,6 @@ import org.springframework.security.web.SecurityFilterChain
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter
 import org.springframework.security.web.authentication.www.BasicAuthenticationFilter
 import org.springframework.security.web.savedrequest.HttpSessionRequestCache
-import org.springframework.session.web.http.DefaultCookieSerializer
 import org.springframework.stereotype.Component
 
 @ConditionalOnExpression('${ldap.enabled:false}')
@@ -59,9 +57,6 @@ class LdapSsoConfig {
 
   @Autowired
   LdapUserContextMapper ldapUserContextMapper
-
-  @Autowired
-  DefaultCookieSerializer defaultCookieSerializer
 
   @Autowired
   protected void configure(AuthenticationManagerBuilder auth) throws Exception {
@@ -95,11 +90,16 @@ class LdapSsoConfig {
   @Order(3)
   SecurityFilterChain securityFilterChain(HttpSecurity http, AuthenticationConfiguration authConfiguration) throws Exception {
     def authenticationManager = authConfiguration.getAuthenticationManager()
-    defaultCookieSerializer.setSameSite(null)
     HttpSessionRequestCache requestCache = new HttpSessionRequestCache();
     requestCache.setMatchingRequestParameterName(null);
     // Configure request cache to save original requests
-    http.formLogin(Customizer.withDefaults())
+    http.formLogin(form -> form
+        // Serve a branded login page instead of the default Spring Security one.
+        // GET /login is rendered by LoginController, POST /login still processes the
+        // username/password form. permitAll() grants access to the login page,
+        // the login processing URL and the failure URL.
+        .loginPage("/login")
+        .permitAll())
       .requestCache(cache -> cache
         .requestCache(requestCache)
       )

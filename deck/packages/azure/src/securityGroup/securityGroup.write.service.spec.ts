@@ -19,7 +19,7 @@ describe('AzureSecurityGroupWriter', () => {
     const command = buildUpsertCommand(securityGroup, params);
 
     expect(command).toEqual(
-      jasmine.objectContaining({
+      expect.objectContaining({
         accountId: 'azure-account',
         cloudProvider: 'explicit-provider',
         name: 'azure-sg',
@@ -37,7 +37,7 @@ describe('AzureSecurityGroupWriter', () => {
     const command = buildDeleteCommand(securityGroup, application, { cloudProvider: 'azure', vpcId: 'explicit-vnet' });
 
     expect(command).toEqual(
-      jasmine.objectContaining({
+      expect.objectContaining({
         appName: 'fnord',
         cloudProvider: 'azure',
         credentials: 'azure-account',
@@ -61,8 +61,8 @@ describe('AzureSecurityGroupWriter', () => {
 
   it('executes an upsert task and clears the security group cache', () => {
     const task = Promise.resolve({}) as any;
-    const executeTask = spyOn(TaskExecutor, 'executeTask').and.returnValue(task);
-    const clearCache = spyOn(InfrastructureCaches, 'clearCache');
+    const executeTask = vi.spyOn(TaskExecutor, 'executeTask').mockReturnValue(task);
+    const clearCache = vi.spyOn(InfrastructureCaches, 'clearCache').mockReturnValue(undefined);
 
     const result = AzureSecurityGroupWriter.upsertSecurityGroup(securityGroup, application, 'Create', {
       cloudProvider: 'azure',
@@ -70,10 +70,10 @@ describe('AzureSecurityGroupWriter', () => {
 
     expect(result).toBe(task);
     expect(executeTask).toHaveBeenCalledWith(
-      jasmine.objectContaining({
+      expect.objectContaining({
         application,
         description: 'Create Firewall: azure-sg',
-        job: [jasmine.objectContaining({ cloudProvider: 'azure', securityGroupName: 'azure-sg' })],
+        job: [expect.objectContaining({ cloudProvider: 'azure', securityGroupName: 'azure-sg' })],
       }),
     );
     expect(clearCache).toHaveBeenCalledWith('securityGroups');
@@ -81,18 +81,18 @@ describe('AzureSecurityGroupWriter', () => {
 
   it('executes a delete task and clears the security group cache', () => {
     const task = Promise.resolve({}) as any;
-    const executeTask = spyOn(TaskExecutor, 'executeTask').and.returnValue(task);
-    const clearCache = spyOn(InfrastructureCaches, 'clearCache');
+    const executeTask = vi.spyOn(TaskExecutor, 'executeTask').mockReturnValue(task);
+    const clearCache = vi.spyOn(InfrastructureCaches, 'clearCache').mockReturnValue(undefined);
 
     const result = AzureSecurityGroupWriter.deleteSecurityGroup(securityGroup, application, { vpcId: 'explicit-vnet' });
 
     expect(result).toBe(task);
     expect(executeTask).toHaveBeenCalledWith(
-      jasmine.objectContaining({
+      expect.objectContaining({
         application,
         description: 'Delete Firewalls: azure-sg',
         job: [
-          jasmine.objectContaining({
+          expect.objectContaining({
             securityGroupName: 'azure-sg',
             type: 'deleteSecurityGroup',
             vpcId: 'explicit-vnet',

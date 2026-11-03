@@ -74,9 +74,14 @@ export class Tag extends React.Component<ITagProps> {
       >
         <div className="tag__category">{key.toLocaleUpperCase()}</div>
         <div className="tag__label">{text}</div>
-        <div className="tag__remove">
-          <i className="fa fa-times-circle" onClick={this.handleRemoveClick} />
-        </div>
+        <button
+          aria-label={`Remove ${text} tag`}
+          className="tag__remove"
+          onClick={this.handleRemoveClick}
+          type="button"
+        >
+          <i aria-hidden="true" className="fa fa-times-circle" />
+        </button>
       </div>
     );
   }

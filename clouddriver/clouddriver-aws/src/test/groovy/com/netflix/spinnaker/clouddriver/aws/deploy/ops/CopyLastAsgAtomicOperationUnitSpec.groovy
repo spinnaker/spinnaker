@@ -32,10 +32,12 @@ import software.amazon.awssdk.services.autoscaling.model.LaunchTemplateSpecifica
 import software.amazon.awssdk.services.autoscaling.model.LifecycleHook
 import software.amazon.awssdk.services.autoscaling.model.MixedInstancesPolicy
 import software.amazon.awssdk.services.autoscaling.model.TagDescription
+import software.amazon.awssdk.services.ec2.model.ConnectionTrackingSpecification
 import software.amazon.awssdk.services.ec2.model.CreditSpecification
 import software.amazon.awssdk.services.ec2.model.LaunchTemplateBlockDeviceMapping
 import software.amazon.awssdk.services.ec2.model.LaunchTemplateEbsBlockDevice
 import software.amazon.awssdk.services.ec2.model.LaunchTemplateInstanceMarketOptions
+import software.amazon.awssdk.services.ec2.model.LaunchTemplateInstanceNetworkInterfaceSpecification
 import software.amazon.awssdk.services.ec2.model.LaunchTemplateSpotMarketOptions
 import software.amazon.awssdk.services.ec2.model.LaunchTemplateVersion
 import software.amazon.awssdk.services.ec2.model.ResponseLaunchTemplateData
@@ -648,6 +650,77 @@ class CopyLastAsgAtomicOperationUnitSpec extends Specification {
 
       new DeploymentResult(serverGroupNames: ['asgard-stack-v001'], serverGroupNameByRegion: ['us-east-1': 'asgard-stack-v001'])
     }
+  }
+
+  @Unroll
+  void "operation carries ancestor launch template connection tracking timeouts forward unless requested"() {
+    given:
+    description.availabilityZones = ['us-east-1': []]
+    description.tcpEstablishedTimeout = reqTcp
+    description.udpTimeout = reqUdp
+
+    and:
+    def networkInterface = LaunchTemplateInstanceNetworkInterfaceSpecification.builder()
+      .deviceIndex(0)
+      .groups(["sg-ancestor"])
+    if (ancestorTcp != null || ancestorUdpStream != null) {
+      networkInterface.connectionTrackingSpecification(ConnectionTrackingSpecification.builder()
+        .tcpEstablishedTimeout(ancestorTcp)
+        .udpStreamTimeout(ancestorUdpStream)
+        .build())
+    }
+    def launchTemplateVersion = LaunchTemplateVersion.builder()
+      .launchTemplateName("foo")
+      .launchTemplateId("foo")
+      .versionNumber(0L)
+      .launchTemplateData(ResponseLaunchTemplateData.builder()
+        .keyName("key-pair-name")
+        .networkInterfaces([networkInterface.build()])
+        .build())
+      .build()
+
+    def launchTemplateSpec = LaunchTemplateSpecification.builder()
+      .launchTemplateName(launchTemplateVersion.launchTemplateName)
+      .launchTemplateId(launchTemplateVersion.launchTemplateId)
+      .version(launchTemplateVersion.versionNumber.toString())
+      .build()
+
+    and:
+    regionScopedProviderStub.getLaunchTemplateService() >> Mock(LaunchTemplateService) {
+      getLaunchTemplateVersion(launchTemplateSpec) >> Optional.of(launchTemplateVersion)
+    }
+    def mockAncestorAsg = AutoScalingGroup.builder()
+      .autoScalingGroupName("asgard-stack-v000")
+      .minSize(0)
+      .maxSize(2)
+      .desiredCapacity(4)
+      .launchTemplate(launchTemplateSpec)
+      .build()
+    serverGroupNameResolver.resolveLatestServerGroupName("asgard-stack") >> "asgard-stack-v000"
+
+    when:
+    op.operate([])
+
+    then:
+    1 * mockAutoScaling.describeAutoScalingGroups(_) >> {
+      DescribeAutoScalingGroupsResponse.builder().autoScalingGroups([mockAncestorAsg]).build()
+    }
+    1 * deployHandler.handle(_ as BasicAmazonDeployDescription, _) >> { arguments ->
+      BasicAmazonDeployDescription actualDesc = arguments[0]
+
+      assert actualDesc.tcpEstablishedTimeout == expectedTcp
+      assert actualDesc.udpStreamTimeout == expectedUdpStream
+      assert actualDesc.udpTimeout == expectedUdp
+
+      new DeploymentResult(serverGroupNames: ['asgard-stack-v001'], serverGroupNameByRegion: ['us-east-1': 'asgard-stack-v001'])
+    }
+
+    where:
+    reqTcp | reqUdp | ancestorTcp | ancestorUdpStream || expectedTcp | expectedUdpStream | expectedUdp
+    null   | null   | 3600        | 120               || 3600        | 120               | null // inherited from ancestor
+    7200   | null   | 3600        | 120               || 7200        | 120               | null // request wins
+    null   | 45     | 3600        | null              || 3600        | null              | 45   // mixed: request + ancestor
+    null   | null   | null        | null              || null        | null              | null // nothing set: AWS default applies
   }
 
   private static BasicAmazonDeployDescription expectedDescription(

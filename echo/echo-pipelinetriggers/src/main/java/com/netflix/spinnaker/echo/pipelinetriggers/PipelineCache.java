@@ -214,14 +214,17 @@ public class PipelineCache implements MonitoredPoller {
     } catch (Exception e) {
       log.error("Error fetching pipelines from Front50", e);
       registry.counter("front50.errors").increment();
+    } catch (Error e) {
+      log.error("Fatal error fetching pipelines from Front50, polling will stop", e);
+      registry.counter("front50.errors").increment();
+      throw e;
     }
   }
 
   private Map<String, Object> hydrate(Map<String, Object> rawPipeline) {
     Predicate<Map<String, Object>> isV2Pipeline =
         p -> {
-          return p.getOrDefault("type", "").equals("templatedPipeline")
-              && p.getOrDefault("schema", "").equals("v2");
+          return "templatedPipeline".equals(p.get("type")) && "v2".equals(p.get("schema"));
         };
 
     return planPipelineIfNeeded(rawPipeline, isV2Pipeline);
@@ -236,6 +239,23 @@ public class PipelineCache implements MonitoredPoller {
         .filter(Objects::nonNull)
         .map(PipelineCache::decorateTriggers)
         .findFirst();
+  }
+
+  /** Like {@link #process}, but returns empty if it throws, so that the pipeline is skipped. */
+  private Optional<Pipeline> processOrSkip(Map<String, Object> rawPipeline) {
+    try {
+      return process(rawPipeline);
+    } catch (Exception e) {
+      // Identifiers only: a raw pipeline config can hold trigger secrets and parameter values.
+      Map<String, Object> p = rawPipeline == null ? Map.of() : rawPipeline;
+      log.warn(
+          "Skipping pipeline {}:{} ({}) because it failed to be processed",
+          p.get("application"),
+          p.get("name"),
+          p.get("id"),
+          e);
+      return Optional.empty();
+    }
   }
 
   private List<Map<String, Object>> fetchRawPipelines() {
@@ -263,14 +283,16 @@ public class PipelineCache implements MonitoredPoller {
           .submit(
               () ->
                   rawPipelines.parallelStream()
-                      .map(this::process)
+                      .map(this::processOrSkip)
                       .filter(Optional::isPresent)
                       .map(Optional::get)
                       .collect(toList()))
           .get();
     } catch (InterruptedException | ExecutionException e) {
-      log.error("Error hydrating pipelines", e);
-      return Collections.emptyList();
+      if (e.getCause() instanceof Error error) {
+        throw error;
+      }
+      throw new IllegalStateException("Error hydrating pipelines", e);
     } finally {
       forkJoinPool.shutdown();
     }

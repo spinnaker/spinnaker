@@ -1,17 +1,14 @@
-import type { ShallowWrapper } from 'enzyme';
-import { shallow } from 'enzyme';
+import { render, screen } from '@testing-library/react';
 import React from 'react';
 
-import type { IDisplayableParameter, IExecutionParametersProps } from './ExecutionParameters';
+import type { IDisplayableParameter } from './ExecutionParameters';
 import { ExecutionParameters } from './ExecutionParameters';
 
 describe('<ExecutionParameters/>', () => {
-  let component: ShallowWrapper<IExecutionParametersProps>;
-
   it(`show only pin params, but there's no pinnedDisplayableParameters should return null`, function () {
     const parameters: IDisplayableParameter[] = [{ key: '1', value: 'a' }];
 
-    component = shallow(
+    const { container } = render(
       <ExecutionParameters
         pinnedDisplayableParameters={[]}
         displayableParameters={parameters}
@@ -19,7 +16,7 @@ describe('<ExecutionParameters/>', () => {
       />,
     );
 
-    expect(component.get(0)).toEqual(null);
+    expect(container).toBeEmptyDOMElement();
   });
 
   it(`show only pinned parameters in 2 columns format`, function () {
@@ -28,7 +25,7 @@ describe('<ExecutionParameters/>', () => {
       { key: '2', value: 'b' },
     ];
 
-    component = shallow(
+    const { container } = render(
       <ExecutionParameters
         pinnedDisplayableParameters={parameters}
         displayableParameters={[]}
@@ -36,15 +33,17 @@ describe('<ExecutionParameters/>', () => {
       />,
     );
 
-    expect(component.find('.execution-parameters-column').length).toEqual(2);
-    expect(component.find('.parameter-key').length).toEqual(2);
-    expect(component.find('.parameter-value').length).toEqual(2);
+    expect(container.querySelectorAll('.execution-parameters-column')).toHaveLength(2);
+    expect(screen.getByText('1:')).toBeVisible();
+    expect(screen.getByText('a')).toBeVisible();
+    expect(screen.getByText('2:')).toBeVisible();
+    expect(screen.getByText('b')).toBeVisible();
   });
 
   it(`show all params, but there's no displayableParameters should return null`, function () {
     const parameters: IDisplayableParameter[] = [{ key: '1', value: 'a' }];
 
-    component = shallow(
+    const { container } = render(
       <ExecutionParameters
         pinnedDisplayableParameters={parameters}
         displayableParameters={[]}
@@ -52,7 +51,7 @@ describe('<ExecutionParameters/>', () => {
       />,
     );
 
-    expect(component.get(0)).toEqual(null);
+    expect(container).toBeEmptyDOMElement();
   });
 
   it(`show all parameters in 2 columns format`, function () {
@@ -61,7 +60,7 @@ describe('<ExecutionParameters/>', () => {
       { key: '2', value: 'b' },
     ];
 
-    component = shallow(
+    const { container } = render(
       <ExecutionParameters
         pinnedDisplayableParameters={[]}
         displayableParameters={parameters}
@@ -69,9 +68,11 @@ describe('<ExecutionParameters/>', () => {
       />,
     );
 
-    expect(component.find('.params-title').text()).toEqual('Parameters');
-    expect(component.find('.execution-parameters-column').length).toEqual(2);
-    expect(component.find('.parameter-key').length).toEqual(2);
-    expect(component.find('.parameter-value').length).toEqual(2);
+    expect(screen.getByText('Parameters')).toBeVisible();
+    expect(container.querySelectorAll('.execution-parameters-column')).toHaveLength(2);
+    expect(screen.getByText('1:')).toBeVisible();
+    expect(screen.getByText('a')).toBeVisible();
+    expect(screen.getByText('2:')).toBeVisible();
+    expect(screen.getByText('b')).toBeVisible();
   });
 });

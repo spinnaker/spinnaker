@@ -18,6 +18,7 @@ import {
   ReactModal,
   REST,
   TaskMonitor,
+  ValidationMessage,
   withRouter,
   WizardModal,
   WizardPage,
@@ -32,6 +33,7 @@ import { BasicSettings } from './pages/BasicSettings';
 import { ContainerSettings } from './pages/ContainerSettings';
 import { HorizontalScalingSettings } from './pages/HorizontalScalingSettings';
 import { LoggingSettings } from './pages/LoggingSettings';
+import { NativeDeploymentSettings } from './pages/NativeDeploymentSettings';
 import { NetworkingSettings } from './pages/NetworkingSettings';
 import { ServiceDiscoverySettings } from './pages/ServiceDiscoverySettings';
 import { TaskDefinitionSettings } from './pages/TaskDefinitionSettings';
@@ -40,6 +42,7 @@ import {
   validateEcsBasicSettings,
   validateEcsCapacity,
   validateEcsContainer,
+  validateEcsNativeDeployment,
   validateEcsServerGroup,
   validateEcsServiceDiscovery,
   validateEcsTaskDefinition,
@@ -52,15 +55,369 @@ import type {
   IEcsServerGroupCommand,
   IEcsTargetGroupMapping,
 } from '../serverGroupConfiguration.service';
+import {
+  ECS_NATIVE_BLUE_GREEN_ONLY_FIELDS,
+  ECS_NATIVE_ONLY_FIELDS,
+  isEcsNativeBlueGreenStrategy,
+  isEcsNativeStrategyDecidedInDeck,
+} from '../serverGroupConfiguration.service';
 import { ServiceDiscoveryReader } from '../../../serviceDiscovery/serviceDiscovery.read.service';
 
 type EcsFormikProps = IWizardPageInjectedProps<IEcsServerGroupCommand>['formik'];
+
+const shouldApplyEcsConfiguration = (request: number, currentRequest: number, unmounted: boolean): boolean =>
+  !unmounted && request === currentRequest;
+
+const ensureEcsCommandShape = (command: IEcsServerGroupCommand): IEcsServerGroupCommand => {
+  command.backingData = command.backingData || ({} as any);
+  command.backingData.filtered = command.backingData.filtered || ({} as any);
+  command.backingData.filtered.availableCapacityProviders =
+    command.backingData.filtered.availableCapacityProviders || [];
+  command.backingData.filtered.defaultCapacityProviderStrategy =
+    command.backingData.filtered.defaultCapacityProviderStrategy || [];
+  command.backingData.filtered.ecsClusters = command.backingData.filtered.ecsClusters || [];
+  command.backingData.filtered.iamRoles = command.backingData.filtered.iamRoles || [];
+  command.backingData.filtered.images = command.backingData.filtered.images || [];
+  command.backingData.filtered.metricAlarms = command.backingData.filtered.metricAlarms || [];
+  command.backingData.filtered.securityGroupNames = command.backingData.filtered.securityGroupNames || [];
+  command.backingData.filtered.secrets = command.backingData.filtered.secrets || [];
+  command.backingData.filtered.serviceDiscoveryRegistries =
+    command.backingData.filtered.serviceDiscoveryRegistries || [];
+  command.backingData.filtered.subnetTypes = command.backingData.filtered.subnetTypes || [];
+  command.backingData.filtered.targetGroups = command.backingData.filtered.targetGroups || [];
+  command.backingData.iamRoles = command.backingData.iamRoles || [];
+  command.backingData.launchTypes = command.backingData.launchTypes || ['EC2', 'FARGATE'];
+  command.backingData.metricAlarms = command.backingData.metricAlarms || [];
+  command.backingData.networkModes = command.backingData.networkModes || [
+    'bridge',
+    'host',
+    'awsvpc',
+    'none',
+    'default',
+  ];
+  command.backingData.secrets = command.backingData.secrets || [];
+  command.backingData.serviceDiscoveryRegistries = command.backingData.serviceDiscoveryRegistries || [];
+  command.containerMappings = command.containerMappings || [];
+  command.serviceDiscoveryAssociations = command.serviceDiscoveryAssociations || [];
+  command.targetGroupMappings = command.targetGroupMappings || [];
+  command.taskDefinitionArtifact = command.taskDefinitionArtifact || {};
+  command.viewState = command.viewState || ({} as any);
+  command.viewState.dirty = command.viewState.dirty || {};
+  command.useTaskDefinitionArtifact = command.useTaskDefinitionArtifact === true;
+  return command;
+};
+
+const reconcileEcsLocation = (command: IEcsServerGroupCommand): IEcsServerGroupCommand => {
+  const account = command.backingData.credentialsKeyedByAccount?.[command.credentials];
+  const regions = account?.regions || [];
+  command.backingData.filtered.regions = regions;
+  const selectedRegion = regions.find((region: any) => region.name === command.region);
+  if (!selectedRegion) {
+    command.region = null;
+  }
+  const availabilityZones = selectedRegion?.availabilityZones || [];
+  command.backingData.filtered.availabilityZones = availabilityZones;
+  command.availabilityZones = availabilityZones;
+  return command;
+};
+
+const normalizeEcsImages = (command: IEcsServerGroupCommand, images: IEcsDockerImage[]): IEcsDockerImage[] => {
+  const commandImages = [
+    ...(command.viewState.contextImages || []),
+    command.imageDescription,
+    ...(command.containerMappings || []).map((mapping) => mapping.imageDescription),
+  ].filter(Boolean);
+  return uniqBy(
+    [...images, ...commandImages].map((image) => normalizeEcsDockerImage(image)),
+    (image) => image.imageId || image.id || image.name,
+  ).filter(Boolean);
+};
+
+const getEcsSecurityGroupNames = (
+  command: IEcsServerGroupCommand,
+  securityGroups: any,
+  subnets: ISubnet[],
+): string[] => {
+  const subnetPurpose = command.subnetTypes?.[0] || command.subnetType;
+  if (!subnetPurpose) {
+    return [];
+  }
+  const subnet = subnets.find(
+    (candidate) =>
+      candidate.account === command.credentials &&
+      candidate.region === command.region &&
+      candidate.purpose === subnetPurpose,
+  );
+  if (!subnet?.vpcId) {
+    return [];
+  }
+  return (securityGroups?.[command.credentials]?.ecs?.[command.region] || [])
+    .filter((securityGroup: any) => securityGroup.vpcId === subnet.vpcId)
+    .map((securityGroup: any) => securityGroup.name)
+    .filter(Boolean);
+};
+
+const getEcsTargetGroups = (command: IEcsServerGroupCommand, loadBalancers: any[]): string[] => {
+  const fromLoadBalancers = loadBalancers.flatMap((loadBalancer) =>
+    (loadBalancer.accounts || [])
+      .filter((account: any) => account.name === command.credentials)
+      .flatMap((account: any) =>
+        (account.regions || [])
+          .filter((region: any) => region.name === command.region)
+          .flatMap((region: any) =>
+            (region.loadBalancers || []).flatMap((regionLoadBalancer: any) =>
+              (regionLoadBalancer.targetGroups || []).map((targetGroup: any) =>
+                typeof targetGroup === 'string' ? targetGroup : targetGroup.targetGroupName,
+              ),
+            ),
+          ),
+      ),
+  );
+  const fromCommand = (command.targetGroupMappings || []).map((mapping: IEcsTargetGroupMapping) => mapping.targetGroup);
+  return uniq([...fromLoadBalancers, ...fromCommand, command.targetGroup]).filter(Boolean);
+};
+
+const applyEcsBackingData = (command: IEcsServerGroupCommand, backingData: Record<string, any>): void => {
+  Object.assign(command.backingData, backingData);
+};
+
+const mergeEcsConfiguredCommand = (
+  current: IEcsServerGroupCommand,
+  configured: IEcsServerGroupCommand,
+): IEcsServerGroupCommand =>
+  Object.assign(current, {
+    availabilityZones: configured.availabilityZones,
+    backingData: configured.backingData,
+    region: configured.region,
+  });
+
+export const updateEcsCommand = (command: IEcsServerGroupCommand, field: string, value: any) => {
+  const updated = { ...command, [field]: value } as IEcsServerGroupCommand;
+  if (field === 'credentials' || field === 'region') {
+    reconcileEcsLocation(updated);
+  }
+  if (field === 'cloudProvider') {
+    if (value === 'ecs-native') {
+      // ecs-native always deploys in place through ECS's own strategy, so the Spinnaker strategy
+      // must be None. Remember what it was so unticking the box restores it.
+      updated.viewState = { ...command.viewState, ecsNativePreviousStrategy: command.strategy } as any;
+      updated.strategy = 'none';
+    } else {
+      // Back to classic ecs: restore the strategy ('' is the classic default) and drop every field
+      // that only the native provider understands, so they are not sent in a classic payload.
+      updated.strategy = command.viewState?.ecsNativePreviousStrategy ?? '';
+      ECS_NATIVE_ONLY_FIELDS.forEach((nativeField) => delete (updated as any)[nativeField]);
+    }
+  }
+  if (
+    field === 'deploymentStrategy' &&
+    isEcsNativeStrategyDecidedInDeck(value) &&
+    !isEcsNativeBlueGreenStrategy(value)
+  ) {
+    // The wizard hides the blue/green-only fields for other strategies; clear them so hidden values
+    // cannot fail validation (or clouddriver's lifecyclePauseStage-requires-BLUE_GREEN check) later.
+    ECS_NATIVE_BLUE_GREEN_ONLY_FIELDS.forEach((blueGreenField) => delete (updated as any)[blueGreenField]);
+  }
+  if (field === 'useTaskDefinitionArtifact') {
+    updated.serviceDiscoveryAssociations = (updated.serviceDiscoveryAssociations || []).map((association) => ({
+      ...association,
+      containerName: value ? association.containerName || '' : null,
+    }));
+  }
+  return { command: updated };
+};
+
+interface IEcsSubmitCommandDependencies {
+  application: Application;
+  closeModal: (command: IEcsServerGroupCommand) => any;
+  taskMonitor: Pick<TaskMonitor, 'submit'>;
+  writer: (command: IEcsServerGroupCommand, application: Application) => PromiseLike<any>;
+}
+
+const submitEcsCommand = (
+  command: IEcsServerGroupCommand,
+  { application, closeModal, taskMonitor, writer }: IEcsSubmitCommandDependencies,
+) => {
+  const mode = command.viewState?.mode;
+  if (mode === 'editPipeline' || mode === 'createPipeline') {
+    return closeModal(command);
+  }
+  return taskMonitor.submit(() => writer(command, application));
+};
+
+const getEcsServerGroupRoute = (includes: (state: string) => boolean): string => {
+  let route = '^.^.^.clusters.serverGroup';
+  if (includes('**.clusters.serverGroup')) {
+    route = '^.serverGroup';
+  }
+  if (includes('**.clusters.cluster.serverGroup')) {
+    route = '^.^.serverGroup';
+  }
+  if (includes('**.clusters')) {
+    route = '.serverGroup';
+  }
+  return route;
+};
 
 export interface IEcsCloneServerGroupModalProps extends IModalComponentProps {
   title: string;
   application: Application;
   command: IEcsServerGroupCommand;
 }
+
+interface IEcsServerGroupWizardPagesProps {
+  application: Application;
+  configureCommand: (query?: string) => Promise<void>;
+  formik: EcsFormikProps;
+  nextIdx: IWizardPageInjectedProps<IEcsServerGroupCommand>['nextIdx'];
+  onFieldChange: (field: string, value: any) => void;
+  wizard: IWizardPageInjectedProps<IEcsServerGroupCommand>['wizard'];
+}
+
+const EcsServerGroupWizardPages = ({
+  application,
+  configureCommand,
+  formik,
+  nextIdx,
+  onFieldChange,
+  wizard,
+}: IEcsServerGroupWizardPagesProps) => (
+  <>
+    <WizardPage
+      label="Basic Settings"
+      order={nextIdx()}
+      render={({ innerRef }) => (
+        <EcsWizardPageValidation ref={innerRef} validator={validateEcsBasicSettings}>
+          <BasicSettings
+            application={application}
+            command={formik.values}
+            configureCommand={configureCommand}
+            onFieldChange={onFieldChange}
+          />
+        </EcsWizardPageValidation>
+      )}
+      wizard={wizard}
+    />
+    <WizardPage
+      label="Networking"
+      order={nextIdx()}
+      render={() => (
+        <NetworkingSettings
+          application={application}
+          command={formik.values}
+          configureCommand={configureCommand}
+          onFieldChange={onFieldChange}
+        />
+      )}
+      wizard={wizard}
+    />
+    <WizardPage
+      label="Task Definition"
+      order={nextIdx()}
+      render={({ innerRef }) => (
+        <EcsWizardPageValidation ref={innerRef} validator={validateEcsTaskDefinition}>
+          <TaskDefinitionSettings
+            application={application}
+            command={formik.values}
+            configureCommand={configureCommand}
+            onFieldChange={onFieldChange}
+          />
+        </EcsWizardPageValidation>
+      )}
+      wizard={wizard}
+    />
+    {!formik.values.useTaskDefinitionArtifact && (
+      <WizardPage
+        label="Container"
+        order={nextIdx()}
+        render={({ innerRef }) => (
+          <EcsWizardPageValidation ref={innerRef} validator={validateEcsContainer}>
+            <ContainerSettings
+              application={application}
+              command={formik.values}
+              configureCommand={configureCommand}
+              onFieldChange={onFieldChange}
+            />
+          </EcsWizardPageValidation>
+        )}
+        wizard={wizard}
+      />
+    )}
+    <WizardPage
+      label="Horizontal Scaling"
+      order={nextIdx()}
+      render={({ innerRef }) => (
+        <EcsWizardPageValidation ref={innerRef} validator={validateEcsCapacity}>
+          <HorizontalScalingSettings
+            application={application}
+            command={formik.values}
+            configureCommand={configureCommand}
+            onFieldChange={onFieldChange}
+          />
+        </EcsWizardPageValidation>
+      )}
+      wizard={wizard}
+    />
+    {!formik.values.useTaskDefinitionArtifact && (
+      <WizardPage
+        label="Logging"
+        order={nextIdx()}
+        render={() => (
+          <LoggingSettings
+            application={application}
+            command={formik.values}
+            configureCommand={configureCommand}
+            onFieldChange={onFieldChange}
+          />
+        )}
+        wizard={wizard}
+      />
+    )}
+    <WizardPage
+      label="Service Discovery"
+      order={nextIdx()}
+      render={({ innerRef }) => (
+        <EcsWizardPageValidation ref={innerRef} validator={validateEcsServiceDiscovery}>
+          <ServiceDiscoverySettings
+            application={application}
+            command={formik.values}
+            configureCommand={configureCommand}
+            onFieldChange={onFieldChange}
+          />
+        </EcsWizardPageValidation>
+      )}
+      wizard={wizard}
+    />
+    <WizardPage
+      label="Advanced Settings"
+      order={nextIdx()}
+      render={() => (
+        <AdvancedSettings
+          application={application}
+          command={formik.values}
+          configureCommand={configureCommand}
+          onFieldChange={onFieldChange}
+        />
+      )}
+      wizard={wizard}
+    />
+    <WizardPage
+      label="Native ECS Deployment"
+      order={nextIdx()}
+      render={({ innerRef }) => (
+        <EcsWizardPageValidation ref={innerRef} validator={validateEcsNativeDeployment}>
+          <NativeDeploymentSettings
+            application={application}
+            command={formik.values}
+            configureCommand={configureCommand}
+            onFieldChange={onFieldChange}
+          />
+        </EcsWizardPageValidation>
+      )}
+      wizard={wizard}
+    />
+  </>
+);
 
 interface IEcsCloneServerGroupModalState {
   command: IEcsServerGroupCommand;
@@ -150,16 +507,7 @@ export class EcsCloneServerGroupModalComponent extends React.Component<
       return;
     }
 
-    let transitionTo = '^.^.^.clusters.serverGroup';
-    if (this.props.stateService.includes('**.clusters.serverGroup')) {
-      transitionTo = '^.serverGroup';
-    }
-    if (this.props.stateService.includes('**.clusters.cluster.serverGroup')) {
-      transitionTo = '^.^.serverGroup';
-    }
-    if (this.props.stateService.includes('**.clusters')) {
-      transitionTo = '.serverGroup';
-    }
+    const transitionTo = getEcsServerGroupRoute((state) => this.props.stateService.includes(state));
     this.props.stateService.go(transitionTo, {
       accountId: command.credentials,
       provider: 'ecs',
@@ -192,11 +540,8 @@ export class EcsCloneServerGroupModalComponent extends React.Component<
     this.ensureCommandShape(command);
     this.command = command;
     return this.loadBackingData(command, imageQuery, request).then(() => {
-      if (!this.unmounted && request === this.configureRequest) {
-        const configuredCommand = this.command;
-        configuredCommand.availabilityZones = command.availabilityZones;
-        configuredCommand.backingData = command.backingData;
-        configuredCommand.region = command.region;
+      if (shouldApplyEcsConfiguration(request, this.configureRequest, this.unmounted)) {
+        const configuredCommand = mergeEcsConfiguredCommand(this.command, command);
         this.attachEventHandlers(configuredCommand);
         this.syncCommand(configuredCommand);
         this.setState({ loaded: true });
@@ -257,19 +602,21 @@ export class EcsCloneServerGroupModalComponent extends React.Component<
           : [];
         const imageList = Array.isArray(images) ? images : [];
         const backingData: any = command.backingData;
-        backingData.credentialsKeyedByAccount = credentialsKeyedByAccount;
-        backingData.loadBalancers = loadBalancerList;
-        backingData.subnets = subnetList;
-        backingData.iamRoles = iamRoleList;
-        backingData.ecsClusters = clusterList;
-        backingData.capacityProviderDetails = capacityProviderList;
-        backingData.metricAlarms = metricAlarmList;
-        backingData.securityGroups = securityGroupData;
-        backingData.launchTypes = ['EC2', 'FARGATE'];
-        backingData.networkModes = ['bridge', 'host', 'awsvpc', 'none', 'default'];
-        backingData.secrets = secretList;
-        backingData.serviceDiscoveryRegistries = serviceDiscoveryRegistryList;
-        backingData.images = this.normalizeImages(command, imageList as IEcsDockerImage[]);
+        applyEcsBackingData(command, {
+          credentialsKeyedByAccount,
+          loadBalancers: loadBalancerList,
+          subnets: subnetList,
+          iamRoles: iamRoleList,
+          ecsClusters: clusterList,
+          capacityProviderDetails: capacityProviderList,
+          metricAlarms: metricAlarmList,
+          securityGroups: securityGroupData,
+          launchTypes: ['EC2', 'FARGATE'],
+          networkModes: ['bridge', 'host', 'awsvpc', 'none', 'default'],
+          secrets: secretList,
+          serviceDiscoveryRegistries: serviceDiscoveryRegistryList,
+          images: normalizeEcsImages(command, imageList as IEcsDockerImage[]),
+        });
         backingData.filtered = {
           ...backingData.filtered,
           availableCapacityProviders: this.getAvailableCapacityProviders(command, capacityProviderList),
@@ -291,41 +638,7 @@ export class EcsCloneServerGroupModalComponent extends React.Component<
   }
 
   private ensureCommandShape(command: IEcsServerGroupCommand): void {
-    command.backingData = command.backingData || ({} as any);
-    command.backingData.filtered = command.backingData.filtered || ({} as any);
-    command.backingData.filtered.availableCapacityProviders =
-      command.backingData.filtered.availableCapacityProviders || [];
-    command.backingData.filtered.defaultCapacityProviderStrategy =
-      command.backingData.filtered.defaultCapacityProviderStrategy || [];
-    command.backingData.filtered.ecsClusters = command.backingData.filtered.ecsClusters || [];
-    command.backingData.filtered.iamRoles = command.backingData.filtered.iamRoles || [];
-    command.backingData.filtered.images = command.backingData.filtered.images || [];
-    command.backingData.filtered.metricAlarms = command.backingData.filtered.metricAlarms || [];
-    command.backingData.filtered.securityGroupNames = command.backingData.filtered.securityGroupNames || [];
-    command.backingData.filtered.secrets = command.backingData.filtered.secrets || [];
-    command.backingData.filtered.serviceDiscoveryRegistries =
-      command.backingData.filtered.serviceDiscoveryRegistries || [];
-    command.backingData.filtered.subnetTypes = command.backingData.filtered.subnetTypes || [];
-    command.backingData.filtered.targetGroups = command.backingData.filtered.targetGroups || [];
-    command.backingData.iamRoles = command.backingData.iamRoles || [];
-    command.backingData.launchTypes = command.backingData.launchTypes || ['EC2', 'FARGATE'];
-    command.backingData.metricAlarms = command.backingData.metricAlarms || [];
-    command.backingData.networkModes = command.backingData.networkModes || [
-      'bridge',
-      'host',
-      'awsvpc',
-      'none',
-      'default',
-    ];
-    command.backingData.secrets = command.backingData.secrets || [];
-    command.backingData.serviceDiscoveryRegistries = command.backingData.serviceDiscoveryRegistries || [];
-    command.containerMappings = command.containerMappings || [];
-    command.serviceDiscoveryAssociations = command.serviceDiscoveryAssociations || [];
-    command.targetGroupMappings = command.targetGroupMappings || [];
-    command.taskDefinitionArtifact = command.taskDefinitionArtifact || {};
-    command.viewState = command.viewState || ({} as any);
-    command.viewState.dirty = command.viewState.dirty || {};
-    command.useTaskDefinitionArtifact = command.useTaskDefinitionArtifact === true;
+    ensureEcsCommandShape(command);
   }
 
   private attachEventHandlers(command: IEcsServerGroupCommand): void {
@@ -361,29 +674,7 @@ export class EcsCloneServerGroupModalComponent extends React.Component<
   }
 
   private reconcileLocation(command: IEcsServerGroupCommand): void {
-    const account = command.backingData.credentialsKeyedByAccount?.[command.credentials];
-    const regions = account?.regions || [];
-    command.backingData.filtered.regions = regions;
-
-    const selectedRegion = regions.find((region: any) => region.name === command.region);
-    if (!selectedRegion) {
-      command.region = null;
-    }
-    const availabilityZones = selectedRegion?.availabilityZones || [];
-    command.backingData.filtered.availabilityZones = availabilityZones;
-    command.availabilityZones = availabilityZones;
-  }
-
-  private normalizeImages(command: IEcsServerGroupCommand, images: IEcsDockerImage[]): IEcsDockerImage[] {
-    const commandImages = [
-      ...(command.viewState.contextImages || []),
-      command.imageDescription,
-      ...command.containerMappings.map((mapping) => mapping.imageDescription),
-    ].filter(Boolean);
-    return uniqBy(
-      [...images, ...commandImages].map((image) => normalizeEcsDockerImage(image)),
-      (image) => image.imageId || image.id || image.name,
-    ).filter(Boolean);
+    reconcileEcsLocation(command);
   }
 
   private getSubnetTypes(command: IEcsServerGroupCommand, subnets: ISubnet[]): ISubnet[] {
@@ -432,48 +723,11 @@ export class EcsCloneServerGroupModalComponent extends React.Component<
   }
 
   private getSecurityGroupNames(command: IEcsServerGroupCommand, securityGroups: any, subnets: ISubnet[]): string[] {
-    const subnetPurpose = command.subnetTypes?.[0] || command.subnetType;
-    if (!subnetPurpose) {
-      return [];
-    }
-
-    const subnet = subnets.find(
-      (candidate) =>
-        candidate.account === command.credentials &&
-        candidate.region === command.region &&
-        candidate.purpose === subnetPurpose,
-    );
-    const vpcId = subnet?.vpcId;
-    if (!vpcId) {
-      return [];
-    }
-
-    return (securityGroups?.[command.credentials]?.ecs?.[command.region] || [])
-      .filter((securityGroup: any) => securityGroup.vpcId === vpcId)
-      .map((securityGroup: any) => securityGroup.name)
-      .filter(Boolean);
+    return getEcsSecurityGroupNames(command, securityGroups, subnets);
   }
 
   private getTargetGroups(command: IEcsServerGroupCommand, loadBalancers: any[]): string[] {
-    const fromLoadBalancers = loadBalancers.flatMap((loadBalancer) =>
-      (loadBalancer.accounts || [])
-        .filter((account: any) => account.name === command.credentials)
-        .flatMap((account: any) =>
-          (account.regions || [])
-            .filter((region: any) => region.name === command.region)
-            .flatMap((region: any) =>
-              (region.loadBalancers || []).flatMap((regionLoadBalancer: any) =>
-                (regionLoadBalancer.targetGroups || []).map((targetGroup: any) =>
-                  typeof targetGroup === 'string' ? targetGroup : targetGroup.targetGroupName,
-                ),
-              ),
-            ),
-        ),
-    );
-    const fromCommand = (command.targetGroupMappings || []).map(
-      (mapping: IEcsTargetGroupMapping) => mapping.targetGroup,
-    );
-    return uniq([...fromLoadBalancers, ...fromCommand, command.targetGroup]).filter(Boolean);
+    return getEcsTargetGroups(command, loadBalancers);
   }
 
   private getAvailableCapacityProviders(command: IEcsServerGroupCommand, capacityProviderDetails: any[]): string[] {
@@ -504,7 +758,7 @@ export class EcsCloneServerGroupModalComponent extends React.Component<
       this.configureRequest += 1;
     }
     formik.setFieldValue(field, value);
-    const command = { ...this.command, [field]: value };
+    const command = updateEcsCommand(this.command, field, value).command;
     if (field === 'stack' || field === 'freeFormDetails') {
       command.clusterChanged(command);
     }
@@ -520,12 +774,6 @@ export class EcsCloneServerGroupModalComponent extends React.Component<
     if (field === 'placementStrategyName') {
       command.placementStrategyNameChanged(command);
     }
-    if (field === 'useTaskDefinitionArtifact') {
-      command.serviceDiscoveryAssociations = (command.serviceDiscoveryAssociations || []).map((association) => ({
-        ...association,
-        containerName: value ? association.containerName || '' : null,
-      }));
-    }
     if (field !== 'credentials' && field !== 'region') {
       this.syncCommand(command, formik);
     }
@@ -539,13 +787,13 @@ export class EcsCloneServerGroupModalComponent extends React.Component<
   private submit = (command: IEcsServerGroupCommand = this.state.command) => {
     const { taskMonitor } = this.state;
     this.setState({ command });
-    const mode = command.viewState?.mode;
-    if (mode === 'editPipeline' || mode === 'createPipeline') {
-      return this.props.closeModal(command);
-    }
-    return taskMonitor.submit(() =>
-      this.context.services.serverGroupWriter.cloneServerGroup(command as any, this.props.application),
-    );
+    return submitEcsCommand(command, {
+      application: this.props.application,
+      closeModal: this.props.closeModal,
+      taskMonitor,
+      writer: (submittedCommand, application) =>
+        this.context.services.serverGroupWriter.cloneServerGroup(submittedCommand as any, application),
+    });
   };
 
   public render() {
@@ -564,6 +812,30 @@ export class EcsCloneServerGroupModalComponent extends React.Component<
       );
     }
 
+    // Only a real clone (details page, no pipeline context) is unsupported for ecs-native. Editing or
+    // creating a cluster inside a pipeline deploy stage just returns the command to the stage.
+    const pipelineMode = command.viewState?.mode === 'editPipeline' || command.viewState?.mode === 'createPipeline';
+    if (command.cloudProvider === 'ecs-native' && !pipelineMode) {
+      return (
+        <div className="modal-content">
+          <div className="modal-header">
+            <h4>Clone server group unavailable</h4>
+          </div>
+          <div className="modal-body">
+            <ValidationMessage
+              message="Cloning an ecs-native server group is unavailable because no safe durable-service deployment path is modeled. Use a createServerGroup stage instead."
+              type="warning"
+            />
+          </div>
+          <div className="modal-footer">
+            <button className="btn btn-default" onClick={dismissModal} type="button">
+              Close
+            </button>
+          </div>
+        </div>
+      );
+    }
+
     return (
       <WizardModal<IEcsServerGroupCommand>
         closeModal={this.submit}
@@ -579,126 +851,14 @@ export class EcsCloneServerGroupModalComponent extends React.Component<
           const configureFormikCommand = (query = '') => this.configureCommand(query, formik.values);
           const updateFormikCommand = (field: string, value: any) => this.updateCommand(formik, field, value);
           return (
-            <>
-              <WizardPage
-                label="Basic Settings"
-                order={nextIdx()}
-                render={({ innerRef }) => (
-                  <EcsWizardPageValidation ref={innerRef} validator={validateEcsBasicSettings}>
-                    <BasicSettings
-                      application={application}
-                      command={formik.values}
-                      configureCommand={configureFormikCommand}
-                      onFieldChange={updateFormikCommand}
-                    />
-                  </EcsWizardPageValidation>
-                )}
-                wizard={wizard}
-              />
-              <WizardPage
-                label="Networking"
-                order={nextIdx()}
-                render={() => (
-                  <NetworkingSettings
-                    application={application}
-                    command={formik.values}
-                    configureCommand={configureFormikCommand}
-                    onFieldChange={updateFormikCommand}
-                  />
-                )}
-                wizard={wizard}
-              />
-              <WizardPage
-                label="Task Definition"
-                order={nextIdx()}
-                render={({ innerRef }) => (
-                  <EcsWizardPageValidation ref={innerRef} validator={validateEcsTaskDefinition}>
-                    <TaskDefinitionSettings
-                      application={application}
-                      command={formik.values}
-                      configureCommand={configureFormikCommand}
-                      onFieldChange={updateFormikCommand}
-                    />
-                  </EcsWizardPageValidation>
-                )}
-                wizard={wizard}
-              />
-              {!formik.values.useTaskDefinitionArtifact && (
-                <WizardPage
-                  label="Container"
-                  order={nextIdx()}
-                  render={({ innerRef }) => (
-                    <EcsWizardPageValidation ref={innerRef} validator={validateEcsContainer}>
-                      <ContainerSettings
-                        application={application}
-                        command={formik.values}
-                        configureCommand={configureFormikCommand}
-                        onFieldChange={updateFormikCommand}
-                      />
-                    </EcsWizardPageValidation>
-                  )}
-                  wizard={wizard}
-                />
-              )}
-              <WizardPage
-                label="Horizontal Scaling"
-                order={nextIdx()}
-                render={({ innerRef }) => (
-                  <EcsWizardPageValidation ref={innerRef} validator={validateEcsCapacity}>
-                    <HorizontalScalingSettings
-                      application={application}
-                      command={formik.values}
-                      configureCommand={configureFormikCommand}
-                      onFieldChange={updateFormikCommand}
-                    />
-                  </EcsWizardPageValidation>
-                )}
-                wizard={wizard}
-              />
-              {!formik.values.useTaskDefinitionArtifact && (
-                <WizardPage
-                  label="Logging"
-                  order={nextIdx()}
-                  render={() => (
-                    <LoggingSettings
-                      application={application}
-                      command={formik.values}
-                      configureCommand={configureFormikCommand}
-                      onFieldChange={updateFormikCommand}
-                    />
-                  )}
-                  wizard={wizard}
-                />
-              )}
-              <WizardPage
-                label="Service Discovery"
-                order={nextIdx()}
-                render={({ innerRef }) => (
-                  <EcsWizardPageValidation ref={innerRef} validator={validateEcsServiceDiscovery}>
-                    <ServiceDiscoverySettings
-                      application={application}
-                      command={formik.values}
-                      configureCommand={configureFormikCommand}
-                      onFieldChange={updateFormikCommand}
-                    />
-                  </EcsWizardPageValidation>
-                )}
-                wizard={wizard}
-              />
-              <WizardPage
-                label="Advanced Settings"
-                order={nextIdx()}
-                render={() => (
-                  <AdvancedSettings
-                    application={application}
-                    command={formik.values}
-                    configureCommand={configureFormikCommand}
-                    onFieldChange={updateFormikCommand}
-                  />
-                )}
-                wizard={wizard}
-              />
-            </>
+            <EcsServerGroupWizardPages
+              application={application}
+              configureCommand={configureFormikCommand}
+              formik={formik}
+              nextIdx={nextIdx}
+              onFieldChange={updateFormikCommand}
+              wizard={wizard}
+            />
           );
         }}
       />

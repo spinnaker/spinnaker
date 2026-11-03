@@ -30,7 +30,7 @@ import com.netflix.spinnaker.q.metrics.MonitorableQueue
 import com.netflix.spinnaker.time.fixedClock
 import io.micrometer.core.instrument.Counter
 import io.micrometer.core.instrument.MeterRegistry
-import io.micrometer.core.instrument.Tag
+import io.micrometer.core.instrument.Tags
 import org.mockito.kotlin.any
 import org.mockito.kotlin.doReturn
 import org.mockito.kotlin.eq
@@ -64,7 +64,7 @@ object ZombieExecutionCheckingAgentTest : SubjectSpek<ZombieExecutionCheckingAge
   val zombieCounter: Counter = mock()
 
   val registry: MeterRegistry = mock {
-    on { counter(eq("queue.zombies"), any<Iterable<Tag>>()) } doReturn zombieCounter
+    on { counter(eq("queue.zombies"), any<Tags>()) } doReturn zombieCounter
   }
 
   subject(GROUP) {

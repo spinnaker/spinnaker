@@ -83,9 +83,7 @@ abstract class AbstractEcsOnDemandAgent<T> extends AbstractEcsCachingAgent<T>
 
     storeOnDemand(providerCache, data);
 
-    CacheResult cacheResult =
-        metricsSupport.transformData(
-            () -> buildCacheResult(getAuthoritativeKeyName(), items, providerCache));
+    CacheResult cacheResult = metricsSupport.transformData(() -> buildCacheResult(items));
 
     return new OnDemandResult(
         getAgentType(),

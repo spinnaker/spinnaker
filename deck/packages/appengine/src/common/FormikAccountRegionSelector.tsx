@@ -27,7 +27,7 @@ export class FormikAccountRegionSelector extends React.Component<
   IFormikAccountRegionSelectorProps,
   IFormikAccountRegionSelectorState
 > {
-  private destroy$ = new Subject();
+  private destroy$ = new Subject<void>();
 
   constructor(props: IFormikAccountRegionSelectorProps) {
     super(props);

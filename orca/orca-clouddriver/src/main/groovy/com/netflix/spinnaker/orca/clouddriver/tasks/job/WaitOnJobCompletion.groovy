@@ -62,7 +62,7 @@ public class WaitOnJobCompletion implements CloudProviderAware, OverridableTimeo
   static final String REFRESH_TYPE = "Job"
   /**
    * Extra time to pad the timing supplied by the job provider.
-   * E.g. if TitusJobRunner says this task is limited to 50minutes we will wait 50m + 5m(padding),
+   * E.g. if the job runner says this task is limited to 50minutes we will wait 50m + 5m(padding),
    * we should wait a bit longer to allow for any inaccuracies of the clock across the systems
    */
   static final Duration PROVIDER_PADDING = Duration.ofMinutes(5)

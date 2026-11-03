@@ -29,8 +29,9 @@ import io.kubernetes.client.util.KubeConfig;
 import java.io.IOException;
 import java.io.StringReader;
 import org.apache.commons.lang3.RandomStringUtils;
-import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
+import org.testcontainers.junit.jupiter.Container;
 import org.testcontainers.junit.jupiter.Testcontainers;
 import org.testcontainers.k3s.K3sContainer;
 import org.testcontainers.utility.DockerImageName;
@@ -40,14 +41,16 @@ public class KubernetesSecretsEngineTest {
 
   private static final String NAMESPACE = "default";
 
-  private KubernetesSecretEngine secretEngine;
+  private static KubernetesSecretEngine secretEngine;
 
-  K3sContainer k3s = new K3sContainer(DockerImageName.parse("rancher/k3s:v1.35.3-k3s1"));
-  CoreV1Api coreV1Api;
+  @Container
+  static final K3sContainer k3s =
+      new K3sContainer(DockerImageName.parse("rancher/k3s:v1.35.3-k3s1"));
 
-  @BeforeEach
-  public void setup() throws Exception {
-    k3s.start();
+  static CoreV1Api coreV1Api;
+
+  @BeforeAll
+  static void setup() throws Exception {
     ApiClient client =
         ClientBuilder.kubeconfig(
                 KubeConfig.loadKubeConfig(new StringReader(k3s.getKubeConfigYaml())))
@@ -80,7 +83,7 @@ public class KubernetesSecretsEngineTest {
     assertThat(new String(secretValue)).isEqualTo(expectedSecretValue);
   }
 
-  private void createSecretInNamespace(
+  private static void createSecretInNamespace(
       String expectedSecretValue, String namespace, String secretName, String secretKey)
       throws IOException, ApiException {
 

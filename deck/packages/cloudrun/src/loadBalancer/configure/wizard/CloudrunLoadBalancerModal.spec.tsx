@@ -4,15 +4,15 @@ describe('CloudrunLoadBalancerModal', () => {
   function buildModal(overrides: any = {}) {
     const props = {
       app: {
-        loadBalancers: { refresh: jasmine.createSpy('refresh'), onNextRefresh: jasmine.createSpy('onNextRefresh') },
+        loadBalancers: { refresh: vi.fn(), onNextRefresh: vi.fn() },
       },
-      closeModal: jasmine.createSpy('closeModal'),
-      dismissModal: jasmine.createSpy('dismissModal'),
+      closeModal: vi.fn(),
+      dismissModal: vi.fn(),
       isNew: false,
       loadBalancer: { name: 'service', account: 'test', region: 'us-central1' },
       router: {},
       stateParams: {},
-      stateService: { go: jasmine.createSpy('go'), includes: () => false },
+      stateService: { go: vi.fn(), includes: () => false },
       ...overrides,
     } as any;
 
@@ -42,19 +42,19 @@ describe('CloudrunLoadBalancerModal', () => {
   });
 
   it('owns its refresh subscription across replacement and unmount', () => {
-    const firstUnsubscribe = jasmine.createSpy('firstUnsubscribe');
-    const secondUnsubscribe = jasmine.createSpy('secondUnsubscribe');
+    const firstUnsubscribe = vi.fn();
+    const secondUnsubscribe = vi.fn();
     const callbacks: Array<() => void> = [];
-    const onNextRefresh = jasmine.createSpy('onNextRefresh').and.callFake((callback: () => void) => {
+    const onNextRefresh = vi.fn().mockImplementation((callback: () => void) => {
       callbacks.push(callback);
       return callbacks.length === 1 ? firstUnsubscribe : secondUnsubscribe;
     });
-    const refresh = jasmine.createSpy('refresh');
+    const refresh = vi.fn();
     const modal = buildModal({ app: { loadBalancers: { onNextRefresh, refresh } } }) as any;
 
     modal.onTaskComplete();
 
-    expect(onNextRefresh.calls.first().invocationOrder).toBeLessThan(refresh.calls.first().invocationOrder);
+    expect(onNextRefresh.mock.invocationCallOrder[0]).toBeLessThan(refresh.mock.invocationCallOrder[0]);
 
     modal.onTaskComplete();
 

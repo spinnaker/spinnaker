@@ -96,8 +96,8 @@ class BakePoller implements ApplicationListener<ContextRefreshedEvent> {
               },
               {} as Action
             )
-        } catch (Exception e) {
-          log.error("Update Polling Error:", e)
+        } catch (Throwable t) {
+          log.error("Update Polling Error:", t)
         }
       } as Runnable, 0, pollingIntervalSeconds, TimeUnit.SECONDS
     )
@@ -163,8 +163,8 @@ class BakePoller implements ApplicationListener<ContextRefreshedEvent> {
               },
               {} as Action
             )
-        } catch (Exception e) {
-          log.error("Zombie Killer Polling Error:", e)
+        } catch (Throwable t) {
+          log.error("Zombie Killer Polling Error:", t)
         }
       } as Runnable, 0, orphanedJobPollingIntervalSeconds, TimeUnit.SECONDS
     )

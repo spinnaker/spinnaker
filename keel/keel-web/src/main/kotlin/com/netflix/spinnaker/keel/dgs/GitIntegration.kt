@@ -40,7 +40,7 @@ class GitIntegration(
     DgsData(parentType = DgsConstants.MD_APPLICATION.TYPE_NAME, field = DgsConstants.MD_APPLICATION.GitIntegration),
   )
   fun gitIntegration(dfe: DgsDataFetchingEnvironment): MdGitIntegration {
-    val app: MdApplication = dfe.getSource()
+    val app: MdApplication = dfe.getSource()!!
     val config = applicationFetcherSupport.getDeliveryConfigFromContext(dfe)
     return runBlocking {
       front50Service.applicationByName(app.name)

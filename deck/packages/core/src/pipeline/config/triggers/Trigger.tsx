@@ -213,7 +213,7 @@ function TriggerTypeSelectInput(props: IFormInputProps & { triggerConfig: ITrigg
 
 function RemoveTriggerButton(props: { onClick: () => void }) {
   return (
-    <button className="btn btn-sm btn-default" onClick={props.onClick}>
+    <button aria-label="Remove trigger" className="btn btn-sm btn-default" onClick={props.onClick}>
       <span className="glyphicon glyphicon-trash" />
       <span className="visible-xl-inline">Remove trigger</span>
     </button>

@@ -17,11 +17,20 @@
 package com.netflix.spinnaker.clouddriver.google.provider.agent;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.verifyNoInteractions;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.google.api.services.compute.Compute;
 import com.google.api.services.compute.model.*;
+import com.netflix.spinnaker.clouddriver.google.batch.GoogleBatchRequest;
 import com.netflix.spinnaker.clouddriver.google.model.GoogleHealthCheck;
 import com.netflix.spinnaker.clouddriver.google.model.loadbalancing.GoogleBackendService;
-import java.lang.reflect.Method;
+import com.netflix.spinnaker.clouddriver.google.model.loadbalancing.GoogleInternalHttpLoadBalancer;
+import com.netflix.spinnaker.clouddriver.google.security.GoogleCredentials;
+import com.netflix.spinnaker.clouddriver.google.security.GoogleNamedAccountCredentials;
+import io.micrometer.core.instrument.simple.SimpleMeterRegistry;
 import java.util.ArrayList;
 import java.util.List;
 import org.junit.jupiter.api.Test;
@@ -138,7 +147,35 @@ public class GoogleInternalHttpLoadBalancerCachingAgentTest {
     assertThat(ghc).isNotNull();
     assertThat(ghc.getName()).isEqualTo("grpc-hc");
     assertThat(ghc.getPort()).isEqualTo(9090);
-    assertThat(ghc.getRequestPath()).isEqualTo("com.example.HealthService");
+    assertThat(ghc.getRequestPath()).isNull();
+    assertThat(ghc.getGrpcServiceName()).isEqualTo("com.example.HealthService");
+    assertThat(ghc.getHealthCheckType()).isEqualTo(GoogleHealthCheck.HealthCheckType.GRPC);
+  }
+
+  @Test
+  void handleHealthCheck_withGrpcHealthCheck_servingPort() throws Exception {
+    // Given
+    HealthCheck healthCheck = buildBaseHealthCheck("grpc-hc-serving-port", "us-central1");
+    GRPCHealthCheck grpcHealthCheck = new GRPCHealthCheck();
+    grpcHealthCheck.setPortSpecification("USE_SERVING_PORT");
+    grpcHealthCheck.setGrpcServiceName("com.example.HealthService");
+    healthCheck.setGrpcHealthCheck(grpcHealthCheck);
+
+    List<GoogleBackendService> googleBackendServices = new ArrayList<>();
+    googleBackendServices.add(new GoogleBackendService());
+
+    // When
+    invokeHandleHealthCheck(healthCheck, googleBackendServices);
+
+    // Then
+    GoogleBackendService backendService = googleBackendServices.get(0);
+    GoogleHealthCheck ghc = backendService.getHealthCheck();
+    assertThat(ghc).isNotNull();
+    assertThat(ghc.getName()).isEqualTo("grpc-hc-serving-port");
+    assertThat(ghc.getPort()).isNull();
+    assertThat(ghc.getPortSpecification()).isEqualTo("USE_SERVING_PORT");
+    assertThat(ghc.getRequestPath()).isNull();
+    assertThat(ghc.getGrpcServiceName()).isEqualTo("com.example.HealthService");
     assertThat(ghc.getHealthCheckType()).isEqualTo(GoogleHealthCheck.HealthCheckType.GRPC);
   }
 
@@ -205,6 +242,99 @@ public class GoogleInternalHttpLoadBalancerCachingAgentTest {
   }
 
   @Test
+  void isOwnedForwardingRule_rejectsOtherManagedSchemes() {
+    GoogleInternalHttpLoadBalancerCachingAgent agent = createAgent(mock(Compute.class));
+    ForwardingRule internalManagedRule =
+        new ForwardingRule()
+            .setLoadBalancingScheme("INTERNAL_MANAGED")
+            .setTarget("projects/test/regions/us-central1/targetHttpProxies/internal-proxy");
+    ForwardingRule externalManagedRule =
+        new ForwardingRule()
+            .setLoadBalancingScheme("EXTERNAL_MANAGED")
+            .setTarget("projects/test/regions/us-central1/targetHttpProxies/external-proxy");
+    ForwardingRule sslProxyRule =
+        new ForwardingRule()
+            .setLoadBalancingScheme("INTERNAL_MANAGED")
+            .setTarget("projects/test/regions/us-central1/targetSslProxies/ssl-proxy");
+
+    assertThat(agent.isOwnedForwardingRule(internalManagedRule)).isTrue();
+    assertThat(agent.isOwnedForwardingRule(externalManagedRule)).isFalse();
+    assertThat(agent.isOwnedForwardingRule(sslProxyRule)).isFalse();
+  }
+
+  @Test
+  void fullRefreshSkipsMalformedAndOtherProxySameSchemeForwardingRules() throws Exception {
+    GoogleInternalHttpLoadBalancerCachingAgent agent = createAgent(mock(Compute.class));
+    List<GoogleInternalHttpLoadBalancer> loadBalancers = new ArrayList<>();
+    List<String> failedLoadBalancers = new ArrayList<>();
+    GoogleBatchRequest targetProxyRequest = mock(GoogleBatchRequest.class);
+    GoogleBatchRequest urlMapRequest = mock(GoogleBatchRequest.class);
+    GoogleBatchRequest groupHealthRequest = mock(GoogleBatchRequest.class);
+    GoogleInternalHttpLoadBalancerCachingAgent.ForwardingRuleCallbacks callbacks =
+        agent
+        .new ForwardingRuleCallbacks(
+            loadBalancers,
+            failedLoadBalancers,
+            targetProxyRequest,
+            urlMapRequest,
+            groupHealthRequest,
+            List.of(),
+            List.of());
+    ForwardingRule malformedRule =
+        new ForwardingRule()
+            .setName("malformed-lb")
+            .setLoadBalancingScheme("INTERNAL_MANAGED")
+            .setTarget("projects/test/regions/us-central1/targetUnknownProxies/unsupported-proxy");
+    ForwardingRule managedTcpProxyRule =
+        new ForwardingRule()
+            .setName("managed-tcp-proxy")
+            .setLoadBalancingScheme("INTERNAL_MANAGED")
+            .setTarget("projects/test/regions/us-central1/targetTcpProxies/managed-tcp-proxy");
+
+    callbacks
+        .newForwardingRuleListCallback()
+        .onSuccess(
+            new ForwardingRuleList().setItems(List.of(malformedRule, managedTcpProxyRule)), null);
+
+    assertThat(loadBalancers).isEmpty();
+    assertThat(failedLoadBalancers).isEmpty();
+    verifyNoInteractions(targetProxyRequest, urlMapRequest, groupHealthRequest);
+  }
+
+  @Test
+  void onDemandDistinguishesMalformedSameSchemeRulesFromKnownProxyFamilies() {
+    GoogleInternalHttpLoadBalancerCachingAgent agent = createAgent(mock(Compute.class));
+    GoogleInternalHttpLoadBalancerCachingAgent.ForwardingRuleCallbacks callbacks =
+        agent
+        .new ForwardingRuleCallbacks(
+            new ArrayList<>(),
+            new ArrayList<>(),
+            mock(GoogleBatchRequest.class),
+            mock(GoogleBatchRequest.class),
+            mock(GoogleBatchRequest.class),
+            List.of(),
+            List.of());
+    ForwardingRule malformedRule =
+        new ForwardingRule()
+            .setName("malformed-lb")
+            .setLoadBalancingScheme("INTERNAL_MANAGED")
+            .setTarget("projects/test/regions/us-central1/targetUnknownProxies/unsupported-proxy");
+    ForwardingRule managedTcpProxyRule =
+        new ForwardingRule()
+            .setName("managed-tcp-proxy")
+            .setLoadBalancingScheme("INTERNAL_MANAGED")
+            .setTarget("projects/test/regions/us-central1/targetTcpProxies/managed-tcp-proxy");
+
+    assertThatThrownBy(
+            () -> callbacks.newForwardingRuleSingletonCallback().onSuccess(malformedRule, null))
+        .isInstanceOf(IllegalStateException.class);
+    assertThatThrownBy(
+            () ->
+                callbacks.newForwardingRuleSingletonCallback().onSuccess(managedTcpProxyRule, null))
+        .isInstanceOf(IllegalArgumentException.class);
+  }
+
+  @Test
   void handleHealthCheck_withMultipleBackendServices() throws Exception {
     // Given
     HealthCheck healthCheck = buildBaseHealthCheck("multi-hc", "us-central1");
@@ -232,13 +362,21 @@ public class GoogleInternalHttpLoadBalancerCachingAgentTest {
     }
   }
 
-  /** Helper method to invoke the private static handleHealthCheck method using reflection */
   private void invokeHandleHealthCheck(
-      HealthCheck healthCheck, List<GoogleBackendService> googleBackendServices) throws Exception {
-    Method handleHealthCheckMethod =
-        GoogleInternalHttpLoadBalancerCachingAgent.class.getDeclaredMethod(
-            "handleHealthCheck", HealthCheck.class, List.class);
-    handleHealthCheckMethod.setAccessible(true);
-    handleHealthCheckMethod.invoke(null, healthCheck, googleBackendServices);
+      HealthCheck healthCheck, List<GoogleBackendService> googleBackendServices) {
+    AbstractGoogleRegionalHttpLoadBalancerCachingAgent.handleHealthCheck(
+        healthCheck, googleBackendServices);
+  }
+
+  private static GoogleInternalHttpLoadBalancerCachingAgent createAgent(Compute compute) {
+    GoogleNamedAccountCredentials credentials =
+        new GoogleNamedAccountCredentials.Builder()
+            .name("auto")
+            .project("test")
+            .compute(compute)
+            .credentials(mock(GoogleCredentials.class))
+            .build();
+    return new GoogleInternalHttpLoadBalancerCachingAgent(
+        "clouddriver", credentials, new ObjectMapper(), new SimpleMeterRegistry(), "us-central1");
   }
 }

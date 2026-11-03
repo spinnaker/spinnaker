@@ -276,7 +276,7 @@ abstract class BaseClusterHandler<SPEC: ComputeResourceSpec<*>, RESOLVED: Any>(
   abstract fun Resource<SPEC>.getDeployWith(): ClusterDeployStrategy
 
   /**
-   * For titus, a deploying sha can be associated with more than one tag.
+   * For container-based clusters, a deploying image digest can be associated with more than one tag.
    * For ec2, this is irrelevant.
    *
    * override this function if more than one 'version' needs to be marked as deploying

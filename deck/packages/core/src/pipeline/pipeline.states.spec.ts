@@ -1,8 +1,9 @@
+import type { Mock } from 'vitest';
 import type { Transition } from '@uirouter/core';
 import { UIRouterReact, UIView } from '@uirouter/react';
-import { shallow } from 'enzyme';
 import React from 'react';
 
+import type { Application } from '../application';
 import { ApplicationReader } from '../application/service/ApplicationReader';
 import { createDeckRuntime } from '../bootstrap/DeckRuntime';
 import { setDirectRouter } from '../navigation/directRouter';
@@ -14,11 +15,11 @@ import './pipeline.states';
 describe('pipeline states', () => {
   const routers: UIRouterReact[] = [];
 
-  function createRouter(getExecution?: jasmine.Spy): UIRouterReact {
+  function createRouter(getExecution?: Mock): UIRouterReact {
     const router = new UIRouterReact();
     const runtime = createDeckRuntime(router);
     if (getExecution) {
-      spyOn(runtime.services.executionService, 'getExecution').and.callFake(getExecution);
+      vi.spyOn(runtime.services.executionService, 'getExecution').mockImplementation(getExecution);
     }
     router.disposable({ dispose: runtime.dispose });
     configureRouter(router, runtime.services, runtime.routingState);
@@ -43,14 +44,21 @@ describe('pipeline states', () => {
     const router = createRouter();
     const pipelinesState = router.stateRegistry.get('home.applications.application.pipelines');
     const RoutedPipelineInsight = pipelinesState.views.insight.component;
-    const errorBoundary = shallow(React.createElement(RoutedPipelineInsight, { className: 'secondary-panel' }));
-    const PipelineInsightView = errorBoundary.find(SpinErrorBoundary).prop('children').type;
+    const routedElement = React.createElement(RoutedPipelineInsight, { className: 'secondary-panel' });
+    const errorBoundary = (routedElement.type as React.FunctionComponent)(routedElement.props) as React.ReactElement;
+    expect(errorBoundary.type).toBe(SpinErrorBoundary);
 
-    const wrapper = shallow(React.createElement(PipelineInsightView, { className: 'secondary-panel' }));
+    const pipelineInsightElement = errorBoundary.props.children as React.ReactElement;
+    const wrapper = (pipelineInsightElement.type as React.FunctionComponent)(
+      pipelineInsightElement.props,
+    ) as React.ReactElement;
+    expect(wrapper.type).toBe('div');
+    expect(wrapper.props.className).toBe('flex-fill secondary-panel');
 
-    expect(wrapper.hasClass('secondary-panel')).toBe(true);
-    expect(wrapper.find(UIView).prop('name')).toBe('pipelines');
-    expect(wrapper.find(UIView).prop('className')).toBe('flex-fill');
+    const container = React.Children.only(wrapper.props.children) as React.ReactElement;
+    const view = React.Children.only(container.props.children) as React.ReactElement;
+    expect(view.type).toBe(UIView);
+    expect(view.props).toEqual(expect.objectContaining({ name: 'pipelines', className: 'flex-fill' }));
   });
 
   describe('executionLookup', () => {
@@ -65,13 +73,13 @@ describe('pipeline states', () => {
       stageId: 'stage-id',
     };
 
-    function getRedirectTo(getExecution?: jasmine.Spy) {
+    function getRedirectTo(getExecution?: Mock) {
       const router = createRouter(getExecution);
       const executionLookup = router.stateRegistry.get('home.executionLookup');
       return executionLookup.redirectTo;
     }
 
-    function createTransition(transitionParams: Record<string, string | undefined>, target: jasmine.Spy): Transition {
+    function createTransition(transitionParams: Record<string, string | undefined>, target: Mock): Transition {
       return ({
         params: () => transitionParams,
         router: { stateService: { target } },
@@ -80,33 +88,36 @@ describe('pipeline states', () => {
 
     it('resolves an execution permalink without a transition injector and preserves all target parameters', async () => {
       const execution = { application: 'resolved-application', id: params.executionId };
-      const getExecution = jasmine.createSpy('getExecution').and.resolveTo(execution);
+      const getExecution = vi.fn().mockResolvedValue(execution);
       const targetResult = { redirected: true };
-      const target = jasmine.createSpy('target').and.returnValue(targetResult);
+      const target = vi.fn().mockReturnValue(targetResult);
 
       const result = await getRedirectTo(getExecution)(createTransition(params, target));
 
-      expect(getExecution).toHaveBeenCalledOnceWith(params.executionId);
-      expect(target).toHaveBeenCalledOnceWith('home.applications.application.pipelines.executionDetails.execution', {
-        application: execution.application,
-        executionId: execution.id,
-        refId: params.refId,
-        stage: params.stage,
-        subStage: params.subStage,
-        step: params.step,
-        details: params.details,
-        stageId: params.stageId,
-      });
+      expect(getExecution).toHaveBeenCalledExactlyOnceWith(params.executionId);
+      expect(target).toHaveBeenCalledExactlyOnceWith(
+        'home.applications.application.pipelines.executionDetails.execution',
+        {
+          application: execution.application,
+          executionId: execution.id,
+          refId: params.refId,
+          stage: params.stage,
+          subStage: params.subStage,
+          step: params.step,
+          details: params.details,
+          stageId: params.stageId,
+        },
+      );
       expect(result).toBe(targetResult);
     });
 
     it('resolves an execution permalink through a real direct transition', async () => {
       const execution = { application: 'resolved-application', id: params.executionId };
-      const getExecution = jasmine.createSpy('getExecution').and.resolveTo(execution);
-      spyOn(ApplicationReader, 'getApplication').and.resolveTo({
+      const getExecution = vi.fn().mockResolvedValue(execution);
+      vi.spyOn(ApplicationReader, 'getApplication').mockResolvedValue({
         name: execution.application,
         dataSources: [],
-      } as any);
+      } as Application);
       const router = createRouter(getExecution);
 
       await router.stateService.go('home.executionLookup', params, { location: false });
@@ -115,13 +126,13 @@ describe('pipeline states', () => {
         'home.applications.application.pipelines.executionDetails.execution',
       );
       expect(router.globals.params).toEqual(
-        jasmine.objectContaining({ application: execution.application, executionId: execution.id }),
+        expect.objectContaining({ application: execution.application, executionId: execution.id }),
       );
     });
 
     it('returns undefined without looking up an execution when the execution ID is missing', () => {
-      const getExecution = jasmine.createSpy('getExecution');
-      const target = jasmine.createSpy('target');
+      const getExecution = vi.fn();
+      const target = vi.fn();
 
       const result = getRedirectTo(getExecution)(createTransition({ ...params, executionId: undefined }, target));
 
@@ -131,8 +142,8 @@ describe('pipeline states', () => {
     });
 
     it('returns undefined when the execution lookup is rejected', async () => {
-      const getExecution = jasmine.createSpy('getExecution').and.rejectWith(new Error('not found'));
-      const target = jasmine.createSpy('target');
+      const getExecution = vi.fn().mockRejectedValue(new Error('not found'));
+      const target = vi.fn();
 
       const result = await getRedirectTo(getExecution)(createTransition(params, target));
 

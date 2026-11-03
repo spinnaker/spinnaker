@@ -26,7 +26,6 @@ import com.github.tomakehurst.wiremock.client.WireMock;
 import com.github.tomakehurst.wiremock.http.Fault;
 import com.github.tomakehurst.wiremock.http.HttpHeaders;
 import com.github.tomakehurst.wiremock.junit5.WireMockExtension;
-import com.github.tomakehurst.wiremock.junit5.WireMockRuntimeInfo;
 import com.netflix.spinnaker.kork.retrofit.ErrorHandlingExecutorCallAdapterFactory;
 import com.netflix.spinnaker.orca.api.pipeline.models.StageExecution;
 import com.netflix.spinnaker.orca.mine.MineService;
@@ -67,10 +66,10 @@ public class RegisterCanaryTaskTest {
       WireMockExtension.newInstance().options(wireMockConfig().dynamicPort()).build();
 
   @BeforeAll
-  static void setupOnce(WireMockRuntimeInfo wmRuntimeInfo) {
+  static void setupOnce() {
     mineService =
         new Retrofit.Builder()
-            .baseUrl(wmRuntimeInfo.getHttpBaseUrl())
+            .baseUrl(wireMock.baseUrl())
             .client(new OkHttpClient())
             .addCallAdapterFactory(ErrorHandlingExecutorCallAdapterFactory.getInstance())
             .addConverterFactory(JacksonConverterFactory.create(objectMapper))

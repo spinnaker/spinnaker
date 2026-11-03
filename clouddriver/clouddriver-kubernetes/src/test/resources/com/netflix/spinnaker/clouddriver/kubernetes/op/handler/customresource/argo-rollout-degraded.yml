@@ -1,0 +1,19 @@
+# Argo Rollout whose new version failed, with a non-numeric observedGeneration
+# (older Argo Rollouts versions wrote a hash here).
+apiVersion: argoproj.io/v1alpha1
+kind: Rollout
+metadata:
+  name: my-rollout
+  namespace: default
+  generation: 5
+spec:
+  replicas: 3
+status:
+  observedGeneration: 7d9f5c8b6
+  phase: Degraded
+  message: "ProgressDeadlineExceeded: ReplicaSet \"my-rollout-7d9f5c8b6\" has timed out progressing."
+  conditions:
+    - type: Progressing
+      status: "False"
+      reason: ProgressDeadlineExceeded
+      message: ReplicaSet "my-rollout-7d9f5c8b6" has timed out progressing.

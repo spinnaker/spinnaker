@@ -178,7 +178,7 @@ class CreateBakeTask implements RetryableTask {
       artifactUtils.getBoundArtifactForId(stage, artifactId)
     }
 
-    // Workaround for deck/titusBakeStage.js historically injecting baseOs=trusty into stage definitions;
+    // Workaround for older Deck docker bake stages historically injecting baseOs=trusty into stage definitions;
     // baseOs is unnecessary for docker bakes
     if ("docker" == requestMap.storeType) {
       requestMap.remove("baseOs")

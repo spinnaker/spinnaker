@@ -196,10 +196,20 @@ class Keys implements KeyParser {
         }
         break
       case Namespace.SSL_CERTIFICATES.ns:
-        result << [
-          account: parts[2],
-          name   : parts[3],
-        ]
+        // Regional certificates carry a region segment (gce:sslCertificates:account:region:name);
+        // global ones keep the original four-part key.
+        if (parts.length == 5) {
+          result << [
+            account: parts[2],
+            region : parts[3],
+            name   : parts[4],
+          ]
+        } else {
+          result << [
+            account: parts[2],
+            name   : parts[3],
+          ]
+        }
         break
       case Namespace.SUBNETS.ns:
         result << [
@@ -300,6 +310,12 @@ class Keys implements KeyParser {
   static String getSslCertificateKey(String account,
                                      String sslCertificateName) {
     "$GoogleCloudProvider.ID:${Namespace.SSL_CERTIFICATES}:${account}:${sslCertificateName}"
+  }
+
+  static String getSslCertificateKey(String account,
+                                     String region,
+                                     String sslCertificateName) {
+    "$GoogleCloudProvider.ID:${Namespace.SSL_CERTIFICATES}:${account}:${region}:${sslCertificateName}"
   }
 
   static String getSubnetKey(String subnetName,

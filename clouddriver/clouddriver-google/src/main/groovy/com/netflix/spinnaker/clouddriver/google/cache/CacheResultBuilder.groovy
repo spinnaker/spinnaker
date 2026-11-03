@@ -55,6 +55,11 @@ class CacheResultBuilder {
       .collect(toImmutableSet())
   }
 
+  CacheResultBuilder(Collection<AgentDataType> dataTypes, Long startTime) {
+    this(dataTypes)
+    this.startTime = startTime
+  }
+
   Map<String, NamespaceBuilder> namespaceBuilders = [:].withDefault {
     String ns -> new NamespaceBuilder(namespace: ns)
   }

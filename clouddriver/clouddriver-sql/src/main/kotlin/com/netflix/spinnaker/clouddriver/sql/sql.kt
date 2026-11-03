@@ -15,7 +15,16 @@
  */
 package com.netflix.spinnaker.clouddriver.sql
 
-import io.github.resilience4j.retry.annotation.Retry
+import com.netflix.spinnaker.clouddriver.sql.exceptions.SqlUnavailableException
+import com.netflix.spinnaker.kork.sql.config.RetryProperties
+import com.netflix.spinnaker.kork.sql.config.SqlRetryProperties
+import io.github.resilience4j.retry.Retry
+import io.github.resilience4j.retry.RetryConfig
+import java.sql.SQLNonTransientConnectionException
+import java.sql.SQLRecoverableException
+import java.sql.SQLTransientConnectionException
+import java.sql.SQLTransientException
+import java.time.Duration
 import org.jooq.DSLContext
 import org.jooq.impl.DSL
 import org.jooq.impl.DSL.field
@@ -32,20 +41,66 @@ internal val taskResultsFields = listOf("id", "task_id", "body").map { field(it)
 internal val taskOutputsFields = listOf("id", "task_id", "created_at", "manifest", "phase", "std_out", "std_error").map { field(it) }
 
 /**
- * Run the provided [fn] in a transaction, retrying on failures using resilience4j.retry.instances.sqlTransaction
- * configuration.
+ * Retry behaviour for clouddriver-sql repositories, configured by `sql.retries` ([SqlRetryProperties]) like
+ * cats-sql's `SqlCache`. Only transient failures (lost connections, deadlocks, timeouts) are retried; anything
+ * else, such as a constraint violation, fails on the first attempt.
  */
-@Retry(name = "sqlTransaction")
-internal fun DSLContext.transactional(fn: (DSLContext) -> Unit) {
-  transaction { ctx ->
-    fn(DSL.using(ctx))
+class SqlRetries(properties: SqlRetryProperties = SqlRetryProperties()) {
+  internal val transaction: Retry = retry("sqlTransaction", properties.transactions)
+  internal val read: Retry = retry("sqlRead", properties.reads)
+
+  private fun retry(name: String, properties: RetryProperties): Retry =
+    Retry.of(
+      name,
+      RetryConfig.custom<Any>()
+        .maxAttempts(properties.maxRetries)
+        .waitDuration(Duration.ofMillis(properties.backoffMs))
+        .retryOnException(::isTransient)
+        .build()
+    )
+}
+
+/**
+ * Run the provided [fn] in a transaction, retrying transient failures per [retries].
+ *
+ * @throws SqlUnavailableException if the database is still unreachable once retries are exhausted
+ */
+internal fun DSLContext.transactional(retries: SqlRetries, fn: (DSLContext) -> Unit) {
+  reportUnavailable {
+    retries.transaction.executeRunnable {
+      transaction { ctx ->
+        fn(DSL.using(ctx))
+      }
+    }
   }
 }
 
 /**
- * Run the provided [fn], retrying on failures using resilience4j.retry.instances.sqlRead configuration.
+ * Run the provided [fn], retrying transient failures per [retries].
+ *
+ * @throws SqlUnavailableException if the database is still unreachable once retries are exhausted
  */
-@Retry(name = "sqlRead")
-internal fun <T> DSLContext.read(fn: (DSLContext) -> T): T {
-  return fn(this)
-}
+internal fun <T> DSLContext.read(retries: SqlRetries, fn: (DSLContext) -> T): T =
+  reportUnavailable {
+    retries.read.executeSupplier { fn(this) }
+  }
+
+private inline fun <T> reportUnavailable(fn: () -> T): T =
+  try {
+    fn()
+  } catch (e: Exception) {
+    if (isConnectionFailure(e)) {
+      throw SqlUnavailableException("Database unavailable after retries: ${e.message}", e)
+    }
+    throw e
+  }
+
+private fun Throwable.causes(): Sequence<Throwable> = generateSequence(this) { it.cause }
+
+private fun isTransient(t: Throwable): Boolean =
+  t.causes().any { it is SQLTransientException || it is SQLRecoverableException || it is SQLNonTransientConnectionException }
+
+private fun isConnectionFailure(t: Throwable): Boolean =
+  t.causes().any {
+    it is SQLTransientConnectionException || it is SQLRecoverableException || it is SQLNonTransientConnectionException
+  }

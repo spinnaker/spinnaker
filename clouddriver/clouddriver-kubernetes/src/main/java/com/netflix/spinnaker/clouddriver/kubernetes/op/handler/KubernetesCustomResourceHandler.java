@@ -30,9 +30,12 @@ import javax.annotation.Nonnull;
 public class KubernetesCustomResourceHandler extends KubernetesHandler implements CanDelete {
 
   private final KubernetesKind kind;
+  private final CustomResourceStatusEvaluator statusEvaluator;
 
-  public KubernetesCustomResourceHandler(KubernetesKind kind) {
+  public KubernetesCustomResourceHandler(
+      KubernetesKind kind, CustomResourceStatusEvaluator statusEvaluator) {
     this.kind = kind;
+    this.statusEvaluator = statusEvaluator;
   }
 
   @Override
@@ -59,7 +62,7 @@ public class KubernetesCustomResourceHandler extends KubernetesHandler implement
 
   @Override
   public Manifest.Status status(KubernetesManifest manifest) {
-    return Manifest.Status.defaultStatus();
+    return statusEvaluator.status(manifest);
   }
 
   @Override

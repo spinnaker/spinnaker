@@ -28,7 +28,7 @@ import com.netflix.spinnaker.credentials.definition.CredentialsDefinition;
 import java.io.IOException;
 import java.util.regex.Matcher;
 import lombok.extern.log4j.Log4j2;
-import org.springframework.boot.jackson.JsonComponent;
+import org.springframework.boot.jackson2.JsonComponent;
 
 /**
  * Sensitive string serializer for Jackson. Used to help prevent accidental leakage of sensitive

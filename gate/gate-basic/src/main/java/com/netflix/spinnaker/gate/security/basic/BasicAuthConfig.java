@@ -21,17 +21,15 @@ import com.netflix.spinnaker.gate.security.SpinnakerAuthConfig;
 import com.netflix.spinnaker.kork.annotations.VisibleForTesting;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnExpression;
-import org.springframework.boot.autoconfigure.security.SecurityProperties;
+import org.springframework.boot.security.autoconfigure.SecurityProperties;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.core.annotation.Order;
-import org.springframework.security.config.Customizer;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.LoginUrlAuthenticationEntryPoint;
 import org.springframework.security.web.savedrequest.HttpSessionRequestCache;
-import org.springframework.session.web.http.DefaultCookieSerializer;
 
 @ConditionalOnExpression("${security.basicform.enabled:false}")
 @Configuration
@@ -43,30 +41,32 @@ public class BasicAuthConfig {
 
   private final BasicAuthProvider authProvider;
 
-  @VisibleForTesting protected final DefaultCookieSerializer defaultCookieSerializer;
-
   @Autowired
-  public BasicAuthConfig(
-      AuthConfig authConfig,
-      SecurityProperties securityProperties,
-      DefaultCookieSerializer defaultCookieSerializer) {
+  public BasicAuthConfig(AuthConfig authConfig, SecurityProperties securityProperties) {
     this.authConfig = authConfig;
     this.authProvider = new BasicAuthProvider(securityProperties);
-    this.defaultCookieSerializer = defaultCookieSerializer;
   }
 
   @Bean
   // ManagedDeliverySchemaEndpointConfiguration#schemaSecurityFilterChain should go first
   @Order(3)
   public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
-    defaultCookieSerializer.setSameSite(null);
-
     // Configure request cache to save original requests.  This enables the "continue" by doing a
     // session lookup
     // See: https://stackoverflow.com/a/75228661
     HttpSessionRequestCache requestCache = new HttpSessionRequestCache();
     requestCache.setMatchingRequestParameterName(null);
-    http.formLogin(Customizer.withDefaults())
+    http.formLogin(
+            form ->
+                form
+                    // Serve the branded Spinnaker login page (see LoginController) instead of the
+                    // default Spring Security one. POST /login still processes the
+                    // username/password
+                    // form. permitAll() grants access to the login page, the login processing URL
+                    // and
+                    // the failure URL.
+                    .loginPage("/login")
+                    .permitAll())
         .requestCache(cache -> cache.requestCache(requestCache))
         .authenticationProvider(authProvider)
         .httpBasic(

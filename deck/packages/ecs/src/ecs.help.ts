@@ -39,6 +39,10 @@ const helpContents: { [key: string]: string } = {
   'ecs.enableDeploymentCircuitBreaker': '<p>Enable circuit breaker for the ECS service.</p>',
   'ecs.capacity.copySourceScalingPoliciesAndActions':
     '<p>Copy Application Autoscaling policies and their associated alarms from the previous ECS service.</p>',
+  'ecs.capacity.copySourceMonitoringConfiguration':
+    "<p>Copy the previous ECS service's monitoring configuration (CloudWatch metric resolution) to the new service.</p><p>High-resolution (20-second) CPUUtilization and MemoryUtilization metrics are required by the <code>ECSServiceAverageCPUUtilizationHighResolution</code> and <code>ECSServiceAverageMemoryUtilizationHighResolution</code> target tracking scaling policies. Without them, copied high-resolution policies will not scale the new service.</p><p>An explicit high-resolution metrics selection below overrides the copied configuration.</p>",
+  'ecs.capacity.monitoringConfiguration':
+    '<p>Explicitly enable high-resolution (20-second) CloudWatch metrics for the new ECS service. Unselected metrics keep the standard 60-second resolution.</p><p>High-resolution metrics are required by the <code>ECSServiceAverageCPUUtilizationHighResolution</code> and <code>ECSServiceAverageMemoryUtilizationHighResolution</code> target tracking scaling policies and incur additional CloudWatch charges.</p><p>When at least one metric is selected, this setting takes precedence over the monitoring configuration copied from the previous server group. See <a href="https://docs.aws.amazon.com/AmazonECS/latest/developerguide/cloudwatch-metrics.html" target="_blank">AWS documentation</a> for more details.</p>',
   'ecs.launchtype': '<p>Launch service tasks on your own EC2 instances or on Fargate.</p>',
   'ecs.healthgraceperiod':
     '<p>How long a container will be kept alive despite the load balancer health checks, in seconds.</p>',
@@ -86,6 +90,22 @@ const helpContents: { [key: string]: string } = {
     '<p>Designates the relative percentage of the total number of tasks launched that should use the specified capacity provider.</p>',
   'ecs.evaluateExpression':
     '<p>Whether to evaluate <a href="https://spinnaker.io/guides/user/pipeline/expressions/" target="_blank"><b>pipeline expressions</b></a> within the task definition artifact in this stage. Checking this box let\'s you evaluate your task definition artifact coming from external sources.(e.g. GitHub) </p>',
+  'ecs.native.useEcsNative':
+    '<p>Use the ECS service deployment controller to roll task-definition revisions in place, rather than creating a new Spinnaker server group for each deployment.</p>',
+  'ecs.native.deploymentCircuitBreakerRollback':
+    '<p>When enabled with the deployment circuit breaker, ECS automatically rolls back a failed deployment to the last completed deployment.</p>',
+  'ecs.native.alarmNames':
+    '<p>Select CloudWatch alarms that ECS should monitor during the deployment. A deployment can be rolled back when a selected alarm enters an alarm state.</p>',
+  'ecs.native.deploymentAlarmsRollback':
+    '<p>Automatically roll back the ECS deployment when one of the selected deployment alarms enters an alarm state.</p>',
+  'ecs.native.deploymentStrategy':
+    '<p>Choose ECS rolling deployment or Blue/Green deployment. Blue/Green deployments with a load balancer also require the complete ALB traffic-shift configuration below.</p>',
+  'ecs.native.lifecyclePause':
+    '<p>Opt-in ECS PAUSE lifecycle hook for Blue/Green. ECS holds the deployment at the chosen stage; a Continue ECS Native Service Deployment stage after a Manual Judgment (or any other gate) then continues or rolls back. If nothing acts before the timeout, ECS applies the timeout action.</p>',
+  'ecs.native.bakeTimeInMinutes':
+    '<p>The number of minutes ECS waits after the new task set is healthy before completing the deployment and retiring the previous revision.</p>',
+  'ecs.native.blueGreenAdvanced':
+    '<p>The ALB traffic-shift configuration for a Blue/Green deploy: an alternate target group, the production and test listener rules, and the IAM role ECS assumes to modify them. ECS routes test traffic at the new task set through the test listener rule, then shifts production traffic over.</p><p>These are <b>optional only when the service has no load balancer</b>. When a target group is attached, AWS ECS <b>requires</b> all four for a Blue/Green deploy and rejects it otherwise. Provide all four together, or all left blank; a partial set is always invalid.</p>',
 };
 
 Object.keys(helpContents).forEach((key) => HelpContentsRegistry.register(key, helpContents[key]));

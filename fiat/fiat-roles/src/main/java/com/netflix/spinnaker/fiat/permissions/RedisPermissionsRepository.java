@@ -16,6 +16,7 @@
 
 package com.netflix.spinnaker.fiat.permissions;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.github.benmanes.caffeine.cache.Caffeine;
@@ -29,7 +30,9 @@ import com.netflix.spinnaker.kork.exceptions.IntegrationException;
 import com.netflix.spinnaker.kork.exceptions.SpinnakerException;
 import com.netflix.spinnaker.kork.jedis.RedisClientDelegate;
 import io.github.resilience4j.retry.RetryRegistry;
+import java.io.ByteArrayOutputStream;
 import java.io.IOException;
+import java.io.UncheckedIOException;
 import java.time.Clock;
 import java.time.Duration;
 import java.time.Instant;
@@ -37,12 +40,15 @@ import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ForkJoinPool;
+import java.util.concurrent.atomic.AtomicLong;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 import lombok.NonNull;
 import lombok.extern.slf4j.Slf4j;
 import net.jpountz.lz4.*;
+import net.jpountz.xxhash.StreamingXXHash64;
+import net.jpountz.xxhash.XXHashFactory;
 import redis.clients.jedis.*;
 import redis.clients.jedis.commands.JedisBinaryCommands;
 import redis.clients.jedis.util.SafeEncoder;
@@ -59,6 +65,13 @@ import redis.clients.jedis.util.SafeEncoder;
  * <p>It's important to note that gets and puts are not symmetrical by design. That is, what you put
  * in will likely not be exactly what you get out. That's because of "unrestricted" resources, which
  * are added to the returned UserPermission.
+ *
+ * <p>Each per-user resource key has a companion "permissions-v2-digest" key holding the configured
+ * digest generation, a hash of the uncompressed value and the length of the stored value, which
+ * lets a put skip rewriting keys whose content has not changed. Digests are stored in Redis rather
+ * than in memory because puts for the same user happen on every Fiat instance (syncs move between
+ * instances with the lock, and logins can land anywhere), so only Redis knows what was last
+ * written.
  */
 @Slf4j
 public class RedisPermissionsRepository implements PermissionsRepository {
@@ -67,6 +80,7 @@ public class RedisPermissionsRepository implements PermissionsRepository {
 
   private static final String KEY_PERMISSIONS = "permissions";
   private static final String KEY_PERMISSIONS_V2 = "permissions-v2";
+  private static final String KEY_PERMISSIONS_V2_DIGEST = "permissions-v2-digest";
   private static final String KEY_ROLES = "roles";
   private static final String KEY_ALL_USERS = "users";
   private static final String KEY_ADMIN = "admin";
@@ -75,6 +89,12 @@ public class RedisPermissionsRepository implements PermissionsRepository {
 
   private static final String UNRESTRICTED = UnrestrictedResourceConfig.UNRESTRICTED_USERNAME;
   private static final String NO_LAST_MODIFIED = "unknown_last_modified";
+
+  // A Java (not JNI) instance, so streaming hashes hold no native memory that needs closing.
+  private static final XXHashFactory XX_HASH_FACTORY = XXHashFactory.fastestJavaInstance();
+  private static final long DIGEST_SEED = 0L;
+  private static final byte[] JSON_OBJECT_START = {'{'};
+  private static final byte[] JSON_ENTRY_SEPARATOR = {','};
 
   private final Clock clock;
   private final ObjectMapper objectMapper;
@@ -205,13 +225,91 @@ public class RedisPermissionsRepository implements PermissionsRepository {
     }
   }
 
+  private enum WriteAction {
+    SKIP,
+    WRITE,
+    DELETE
+  }
+
   private static class PutUpdateData {
+    public ResourceType resourceType;
     public byte[] userResourceKey;
+    public byte[] digestKey;
+    public List<byte[]> serializedResources;
+    public String digest;
+    public byte[] storedDigest;
+    public long storedLength = -1;
+    public WriteAction action;
     public byte[] compressedData;
+    public byte[] digestValue;
+  }
+
+  /**
+   * State shared by every put of a single {@link #putAllById} call, so that a resource visible to
+   * many users is serialized once rather than once per user.
+   */
+  private class PutContext {
+    // Keyed by identity: resources are equal by type and name, even when their permissions or
+    // details differ (e.g. after a provider cache refresh mid-sync).
+    private final Map<IdentityKey, byte[]> serializedResources = new ConcurrentHashMap<>();
+    private final AtomicLong keysWritten = new AtomicLong();
+    private final AtomicLong keysUnchanged = new AtomicLong();
+
+    /** Returns each resource serialized as a single-entry map, sorted by resource name. */
+    List<byte[]> serializeSortedByName(Map<String, Resource> resourcesByName)
+        throws JsonProcessingException {
+      List<String> names = new ArrayList<>(resourcesByName.keySet());
+      // HashMap iteration order depends on insertion history; sorting keeps the bytes, and so the
+      // digest, stable for unchanged content.
+      Collections.sort(names);
+      List<byte[]> serialized = new ArrayList<>(names.size());
+      for (String name : names) {
+        serialized.add(serialize(name, resourcesByName.get(name)));
+      }
+      return serialized;
+    }
+
+    private byte[] serialize(String name, Resource resource) throws JsonProcessingException {
+      try {
+        return serializedResources.computeIfAbsent(
+            new IdentityKey(resource),
+            key -> {
+              try {
+                return objectMapper.writeValueAsBytes(Collections.singletonMap(name, resource));
+              } catch (JsonProcessingException e) {
+                throw new UncheckedIOException(e);
+              }
+            });
+      } catch (UncheckedIOException e) {
+        throw (JsonProcessingException) e.getCause();
+      }
+    }
+  }
+
+  private static final class IdentityKey {
+    private final Object ref;
+
+    IdentityKey(Object ref) {
+      this.ref = ref;
+    }
+
+    @Override
+    public boolean equals(Object o) {
+      return o instanceof IdentityKey && ((IdentityKey) o).ref == ref;
+    }
+
+    @Override
+    public int hashCode() {
+      return System.identityHashCode(ref);
+    }
   }
 
   @Override
   public RedisPermissionsRepository put(@NonNull UserPermission permission) {
+    return put(permission, new PutContext());
+  }
+
+  private RedisPermissionsRepository put(UserPermission permission, PutContext context) {
     String userId = permission.getId();
     byte[] bUserId = SafeEncoder.encode(userId);
     List<ResourceType> resourceTypes =
@@ -229,24 +327,53 @@ public class RedisPermissionsRepository implements PermissionsRepository {
             });
 
     try {
-      Set<Role> existingRoles = new HashSet<>(getUserRoleMapFromRedis(userId).values());
-
       // These updates are pre-prepared to reduce work done during the multi-key pipeline
       List<PutUpdateData> updateData = new ArrayList<>();
       for (ResourceType rt : resourceTypes) {
         Map<String, Resource> redisValue = resourceTypeToRedisValue.get(rt);
-        byte[] userResourceKey = userKey(userId, rt);
         PutUpdateData pud = new PutUpdateData();
-        pud.userResourceKey = userResourceKey;
+        pud.resourceType = rt;
+        pud.userResourceKey = userKey(userId, rt);
+        pud.digestKey = digestKey(userId, rt);
 
-        if (redisValue == null || redisValue.size() == 0) {
-          pud.compressedData = null;
-        } else {
-          pud.compressedData = lz4Compressor.compress(objectMapper.writeValueAsBytes(redisValue));
+        if (redisValue != null && !redisValue.isEmpty()) {
+          pud.serializedResources = context.serializeSortedByName(redisValue);
+          pud.digest =
+              configProps.getRepository().getWriteDigestGeneration()
+                  + ":"
+                  + Long.toHexString(digest(pud.serializedResources));
         }
 
         updateData.add(pud);
       }
+
+      if (configProps.getRepository().isSkipUnchangedWrites()) {
+        readStoredDigests(updateData);
+      }
+      Duration digestTtl = configProps.getRepository().getWriteDigestTtl();
+      long digestTtlMillis = digestTtl == null ? 0 : digestTtl.toMillis();
+
+      List<PutUpdateData> changes = new ArrayList<>();
+      for (PutUpdateData pud : updateData) {
+        pud.action = writeAction(pud);
+        if (pud.action == WriteAction.WRITE) {
+          pud.compressedData = lz4Compressor.compress(toMapJson(pud.serializedResources));
+          pud.digestValue = SafeEncoder.encode(pud.digest + ":" + pud.compressedData.length);
+        }
+        if (pud.action != WriteAction.SKIP) {
+          changes.add(pud);
+        }
+      }
+
+      // The roles:<role> sets are maintained alongside the user's role key, so they only need
+      // updating when that key changes.
+      boolean rolesChanged =
+          updateData.stream()
+              .noneMatch(
+                  pud ->
+                      pud.resourceType.equals(ResourceType.ROLE) && pud.action == WriteAction.SKIP);
+      Set<Role> existingRoles =
+          rolesChanged ? new HashSet<>(getUserRoleMapFromRedis(userId).values()) : Set.of();
 
       AtomicReference<Response<List<String>>> serverTime = new AtomicReference<>();
       redisClientDelegate.withMultiKeyPipeline(
@@ -263,19 +390,11 @@ public class RedisPermissionsRepository implements PermissionsRepository {
               pipeline.srem(accountManagersKey, bUserId);
             }
 
-            permission.getRoles().forEach(role -> pipeline.sadd(roleKey(role), bUserId));
-            existingRoles.stream()
-                .filter(it -> !permission.getRoles().contains(it))
-                .forEach(role -> pipeline.srem(roleKey(role), bUserId));
-
-            for (PutUpdateData pud : updateData) {
-              if (pud.compressedData == null) {
-                pipeline.del(pud.userResourceKey);
-              } else {
-                byte[] tempKey = SafeEncoder.encode(UUID.randomUUID().toString());
-                pipeline.set(tempKey, pud.compressedData);
-                pipeline.rename(tempKey, pud.userResourceKey);
-              }
+            if (rolesChanged) {
+              permission.getRoles().forEach(role -> pipeline.sadd(roleKey(role), bUserId));
+              existingRoles.stream()
+                  .filter(it -> !permission.getRoles().contains(it))
+                  .forEach(role -> pipeline.srem(roleKey(role), bUserId));
             }
 
             serverTime.set(pipeline.time());
@@ -283,6 +402,47 @@ public class RedisPermissionsRepository implements PermissionsRepository {
 
             pipeline.sync();
           });
+
+      if (!changes.isEmpty()) {
+        // Each key and its digest are replaced together so that concurrent puts of the same
+        // user (e.g. a sync on one pod and a login on another) cannot interleave and leave
+        // one put's digest describing the other put's data.
+        List<Object> execResult =
+            redisClientDelegate.withTransaction(
+                (Transaction tx) -> {
+                  try (tx) {
+                    for (PutUpdateData pud : changes) {
+                      if (pud.action == WriteAction.DELETE) {
+                        tx.del(pud.userResourceKey);
+                        tx.del(pud.digestKey);
+                      } else {
+                        byte[] tempKey = SafeEncoder.encode(UUID.randomUUID().toString());
+                        tx.set(tempKey, pud.compressedData);
+                        tx.rename(tempKey, pud.userResourceKey);
+                        if (digestTtlMillis > 0) {
+                          tx.psetex(pud.digestKey, digestTtlMillis, pud.digestValue);
+                        } else {
+                          tx.set(pud.digestKey, pud.digestValue);
+                        }
+                      }
+                    }
+                    return tx.exec();
+                  }
+                });
+        // Surface an aborted transaction or any failed command inside it; the catch below then
+        // drops the user's digests, which may describe data that was not written.
+        if (execResult == null) {
+          throw new IllegalStateException("Redis transaction for " + userId + " was aborted");
+        }
+        for (Object result : execResult) {
+          if (result instanceof RuntimeException) {
+            throw (RuntimeException) result;
+          }
+        }
+      }
+      context.keysWritten.addAndGet(changes.size());
+      context.keysUnchanged.addAndGet(updateData.size() - changes.size());
+
       if (UNRESTRICTED.equals(userId)) {
         String lastModified = serverTime.get().get().get(0);
         redisClientDelegate.withCommandsClient(
@@ -293,8 +453,109 @@ public class RedisPermissionsRepository implements PermissionsRepository {
       }
     } catch (Exception e) {
       log.error("Storage exception writing {} entry.", userId, e);
+      deleteDigests(userId);
     }
     return this;
+  }
+
+  /**
+   * Reads each key's digest and the current length of the key it describes in one round trip. The
+   * length check catches keys deleted or rewritten by something that did not maintain the digest,
+   * such as an older Fiat version during a rolling deploy.
+   */
+  private void readStoredDigests(List<PutUpdateData> updateData) {
+    retryRegistry
+        .retry(REDIS_READ_RETRY)
+        .executeRunnable(
+            () ->
+                redisClientDelegate.withMultiKeyPipeline(
+                    pipeline -> {
+                      List<Response<byte[]>> digests = new ArrayList<>(updateData.size());
+                      List<Response<Long>> lengths = new ArrayList<>(updateData.size());
+                      for (PutUpdateData pud : updateData) {
+                        digests.add(pipeline.get(pud.digestKey));
+                        lengths.add(pipeline.strlen(pud.userResourceKey));
+                      }
+                      pipeline.sync();
+                      for (int i = 0; i < updateData.size(); i++) {
+                        updateData.get(i).storedDigest = digests.get(i).get();
+                        updateData.get(i).storedLength = lengths.get(i).get();
+                      }
+                    }));
+  }
+
+  private static WriteAction writeAction(PutUpdateData pud) {
+    if (pud.serializedResources == null) {
+      boolean nothingStored = pud.storedLength == 0 && pud.storedDigest == null;
+      return nothingStored ? WriteAction.SKIP : WriteAction.DELETE;
+    }
+    String expectedDigest = pud.digest + ":" + pud.storedLength;
+    boolean unchanged =
+        pud.storedDigest != null && expectedDigest.equals(SafeEncoder.encode(pud.storedDigest));
+    return unchanged ? WriteAction.SKIP : WriteAction.WRITE;
+  }
+
+  private void deleteDigests(String userId) {
+    try {
+      redisClientDelegate.withMultiKeyPipeline(
+          pipeline -> {
+            resources.stream()
+                .map(Resource::getResourceType)
+                .forEach(r -> pipeline.del(digestKey(userId, r)));
+            pipeline.sync();
+          });
+    } catch (Exception e) {
+      log.error("Failed to delete write digests for {}.", userId, e);
+    }
+  }
+
+  private static long digest(List<byte[]> serializedResources) {
+    StreamingXXHash64 hash = XX_HASH_FACTORY.newStreamingHash64(DIGEST_SEED);
+    writeMapJson(serializedResources, hash::update);
+    return hash.getValue();
+  }
+
+  private static byte[] toMapJson(List<byte[]> serializedResources) {
+    int maxLength = serializedResources.stream().mapToInt(it -> it.length).sum();
+    ByteArrayOutputStream out = new ByteArrayOutputStream(maxLength);
+    writeMapJson(serializedResources, out::write);
+    return out.toByteArray();
+  }
+
+  /**
+   * Joins single-entry JSON maps into the bytes the ObjectMapper writes for one map holding all of
+   * their entries in the same order, including any pretty-printer whitespace.
+   */
+  private static void writeMapJson(List<byte[]> singleEntryMaps, ByteSink sink) {
+    sink.write(JSON_OBJECT_START, 0, 1);
+    for (int i = 0; i < singleEntryMaps.size(); i++) {
+      if (i > 0) {
+        sink.write(JSON_ENTRY_SEPARATOR, 0, 1);
+      }
+      byte[] map = singleEntryMaps.get(i);
+      sink.write(map, 1, entryEnd(map) - 1);
+    }
+    byte[] last = singleEntryMaps.get(singleEntryMaps.size() - 1);
+    int end = entryEnd(last);
+    sink.write(last, end, last.length - end);
+  }
+
+  /** Returns the index just past the entry of a single-entry JSON map. */
+  private static int entryEnd(byte[] singleEntryMap) {
+    int end = singleEntryMap.length - 1;
+    while (end > 1 && isJsonWhitespace(singleEntryMap[end - 1])) {
+      end--;
+    }
+    return end;
+  }
+
+  private static boolean isJsonWhitespace(byte b) {
+    return b == ' ' || b == '\n' || b == '\r' || b == '\t';
+  }
+
+  @FunctionalInterface
+  private interface ByteSink {
+    void write(byte[] bytes, int offset, int length);
   }
 
   @Override
@@ -303,8 +564,18 @@ public class RedisPermissionsRepository implements PermissionsRepository {
       return;
     }
 
+    PutContext context = new PutContext();
     try {
-      syncThreadPool.submit(() -> permissions.values().parallelStream().forEach(this::put)).get();
+      syncThreadPool
+          .submit(() -> permissions.values().parallelStream().forEach(p -> put(p, context)))
+          .get();
+      log.info(
+          "Persisted permissions for {} users: wrote {} keys, left {} unchanged, "
+              + "serialized {} distinct resources",
+          permissions.size(),
+          context.keysWritten.get(),
+          context.keysUnchanged.get(),
+          context.serializedResources.size());
     } catch (ExecutionException e) {
       log.error("Failed to put permissions in parallel", e.getCause());
       throw new IntegrationException("Failed to put permissions", e.getCause());
@@ -475,6 +746,7 @@ public class RedisPermissionsRepository implements PermissionsRepository {
             userRolesById.keySet().forEach(roleName -> p.srem(roleKey(roleName), bId));
 
             resources.stream().map(Resource::getResourceType).forEach(r -> p.del(userKey(id, r)));
+            resources.stream().map(Resource::getResourceType).forEach(r -> p.del(digestKey(id, r)));
             p.srem(adminKey, bId);
             p.srem(accountManagersKey, bId);
             p.sync();
@@ -546,6 +818,11 @@ public class RedisPermissionsRepository implements PermissionsRepository {
   private byte[] userKey(String userId, ResourceType r) {
     return SafeEncoder.encode(
         String.format("%s:%s:%s:%s", prefix, KEY_PERMISSIONS_V2, userId, r.keySuffix()));
+  }
+
+  private byte[] digestKey(String userId, ResourceType r) {
+    return SafeEncoder.encode(
+        String.format("%s:%s:%s:%s", prefix, KEY_PERMISSIONS_V2_DIGEST, userId, r.keySuffix()));
   }
 
   private byte[] roleKey(Role role) {

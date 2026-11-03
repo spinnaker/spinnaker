@@ -23,8 +23,8 @@ import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonValue;
 import com.netflix.spinnaker.fiat.model.Authorization;
 import java.util.*;
+import java.util.function.Predicate;
 import java.util.stream.Collectors;
-import lombok.val;
 import org.springframework.security.core.GrantedAuthority;
 
 /**
@@ -84,12 +84,11 @@ public class Permissions {
   }
 
   public Set<Authorization> getAuthorizations(Set<Role> userRoles) {
-    val r = userRoles.stream().map(Role::getName).collect(Collectors.toSet());
-    return getAuthorizationsFromRoles(r);
+    return getAuthorizationsFromRoles(group -> userRoles.contains(new Role(group)));
   }
 
-  public Set<Authorization> getAuthorizations(List<String> userRoles) {
-    return getAuthorizationsFromRoles(new LinkedHashSet<>(userRoles));
+  public Set<Authorization> getAuthorizationsForRoleNames(Set<String> roleNames) {
+    return getAuthorizationsFromRoles(roleNames::contains);
   }
 
   public Set<Authorization> getAuthorizations(
@@ -100,16 +99,16 @@ public class Permissions {
             .filter(authority -> authority.startsWith("ROLE_"))
             .map(authority -> authority.substring("ROLE_".length()))
             .collect(Collectors.toSet());
-    return getAuthorizationsFromRoles(userRoles);
+    return getAuthorizationsFromRoles(userRoles::contains);
   }
 
-  private Set<Authorization> getAuthorizationsFromRoles(Set<String> userRoles) {
+  private Set<Authorization> getAuthorizationsFromRoles(Predicate<String> hasRole) {
     if (!isRestricted()) {
       return Authorization.ALL;
     }
 
     return this.permissions.entrySet().stream()
-        .filter(entry -> !Collections.disjoint(entry.getValue(), userRoles))
+        .filter(entry -> entry.getValue().stream().anyMatch(hasRole))
         .map(Map.Entry::getKey)
         .collect(Collectors.toSet());
   }

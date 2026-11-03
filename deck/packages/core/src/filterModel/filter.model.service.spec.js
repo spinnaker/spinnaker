@@ -484,7 +484,7 @@ describe('Service: FilterModelService', function () {
       it('should start a transition with params for all configured fields', function () {
         const previousRouter = getDirectRouter();
         setDirectRouter(router);
-        const spy = spyOn(router.stateService, 'go');
+        const spy = vi.spyOn(router.stateService, 'go').mockReturnValue(undefined);
         filterModelConfig = [
           { model: 'showInstances', type: 'boolean', displayOption: true },
           { model: 'search', type: 'string', param: 'q' },
@@ -493,7 +493,7 @@ describe('Service: FilterModelService', function () {
         filterModel.sortFilter.search = 'deck';
         filterModel.sortFilter.showInstances = true;
         filterModel.applyParamsToUrl();
-        expect(spy).toHaveBeenCalledWith('.', { q: 'deck', showInstances: true }, jasmine.anything());
+        expect(spy).toHaveBeenCalledWith('.', { q: 'deck', showInstances: true }, expect.anything());
         setDirectRouter(previousRouter);
       });
     });

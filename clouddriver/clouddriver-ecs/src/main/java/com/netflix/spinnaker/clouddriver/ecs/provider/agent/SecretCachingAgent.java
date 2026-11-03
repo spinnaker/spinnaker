@@ -31,7 +31,6 @@ import com.netflix.spinnaker.clouddriver.aws.security.NetflixAmazonCredentials;
 import com.netflix.spinnaker.clouddriver.ecs.cache.Keys;
 import com.netflix.spinnaker.clouddriver.ecs.provider.EcsProvider;
 import java.util.*;
-import java.util.stream.Collectors;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import software.amazon.awssdk.services.secretsmanager.SecretsManagerClient;
@@ -79,28 +78,8 @@ public class SecretCachingAgent implements CachingAgent, AccountAware {
 
     Set<SecretListEntry> secrets = fetchSecrets(secretsManagerClient);
     Map<String, Collection<CacheData>> newDataMap = generateFreshData(secrets);
-    Collection<CacheData> newData = newDataMap.get(SECRETS.toString());
 
-    Set<String> oldKeys =
-        new HashSet<>(
-            providerCache.filterIdentifiers(
-                SECRETS.toString(), Keys.buildGlob(SECRETS, accountName, region)));
-
-    Map<String, Collection<String>> evictionsByKey = computeEvictableData(newData, oldKeys);
-
-    return new DefaultCacheResult(newDataMap, evictionsByKey);
-  }
-
-  private Map<String, Collection<String>> computeEvictableData(
-      Collection<CacheData> newData, Collection<String> oldKeys) {
-    Set<String> newKeys = newData.stream().map(CacheData::getId).collect(Collectors.toSet());
-    Set<String> evictedKeys =
-        oldKeys.stream().filter(oldKey -> !newKeys.contains(oldKey)).collect(Collectors.toSet());
-
-    Map<String, Collection<String>> evictionsByKey = new HashMap<>();
-    evictionsByKey.put(SECRETS.toString(), evictedKeys);
-    log.info("Evicting " + evictedKeys.size() + " secrets in " + getAgentType());
-    return evictionsByKey;
+    return new DefaultCacheResult(newDataMap);
   }
 
   Map<String, Collection<CacheData>> generateFreshData(Set<SecretListEntry> secrets) {

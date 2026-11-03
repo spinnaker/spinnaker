@@ -11,7 +11,9 @@ package com.netflix.spinnaker.clouddriver.artifacts.oracle;
 
 import com.google.common.base.Strings;
 import com.netflix.spinnaker.clouddriver.artifacts.config.ArtifactAccount;
+import com.netflix.spinnaker.fiat.model.resources.Permissions;
 import com.netflix.spinnaker.kork.annotations.NonnullByDefault;
+import java.util.Optional;
 import javax.annotation.ParametersAreNullableByDefault;
 import lombok.Builder;
 import lombok.Value;
@@ -28,6 +30,7 @@ public class OracleArtifactAccount implements ArtifactAccount {
   private final String sshPrivateKeyFilePath;
   private final String privateKeyPassphrase;
   private final String tenancyId;
+  private final Permissions.Builder permissions;
 
   @Builder
   @ConstructorBinding
@@ -40,7 +43,8 @@ public class OracleArtifactAccount implements ArtifactAccount {
       String fingerprint,
       String sshPrivateKeyFilePath,
       String privateKeyPassphrase,
-      String tenancyId) {
+      String tenancyId,
+      Permissions.Builder permissions) {
     this.name = Strings.nullToEmpty(name);
     this.namespace = Strings.nullToEmpty(namespace);
     this.region = Strings.nullToEmpty(region);
@@ -49,5 +53,6 @@ public class OracleArtifactAccount implements ArtifactAccount {
     this.sshPrivateKeyFilePath = Strings.nullToEmpty(sshPrivateKeyFilePath);
     this.privateKeyPassphrase = Strings.nullToEmpty(privateKeyPassphrase);
     this.tenancyId = Strings.nullToEmpty(tenancyId);
+    this.permissions = Optional.ofNullable(permissions).orElseGet(Permissions.Builder::new);
   }
 }

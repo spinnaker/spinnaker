@@ -1,4 +1,4 @@
-import { mount } from 'enzyme';
+import { act, render } from '@testing-library/react';
 import React from 'react';
 import { RecoilRoot } from 'recoil';
 import { BehaviorSubject } from 'rxjs';
@@ -8,7 +8,7 @@ import { mockEntityTags, mockPipelineDataSourceConfig, mockServerGroupDataSource
 import { NavItem } from './NavItem';
 import type { Application } from '../../application';
 import { ApplicationModelBuilder } from '../../application';
-import type { IEntityTags, IPipeline, IServerGroup } from '../../domain';
+import type { IPipeline, IServerGroup } from '../../domain';
 import type { ApplicationDataSource, IDataSourceConfig } from '../service/applicationDataSource';
 
 describe('NavItem', () => {
@@ -20,26 +20,24 @@ describe('NavItem', () => {
     const dataSource = app.getDataSource('serverGroups');
     dataSource.iconName = 'spMenuClusters';
 
-    const wrapper = mount(
+    const { container } = render(
       <RecoilRoot>
         <NavItem app={app} dataSource={dataSource} isActive={false} />
       </RecoilRoot>,
     );
-    const nodes = wrapper.children();
-    expect(nodes.find('svg').length).toEqual(1);
+    expect(container.querySelectorAll('svg')).toHaveLength(1);
   });
 
   it('should render a placeholder when there is icon', () => {
     const app = buildApp<IServerGroup>(mockServerGroupDataSourceConfig);
     const dataSource = app.getDataSource('serverGroups');
 
-    const wrapper = mount(
+    const { container } = render(
       <RecoilRoot>
         <NavItem app={app} dataSource={dataSource} isActive={false} />
       </RecoilRoot>,
     );
-    const nodes = wrapper.children();
-    expect(nodes.find('svg').length).toEqual(0);
+    expect(container.querySelectorAll('svg')).toHaveLength(0);
   });
 
   it('should render running tasks badge', () => {
@@ -54,17 +52,13 @@ describe('NavItem', () => {
       data: [mockPipelineDataSourceConfig, mockPipelineDataSourceConfig],
     });
 
-    const wrapper = mount(
+    const { container } = render(
       <RecoilRoot>
         <NavItem app={app} dataSource={dataSource} isActive={false} />
       </RecoilRoot>,
     );
-    const nodes = wrapper.children();
-    expect(nodes.find('.badge-running-count').length).toBe(1);
-    expect(nodes.find('.badge-none').length).toBe(0);
-
-    const text = nodes.find('.badge-running-count').getDOMNode();
-    expect(text.textContent).toBe('2');
+    expect(container.querySelector('.badge-running-count')).toHaveTextContent('2');
+    expect(container.querySelector('.badge-none')).not.toBeInTheDocument();
   });
 
   it('should not render running tasks badge if there are none', () => {
@@ -72,17 +66,13 @@ describe('NavItem', () => {
     const dataSource = app.getDataSource('executions');
     app.dataSources.push({ ...dataSource, key: 'runningExecutions' } as ApplicationDataSource<IPipeline>);
 
-    const wrapper = mount(
+    const { container } = render(
       <RecoilRoot>
         <NavItem app={app} dataSource={dataSource} isActive={false} />
       </RecoilRoot>,
     );
-    const nodes = wrapper.children();
-    expect(nodes.find('.badge-running-count').length).toBe(0);
-    expect(nodes.find('.badge-none').length).toBe(1);
-
-    const text = nodes.find('.badge-none').getDOMNode();
-    expect(text.textContent).toBe('');
+    expect(container.querySelector('.badge-running-count')).not.toBeInTheDocument();
+    expect(container.querySelector('.badge-none')).toBeEmptyDOMElement();
   });
 
   it('subscribes to runningCount updates', () => {
@@ -90,17 +80,13 @@ describe('NavItem', () => {
     const dataSource = app.getDataSource('executions');
     app.dataSources.push({ ...dataSource, key: 'runningExecutions' } as ApplicationDataSource<IPipeline>);
 
-    const wrapper = mount(
+    const { container, rerender } = render(
       <RecoilRoot>
         <NavItem app={app} dataSource={dataSource} isActive={false} />
       </RecoilRoot>,
     );
-    const nodes = wrapper.children();
-    expect(nodes.find('.badge-running-count').length).toBe(0);
-    expect(nodes.find('.badge-none').length).toBe(1);
-
-    const text = nodes.find('.badge-none').getDOMNode();
-    expect(text.textContent).toBe('');
+    expect(container.querySelector('.badge-running-count')).not.toBeInTheDocument();
+    expect(container.querySelector('.badge-none')).toBeEmptyDOMElement();
 
     const updatedApp = buildApp<IPipeline>(mockPipelineDataSourceConfig);
     updatedApp.dataSources.push({
@@ -115,35 +101,30 @@ describe('NavItem', () => {
       data: [mockPipelineDataSourceConfig, mockPipelineDataSourceConfig],
     });
 
-    wrapper.setProps({ children: <NavItem app={updatedApp} dataSource={dataSource} isActive={false} /> });
-    wrapper.update();
-
-    const newNodes = wrapper.children();
-    expect(newNodes.find('.badge-running-count').length).toBe(1);
-    expect(newNodes.find('.badge-none').length).toBe(0);
-
-    const newText = newNodes.find('.badge-running-count').getDOMNode();
-    expect(newText.textContent).toBe('2');
+    rerender(
+      <RecoilRoot>
+        <NavItem app={updatedApp} dataSource={dataSource} isActive={false} />
+      </RecoilRoot>,
+    );
+    expect(container.querySelector('.badge-running-count')).toHaveTextContent('2');
+    expect(container.querySelector('.badge-none')).not.toBeInTheDocument();
   });
 
   it('should subscribe to alert updates', () => {
     const app = buildApp<IServerGroup>(mockServerGroupDataSourceConfig);
     const dataSource = app.getDataSource('serverGroups');
-    const wrapper = mount(
+    const initialObservers = dataSource.status$.observers.length;
+    const first = render(
       <RecoilRoot>
         <NavItem app={app} dataSource={dataSource} isActive={false} />
       </RecoilRoot>,
     );
-    const nodes = wrapper.children();
-    const tags: IEntityTags[] = nodes.find('DataSourceNotifications').prop('tags');
-    expect(tags.length).toEqual(0);
+    expect(dataSource.status$.observers.length).toBeGreaterThan(initialObservers);
 
     dataSource.alerts = [mockEntityTags];
     dataSource.entityTags = [mockEntityTags];
-    wrapper.setProps({ children: <NavItem app={app} dataSource={dataSource} isActive={false} /> });
-    wrapper.update();
-
-    const newTags: IEntityTags[] = wrapper.children().find('DataSourceNotifications').prop('tags');
-    expect(newTags.length).toEqual(1);
+    act(() => dataSource.status$.next({ ...dataSource.status$.value }));
+    first.unmount();
+    expect(dataSource.status$.observers).toHaveLength(initialObservers);
   });
 });

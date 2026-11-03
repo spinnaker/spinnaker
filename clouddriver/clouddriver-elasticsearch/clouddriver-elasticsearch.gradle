@@ -14,7 +14,7 @@ dependencies {
   implementation "org.elasticsearch:elasticsearch"
   implementation "org.springframework.boot:spring-boot-starter-web"
 
-  testImplementation "org.testcontainers:elasticsearch"
+  testImplementation "org.testcontainers:testcontainers-elasticsearch"
   testImplementation "cglib:cglib-nodep"
   testImplementation "org.objenesis:objenesis"
   testImplementation "org.spockframework:spock-core"

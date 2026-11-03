@@ -93,11 +93,10 @@ public class AmazonInstanceTypeCachingAgent implements CachingAgent, AccountAwar
     DefaultCacheData metadata = buildCacheDataForMetadataKey(providerCache, instanceTypes);
     cacheResults.put(getAgentType(), Collections.singleton(metadata));
 
-    // cache instance types info
-    if (instanceTypesInfo == null || instanceTypesInfo.isEmpty()) {
-      return new DefaultCacheResult(cacheResults);
-    }
-
+    // cache instance types info. Always report this key, even with an empty list, so that a
+    // region losing its last instance type this cycle still evicts the stale cache entry instead
+    // of leaving it stuck until instance types reappear -- see SqlCache's
+    // existingIds-minus-currentIds eviction diff, which only runs for types present in this map.
     List<CacheData> instanceTypeData =
         instanceTypesInfo.stream()
             .map(

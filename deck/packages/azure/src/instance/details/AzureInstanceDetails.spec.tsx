@@ -1,14 +1,19 @@
-import { shallow } from 'enzyme';
-import { UISref } from '@uirouter/react';
+import type { Mock } from 'vitest';
+import { fireEvent, render, screen, waitFor } from '@testing-library/react';
+import {
+  hashLocationPlugin,
+  servicesPlugin,
+  UIRouterContext,
+  UIRouterReact,
+  UISref,
+  UIViewContext,
+} from '@uirouter/react';
 import React from 'react';
-import { MenuItem } from 'react-bootstrap';
 
 import {
-  AccountTag,
+  AccountService,
   CloudProviderRegistry,
-  CollapsibleSection,
   ConfirmationModalService,
-  InstanceDetailsHeader,
   InstanceReader,
   InstanceWriter,
 } from '@spinnaker/core';
@@ -23,7 +28,8 @@ import {
 import { registerAzureProvider } from '../../azure.module';
 
 describe('AzureInstanceDetails', () => {
-  const stateService = { go: jasmine.createSpy('go'), includes: jasmine.createSpy('includes').and.returnValue(true) };
+  let router: UIRouterReact;
+  const stateService = { go: vi.fn(), includes: vi.fn().mockReturnValue(true) };
   const routerProps = { router: {} as any, stateParams: {}, stateService: stateService as any };
   const instanceParams = {
     account: 'test-account',
@@ -38,12 +44,12 @@ describe('AzureInstanceDetails', () => {
       loadBalancers: {
         data: loadBalancers,
         ready: () => Promise.resolve(),
-        onRefresh: () => jasmine.createSpy('unsubscribe'),
+        onRefresh: () => vi.fn(),
       },
       serverGroups: {
         data: serverGroups,
         ready: () => Promise.resolve(),
-        onRefresh: () => jasmine.createSpy('unsubscribe'),
+        onRefresh: () => vi.fn(),
       },
     } as any;
   }
@@ -80,22 +86,62 @@ describe('AzureInstanceDetails', () => {
   }
 
   async function load(appFixture: any, params: any = instanceParams, fetchedDetails: any = details()) {
-    spyOn(InstanceReader, 'getInstanceDetails').and.returnValue(Promise.resolve(fetchedDetails));
+    vi.spyOn(InstanceReader, 'getInstanceDetails').mockReturnValue(Promise.resolve(fetchedDetails));
     return loadAzureInstanceDetails({ app: appFixture, instance: params });
   }
 
   function actionLabels(instance: any): string[] {
-    return shallow(<AzureInstanceActions {...routerProps} app={app()} instance={instance} />)
-      .find(MenuItem)
-      .map((item) => String(item.prop('children')).trim());
+    const rendered = render(<AzureInstanceActions {...routerProps} app={app()} instance={instance} />);
+    fireEvent.click(screen.getByRole('button', { name: 'Instance Actions' }));
+    const labels = screen.getAllByRole('menuitem').map((item) => String(item.textContent).trim());
+    rendered.unmount();
+    return labels;
   }
+
+  function findElement(root: React.ReactNode, type: React.ElementType): React.ReactElement<any> | undefined {
+    if (!React.isValidElement(root)) {
+      return undefined;
+    }
+    if (root.type === type) {
+      return root;
+    }
+    return React.Children.toArray(root.props.children)
+      .map((child) => findElement(child, type))
+      .find(Boolean);
+  }
+
+  function renderRouted(component: React.ReactElement) {
+    const routed = (child: React.ReactElement) => (
+      <UIRouterContext.Provider value={router}>
+        <UIViewContext.Provider
+          value={{ fqn: 'application.instance', context: router.stateRegistry.get('application.instance') as any }}
+        >
+          {child}
+        </UIViewContext.Provider>
+      </UIRouterContext.Provider>
+    );
+    const rendered = render(routed(component));
+    return { ...rendered, rerenderRouted: (child: React.ReactElement) => rendered.rerender(routed(child)) };
+  }
+
+  beforeEach(() => {
+    vi.spyOn(AccountService, 'challengeDestructiveActions').mockResolvedValue(false);
+    router = new UIRouterReact();
+    router.plugin(servicesPlugin);
+    router.plugin(hashLocationPlugin);
+    ['application', 'application.instance', 'application.serverGroup'].forEach((name) =>
+      router.stateRegistry.register({ name, url: `/${name.split('.').pop()}` }),
+    );
+  });
+
+  afterEach(() => router.dispose());
 
   it('loads details for instances found in app.serverGroups.data', async () => {
     const instance = await load(app([serverGroup()]));
 
     expect(InstanceReader.getInstanceDetails).toHaveBeenCalledWith('test-account', 'westus', 'i-123');
     expect(instance).toEqual(
-      jasmine.objectContaining({
+      expect.objectContaining({
         account: 'test-account',
         baseIpAddress: 'i-123.example.com',
         instanceType: 'Standard_D2_v2',
@@ -107,7 +153,7 @@ describe('AzureInstanceDetails', () => {
       }),
     );
     expect(instance.healthMetrics[0]).toEqual(
-      jasmine.objectContaining({ extra: 'from details', reason: 'summary reason', state: 'Down' }),
+      expect.objectContaining({ extra: 'from details', reason: 'summary reason', state: 'Down' }),
     );
   });
 
@@ -124,7 +170,7 @@ describe('AzureInstanceDetails', () => {
 
     expect(InstanceReader.getInstanceDetails).toHaveBeenCalledWith('lb-account', 'eastus', 'i-123');
     expect(instance).toEqual(
-      jasmine.objectContaining({ account: 'lb-account', loadBalancers: ['lb-1'], region: 'eastus' }),
+      expect.objectContaining({ account: 'lb-account', loadBalancers: ['lb-1'], region: 'eastus' }),
     );
   });
 
@@ -142,7 +188,7 @@ describe('AzureInstanceDetails', () => {
 
     expect(InstanceReader.getInstanceDetails).toHaveBeenCalledWith('lb-account', 'eastus', 'i-123');
     expect(instance).toEqual(
-      jasmine.objectContaining({ account: 'lb-account', loadBalancers: ['lb-server-groups'], region: 'eastus' }),
+      expect.objectContaining({ account: 'lb-account', loadBalancers: ['lb-server-groups'], region: 'eastus' }),
     );
   });
 
@@ -161,7 +207,7 @@ describe('AzureInstanceDetails', () => {
 
     expect(InstanceReader.getInstanceDetails).toHaveBeenCalledWith('lb-account', 'eastus', 'i-123');
     expect(instance).toEqual(
-      jasmine.objectContaining({ account: 'lb-account', loadBalancers: ['lb-disabled'], region: 'eastus' }),
+      expect.objectContaining({ account: 'lb-account', loadBalancers: ['lb-disabled'], region: 'eastus' }),
     );
   });
 
@@ -174,12 +220,12 @@ describe('AzureInstanceDetails', () => {
     );
 
     expect(InstanceReader.getInstanceDetails).toHaveBeenCalledWith('test-account', 'westus', 'i-123');
-    expect(instance).toEqual(jasmine.objectContaining({ account: 'test-account', region: 'westus' }));
-    expect(instance.healthMetrics).toEqual([jasmine.objectContaining({ type: 'LoadBalancer', state: 'Up' })] as any);
+    expect(instance).toEqual(expect.objectContaining({ account: 'test-account', region: 'westus' }));
+    expect(instance.healthMetrics).toEqual([expect.objectContaining({ type: 'LoadBalancer', state: 'Up' })] as any);
   });
 
   it('returns not-found state when no summary exists', async () => {
-    spyOn(InstanceReader, 'getInstanceDetails');
+    vi.spyOn(InstanceReader, 'getInstanceDetails').mockReturnValue(undefined);
 
     const instance = await loadAzureInstanceDetails({ app: app(), instance: instanceParams });
 
@@ -188,7 +234,7 @@ describe('AzureInstanceDetails', () => {
   });
 
   it('renders legacy basic details and not-found content', () => {
-    const wrapper = shallow(
+    renderRouted(
       <AzureInstanceInformationSection
         instance={
           {
@@ -197,20 +243,30 @@ describe('AzureInstanceDetails', () => {
             launchTime: 1710000000000,
             provider: 'azure',
             region: 'westus',
-            serverGroup: 'fnord-v001',
           } as any
         }
       />,
     );
-    const content = shallow(<div>{wrapper.find(CollapsibleSection).prop('children')}</div>);
-    const text = content.text();
+    const route = findElement(
+      AzureInstanceInformationSection({
+        instance: {
+          account: 'test-account',
+          instanceType: 'Standard_D2_v2',
+          launchTime: 1710000000000,
+          provider: 'azure',
+          region: 'westus',
+          serverGroup: 'fnord-v001',
+        },
+      } as any),
+      UISref,
+    );
 
-    expect(text).toContain('Launched');
-    expect(content.find(AccountTag).prop('account')).toBe('test-account');
-    expect(text).toContain('westus');
-    expect(text).toContain('Standard_D2_v2');
-    expect(content.find(UISref).prop('to')).toBe('^.serverGroup');
-    expect(content.find(UISref).prop('params')).toEqual({
+    expect(screen.getByText('Launched')).toBeInTheDocument();
+    expect(screen.getByText('test-account')).toBeInTheDocument();
+    expect(screen.getByText('westus')).toBeInTheDocument();
+    expect(screen.getByText('Standard_D2_v2')).toBeInTheDocument();
+    expect(route?.props.to).toBe('^.serverGroup');
+    expect(route?.props.params).toEqual({
       accountId: 'test-account',
       provider: 'azure',
       region: 'westus',
@@ -219,10 +275,13 @@ describe('AzureInstanceDetails', () => {
   });
 
   it('renders the instance header and not-found state', () => {
-    const loaded = shallow(
+    const loaded = renderRouted(
       <AzureInstanceDetails {...routerProps} app={app()} instance={instanceParams} initialInstance={details()} />,
     );
-    const notFound = shallow(
+    expect(screen.getByRole('heading', { name: 'i-123' })).toBeInTheDocument();
+    expect(screen.getByRole('heading', { name: 'Instance Information' })).toBeInTheDocument();
+    loaded.unmount();
+    renderRouted(
       <AzureInstanceDetails
         {...routerProps}
         app={app()}
@@ -231,9 +290,7 @@ describe('AzureInstanceDetails', () => {
       />,
     );
 
-    expect(loaded.find(InstanceDetailsHeader).prop('instanceId')).toBe('i-123');
-    expect(loaded.find(AzureInstanceInformationSection).exists()).toBe(true);
-    expect(notFound.text()).toContain('Instance not found.');
+    expect(screen.getByRole('heading', { name: 'Instance not found.' })).toBeInTheDocument();
   });
 
   it('loads the new instance and clears stale details when the mounted instance route changes', async () => {
@@ -245,10 +302,13 @@ describe('AzureInstanceDetails', () => {
         ],
       }),
     ]);
-    spyOn(InstanceReader, 'getInstanceDetails').and.callFake((_account: string, _region: string, instanceId: string) =>
+    vi.spyOn(
+      InstanceReader,
+      'getInstanceDetails',
+    ).mockImplementation((_account: string, _region: string, instanceId: string) =>
       Promise.resolve(details({ instanceId, instanceType: instanceId === 'i-456' ? 'new-type' : 'old-type' })),
     );
-    const wrapper = shallow(
+    const rendered = renderRouted(
       <AzureInstanceDetails
         {...routerProps}
         app={application}
@@ -257,28 +317,30 @@ describe('AzureInstanceDetails', () => {
       />,
     );
 
-    wrapper.setProps({ instance: { ...instanceParams, instanceId: 'i-456' } });
+    rendered.rerenderRouted(
+      <AzureInstanceDetails
+        {...routerProps}
+        app={application}
+        instance={{ ...instanceParams, instanceId: 'i-456' }}
+        initialInstance={details({ instanceId: 'i-123', instanceType: 'old-type' })}
+      />,
+    );
 
     expect(InstanceReader.getInstanceDetails).toHaveBeenCalledWith('test-account', 'westus', 'i-456');
-    expect(wrapper.find(InstanceDetailsHeader).prop('instanceId')).toBe('i-456');
-    expect(wrapper.find(AzureInstanceInformationSection).exists()).toBe(false);
-
-    await Promise.resolve();
-    await Promise.resolve();
-    wrapper.update();
-
-    expect(wrapper.find(AzureInstanceInformationSection).prop('instance').instanceType).toBe('new-type');
+    expect(screen.queryByText('old-type')).not.toBeInTheDocument();
+    expect(screen.queryByRole('heading', { name: 'Instance Information' })).not.toBeInTheDocument();
+    await waitFor(() => expect(screen.getByText('new-type')).toBeInTheDocument());
   });
 
   it('preserves supported instance actions', () => {
-    spyOn(ConfirmationModalService, 'confirm');
-    spyOn(InstanceWriter, 'terminateInstance').and.returnValue(Promise.resolve({} as any));
-    spyOn(InstanceWriter, 'terminateInstanceAndShrinkServerGroup').and.returnValue(Promise.resolve({} as any));
-    spyOn(InstanceWriter, 'rebootInstance').and.returnValue(Promise.resolve({} as any));
-    spyOn(InstanceWriter, 'registerInstanceWithLoadBalancer').and.returnValue(Promise.resolve({} as any));
-    spyOn(InstanceWriter, 'deregisterInstanceFromLoadBalancer').and.returnValue(Promise.resolve({} as any));
-    spyOn(InstanceWriter, 'enableInstanceInDiscovery').and.returnValue(Promise.resolve({} as any));
-    spyOn(InstanceWriter, 'disableInstanceInDiscovery').and.returnValue(Promise.resolve({} as any));
+    vi.spyOn(ConfirmationModalService, 'confirm').mockReturnValue(undefined);
+    vi.spyOn(InstanceWriter, 'terminateInstance').mockReturnValue(Promise.resolve({} as any));
+    vi.spyOn(InstanceWriter, 'terminateInstanceAndShrinkServerGroup').mockReturnValue(Promise.resolve({} as any));
+    vi.spyOn(InstanceWriter, 'rebootInstance').mockReturnValue(Promise.resolve({} as any));
+    vi.spyOn(InstanceWriter, 'registerInstanceWithLoadBalancer').mockReturnValue(Promise.resolve({} as any));
+    vi.spyOn(InstanceWriter, 'deregisterInstanceFromLoadBalancer').mockReturnValue(Promise.resolve({} as any));
+    vi.spyOn(InstanceWriter, 'enableInstanceInDiscovery').mockReturnValue(Promise.resolve({} as any));
+    vi.spyOn(InstanceWriter, 'disableInstanceInDiscovery').mockReturnValue(Promise.resolve({} as any));
     const application = app();
     const instance = {
       account: 'test-account',
@@ -290,12 +352,19 @@ describe('AzureInstanceDetails', () => {
       loadBalancers: ['lb-1'],
       serverGroup: 'fnord-v001',
     } as any;
-    const wrapper = shallow(<AzureInstanceActions {...routerProps} app={application} instance={instance} />);
+    const rendered = render(<AzureInstanceActions {...routerProps} app={application} instance={instance} />);
 
-    wrapper.find(MenuItem).forEach((item) => item.prop('onClick')({} as any));
+    fireEvent.click(screen.getByRole('button', { name: 'Instance Actions' }));
+    screen.getAllByRole('menuitem').forEach((item) => fireEvent.click(item));
 
     expect(ConfirmationModalService.confirm).toHaveBeenCalledTimes(7);
-    (ConfirmationModalService.confirm as jasmine.Spy).calls.all().forEach((call) => call.args[0].submitMethod());
+    (ConfirmationModalService.confirm as Mock).mock.calls
+      .map((args, __i) => ({
+        args,
+        returnValue: (ConfirmationModalService.confirm as Mock).mock.results[__i].value,
+        invocationOrder: (ConfirmationModalService.confirm as Mock).mock.invocationCallOrder[__i],
+      }))
+      .forEach((call) => call.args[0].submitMethod());
     expect(InstanceWriter.terminateInstance).toHaveBeenCalledWith(instance, application);
     expect(InstanceWriter.terminateInstanceAndShrinkServerGroup).toHaveBeenCalledWith(instance, application);
     expect(InstanceWriter.rebootInstance).toHaveBeenCalledWith(instance, application);
@@ -303,7 +372,7 @@ describe('AzureInstanceDetails', () => {
     expect(InstanceWriter.deregisterInstanceFromLoadBalancer).toHaveBeenCalledWith(instance, application);
     expect(InstanceWriter.enableInstanceInDiscovery).toHaveBeenCalledWith(instance, application);
     expect(InstanceWriter.disableInstanceInDiscovery).toHaveBeenCalledWith(instance, application);
-    (ConfirmationModalService.confirm as jasmine.Spy).calls.first().args[0].taskMonitorConfig.onTaskComplete();
+    (ConfirmationModalService.confirm as Mock).mock.calls[0][0].taskMonitorConfig.onTaskComplete();
     expect(stateService.includes).toHaveBeenCalledWith('**.instanceDetails', { instanceId: 'i-123' });
     expect(stateService.go).toHaveBeenCalledWith('^');
   });

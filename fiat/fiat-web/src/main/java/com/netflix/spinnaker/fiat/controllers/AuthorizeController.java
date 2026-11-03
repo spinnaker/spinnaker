@@ -240,8 +240,8 @@ public class AuthorizeController {
     }
 
     UserPermission.View userPermissionView = getUserPermissionView(userId);
-    List<String> userRoles =
-        userPermissionView.getRoles().stream().map(Role.View::getName).collect(Collectors.toList());
+    var userRoles =
+        userPermissionView.getRoles().stream().map(Role.View::getName).collect(Collectors.toSet());
 
     val modelClazz =
         resources.stream()
@@ -255,7 +255,7 @@ public class AuthorizeController {
     if (userPermissionView.isAdmin()
         || applicationResourcePermissionProvider
             .getPermissions((Application) r)
-            .getAuthorizations(userRoles)
+            .getAuthorizationsForRoleNames(userRoles)
             .contains(Authorization.CREATE)) {
       response.setStatus(HttpServletResponse.SC_OK);
     } else {

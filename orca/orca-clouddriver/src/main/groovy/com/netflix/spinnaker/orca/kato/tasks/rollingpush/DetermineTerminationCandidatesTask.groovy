@@ -45,7 +45,7 @@ class DetermineTerminationCandidatesTask implements Task {
     ServerGroup serverGroup = cloudDriverService.getServerGroupFromCluster(stageData.application, stageData.account, stageData.cluster, stage.context.asgName, stage.context.region, stage.context.cloudProvider ?: 'aws')
     boolean ascending = stage.context.termination?.order != 'newest'
     List<Instance> serverGroupInstances = serverGroup.instances.sort { ascending ? it.launchTime : -it.launchTime }
-    // need to use id instead of instanceIds for titus as the titus API doesn't yet support this yet.
+    // providers may supply their own collector for instance ids (see ServerGroupInstanceIdCollector)
     def knownInstanceIds = getServerGroupInstanceIdCollector(stage)
         .flatMap { it.collect(serverGroupInstances) }
         .orElseGet { serverGroupInstances*.instanceId }

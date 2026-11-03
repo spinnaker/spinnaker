@@ -25,6 +25,7 @@ import com.netflix.spinnaker.fiat.model.Authorization;
 import com.netflix.spinnaker.fiat.model.resources.Permissions;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.Set;
 
 public class EcsAccountBuilder {
 
@@ -80,10 +81,8 @@ public class EcsAccountBuilder {
 
     Permissions.Builder permBuilder = new Permissions.Builder();
     for (String group : netflixAmazonCredentials.getPermissions().allGroups()) {
-      List<String> roles = new LinkedList<>();
-      roles.add(group);
       for (Authorization auth :
-          netflixAmazonCredentials.getPermissions().getAuthorizations(roles)) {
+          netflixAmazonCredentials.getPermissions().getAuthorizationsForRoleNames(Set.of(group))) {
         permBuilder.add(auth, group);
       }
     }

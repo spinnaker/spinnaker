@@ -3,6 +3,7 @@ import React from 'react';
 import type { IWizardPageComponent } from '@spinnaker/core';
 
 import type { IEcsServerGroupCommand } from '../../serverGroupConfiguration.service';
+import { isEcsNativeBlueGreenStrategy } from '../../serverGroupConfiguration.service';
 
 type ValidationErrors = { [key: string]: any };
 type Validator = (values: IEcsServerGroupCommand) => ValidationErrors;
@@ -166,12 +167,105 @@ export const validateEcsCapacity: Validator = (values) => {
   return validationErrors;
 };
 
+const hasLoadBalancer = (values: IEcsServerGroupCommand): boolean =>
+  required(values.targetGroup) || (values.targetGroupMappings || []).some((mapping) => required(mapping?.targetGroup));
+
+export const validateEcsNativeDeployment: Validator = (values) => {
+  const errors: ValidationErrors = {};
+  if (values.cloudProvider !== 'ecs-native') {
+    return errors;
+  }
+  const strategy = values.strategy;
+  if (required(strategy) && strategy !== 'none' && strategy !== '') {
+    errors.strategy = 'Native ECS deployments require the Spinnaker deployment strategy to be None.';
+  }
+  const minimumHealthyPercent = values.minimumHealthyPercent;
+  const maximumPercent = values.maximumPercent;
+  if (
+    required(minimumHealthyPercent) &&
+    (!Number.isInteger(minimumHealthyPercent) || minimumHealthyPercent < 0 || minimumHealthyPercent > 100)
+  ) {
+    // ECS accepts 0..100 (0 lets ECS stop every old task before starting new ones).
+    errors.minimumHealthyPercent = 'Minimum healthy percent must be an integer from 0 to 100.';
+  }
+  if (required(maximumPercent) && (!Number.isInteger(maximumPercent) || maximumPercent < 100)) {
+    errors.maximumPercent = 'Maximum percent must be an integer of at least 100.';
+  }
+  if (
+    required(minimumHealthyPercent) &&
+    required(maximumPercent) &&
+    Number.isInteger(minimumHealthyPercent) &&
+    Number.isInteger(maximumPercent) &&
+    maximumPercent < minimumHealthyPercent
+  ) {
+    errors.maximumPercent = 'Maximum percent cannot be less than minimum healthy percent.';
+  }
+
+  // Bake time applies to both native strategies; clouddriver rejects a negative value.
+  if (required(values.bakeTimeInMinutes) && !validInteger(values.bakeTimeInMinutes)) {
+    errors.bakeTimeInMinutes = 'Bake time must be a non-negative integer number of minutes.';
+  }
+
+  const isBlueGreen = isEcsNativeBlueGreenStrategy(values.deploymentStrategy);
+  if (!isBlueGreen) {
+    // The remaining fields are only rendered for BLUE_GREEN. Values left behind by a strategy
+    // switch are cleared by the wizard (see updateEcsCommand); if any survive, validating them here
+    // would block saving on fields the user cannot see, so clouddriver stays the backstop.
+    return errors;
+  }
+
+  // clouddriver requires a timeout of at least one minute whenever a pause stage is configured.
+  if (required(values.lifecyclePauseStage)) {
+    const timeout = values.lifecyclePauseTimeoutMinutes;
+    if (!validInteger(timeout) || timeout < 1) {
+      errors.lifecyclePauseTimeoutMinutes = 'Pause timeout must be an integer of at least 1 minute.';
+    }
+  }
+
+  const blueGreenFields = [
+    'alternateTargetGroupArn',
+    'productionListenerRule',
+    'testListenerRule',
+    'blueGreenRoleArn',
+  ] as const;
+  const setCount = blueGreenFields.filter((field) => required(values[field])).length;
+
+  // AWS ECS requires the ALB traffic-shift config on every load balancer for a BLUE_GREEN deploy,
+  // and rejects the deploy with a 400 otherwise ("advancedConfiguration field is required for all
+  // loadBalancers when using the Blue/green deployment strategy"). So when a load balancer is
+  // attached, all four fields are required -- not optional. (With no load balancer, BLUE_GREEN
+  // needs none of them.)
+  if (hasLoadBalancer(values) && setCount < blueGreenFields.length) {
+    const message =
+      'The Blue/Green strategy on a load-balanced service requires all four fields: alternate target group ARN, production listener rule, test listener rule, and blue/green IAM role. Provide all four, or use the Rolling strategy.';
+    blueGreenFields.forEach((field) => {
+      if (!required(values[field])) {
+        errors[field] = message;
+      }
+    });
+    return errors;
+  }
+
+  // Otherwise the four fields remain all-or-nothing: a partial set is always a misconfiguration.
+  if (setCount > 0 && setCount < blueGreenFields.length) {
+    const message =
+      'Alternate target group ARN, production listener rule, test listener rule, and blue/green IAM role must all be set together, or all left blank.';
+    blueGreenFields.forEach((field) => {
+      if (!required(values[field])) {
+        errors[field] = message;
+      }
+    });
+  }
+  return errors;
+};
+
 export const validateEcsServerGroup: Validator = (values) => ({
   ...validateEcsBasicSettings(values),
   ...validateEcsTaskDefinition(values),
   ...validateEcsContainer(values),
   ...validateEcsServiceDiscovery(values),
   ...validateEcsCapacity(values),
+  ...validateEcsNativeDeployment(values),
 });
 
 interface IEcsWizardPageValidationProps {

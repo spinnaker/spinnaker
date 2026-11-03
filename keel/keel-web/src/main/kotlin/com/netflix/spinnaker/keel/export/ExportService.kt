@@ -9,7 +9,6 @@ import com.netflix.spinnaker.keel.api.artifacts.DeliveryArtifact
 import com.netflix.spinnaker.keel.api.ec2.EC2_CLUSTER_V1_1
 import com.netflix.spinnaker.keel.api.plugins.ResourceHandler
 import com.netflix.spinnaker.keel.api.plugins.supporting
-import com.netflix.spinnaker.keel.api.titus.TITUS_CLUSTER_V1
 import com.netflix.spinnaker.keel.artifacts.DebianArtifact
 import com.netflix.spinnaker.keel.core.api.DEFAULT_SERVICE_ACCOUNT
 import com.netflix.spinnaker.keel.core.api.DependsOnConstraint
@@ -65,8 +64,7 @@ class ExportService(
     val SUPPORTED_TRIGGER_TYPES = listOf("docker", "jenkins", "rocket", "pipeline")
 
     val PROVIDERS_TO_CLUSTER_KINDS = mapOf(
-      "aws" to EC2_CLUSTER_V1_1.kind,
-      "titus" to TITUS_CLUSTER_V1.kind
+      "aws" to EC2_CLUSTER_V1_1.kind
     )
 
     val SPEL_REGEX = Regex("\\$\\{.+\\}")

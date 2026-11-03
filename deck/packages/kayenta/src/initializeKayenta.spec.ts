@@ -8,11 +8,11 @@ import { KayentaStageTransformer } from './kayenta/stages/kayentaStage/kayentaSt
 describe('initializeKayenta', () => {
   const createDependencies = (settings = { featureDisabled: false, stagesEnabled: true }) => ({
     settings,
-    registerDataSourceStubs: jasmine.createSpy('registerDataSourceStubs'),
-    registerStateStubs: jasmine.createSpy('registerStateStubs'),
-    registerStage: jasmine.createSpy('registerStage'),
-    registerTransformer: jasmine.createSpy('registerTransformer'),
-    createStageTransformer: jasmine.createSpy('createStageTransformer').and.returnValue({ transformer: true } as any),
+    registerDataSourceStubs: vi.fn(),
+    registerStateStubs: vi.fn(),
+    registerStage: vi.fn(),
+    registerTransformer: vi.fn(),
+    createStageTransformer: vi.fn().mockReturnValue({ transformer: true } as any),
     stage: { key: 'kayentaCanary' } as any,
   });
 
@@ -25,8 +25,8 @@ describe('initializeKayenta', () => {
     initializer(applicationState, uiRouter);
     initializer(applicationState, uiRouter);
 
-    expect(dependencies.registerDataSourceStubs).toHaveBeenCalledOnceWith(uiRouter);
-    expect(dependencies.registerStateStubs).toHaveBeenCalledOnceWith(applicationState, uiRouter);
+    expect(dependencies.registerDataSourceStubs).toHaveBeenCalledExactlyOnceWith(uiRouter);
+    expect(dependencies.registerStateStubs).toHaveBeenCalledExactlyOnceWith(applicationState, uiRouter);
   });
 
   it('skips all registration when Kayenta is disabled', () => {
@@ -45,9 +45,11 @@ describe('initializeKayenta', () => {
 
     createKayentaInitializer(dependencies)({} as any, {} as any);
 
-    expect(dependencies.registerStage).toHaveBeenCalledOnceWith(dependencies.stage);
+    expect(dependencies.registerStage).toHaveBeenCalledExactlyOnceWith(dependencies.stage);
     expect(dependencies.createStageTransformer).toHaveBeenCalledTimes(1);
-    expect(dependencies.registerTransformer).toHaveBeenCalledOnceWith(jasmine.objectContaining({ transformer: true }));
+    expect(dependencies.registerTransformer).toHaveBeenCalledExactlyOnceWith(
+      expect.objectContaining({ transformer: true }),
+    );
   });
 
   it('skips stage registration when stages are disabled', () => {
@@ -60,27 +62,24 @@ describe('initializeKayenta', () => {
   });
 
   it('wires the default initializer to the current Core registries with stable stage keys', () => {
-    const initializerModule = require.resolve('./initializeKayenta');
-    const originalInitializerModule = require.cache[initializerModule];
     const originalPipeline = Core.Registry.pipeline;
     const originalUrlBuilder = Core.Registry.urlBuilder;
     const originalFeatureDisabled = CanarySettings.featureDisabled;
     const originalStagesEnabled = CanarySettings.stagesEnabled;
-    const registerDataSource = spyOn(Core.ApplicationDataSourceRegistry, 'registerDataSource');
-    const registerState = jasmine.createSpy('registerState');
+    const registerDataSource = vi
+      .spyOn(Core.ApplicationDataSourceRegistry, 'registerDataSource')
+      .mockReturnValue(undefined);
+    const registerState = vi.fn();
 
     CanarySettings.featureDisabled = false;
     CanarySettings.stagesEnabled = true;
     Core.Registry.reinitialize();
-    delete require.cache[initializerModule];
 
     try {
-      const freshInitializeKayenta = require('./initializeKayenta').initializeKayenta;
-      Core.Registry.reinitialize();
-      const registerStage = spyOn(Core.Registry.pipeline, 'registerStage');
-      const registerTransformer = spyOn(Core.Registry.pipeline, 'registerTransformer');
+      const registerStage = vi.spyOn(Core.Registry.pipeline, 'registerStage').mockReturnValue(undefined);
+      const registerTransformer = vi.spyOn(Core.Registry.pipeline, 'registerTransformer').mockReturnValue(undefined);
 
-      freshInitializeKayenta(
+      initializeKayenta(
         {} as any,
         {
           stateRegistry: { register: registerState },
@@ -88,20 +87,15 @@ describe('initializeKayenta', () => {
         } as any,
       );
 
-      expect(registerDataSource.calls.allArgs().map(([dataSource]) => dataSource.key)).toEqual([
+      expect(registerDataSource.mock.calls.map(([dataSource]) => dataSource.key)).toEqual([
         'canaryConfigs',
         'canaryJudges',
         'canaryExecutions',
       ]);
       expect(registerState).toHaveBeenCalledTimes(14);
-      expect(registerStage.calls.allArgs().map(([stage]) => stage.key)).toEqual(['kayentaCanary']);
-      expect(registerTransformer).toHaveBeenCalledOnceWith(jasmine.any(KayentaStageTransformer));
+      expect(registerStage.mock.calls.map(([stage]) => stage.key)).toEqual(['kayentaCanary']);
+      expect(registerTransformer).toHaveBeenCalledExactlyOnceWith(expect.any(KayentaStageTransformer));
     } finally {
-      if (originalInitializerModule) {
-        require.cache[initializerModule] = originalInitializerModule;
-      } else {
-        delete require.cache[initializerModule];
-      }
       Core.Registry.pipeline = originalPipeline;
       Core.Registry.urlBuilder = originalUrlBuilder;
       CanarySettings.featureDisabled = originalFeatureDisabled;
@@ -112,101 +106,62 @@ describe('initializeKayenta', () => {
     expect(Core.Registry.urlBuilder).toBe(originalUrlBuilder);
   });
 
-  it('registers Kayenta initialization when the stub is imported', () => {
-    const registerInitializer = jasmine.createSpy('registerApplicationInitializer');
-    const coreModule = require.cache[require.resolve('@spinnaker/core')];
-    const originalCoreExports = coreModule.exports;
-    const stubModule = require.resolve('./stub');
-    const originalStubModule = require.cache[stubModule];
-    const originalPipeline = Core.Registry.pipeline;
-    const originalUrlBuilder = Core.Registry.urlBuilder;
-    // Webpack barrel exports are read-only, so replace the cached exports while re-evaluating the stub.
-    coreModule.exports = new Proxy(originalCoreExports, {
-      get: (target, property) =>
-        property === 'registerApplicationInitializer' ? registerInitializer : Reflect.get(target, property),
+  it('registers Kayenta initialization when the stub is imported', async () => {
+    const registerInitializer = vi.fn();
+    // Intercept the core export a fresh ./stub evaluation will invoke at import time.
+    vi.doMock('@spinnaker/core', async () => {
+      const actual = await vi.importActual<typeof Core>('@spinnaker/core');
+      return { ...actual, registerApplicationInitializer: registerInitializer };
     });
-    delete require.cache[stubModule];
+    vi.resetModules();
 
     try {
-      const stubExports = require('./stub');
+      const stubExports = await import('./stub');
+      const { initializeKayenta: freshInitializeKayenta } = await import('./initializeKayenta');
 
-      expect(registerInitializer).toHaveBeenCalledOnceWith(initializeKayenta);
-      expect(stubExports.registerKayentaInitializer).toBeUndefined();
+      expect(registerInitializer).toHaveBeenCalledExactlyOnceWith(freshInitializeKayenta);
+      expect((stubExports as any).registerKayentaInitializer).toBeUndefined();
     } finally {
-      coreModule.exports = originalCoreExports;
-      if (originalStubModule) {
-        require.cache[stubModule] = originalStubModule;
-      } else {
-        delete require.cache[stubModule];
-      }
-      Core.Registry.pipeline = originalPipeline;
-      Core.Registry.urlBuilder = originalUrlBuilder;
+      vi.doUnmock('@spinnaker/core');
+      vi.resetModules();
     }
-
-    expect(coreModule.exports).toBe(originalCoreExports);
-    expect(require.cache[stubModule]).toBe(originalStubModule);
-    expect(Core.Registry.pipeline).toBe(originalPipeline);
-    expect(Core.Registry.urlBuilder).toBe(originalUrlBuilder);
   });
 
   it('retains the stable Kayenta data source keys', () => {
-    const registerDataSource = spyOn(Core.ApplicationDataSourceRegistry, 'registerDataSource');
+    const registerDataSource = vi
+      .spyOn(Core.ApplicationDataSourceRegistry, 'registerDataSource')
+      .mockReturnValue(undefined);
 
     registerKayentaDataSourceStubs({ stateService: { params: {} } });
 
-    expect(registerDataSource.calls.allArgs().map(([dataSource]) => dataSource.key)).toEqual([
+    expect(registerDataSource.mock.calls.map(([dataSource]) => dataSource.key)).toEqual([
       'canaryConfigs',
       'canaryJudges',
       'canaryExecutions',
     ]);
   });
 
-  it('retains the expected root exports without exposing or registering internal bootstrap seams', () => {
-    const registerInitializer = jasmine.createSpy('registerApplicationInitializer');
-    const coreModule = require.cache[require.resolve('@spinnaker/core')];
-    const originalCoreExports = coreModule.exports;
-    const indexModule = require.resolve('./index');
-    const originalIndexModule = require.cache[indexModule];
-    const stubModule = require.resolve('./stub');
-    const originalStubModule = require.cache[stubModule];
-    const originalPipeline = Core.Registry.pipeline;
-    const originalUrlBuilder = Core.Registry.urlBuilder;
-    coreModule.exports = new Proxy(originalCoreExports, {
-      get: (target, property) =>
-        property === 'registerApplicationInitializer' ? registerInitializer : Reflect.get(target, property),
+  it('retains the expected root exports without exposing or registering internal bootstrap seams', async () => {
+    const registerInitializer = vi.fn();
+    vi.doMock('@spinnaker/core', async () => {
+      const actual = await vi.importActual<typeof Core>('@spinnaker/core');
+      return { ...actual, registerApplicationInitializer: registerInitializer };
     });
-    delete require.cache[indexModule];
-    delete require.cache[stubModule];
+    vi.resetModules();
 
     try {
-      const publicExports = require('./index');
+      const publicExports = await import('./index');
+      const { initializeKayenta: freshInitializeKayenta } = await import('./initializeKayenta');
 
-      expect(publicExports.initializeKayenta).toBe(initializeKayenta);
+      expect(publicExports.initializeKayenta).toBe(freshInitializeKayenta);
       expect(publicExports.LOAD_CONFIG_REQUEST).toBe('load_config_request');
       expect(publicExports.KayentaAccountType).toBeDefined();
-      expect(publicExports.createKayentaInitializer).toBeUndefined();
-      expect(publicExports.registerKayentaInitializer).toBeUndefined();
-      expect(registerInitializer).toHaveBeenCalledOnceWith(initializeKayenta);
+      expect((publicExports as any).createKayentaInitializer).toBeUndefined();
+      expect((publicExports as any).registerKayentaInitializer).toBeUndefined();
+      expect(registerInitializer).toHaveBeenCalledExactlyOnceWith(freshInitializeKayenta);
     } finally {
-      coreModule.exports = originalCoreExports;
-      if (originalIndexModule) {
-        require.cache[indexModule] = originalIndexModule;
-      } else {
-        delete require.cache[indexModule];
-      }
-      if (originalStubModule) {
-        require.cache[stubModule] = originalStubModule;
-      } else {
-        delete require.cache[stubModule];
-      }
-      Core.Registry.pipeline = originalPipeline;
-      Core.Registry.urlBuilder = originalUrlBuilder;
+      vi.doUnmock('@spinnaker/core');
+      vi.resetModules();
     }
-
-    expect(coreModule.exports).toBe(originalCoreExports);
-    expect(require.cache[indexModule]).toBe(originalIndexModule);
-    expect(require.cache[stubModule]).toBe(originalStubModule);
-    expect(Core.Registry.pipeline).toBe(originalPipeline);
-    expect(Core.Registry.urlBuilder).toBe(originalUrlBuilder);
   });
 });

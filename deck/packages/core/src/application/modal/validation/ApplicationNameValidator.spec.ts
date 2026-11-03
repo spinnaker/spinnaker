@@ -8,7 +8,9 @@ describe('Validator: applicationName', () => {
   const validator2 = new ExampleApplicationNameValidator2();
 
   beforeEach(() => {
-    spyOn(AccountService, 'listProviders').and.returnValue(Promise.resolve([validator1.provider, validator2.provider]));
+    vi.spyOn(AccountService, 'listProviders').mockReturnValue(
+      Promise.resolve([validator1.provider, validator2.provider]),
+    );
   });
 
   describe('warning messages', () => {

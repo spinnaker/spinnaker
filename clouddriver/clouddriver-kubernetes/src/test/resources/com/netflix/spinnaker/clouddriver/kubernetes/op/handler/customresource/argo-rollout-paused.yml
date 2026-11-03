@@ -1,0 +1,18 @@
+# Argo Rollout paused at a canary step.
+apiVersion: argoproj.io/v1alpha1
+kind: Rollout
+metadata:
+  name: my-rollout
+  namespace: default
+  generation: 6
+spec:
+  replicas: 3
+status:
+  observedGeneration: "6"
+  phase: Paused
+  message: CanaryPauseStep
+  conditions:
+    - type: Paused
+      status: "True"
+      reason: RolloutPaused
+      message: Rollout is paused

@@ -30,6 +30,7 @@ import com.netflix.spinnaker.clouddriver.google.model.GoogleHealthCheck
 import com.netflix.spinnaker.clouddriver.google.model.callbacks.Utils
 import com.netflix.spinnaker.clouddriver.google.model.loadbalancing.GoogleLoadBalancer
 import com.netflix.spinnaker.clouddriver.google.model.loadbalancing.GoogleNetworkLoadBalancer
+import com.netflix.spinnaker.clouddriver.google.model.loadbalancing.GoogleTargetProxyType
 import com.netflix.spinnaker.clouddriver.google.provider.agent.util.LoadBalancerHealthResolution
 import com.netflix.spinnaker.clouddriver.google.provider.agent.util.PaginatedRequest
 import com.netflix.spinnaker.clouddriver.google.provider.agent.util.TargetPoolHealthRequest
@@ -149,7 +150,7 @@ class GoogleNetworkLoadBalancerCachingAgent extends AbstractGoogleLoadBalancerCa
 
       @Override
       void onSuccess(ForwardingRule forwardingRule, HttpHeaders responseHeaders) throws IOException {
-        if (forwardingRule.target) {
+        if (isNetworkLoadBalancerRule(forwardingRule)) {
           cacheRemainderOfLoadBalancerResourceGraph(forwardingRule)
         } else {
           throw new IllegalArgumentException("Not responsible for on demand caching of load balancers without target pools.")
@@ -162,7 +163,7 @@ class GoogleNetworkLoadBalancerCachingAgent extends AbstractGoogleLoadBalancerCa
       @Override
       void onSuccess(ForwardingRuleList forwardingRuleList, HttpHeaders responseHeaders) throws IOException {
         forwardingRuleList?.items?.each { ForwardingRule forwardingRule ->
-          if (forwardingRule.target) {
+          if (isNetworkLoadBalancerRule(forwardingRule)) {
             cacheRemainderOfLoadBalancerResourceGraph(forwardingRule)
           }
         }
@@ -172,6 +173,16 @@ class GoogleNetworkLoadBalancerCachingAgent extends AbstractGoogleLoadBalancerCa
       void onFailure(GoogleJsonError e, HttpHeaders responseHeaders) throws IOException {
         LoggerFactory.getLogger(this.class).error e.getMessage()
       }
+    }
+
+    // Regional HTTP(S) proxy rules belong to the regional HTTP caching agents. Claiming them here
+    // fails the target pool lookup, and the on-demand path then evicts their cache rows.
+    boolean isNetworkLoadBalancerRule(ForwardingRule forwardingRule) {
+      if (!forwardingRule.target) {
+        return false
+      }
+      GoogleTargetProxyType proxyType = Utils.getTargetProxyType(forwardingRule.target)
+      return proxyType != GoogleTargetProxyType.HTTP && proxyType != GoogleTargetProxyType.HTTPS
     }
 
     void cacheRemainderOfLoadBalancerResourceGraph(ForwardingRule forwardingRule) {

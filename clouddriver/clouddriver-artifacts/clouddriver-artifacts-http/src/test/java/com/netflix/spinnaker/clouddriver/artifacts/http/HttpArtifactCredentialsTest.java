@@ -22,12 +22,13 @@ import static org.assertj.core.api.Assertions.catchThrowable;
 
 import com.github.tomakehurst.wiremock.WireMockServer;
 import com.github.tomakehurst.wiremock.client.MappingBuilder;
-import com.netflix.spinnaker.clouddriver.artifacts.config.HttpUrlRestrictions;
 import com.netflix.spinnaker.kork.artifacts.model.Artifact;
+import com.netflix.spinnaker.kork.web.url.UrlRestrictionsProperties;
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.util.List;
 import java.util.function.Function;
 import okhttp3.OkHttpClient;
 import org.apache.commons.io.Charsets;
@@ -48,7 +49,11 @@ class HttpArtifactCredentialsTest {
   void downloadWithBasicAuth(@WiremockResolver.Wiremock WireMockServer server) throws IOException {
     HttpArtifactAccount account =
         HttpArtifactAccount.builder()
-            .urlRestrictions(HttpUrlRestrictions.builder().rejectLocalhost(false).build())
+            .urlRestrictions(
+                UrlRestrictionsProperties.builder()
+                    .rejectLocalhost(false)
+                    .allowedDomains(List.of("localhost"))
+                    .build())
             .name("my-http-account")
             .username("user")
             .password("passw0rd")
@@ -66,7 +71,11 @@ class HttpArtifactCredentialsTest {
 
     HttpArtifactAccount account =
         HttpArtifactAccount.builder()
-            .urlRestrictions(HttpUrlRestrictions.builder().rejectLocalhost(false).build())
+            .urlRestrictions(
+                UrlRestrictionsProperties.builder()
+                    .rejectLocalhost(false)
+                    .allowedDomains(List.of("localhost"))
+                    .build())
             .name("my-http-account")
             .usernamePasswordFile(authFile.toAbsolutePath().toString())
             .build();
@@ -79,7 +88,11 @@ class HttpArtifactCredentialsTest {
     HttpArtifactAccount account =
         HttpArtifactAccount.builder()
             .name("my-http-account")
-            .urlRestrictions(HttpUrlRestrictions.builder().rejectLocalhost(false).build())
+            .urlRestrictions(
+                UrlRestrictionsProperties.builder()
+                    .rejectLocalhost(false)
+                    .allowedDomains(List.of("localhost"))
+                    .build())
             .build();
 
     runTestCase(server, account, m -> m.withHeader("Authorization", absent()));
@@ -90,7 +103,11 @@ class HttpArtifactCredentialsTest {
     HttpArtifactAccount account =
         HttpArtifactAccount.builder()
             .name("my-http-account")
-            .urlRestrictions(HttpUrlRestrictions.builder().rejectLocalhost(false).build())
+            .urlRestrictions(
+                UrlRestrictionsProperties.builder()
+                    .rejectLocalhost(false)
+                    .allowedDomains(List.of("localhost"))
+                    .build())
             .build();
     HttpArtifactCredentials credentials = new HttpArtifactCredentials(account, okHttpClient);
     Artifact artifact =
@@ -111,7 +128,7 @@ class HttpArtifactCredentialsTest {
     HttpArtifactAccount account =
         HttpArtifactAccount.builder()
             .urlRestrictions(
-                HttpUrlRestrictions.builder()
+                UrlRestrictionsProperties.builder()
                     .allowedHostnamesRegex("localhost|127\\.0\\.0\\.1")
                     .rejectLocalhost(false)
                     .build())
@@ -150,7 +167,7 @@ class HttpArtifactCredentialsTest {
   void blockSsrfViaRedirectToRestrictedHost(@WiremockResolver.Wiremock WireMockServer server) {
     HttpArtifactAccount account =
         HttpArtifactAccount.builder()
-            .urlRestrictions(HttpUrlRestrictions.builder().rejectLocalhost(true).build())
+            .urlRestrictions(UrlRestrictionsProperties.builder().rejectLocalhost(true).build())
             .name("my-http-account")
             .build();
     HttpArtifactCredentials credentials = new HttpArtifactCredentials(account, okHttpClient);

@@ -1,14 +1,13 @@
-import { shallow } from 'enzyme';
+import { act, fireEvent, render, screen, waitFor } from '@testing-library/react';
+import { hashLocationPlugin, servicesPlugin, UIRouterContext, UIRouterReact, UIViewContext } from '@uirouter/react';
 import React from 'react';
 
-import { IPRangeRules } from '@spinnaker/amazon';
-import { CollapsibleSection } from '@spinnaker/core';
+import { AccountService } from '@spinnaker/core';
 
 import { EcsSecurityGroupDetailsComponent as EcsSecurityGroupDetails } from './EcsSecurityGroupDetails';
 
-const tick = () => new Promise((resolve) => setTimeout(resolve));
-
 describe('EcsSecurityGroupDetails', () => {
+  let router: UIRouterReact;
   const resolvedSecurityGroup = {
     accountId: 'test-account',
     name: 'web-sg',
@@ -22,24 +21,49 @@ describe('EcsSecurityGroupDetails', () => {
       isStandalone,
       getDataSource: () => ({
         ready: () => Promise.resolve(),
-        onRefresh: () => jasmine.createSpy('unsubscribe'),
+        onRefresh: () => vi.fn(),
       }),
     } as any;
   }
 
-  it('replaces missing details through the injected state service', () => {
-    const stateService = { go: jasmine.createSpy('go') };
-    const component = new EcsSecurityGroupDetails({
-      app: app(),
-      resolvedSecurityGroup,
-      router: {},
-      stateParams: {},
-      stateService,
-    } as any);
+  function renderDetails(component: React.ReactElement) {
+    return render(
+      <UIRouterContext.Provider value={router}>
+        <UIViewContext.Provider
+          value={{ fqn: 'application.current', context: router.stateRegistry.get('application.current') as any }}
+        >
+          {component}
+        </UIViewContext.Provider>
+      </UIRouterContext.Provider>,
+    );
+  }
 
-    (component as any).showNotFound();
+  beforeEach(() => {
+    vi.spyOn(AccountService, 'getAccountDetails').mockResolvedValue({} as any);
+    router = new UIRouterReact();
+    router.plugin(servicesPlugin);
+    router.plugin(hashLocationPlugin);
+    ['application', 'application.current', 'application.firewallDetails'].forEach((name) =>
+      router.stateRegistry.register({ name, url: `/${name.split('.').pop()}` }),
+    );
+  });
 
-    expect(stateService.go).toHaveBeenCalledWith('^', { allowModalToStayOpen: true }, { location: 'replace' });
+  afterEach(() => router.dispose());
+
+  it('replaces missing details through the injected state service', async () => {
+    const stateService = { go: vi.fn() };
+    renderDetails(
+      <EcsSecurityGroupDetails
+        app={app()}
+        resolvedSecurityGroup={resolvedSecurityGroup}
+        securityGroupReader={{ getSecurityGroupDetails: () => Promise.resolve({}) } as any}
+        stateService={stateService as any}
+      />,
+    );
+
+    await waitFor(() =>
+      expect(stateService.go).toHaveBeenCalledWith('^', { allowModalToStayOpen: true }, { location: 'replace' }),
+    );
   });
 
   function securityGroup(name = 'web-sg') {
@@ -77,13 +101,13 @@ describe('EcsSecurityGroupDetails', () => {
   it('loads full details and renders descriptions, VPC names, and Amazon rule models with ECS links', async () => {
     const details = securityGroup();
     const securityGroupReader = {
-      getApplicationSecurityGroup: jasmine.createSpy('getApplicationSecurityGroup').and.returnValue({}),
-      getSecurityGroupDetails: jasmine.createSpy('getSecurityGroupDetails').and.returnValue(Promise.resolve(details)),
+      getApplicationSecurityGroup: vi.fn().mockReturnValue({}),
+      getSecurityGroupDetails: vi.fn().mockReturnValue(Promise.resolve(details)),
     };
     const vpcReader = {
-      getVpcName: jasmine.createSpy('getVpcName').and.returnValue(Promise.resolve('Production VPC')),
+      getVpcName: vi.fn().mockReturnValue(Promise.resolve('Production VPC')),
     };
-    const wrapper = shallow(
+    renderDetails(
       <EcsSecurityGroupDetails
         app={app()}
         resolvedSecurityGroup={resolvedSecurityGroup}
@@ -92,11 +116,10 @@ describe('EcsSecurityGroupDetails', () => {
       />,
     );
 
-    await tick();
-    wrapper.update();
+    expect(await screen.findByRole('heading', { name: 'web-sg' })).toBeInTheDocument();
 
     expect(securityGroupReader.getSecurityGroupDetails).toHaveBeenCalledWith(
-      jasmine.anything(),
+      expect.anything(),
       'test-account',
       'ecs',
       'eu-west-1',
@@ -104,21 +127,13 @@ describe('EcsSecurityGroupDetails', () => {
       'web-sg',
     );
     expect(vpcReader.getVpcName).toHaveBeenCalledWith('vpc-1');
-    const detailsSection = shallow(<div>{wrapper.find(CollapsibleSection).first().prop('children')}</div>);
-    expect(detailsSection.text()).toContain('Web ingress');
-    expect(detailsSection.text()).toContain('Production VPC');
-    expect(wrapper.find(IPRangeRules).prop('ipRules')).toEqual([
-      {
-        address: '10.0.0.0/24',
-        rules: [{ description: '', endPort: 80, protocol: 'tcp', startPort: 80 }],
-      },
-    ]);
-
-    const referencedRules = shallow(<div>{wrapper.find(CollapsibleSection).last().prop('children')}</div>);
-    expect(referencedRules.text()).toContain('tcp: 443');
-    const securityGroupLink = referencedRules.find('UISref');
-    expect(shallow(<div>{securityGroupLink.prop('children')}</div>).text()).toContain('source-sg (sg-source)');
-    expect(securityGroupLink.prop('params')).toEqual(jasmine.objectContaining({ provider: 'ecs', name: 'source-sg' }));
+    expect(screen.getByText('Web ingress')).toBeInTheDocument();
+    expect(screen.getByText('Production VPC')).toBeInTheDocument();
+    fireEvent.click(screen.getByRole('heading', { name: 'IP Range Rules (1)' }));
+    expect(screen.getByText('10.0.0.0/24')).toBeInTheDocument();
+    expect(screen.getByText(/tcp:80/)).toHaveTextContent('tcp:80 → 80');
+    expect(screen.getByText('tcp: 443 → 443')).toBeInTheDocument();
+    expect(screen.getByRole('link', { name: /source-sg \(sg-source\)/ })).toBeInTheDocument();
   });
 
   it('renders explicit empty states when no IP or referenced security-group rules exist', async () => {
@@ -127,7 +142,7 @@ describe('EcsSecurityGroupDetails', () => {
       getApplicationSecurityGroup: () => ({}),
       getSecurityGroupDetails: () => Promise.resolve(details),
     };
-    const wrapper = shallow(
+    renderDetails(
       <EcsSecurityGroupDetails
         app={app()}
         resolvedSecurityGroup={resolvedSecurityGroup}
@@ -136,12 +151,11 @@ describe('EcsSecurityGroupDetails', () => {
       />,
     );
 
-    await tick();
-    wrapper.update();
-
-    expect(wrapper.find(IPRangeRules).prop('ipRules')).toEqual([]);
-    expect(wrapper.find('[data-test-id="ecs-ip-rules-empty"]').text()).toBe('None');
-    expect(wrapper.find('[data-test-id="ecs-security-group-rules-empty"]').text()).toBe('None');
+    expect(await screen.findByRole('heading', { name: 'web-sg' })).toBeInTheDocument();
+    expect(screen.getAllByText('None')).toHaveLength(1);
+    expect(screen.getByRole('heading', { name: 'IP Range Rules (0)' })).toBeInTheDocument();
+    fireEvent.click(screen.getByRole('heading', { name: 'Firewall Rules (0)' }));
+    expect(screen.getAllByText('None')).toHaveLength(2);
   });
 
   it('shows the standalone not-found state for empty and failed detail loads', async () => {
@@ -151,14 +165,17 @@ describe('EcsSecurityGroupDetails', () => {
     const failedReader = {
       getSecurityGroupDetails: () => Promise.reject(new Error('not found')),
     };
-    const emptyWrapper = shallow(
+    const empty = renderDetails(
       <EcsSecurityGroupDetails
         app={app(true)}
         resolvedSecurityGroup={resolvedSecurityGroup}
         securityGroupReader={emptyReader as any}
       />,
     );
-    const failedWrapper = shallow(
+    expect(await screen.findByText(/Could not find.*web-sg/)).toBeInTheDocument();
+    empty.unmount();
+
+    renderDetails(
       <EcsSecurityGroupDetails
         app={app(true)}
         resolvedSecurityGroup={resolvedSecurityGroup}
@@ -166,14 +183,7 @@ describe('EcsSecurityGroupDetails', () => {
       />,
     );
 
-    await tick();
-    emptyWrapper.update();
-    failedWrapper.update();
-
-    expect(emptyWrapper.text()).toContain('Could not find');
-    expect(emptyWrapper.text()).toContain('web-sg');
-    expect(failedWrapper.text()).toContain('Could not find');
-    expect(failedWrapper.text()).toContain('web-sg');
+    expect(await screen.findByText(/Could not find.*web-sg/)).toBeInTheDocument();
   });
 
   it('ignores stale detail and VPC responses after coordinates change', async () => {
@@ -183,18 +193,19 @@ describe('EcsSecurityGroupDetails', () => {
     const firstVpc = new Promise<string>((resolve) => (resolveFirstVpc = resolve));
     const securityGroupReader = {
       getApplicationSecurityGroup: () => ({}),
-      getSecurityGroupDetails: jasmine
-        .createSpy('getSecurityGroupDetails')
-        .and.callFake((_app: any, _account: string, _provider: string, _region: string, _vpcId: string, name: string) =>
-          name === 'web-sg' ? firstDetails : Promise.resolve({ ...securityGroup('api-sg'), vpcId: 'vpc-2' }),
+      getSecurityGroupDetails: vi
+        .fn()
+        .mockImplementation(
+          (_app: any, _account: string, _provider: string, _region: string, _vpcId: string, name: string) =>
+            name === 'web-sg' ? firstDetails : Promise.resolve({ ...securityGroup('api-sg'), vpcId: 'vpc-2' }),
         ),
     };
     const vpcReader = {
-      getVpcName: jasmine
-        .createSpy('getVpcName')
-        .and.callFake((vpcId: string) => (vpcId === 'vpc-1' ? firstVpc : Promise.resolve('API VPC'))),
+      getVpcName: vi
+        .fn()
+        .mockImplementation((vpcId: string) => (vpcId === 'vpc-1' ? firstVpc : Promise.resolve('API VPC'))),
     };
-    const wrapper = shallow(
+    const rendered = renderDetails(
       <EcsSecurityGroupDetails
         app={app()}
         resolvedSecurityGroup={resolvedSecurityGroup}
@@ -203,43 +214,49 @@ describe('EcsSecurityGroupDetails', () => {
       />,
     );
 
-    await tick();
-    resolveFirstDetails(securityGroup());
-    await tick();
-    wrapper.setProps({
-      resolvedSecurityGroup: { ...resolvedSecurityGroup, name: 'api-sg', vpcId: 'vpc-2' },
-    });
-    await tick();
-    wrapper.update();
-    expect(wrapper.text()).toContain('api-sg');
-    expect(shallow(<div>{wrapper.find(CollapsibleSection).first().prop('children')}</div>).text()).toContain('API VPC');
+    await waitFor(() => expect(securityGroupReader.getSecurityGroupDetails).toHaveBeenCalledOnce());
+    await act(async () => resolveFirstDetails(securityGroup()));
+    rendered.rerender(
+      <UIRouterContext.Provider value={router}>
+        <UIViewContext.Provider
+          value={{ fqn: 'application.current', context: router.stateRegistry.get('application.current') as any }}
+        >
+          <EcsSecurityGroupDetails
+            app={app()}
+            resolvedSecurityGroup={{ ...resolvedSecurityGroup, name: 'api-sg', vpcId: 'vpc-2' }}
+            securityGroupReader={securityGroupReader as any}
+            vpcReader={vpcReader}
+          />
+        </UIViewContext.Provider>
+      </UIRouterContext.Provider>,
+    );
+    expect(await screen.findByRole('heading', { name: 'api-sg' })).toBeInTheDocument();
+    expect(screen.getByText('API VPC')).toBeInTheDocument();
 
-    resolveFirstVpc('Stale VPC');
-    await tick();
-    wrapper.update();
+    await act(async () => resolveFirstVpc('Stale VPC'));
 
-    expect(wrapper.text()).toContain('api-sg');
-    expect(wrapper.text()).not.toContain('Stale VPC');
+    expect(screen.getByRole('heading', { name: 'api-sg' })).toBeInTheDocument();
+    expect(screen.queryByText('Stale VPC')).not.toBeInTheDocument();
   });
 
-  it('does not update state when a detail request resolves after unmount', async () => {
+  it('does not continue to VPC loading when a detail request resolves after unmount', async () => {
     let resolveDetails: (details: any) => void;
     const securityGroupReader = {
-      getSecurityGroupDetails: () => new Promise<any>((resolve) => (resolveDetails = resolve)),
+      getSecurityGroupDetails: vi.fn(() => new Promise<any>((resolve) => (resolveDetails = resolve))),
     };
-    const component = new EcsSecurityGroupDetails({
-      app: app(),
-      resolvedSecurityGroup,
-      securityGroupReader: securityGroupReader as any,
-    });
-    spyOn(component, 'setState');
+    const vpcReader = { getVpcName: vi.fn().mockResolvedValue('Late VPC') };
+    const rendered = renderDetails(
+      <EcsSecurityGroupDetails
+        app={app()}
+        resolvedSecurityGroup={resolvedSecurityGroup}
+        securityGroupReader={securityGroupReader as any}
+        vpcReader={vpcReader}
+      />,
+    );
+    await waitFor(() => expect(securityGroupReader.getSecurityGroupDetails).toHaveBeenCalledOnce());
+    rendered.unmount();
+    await act(async () => resolveDetails(securityGroup()));
 
-    (component as any).loadSecurityGroup();
-    (component.setState as jasmine.Spy).calls.reset();
-    component.componentWillUnmount();
-    resolveDetails(securityGroup());
-    await tick();
-
-    expect(component.setState).not.toHaveBeenCalled();
+    expect(vpcReader.getVpcName).not.toHaveBeenCalled();
   });
 });

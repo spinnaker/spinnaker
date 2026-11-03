@@ -17,6 +17,7 @@ package com.netflix.spinnaker.clouddriver.google.model.loadbalancing
 
 enum GoogleLoadBalancingScheme {
   EXTERNAL,
+  EXTERNAL_MANAGED,
   INTERNAL,
   INTERNAL_MANAGED,
 }

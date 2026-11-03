@@ -23,7 +23,7 @@ describe('ProviderServiceDelegate', () => {
   });
 
   it('checks for a delegate without constructing it', () => {
-    const constructor = jasmine.createSpy('constructor');
+    const constructor = vi.fn();
     CloudProviderRegistry.registerProvider(provider, {
       name: provider,
       test: { service: constructor },
@@ -47,7 +47,7 @@ describe('ProviderServiceDelegate', () => {
 
     const service = new ProviderServiceDelegate(promiseService).getDelegate<TestService>(provider, serviceKey);
 
-    expect(service).toEqual(jasmine.any(TestService));
+    expect(service).toEqual(expect.any(TestService));
     expect(service.injectedPromiseService).toBe(promiseService);
   });
 
@@ -102,7 +102,7 @@ describe('ProviderServiceDelegate', () => {
       test: { service: TestService },
     });
 
-    expect(delegate.getDelegate(provider, serviceKey)).toEqual(jasmine.any(TestService));
+    expect(delegate.getDelegate(provider, serviceKey)).toEqual(expect.any(TestService));
   });
 
   it('clears cached instances when disposed', () => {

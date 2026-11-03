@@ -97,7 +97,8 @@ public abstract class AbstractOnDemandCachingAgent extends AbstractHuaweiCloudCa
   @Override
   public CacheResult loadData(ProviderCache providerCache) {
     long startTime = System.currentTimeMillis();
-    CacheResultBuilder cacheResultBuilder = new CacheResultBuilder(startTime);
+    CacheResultBuilder cacheResultBuilder =
+        new CacheResultBuilder(startTime, getProvidedDataTypes());
 
     buildCurrentNamespaceCacheData(cacheResultBuilder);
 

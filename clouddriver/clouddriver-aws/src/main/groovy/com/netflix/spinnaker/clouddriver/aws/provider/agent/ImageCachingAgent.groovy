@@ -155,8 +155,8 @@ class ImageCachingAgent implements CachingAgent, AccountAware, DriftMetric, Cust
       if (namedImageCacheData == null) {
         namedImageCacheDataMap.put(namedImageId, new DefaultCacheData(namedImageId, [
           name              : image.name(),
-          virtualizationType: image.virtualizationType(),
-          architecture      : image.architecture(),
+          virtualizationType: image.virtualizationTypeAsString(),
+          architecture      : image.architectureAsString(),
           creationDate      : image.creationDate()
         ], [(IMAGES.ns): [imageId]]))
       } else {

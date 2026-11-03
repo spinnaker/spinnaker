@@ -1,24 +1,19 @@
-import { mount } from 'enzyme';
+import { render, screen } from '@testing-library/react';
 import type { FormikProps } from 'formik';
 import React from 'react';
 
 import { SpinFormik } from './SpinFormik';
 
 describe('SpinFormik', () => {
-  it('touches all fields in initialValues', () => {
-    let formik: FormikProps<any> = null;
-
-    mount(
+  it('touches all fields in initialValues', async () => {
+    render(
       <SpinFormik
         initialValues={{ foo: '123', bar: '456' }}
         onSubmit={() => null}
-        render={(_formik) => {
-          formik = _formik;
-          return null;
-        }}
+        render={(formik: FormikProps<any>) => <output>{JSON.stringify(formik.touched)}</output>}
       />,
     );
 
-    expect(formik.touched).toEqual({ foo: true, bar: true });
+    expect(await screen.findByText('{"foo":true,"bar":true}')).toBeInTheDocument();
   });
 });

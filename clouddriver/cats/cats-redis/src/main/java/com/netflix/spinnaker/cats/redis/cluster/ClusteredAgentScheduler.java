@@ -21,7 +21,6 @@ import static com.netflix.spinnaker.cats.agent.ExecutionInstrumentation.elapsedT
 import com.google.common.util.concurrent.ThreadFactoryBuilder;
 import com.netflix.spinnaker.cats.agent.Agent;
 import com.netflix.spinnaker.cats.agent.AgentExecution;
-import com.netflix.spinnaker.cats.agent.AgentLock;
 import com.netflix.spinnaker.cats.agent.AgentScheduler;
 import com.netflix.spinnaker.cats.agent.AgentSchedulerAware;
 import com.netflix.spinnaker.cats.agent.ExecutionInstrumentation;
@@ -43,11 +42,10 @@ import java.util.stream.Collectors;
 import lombok.Getter;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.boot.actuate.health.HealthEndpoint;
+import org.springframework.boot.health.actuate.endpoint.HealthEndpoint;
 import redis.clients.jedis.params.SetParams;
 
-public class ClusteredAgentScheduler extends CatsModuleAware
-    implements AgentScheduler<AgentLock>, Runnable {
+public class ClusteredAgentScheduler extends CatsModuleAware implements AgentScheduler, Runnable {
 
   private enum Status {
     SUCCESS,

@@ -67,6 +67,10 @@ tasks.register('test') { task ->
   }
 }
 
+tasks.register('verifySpringBootBaseline') {
+  dependsOn gradle.includedBuild('kork').task(':spinnaker-dependencies:verifySpringBootBaseline')
+}
+
 // Additional aliases including UI projects
 tasks.register('buildAll') { task ->
   gradle.includedBuilds.each { build ->
@@ -155,15 +159,6 @@ tasks.register('run') {
 }
 
 // Tasks to build one or all JS projects
-tasks.register('buildUpdateMonorepo') {
-  doLast {
-    exec {
-      workingDir '.github/actions/update-monorepo'
-      commandLine 'bash', '-c', 'npm i && npm run build'
-    }
-  }
-}
-
 tasks.register('buildSpinnakerRelease') {
   doLast {
     exec {
@@ -175,7 +170,6 @@ tasks.register('buildSpinnakerRelease') {
 
 // Compiles the GHA Typescript Actions to single-file CJS, so GHA can actually use them
 tasks.register('buildGhaJs') {
-  dependsOn 'buildUpdateMonorepo'
   dependsOn 'buildSpinnakerRelease'
 }
 

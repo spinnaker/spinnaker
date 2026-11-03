@@ -43,7 +43,7 @@ const LAST_APPLIED_CONFIGURATION = 'kubectl.kubernetes.io/last-applied-configura
  * A modal that allows a user to copy a running Kubernetes resource.
  **/
 export class ManifestCopier extends React.Component<IManifestCopierProps, IManifestCopierState> {
-  private destroy$ = new Subject();
+  private destroy$ = new Subject<void>();
 
   public static getState = (props: IManifestCopierProps) => {
     let manifests: IManifestOption[] = [];

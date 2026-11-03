@@ -12,7 +12,8 @@ dependencies {
   implementation "com.google.guava:guava"
 
   implementation "org.springframework.boot:spring-boot-starter-actuator"
-  implementation "org.springframework.boot:spring-boot-starter-web"
+  implementation "org.springframework.boot:spring-boot-starter-webmvc"
+  compileOnly "org.springframework.boot:spring-boot-starter-jdbc"
   implementation "io.spinnaker.kork:kork-config"
   implementation "io.spinnaker.kork:kork-plugins"
   implementation "io.spinnaker.kork:kork-web"

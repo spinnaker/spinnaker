@@ -37,7 +37,7 @@ export class TargetGroups
   public protocols = ['TCP', 'UDP'];
   public healthProtocols = ['TCP', 'HTTP', 'HTTPS'];
   public targetTypes = ['instance', 'ip'];
-  private destroy$ = new Subject();
+  private destroy$ = new Subject<void>();
 
   constructor(props: ITargetGroupsProps) {
     super(props);

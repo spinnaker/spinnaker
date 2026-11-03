@@ -19,9 +19,9 @@ package com.netflix.kayenta.prometheus.health;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import org.springframework.boot.actuate.health.AbstractHealthIndicator;
-import org.springframework.boot.actuate.health.Health;
-import org.springframework.boot.actuate.health.Status;
+import org.springframework.boot.health.contributor.AbstractHealthIndicator;
+import org.springframework.boot.health.contributor.Health;
+import org.springframework.boot.health.contributor.Status;
 
 public class PrometheusHealthIndicator extends AbstractHealthIndicator {
 

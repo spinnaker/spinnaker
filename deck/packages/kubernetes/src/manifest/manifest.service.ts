@@ -10,32 +10,8 @@ export interface IStageManifest {
   };
 }
 
-// A manifest that the artifact-store entity storage feature has replaced with a
-// reference, rather than expanding it back into a real manifest before deck ever
-// sees it (e.g. gate isn't configured to expand these on read).
-//
-// name/metadata are best-effort: they're only populated for references stored after
-// the entity store started surfacing manifest identity (kind/name/namespace) on the
-// placeholder. References stored before that carry only type/reference.
-export interface IStoredManifestReference {
-  type: string;
-  reference: string;
-  name?: string;
-  metadata?: {
-    kind?: string;
-    name?: string;
-    namespace?: string;
-  };
-}
-
-export function isStoredManifestReference(manifest: unknown): manifest is IStoredManifestReference {
-  return (
-    !!manifest &&
-    typeof manifest === 'object' &&
-    (manifest as IStoredManifestReference).type === 'remote/map/base64' &&
-    typeof (manifest as IStoredManifestReference).reference === 'string'
-  );
-}
+export type { IStoredManifestReference } from '@spinnaker/core';
+export { isStoredManifestReference } from '@spinnaker/core';
 
 export interface IManifestParams {
   account: string;

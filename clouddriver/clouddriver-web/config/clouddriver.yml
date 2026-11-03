@@ -8,7 +8,6 @@ server:
 redis:
   connection: ${services.redis.baseUrl:redis://localhost:6379}
   scheduler: default
-  parallelism: -1
 
 services:
   front50:
@@ -256,6 +255,17 @@ kubernetes:
   enabled: false
   v2:
     applyAppLabels: true
+    # Annotate deployed resources with provenance.spinnaker.io/deployed-by and
+    # provenance.spinnaker.io/execution-id so a running workload can be traced
+    # back to the Spinnaker user and pipeline execution that deployed it.
+    applyProvenanceAnnotations: false
+  # Report real health for custom resources (and other kinds without a dedicated
+  # handler) from their Stalled/Reconciling/Ready conditions and status.phase.
+  # When disabled, they are always reported as stable.
+  customResourceStatus:
+    enabled: false
+    # Condition messages are truncated to this many characters.
+    maxMessageLength: 1024
 
 dockerRegistry:
   enabled: ${DOCKER_REGISTRY_ENABLED:false}
@@ -280,7 +290,19 @@ oracle:
   enabled: ${ORACLE_ENABLED:false}
 
 spring:
+  # Artifact store and entity store (de)serializers and mixins are registered on the Jackson 2
+  # ObjectMapper only, so HTTP bodies have to go through it until they move to Jackson 3.
+  http:
+    converters:
+      preferred-json-mapper: jackson2
   jackson:
+    mapper:
+      SORT_PROPERTIES_ALPHABETICALLY: true
+    serialization:
+      ORDER_MAP_ENTRIES_BY_KEYS: true
+  # Spring Boot 4 binds spring.jackson.* to Jackson 3 only; the Jackson 2 ObjectMapper reads
+  # spring.jackson2.*.
+  jackson2:
     mapper:
       SORT_PROPERTIES_ALPHABETICALLY: true
     serialization:
@@ -292,19 +314,6 @@ operations.security:
 
 # Turn on when confirming Fiat authorization checks
 # logging.level.com.netflix.spinnaker.clouddriver.listeners: DEBUG
-
-resilience4j.retry:
-  instances:
-    sqlTransaction:
-      maxRetryAttempts: 5
-      waitDuration: 100ms
-      enableExponentialBackoff: false
-      ignoreExceptions:
-      - com.netflix.spinnaker.clouddriver.event.exceptions.AggregateChangeRejectedException
-    sqlRead:
-      maxRetryAttempts: 5
-      waitDuration: 100ms
-      enableExponentialBackoff: false
 
 ---
 

@@ -25,7 +25,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
-import org.springframework.boot.web.client.RestTemplateBuilder;
+import org.springframework.boot.restclient.RestTemplateBuilder;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Conditional;
 import org.springframework.context.annotation.Configuration;
@@ -40,7 +40,6 @@ import org.springframework.security.oauth2.client.web.OAuth2AuthorizationRequest
 import org.springframework.security.oauth2.client.web.OAuth2LoginAuthenticationFilter;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.savedrequest.HttpSessionRequestCache;
-import org.springframework.session.web.http.DefaultCookieSerializer;
 import org.springframework.stereotype.Component;
 import org.springframework.web.client.RestTemplate;
 
@@ -55,7 +54,6 @@ public class OAuth2SsoConfig {
   @Autowired private AuthConfig authConfig;
   @Autowired private SpinnakerOAuth2UserInfoService customOAuth2UserService;
   @Autowired private SpinnakerOIDCUserInfoService oidcUserInfoService;
-  @Autowired private DefaultCookieSerializer defaultCookieSerializer;
   @Autowired private ClientRegistrationRepository clientRegistrationRepository;
   @Autowired private OAuthUserInfoServiceHelper userInfoServiceHelper;
 
@@ -69,7 +67,6 @@ public class OAuth2SsoConfig {
   // ManagedDeliverySchemaEndpointConfiguration#schemaSecurityFilterChain should go first
   @Order(3)
   SecurityFilterChain securityFilterChain(HttpSecurity httpSecurity) throws Exception {
-    defaultCookieSerializer.setSameSite(null);
     authConfig.configure(httpSecurity);
     String registrationId = getFirstRegistrationId();
     HttpSessionRequestCache requestCache = new HttpSessionRequestCache();
@@ -115,9 +112,8 @@ public class OAuth2SsoConfig {
 
   private RestTemplate createRestTemplateWithTimeouts() {
     return new RestTemplateBuilder()
-        .setConnectTimeout(
-            Duration.ofMillis(externalAuthTokenFilterProperties.getConnectTimeoutMs()))
-        .setReadTimeout(Duration.ofMillis(externalAuthTokenFilterProperties.getReadTimeoutMs()))
+        .connectTimeout(Duration.ofMillis(externalAuthTokenFilterProperties.getConnectTimeoutMs()))
+        .readTimeout(Duration.ofMillis(externalAuthTokenFilterProperties.getReadTimeoutMs()))
         .build();
   }
 

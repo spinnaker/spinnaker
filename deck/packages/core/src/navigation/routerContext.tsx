@@ -35,20 +35,22 @@ export function withRouter<P extends IRouterInjectedProps>(
 }
 
 export function stateChangeSuccess$(router: UIRouter): Observable<IRouterStateChange> {
-  return new Observable((subscriber) =>
-    router.transitionService.onSuccess({}, (transition) =>
+  return new Observable((subscriber) => {
+    const deregister = router.transitionService.onSuccess({}, (transition) =>
       subscriber.next({
         to: transition.to(),
         toParams: transition.params('to'),
         from: transition.from(),
         fromParams: transition.params('from'),
       }),
-    ),
-  );
+    );
+    return () => deregister();
+  });
 }
 
 export function locationChangeSuccess$(router: UIRouter): Observable<string> {
-  return new Observable((subscriber) =>
-    router.transitionService.onSuccess({}, () => subscriber.next(window.location.href)),
-  );
+  return new Observable((subscriber) => {
+    const deregister = router.transitionService.onSuccess({}, () => subscriber.next(window.location.href));
+    return () => deregister();
+  });
 }

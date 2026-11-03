@@ -111,7 +111,7 @@ class GoogleBackendServiceCachingAgent extends AbstractGoogleCachingAgent {
   private CacheResult buildCacheResult(ProviderCache _, List<GoogleBackendService> backendServiceList) {
     log.debug("Describing items in ${agentType}")
 
-    def cacheResultBuilder = new CacheResultBuilder()
+    def cacheResultBuilder = new CacheResultBuilder(providedDataTypes)
 
     backendServiceList.each { GoogleBackendService backendService ->
       def backendServiceKey = Keys.getBackendServiceKey(accountName, backendService.kind as String, backendService.getName())
@@ -138,7 +138,7 @@ class GoogleBackendServiceCachingAgent extends AbstractGoogleCachingAgent {
     new GoogleBackendService(
       name: bs.name,
       kind: kind,
-      healthCheckLink: bs.healthChecks[0],
+      healthCheckLink: bs.healthChecks ? bs.healthChecks[0] : null,
       sessionAffinity: bs.sessionAffinity,
       affinityCookieTtlSec: bs.affinityCookieTtlSec,
       enableCDN: bs.enableCDN,

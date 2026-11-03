@@ -1,4 +1,4 @@
-import { shallow } from 'enzyme';
+import { render, screen } from '@testing-library/react';
 import React from 'react';
 
 import type { Application } from '../../application';
@@ -20,24 +20,30 @@ describe('StandaloneInstanceDetails', () => {
   });
 
   it('renders provider React instance details when configured', () => {
-    const ReactInstanceDetails = () => <div className="react-instance-details" />;
-    const getValue = spyOn(CloudProviderRegistry, 'getValue').and.callFake((_provider: string, key: string) =>
-      key === 'instance.details' ? ReactInstanceDetails : null,
+    const ReactInstanceDetails = ({ app: renderedApp, instance: renderedInstance }: any) => (
+      <div>
+        {renderedApp === app && renderedInstance === instance ? 'standalone app' : 'wrong props'}:{' '}
+        {renderedInstance.instanceId}
+      </div>
     );
+    const getValue = vi
+      .spyOn(CloudProviderRegistry, 'getValue')
+      .mockImplementation((_provider: string, key: string) =>
+        key === 'instance.details' ? ReactInstanceDetails : null,
+      );
 
-    const component = shallow(<StandaloneInstanceDetails app={app} instance={instance} />);
+    render(<StandaloneInstanceDetails app={app} instance={instance} />);
 
-    expect(component.find(ReactInstanceDetails).prop('app')).toBe(app);
-    expect(component.find(ReactInstanceDetails).prop('instance')).toBe(instance);
-    expect(getValue.calls.allArgs()).toEqual([['kubernetes', 'instance.details']]);
+    expect(screen.getByText('standalone app: i-123')).toBeInTheDocument();
+    expect(getValue.mock.calls).toEqual([['kubernetes', 'instance.details']]);
   });
 
   it('renders nothing when provider instance details config is missing', () => {
-    const getValue = spyOn(CloudProviderRegistry, 'getValue').and.returnValue(null);
+    const getValue = vi.spyOn(CloudProviderRegistry, 'getValue').mockReturnValue(null);
 
-    const component = shallow(<StandaloneInstanceDetails app={app} instance={instance} />);
+    const { container } = render(<StandaloneInstanceDetails app={app} instance={instance} />);
 
-    expect(component.isEmptyRender()).toBe(true);
-    expect(getValue.calls.allArgs()).toEqual([['kubernetes', 'instance.details']]);
+    expect(container).toBeEmptyDOMElement();
+    expect(getValue.mock.calls).toEqual([['kubernetes', 'instance.details']]);
   });
 });

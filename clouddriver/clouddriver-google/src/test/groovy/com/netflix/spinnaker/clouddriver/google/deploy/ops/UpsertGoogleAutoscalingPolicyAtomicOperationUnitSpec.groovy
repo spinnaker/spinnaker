@@ -362,7 +362,7 @@ class UpsertGoogleAutoscalingPolicyAtomicOperationUnitSpec extends Specification
     // zonal setup
     def zonalManagerMock = Mock(Compute.InstanceGroupManagers)
     def zonalPatchMock = Mock(Compute.InstanceGroupManagers.Patch)
-    def zonalTimerId = GoogleApiTestUtils.makeOkId(
+    def zonalTimer = GoogleApiTestUtils.okTimer(
       registry,
       "compute.instanceGroupManagers.patch",
       [scope: "zonal", zone: ZONE])
@@ -370,7 +370,7 @@ class UpsertGoogleAutoscalingPolicyAtomicOperationUnitSpec extends Specification
     // regional setup
     def regionalManagerMock = Mock(Compute.RegionInstanceGroupManagers)
     def regionalPatchMock = Mock(Compute.RegionInstanceGroupManagers.Patch)
-    def regionalTimerId = GoogleApiTestUtils.makeOkId(
+    def regionalTimer = GoogleApiTestUtils.okTimer(
       registry,
       "compute.regionInstanceGroupManagers.patch",
       [scope: "regional", region: REGION])
@@ -403,8 +403,8 @@ class UpsertGoogleAutoscalingPolicyAtomicOperationUnitSpec extends Specification
       }) >> zonalPatchMock
       1 * zonalPatchMock.execute() >> [name: 'autoHealingOp']
     }
-    registry.timer(regionalTimerId).count() == (isRegional ? 1 : 0)
-    registry.timer(zonalTimerId).count() == (isRegional ? 0 : 1)
+    regionalTimer.count() == (isRegional ? 1 : 0)
+    zonalTimer.count() == (isRegional ? 0 : 1)
 
     where:
     isRegional << [true, false]

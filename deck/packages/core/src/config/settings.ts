@@ -96,9 +96,11 @@ export interface ISpinnakerSettings {
   banners?: IBannerSettings[];
   checkForUpdates: boolean;
   debugEnabled: boolean;
+  displayExecutionDeploymentTargets?: boolean;
   maxRunningExecutionsToRetrieve: number;
   defaultInstancePort: number;
   defaultProviders: string[];
+  defaultTheme?: 'light' | 'dark' | 'system'; // used until a user picks a theme in the header menu
   defaultTimeZone: string; // see http://momentjs.com/timezone/docs/#/data-utilities/
   dockerInsights: IDockerInsightSettings;
   disabledImages?: string[];

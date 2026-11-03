@@ -77,12 +77,18 @@ class DeleteGoogleInternalLoadBalancerAtomicOperation extends GoogleAtomicOperat
     task.updateStatus BASE_PHASE, "Retrieving forwarding rule $forwardingRuleName in $region..."
 
     // NOTE: get all the forwarding rule names to resolve which ones to delete later.
+    // getItems() is null (not empty) when the region has no forwarding rules, e.g. an idempotent
+    // re-delete after the rule is already gone; default to empty so lookups return not-found.
     List<ForwardingRule> projectForwardingRules = timeExecute(
         compute.forwardingRules().list(project, region),
         "compute.forwardingRules.list",
-        TAG_SCOPE, SCOPE_GLOBAL).getItems()
+        TAG_SCOPE, SCOPE_GLOBAL).getItems() ?: []
 
-    ForwardingRule forwardingRule = projectForwardingRules.find { it.name == forwardingRuleName }
+    // Same-name regional forwarding rules can now also be EXTERNAL passthrough LBs. Only the
+    // INTERNAL passthrough shape is owned by this delete operation.
+    ForwardingRule forwardingRule = projectForwardingRules.find {
+      it.name == forwardingRuleName && GCEUtil.isInternalPassthroughForwardingRule(it)
+    }
     if (forwardingRule == null) {
       GCEUtil.updateStatusAndThrowNotFoundException("Forwarding rule $forwardingRuleName not found in $region for $project",
         task, BASE_PHASE)
@@ -94,7 +100,8 @@ class DeleteGoogleInternalLoadBalancerAtomicOperation extends GoogleAtomicOperat
     List<String> listenersToDelete = []
     projectForwardingRules.each { ForwardingRule rule ->
       try {
-        if (GCEUtil.getLocalName(rule.getBackendService()) == backendServiceName) {
+        if (GCEUtil.isInternalPassthroughForwardingRule(rule) &&
+          GCEUtil.getLocalName(rule.getBackendService()) == backendServiceName) {
           listenersToDelete << rule.getName()
         }
       } catch (GoogleJsonResponseException e) {
@@ -124,6 +131,12 @@ class DeleteGoogleInternalLoadBalancerAtomicOperation extends GoogleAtomicOperat
     ) as BackendService
     if (backendService == null) {
       GCEUtil.updateStatusAndThrowNotFoundException("Backend service $backendServiceName not found in $region for $project",
+        task, BASE_PHASE)
+    }
+    // Recheck the backend service before deleting the graph so a malformed or colliding forwarding
+    // rule cannot cause this INTERNAL path to remove EXTERNAL passthrough resources.
+    if (backendService.loadBalancingScheme != "INTERNAL") {
+      GCEUtil.updateStatusAndThrowNotFoundException("Internal backend service $backendServiceName not found in $region for $project",
         task, BASE_PHASE)
     }
 

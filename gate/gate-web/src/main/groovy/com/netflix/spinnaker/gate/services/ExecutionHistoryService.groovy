@@ -38,9 +38,9 @@ class ExecutionHistoryService {
     Retrofit2SyncCall.execute(orcaServiceSelector.select().getTasks(app, page, limit, statuses))
   }
 
-  List<Map<String, Object>> getPipelines(String app, Integer limit, String statuses, Boolean expand, String pipelineNameFilter = null, Integer pipelineLimit = null) {
+  List<Map<String, Object>> getPipelines(String app, Integer limit, String statuses, Boolean expand, String pipelineNameFilter = null, Integer pipelineLimit = null, boolean includeDeletedPipelines = false) {
     Preconditions.checkNotNull(app)
-    def pipelines = Retrofit2SyncCall.execute(orcaServiceSelector.select().getPipelines(app, limit, statuses, expand, pipelineNameFilter, pipelineLimit))
+    def pipelines = Retrofit2SyncCall.execute(orcaServiceSelector.select().getPipelines(app, limit, statuses, expand, pipelineNameFilter, pipelineLimit, includeDeletedPipelines))
     log.debug("received {} executions for application: {}", pipelines.size(), app)
     return pipelines
   }

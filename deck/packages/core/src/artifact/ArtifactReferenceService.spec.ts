@@ -76,7 +76,7 @@ describe('ArtifactReferenceService', () => {
     });
 
     it('calls a custom artifact remover if defined', () => {
-      const remover = jasmine.createSpy('remover').and.stub();
+      const remover = vi.fn().mockReturnValue(undefined);
       Registry.pipeline.registerStage({
         key: 'testStage',
         artifactRemover: remover,
@@ -87,7 +87,7 @@ describe('ArtifactReferenceService', () => {
     });
 
     it('does not call a custom artifact remover if stage type is incorrect', () => {
-      const remover = jasmine.createSpy('remover').and.stub();
+      const remover = vi.fn().mockReturnValue(undefined);
       Registry.pipeline.registerStage({
         key: 'testStage',
         artifactRemover: remover,

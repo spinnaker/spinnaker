@@ -73,12 +73,11 @@ class UpsertLoadBalancersTask implements CloudProviderAware, RetryableTask {
             "kato.result.expected": true,
             "kato.last.task.id"   : taskId,
             "targets"             : operations.collect {
-              [
-                      credentials      : it[CLOUD_OPERATION_TYPE].account,
-                      availabilityZones: it[CLOUD_OPERATION_TYPE].availabilityZones,
-                      vpcId            : it[CLOUD_OPERATION_TYPE].vpcId,
-                      name             : it[CLOUD_OPERATION_TYPE].name,
-              ]
+              LoadBalancerTarget.fromOperation(
+                cloudProvider,
+                it[CLOUD_OPERATION_TYPE] as Map,
+                it[CLOUD_OPERATION_TYPE].account as String
+              )
             }
     ]
     TaskResult.builder(ExecutionStatus.SUCCEEDED).context(outputs).build()

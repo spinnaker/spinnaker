@@ -30,8 +30,8 @@ describe('Service: cacheInitializer', function () {
       sg: ['sg1', 'sg2', 'sg3'],
     };
     beforeEach(() => {
-      spyOn(securityGroupReader, 'getAllSecurityGroups').and.returnValue(Promise.resolve(keys.sg as any));
-      spyOn(AccountService, 'listProviders').and.returnValue(Promise.resolve([]));
+      vi.spyOn(securityGroupReader, 'getAllSecurityGroups').mockReturnValue(Promise.resolve(keys.sg as any));
+      vi.spyOn(AccountService, 'listProviders').mockReturnValue(Promise.resolve([]));
     });
 
     it('should initialize the cache initializer with the initialization values', async () => {
@@ -88,17 +88,17 @@ describe('direct runtime cache initializer', () => {
   });
 
   it('initializes and refreshes infrastructure caches with native runtime dependencies', async () => {
-    spyOn(InfrastructureCaches, 'createCache').and.returnValue({} as any);
-    spyOn(InfrastructureCaches, 'clearCache');
-    spyOn(AccountService, 'listProviders').and.returnValue(Promise.resolve([]));
-    const getAllSecurityGroups = spyOn(runtime.services.securityGroupReader, 'getAllSecurityGroups').and.returnValue(
-      Promise.resolve([]),
-    );
+    vi.spyOn(InfrastructureCaches, 'createCache').mockReturnValue({} as any);
+    vi.spyOn(InfrastructureCaches, 'clearCache').mockReturnValue(undefined);
+    vi.spyOn(AccountService, 'listProviders').mockReturnValue(Promise.resolve([]));
+    const getAllSecurityGroups = vi
+      .spyOn(runtime.services.securityGroupReader, 'getAllSecurityGroups')
+      .mockReturnValue(Promise.resolve([]));
     const cacheInitializer = runtime.services.cacheInitializer;
 
-    expect(cacheInitializer.initialize).toEqual(jasmine.any(Function));
-    expect(cacheInitializer.refreshCache).toEqual(jasmine.any(Function));
-    expect(cacheInitializer.refreshCaches).toEqual(jasmine.any(Function));
+    expect(cacheInitializer.initialize).toEqual(expect.any(Function));
+    expect(cacheInitializer.refreshCache).toEqual(expect.any(Function));
+    expect(cacheInitializer.refreshCaches).toEqual(expect.any(Function));
 
     await cacheInitializer.initialize();
     await cacheInitializer.refreshCache('securityGroups');

@@ -1,4 +1,5 @@
-import { mount } from 'enzyme';
+import { render, screen } from '@testing-library/react';
+import { setupUser } from '../../../../utils/testUtils/userEvent';
 import React from 'react';
 
 import { AccountService } from '../../../../account/AccountService';
@@ -21,45 +22,44 @@ describe('<DeployStageConfig />', () => {
       application: { name: 'fnord' } as any,
       pipeline: { stages: [stage] } as any,
       stage,
-      stageFieldUpdated: jasmine.createSpy('stageFieldUpdated'),
-      updateStage: jasmine.createSpy('updateStage'),
-      updateStageField: jasmine.createSpy('updateStageField'),
+      stageFieldUpdated: vi.fn(),
+      updateStage: vi.fn(),
+      updateStageField: vi.fn(),
     };
   }
 
   it('shows provider selection errors when adding a cluster', async () => {
-    spyOn(AccountService, 'listProviders').and.returnValue(Promise.resolve(['aws']) as any);
-    spyOn(ProviderSelectionService, 'selectProvider').and.returnValue(
+    const user = setupUser();
+    vi.spyOn(AccountService, 'listProviders').mockReturnValue(Promise.resolve(['aws']) as any);
+    vi.spyOn(ProviderSelectionService, 'selectProvider').mockImplementation(() =>
       Promise.reject(new Error('No providers support serverGroup for this action.')),
     );
-    const component = mount(
-      <DeployStageConfigComponent {...createProps()} deckRuntimeServices={deckRuntimeServices} />,
-    );
+    render(<DeployStageConfigComponent {...createProps()} deckRuntimeServices={deckRuntimeServices} />);
 
-    component.find('button.add-new').simulate('click');
-    await Promise.resolve();
-    await Promise.resolve();
-    component.update();
+    await user.click(screen.getByRole('button', { name: /Add server group/i }));
 
-    expect(component.find('.alert-danger').text()).toBe('No providers support serverGroup for this action.');
+    expect(await screen.findByText('No providers support serverGroup for this action.')).toBeVisible();
   });
 
-  it('only offers providers with React clone server group modals when adding a cluster', () => {
-    spyOn(AccountService, 'listProviders').and.returnValue(Promise.resolve(['aws']) as any);
+  it('only offers providers with React clone server group modals when adding a cluster', async () => {
+    const user = setupUser();
+    vi.spyOn(AccountService, 'listProviders').mockReturnValue(Promise.resolve(['aws']) as any);
     let filterFn: any;
-    spyOn(ProviderSelectionService, 'selectProvider').and.callFake((_application, _feature, providerFilter) => {
-      filterFn = providerFilter;
-      return Promise.reject(new Error('cancelled')) as any;
-    });
+    vi.spyOn(ProviderSelectionService, 'selectProvider').mockImplementation(
+      (_application, _feature, providerFilter) => {
+        filterFn = providerFilter;
+        return Promise.reject(new Error('cancelled')) as any;
+      },
+    );
     const props = createProps();
-    const component = mount(<DeployStageConfigComponent {...props} deckRuntimeServices={deckRuntimeServices} />);
+    render(<DeployStageConfigComponent {...props} deckRuntimeServices={deckRuntimeServices} />);
 
-    component.find('button.add-new').simulate('click');
+    await user.click(screen.getByRole('button', { name: /Add server group/i }));
 
     expect(ProviderSelectionService.selectProvider).toHaveBeenCalledWith(
       props.application,
       'serverGroup',
-      jasmine.any(Function),
+      expect.any(Function),
     );
     expect(filterFn(props.application, {}, { serverGroup: { CloneServerGroupModal: { show: () => null } } })).toBe(
       true,
