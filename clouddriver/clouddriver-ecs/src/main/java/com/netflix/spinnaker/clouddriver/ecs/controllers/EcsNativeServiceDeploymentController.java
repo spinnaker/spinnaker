@@ -29,6 +29,7 @@ import java.util.ArrayList;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Optional;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -201,11 +202,12 @@ public class EcsNativeServiceDeploymentController {
 
   /**
    * ARNs of the service's deployments whose target revision runs {@code taskDefinition}. Revisions
-   * are described in batches of 20, the DescribeServiceRevisions limit.
+   * are described in batches of 20, the DescribeServiceRevisions limit. Deployments are grouped by
+   * revision, so several deployments of one revision all count towards an ambiguous match.
    */
   private static List<String> serviceDeploymentsTargeting(
       EcsClient ecs, String cluster, String serviceName, String taskDefinition) {
-    Map<String, String> deploymentByRevision = new LinkedHashMap<>();
+    Map<String, List<String>> deploymentsByRevision = new LinkedHashMap<>();
     String nextToken = null;
     do {
       ListServiceDeploymentsResponse page =
@@ -216,14 +218,17 @@ public class EcsNativeServiceDeploymentController {
                   .nextToken(nextToken)
                   .build());
       for (ServiceDeploymentBrief brief : page.serviceDeployments()) {
-        if (StringUtils.isNotBlank(brief.targetServiceRevisionArn())) {
-          deploymentByRevision.put(brief.targetServiceRevisionArn(), brief.serviceDeploymentArn());
+        if (StringUtils.isNotBlank(brief.targetServiceRevisionArn())
+            && StringUtils.isNotBlank(brief.serviceDeploymentArn())) {
+          deploymentsByRevision
+              .computeIfAbsent(brief.targetServiceRevisionArn(), revision -> new ArrayList<>())
+              .add(brief.serviceDeploymentArn());
         }
       }
       nextToken = page.nextToken();
     } while (StringUtils.isNotBlank(nextToken));
 
-    List<String> revisionArns = new ArrayList<>(deploymentByRevision.keySet());
+    List<String> revisionArns = new ArrayList<>(deploymentsByRevision.keySet());
     List<String> matching = new ArrayList<>();
     for (int from = 0; from < revisionArns.size(); from += 20) {
       List<String> batch = revisionArns.subList(from, Math.min(from + 20, revisionArns.size()));
@@ -233,9 +238,9 @@ public class EcsNativeServiceDeploymentController {
           .serviceRevisions()
           .stream()
           .filter(revision -> taskDefinition.equals(revision.taskDefinition()))
-          .map(revision -> deploymentByRevision.get(revision.serviceRevisionArn()))
-          .filter(StringUtils::isNotBlank)
-          .forEach(matching::add);
+          .map(revision -> deploymentsByRevision.get(revision.serviceRevisionArn()))
+          .filter(Objects::nonNull)
+          .forEach(matching::addAll);
     }
     return matching;
   }

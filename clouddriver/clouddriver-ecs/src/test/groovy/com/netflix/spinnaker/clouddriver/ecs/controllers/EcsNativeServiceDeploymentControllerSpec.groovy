@@ -314,6 +314,28 @@ class EcsNativeServiceDeploymentControllerSpec extends Specification {
     0 * ecs.describeServiceDeployments(_)
   }
 
+  def 'returns 409 when several deployments target the same revision of the task definition'() {
+    given:
+    credentialsRepository.getOne('test') >> Mock(NetflixECSCredentials) { getName() >> 'test' }
+    serviceCacheClient.get(_) >> cachedService()
+    amazonClientProvider.getAmazonEcsV2(_, 'us-west-2') >> ecs
+    ecs.listServiceDeployments(_) >> ListServiceDeploymentsResponse.builder()
+      .serviceDeployments(brief('arn:deployment:a', 'arn:revision:a'), brief('arn:deployment:b', 'arn:revision:a'))
+      .build()
+
+    when:
+    def response = controller.getDeploymentStatus('test', 'us-west-2', 'myapp', null, 'task-def:15')
+
+    then:
+    1 * ecs.describeServiceRevisions({ DescribeServiceRevisionsRequest request -> request.serviceRevisionArns() == ['arn:revision:a'] } as DescribeServiceRevisionsRequest) >>
+      DescribeServiceRevisionsResponse.builder()
+        .serviceRevisions(ServiceRevision.builder().serviceRevisionArn('arn:revision:a').taskDefinition('task-def:15').build())
+        .build()
+    response.statusCode == HttpStatus.CONFLICT
+    response.body.contains('arn:deployment:a') && response.body.contains('arn:deployment:b')
+    0 * ecs.describeServiceDeployments(_)
+  }
+
   def 'describes target revisions in batches of 20'() {
     given:
     credentialsRepository.getOne('test') >> Mock(NetflixECSCredentials) { getName() >> 'test' }
