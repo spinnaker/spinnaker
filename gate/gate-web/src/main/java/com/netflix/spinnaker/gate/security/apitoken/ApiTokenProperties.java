@@ -26,7 +26,7 @@ import org.springframework.boot.context.properties.ConfigurationProperties;
  *
  * <pre>
  * api-tokens:
- *   enabled: false
+ *   enabled: true
  *   token-prefix: spk_
  *   redis-key-prefix: api-token
  *   reject-check-interval-seconds: 60
@@ -40,7 +40,12 @@ import org.springframework.boot.context.properties.ConfigurationProperties;
 @ConfigurationProperties("api-tokens")
 public class ApiTokenProperties {
 
-  /** Master switch — no beans are registered unless this is {@code true}. */
+  /**
+   * Master switch — no beans are registered unless this is {@code true}. The bean conditions read
+   * the {@code api-tokens.enabled} property directly, so the shipped default of {@code true} lives
+   * in {@code gate.yml}; this field default only applies when the properties bean is bound without
+   * it.
+   */
   private boolean enabled = false;
 
   /** Expected prefix for all API token values (used to distinguish from OAuth2 Bearer tokens). */
