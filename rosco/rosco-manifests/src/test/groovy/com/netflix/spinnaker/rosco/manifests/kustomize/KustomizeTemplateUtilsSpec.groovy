@@ -1,5 +1,6 @@
 package com.netflix.spinnaker.rosco.manifests.kustomize
 
+import com.fasterxml.jackson.databind.ObjectMapper
 import com.netflix.spinnaker.kork.artifacts.model.Artifact
 import com.netflix.spinnaker.rosco.jobs.BakeRecipe
 import com.netflix.spinnaker.rosco.manifests.ArtifactDownloader
@@ -246,5 +247,43 @@ class KustomizeTemplateUtilsSpec extends Specification {
         templateRenderer                                | command
         BakeManifestRequest.TemplateRenderer.KUSTOMIZE4 | "kustomize4"
         BakeManifestRequest.TemplateRenderer.KUSTOMIZE5 | "kustomize5"
+    }
+
+    def "buildBakeRecipe rejects a missing template renderer with a helpful message"() {
+        given:
+        def referenceBase = "https://api.github.com/repos/org/repo/contents/base"
+        def kustomizationFileReader = Mock(KustomizationFileReader)
+        kustomizationFileReader.getKustomization(_, "kustomization.yml") >> {
+            return new Kustomization(resources: ["deployment.yml"], selfReference: referenceBase + "/kustomization.yml")
+        }
+        def kustomizationTemplateUtils = new KustomizeTemplateUtils(
+                kustomizationFileReader, Mock(ArtifactDownloader), Mock(RoscoKustomizeConfigurationProperties))
+        def request = new KustomizeBakeManifestRequest()
+        request.inputArtifact = Artifact.builder()
+                .name("base/kustomization.yml")
+                .reference(referenceBase + "/kustomization.yml")
+                .artifactAccount("github")
+                .type("github/file")
+                .build()
+        request.overrides = [:]
+        request.templateRenderer = null
+
+        when:
+        BakeManifestEnvironment.create().withCloseable { env ->
+            kustomizationTemplateUtils.buildBakeRecipe(env, request)
+        }
+
+        then:
+        def e = thrown(IllegalArgumentException)
+        e.message == "Unsupported Kustomize template renderer 'null'. Use KUSTOMIZE4 or KUSTOMIZE5."
+    }
+
+    def "the removed KUSTOMIZE renderer is rejected when deserializing a bake request"() {
+        when:
+        new ObjectMapper().convertValue([templateRenderer: "KUSTOMIZE"], KustomizeBakeManifestRequest)
+
+        then:
+        def e = thrown(IllegalArgumentException)
+        e.message.contains("KUSTOMIZE")
     }
 }
