@@ -76,7 +76,7 @@ class WaitForEcsNativeServiceDeploymentTaskSpec extends Specification {
     def result = task.execute(stage)
 
     then:
-    1 * ecsNativeService.getServiceDeploymentStatus('test', 'us-west-2', 'myapp', 'service-deployment-1') >> {
+    1 * ecsNativeService.getServiceDeploymentStatus('test', 'us-west-2', 'myapp', 'service-deployment-1', null) >> {
       throw MonitorKatoTaskSpec.makeSpinnakerHttpException(404)
     }
     result.status == ExecutionStatus.RUNNING
@@ -217,9 +217,9 @@ class WaitForEcsNativeServiceDeploymentTaskSpec extends Specification {
     def waitResult = task.execute(stage)
 
     then: 'it pins the deployment this stage started'
-    1 * ecsNativeService.getServiceDeploymentStatus('test', 'us-west-2', 'myapp', 'own-deployment') >>
+    1 * ecsNativeService.getServiceDeploymentStatus('test', 'us-west-2', 'myapp', 'own-deployment', null) >>
       Calls.response(new EcsServiceDeploymentStatus(serviceDeploymentArn: 'own-deployment', status: 'SUCCESSFUL'))
-    0 * ecsNativeService.getServiceDeploymentStatus(_, _, _, 'predecessor-deployment')
+    0 * ecsNativeService.getServiceDeploymentStatus(_, _, _, 'predecessor-deployment', _)
     waitResult.status == ExecutionStatus.SUCCEEDED
   }
 
@@ -244,7 +244,7 @@ class WaitForEcsNativeServiceDeploymentTaskSpec extends Specification {
 
     then:
     1 * ecsNativeService.getServiceDeploymentStatus(
-      'test', 'us-west-2', 'myapp', 'service-deployment-1') >> Calls.response(status)
+      'test', 'us-west-2', 'myapp', 'service-deployment-1', null) >> Calls.response(status)
     result.status == expectedStatus
     result.context.ecsNativeDeploymentStatus == status
 
@@ -317,7 +317,7 @@ class WaitForEcsNativeServiceDeploymentTaskSpec extends Specification {
     def result = task.execute(stage)
 
     then: 'the deploy child two hops upstream is found and polled'
-    1 * ecsNativeService.getServiceDeploymentStatus('test', 'us-west-2', 'myapp', 'arn-from-child') >> Calls.response(status)
+    1 * ecsNativeService.getServiceDeploymentStatus('test', 'us-west-2', 'myapp', 'arn-from-child', null) >> Calls.response(status)
     result.status == ExecutionStatus.RUNNING
 
     and: 'the dynamic timeout is derived from that same child'
@@ -446,8 +446,8 @@ class WaitForEcsNativeServiceDeploymentTaskSpec extends Specification {
     def result = task.execute(stage)
 
     then:
-    1 * ecsNativeService.getServiceDeploymentStatus('test', 'us-west-2', 'myapp', 'own-deployment') >> Calls.response(status)
-    0 * ecsNativeService.getServiceDeploymentStatus(_, _, _, 'predecessor-deployment')
+    1 * ecsNativeService.getServiceDeploymentStatus('test', 'us-west-2', 'myapp', 'own-deployment', null) >> Calls.response(status)
+    0 * ecsNativeService.getServiceDeploymentStatus(_, _, _, 'predecessor-deployment', _)
     result.status == ExecutionStatus.RUNNING
   }
 
@@ -471,11 +471,93 @@ class WaitForEcsNativeServiceDeploymentTaskSpec extends Specification {
     ], 'predecessor-deployment')
 
     when:
+    def result = task.execute(stage)
+
+    then: 'it identifies its own deployment by the task definition it registered'
+    1 * ecsNativeService.getServiceDeploymentStatus('test', 'us-west-2', 'myapp', null, 'task-def:2') >>
+      Calls.response(new EcsServiceDeploymentStatus(serviceDeploymentArn: 'own-deployment', status: 'IN_PROGRESS'))
+    0 * ecsNativeService.getServiceDeploymentStatus(_, _, _, 'predecessor-deployment', _)
+    result.status == ExecutionStatus.RUNNING
+  }
+
+  def 'a stage without its own ARN or task definition still fails rather than wait unpinned'() {
+    given:
+    def stage = stageWithContext([
+      account: 'test', region: 'us-west-2', serverGroupName: 'myapp',
+      'kato.tasks': [katoTask('1', [:])]
+    ], 'predecessor-deployment')
+
+    when:
     task.execute(stage)
 
     then:
     thrown(IllegalArgumentException)
     0 * ecsNativeService.getServiceDeploymentStatus(*_)
+  }
+
+  def 'pins and publishes the ARN resolved through the task definition'() {
+    given: 'clouddriver reported only the task definition for the created service'
+    def stage = stageWithContext([
+      account: 'test', region: 'us-west-2', serverGroupName: 'myapp',
+      'kato.tasks': [katoTask('1', [ecsNativeExpectedTaskDefinition: 'task-def:15'])]
+    ])
+
+    when: 'the first poll resolves the deployment'
+    def first = task.execute(stage)
+    stage.context.putAll(first.context)
+    stage.outputs.putAll(first.outputs)
+
+    then:
+    1 * ecsNativeService.getServiceDeploymentStatus('test', 'us-west-2', 'myapp', null, 'task-def:15') >>
+      Calls.response(new EcsServiceDeploymentStatus(serviceDeploymentArn: 'created-deployment', status: 'IN_PROGRESS'))
+    first.status == ExecutionStatus.RUNNING
+    first.context[WaitForEcsNativeServiceDeploymentTask.RESOLVED_SERVICE_DEPLOYMENT_ARN] == 'created-deployment'
+    first.outputs.ecsNativeExpectedServiceDeploymentArn == 'created-deployment'
+
+    when: 'later polls are pinned to that ARN'
+    def second = task.execute(stage)
+
+    then:
+    1 * ecsNativeService.getServiceDeploymentStatus('test', 'us-west-2', 'myapp', 'created-deployment', null) >>
+      Calls.response(new EcsServiceDeploymentStatus(serviceDeploymentArn: 'created-deployment', status: 'SUCCESSFUL'))
+    0 * ecsNativeService.getServiceDeploymentStatus(_, _, _, null, 'task-def:15')
+    second.status == ExecutionStatus.SUCCEEDED
+    second.outputs.ecsNativeExpectedServiceDeploymentArn == 'created-deployment'
+  }
+
+  def 'keeps retrying while clouddriver has not listed the deployment of the task definition'() {
+    given:
+    def stage = stageWithContext([
+      account: 'test', region: 'us-west-2', serverGroupName: 'myapp',
+      'kato.tasks': [katoTask('1', [ecsNativeExpectedTaskDefinition: 'task-def:15'])]
+    ])
+
+    when:
+    def result = task.execute(stage)
+
+    then:
+    1 * ecsNativeService.getServiceDeploymentStatus('test', 'us-west-2', 'myapp', null, 'task-def:15') >> {
+      throw MonitorKatoTaskSpec.makeSpinnakerHttpException(404)
+    }
+    result.status == ExecutionStatus.RUNNING
+    result.context[WaitForEcsNativeServiceDeploymentTask.NOT_FOUND_RETRY_COUNT] == 1
+    !result.context.containsKey(WaitForEcsNativeServiceDeploymentTask.RESOLVED_SERVICE_DEPLOYMENT_ARN)
+  }
+
+  def 'an ARN published by the deploy wait is what a following Continue stage resolves'() {
+    given: 'a deploy whose wait resolved the ARN through the task definition'
+    def pipeline = PipelineExecutionImpl.newPipeline('orca')
+    def deploy = new StageExecutionImpl(pipeline, 'createServerGroup', 'deploy', [
+      'kato.tasks': [katoTask('1', [ecsNativeExpectedTaskDefinition: 'task-def:15'])]
+    ])
+    deploy.refId = 'deploy-ref'
+    deploy.outputs.ecsNativeExpectedServiceDeploymentArn = 'created-deployment'
+    def continueStage = new StageExecutionImpl(pipeline, 'ecsNativeContinueServiceDeployment', 'continue', [:])
+    continueStage.requisiteStageRefIds = ['deploy-ref']
+    pipeline.stages << deploy << continueStage
+
+    expect:
+    WaitForEcsNativeServiceDeploymentTask.resolveExpectedServiceDeploymentArn(continueStage) == 'created-deployment'
   }
 
   def 'Continue/Stop kato results carry no deployments, so the referenced deploy stage still wins'() {
@@ -502,7 +584,7 @@ class WaitForEcsNativeServiceDeploymentTaskSpec extends Specification {
 
     then:
     1 * ecsNativeService.getServiceDeploymentStatus(
-      'test', 'us-west-2', 'myapp', 'service-deployment-1') >> Calls.response(status)
+      'test', 'us-west-2', 'myapp', 'service-deployment-1', null) >> Calls.response(status)
     result.status == ExecutionStatus.RUNNING
   }
 
@@ -528,7 +610,7 @@ class WaitForEcsNativeServiceDeploymentTaskSpec extends Specification {
 
     then:
     1 * ecsNativeService.getServiceDeploymentStatus(
-      'test', 'us-west-2', 'myapp', 'service-deployment-1') >> Calls.response(statusWithHook(deploymentStatus, hookStatus))
+      'test', 'us-west-2', 'myapp', 'service-deployment-1', null) >> Calls.response(statusWithHook(deploymentStatus, hookStatus))
     result.status == expected
 
     where:
@@ -550,7 +632,7 @@ class WaitForEcsNativeServiceDeploymentTaskSpec extends Specification {
 
     then:
     1 * ecsNativeService.getServiceDeploymentStatus(
-      'test', 'us-west-2', 'myapp', 'service-deployment-1') >> Calls.response(statusWithHook('IN_PROGRESS', 'AWAITING_ACTION'))
+      'test', 'us-west-2', 'myapp', 'service-deployment-1', null) >> Calls.response(statusWithHook('IN_PROGRESS', 'AWAITING_ACTION'))
     result.status == ExecutionStatus.RUNNING
   }
 
@@ -568,7 +650,7 @@ class WaitForEcsNativeServiceDeploymentTaskSpec extends Specification {
 
     then:
     1 * ecsNativeService.getServiceDeploymentStatus(
-      'test', 'us-west-2', 'myapp', 'service-deployment-1') >> Calls.response(
+      'test', 'us-west-2', 'myapp', 'service-deployment-1', null) >> Calls.response(
         new EcsServiceDeploymentStatus(serviceDeploymentArn: 'service-deployment-1', status: 'ROLLBACK_SUCCESSFUL'))
     result.status == expected
 
@@ -591,7 +673,7 @@ class WaitForEcsNativeServiceDeploymentTaskSpec extends Specification {
 
     then:
     1 * ecsNativeService.getServiceDeploymentStatus(
-      'test', 'us-west-2', 'myapp', 'service-deployment-1') >> Calls.response(
+      'test', 'us-west-2', 'myapp', 'service-deployment-1', null) >> Calls.response(
         new EcsServiceDeploymentStatus(serviceDeploymentArn: 'service-deployment-1', status: 'ROLLBACK_FAILED'))
     result.status == ExecutionStatus.TERMINAL
   }
@@ -611,7 +693,7 @@ class WaitForEcsNativeServiceDeploymentTaskSpec extends Specification {
 
     then:
     1 * ecsNativeService.getServiceDeploymentStatus(
-      'test', 'us-west-2', 'myapp', 'service-deployment-1') >> Calls.response(status)
+      'test', 'us-west-2', 'myapp', 'service-deployment-1', null) >> Calls.response(status)
     result.status == ExecutionStatus.SUCCEEDED
   }
 
@@ -640,7 +722,7 @@ class WaitForEcsNativeServiceDeploymentTaskSpec extends Specification {
 
     then:
     2 * ecsNativeService.getServiceDeploymentStatus(
-      'test', 'us-west-2', 'myapp', 'deployment-1') >>> [Calls.response(inProgress), Calls.response(rollbackDeployment)]
+      'test', 'us-west-2', 'myapp', 'deployment-1', null) >>> [Calls.response(inProgress), Calls.response(rollbackDeployment)]
     first.status == ExecutionStatus.RUNNING
     second.status == ExecutionStatus.TERMINAL
   }
@@ -661,7 +743,7 @@ class WaitForEcsNativeServiceDeploymentTaskSpec extends Specification {
 
     then:
     1 * ecsNativeService.getServiceDeploymentStatus(
-      'test', 'us-west-2', 'myapp', 'service-deployment-1') >> Calls.response(status)
+      'test', 'us-west-2', 'myapp', 'service-deployment-1', null) >> Calls.response(status)
     result.status == ExecutionStatus.RUNNING
   }
 
@@ -682,7 +764,7 @@ class WaitForEcsNativeServiceDeploymentTaskSpec extends Specification {
 
     then:
     1 * ecsNativeService.getServiceDeploymentStatus(
-      'test', 'eu-central-1', 'myapp', 'service-deployment-1') >> Calls.response(status)
+      'test', 'eu-central-1', 'myapp', 'service-deployment-1', null) >> Calls.response(status)
     result.status == ExecutionStatus.SUCCEEDED
   }
 

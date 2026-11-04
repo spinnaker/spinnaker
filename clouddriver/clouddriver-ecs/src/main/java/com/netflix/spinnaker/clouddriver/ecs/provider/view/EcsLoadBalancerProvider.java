@@ -16,10 +16,7 @@
 
 package com.netflix.spinnaker.clouddriver.ecs.provider.view;
 
-import static com.netflix.spinnaker.clouddriver.core.provider.agent.Namespace.TARGET_GROUPS;
-
 import com.google.common.collect.Sets;
-import com.netflix.spinnaker.clouddriver.aws.AmazonCloudProvider;
 import com.netflix.spinnaker.clouddriver.aws.data.ArnUtils;
 import com.netflix.spinnaker.clouddriver.ecs.EcsCloudProvider;
 import com.netflix.spinnaker.clouddriver.ecs.cache.Keys;
@@ -119,6 +116,8 @@ public class EcsLoadBalancerProvider implements LoadBalancerProvider<EcsLoadBala
   @Override
   public Set<EcsLoadBalancer> getApplicationLoadBalancers(String application) {
     // Find the load balancers currently in use by ECS services in this application
+    // Name-prefix glob only: with the tag naming strategy the application comes from the service
+    // tags, so the name is not guaranteed to be "app-*". The cached application name filters below.
     String glob =
         application != null
             ? Keys.getServiceKey("*", "*", application + "*")
@@ -130,12 +129,6 @@ public class EcsLoadBalancerProvider implements LoadBalancerProvider<EcsLoadBala
             .collect(Collectors.toSet());
     log.debug("Retrieved {} services for application '{}'", services.size(), application);
 
-    Collection<String> allTargetGroupKeys = ecsTargetGroupCacheClient.getAllKeys();
-    log.debug(
-        "Retrieved {} target group keys for application '{}'",
-        allTargetGroupKeys.size(),
-        application);
-
     Map<String, Set<String>> targetGroupToServicesMap = new HashMap<>();
     Set<String> targetGroupKeys = new HashSet<>();
 
@@ -146,18 +139,12 @@ public class EcsLoadBalancerProvider implements LoadBalancerProvider<EcsLoadBala
       for (LoadBalancer loadBalancer : service.getLoadBalancers()) {
         if (loadBalancer.targetGroupArn() != null) {
           String tgArn = loadBalancer.targetGroupArn();
-          String keyPrefix =
-              String.format(
-                  "%s:%s:%s:%s:%s:",
-                  AmazonCloudProvider.ID,
-                  TARGET_GROUPS.getNs(),
-                  awsAccountName,
-                  service.getRegion(),
-                  ArnUtils.extractTargetGroupName(tgArn).get());
           Set<String> matchingKeys =
-              allTargetGroupKeys.stream()
-                  .filter(key -> key.startsWith(keyPrefix))
-                  .collect(Collectors.toSet());
+              new HashSet<>(
+                  ecsTargetGroupCacheClient.findKeys(
+                      awsAccountName,
+                      service.getRegion(),
+                      ArnUtils.extractTargetGroupName(tgArn).get()));
           targetGroupKeys.addAll(matchingKeys);
           // associate target group with services it contains targets for
           if (targetGroupToServicesMap.containsKey(tgArn)) {
