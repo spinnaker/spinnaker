@@ -189,6 +189,14 @@ class ApplicationService {
     try {
       Map pipelineConfig = Retrofit2SyncCall.execute(front50Service.getPipelineConfigById(pipelineNameOrId))
       if (pipelineConfig.id == pipelineNameOrId) {
+        // Pipeline ids are global in front50, but the caller asked for a pipeline in a particular
+        // application.  Without this check, an id that happens to equal a name in the requested
+        // application (e.g. a pipeline someone saved with the id "dev") would match a pipeline from
+        // a different application.
+        if (!app.equalsIgnoreCase(pipelineConfig.application as String)) {
+          log.warn("front50 returned a pipeline with id ${pipelineNameOrId} in application ${pipelineConfig.application}, not the requested application ${app}")
+          throw new NotFoundException("Pipeline configuration not found (nameOrId: ${pipelineNameOrId} in application ${app})")
+        }
         log.debug("front50 returned a pipeline with id ${pipelineNameOrId}")
         return pipelineConfig
       }
