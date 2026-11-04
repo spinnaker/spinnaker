@@ -85,7 +85,7 @@ export function CopyStageModal(props: ICopyStageModalProps) {
         initialValues={initialValues}
         onSubmit={copyStage}
         render={(formik) => (
-          <Modal key="modal" show={true} onHide={() => {}}>
+          <>
             <ModalClose dismiss={dismissModal} />
             <Modal.Header>
               <Modal.Title>Copy Stage</Modal.Title>
@@ -172,7 +172,7 @@ export function CopyStageModal(props: ICopyStageModalProps) {
                 <span> Copy Stage</span>
               </button>
             </Modal.Footer>
-          </Modal>
+          </>
         )}
       />
     </>
