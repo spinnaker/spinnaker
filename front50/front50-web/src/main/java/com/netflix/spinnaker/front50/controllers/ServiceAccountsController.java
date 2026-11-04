@@ -17,11 +17,11 @@ package com.netflix.spinnaker.front50.controllers;
 
 import com.netflix.spinnaker.front50.ServiceAccountsService;
 import com.netflix.spinnaker.front50.config.ServiceAccountsProperties;
-import com.netflix.spinnaker.front50.config.annotations.ConditionalOnAnyProviderExceptRedisIsEnabled;
 import com.netflix.spinnaker.front50.model.serviceaccount.ServiceAccount;
 import java.util.HashSet;
 import java.util.Set;
 import java.util.stream.Collectors;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -30,7 +30,7 @@ import org.springframework.web.bind.annotation.RestController;
 
 @RestController
 @RequestMapping("/serviceAccounts")
-@ConditionalOnAnyProviderExceptRedisIsEnabled
+@ConditionalOnProperty("sql.enabled")
 public class ServiceAccountsController {
 
   private final ServiceAccountsService serviceAccountService;

@@ -15,13 +15,13 @@
  */
 package com.netflix.spinnaker.front50.controllers;
 
-import com.netflix.spinnaker.front50.config.annotations.ConditionalOnAnyProviderExceptRedisIsEnabled;
 import com.netflix.spinnaker.front50.model.plugins.PluginInfo;
 import com.netflix.spinnaker.front50.model.plugins.PluginInfoService;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.Pattern;
 import java.util.Collection;
 import java.util.Optional;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.validation.annotation.Validated;
@@ -36,7 +36,7 @@ import org.springframework.web.bind.annotation.RestController;
 @RestController
 @RequestMapping("/pluginInfo")
 @Validated
-@ConditionalOnAnyProviderExceptRedisIsEnabled
+@ConditionalOnProperty("sql.enabled")
 public class PluginInfoController {
 
   private final PluginInfoService pluginInfoService;

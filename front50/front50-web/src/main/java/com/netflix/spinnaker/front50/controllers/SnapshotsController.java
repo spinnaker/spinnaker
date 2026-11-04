@@ -16,13 +16,13 @@
 package com.netflix.spinnaker.front50.controllers;
 
 import com.google.common.base.Strings;
-import com.netflix.spinnaker.front50.config.annotations.ConditionalOnAnyProviderExceptRedisIsEnabled;
 import com.netflix.spinnaker.front50.exceptions.InvalidEntityException;
 import com.netflix.spinnaker.front50.model.snapshot.Snapshot;
 import com.netflix.spinnaker.front50.model.snapshot.SnapshotDAO;
 import com.netflix.spinnaker.kork.web.exceptions.NotFoundException;
 import java.util.Collection;
 import java.util.Objects;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.security.access.prepost.PostAuthorize;
 import org.springframework.security.access.prepost.PostFilter;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -35,7 +35,7 @@ import org.springframework.web.bind.annotation.RestController;
 
 @RestController
 @RequestMapping("/snapshots")
-@ConditionalOnAnyProviderExceptRedisIsEnabled
+@ConditionalOnProperty("sql.enabled")
 public class SnapshotsController {
 
   private final SnapshotDAO snapshotDAO;

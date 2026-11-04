@@ -119,7 +119,6 @@ class CompositeStorageContainerTest {
     logger.info("jdbcUrlSecondary: '{}'", jdbcUrlSecondary);
     Map<String, String> properties =
         Map.ofEntries(
-            Map.entry("spinnaker.s3.enabled", "false"),
             Map.entry("spinnaker.migration.enabled", "true"),
             Map.entry("spinnaker.migration.primaryName", "secondarySqlStorageService"),
             Map.entry("spinnaker.migration.previousName", "sqlStorageService"),

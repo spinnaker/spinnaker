@@ -12,7 +12,7 @@ public class S3ClientFactoryTest {
   @Test
   void create_shouldNotThrowSdkClientException_whenRegionIsProvidedWithEndpoint() {
     AwsCredentialsProvider mockProvider = mock(AwsCredentialsProvider.class);
-    S3Properties props = new S3MetadataStorageProperties();
+    S3Properties props = new S3PluginStorageProperties();
     props.setRegion("us-west-2");
     props.setEndpoint("https://s3-compatible-host:9000");
     S3Client client = S3ClientFactory.create(mockProvider, props);
