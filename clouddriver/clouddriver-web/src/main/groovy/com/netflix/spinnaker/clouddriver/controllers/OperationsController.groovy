@@ -225,9 +225,25 @@ class OperationsController {
 
     if (tasks && !tasks.isEmpty()) {
       log.error("Shutting down while tasks '{}' are still in progress!", tasks)
+      tasks.each { failInterruptedTask(it) }
     }
 
     log.info("Destruction procedure completed.")
+  }
+
+  /**
+   * Records an explicit outcome for a task this instance will never finish, so the caller learns
+   * right away instead of polling a task that stays STARTED until its own timeout. Tasks backed by
+   * a saga are marked retryable so they can be resumed on another instance. Anything else may
+   * already have sent a cloud call, so it is failed rather than re-run.
+   */
+  private void failInterruptedTask(Task task) {
+    try {
+      task.updateStatus("ORCHESTRATION", "Clouddriver instance shut down before this task completed")
+      task.fail(task.hasSagaIds())
+    } catch (Exception e) {
+      log.error("Unable to fail task {} during shutdown", task.getId(), e)
+    }
   }
 
   private StartOperationResult start(@Nullable String cloudProvider,
