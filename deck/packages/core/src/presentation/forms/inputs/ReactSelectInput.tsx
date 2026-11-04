@@ -16,6 +16,12 @@ export interface IReactSelectInputProps<T = OptionValues>
     OmitControlledInputPropsFrom<ReactSelectProps<T>> {
   stringOptions?: string[];
   mode?: 'TETHERED' | 'VIRTUALIZED' | 'PLAIN' | 'CREATABLE';
+  /**
+   * Row height (in px) for VIRTUALIZED mode. react-virtualized renders each option in a fixed-height,
+   * absolutely-positioned row (default 35px); options taller than this will visually overlap. Provide a
+   * number, or a function to size rows per-option, when option content spans more than a single line.
+   */
+  optionHeight?: number | ((info: { option: any }) => number);
 }
 
 // TODO: use standard css classes (from style guide?)

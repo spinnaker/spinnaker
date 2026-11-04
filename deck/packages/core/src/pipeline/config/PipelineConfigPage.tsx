@@ -626,6 +626,7 @@ function PipelineStageConfig({
                 inputClassName="pipeline-stage-type-select"
                 name="type"
                 onChange={(event) => selectStageType(event.target.value)}
+                optionHeight={({ option }) => (option?.description ? 46 : 30)}
                 optionRenderer={renderStageTypeOption}
                 options={stageTypeOptions}
                 placeholder="Select a stage type..."
@@ -1264,11 +1265,15 @@ export function PipelineConfigPageComponent({
   };
 
   const showHistory = () => {
-    ReactModal.show(ShowPipelineHistoryModal, {
-      pipelineConfigId: model.pipeline.id,
-      isStrategy: model.pipeline.strategy,
-      currentConfig: viewState.isDirty ? cloneDeep(model.pipeline) : null,
-    } as any)
+    ReactModal.show(
+      ShowPipelineHistoryModal,
+      {
+        pipelineConfigId: model.pipeline.id,
+        isStrategy: model.pipeline.strategy,
+        currentConfig: viewState.isDirty ? cloneDeep(model.pipeline) : null,
+      } as any,
+      { dialogClassName: 'modal-lg modal-fullscreen' },
+    )
       .then((newConfig: IPipeline) => {
         updateModel({ ...latestModel.current, pipeline: newConfig, renderablePipeline: newConfig });
         setViewState((current) => ({ ...current, ...selectionInRange(current, newConfig) }));
