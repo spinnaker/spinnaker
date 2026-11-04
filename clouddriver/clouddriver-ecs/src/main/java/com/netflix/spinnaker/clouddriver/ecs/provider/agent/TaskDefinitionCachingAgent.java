@@ -22,6 +22,7 @@ import static com.netflix.spinnaker.clouddriver.ecs.cache.Keys.Namespace.TASK_DE
 import com.amazonaws.auth.AWSCredentialsProvider;
 import com.amazonaws.services.ecs.AmazonECS;
 import com.amazonaws.services.ecs.model.DescribeTaskDefinitionRequest;
+import com.amazonaws.services.ecs.model.InvalidParameterException;
 import com.amazonaws.services.ecs.model.TaskDefinition;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.netflix.spectator.api.Registry;
@@ -36,6 +37,7 @@ import com.netflix.spinnaker.clouddriver.ecs.cache.client.ServiceCacheClient;
 import com.netflix.spinnaker.clouddriver.ecs.cache.client.TaskDefinitionCacheClient;
 import com.netflix.spinnaker.clouddriver.ecs.cache.model.Service;
 import java.util.*;
+import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -89,6 +91,13 @@ public class TaskDefinitionCachingAgent extends AbstractEcsOnDemandAgent<TaskDef
     Set<String> taskDefArns = new HashSet<>();
 
     for (Service service : services) {
+      // a service on the EXTERNAL deployment controller keeps its task definitions on task sets
+      if (StringUtils.isBlank(service.getTaskDefinition())) {
+        log.debug(
+            "ECS service '{}' has no task definition. Skipping it.", service.getServiceName());
+        continue;
+      }
+
       taskDefArns.add(service.getTaskDefinition());
     }
 
@@ -105,12 +114,23 @@ public class TaskDefinitionCachingAgent extends AbstractEcsOnDemandAgent<TaskDef
       if (cacheEntry != null) {
         taskDefinitions.add(cacheEntry);
       } else {
-        TaskDefinition taskDef =
-            ecs.describeTaskDefinition(new DescribeTaskDefinitionRequest().withTaskDefinition(arn))
-                .getTaskDefinition();
-        if (taskDef != null) {
-          taskDefinitions.add(taskDef);
-          newTaskDefs++;
+        try {
+          TaskDefinition taskDef =
+              ecs.describeTaskDefinition(
+                      new DescribeTaskDefinitionRequest().withTaskDefinition(arn))
+                  .getTaskDefinition();
+          if (taskDef != null) {
+            taskDefinitions.add(taskDef);
+            newTaskDefs++;
+          }
+        } catch (InvalidParameterException e) {
+          // ECS rejected this ARN. Anything else (throttling, access denied, ClientException, which
+          // also covers missing permissions) fails the run, so the cache is left as it is.
+          log.warn(
+              "Failed to describe task definition '{}' in {}. Skipping it.",
+              arn,
+              getAgentType(),
+              e);
         }
       }
     }
