@@ -23,6 +23,7 @@ import com.netflix.spinnaker.gate.mcp.support.McpAccessGuard;
 import com.netflix.spinnaker.kork.web.exceptions.NotFoundException;
 import java.util.List;
 import org.springaicommunity.mcp.annotation.McpTool;
+import org.springaicommunity.mcp.annotation.McpTool.McpAnnotations;
 import org.springaicommunity.mcp.annotation.McpToolParam;
 import org.springframework.security.access.prepost.PreAuthorize;
 
@@ -60,7 +61,9 @@ public class GlobalBannerTools {
       name = "list_global_banners",
       description =
           "Admin-only: list every global UI banner (active and inactive). Use this to find a banner's id before "
-              + "calling set_global_banner (to update it) or delete_global_banner.")
+              + "calling set_global_banner (to update it) or delete_global_banner.",
+      annotations =
+          @McpAnnotations(readOnlyHint = true, destructiveHint = false, idempotentHint = true))
   @PreAuthorize("@fiatPermissionEvaluator.isAdmin()")
   public List<BannerRecord> listGlobalBanners() {
     return globalBannerService.getAllBanners();
