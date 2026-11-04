@@ -193,6 +193,19 @@ describe('<CiBuildStageConfig />', () => {
     expect(props.stageFieldUpdated).toHaveBeenCalled();
   });
 
+  it('lets the build service and job selects fill the available width', async () => {
+    const props = createProps({ master: 'master', job: 'job' });
+    vi.mocked(IgorService.listMasters).mockReturnValue(Promise.resolve(['master']));
+    vi.mocked(IgorService.listJobsForMaster).mockReturnValue(Promise.resolve(['job']));
+
+    const { container } = render(<CiBuildStageConfig {...props} />);
+    await waitFor(() => expect(container.querySelectorAll('.Select')).toHaveLength(2));
+
+    container.querySelectorAll('.Select').forEach((select) => {
+      expect(select.parentElement).toHaveClass('flex-grow');
+    });
+  });
+
   it('renders Jenkins parameter descriptions as help fields', async () => {
     const props = createProps({ master: 'master', job: 'job', parameters: {} });
     vi.mocked(IgorService.listJobsForMaster).mockReturnValue(Promise.resolve(['job']));
