@@ -36,8 +36,18 @@ import com.netflix.spinnaker.clouddriver.ecs.cache.client.ServiceCacheClient;
 import com.netflix.spinnaker.clouddriver.ecs.cache.client.TaskDefinitionCacheClient;
 import com.netflix.spinnaker.clouddriver.ecs.cache.model.Service;
 import java.util.*;
+import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+<<<<<<< HEAD
+=======
+import software.amazon.awssdk.services.ecs.EcsClient;
+import software.amazon.awssdk.services.ecs.model.DescribeTaskDefinitionRequest;
+import software.amazon.awssdk.services.ecs.model.DescribeTaskDefinitionResponse;
+import software.amazon.awssdk.services.ecs.model.InvalidParameterException;
+import software.amazon.awssdk.services.ecs.model.LoadBalancer;
+import software.amazon.awssdk.services.ecs.model.TaskDefinition;
+>>>>>>> 3ff15e6 (fix(ecs): keep caching task definitions when one service or ARN fails (#8341))
 
 public class TaskDefinitionCachingAgent extends AbstractEcsOnDemandAgent<TaskDefinition> {
   private static final Collection<AgentDataType> types =
@@ -89,7 +99,30 @@ public class TaskDefinitionCachingAgent extends AbstractEcsOnDemandAgent<TaskDef
     Set<String> taskDefArns = new HashSet<>();
 
     for (Service service : services) {
+<<<<<<< HEAD
       taskDefArns.add(service.getTaskDefinition());
+=======
+      // a service on the EXTERNAL deployment controller keeps its task definitions on task sets
+      if (StringUtils.isBlank(service.getTaskDefinition())) {
+        log.debug(
+            "ECS service '{}' has no task definition. Skipping it.", service.getServiceName());
+        continue;
+      }
+
+      Set<Integer> loadBalancedPorts =
+          loadBalancedPortsByTaskDefArn.computeIfAbsent(
+              service.getTaskDefinition(), arn -> new HashSet<>());
+
+      if (service.getLoadBalancers() == null) {
+        continue;
+      }
+
+      for (LoadBalancer loadBalancer : service.getLoadBalancers()) {
+        if (loadBalancer.containerPort() != null) {
+          loadBalancedPorts.add(loadBalancer.containerPort());
+        }
+      }
+>>>>>>> 3ff15e6 (fix(ecs): keep caching task definitions when one service or ARN fails (#8341))
     }
 
     List<TaskDefinition> taskDefinitions = new ArrayList<>();
@@ -105,12 +138,39 @@ public class TaskDefinitionCachingAgent extends AbstractEcsOnDemandAgent<TaskDef
       if (cacheEntry != null) {
         taskDefinitions.add(cacheEntry);
       } else {
+<<<<<<< HEAD
         TaskDefinition taskDef =
             ecs.describeTaskDefinition(new DescribeTaskDefinitionRequest().withTaskDefinition(arn))
                 .getTaskDefinition();
         if (taskDef != null) {
           taskDefinitions.add(taskDef);
           newTaskDefs++;
+=======
+        try {
+          DescribeTaskDefinitionResponse response =
+              ecs.describeTaskDefinition(
+                  DescribeTaskDefinitionRequest.builder().taskDefinition(arn).build());
+          TaskDefinition taskDef = response.taskDefinition();
+          if (taskDef != null) {
+            taskDefinitions.add(taskDef);
+            newTaskDefs++;
+          } else if (cacheEntry != null) {
+            taskDefinitions.add(cacheEntry);
+          }
+        } catch (InvalidParameterException e) {
+          // ECS rejected this ARN. Anything else (throttling, access denied, ClientException, which
+          // also covers missing permissions) fails the run, so the cache is left as it is.
+          log.warn(
+              "Failed to describe task definition '{}' in {}. {}",
+              arn,
+              getAgentType(),
+              cacheEntry != null ? "Keeping the cached entry." : "Skipping it.",
+              e);
+          // the result is authoritative, so an entry left out of it would be evicted
+          if (cacheEntry != null) {
+            taskDefinitions.add(cacheEntry);
+          }
+>>>>>>> 3ff15e6 (fix(ecs): keep caching task definitions when one service or ARN fails (#8341))
         }
       }
     }
