@@ -31,13 +31,13 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.netflix.spectator.api.NoopRegistry;
 import com.netflix.spinnaker.cats.cache.CacheData;
 import com.netflix.spinnaker.cats.cache.DefaultCacheData;
 import com.netflix.spinnaker.clouddriver.aws.jackson.AwsSdkV2Module;
 import com.netflix.spinnaker.clouddriver.aws.security.AmazonClientProvider;
 import com.netflix.spinnaker.clouddriver.cache.OnDemandAgent;
 import com.netflix.spinnaker.clouddriver.ecs.cache.Keys;
+import io.micrometer.core.instrument.simple.SimpleMeterRegistry;
 import java.util.*;
 import java.util.stream.Collectors;
 import org.junit.jupiter.api.Test;
@@ -252,7 +252,11 @@ public class TaskDefinitionCachingAgentTest extends CommonCachingAgent {
         .thenReturn(ecsClient);
     TaskDefinitionCachingAgent onDemandAgent =
         new TaskDefinitionCachingAgent(
-            netflixAmazonCredentials, REGION, amazonClientProvider, new NoopRegistry(), mapper);
+            netflixAmazonCredentials,
+            REGION,
+            amazonClientProvider,
+            new SimpleMeterRegistry(),
+            mapper);
 
     // When
     OnDemandAgent.OnDemandResult result =
