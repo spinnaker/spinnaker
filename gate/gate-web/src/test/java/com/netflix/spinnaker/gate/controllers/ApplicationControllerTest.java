@@ -239,6 +239,26 @@ class ApplicationControllerTest {
   }
 
   @Test
+  void getPipelineConfigDoesNotReturnAPipelineWithAMatchingIdFromAnotherApplication()
+      throws Exception {
+    // given: no pipeline named "dev" in true-app, but another application has a pipeline whose
+    // id is "dev"
+    when(front50Service.getPipelineConfigByApplicationAndName("true-app", "dev", true))
+        .thenThrow(makeSpinnakerHttpException(404));
+    when(front50Service.getPipelineConfigById("dev"))
+        .thenReturn(
+            Calls.response(Map.of("id", "dev", "name", "prod-deploy", "application", "other-app")));
+
+    // when:
+    ResultActions response =
+        mockMvc.perform(
+            get("/applications/true-app/pipelineConfigs/dev").accept(MediaType.APPLICATION_JSON));
+
+    // then:
+    response.andExpect(status().isNotFound());
+  }
+
+  @Test
   void getPipelineConfigForMissingPipeline() throws Exception {
     // given:
     // ApplicationService.getPipelineConfigForApplication queries front50 initially by name.  On a
