@@ -29,53 +29,51 @@ export function DisablePipelineModal(props: IDisablePipelineModalProps) {
 
   return (
     <>
-      <Modal key="modal" show={true} onHide={() => {}}>
-        <ModalClose dismiss={dismissModal} />
-        <Modal.Header>
-          <Modal.Title>Really Disable Pipeline?</Modal.Title>
-        </Modal.Header>
-        <Modal.Body>
-          {saveError && (
-            <div className="alert alert-danger">
-              <p>Could not disable pipeline.</p>
+      <ModalClose dismiss={dismissModal} />
+      <Modal.Header>
+        <Modal.Title>Really Disable Pipeline?</Modal.Title>
+      </Modal.Header>
+      <Modal.Body>
+        {saveError && (
+          <div className="alert alert-danger">
+            <p>Could not disable pipeline.</p>
+            <p>
+              <b>Reason: </b>
+              {errorMessage}
+            </p>
+            <p>
+              <a
+                className="btn btn-link"
+                onClick={(e) => {
+                  e.preventDefault();
+                  setSaveError(false);
+                }}
+              >
+                [dismiss]
+              </a>
+            </p>
+          </div>
+        )}
+        <form role="form" name="form" className="form-horizontal">
+          <div className="form-group">
+            <div className="col-md-12">
+              <p>Are you sure you want to disable {pipeline.name}?</p>
               <p>
-                <b>Reason: </b>
-                {errorMessage}
-              </p>
-              <p>
-                <a
-                  className="btn btn-link"
-                  onClick={(e) => {
-                    e.preventDefault();
-                    setSaveError(false);
-                  }}
-                >
-                  [dismiss]
-                </a>
+                This will prevent any triggers from firing, and will also prevent users from running the pipeline
+                manually.
               </p>
             </div>
-          )}
-          <form role="form" name="form" className="form-horizontal">
-            <div className="form-group">
-              <div className="col-md-12">
-                <p>Are you sure you want to disable {pipeline.name}?</p>
-                <p>
-                  This will prevent any triggers from firing, and will also prevent users from running the pipeline
-                  manually.
-                </p>
-              </div>
-            </div>
-          </form>
-        </Modal.Body>
-        <Modal.Footer>
-          <button className="btn btn-default" onClick={dismissModal} type="button">
-            Cancel
-          </button>
-          <button className="btn btn-primary" onClick={disablePipeline} type="button">
-            Disable pipeline
-          </button>
-        </Modal.Footer>
-      </Modal>
+          </div>
+        </form>
+      </Modal.Body>
+      <Modal.Footer>
+        <button className="btn btn-default" onClick={dismissModal} type="button">
+          Cancel
+        </button>
+        <button className="btn btn-primary" onClick={disablePipeline} type="button">
+          Disable pipeline
+        </button>
+      </Modal.Footer>
     </>
   );
 }
