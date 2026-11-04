@@ -10,14 +10,6 @@ bakery:
 echo:
   enabled: false
 
-monitor:
-  activeExecutions:
-    redis: false
-
-executionRepository:
-  redis:
-    enabled: false
-
 keiko:
   queue:
     redis:

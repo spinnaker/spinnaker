@@ -34,7 +34,6 @@ import com.netflix.spinnaker.kork.sql.config.SqlRetryProperties
 import com.netflix.spinnaker.kork.sql.test.SqlTestUtil
 import com.netflix.spinnaker.orca.TaskResolver
 import com.netflix.spinnaker.orca.api.pipeline.models.ExecutionType
-import com.netflix.spinnaker.orca.config.JedisConfiguration
 import com.netflix.spinnaker.orca.config.RedisConfiguration
 import com.netflix.spinnaker.orca.pipeline.persistence.ExecutionRepository
 import com.netflix.spinnaker.orca.q.QueueIntegrationTest
@@ -179,7 +178,6 @@ class SqlTestConfig {
     TestConfig::class,
     DynamicConfigService.NoopDynamicConfig::class,
     EmbeddedRedisConfiguration::class,
-    JedisConfiguration::class,
     RedisConfiguration::class
   ],
   properties = [
@@ -188,7 +186,6 @@ class SqlTestConfig {
     "logging.level.org.springframework.test=ERROR",
     "logging.level.com.netflix.spinnaker=FATAL",
     "execution-repository.sql.enabled=true",
-    "execution-repository.redis.enabled=false",
     "keiko.queue.redis.enabled=false",
     "keiko.queue.sql.enabled=true",
     "keiko.queue.fillExecutorEachCycle=false",

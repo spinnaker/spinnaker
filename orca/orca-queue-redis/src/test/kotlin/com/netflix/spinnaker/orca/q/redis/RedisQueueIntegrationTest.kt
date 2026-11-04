@@ -21,7 +21,8 @@ import com.netflix.spinnaker.config.RedisOrcaQueueConfiguration
 import com.netflix.spinnaker.kork.dynamicconfig.DynamicConfigService
 import com.netflix.spinnaker.kork.jedis.RedisClientDelegate
 import com.netflix.spinnaker.kork.jedis.RedisClientSelector
-import com.netflix.spinnaker.orca.config.JedisConfiguration
+import com.netflix.spinnaker.orca.pipeline.persistence.ExecutionRepository
+import com.netflix.spinnaker.orca.pipeline.persistence.InMemoryExecutionRepository
 import com.netflix.spinnaker.orca.config.RedisConfiguration
 import com.netflix.spinnaker.orca.q.QueueIntegrationTest
 import com.netflix.spinnaker.orca.q.TestConfig
@@ -37,6 +38,11 @@ import redis.clients.jedis.util.Pool
 
 @Configuration
 class RedisTestConfig {
+  // Executions are stored in memory; this test exercises the Redis queue and pending-execution
+  // service, not an execution repository.
+  @Bean
+  fun executionRepository(): ExecutionRepository = InMemoryExecutionRepository()
+
   @Bean
   fun queueRedisPool(jedisPool: Pool<Jedis>) = jedisPool
 
@@ -56,7 +62,6 @@ class RedisTestConfig {
 @SpringBootTest(
   classes = [
     EmbeddedRedisConfiguration::class,
-    JedisConfiguration::class,
     TestConfig::class,
     RedisConfiguration::class,
     RedisTestConfig::class,
@@ -68,7 +73,6 @@ class RedisTestConfig {
     "logging.level.root=ERROR",
     "logging.level.org.springframework.test=ERROR",
     "logging.level.com.netflix.spinnaker=FATAL",
-    "execution-repository.redis.enabled=true",
     "spring.application.name=orcaTest"
   ]
 )
