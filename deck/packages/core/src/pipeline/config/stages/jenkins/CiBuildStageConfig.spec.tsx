@@ -214,6 +214,22 @@ describe('<CiBuildStageConfig />', () => {
     expect(props.stageFieldUpdated).toHaveBeenCalled();
   });
 
+  it('lets the build service and job selects fill the available width', async () => {
+    const props = createProps({ master: 'master', job: 'job' });
+    (IgorService.listMasters as any).and.returnValue(Promise.resolve(['master']));
+    (IgorService.listJobsForMaster as any).and.returnValue(Promise.resolve(['job']));
+
+    const component = mount(<CiBuildStageConfig {...props} />);
+    await flushPromises();
+    component.update();
+
+    const selects = component.find(Select);
+    expect(selects.length).toBe(2);
+    selects.forEach((select) => {
+      expect(select.parent().hasClass('flex-grow')).toBe(true);
+    });
+  });
+
   it('renders Jenkins parameter descriptions as help fields', async () => {
     const props = createProps({ master: 'master', job: 'job', parameters: {} });
     (IgorService.listJobsForMaster as any).and.returnValue(Promise.resolve(['job']));
