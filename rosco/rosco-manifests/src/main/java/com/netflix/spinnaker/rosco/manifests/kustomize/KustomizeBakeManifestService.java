@@ -36,7 +36,6 @@ public class KustomizeBakeManifestService
   @SuppressWarnings("deprecation")
   private static final ImmutableSet<String> supportedTemplates =
       ImmutableSet.of(
-          TemplateRenderer.KUSTOMIZE.toString(),
           TemplateRenderer.KUSTOMIZE4.toString(),
           TemplateRenderer.KUSTOMIZE5.toString());
 
