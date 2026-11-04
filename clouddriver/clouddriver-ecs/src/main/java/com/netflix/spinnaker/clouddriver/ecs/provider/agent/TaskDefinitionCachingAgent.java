@@ -35,7 +35,6 @@ import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import software.amazon.awssdk.services.ecs.EcsClient;
-import software.amazon.awssdk.services.ecs.model.ClientException;
 import software.amazon.awssdk.services.ecs.model.DescribeTaskDefinitionRequest;
 import software.amazon.awssdk.services.ecs.model.DescribeTaskDefinitionResponse;
 import software.amazon.awssdk.services.ecs.model.InvalidParameterException;
@@ -135,10 +134,12 @@ public class TaskDefinitionCachingAgent extends AbstractEcsOnDemandAgent<TaskDef
           if (taskDef != null) {
             taskDefinitions.add(taskDef);
             newTaskDefs++;
+          } else if (cacheEntry != null) {
+            taskDefinitions.add(cacheEntry);
           }
-        } catch (ClientException | InvalidParameterException e) {
-          // errors about this task definition only; account-wide ones such as throttling or
-          // access denied fail the run, so its authoritative result doesn't replace the cache
+        } catch (InvalidParameterException e) {
+          // ECS rejected this ARN. Anything else (throttling, access denied, ClientException, which
+          // also covers missing permissions) fails the run, so the cache is left as it is.
           log.warn(
               "Failed to describe task definition '{}' in {}. {}",
               arn,

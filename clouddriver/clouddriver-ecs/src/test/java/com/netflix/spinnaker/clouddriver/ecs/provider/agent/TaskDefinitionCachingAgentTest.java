@@ -18,7 +18,6 @@ package com.netflix.spinnaker.clouddriver.ecs.provider.agent;
 
 import static com.netflix.spinnaker.clouddriver.ecs.cache.Keys.Namespace.SERVICES;
 import static com.netflix.spinnaker.clouddriver.ecs.cache.Keys.Namespace.TASK_DEFINITIONS;
-import static org.apache.commons.lang3.StringUtils.isBlank;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertSame;
 import static org.junit.jupiter.api.Assertions.assertThrows;
@@ -32,9 +31,12 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.netflix.spectator.api.NoopRegistry;
 import com.netflix.spinnaker.cats.cache.CacheData;
 import com.netflix.spinnaker.cats.cache.DefaultCacheData;
 import com.netflix.spinnaker.clouddriver.aws.jackson.AwsSdkV2Module;
+import com.netflix.spinnaker.clouddriver.aws.security.AmazonClientProvider;
+import com.netflix.spinnaker.clouddriver.cache.OnDemandAgent;
 import com.netflix.spinnaker.clouddriver.ecs.cache.Keys;
 import java.util.*;
 import java.util.stream.Collectors;
@@ -226,32 +228,51 @@ public class TaskDefinitionCachingAgentTest extends CommonCachingAgent {
     // task sets, so ECS returns it without one
     givenServices(service(TASK_DEFINITION_ARN_1), service(null), service(""));
     EcsClient ecsClient = mock(EcsClient.class);
-    when(ecsClient.describeTaskDefinition(
-            argThat(
-                (DescribeTaskDefinitionRequest request) ->
-                    request != null && isBlank(request.taskDefinition()))))
-        .thenThrow(
-            InvalidParameterException.builder()
-                .message("Task Definition can not be blank.")
-                .build());
     givenDescribedTaskDefinition(ecsClient, taskDefinition(TASK_DEFINITION_ARN_1, DESCRIBED_IMAGE));
 
     // When
     List<TaskDefinition> returnedTaskDefs = agent.getItems(ecsClient, providerCache);
 
-    // Then
+    // Then only the service with a task definition is described
     assertEquals(List.of(TASK_DEFINITION_ARN_1), arns(returnedTaskDefs));
     verify(ecsClient, times(1)).describeTaskDefinition(any(DescribeTaskDefinitionRequest.class));
+    verify(ecsClient).describeTaskDefinition(describeRequestFor(TASK_DEFINITION_ARN_1));
   }
 
   @Test
-  public void shouldCacheOtherTaskDefinitionsWhenOneCannotBeDescribed() {
+  public void shouldSkipServicesWithoutTaskDefinitionOnDemand() {
+    // Given
+    givenServices(service(TASK_DEFINITION_ARN_1), service(TASK_DEFINITION_ARN_2), service(null));
+    EcsClient ecsClient = mock(EcsClient.class);
+    when(ecsClient.describeTaskDefinition(describeRequestFor(TASK_DEFINITION_ARN_1)))
+        .thenThrow(invalidParameter());
+    givenDescribedTaskDefinition(ecsClient, taskDefinition(TASK_DEFINITION_ARN_2, DESCRIBED_IMAGE));
+    AmazonClientProvider amazonClientProvider = mock(AmazonClientProvider.class);
+    when(amazonClientProvider.getAmazonEcsV2(netflixAmazonCredentials, REGION))
+        .thenReturn(ecsClient);
+    TaskDefinitionCachingAgent onDemandAgent =
+        new TaskDefinitionCachingAgent(
+            netflixAmazonCredentials, REGION, amazonClientProvider, new NoopRegistry(), mapper);
+
+    // When
+    OnDemandAgent.OnDemandResult result =
+        onDemandAgent.handle(providerCache, Map.of("account", ACCOUNT, "region", REGION));
+
+    // Then
+    assertEquals(
+        Set.of(Keys.getTaskDefinitionKey(ACCOUNT, REGION, TASK_DEFINITION_ARN_2)),
+        result.getCacheResult().getCacheResults().get(TASK_DEFINITIONS.toString()).stream()
+            .map(CacheData::getId)
+            .collect(Collectors.toSet()));
+  }
+
+  @Test
+  public void shouldCacheOtherTaskDefinitionsWhenOneIsRejected() {
     // Given
     givenServices(service(TASK_DEFINITION_ARN_1), service(TASK_DEFINITION_ARN_2));
     EcsClient ecsClient = mock(EcsClient.class);
     when(ecsClient.describeTaskDefinition(describeRequestFor(TASK_DEFINITION_ARN_1)))
-        .thenThrow(
-            ClientException.builder().message("Unable to describe task definition.").build());
+        .thenThrow(invalidParameter());
     givenDescribedTaskDefinition(ecsClient, taskDefinition(TASK_DEFINITION_ARN_2, DESCRIBED_IMAGE));
 
     // When
@@ -262,14 +283,30 @@ public class TaskDefinitionCachingAgentTest extends CommonCachingAgent {
   }
 
   @Test
-  public void shouldKeepCachedTaskDefinitionWhenDescribingItAgainFails() {
+  public void shouldKeepCachedTaskDefinitionWhenDescribingItAgainIsRejected() {
     // Given a cached entry that is missing the load balanced port mapping, so it is described again
     givenServiceCache(LOAD_BALANCED_CONTAINER_PORT);
     givenCachedTaskDefinition(taskDefinition(CACHED_IMAGE));
     EcsClient ecsClient = mock(EcsClient.class);
     when(ecsClient.describeTaskDefinition(any(DescribeTaskDefinitionRequest.class)))
-        .thenThrow(
-            ClientException.builder().message("Unable to describe task definition.").build());
+        .thenThrow(invalidParameter());
+
+    // When
+    List<TaskDefinition> returnedTaskDefs = agent.getItems(ecsClient, providerCache);
+
+    // Then the cached entry is returned, so the authoritative result does not evict it
+    assertEquals(1, returnedTaskDefs.size());
+    assertEquals(CACHED_IMAGE, returnedTaskDefs.get(0).containerDefinitions().get(0).image());
+  }
+
+  @Test
+  public void shouldKeepCachedTaskDefinitionWhenDescribingItAgainReturnsNone() {
+    // Given a cached entry that is missing the load balanced port mapping, so it is described again
+    givenServiceCache(LOAD_BALANCED_CONTAINER_PORT);
+    givenCachedTaskDefinition(taskDefinition(CACHED_IMAGE));
+    EcsClient ecsClient = mock(EcsClient.class);
+    when(ecsClient.describeTaskDefinition(any(DescribeTaskDefinitionRequest.class)))
+        .thenReturn(DescribeTaskDefinitionResponse.builder().build());
 
     // When
     List<TaskDefinition> returnedTaskDefs = agent.getItems(ecsClient, providerCache);
@@ -294,6 +331,7 @@ public class TaskDefinitionCachingAgentTest extends CommonCachingAgent {
                 .statusCode(400)
                 .build(),
             AccessDeniedException.builder().message("not authorized").build(),
+            ClientException.builder().message("not authorized to perform the action").build(),
             ServerException.builder().message("Service unavailable").build(),
             SdkClientException.create("Unable to load credentials"));
 
@@ -308,6 +346,12 @@ public class TaskDefinitionCachingAgentTest extends CommonCachingAgent {
       assertSame(error, thrown);
       verify(ecsClient, times(1)).describeTaskDefinition(any(DescribeTaskDefinitionRequest.class));
     }
+  }
+
+  private static InvalidParameterException invalidParameter() {
+    return InvalidParameterException.builder()
+        .message("The specified parameter isn't valid.")
+        .build();
   }
 
   private static DescribeTaskDefinitionRequest describeRequestFor(String arn) {
