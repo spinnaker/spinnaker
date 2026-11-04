@@ -31,11 +31,14 @@ import com.netflix.spinnaker.clouddriver.ecs.cache.Keys;
 import com.netflix.spinnaker.clouddriver.ecs.cache.client.ServiceCacheClient;
 import com.netflix.spinnaker.clouddriver.ecs.cache.model.Service;
 import java.util.*;
+import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import software.amazon.awssdk.services.ecs.EcsClient;
+import software.amazon.awssdk.services.ecs.model.ClientException;
 import software.amazon.awssdk.services.ecs.model.DescribeTaskDefinitionRequest;
 import software.amazon.awssdk.services.ecs.model.DescribeTaskDefinitionResponse;
+import software.amazon.awssdk.services.ecs.model.InvalidParameterException;
 import software.amazon.awssdk.services.ecs.model.LoadBalancer;
 import software.amazon.awssdk.services.ecs.model.TaskDefinition;
 
@@ -88,6 +91,13 @@ public class TaskDefinitionCachingAgent extends AbstractEcsOnDemandAgent<TaskDef
     Map<String, Set<Integer>> loadBalancedPortsByTaskDefArn = new HashMap<>();
 
     for (Service service : services) {
+      // a service on the EXTERNAL deployment controller keeps its task definitions on task sets
+      if (StringUtils.isBlank(service.getTaskDefinition())) {
+        log.debug(
+            "ECS service '{}' has no task definition. Skipping it.", service.getServiceName());
+        continue;
+      }
+
       Set<Integer> loadBalancedPorts =
           loadBalancedPortsByTaskDefArn.computeIfAbsent(
               service.getTaskDefinition(), arn -> new HashSet<>());
@@ -117,13 +127,28 @@ public class TaskDefinitionCachingAgent extends AbstractEcsOnDemandAgent<TaskDef
       if (cacheEntry != null && isCacheEntryComplete(cacheEntry, taskDefArn.getValue())) {
         taskDefinitions.add(cacheEntry);
       } else {
-        DescribeTaskDefinitionResponse response =
-            ecs.describeTaskDefinition(
-                DescribeTaskDefinitionRequest.builder().taskDefinition(arn).build());
-        TaskDefinition taskDef = response.taskDefinition();
-        if (taskDef != null) {
-          taskDefinitions.add(taskDef);
-          newTaskDefs++;
+        try {
+          DescribeTaskDefinitionResponse response =
+              ecs.describeTaskDefinition(
+                  DescribeTaskDefinitionRequest.builder().taskDefinition(arn).build());
+          TaskDefinition taskDef = response.taskDefinition();
+          if (taskDef != null) {
+            taskDefinitions.add(taskDef);
+            newTaskDefs++;
+          }
+        } catch (ClientException | InvalidParameterException e) {
+          // errors about this task definition only; account-wide ones such as throttling or
+          // access denied fail the run, so its authoritative result doesn't replace the cache
+          log.warn(
+              "Failed to describe task definition '{}' in {}. {}",
+              arn,
+              getAgentType(),
+              cacheEntry != null ? "Keeping the cached entry." : "Skipping it.",
+              e);
+          // the result is authoritative, so an entry left out of it would be evicted
+          if (cacheEntry != null) {
+            taskDefinitions.add(cacheEntry);
+          }
         }
       }
     }
