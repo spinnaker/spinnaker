@@ -35,6 +35,7 @@ import ch.qos.logback.core.read.ListAppender;
 import com.netflix.spinnaker.kork.artifacts.model.Artifact;
 import com.netflix.spinnaker.kork.web.exceptions.NotFoundException;
 import io.micrometer.core.instrument.MeterRegistry;
+import io.micrometer.core.instrument.Metrics;
 import io.micrometer.core.instrument.Timer;
 import io.micrometer.core.instrument.simple.SimpleMeterRegistry;
 import java.io.IOException;
@@ -115,6 +116,9 @@ class S3ArtifactCredentialsTest {
   static void setupOnce() {
     assumeTrue(DockerClientFactory.instance().isDockerAvailable());
     ministack.start();
+    // kork-aws's MicrometerExecutionInterceptor is attached to every v2 client through the SDK's
+    // global interceptor discovery, and records to Metrics.globalRegistry.
+    Metrics.addRegistry(registry);
     s3Client =
         S3Client.builder()
             .endpointOverride(URI.create(ministack.getEndpoint()))
@@ -128,7 +132,6 @@ class S3ArtifactCredentialsTest {
                     .addExecutionInterceptor(
                         new S3ArtifactCredentials.S3ArtifactRequestInterceptor(
                             "my-s3-account", new S3ArtifactProviderProperties()))
-                    .addExecutionInterceptor(new MicrometerExecutionInterceptor(registry))
                     .build())
             .build();
 
