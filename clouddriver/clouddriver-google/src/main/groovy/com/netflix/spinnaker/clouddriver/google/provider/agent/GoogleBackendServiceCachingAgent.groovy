@@ -138,7 +138,7 @@ class GoogleBackendServiceCachingAgent extends AbstractGoogleCachingAgent {
     new GoogleBackendService(
       name: bs.name,
       kind: kind,
-      healthCheckLink: bs.healthChecks[0],
+      healthCheckLink: bs.healthChecks ? bs.healthChecks[0] : null,
       sessionAffinity: bs.sessionAffinity,
       affinityCookieTtlSec: bs.affinityCookieTtlSec,
       enableCDN: bs.enableCDN,

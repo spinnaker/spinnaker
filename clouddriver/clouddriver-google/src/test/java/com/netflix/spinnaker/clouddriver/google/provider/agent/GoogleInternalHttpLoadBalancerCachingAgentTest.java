@@ -147,7 +147,35 @@ public class GoogleInternalHttpLoadBalancerCachingAgentTest {
     assertThat(ghc).isNotNull();
     assertThat(ghc.getName()).isEqualTo("grpc-hc");
     assertThat(ghc.getPort()).isEqualTo(9090);
-    assertThat(ghc.getRequestPath()).isEqualTo("com.example.HealthService");
+    assertThat(ghc.getRequestPath()).isNull();
+    assertThat(ghc.getGrpcServiceName()).isEqualTo("com.example.HealthService");
+    assertThat(ghc.getHealthCheckType()).isEqualTo(GoogleHealthCheck.HealthCheckType.GRPC);
+  }
+
+  @Test
+  void handleHealthCheck_withGrpcHealthCheck_servingPort() throws Exception {
+    // Given
+    HealthCheck healthCheck = buildBaseHealthCheck("grpc-hc-serving-port", "us-central1");
+    GRPCHealthCheck grpcHealthCheck = new GRPCHealthCheck();
+    grpcHealthCheck.setPortSpecification("USE_SERVING_PORT");
+    grpcHealthCheck.setGrpcServiceName("com.example.HealthService");
+    healthCheck.setGrpcHealthCheck(grpcHealthCheck);
+
+    List<GoogleBackendService> googleBackendServices = new ArrayList<>();
+    googleBackendServices.add(new GoogleBackendService());
+
+    // When
+    invokeHandleHealthCheck(healthCheck, googleBackendServices);
+
+    // Then
+    GoogleBackendService backendService = googleBackendServices.get(0);
+    GoogleHealthCheck ghc = backendService.getHealthCheck();
+    assertThat(ghc).isNotNull();
+    assertThat(ghc.getName()).isEqualTo("grpc-hc-serving-port");
+    assertThat(ghc.getPort()).isNull();
+    assertThat(ghc.getPortSpecification()).isEqualTo("USE_SERVING_PORT");
+    assertThat(ghc.getRequestPath()).isNull();
+    assertThat(ghc.getGrpcServiceName()).isEqualTo("com.example.HealthService");
     assertThat(ghc.getHealthCheckType()).isEqualTo(GoogleHealthCheck.HealthCheckType.GRPC);
   }
 

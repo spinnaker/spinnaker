@@ -31,12 +31,22 @@ public class DestroyServiceAtomicOperation
   @Autowired EcsCloudMetricService ecsCloudMetricService;
 
   public DestroyServiceAtomicOperation(ModifyServiceDescription description) {
-    super(description, "DESTROY_ECS_SERVER_GROUP");
+    this(description, false);
+  }
+
+  public DestroyServiceAtomicOperation(
+      ModifyServiceDescription description, boolean requireNativeServiceOwnership) {
+    super(description, "DESTROY_ECS_SERVER_GROUP", requireNativeServiceOwnership);
   }
 
   @Override
   public Void operate(List priorOutputs) {
     updateTaskStatus("Initializing Destroy Amazon ECS Server Group Operation...");
+    String serviceName = description.getServerGroupName();
+    String cluster =
+        containerInformationService.getClusterName(
+            serviceName, description.getAccount(), description.getRegion());
+    requireNativeServiceOwnership(cluster, serviceName);
     EcsClient ecs = getAmazonEcsClient();
 
     String ecsClusterName =

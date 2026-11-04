@@ -17,6 +17,12 @@ export interface IApplicationProviderField {
 export interface ICloudProviderConfig {
   name: string;
   logo?: ICloudProviderLogo;
+  /**
+   * The credential (account) type backing this provider, when it differs from the provider key.
+   * Set this for a provider identity that reuses another provider's accounts, so it isn't offered
+   * as a separate account type.
+   */
+  accountType?: string;
   applicationProviderFields?: IApplicationProviderField[];
   [attribute: string]: any;
 }
@@ -45,6 +51,14 @@ export class CloudProviderRegistry {
 
   public static listRegisteredProviders(): string[] {
     return Array.from(this.providers.keys());
+  }
+
+  /** The account types backing the registered providers (see ICloudProviderConfig.accountType). */
+  public static listRegisteredAccountTypes(): string[] {
+    const accountTypes = Array.from(this.providers.entries()).map(
+      ([cloudProvider, config]) => config.accountType || cloudProvider,
+    );
+    return Array.from(new Set(accountTypes));
   }
 
   public static overrideValue(cloudProvider: string, key: string, overrideValue: any) {

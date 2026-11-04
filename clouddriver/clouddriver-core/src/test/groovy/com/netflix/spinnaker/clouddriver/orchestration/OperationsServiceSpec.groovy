@@ -78,6 +78,7 @@ class OperationsServiceSpec extends Specification {
     []                                             | new Provider2DeployAtomicOperationConverter() | ["a": "b"]             || ["a": "b"]
     [provider1PreProcessor]                        | new Provider2DeployAtomicOperationConverter() | ["a": "b"]             || ["a": "b"]
     [provider1PreProcessor, provider2PreProcessor] | new Provider2DeployAtomicOperationConverter() | ["provider2": "false"] || ["additionalKey": "additionalVal", "provider2": "true"]
+    [provider1PreProcessor, provider2PreProcessor] | new Provider2GenericDeployAtomicOperationConverter() | ["provider2": "false"] || ["additionalKey": "additionalVal", "provider2": "true"]
   }
 
   @Shared
@@ -136,6 +137,34 @@ class OperationsServiceSpec extends Specification {
 
     Provider2DeployDescription convertDescription(Map input) {
       return JsonMapper.builder().build().convertValue(input, Provider2DeployDescription)
+    }
+  }
+
+  /**
+   * Declares convertDescription only on a generic base, like the ecs-native converters: the
+   * description type is just `D` unless it is resolved against the concrete converter class.
+   */
+  private static abstract class AbstractGenericDeployAtomicOperationConverter<D extends DeployDescription> implements AtomicOperationConverter {
+    private final Class<D> descriptionType
+
+    AbstractGenericDeployAtomicOperationConverter(Class<D> descriptionType) {
+      this.descriptionType = descriptionType
+    }
+
+    @Override
+    AtomicOperation convertOperation(Map input) {
+      throw new UnsupportedOperationException()
+    }
+
+    @Override
+    D convertDescription(Map input) {
+      return JsonMapper.builder().build().convertValue(input, descriptionType)
+    }
+  }
+
+  private static class Provider2GenericDeployAtomicOperationConverter extends AbstractGenericDeployAtomicOperationConverter<Provider2DeployDescription> {
+    Provider2GenericDeployAtomicOperationConverter() {
+      super(Provider2DeployDescription)
     }
   }
 

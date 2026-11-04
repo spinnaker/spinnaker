@@ -1,3 +1,5 @@
+import groovy.json.JsonSlurper
+
 plugins {
   id("net.ltgt.errorprone") version "5.1.1"
   id 'com.adarshr.test-logger' version '4.0.0'
@@ -144,11 +146,23 @@ task integrationTest(type: Test) {
   environment "IT_BUILD_HOME", "$project.buildDir/it"
   inputs.property("IT_BUILD_HOME", "$project.buildDir/it")
 
-  environment "IMAGE", project.getProperties().get("kubernetes-image")
-  inputs.property("IMAGE", project.getProperties().get("kubernetes-image"))
+  def versionsFile = rootProject.file("kubectl-versions.json")
+  def versions = new JsonSlurper().parse(versionsFile)
+  def defaultVersion = versions.versions[versions.defaultMinor]
+  def kubernetesImage = project.findProperty("kubernetes-image") ?: defaultVersion.kubernetesImage
+  def kubectlVersion = project.findProperty("kubectl-version") ?: defaultVersion.kubectl
+  def clusterVersion = versions.versions.values().find { it.kubernetesImage == kubernetesImage }
+  def kindVersion = project.findProperty("kind-version") ?: clusterVersion?.kindVersion ?: versions.kindVersion
+  inputs.file(versionsFile)
 
-  environment "KUBECTL_VERSION", project.getProperties().get("kubectl-version")
-  inputs.property("KUBECTL_VERSION", project.getProperties().get("kubectl-version"))
+  environment "IMAGE", kubernetesImage
+  inputs.property("IMAGE", kubernetesImage)
+
+  environment "KUBECTL_VERSION", kubectlVersion
+  inputs.property("KUBECTL_VERSION", kubectlVersion)
+
+  environment "KIND_VERSION", kindVersion
+  inputs.property("KIND_VERSION", kindVersion)
 
   useJUnitPlatform()
 

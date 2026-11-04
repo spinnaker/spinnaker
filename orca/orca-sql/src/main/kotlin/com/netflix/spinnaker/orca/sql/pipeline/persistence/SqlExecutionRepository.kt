@@ -389,7 +389,7 @@ class SqlExecutionRepository(
         selectExecution(it, type, id)
           ?.let { execution ->
             execution.updateStatus(status)
-            updateStatus(execution)
+            storeExecutionInternal(it, execution)
           }
       }
     }
@@ -1394,7 +1394,7 @@ class SqlExecutionRepository(
   ): PipelineExecution? {
     withPool(poolName) {
       val select = ctx.selectExecution(type, compressionProperties).where(id.toWhereCondition())
-      return select.fetchExecution()
+      return select.fetchExecution(ctx)
     }
   }
 
@@ -1407,7 +1407,7 @@ class SqlExecutionRepository(
     val selectPool = if (requireLatestVersion) poolName else readPoolName
     withPool(selectPool) {
       val select = ctx.selectExecution(type, compressionProperties).where(id.toWhereCondition())
-      return select.fetchExecution()
+      return select.fetchExecution(ctx)
     }
   }
 
@@ -1494,11 +1494,11 @@ class SqlExecutionRepository(
       .let { seek(it) }
   }
 
-  private fun SelectForUpdateStep<out Record>.fetchExecutions() =
-    ExecutionMapper(mapper, stageReadSize, compressionProperties, pipelineRefEnabled).map(fetch().intoResultSet(), jooq)
+  private fun SelectForUpdateStep<out Record>.fetchExecutions(ctx: DSLContext = jooq) =
+    ExecutionMapper(mapper, stageReadSize, compressionProperties, pipelineRefEnabled).map(fetch().intoResultSet(), ctx)
 
-  private fun SelectForUpdateStep<out Record>.fetchExecution() =
-    fetchExecutions().firstOrNull()
+  private fun SelectForUpdateStep<out Record>.fetchExecution(ctx: DSLContext = jooq) =
+    fetchExecutions(ctx).firstOrNull()
 
   private fun fetchExecutions(nextPage: (Int, String?) -> Iterable<PipelineExecution>) =
     object : Iterable<PipelineExecution> {

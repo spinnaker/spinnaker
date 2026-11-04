@@ -18,12 +18,14 @@ package com.netflix.spinnaker.clouddriver.ecs.deploy.validators;
 
 import com.netflix.spinnaker.clouddriver.deploy.DescriptionValidator;
 import com.netflix.spinnaker.clouddriver.deploy.ValidationErrors;
+import com.netflix.spinnaker.clouddriver.ecs.EcsNativeOperation;
 import com.netflix.spinnaker.clouddriver.ecs.EcsOperation;
 import com.netflix.spinnaker.clouddriver.orchestration.AtomicOperations;
 import java.util.List;
 import org.springframework.stereotype.Component;
 
 @EcsOperation(AtomicOperations.STOP_SERVER_GROUP)
+@EcsNativeOperation(AtomicOperations.STOP_SERVER_GROUP)
 @Component("stopServiceAtomicOperationValidator")
 public class StopServiceAtomicOperationValidator extends DescriptionValidator {
 

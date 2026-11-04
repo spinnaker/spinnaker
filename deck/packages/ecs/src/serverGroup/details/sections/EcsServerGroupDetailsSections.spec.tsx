@@ -4,6 +4,7 @@ import React from 'react';
 import {
   EcsBuildInfoSection,
   EcsCapacitySection,
+  EcsDeploymentSection,
   EcsEnvironmentVariablesSection,
   EcsFirewallsSection,
   EcsHealthSection,
@@ -144,5 +145,39 @@ describe('ECS server group details sections', () => {
     render(<EcsServerGroupEventsSection {...props} />);
 
     expect(within(expandSection('ECS Events')).getByRole('link', { name: 'View Events' })).toBeInTheDocument();
+  });
+
+  it('renders the ECS deployment section with revision and rollout state', () => {
+    render(
+      <EcsDeploymentSection
+        {...props}
+        serverGroup={
+          {
+            ...serverGroup,
+            taskDefinitionRevision: 42,
+            rolloutState: 'COMPLETED',
+            rolloutStateReason: 'ECS deployment completed.',
+            deploymentId: 'ecs-svc/1234567890',
+          } as any
+        }
+      />,
+    );
+    const section = expandSection('Deployment (ECS)');
+
+    expect(section).toHaveTextContent('42');
+    expect(section).toHaveTextContent('COMPLETED');
+    expect(section).toHaveTextContent('ECS deployment completed.');
+    expect(section).toHaveTextContent('ecs-svc/1234567890');
+  });
+
+  it('omits the ECS deployment section when there is nothing to show', () => {
+    const { container } = render(
+      <EcsDeploymentSection
+        {...props}
+        serverGroup={{ ...serverGroup, taskDefinitionRevision: undefined, rolloutState: undefined } as any}
+      />,
+    );
+
+    expect(container).toBeEmptyDOMElement();
   });
 });

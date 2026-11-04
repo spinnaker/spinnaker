@@ -1,3 +1,5 @@
+#!/bin/sh
+
 # Set any missing env variables used to configure deck
 
 _DECK_HOST=$DECK_HOST
@@ -87,4 +89,7 @@ then
 	cp /opt/spinnaker/config/plugin-manifest.json /opt/deck/html/plugin-manifest.json
 fi
 
-apache2ctl -D FOREGROUND 
+# apache2ctl runs apache2 as a child instead of exec'ing it, so the shell
+# would stay PID 1 and drop the container's stop signal.
+. /etc/apache2/envvars
+exec apache2 -D FOREGROUND

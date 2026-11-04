@@ -187,80 +187,95 @@ class GoogleHealthCheckCachingAgent extends AbstractGoogleCachingAgent {
     // in a field inside a wrapper HealthCheck object. The wrapper object specifies the type of nested
     // health check as a string, and the proper field is populated based on the type.
     Integer port
+    String portSpecification
     switch(hc.getType()) {
       case 'HTTP':
         port = hc.getHttpHealthCheck().getPort()
-        if (port == null) {
-          log.warn("HTTP health check ${hc.getName()} has a null port, ignoring.")
+        portSpecification = hc.getHttpHealthCheck().getPortSpecification()
+        if (port == null && portSpecification != 'USE_SERVING_PORT') {
+          log.warn("HTTP health check ${hc.getName()} has a null port and is not USE_SERVING_PORT, ignoring.")
           return null
         }
 
         newHC.healthCheckType = GoogleHealthCheck.HealthCheckType.HTTP
         newHC.port = port
+        newHC.portSpecification = portSpecification
         newHC.requestPath = hc.getHttpHealthCheck().getRequestPath()
         break
       case 'HTTPS':
         port = hc.getHttpsHealthCheck().getPort()
-        if (port == null) {
-          log.warn("HTTPS health check ${hc.getName()} has a null port, ignoring.")
+        portSpecification = hc.getHttpsHealthCheck().getPortSpecification()
+        if (port == null && portSpecification != 'USE_SERVING_PORT') {
+          log.warn("HTTPS health check ${hc.getName()} has a null port and is not USE_SERVING_PORT, ignoring.")
           return null
         }
 
         newHC.healthCheckType = GoogleHealthCheck.HealthCheckType.HTTPS
         newHC.port = port
+        newHC.portSpecification = portSpecification
         newHC.requestPath = hc.getHttpsHealthCheck().getRequestPath()
         break
       case 'HTTP2':
         port = hc.getHttp2HealthCheck().getPort()
-        if (port == null) {
-          log.warn("HTTP2 health check ${hc.getName()} has a null port, ignoring.")
+        portSpecification = hc.getHttp2HealthCheck().getPortSpecification()
+        if (port == null && portSpecification != 'USE_SERVING_PORT') {
+          log.warn("HTTP2 health check ${hc.getName()} has a null port and is not USE_SERVING_PORT, ignoring.")
           return null
         }
 
         newHC.healthCheckType = GoogleHealthCheck.HealthCheckType.HTTP2
         newHC.port = port
+        newHC.portSpecification = portSpecification
         newHC.requestPath = hc.getHttp2HealthCheck().getRequestPath()
         break
       case 'GRPC':
         port = hc.getGrpcHealthCheck().getPort()
-        if (port == null) {
-          log.warn("GRPC health check ${hc.getName()} has a null port, ignoring.")
+        portSpecification = hc.getGrpcHealthCheck().getPortSpecification()
+        if (port == null && portSpecification != 'USE_SERVING_PORT') {
+          log.warn("GRPC health check ${hc.getName()} has a null port and is not USE_SERVING_PORT, ignoring.")
           return null
         }
 
         newHC.healthCheckType = GoogleHealthCheck.HealthCheckType.GRPC
         newHC.port = port
-        newHC.requestPath = hc.getGrpcHealthCheck().getGrpcServiceName()
+        newHC.portSpecification = portSpecification
+        newHC.grpcServiceName = hc.getGrpcHealthCheck().getGrpcServiceName()
         break
       case 'TCP':
         port = hc.getTcpHealthCheck().getPort()
-        if (port == null) {
-          log.warn("TCP health check ${hc.getName()} has a null port, ignoring.")
+        portSpecification = hc.getTcpHealthCheck().getPortSpecification()
+        if (port == null && portSpecification != 'USE_SERVING_PORT') {
+          log.warn("TCP health check ${hc.getName()} has a null port and is not USE_SERVING_PORT, ignoring.")
           return null
         }
 
         newHC.healthCheckType = GoogleHealthCheck.HealthCheckType.TCP
         newHC.port = port
+        newHC.portSpecification = portSpecification
         break
       case 'SSL':
         port = hc.getSslHealthCheck().getPort()
-        if (port == null) {
-          log.warn("SSL health check ${hc.getName()} has a null port, ignoring.")
+        portSpecification = hc.getSslHealthCheck().getPortSpecification()
+        if (port == null && portSpecification != 'USE_SERVING_PORT') {
+          log.warn("SSL health check ${hc.getName()} has a null port and is not USE_SERVING_PORT, ignoring.")
           return null
         }
 
         newHC.healthCheckType = GoogleHealthCheck.HealthCheckType.SSL
         newHC.port = port
+        newHC.portSpecification = portSpecification
         break
       case 'UDP':
         port = hc.getUdpHealthCheck().getPort()
-        if (port == null) {
-          log.warn("UDP health check ${hc.getName()} has a null port, ignoring.")
+        portSpecification = hc.getUdpHealthCheck().getPortSpecification()
+        if (port == null && portSpecification != 'USE_SERVING_PORT') {
+          log.warn("UDP health check ${hc.getName()} has a null port and is not USE_SERVING_PORT, ignoring.")
           return null
         }
 
         newHC.healthCheckType = GoogleHealthCheck.HealthCheckType.UDP
         newHC.port = port
+        newHC.portSpecification = portSpecification
         break
       default:
         log.warn("Health check ${hc.getName()} has unknown type ${hc.getType()}.")

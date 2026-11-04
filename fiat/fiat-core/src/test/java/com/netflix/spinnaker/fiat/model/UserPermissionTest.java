@@ -18,11 +18,18 @@ package com.netflix.spinnaker.fiat.model;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
+import com.netflix.spinnaker.fiat.model.resources.ArtifactAccount;
+import com.netflix.spinnaker.fiat.model.resources.Authorizable;
+import com.netflix.spinnaker.fiat.model.resources.Permissions;
+import com.netflix.spinnaker.fiat.model.resources.ResourceType;
 import com.netflix.spinnaker.fiat.model.resources.Role;
 import java.util.Set;
 import org.junit.jupiter.api.Test;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.AuthorityUtils;
+import tools.jackson.databind.DeserializationFeature;
+import tools.jackson.databind.ObjectMapper;
+import tools.jackson.databind.json.JsonMapper;
 
 class UserPermissionTest {
   @Test
@@ -49,5 +56,34 @@ class UserPermissionTest {
     UserPermission userPermission = new UserPermission().setId("ralph").setAccountManager(true);
     Set<GrantedAuthority> authorities = userPermission.getView().toGrantedAuthorities();
     assertThat(authorities).containsExactly(SpinnakerAuthorities.ACCOUNT_MANAGER_AUTHORITY);
+  }
+
+  @Test
+  void extensionResourcesSurviveJsonRoundTrip() throws Exception {
+    ArtifactAccount artifactAccount = new ArtifactAccount();
+    artifactAccount.setName("my-artifacts");
+    artifactAccount.setPermissions(
+        new Permissions.Builder().add(Authorization.READ, "first").build());
+    UserPermission userPermission =
+        new UserPermission()
+            .setId("jesse")
+            .setRoles(Set.of(new Role("first")))
+            .addResources(Set.of(artifactAccount));
+
+    // Same settings as the mapper behind FiatService.
+    ObjectMapper mapper =
+        JsonMapper.builder().disable(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES).build();
+    String json = mapper.writeValueAsString(userPermission.getView());
+    UserPermission.View view = mapper.readValue(json, UserPermission.View.class);
+
+    Set<Authorizable> artifactAccounts =
+        view.getExtensionResources().get(ResourceType.ARTIFACT_ACCOUNT);
+    assertThat(artifactAccounts)
+        .singleElement()
+        .satisfies(
+            authorizable -> {
+              assertThat(authorizable.getName()).isEqualTo("my-artifacts");
+              assertThat(authorizable.getAuthorizations()).containsExactly(Authorization.READ);
+            });
   }
 }

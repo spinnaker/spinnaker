@@ -26,6 +26,7 @@ import lombok.EqualsAndHashCode;
 import lombok.NoArgsConstructor;
 import lombok.val;
 import org.springframework.security.core.GrantedAuthority;
+import tools.jackson.databind.annotation.JsonDeserialize;
 
 @Data
 public class UserPermission {
@@ -118,7 +119,10 @@ public class UserPermission {
     Set<ServiceAccount.View> serviceAccounts;
     Set<Role.View> roles;
     Set<BuildService.View> buildServices;
+
+    @JsonDeserialize(contentUsing = AuthorizableSetDeserializer.class)
     HashMap<ResourceType, Set<Authorizable>> extensionResources;
+
     boolean admin;
     boolean accountManager;
     boolean legacyFallback = false;

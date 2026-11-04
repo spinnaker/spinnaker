@@ -76,6 +76,7 @@ public abstract class StorageServiceSupport<T extends Timestamped> {
 
   private final AtomicLong lastRefreshedTime = new AtomicLong();
   private final AtomicLong lastSeenStorageTime = new AtomicLong();
+  private final Object refreshLock = new Object();
 
   AtomicReference<CountDownLatch> globalLatch = new AtomicReference<>(null);
 
@@ -364,12 +365,16 @@ public abstract class StorageServiceSupport<T extends Timestamped> {
   /** Update local cache with any recently modified items. */
   protected void refresh() {
     long startTime = System.nanoTime();
-    if (configProperties.isOptimizeCacheRefreshes()) {
-      log.debug("Running optimized cache refresh");
-      allItemsCache.set(fetchAllItemsOptimized(allItemsCache.get()));
-    } else {
-      log.debug("Running unoptimized cache refresh");
-      allItemsCache.set(fetchAllItems(allItemsCache.get()));
+    // fetchAllItems* advance lastSeenStorageTime before allItemsCache is published; serialize so a
+    // concurrent refresher can't pair the advanced time with the stale cache and overwrite it.
+    synchronized (refreshLock) {
+      if (configProperties.isOptimizeCacheRefreshes()) {
+        log.debug("Running optimized cache refresh");
+        allItemsCache.set(fetchAllItemsOptimized(allItemsCache.get()));
+      } else {
+        log.debug("Running unoptimized cache refresh");
+        allItemsCache.set(fetchAllItems(allItemsCache.get()));
+      }
     }
     long elapsed = System.nanoTime() - startTime;
     registry
