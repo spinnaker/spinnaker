@@ -47,6 +47,44 @@ mutating tool still rejects while `read-only` is true. Resources and prompts are
 Names that don't match a registered tool (a typo, or a tool whose backing service such as Kayenta
 or Keel isn't enabled) are logged as a warning at startup.
 
+## Authenticating MCP clients
+
+The MCP endpoint (`/mcp` by default, from `spring.ai.mcp.server.streamable-http.mcp-endpoint`)
+follows the MCP authorization specification. A request without valid credentials gets HTTP `401`
+with a `WWW-Authenticate: Bearer resource_metadata="<base>/.well-known/oauth-protected-resource/mcp"`
+challenge, instead of the redirect to the SSO login page that Gate's browser flows use. Requests
+outside the MCP endpoint are unchanged.
+
+The challenge points at an RFC 9728 protected-resource metadata document, served without
+authentication at both `/.well-known/oauth-protected-resource` and
+`/.well-known/oauth-protected-resource/mcp`. OAuth-capable clients read it to discover which
+authorization server issues tokens for this Gate. Three optional properties control its contents:
+
+```yaml
+mcp:
+  server:
+    enabled: true
+    # Public base URL clients use to reach this Gate (no trailing slash). Set this when Gate sits
+    # behind a TLS-terminating proxy, unless Gate honours X-Forwarded-* headers.
+    external-url: https://gate.example.com
+    # Authorization server issuer URL(s) whose access tokens Gate accepts.
+    authorization-servers:
+      - https://login.example.com/oauth2/default
+    # Scopes a client should request from the authorization server.
+    scopes-supported:
+      - openid
+      - profile
+```
+
+When `external-url` is unset, the base URL is derived from each incoming request. Behind a
+TLS-terminating proxy that is only correct once Gate honours `X-Forwarded-*` headers (for example
+`server.forward-headers-strategy: framework`), so set `external-url` if you don't.
+
+Only the `STREAMABLE` transport is covered (Gate's default). Discovery does not authenticate the
+client: MCP clients still need a bearer token that Gate accepts, such as an OAuth2 access token
+validated against the configured user-info endpoint. A client without one gets the `401` above and
+cannot call any tool.
+
 ## Tool catalog
 
 Read-only tools advertise `readOnlyHint=true`, `destructiveHint=false` and `idempotentHint=true` in
