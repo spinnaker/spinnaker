@@ -44,11 +44,14 @@ import dev.minutest.junit.JUnit5Minutests
 import dev.minutest.rootContext
 import org.assertj.core.api.Assertions.assertThat
 import org.assertj.core.api.Assertions.assertThatThrownBy
+import org.jooq.ConnectionProvider
 import org.jooq.DSLContext
+import org.jooq.impl.DSL
 import org.jooq.impl.DSL.field
 import org.junit.jupiter.api.Assumptions.assumeTrue
 import org.testcontainers.DockerClientFactory
 import java.lang.System.currentTimeMillis
+import java.sql.Connection
 import org.springframework.jdbc.datasource.lookup.AbstractRoutingDataSource
 import javax.sql.DataSource
 import io.reactivex.rxjava3.core.Observable
@@ -681,6 +684,40 @@ class SqlExecutionRepositoryTest : JUnit5Minutests {
       }
 
     }
+
+    context("connections held by a write") {
+      test("cancel loads stages using the transaction connection") {
+        val pipeline = PipelineExecutionImpl(ExecutionType.PIPELINE, "app").apply {
+          status = RUNNING
+          stage { status = RUNNING }
+        }
+        sqlExecutionRepositoryNoCompression.store(pipeline)
+
+        assertThat(
+          connections.maxHeldDuring {
+            sqlExecutionRepositoryCountingConnections.cancel(ExecutionType.PIPELINE, pipeline.id)
+          }
+        ).isEqualTo(1)
+        assertThat(sqlExecutionRepositoryNoCompression.retrieve(ExecutionType.PIPELINE, pipeline.id).isCanceled)
+          .isTrue()
+      }
+
+      test("updateStatus holds one connection") {
+        val pipeline = PipelineExecutionImpl(ExecutionType.PIPELINE, "app").apply {
+          status = RUNNING
+          stage { status = RUNNING }
+        }
+        sqlExecutionRepositoryNoCompression.store(pipeline)
+
+        assertThat(
+          connections.maxHeldDuring {
+            sqlExecutionRepositoryCountingConnections.updateStatus(ExecutionType.PIPELINE, pipeline.id, SUCCEEDED)
+          }
+        ).isEqualTo(1)
+        assertThat(sqlExecutionRepositoryNoCompression.retrieve(ExecutionType.PIPELINE, pipeline.id).status)
+          .isEqualTo(SUCCEEDED)
+      }
+    }
   }
 
   private inner class Fixture {
@@ -801,6 +838,25 @@ class SqlExecutionRepositoryTest : JUnit5Minutests {
         mockDataSource
       )
 
+    val connections = ConnectionCounter(database.context.configuration().connectionProvider())
+
+    val sqlExecutionRepositoryCountingConnections =
+      SqlExecutionRepository(
+        "test",
+        DSL.using(database.context.configuration().derive(connections)),
+        orcaObjectMapper,
+        testRetryProprties,
+        10,
+        100,
+        "poolName",
+        "myReadPoolName",
+        null,
+        emptyList(),
+        executionCompressionPropertiesDisabled,
+        false,
+        mockDataSource
+      )
+
     fun addCustomDeserializerWithFeatureFlagEnabled() {
       TriggerDeserializer.customTriggerSuppliers.clear()
       TriggerDeserializer.customTriggerSuppliers.add(deserializerEnabled)
@@ -828,4 +884,26 @@ private fun PipelineExecution.stage(init: StageExecution.() -> Unit): StageExecu
   stages.add(stage)
   stage.init()
   return stage
+}
+
+/**
+ * Records the most connections jOOQ holds at once.
+ */
+private class ConnectionCounter(private val delegate: ConnectionProvider) : ConnectionProvider {
+  private var held = 0
+  private var maxHeld = 0
+
+  override fun acquire(): Connection? =
+    delegate.acquire().also { maxHeld = maxOf(maxHeld, ++held) }
+
+  override fun release(connection: Connection) {
+    held--
+    delegate.release(connection)
+  }
+
+  fun maxHeldDuring(block: () -> Unit): Int {
+    maxHeld = held
+    block()
+    return maxHeld
+  }
 }

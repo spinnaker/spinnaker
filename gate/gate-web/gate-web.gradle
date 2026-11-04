@@ -34,7 +34,7 @@ dependencies {
 
   implementation "commons-io:commons-io"
   implementation "org.apache.groovy:groovy-templates"
-  implementation "org.springframework.session:spring-session-data-redis"
+  implementation "org.springframework.boot:spring-boot-starter-session-data-redis"
   implementation "de.huxhorn.sulky:de.huxhorn.sulky.ulid"
   implementation "org.apache.commons:commons-lang3"
 

@@ -10,7 +10,6 @@ dependencies {
   // Brings the SAML2 relying-party auto-configuration and standard
   // spring.security.saml2.relyingparty.* properties (spring-boot-security-saml2).
   implementation 'org.springframework.boot:spring-boot-starter-security-saml2'
-  implementation 'org.springframework.session:spring-session-core'
 
   testImplementation 'org.springframework.boot:spring-boot-starter-test'
 }
