@@ -97,88 +97,86 @@ export function ShowPipelineHistoryModal(props: IShowHistoryModalProps) {
 
   return (
     <>
-      <Modal key="modal" dialogClassName="modal-lg modal-fullscreen" show={true} onHide={() => {}}>
-        <ModalClose dismiss={dismissModal} />
-        <Modal.Header>
-          <Modal.Title>Pipeline Revision History</Modal.Title>
-        </Modal.Header>
-        <Modal.Body>
-          {status === 'PENDING' && (
+      <ModalClose dismiss={dismissModal} />
+      <Modal.Header>
+        <Modal.Title>Pipeline Revision History</Modal.Title>
+      </Modal.Header>
+      <Modal.Body>
+        {status === 'PENDING' && (
+          <div className="horizontal center">
             <div className="horizontal center">
-              <div className="horizontal center">
-                <Spinner size="medium" />
-              </div>
+              <Spinner size="medium" />
             </div>
-          )}
-          {status === 'REJECTED' && (
-            <div className="horizontal center">
-              <h4 className="text-center">There was an error loading the history for this pipeline.</h4>
-              <span>{error}</span>
-            </div>
-          )}
-          {status === 'RESOLVED' && history.length <= 0 && (
-            <div className="horizontal center">
-              <h4 className="text-center">Sorry, we couldn't find any history for this pipeline.</h4>
-            </div>
-          )}
-          {status === 'RESOLVED' && history.length > 0 && (
-            <>
-              <div className="history-header row horizontal">
-                <div className="col-md-4">
-                  <FormField
-                    label="Revision"
-                    layout={({ label, input }) => (
-                      <div className="flex-container-h baseline margin-between-lg">
-                        <div className="bold">{label}</div>
-                        <div className="flex-grow">{input}</div>
-                      </div>
-                    )}
-                    input={(inputProps) => (
-                      <ReactSelectInput
-                        clearable={false}
-                        options={history.map((h) => ({ label: h.timestamp, value: h.index }))}
-                        {...inputProps}
-                      />
-                    )}
-                    onChange={(e) => setVersion(e.target.value)}
-                    value={version}
-                  />
-                </div>
-                <div className="diff-section col-md-4 horizontal middle">
-                  <DiffSummary summary={diff.summary} />
-                  {version > 0 && (
-                    <button className="btn btn-sm btn-primary" onClick={restoreVersion}>
-                      Restore this version
-                    </button>
+          </div>
+        )}
+        {status === 'REJECTED' && (
+          <div className="horizontal center">
+            <h4 className="text-center">There was an error loading the history for this pipeline.</h4>
+            <span>{error}</span>
+          </div>
+        )}
+        {status === 'RESOLVED' && history.length <= 0 && (
+          <div className="horizontal center">
+            <h4 className="text-center">Sorry, we couldn't find any history for this pipeline.</h4>
+          </div>
+        )}
+        {status === 'RESOLVED' && history.length > 0 && (
+          <>
+            <div className="history-header row horizontal">
+              <div className="col-md-4">
+                <FormField
+                  label="Revision"
+                  layout={({ label, input }) => (
+                    <div className="flex-container-h baseline margin-between-lg">
+                      <div className="bold">{label}</div>
+                      <div className="flex-grow">{input}</div>
+                    </div>
                   )}
-                </div>
-                <div className="col-md-4">
-                  <FormField
-                    label="compare to"
-                    input={(inputProps) => (
-                      <ReactSelectInput clearable={false} stringOptions={compareOptions} {...inputProps} />
-                    )}
-                    onChange={(e) => setCompareTo(e.target.value)}
-                    value={compareTo}
-                  />
-                </div>
+                  input={(inputProps) => (
+                    <ReactSelectInput
+                      clearable={false}
+                      options={history.map((h) => ({ label: h.timestamp, value: h.index }))}
+                      {...inputProps}
+                    />
+                  )}
+                  onChange={(e) => setVersion(e.target.value)}
+                  value={version}
+                />
               </div>
-              <form role="form" className="form-horizontal show-history">
-                {!isEmpty(history) && (
-                  <div className="diff-view flex-fill">
-                    <DiffView diff={diff} />
-                  </div>
+              <div className="diff-section col-md-4 horizontal middle">
+                <DiffSummary summary={diff.summary} />
+                {version > 0 && (
+                  <button className="btn btn-sm btn-primary" onClick={restoreVersion}>
+                    Restore this version
+                  </button>
                 )}
-              </form>
-            </>
-          )}
-        </Modal.Body>
-        <Modal.Footer>
-          <button className="btn btn-default" onClick={dismissModal} type="button">
-            Close
-          </button>
-        </Modal.Footer>
-      </Modal>
+              </div>
+              <div className="col-md-4">
+                <FormField
+                  label="compare to"
+                  input={(inputProps) => (
+                    <ReactSelectInput clearable={false} stringOptions={compareOptions} {...inputProps} />
+                  )}
+                  onChange={(e) => setCompareTo(e.target.value)}
+                  value={compareTo}
+                />
+              </div>
+            </div>
+            <form role="form" className="form-horizontal show-history">
+              {!isEmpty(history) && (
+                <div className="diff-view flex-fill">
+                  <DiffView diff={diff} />
+                </div>
+              )}
+            </form>
+          </>
+        )}
+      </Modal.Body>
+      <Modal.Footer>
+        <button className="btn btn-default" onClick={dismissModal} type="button">
+          Close
+        </button>
+      </Modal.Footer>
     </>
   );
 }

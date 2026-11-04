@@ -117,7 +117,7 @@ export class AzureRollbackServerGroupModal extends React.Component<
     );
 
     return (
-      <Modal onHide={this.close}>
+      <>
         <TaskMonitorWrapper monitor={taskMonitor} />
         {submitting && (
           <form role="form">
@@ -146,7 +146,7 @@ export class AzureRollbackServerGroupModal extends React.Component<
             />
           </form>
         )}
-      </Modal>
+      </>
     );
   }
 }
