@@ -33,8 +33,7 @@ public class V2BakeryController {
         bakeManifestServices.stream()
             .filter(s -> s.handles(type))
             .findFirst()
-            .orElseThrow(
-                () -> new IllegalArgumentException(unsupportedRendererMessage(type)));
+            .orElseThrow(() -> new IllegalArgumentException(unsupportedRendererMessage(type)));
 
     BakeManifestRequest bakeManifestRequest =
         (BakeManifestRequest) objectMapper.convertValue(request, service.requestType());
