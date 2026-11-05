@@ -116,15 +116,23 @@ public class EcsLoadBalancerProvider implements LoadBalancerProvider<EcsLoadBala
   @Override
   public Set<EcsLoadBalancer> getApplicationLoadBalancers(String application) {
     // Find the load balancers currently in use by ECS services in this application
-    // Name-prefix glob only: with the tag naming strategy the application comes from the service
-    // tags, so the name is not guaranteed to be "app-*". The cached application name filters below.
-    String glob =
-        application != null
-            ? Keys.getServiceKey("*", "*", application + "*")
-            : Keys.getServiceKey("*", "*", "*");
-    Collection<String> ecsServices = ecsServiceCacheClient.filterIdentifiers(glob);
+    Collection<Service> candidates =
+        application != null && ecsServiceCacheClient.canFindByApplication()
+            ? ecsServiceCacheClient.findByApplication(application)
+            : Collections.emptyList();
+    if (candidates.isEmpty()) {
+      // Also the path when the services have not been re-cached with the indexed application yet.
+      // Name-prefix glob only: with the tag naming strategy the application comes from the service
+      // tags, so the name is not guaranteed to be "app-*". The cached application name filters
+      // below.
+      String glob =
+          application != null
+              ? Keys.getServiceKey("*", "*", application + "*")
+              : Keys.getServiceKey("*", "*", "*");
+      candidates = ecsServiceCacheClient.getAll(ecsServiceCacheClient.filterIdentifiers(glob));
+    }
     Set<Service> services =
-        ecsServiceCacheClient.getAll(ecsServices).stream()
+        candidates.stream()
             .filter(service -> service.getApplicationName().equals(application))
             .collect(Collectors.toSet());
     log.debug("Retrieved {} services for application '{}'", services.size(), application);
