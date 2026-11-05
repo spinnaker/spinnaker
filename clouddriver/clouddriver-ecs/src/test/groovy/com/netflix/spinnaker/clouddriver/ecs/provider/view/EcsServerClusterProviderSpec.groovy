@@ -36,6 +36,10 @@ import com.netflix.spinnaker.cats.cache.DefaultCacheData
 import com.netflix.spinnaker.clouddriver.aws.security.AmazonCredentials
 import com.netflix.spinnaker.clouddriver.aws.security.NetflixAmazonCredentials
 import com.netflix.spinnaker.clouddriver.ecs.cache.Keys
+import com.netflix.spinnaker.clouddriver.ecs.EcsCloudProvider
+import com.netflix.spinnaker.clouddriver.ecs.names.EcsTagNamer
+import com.netflix.spinnaker.clouddriver.ecs.names.EcsResource
+import com.netflix.spinnaker.clouddriver.names.NamerRegistry
 import com.netflix.spinnaker.clouddriver.ecs.cache.client.*
 import com.netflix.spinnaker.clouddriver.ecs.cache.model.EcsLoadBalancerCache
 import com.netflix.spinnaker.clouddriver.ecs.model.EcsServerCluster
@@ -500,6 +504,102 @@ class EcsServerClusterProviderSpec extends Specification {
     then: 'classic ecs keeps CredentialsRepository#getOne exact-match semantics'
     serverGroup == null
     0 * credentialsRepository.getAll()
+  }
+
+  def 'scopes the service lookup to the application instead of loading every service'() {
+    when:
+    provider.getClusterDetails('myapp')
+
+    then: 'only the application\'s own service names are globbed, in every region of every account'
+    (1.._) * cacheView.filterIdentifiers(Keys.Namespace.SERVICES.ns, { it.endsWith(';myapp') }) >> []
+    (1.._) * cacheView.filterIdentifiers(Keys.Namespace.SERVICES.ns, { it.endsWith(';myapp-*') }) >> []
+    0 * cacheView.filterIdentifiers(Keys.Namespace.SERVICES.ns, { it.endsWith(';*') && !it.endsWith('-*') })
+    0 * cacheView.filterIdentifiers(Keys.Namespace.SERVICES.ns, { it.endsWith(';myapp*') })
+
+    and: 'no tasks or load balancers are loaded when there are no matching services'
+    0 * cacheView.getAll(Keys.Namespace.TASKS.ns, _)
+    0 * ecsLoadbalancerCacheClient.find(_, _)
+  }
+
+  def 'does not scope the service lookup by name when the moniker comes from tags'() {
+    given: 'the tag namer, where the application is a tag and may not prefix the service name'
+    NamerRegistry.lookup().withProvider(EcsCloudProvider.ID).withAccount(CREDS_NAME)
+      .setNamer(EcsResource, new EcsTagNamer())
+
+    when:
+    provider.getClusterDetails('myapp')
+
+    then: 'every service is read and the cached moniker decides which belong to the application'
+    (1.._) * cacheView.filterIdentifiers(Keys.Namespace.SERVICES.ns, { it.startsWith("ecs;services;${CREDS_NAME};") && it.endsWith(';*') }) >> []
+    0 * cacheView.filterIdentifiers(Keys.Namespace.SERVICES.ns, { it.startsWith("ecs;services;${CREDS_NAME};") && !it.endsWith(';*') })
+
+    cleanup:
+    NamerRegistry.lookup().withProvider(EcsCloudProvider.ID).withAccount(CREDS_NAME)
+      .setNamer(EcsResource, NamerRegistry.getDefaultNamer())
+  }
+
+  def 'looks tag-named services up through the application index when enabled'() {
+    given:
+    NamerRegistry.lookup().withProvider(EcsCloudProvider.ID).withAccount(CREDS_NAME)
+      .setNamer(EcsResource, new EcsTagNamer())
+    def indexedProvider = indexedProvider()
+    def creds = Mock(NetflixECSCredentials) {
+      getCloudProvider() >> 'ecs'
+      getName() >> CREDS_NAME
+    }
+    def attributes = TestServiceCachingAgentFactory.create(creds, 'us-east-1').convertServiceToAttributes(cachedService)
+
+    when:
+    indexedProvider.getClusterDetails('myapp')
+
+    then: 'the index is queried and no service names are scanned for the tag-named account'
+    cacheView.supportsGetAllByApplication() >> true
+    (1.._) * cacheView.getAllByApplication(Keys.Namespace.SERVICES.ns, 'myapp') >> [(Keys.Namespace.SERVICES.ns): [new DefaultCacheData('k', attributes, [:])]]
+    0 * cacheView.filterIdentifiers(Keys.Namespace.SERVICES.ns, { it.startsWith("ecs;services;${CREDS_NAME};") })
+
+    cleanup:
+    NamerRegistry.lookup().withProvider(EcsCloudProvider.ID).withAccount(CREDS_NAME)
+      .setNamer(EcsResource, NamerRegistry.getDefaultNamer())
+  }
+
+  def 'falls back to scanning when the application index has no services yet'() {
+    given:
+    NamerRegistry.lookup().withProvider(EcsCloudProvider.ID).withAccount(CREDS_NAME)
+      .setNamer(EcsResource, new EcsTagNamer())
+
+    when:
+    indexedProvider().getClusterDetails('myapp')
+
+    then: 'services not yet re-cached with the indexed application are found by the scan'
+    cacheView.supportsGetAllByApplication() >> true
+    (1.._) * cacheView.getAllByApplication(Keys.Namespace.SERVICES.ns, 'myapp') >> [(Keys.Namespace.SERVICES.ns): []]
+    (1.._) * cacheView.filterIdentifiers(Keys.Namespace.SERVICES.ns, { it.startsWith("ecs;services;${CREDS_NAME};") && it.endsWith(';*') }) >> []
+
+    cleanup:
+    NamerRegistry.lookup().withProvider(EcsCloudProvider.ID).withAccount(CREDS_NAME)
+      .setNamer(EcsResource, NamerRegistry.getDefaultNamer())
+  }
+
+  private EcsServerClusterProvider indexedProvider() {
+    new EcsServerClusterProvider(credentialsRepository,
+      containerInformationService,
+      subnetSelector,
+      taskCacheClient,
+      new ServiceCacheClient(cacheView, objectMapper, true),
+      scalableTargetCacheClient,
+      ecsLoadbalancerCacheClient,
+      taskDefinitionCacheClient,
+      ecsCloudWatchAlarmCacheClient,
+      ecsTaskDefinitionRevisionService)
+  }
+
+  def 'looks up a server group by its exact service key in only the requested region'() {
+    when:
+    provider.getServerGroup(CREDS_NAME, 'us-east-1', "${FAMILY_NAME}-v007", true)
+
+    then:
+    1 * cacheView.filterIdentifiers(Keys.Namespace.SERVICES.ns, Keys.getServiceKey(CREDS_NAME, 'us-east-1', "${FAMILY_NAME}-v007")) >> []
+    0 * cacheView.filterIdentifiers(_, _)
   }
 
   def 'attaches task-definition revisions only to the requested native server group (includeDetails=#includeDetails)'() {

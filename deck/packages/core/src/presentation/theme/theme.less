@@ -260,6 +260,15 @@
     color: var(--color-text-primary);
   }
 
+  // Header menu toggles (user, theme, help) sit directly on the navbar, so they must not pick up
+  // the raised-surface/hover backgrounds that .btn-default gets above.
+  .spinnaker-header .dropdown .dropdown-toggle.btn-default {
+    background-color: transparent;
+    border-color: transparent;
+    box-shadow: none;
+    color: var(--color-white);
+  }
+
   .table {
     color: var(--color-text-primary);
   }
