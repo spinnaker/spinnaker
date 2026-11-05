@@ -26,13 +26,13 @@ import static org.mockito.Mockito.verify;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.api.services.compute.Compute;
-import com.netflix.spectator.api.DefaultRegistry;
 import com.netflix.spinnaker.clouddriver.google.compute.GoogleComputeApiFactory;
 import com.netflix.spinnaker.clouddriver.google.config.GoogleConfigurationProperties;
 import com.netflix.spinnaker.clouddriver.google.provider.GoogleInfrastructureProvider;
 import com.netflix.spinnaker.clouddriver.google.provider.agent.GoogleExternalHttpLoadBalancerCachingAgent;
 import com.netflix.spinnaker.clouddriver.google.provider.agent.GoogleRegionalExternalNetworkLoadBalancerCachingAgent;
 import com.netflix.spinnaker.kork.client.ServiceClientProvider;
+import io.micrometer.core.instrument.simple.SimpleMeterRegistry;
 import java.util.Collection;
 import java.util.List;
 import java.util.Map;
@@ -86,7 +86,7 @@ class GoogleCredentialsLifecycleHandlerTest {
         new GoogleConfigurationProperties(),
         mock(GoogleComputeApiFactory.class),
         new ObjectMapper(),
-        new DefaultRegistry(),
+        new SimpleMeterRegistry(),
         "clouddriver",
         mock(ServiceClientProvider.class));
   }

@@ -16,17 +16,14 @@
 
 package com.netflix.spinnaker.igor.polling
 
-import com.netflix.spectator.api.Counter
-import com.netflix.spectator.api.Id
-import com.netflix.spectator.api.Registry
-import com.netflix.spectator.api.Timer
-import com.netflix.spectator.api.patterns.PolledMeter
-import com.netflix.spectator.micrometer.MicrometerRegistry
 import com.netflix.spinnaker.igor.IgorConfigurationProperties
 import com.netflix.spinnaker.kork.discovery.DiscoveryStatusListener
 import com.netflix.spinnaker.kork.discovery.RemoteStatusChangedEvent
 import com.netflix.spinnaker.kork.dynamicconfig.DynamicConfigService
 import com.netflix.spinnaker.kork.dynamicconfig.DynamicConfigService.NoopDynamicConfig
+import io.micrometer.core.instrument.Counter
+import io.micrometer.core.instrument.MeterRegistry
+import io.micrometer.core.instrument.Timer
 import io.micrometer.core.instrument.simple.SimpleMeterRegistry
 import org.mockito.Mockito
 import org.springframework.scheduling.TaskScheduler
@@ -34,6 +31,7 @@ import spock.lang.Specification
 
 import java.util.concurrent.Executors
 import java.util.concurrent.ScheduledFuture
+import java.util.concurrent.TimeUnit
 
 import static org.mockito.Mockito.mock
 
@@ -49,13 +47,13 @@ class CommonPollingMonitorTest extends Specification {
   DynamicConfigService dynamicConfigService = new NoopDynamicConfig();
   DiscoveryStatusListener discoveryStatusListener = new DiscoveryStatusListener(true)
   Optional<LockService> lockService = Optional.empty()
-  MicrometerRegistry registry
+  MeterRegistry registry
   TaskScheduler scheduler
   CommonPollingMonitorInstrumentation instrumentation
   DefaultPollingMonitor monitor
 
   def setup() {
-    registry = new MicrometerRegistry(new SimpleMeterRegistry())
+    registry = new SimpleMeterRegistry()
     instrumentation = new CommonPollingMonitorInstrumentation(registry)
     scheduler =  mock(TaskScheduler.class)
 
@@ -70,32 +68,16 @@ class CommonPollingMonitorTest extends Specification {
   }
 
   def testPollGaugesAreRecordedCorrectly() {
-    given:
-    Id itemsCachedIdPartitionOne =
-      instrumentation.getItemsCachedId()
-        .withTags("monitor", MONITOR, "partition", PARTITION_1)
-    Id itemsCachedIdPartitionTwo =
-      instrumentation.getItemsCachedId()
-        .withTags("monitor", MONITOR, "partition", PARTITION_2)
-    Id itemsOverThresholdPartitionOne =
-      instrumentation.getItemsOverThresholdId()
-        .withTags("monitor", MONITOR, "partition", PARTITION_1)
-    Id itemsOverThresholdPartitionTwo =
-      instrumentation.getItemsOverThresholdId()
-        .withTags("monitor", MONITOR, "partition", PARTITION_2)
-
     when: "scheduler triggers polling for 2 partitions"
     monitor.setDeltasMap(
       [(PARTITION_1): DELTA_SIZE_PARTITION_1, (PARTITION_2): DELTA_SIZE_PARTITION2])
     monitor.poll(true)
-    and:
-    PolledMeter.update(registry)
     then:
-    registry.gauge(itemsCachedIdPartitionOne).value() == DELTA_SIZE_PARTITION_1
-    registry.gauge(itemsCachedIdPartitionTwo).value() == 0
+    gaugeValue(CommonPollingMonitorInstrumentation.ITEMS_CACHED_METRIC_NAME, PARTITION_1) == DELTA_SIZE_PARTITION_1
+    gaugeValue(CommonPollingMonitorInstrumentation.ITEMS_CACHED_METRIC_NAME, PARTITION_2) == 0
     and:
-    registry.gauge(itemsOverThresholdPartitionOne).value() == 0
-    registry.gauge(itemsOverThresholdPartitionTwo).value() == DELTA_SIZE_PARTITION2
+    gaugeValue(CommonPollingMonitorInstrumentation.ITEMS_OVER_THRESHOLD_METRIC_NAME, PARTITION_1) == 0
+    gaugeValue(CommonPollingMonitorInstrumentation.ITEMS_OVER_THRESHOLD_METRIC_NAME, PARTITION_2) == DELTA_SIZE_PARTITION2
     // simulate 2nd trigger in another thread
     when: "scheduler triggers again"
     def thread = Thread.start( {
@@ -103,24 +85,27 @@ class CommonPollingMonitorTest extends Specification {
       monitor.poll(false)
     })
     thread.join()
-    and:
-    PolledMeter.update(registry)
     then:
     // latest values are observed
-    registry.gauge(itemsCachedIdPartitionOne).value() == 8
-    registry.gauge(itemsCachedIdPartitionTwo).value() == 10
+    gaugeValue(CommonPollingMonitorInstrumentation.ITEMS_CACHED_METRIC_NAME, PARTITION_1) == 8
+    gaugeValue(CommonPollingMonitorInstrumentation.ITEMS_CACHED_METRIC_NAME, PARTITION_2) == 10
     and:
-    registry.gauge(itemsOverThresholdPartitionOne).value() == 0
-    registry.gauge(itemsOverThresholdPartitionTwo).value() == 0
+    gaugeValue(CommonPollingMonitorInstrumentation.ITEMS_OVER_THRESHOLD_METRIC_NAME, PARTITION_1) == 0
+    gaugeValue(CommonPollingMonitorInstrumentation.ITEMS_OVER_THRESHOLD_METRIC_NAME, PARTITION_2) == 0
   }
 
+  private double gaugeValue(String metricName, String partition) {
+    registry.find(metricName)
+      .tags("monitor", MONITOR, "partition", partition)
+      .gauge()
+      .value()
+  }
 
   def testPollCycleTimingWorks() {
     given:
-    Timer timer =  registry.timer(
-      instrumentation.pollCycleTimingId.withTags("monitor", monitor.getName()))
-    assert timer.count() == 0
-    assert timer.totalTime() == 0
+    assert registry.find(CommonPollingMonitorInstrumentation.POLL_CYCLE_TIMING_METRIC_NAME)
+      .tags("monitor", monitor.getName())
+      .timer() == null
 
     // execute the runnable straight away
     Mockito.when(scheduler.schedule(Mockito.any(), Mockito.any()))
@@ -133,22 +118,23 @@ class CommonPollingMonitorTest extends Specification {
     when:"on startup"
     monitor.onApplicationEvent(Mock(RemoteStatusChangedEvent))
     then:
+    Timer timer = registry.find(CommonPollingMonitorInstrumentation.POLL_CYCLE_TIMING_METRIC_NAME)
+      .tags("monitor", monitor.getName())
+      .timer()
     timer.count() == 1
-    timer.totalTime() > 0
+    timer.totalTime(TimeUnit.NANOSECONDS) > 0
   }
 
   def testPollCycleFailedWorks() {
     given:
-    Counter counter = registry.counter(
-      instrumentation.pollCycleFailedId
-        .withTags("monitor", monitor.getName(), "partition", PARTITION_1))
-    assert counter.count() == 0
     monitor.setFailOnCommit(true)
     when:
     monitor.poll(true)
     then:
+    Counter counter = registry.find(CommonPollingMonitorInstrumentation.POLL_CYCLE_FAILED_METRIC_NAME)
+      .tags("monitor", monitor.getName(), "partition", PARTITION_1)
+      .counter()
     counter.count() == 1
-
   }
 
   // test, concrete implementation of the base class
@@ -158,7 +144,7 @@ class CommonPollingMonitorTest extends Specification {
     private boolean failOnCommit = false
 
     public DefaultPollingMonitor(IgorConfigurationProperties igorProperties,
-                                 Registry registry,
+                                 MeterRegistry registry,
                                  DynamicConfigService dynamicConfigService,
                                  DiscoveryStatusListener discoveryStatusListener,
                                  Optional lockService,

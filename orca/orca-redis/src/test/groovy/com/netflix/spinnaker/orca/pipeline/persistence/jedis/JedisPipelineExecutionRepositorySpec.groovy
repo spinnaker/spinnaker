@@ -15,8 +15,6 @@
  */
 package com.netflix.spinnaker.orca.pipeline.persistence.jedis
 
-import com.netflix.spectator.api.NoopRegistry
-import com.netflix.spectator.api.Registry
 import com.netflix.spinnaker.kork.jedis.EmbeddedRedis
 import com.netflix.spinnaker.kork.jedis.JedisClientDelegate
 import com.netflix.spinnaker.kork.jedis.RedisClientSelector
@@ -26,6 +24,7 @@ import com.netflix.spinnaker.orca.pipeline.model.DefaultTrigger
 import com.netflix.spinnaker.orca.pipeline.model.PipelineExecutionImpl
 import com.netflix.spinnaker.orca.pipeline.persistence.ExecutionNotFoundException
 import com.netflix.spinnaker.orca.pipeline.persistence.PipelineExecutionRepositoryTck
+import io.micrometer.core.instrument.simple.SimpleMeterRegistry
 import redis.clients.jedis.Jedis
 import redis.clients.jedis.util.Pool
 import spock.lang.AutoCleanup
@@ -105,11 +104,11 @@ class JedisPipelineExecutionRepositorySpec extends PipelineExecutionRepositoryTc
   }
 
   RedisExecutionRepository createExecutionRepository() {
-    return new RedisExecutionRepository(new NoopRegistry(), redisClientSelector, 1, 50)
+    return new RedisExecutionRepository(new SimpleMeterRegistry(), redisClientSelector, 1, 50)
   }
 
   RedisExecutionRepository createExecutionRepositoryPrevious() {
-    return new RedisExecutionRepository(new NoopRegistry(), new RedisClientSelector([new JedisClientDelegate("primaryDefault", jedisPoolPrevious)]), 1, 50)
+    return new RedisExecutionRepository(new SimpleMeterRegistry(), new RedisClientSelector([new JedisClientDelegate("primaryDefault", jedisPoolPrevious)]), 1, 50)
   }
 
 

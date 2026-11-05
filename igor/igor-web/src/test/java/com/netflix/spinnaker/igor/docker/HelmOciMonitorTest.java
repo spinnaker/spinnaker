@@ -24,7 +24,6 @@ import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
-import com.netflix.spectator.api.NoopRegistry;
 import com.netflix.spinnaker.igor.IgorConfigurationProperties;
 import com.netflix.spinnaker.igor.config.HelmOciDockerRegistryProperties;
 import com.netflix.spinnaker.igor.docker.model.DockerRegistryAccounts;
@@ -36,6 +35,7 @@ import com.netflix.spinnaker.igor.polling.LockService;
 import com.netflix.spinnaker.kork.artifacts.model.Artifact;
 import com.netflix.spinnaker.kork.discovery.DiscoveryStatusListener;
 import com.netflix.spinnaker.kork.dynamicconfig.DynamicConfigService;
+import io.micrometer.core.instrument.simple.SimpleMeterRegistry;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
@@ -62,7 +62,7 @@ import retrofit2.mock.Calls;
 public class HelmOciMonitorTest {
 
   private IgorConfigurationProperties properties = new IgorConfigurationProperties();
-  private NoopRegistry registry = new NoopRegistry();
+  private SimpleMeterRegistry registry = new SimpleMeterRegistry();
   private DynamicConfigService dynamicConfig = new DynamicConfigService.NoopDynamicConfig();
   private DiscoveryStatusListener discoveryStatusListener = new DiscoveryStatusListener(true);
   private Optional<LockService> lockService = Optional.empty();

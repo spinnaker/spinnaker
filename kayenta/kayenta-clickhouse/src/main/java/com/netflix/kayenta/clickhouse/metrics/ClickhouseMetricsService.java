@@ -9,7 +9,7 @@ import com.netflix.kayenta.clickhouse.service.ClickhouseRemoteService;
 import com.netflix.kayenta.metrics.MetricSet;
 import com.netflix.kayenta.metrics.MetricsService;
 import com.netflix.kayenta.security.AccountCredentialsRepository;
-import com.netflix.spectator.api.Registry;
+import io.micrometer.core.instrument.MeterRegistry;
 import jakarta.validation.constraints.NotNull;
 import java.io.IOException;
 import java.util.Collections;
@@ -35,7 +35,7 @@ public class ClickhouseMetricsService implements MetricsService {
 
   @Autowired private final AccountCredentialsRepository accountCredentialsRepository;
 
-  @Autowired private final Registry registry;
+  @Autowired private final MeterRegistry registry;
 
   @Autowired private final ClickhouseQueryBuilderService queryBuilder;
 

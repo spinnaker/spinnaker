@@ -16,7 +16,7 @@
 package com.netflix.spinnaker.clouddriver.ecs.security
 
 import com.fasterxml.jackson.databind.ObjectMapper
-import com.netflix.spectator.api.DefaultRegistry
+import io.micrometer.core.instrument.simple.SimpleMeterRegistry
 import com.netflix.spinnaker.clouddriver.ecs.TestCredential
 import com.netflix.spinnaker.clouddriver.ecs.provider.EcsProvider
 import com.netflix.spinnaker.clouddriver.ecs.provider.agent.*
@@ -29,7 +29,7 @@ class EcsCredentialsLifeCyclerHandlerSpec extends Specification {
 
   EcsProvider ecsProvider
   def objectMapper = new ObjectMapper()
-  def registry = new DefaultRegistry()
+  def registry = new SimpleMeterRegistry()
 
   def setup() {
     ecsProvider = new EcsProvider()

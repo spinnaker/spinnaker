@@ -17,7 +17,7 @@
 
 package com.netflix.spinnaker.clouddriver.kubernetes.caching.agent
 
-import com.netflix.spectator.api.Registry
+import io.micrometer.core.instrument.MeterRegistry
 import com.netflix.spinnaker.cats.cache.DefaultCacheData
 import com.netflix.spinnaker.clouddriver.kubernetes.security.KubernetesNamedAccountCredentials
 import com.netflix.spinnaker.clouddriver.kubernetes.security.KubernetesCredentials
@@ -41,7 +41,7 @@ class KubernetesReplicaSetCachingAgentSpec extends Specification {
     namedAccountCredentials.getCredentials() >> credentials
     namedAccountCredentials.getName() >> ACCOUNT
 
-    def registryMock = Mock(Registry)
+    def registryMock = Mock(MeterRegistry)
     registryMock.timer(_) >> null
     def a = new DefaultCacheData("id", attrA, relA)
     def b = new DefaultCacheData("id", attrB, relB)

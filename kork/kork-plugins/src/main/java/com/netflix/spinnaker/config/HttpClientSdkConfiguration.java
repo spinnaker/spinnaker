@@ -25,7 +25,6 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.datatype.jdk8.Jdk8Module;
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 import com.fasterxml.jackson.module.kotlin.KotlinModule;
-import com.netflix.spectator.api.Registry;
 import com.netflix.spinnaker.kork.plugins.sdk.SdkFactory;
 import com.netflix.spinnaker.kork.plugins.sdk.httpclient.HttpClientSdkFactory;
 import com.netflix.spinnaker.kork.plugins.sdk.httpclient.OkHttp3ClientFactory;
@@ -34,6 +33,7 @@ import com.netflix.spinnaker.kork.plugins.sdk.httpclient.internal.DefaultOkHttp3
 import com.netflix.spinnaker.okhttp.OkHttp3MetricsInterceptor;
 import com.netflix.spinnaker.okhttp.OkHttpClientConfigurationProperties;
 import com.netflix.spinnaker.retrofit.Retrofit2ConfigurationProperties;
+import io.micrometer.core.instrument.MeterRegistry;
 import jakarta.inject.Provider;
 import java.util.ArrayList;
 import java.util.List;
@@ -50,7 +50,7 @@ public class HttpClientSdkConfiguration {
   public static SdkFactory httpClientSdkFactory(
       List<OkHttp3ClientFactory> okHttpClientFactories,
       Environment environment,
-      Provider<Registry> registry) {
+      Provider<MeterRegistry> registry) {
 
     OkHttpClientConfigurationProperties okHttpClientProperties =
         Binder.get(environment)

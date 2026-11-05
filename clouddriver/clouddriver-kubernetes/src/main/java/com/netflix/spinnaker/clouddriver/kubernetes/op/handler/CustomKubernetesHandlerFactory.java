@@ -18,7 +18,6 @@
 package com.netflix.spinnaker.clouddriver.kubernetes.op.handler;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.netflix.spectator.api.Registry;
 import com.netflix.spinnaker.clouddriver.kubernetes.caching.agent.CustomKubernetesCachingAgentFactory;
 import com.netflix.spinnaker.clouddriver.kubernetes.caching.agent.Front50ApplicationLoader;
 import com.netflix.spinnaker.clouddriver.kubernetes.caching.agent.KubernetesCachingAgent;
@@ -30,6 +29,7 @@ import com.netflix.spinnaker.clouddriver.kubernetes.description.manifest.Kuberne
 import com.netflix.spinnaker.clouddriver.kubernetes.description.manifest.KubernetesManifest;
 import com.netflix.spinnaker.clouddriver.kubernetes.model.Manifest;
 import com.netflix.spinnaker.clouddriver.kubernetes.security.KubernetesNamedAccountCredentials;
+import io.micrometer.core.instrument.MeterRegistry;
 import javax.annotation.Nonnull;
 import org.springframework.lang.Nullable;
 
@@ -98,7 +98,7 @@ public class CustomKubernetesHandlerFactory {
     private KubernetesCachingAgent buildCustomCachingAgent(
         KubernetesNamedAccountCredentials namedAccountCredentials,
         ObjectMapper objectMapper,
-        Registry registry,
+        MeterRegistry registry,
         int agentIndex,
         int agentCount,
         Long agentInterval,

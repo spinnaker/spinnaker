@@ -16,10 +16,9 @@
 
 package com.netflix.spinnaker.q.metrics
 
-import com.netflix.spectator.api.Counter
-import com.netflix.spectator.api.Registry
-import com.netflix.spectator.api.patterns.PolledMeter
 import com.netflix.spinnaker.q.Queue
+import io.micrometer.core.instrument.Counter
+import io.micrometer.core.instrument.MeterRegistry
 import java.time.Clock
 import java.time.Duration
 import java.time.Instant
@@ -31,33 +30,23 @@ import java.util.concurrent.atomic.AtomicReference
  * - publishes metrics based on queue events
  */
 class QueueMetricsPublisher(
-  val registry: Registry,
+  val registry: MeterRegistry,
   val clock: Clock
 ) : EventPublisher {
   init {
-    PolledMeter.using(registry)
-      .withName("queue.last.poll.age")
-      .monitorValue(
-        this,
-        {
-          Duration
-            .between(it.lastQueuePoll, clock.instant())
-            .toMillis()
-            .toDouble()
-        }
-      )
+    registry.gauge("queue.last.poll.age", this) {
+      Duration
+        .between(it.lastQueuePoll, clock.instant())
+        .toMillis()
+        .toDouble()
+    }
 
-    PolledMeter.using(registry)
-      .withName("queue.last.retry.check.age")
-      .monitorValue(
-        this,
-        {
-          Duration
-            .between(it.lastRetryPoll, clock.instant())
-            .toMillis()
-            .toDouble()
-        }
-      )
+    registry.gauge("queue.last.retry.check.age", this) {
+      Duration
+        .between(it.lastRetryPoll, clock.instant())
+        .toMillis()
+        .toDouble()
+    }
   }
 
   override fun publishEvent(event: QueueEvent) {

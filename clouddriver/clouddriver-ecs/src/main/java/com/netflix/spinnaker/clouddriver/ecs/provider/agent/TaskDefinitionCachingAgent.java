@@ -20,7 +20,6 @@ import static com.netflix.spinnaker.cats.agent.AgentDataType.Authority.AUTHORITA
 import static com.netflix.spinnaker.clouddriver.ecs.cache.Keys.Namespace.TASK_DEFINITIONS;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.netflix.spectator.api.Registry;
 import com.netflix.spinnaker.cats.agent.AgentDataType;
 import com.netflix.spinnaker.cats.cache.CacheData;
 import com.netflix.spinnaker.cats.cache.DefaultCacheData;
@@ -30,6 +29,7 @@ import com.netflix.spinnaker.clouddriver.aws.security.NetflixAmazonCredentials;
 import com.netflix.spinnaker.clouddriver.ecs.cache.Keys;
 import com.netflix.spinnaker.clouddriver.ecs.cache.client.ServiceCacheClient;
 import com.netflix.spinnaker.clouddriver.ecs.cache.model.Service;
+import io.micrometer.core.instrument.MeterRegistry;
 import java.util.*;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
@@ -53,7 +53,7 @@ public class TaskDefinitionCachingAgent extends AbstractEcsOnDemandAgent<TaskDef
       NetflixAmazonCredentials account,
       String region,
       AmazonClientProvider amazonClientProvider,
-      Registry registry,
+      MeterRegistry registry,
       ObjectMapper objectMapper) {
     super(account, region, amazonClientProvider, registry);
     this.objectMapper = objectMapper;

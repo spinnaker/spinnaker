@@ -47,7 +47,6 @@ import com.google.api.services.compute.model.ResourceGroupReference;
 import com.google.api.services.compute.model.TargetHttpProxy;
 import com.google.api.services.compute.model.TargetHttpsProxy;
 import com.google.api.services.compute.model.UrlMap;
-import com.netflix.spectator.api.DefaultRegistry;
 import com.netflix.spinnaker.clouddriver.google.batch.GoogleBatchRequest;
 import com.netflix.spinnaker.clouddriver.google.model.callbacks.Utils;
 import com.netflix.spinnaker.clouddriver.google.model.loadbalancing.GoogleBackendService;
@@ -56,6 +55,7 @@ import com.netflix.spinnaker.clouddriver.google.model.loadbalancing.GoogleLoadBa
 import com.netflix.spinnaker.clouddriver.google.model.loadbalancing.GoogleSessionAffinity;
 import com.netflix.spinnaker.clouddriver.google.security.GoogleCredentials;
 import com.netflix.spinnaker.clouddriver.google.security.GoogleNamedAccountCredentials;
+import io.micrometer.core.instrument.simple.SimpleMeterRegistry;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collections;
@@ -552,7 +552,7 @@ public class GoogleExternalHttpLoadBalancerCachingAgentTest {
             .credentials(mock(GoogleCredentials.class))
             .build();
     return new TestGoogleExternalHttpLoadBalancerCachingAgent(
-        "clouddriver", credentials, new ObjectMapper(), new DefaultRegistry(), REGION);
+        "clouddriver", credentials, new ObjectMapper(), new SimpleMeterRegistry(), REGION);
   }
 
   private static void configureSharedRegionalData(Compute compute) throws IOException {
@@ -641,7 +641,7 @@ public class GoogleExternalHttpLoadBalancerCachingAgentTest {
         String clouddriverUserAgentApplicationName,
         GoogleNamedAccountCredentials credentials,
         ObjectMapper objectMapper,
-        DefaultRegistry registry,
+        SimpleMeterRegistry registry,
         String region) {
       super(clouddriverUserAgentApplicationName, credentials, objectMapper, registry, region);
     }

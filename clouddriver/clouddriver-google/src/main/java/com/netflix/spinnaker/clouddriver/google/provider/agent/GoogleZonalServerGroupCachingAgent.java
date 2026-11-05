@@ -28,7 +28,6 @@ import com.google.api.services.compute.Compute.InstanceGroupManagers.Get;
 import com.google.api.services.compute.model.Autoscaler;
 import com.google.api.services.compute.model.Instance;
 import com.google.api.services.compute.model.InstanceGroupManager;
-import com.netflix.spectator.api.Registry;
 import com.netflix.spinnaker.cats.provider.ProviderCache;
 import com.netflix.spinnaker.clouddriver.google.cache.Keys;
 import com.netflix.spinnaker.clouddriver.google.compute.BatchPaginatedComputeRequest;
@@ -40,6 +39,7 @@ import com.netflix.spinnaker.clouddriver.google.compute.ZoneInstanceGroupManager
 import com.netflix.spinnaker.clouddriver.google.model.callbacks.Utils;
 import com.netflix.spinnaker.clouddriver.google.security.GoogleNamedAccountCredentials;
 import com.netflix.spinnaker.kork.client.ServiceClientProvider;
+import io.micrometer.core.instrument.MeterRegistry;
 import java.io.IOException;
 import java.util.Collection;
 import java.util.Map;
@@ -55,7 +55,7 @@ public final class GoogleZonalServerGroupCachingAgent
   public GoogleZonalServerGroupCachingAgent(
       GoogleNamedAccountCredentials credentials,
       GoogleComputeApiFactory computeApiFactory,
-      Registry registry,
+      MeterRegistry registry,
       String region,
       ObjectMapper objectMapper,
       ServiceClientProvider serviceClientProvider) {

@@ -19,7 +19,6 @@ package com.netflix.spinnaker.igor.concourse;
 import static org.mockito.Mockito.mock;
 
 import com.google.common.collect.ImmutableMap;
-import com.netflix.spectator.api.NoopRegistry;
 import com.netflix.spinnaker.config.OkHttp3ClientConfiguration;
 import com.netflix.spinnaker.igor.IgorConfigurationProperties;
 import com.netflix.spinnaker.igor.concourse.service.ConcourseService;
@@ -30,6 +29,7 @@ import com.netflix.spinnaker.igor.service.BuildServices;
 import com.netflix.spinnaker.kork.discovery.DiscoveryStatusListener;
 import com.netflix.spinnaker.kork.dynamicconfig.DynamicConfigService;
 import com.netflix.spinnaker.okhttp.OkHttpClientConfigurationProperties;
+import io.micrometer.core.instrument.simple.SimpleMeterRegistry;
 import java.util.Collections;
 import java.util.Optional;
 import okhttp3.logging.HttpLoggingInterceptor;
@@ -82,7 +82,7 @@ class ConcourseBuildMonitorTest {
     this.monitor =
         new ConcourseBuildMonitor(
             igorConfigurationProperties,
-            new NoopRegistry(),
+            new SimpleMeterRegistry(),
             new DynamicConfigService.NoopDynamicConfig(),
             new DiscoveryStatusListener(true),
             Optional.empty(),

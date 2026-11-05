@@ -16,13 +16,13 @@
 
 package com.netflix.spinnaker.echo.pipelinetriggers.monitor;
 
-import com.netflix.spectator.api.Registry;
 import com.netflix.spinnaker.echo.api.events.Event;
 import com.netflix.spinnaker.echo.api.events.EventListener;
 import com.netflix.spinnaker.echo.pipelinetriggers.PipelineCache;
 import com.netflix.spinnaker.echo.pipelinetriggers.eventhandlers.TriggerEventHandler;
 import com.netflix.spinnaker.echo.pipelinetriggers.orca.PipelineInitiator;
 import com.netflix.spinnaker.echo.pipelinetriggers.postprocessors.PipelinePostProcessorHandler;
+import io.micrometer.core.instrument.MeterRegistry;
 import java.util.List;
 import java.util.stream.Collectors;
 import lombok.NonNull;
@@ -41,7 +41,7 @@ public class TriggerEventListener implements EventListener {
   public TriggerEventListener(
       @NonNull PipelineCache pipelineCache,
       @NonNull PipelineInitiator pipelineInitiator,
-      @NonNull Registry registry,
+      @NonNull MeterRegistry registry,
       @NonNull PipelinePostProcessorHandler pipelinePostProcessorHandler,
       @NonNull List<TriggerEventHandler<?>> eventHandlers) {
     this.triggerMonitors =

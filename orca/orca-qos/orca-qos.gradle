@@ -23,7 +23,6 @@ dependencies {
   implementation(project(":orca-front50"))
   implementation(project(":orca-queue"))
   implementation("io.spinnaker.kork:kork-core")
-  implementation("com.netflix.spectator:spectator-api")
   implementation("net.logstash.logback:logstash-logback-encoder")
 
   testImplementation(project(":orca-test-kotlin"))

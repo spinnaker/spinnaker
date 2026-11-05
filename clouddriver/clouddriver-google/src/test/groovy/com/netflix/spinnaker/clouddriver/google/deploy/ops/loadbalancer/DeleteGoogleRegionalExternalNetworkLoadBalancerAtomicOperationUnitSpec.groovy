@@ -25,7 +25,7 @@ import com.google.api.services.compute.model.BackendService
 import com.google.api.services.compute.model.ForwardingRule
 import com.google.api.services.compute.model.ForwardingRuleList
 import com.google.api.services.compute.model.Operation
-import com.netflix.spectator.api.DefaultRegistry
+import io.micrometer.core.instrument.simple.SimpleMeterRegistry
 import com.netflix.spinnaker.clouddriver.data.task.Task
 import com.netflix.spinnaker.clouddriver.data.task.TaskRepository
 import com.netflix.spinnaker.clouddriver.google.config.GoogleConfigurationProperties
@@ -49,7 +49,7 @@ class DeleteGoogleRegionalExternalNetworkLoadBalancerAtomicOperationUnitSpec ext
   private static final String BACKEND_SERVICE_URL = "projects/${PROJECT}/regions/${REGION}/backendServices/${BACKEND_SERVICE}"
   private static final String HEALTH_CHECK_URL = "projects/${PROJECT}/regions/${REGION}/healthChecks/tcp-hc"
 
-  @Shared def registry = new DefaultRegistry()
+  @Shared def registry = new SimpleMeterRegistry()
   @Shared def threadSleeper = Mock(GoogleOperationPoller.ThreadSleeper)
   @Shared SafeRetry safeRetry
 

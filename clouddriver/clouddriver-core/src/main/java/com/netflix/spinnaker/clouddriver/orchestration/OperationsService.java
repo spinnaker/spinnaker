@@ -17,8 +17,6 @@ package com.netflix.spinnaker.clouddriver.orchestration;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.base.Splitter;
-import com.netflix.spectator.api.Id;
-import com.netflix.spectator.api.Registry;
 import com.netflix.spinnaker.clouddriver.data.task.SagaId;
 import com.netflix.spinnaker.clouddriver.deploy.DescriptionAuthorizer;
 import com.netflix.spinnaker.clouddriver.deploy.DescriptionValidationErrors;
@@ -34,6 +32,7 @@ import com.netflix.spinnaker.kork.exceptions.SystemException;
 import com.netflix.spinnaker.kork.web.exceptions.ExceptionMessageDecorator;
 import com.netflix.spinnaker.orchestration.OperationDescription;
 import com.netflix.spinnaker.security.AuthenticatedRequest;
+import io.micrometer.core.instrument.MeterRegistry;
 import java.lang.reflect.Method;
 import java.util.ArrayList;
 import java.util.Collection;
@@ -66,11 +65,11 @@ public class OperationsService {
       atomicOperationDescriptionPreProcessors;
   private final AccountCredentialsRepository accountCredentialsRepository;
   private final Optional<SagaRepository> sagaRepository;
-  private final Registry registry;
+  private final MeterRegistry registry;
   private final ObjectMapper objectMapper;
   private final ExceptionMessageDecorator exceptionMessageDecorator;
 
-  private final Id validationErrorsCounterId;
+  private static final String VALIDATION_ERRORS_METRIC_NAME = "validationErrors";
 
   public OperationsService(
       AtomicOperationsRegistry atomicOperationsRegistry,
@@ -80,7 +79,7 @@ public class OperationsService {
           atomicOperationDescriptionPreProcessors,
       AccountCredentialsRepository accountCredentialsRepository,
       Optional<SagaRepository> sagaRepository,
-      Registry registry,
+      MeterRegistry registry,
       ObjectMapper objectMapper,
       ExceptionMessageDecorator exceptionMessageDecorator) {
     this.atomicOperationsRegistry = atomicOperationsRegistry;
@@ -93,8 +92,6 @@ public class OperationsService {
     this.registry = registry;
     this.objectMapper = objectMapper;
     this.exceptionMessageDecorator = exceptionMessageDecorator;
-
-    validationErrorsCounterId = registry.createId("validationErrors");
   }
 
   @Nonnull
@@ -216,8 +213,9 @@ public class OperationsService {
                           if (errors.hasErrors()) {
                             registry
                                 .counter(
-                                    validationErrorsCounterId.withTag(
-                                        "operation", atomicOperation.getClass().getSimpleName()))
+                                    VALIDATION_ERRORS_METRIC_NAME,
+                                    "operation",
+                                    atomicOperation.getClass().getSimpleName())
                                 .increment();
                           }
 

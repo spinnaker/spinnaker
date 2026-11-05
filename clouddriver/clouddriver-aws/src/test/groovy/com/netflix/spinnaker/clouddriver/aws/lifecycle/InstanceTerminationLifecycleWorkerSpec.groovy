@@ -16,8 +16,8 @@
 package com.netflix.spinnaker.clouddriver.aws.lifecycle
 
 import com.fasterxml.jackson.databind.ObjectMapper
-import com.netflix.spectator.api.Counter
-import com.netflix.spectator.api.Registry
+import io.micrometer.core.instrument.Counter
+import io.micrometer.core.instrument.MeterRegistry
 import com.netflix.spinnaker.clouddriver.aws.deploy.ops.discovery.AwsEurekaSupport
 import com.netflix.spinnaker.clouddriver.aws.security.AmazonClientProvider
 import com.netflix.spinnaker.clouddriver.aws.security.NetflixAmazonCredentials
@@ -61,7 +61,7 @@ class InstanceTerminationLifecycleWorkerSpec extends Specification {
   Provider<AwsEurekaSupport> awsEurekaSupportProvider = Mock()
   AwsEurekaSupport awsEurekaSupport = Mock()
   Eureka eureka = Mock()
-  Registry registry = Mock()
+  MeterRegistry registry = Mock()
 
   def queueARN = new ARN([mgmtCredentials, testCredentials], "arn:aws:sqs:us-west-2:100:queueName")
   def topicARN = new ARN([mgmtCredentials, testCredentials], "arn:aws:sns:us-west-2:100:topicName")

@@ -1,7 +1,7 @@
 package com.netflix.spinnaker.keel.services
 
-import com.netflix.spectator.api.BasicTag
-import com.netflix.spectator.api.Registry
+import io.micrometer.core.instrument.Tag
+import io.micrometer.core.instrument.MeterRegistry
 import com.netflix.spinnaker.config.ArtifactConfig
 import com.netflix.spinnaker.keel.actuation.EnvironmentTaskCanceler
 import com.netflix.spinnaker.keel.api.ArtifactInEnvironmentContext
@@ -87,7 +87,7 @@ class ApplicationService(
   private val publisher: ApplicationEventPublisher,
   private val springEnv: SpringEnvironment,
   private val clock: Clock,
-  private val spectator: Registry,
+  private val meterRegistry: MeterRegistry,
   private val artifactConfig: ArtifactConfig,
   private val artifactVersionLinks: ArtifactVersionLinks,
   private val environmentTaskCanceler: EnvironmentTaskCanceler
@@ -245,9 +245,9 @@ class ApplicationService(
       val startTime = now
       val deliveryConfig = repository.getDeliveryConfigForApplication(application)
       val summaries = getResourceSummaries(deliveryConfig)
-      spectator.timer(
+      meterRegistry.timer(
         RESOURCE_SUMMARY_CONSTRUCT_DURATION_ID,
-        listOf(BasicTag("application", application))
+        listOf(Tag.of("application", application))
       ).record(Duration.between(startTime, now))
       summaries
     } catch (e: NoSuchDeliveryConfigException) {
@@ -285,9 +285,9 @@ class ApplicationService(
       val startTime = now
       val config = repository.getDeliveryConfigForApplication(application)
       val summaries = repository.getEnvironmentSummaries(config)
-      spectator.timer(
+      meterRegistry.timer(
         ENV_SUMMARY_CONSTRUCT_DURATION_ID,
-        listOf(BasicTag("application", application))
+        listOf(Tag.of("application", application))
       ).record(Duration.between(startTime, now))
       summaries.sortedByDependencies()
     } catch (e: NoSuchDeliveryConfigException) {
@@ -322,9 +322,9 @@ class ApplicationService(
   fun getArtifactSummariesFor(application: String, limit: Int): List<ArtifactSummary> {
     val startTime = now
     val environmentSummaries = getEnvironmentSummariesFor(application)
-    spectator.timer(
+    meterRegistry.timer(
       ENV_SUMMARY_CONSTRUCT_DURATION_ID,
-      listOf(BasicTag("application", application))
+      listOf(Tag.of("application", application))
     ).record(Duration.between(startTime, now))
     return getArtifactSummariesFor(application, environmentSummaries, limit)
   }
@@ -411,9 +411,9 @@ class ApplicationService(
                       it.addConstraintSummaries(deliveryConfig, environment, artifactVersion.version, artifact)
                     )
                   }
-                spectator.timer(
+                meterRegistry.timer(
                   ARTIFACT_IN_ENV_SUMMARY_CONSTRUCT_DURATION,
-                  listOf(BasicTag("application", application))
+                  listOf(Tag.of("application", application))
                 ).record(Duration.between(artifactInEnvStartTime, now))
               }
             }
@@ -426,9 +426,9 @@ class ApplicationService(
           artifactSummariesInEnvironments,
           artifactVersions
         )
-        spectator.timer(
+        meterRegistry.timer(
           ARTIFACT_VERSION_SUMMARY_CONSTRUCT_DURATION_ID,
-          listOf(BasicTag("application", application))
+          listOf(Tag.of("application", application))
         ).record(Duration.between(versionStartTime, now))
         summary
       }
@@ -439,9 +439,9 @@ class ApplicationService(
         versions = artifactVersionSummaries.toSet()
       )
     }
-    spectator.timer(
+    meterRegistry.timer(
       ARTIFACT_SUMMARY_CONSTRUCT_DURATION_ID,
-      listOf(BasicTag("application", application))
+      listOf(Tag.of("application", application))
     ).record(Duration.between(startTime, now))
     return artifactSummaries
   }

@@ -23,13 +23,12 @@ import com.netflix.kayenta.canary.CanaryScope;
 import com.netflix.kayenta.storage.ObjectType;
 import com.netflix.kayenta.storage.StorageService;
 import com.netflix.kayenta.storage.StorageServiceRepository;
-import com.netflix.spectator.api.Id;
-import com.netflix.spectator.api.Registry;
 import com.netflix.spinnaker.kork.retrofit.exceptions.SpinnakerHttpException;
 import com.netflix.spinnaker.kork.retrofit.exceptions.SpinnakerNetworkException;
 import com.netflix.spinnaker.kork.retrofit.exceptions.SpinnakerServerException;
 import com.netflix.spinnaker.orca.api.pipeline.TaskResult;
 import com.netflix.spinnaker.orca.api.pipeline.models.ExecutionStatus;
+import io.micrometer.core.instrument.MeterRegistry;
 import java.io.IOException;
 import java.io.UncheckedIOException;
 import java.util.Collections;
@@ -47,14 +46,14 @@ import org.springframework.util.StringUtils;
 public class SynchronousQueryProcessor {
   private final MetricsServiceRepository metricsServiceRepository;
   private final StorageServiceRepository storageServiceRepository;
-  private final Registry registry;
+  private final MeterRegistry registry;
   private final MetricsRetryConfigurationProperties retryConfiguration;
 
   @Autowired
   public SynchronousQueryProcessor(
       MetricsServiceRepository metricsServiceRepository,
       StorageServiceRepository storageServiceRepository,
-      Registry registry,
+      MeterRegistry registry,
       MetricsRetryConfigurationProperties retryConfiguration) {
     this.metricsServiceRepository = metricsServiceRepository;
     this.storageServiceRepository = storageServiceRepository;
@@ -73,13 +72,10 @@ public class SynchronousQueryProcessor {
 
     StorageService storageService = storageServiceRepository.getRequiredOne(storageAccountName);
 
-    CanaryMetricConfig canaryMetricConfig = canaryConfig.getMetrics().get(metricIndex);
+    String metricsStore = metricsService.getType();
 
-    Id queryId =
-        registry
-            .createId("canary.telemetry.query")
-            .withTag("metricsStore", metricsService.getType())
-            .withTag("queryMode", queryMode(canaryMetricConfig));
+    CanaryMetricConfig canaryMetricConfig = canaryConfig.getMetrics().get(metricIndex);
+    String queryMode = queryMode(canaryMetricConfig);
     List<MetricSet> metricSetList = null;
 
     // TODO: retry mechanism should be extracted to separate class
@@ -88,7 +84,16 @@ public class SynchronousQueryProcessor {
 
     while (!success) {
       try {
-        registry.counter(queryId.withTag("retries", retries + "")).increment();
+        registry
+            .counter(
+                "canary.telemetry.query",
+                "metricsStore",
+                metricsStore,
+                "queryMode",
+                queryMode,
+                "retries",
+                retries + "")
+            .increment();
         metricSetList =
             metricsService.queryMetrics(
                 metricsAccountName, canaryConfig, canaryMetricConfig, canaryScope);

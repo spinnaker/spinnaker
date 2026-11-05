@@ -23,7 +23,7 @@ import com.google.api.client.googleapis.json.GoogleJsonError
 import com.google.api.client.http.HttpHeaders
 import com.google.api.services.appengine.v1.model.*
 import com.netflix.frigga.Names
-import com.netflix.spectator.api.Registry
+import io.micrometer.core.instrument.MeterRegistry;
 import com.netflix.spinnaker.cats.agent.AgentDataType
 import com.netflix.spinnaker.cats.agent.CacheResult
 import com.netflix.spinnaker.cats.agent.DefaultCacheResult
@@ -66,7 +66,7 @@ class AppengineServerGroupCachingAgent extends AbstractAppengineCachingAgent imp
   AppengineServerGroupCachingAgent(String accountName,
                                    AppengineNamedAccountCredentials credentials,
                                    ObjectMapper objectMapper,
-                                   Registry registry) {
+                                   MeterRegistry registry) {
     super(accountName, objectMapper, credentials)
     this.metricsSupport = new OnDemandMetricsSupport(
       registry,

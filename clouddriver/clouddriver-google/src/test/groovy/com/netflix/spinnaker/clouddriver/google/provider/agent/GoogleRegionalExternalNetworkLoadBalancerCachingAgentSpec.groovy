@@ -34,7 +34,7 @@ import com.google.api.services.compute.model.HealthCheckList
 import com.google.api.services.compute.model.HealthStatus
 import com.google.api.services.compute.model.ResourceGroupReference
 import com.google.api.services.compute.model.TCPHealthCheck
-import com.netflix.spectator.api.DefaultRegistry
+import io.micrometer.core.instrument.simple.SimpleMeterRegistry
 import com.netflix.spinnaker.clouddriver.google.batch.GoogleBatchRequest
 import com.netflix.spinnaker.clouddriver.google.model.GoogleHealthCheck
 import com.netflix.spinnaker.clouddriver.google.model.loadbalancing.GoogleSessionAffinity
@@ -326,7 +326,7 @@ class GoogleRegionalExternalNetworkLoadBalancerCachingAgentSpec extends Specific
         .credentials(Mock(GoogleCredentials))
         .build(),
       new ObjectMapper(),
-      new DefaultRegistry(),
+      new SimpleMeterRegistry(),
       REGION
     )
   }
@@ -341,7 +341,7 @@ class GoogleRegionalExternalNetworkLoadBalancerCachingAgentSpec extends Specific
         .credentials(Mock(GoogleCredentials))
         .build(),
       new ObjectMapper(),
-      new DefaultRegistry(),
+      new SimpleMeterRegistry(),
       REGION
     )
   }
@@ -360,7 +360,7 @@ class GoogleRegionalExternalNetworkLoadBalancerCachingAgentSpec extends Specific
       String clouddriverUserAgentApplicationName,
       GoogleNamedAccountCredentials credentials,
       ObjectMapper objectMapper,
-      DefaultRegistry registry,
+      SimpleMeterRegistry registry,
       String region) {
       super(clouddriverUserAgentApplicationName, credentials, objectMapper, registry, region)
     }

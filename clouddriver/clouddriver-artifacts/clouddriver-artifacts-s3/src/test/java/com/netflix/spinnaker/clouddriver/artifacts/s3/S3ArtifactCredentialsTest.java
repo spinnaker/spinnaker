@@ -32,13 +32,12 @@ import ch.qos.logback.classic.Logger;
 import ch.qos.logback.classic.LoggerContext;
 import ch.qos.logback.classic.spi.ILoggingEvent;
 import ch.qos.logback.core.read.ListAppender;
-import com.netflix.spectator.api.Counter;
-import com.netflix.spectator.api.DefaultRegistry;
-import com.netflix.spectator.api.Registry;
-import com.netflix.spectator.api.Tag;
-import com.netflix.spectator.aws2.SpectatorExecutionInterceptor;
 import com.netflix.spinnaker.kork.artifacts.model.Artifact;
 import com.netflix.spinnaker.kork.web.exceptions.NotFoundException;
+import io.micrometer.core.instrument.MeterRegistry;
+import io.micrometer.core.instrument.Metrics;
+import io.micrometer.core.instrument.Timer;
+import io.micrometer.core.instrument.simple.SimpleMeterRegistry;
 import java.io.IOException;
 import java.io.InputStream;
 import java.net.URI;
@@ -111,12 +110,15 @@ class S3ArtifactCredentialsTest {
   private final S3ArtifactProviderProperties s3ArtifactProviderProperties =
       new S3ArtifactProviderProperties();
 
-  static Registry registry = new DefaultRegistry();
+  static MeterRegistry registry = new SimpleMeterRegistry();
 
   @BeforeAll
   static void setupOnce() {
     assumeTrue(DockerClientFactory.instance().isDockerAvailable());
     ministack.start();
+    // kork-aws's MicrometerExecutionInterceptor is attached to every v2 client through the SDK's
+    // global interceptor discovery, and records to Metrics.globalRegistry.
+    Metrics.addRegistry(registry);
     s3Client =
         S3Client.builder()
             .endpointOverride(URI.create(ministack.getEndpoint()))
@@ -130,7 +132,6 @@ class S3ArtifactCredentialsTest {
                     .addExecutionInterceptor(
                         new S3ArtifactCredentials.S3ArtifactRequestInterceptor(
                             "my-s3-account", new S3ArtifactProviderProperties()))
-                    .addExecutionInterceptor(new SpectatorExecutionInterceptor(registry))
                     .build())
             .build();
 
@@ -153,12 +154,9 @@ class S3ArtifactCredentialsTest {
     }
 
     // Verify that metrics were reported
-    assertThat(registry.counters()).hasSize(3);
-    Counter counter = registry.counters().findFirst().orElseThrow(AssertionError::new);
-    assertThat(counter.id().name()).isEqualTo("ipc.client.call");
-    assertThat(counter.id().tags()).contains(Tag.of("http.status", "200"));
-    assertThat(counter.actualCount()).isEqualTo(1);
-    assertThat(registry.timers()).hasSize(3);
+    Timer timer = registry.find("aws.sdk.v2.apiCallDuration").tag("success", "true").timer();
+    assertThat(timer).isNotNull();
+    assertThat(timer.count()).isEqualTo(1);
   }
 
   @Test
@@ -281,8 +279,8 @@ class S3ArtifactCredentialsTest {
 
   static class TestConfiguration {
     @Bean
-    Registry registry() {
-      return new DefaultRegistry();
+    MeterRegistry registry() {
+      return new SimpleMeterRegistry();
     }
   }
 }

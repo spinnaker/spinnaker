@@ -20,7 +20,6 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.mock;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.netflix.spectator.api.Registry;
 import com.netflix.spinnaker.clouddriver.google.GoogleExecutor;
 import com.netflix.spinnaker.clouddriver.google.deploy.converters.AbandonAndDecrementGoogleServerGroupAtomicOperationConverter;
 import com.netflix.spinnaker.clouddriver.names.NamerRegistry;
@@ -29,6 +28,7 @@ import com.netflix.spinnaker.credentials.CredentialsLifecycleHandler;
 import com.netflix.spinnaker.credentials.CredentialsRepository;
 import com.netflix.spinnaker.kork.client.ServiceClientProvider;
 import com.netflix.spinnaker.kork.configserver.ConfigFileService;
+import io.micrometer.core.instrument.MeterRegistry;
 import org.junit.jupiter.api.Test;
 import org.springframework.boot.context.annotation.UserConfigurations;
 import org.springframework.boot.test.context.TestConfiguration;
@@ -87,8 +87,8 @@ public class GoogleCredentialsConfigurationTest {
     }
 
     @Bean
-    Registry getRegistry() {
-      return mock(Registry.class);
+    MeterRegistry getRegistry() {
+      return mock(MeterRegistry.class);
     }
 
     @Bean

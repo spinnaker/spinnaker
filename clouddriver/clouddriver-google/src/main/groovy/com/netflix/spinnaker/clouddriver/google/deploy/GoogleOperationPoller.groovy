@@ -19,14 +19,15 @@ package com.netflix.spinnaker.clouddriver.google.deploy
 import com.google.api.services.compute.Compute
 import com.google.api.services.compute.model.Operation
 import com.google.common.annotations.VisibleForTesting
-import com.netflix.spectator.api.Clock;
-import com.netflix.spectator.api.Id;
-import com.netflix.spectator.api.Registry;
 import com.netflix.spinnaker.clouddriver.data.task.Task
 import com.netflix.spinnaker.clouddriver.google.config.GoogleConfigurationProperties
 import com.netflix.spinnaker.clouddriver.google.deploy.exception.GoogleOperationException
 import com.netflix.spinnaker.clouddriver.google.deploy.exception.GoogleOperationTimedOutException
 import com.netflix.spinnaker.clouddriver.google.GoogleExecutorTraits
+import io.micrometer.core.instrument.Clock
+import io.micrometer.core.instrument.MeterRegistry
+import io.micrometer.core.instrument.Tag
+import io.micrometer.core.instrument.Tags
 import org.springframework.beans.factory.annotation.Autowired
 import java.util.concurrent.TimeUnit;
 
@@ -43,7 +44,7 @@ class GoogleOperationPoller implements GoogleExecutorTraits {
   }
 
   @Autowired
-  Registry registry
+  MeterRegistry registry
 
   @Autowired
   GoogleConfigurationProperties googleConfigurationProperties
@@ -127,7 +128,7 @@ class GoogleOperationPoller implements GoogleExecutorTraits {
     state or until <em>at least</em> that many seconds have passed.
    */
   private Operation waitForOperation(Closure<Operation> getOperation, Map timerTags, String basePhase, long timeoutSeconds) {
-    Clock clock = registry.clock()
+    Clock clock = registry.config().clock()
     long startNs = clock.monotonicTime();
     int totalTimePollingSeconds = 0
     boolean timeoutExceeded = false
@@ -136,8 +137,8 @@ class GoogleOperationPoller implements GoogleExecutorTraits {
     int pollInterval = 1
     int pollIncrement = 0
 
-    registry.counter(registry.createId(STARTED_METRIC_NAME, timerTags)).increment()
-    Id metricId = registry.createId(METRIC_NAME, timerTags)
+    Tags allTags = Tags.of(timerTags.collect { k, v -> Tag.of(k.toString(), v.toString()) })
+    registry.counter(STARTED_METRIC_NAME, allTags).increment()
     while (!timeoutExceeded) {
       threadSleeper.sleep(pollInterval)
 
@@ -146,12 +147,12 @@ class GoogleOperationPoller implements GoogleExecutorTraits {
       Operation operation = safeRetry.doRetry(getOperation, "operation", null, [], [], [action: "wait", phase: basePhase], registry) as Operation
 
       if (operation.getStatus() == "DONE") {
-        registry.timer(metricId.withTag("status", "DONE")).record(clock.monotonicTime() - startNs, TimeUnit.NANOSECONDS);
+        registry.timer(METRIC_NAME, allTags.and("status", "DONE")).record(clock.monotonicTime() - startNs, TimeUnit.NANOSECONDS);
         return operation
       }
 
       if (totalTimePollingSeconds > timeoutSeconds) {
-        registry.timer(metricId.withTag("status", "TIMEOUT")).record(clock.monotonicTime() - startNs, TimeUnit.NANOSECONDS);
+        registry.timer(METRIC_NAME, allTags.and("status", "TIMEOUT")).record(clock.monotonicTime() - startNs, TimeUnit.NANOSECONDS);
         timeoutExceeded = true
       } else {
         // Update polling interval.

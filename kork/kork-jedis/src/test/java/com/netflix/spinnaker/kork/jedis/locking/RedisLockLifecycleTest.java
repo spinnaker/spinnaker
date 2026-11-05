@@ -19,7 +19,6 @@ import static org.junit.jupiter.api.Assertions.*;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.util.concurrent.Uninterruptibles;
-import com.netflix.spectator.api.NoopRegistry;
 import com.netflix.spinnaker.kork.jedis.EmbeddedRedis;
 import com.netflix.spinnaker.kork.jedis.JedisClientDelegate;
 import com.netflix.spinnaker.kork.jedis.lock.RedisLockManager;
@@ -29,6 +28,7 @@ import com.netflix.spinnaker.kork.lock.LockManager.LockCallbackException;
 import com.netflix.spinnaker.kork.lock.LockManager.LockExpiredException;
 import com.netflix.spinnaker.kork.lock.LockManager.LockOptions;
 import com.netflix.spinnaker.kork.lock.LockManager.LockStatus;
+import io.micrometer.core.instrument.simple.SimpleMeterRegistry;
 import java.time.Clock;
 import java.time.Duration;
 import java.util.ArrayList;
@@ -311,7 +311,7 @@ class RedisLockLifecycleTest {
           new RedisLockManager(
               "owner",
               Clock.systemUTC(),
-              new NoopRegistry(),
+              new SimpleMeterRegistry(),
               new ObjectMapper(),
               new JedisClientDelegate(pool),
               Optional.of(HEARTBEAT_MILLIS),
@@ -717,7 +717,7 @@ class RedisLockLifecycleTest {
       super(
           owner,
           Clock.systemUTC(),
-          new NoopRegistry(),
+          new SimpleMeterRegistry(),
           new ObjectMapper(),
           redisClientDelegate,
           Optional.of(HEARTBEAT_MILLIS),

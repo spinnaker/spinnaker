@@ -1,13 +1,15 @@
 package com.netflix.spinnaker.cats.sql.cache
 
-import com.netflix.spectator.api.Registry
 import com.netflix.spinnaker.cats.agent.RunnableAgent
 import com.netflix.spinnaker.cats.sql.SqlUtil
 import com.netflix.spinnaker.clouddriver.cache.CustomScheduledAgent
 import com.netflix.spinnaker.clouddriver.core.provider.CoreProvider
 import com.netflix.spinnaker.clouddriver.sql.SqlAgent
+import io.micrometer.core.instrument.MeterRegistry
+import io.micrometer.core.instrument.Tags
 import java.time.Clock
 import java.util.concurrent.TimeUnit
+import java.util.concurrent.atomic.AtomicReference
 import org.jooq.DSLContext
 import org.jooq.SQLDialect
 import org.jooq.impl.DSL.field
@@ -16,7 +18,7 @@ import org.slf4j.LoggerFactory
 
 class SqlTableMetricsAgent(
   private val jooq: DSLContext,
-  private val registry: Registry,
+  private val registry: MeterRegistry,
   private val clock: Clock,
   private val namespace: String?
 ) : RunnableAgent, CustomScheduledAgent, SqlAgent {
@@ -28,11 +30,13 @@ class SqlTableMetricsAgent(
     private val log = LoggerFactory.getLogger(SqlTableMetricsAgent::class.java)
   }
 
-  private val countId = registry.createId("cats.sqlCache.tableMetricsAgent.count")
-    .withTag("namespace", namespace ?: "none")
+  private val namespaceTags = Tags.of("namespace", namespace ?: "none")
 
-  private val timingId = registry.createId("cats.sqlCache.tableMetricsAgent.timing")
-    .withTag("namespace", namespace ?: "none")
+  private val countGauges = mutableMapOf<String, AtomicReference<Double>>()
+
+  private val timingGauge = registry.gauge(
+    "cats.sqlCache.tableMetricsAgent.timing", namespaceTags, AtomicReference(0.0)
+  ) { it.get() }
 
   override fun run() {
     val start = clock.millis()
@@ -54,12 +58,19 @@ class SqlTableMetricsAgent(
         .fetchSingle()
         .value1()
 
-      registry.gauge(countId.withTag("type", type)).set(count.toDouble())
+      val countGauge = countGauges.getOrPut(type) {
+        registry.gauge(
+          "cats.sqlCache.tableMetricsAgent.count",
+          namespaceTags.and("type", type),
+          AtomicReference(0.0)
+        ) { it.get() }!!
+      }
+      countGauge.set(count.toDouble())
       tableCount++
     }
 
     val runTime = clock.millis() - start
-    registry.gauge(timingId).set(runTime.toDouble())
+    timingGauge!!.set(runTime.toDouble())
     log.info("Read counts for $tableCount tables in ${runTime}ms")
   }
 

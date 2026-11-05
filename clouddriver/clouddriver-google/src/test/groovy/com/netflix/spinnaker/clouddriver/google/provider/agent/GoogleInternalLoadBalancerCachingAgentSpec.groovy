@@ -34,7 +34,7 @@ import com.google.api.services.compute.model.HealthStatus
 import com.google.api.services.compute.model.HttpHealthCheckList
 import com.google.api.services.compute.model.HttpsHealthCheckList
 import com.google.api.services.compute.model.TCPHealthCheck
-import com.netflix.spectator.api.DefaultRegistry
+import io.micrometer.core.instrument.simple.SimpleMeterRegistry
 import com.netflix.spinnaker.clouddriver.google.batch.GoogleBatchRequest
 import com.netflix.spinnaker.clouddriver.google.model.GoogleHealthCheck
 import com.netflix.spinnaker.clouddriver.google.security.GoogleCredentials
@@ -185,7 +185,7 @@ class GoogleInternalLoadBalancerCachingAgentSpec extends Specification {
         .credentials(Mock(GoogleCredentials))
         .build(),
       new ObjectMapper(),
-      new DefaultRegistry(),
+      new SimpleMeterRegistry(),
       REGION
     )
   }
@@ -197,7 +197,7 @@ class GoogleInternalLoadBalancerCachingAgentSpec extends Specification {
       String clouddriverUserAgentApplicationName,
       GoogleNamedAccountCredentials credentials,
       ObjectMapper objectMapper,
-      DefaultRegistry registry,
+      SimpleMeterRegistry registry,
       String region) {
       super(clouddriverUserAgentApplicationName, credentials, objectMapper, registry, region)
     }

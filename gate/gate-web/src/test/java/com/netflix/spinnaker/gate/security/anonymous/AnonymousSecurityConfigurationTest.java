@@ -35,10 +35,12 @@ class AnonymousSecurityConfigurationTest {
   @Autowired private ApplicationContext context;
 
   @Test
-  void shouldRegisterAnonymousAndMetricsSecurityChains() {
+  void shouldRegisterAnonymousAndActuatorSecurityChains() {
     Map<String, SecurityFilterChain> chains = context.getBeansOfType(SecurityFilterChain.class);
 
-    assertThat(chains)
-        .containsKeys("anonymousSecurityFilterChain", "metricsEndpointSecurityFilterChain");
+    // metricsEndpointSecurityFilterChain (kork-web's MetricsEndpointConfiguration) secured the
+    // legacy Spectator "/spectator/metrics" endpoint and was removed along with Spectator in favor
+    // of native Micrometer/Actuator metrics; actuatorSecurityFilterChain is its replacement here.
+    assertThat(chains).containsKeys("anonymousSecurityFilterChain", "actuatorSecurityFilterChain");
   }
 }

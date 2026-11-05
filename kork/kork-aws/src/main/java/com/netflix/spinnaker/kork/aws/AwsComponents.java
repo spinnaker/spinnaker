@@ -16,6 +16,9 @@
 
 package com.netflix.spinnaker.kork.aws;
 
+import io.micrometer.core.instrument.MeterRegistry;
+import io.micrometer.core.instrument.Metrics;
+import org.springframework.beans.factory.InitializingBean;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -24,15 +27,14 @@ import software.amazon.awssdk.auth.credentials.DefaultCredentialsProvider;
 
 /**
  * AWS SDK v2 client metrics (call latency, retry counts, throttling, etc.) are recorded
- * automatically for every v2 client built anywhere in the JVM via {@code
- * com.netflix.spectator.aws2.SpectatorExecutionInterceptor}, registered through the SDK's global
- * execution-interceptor classpath discovery mechanism (see {@code
- * software/amazon/awssdk/global/handlers/execution.interceptors} in this module's resources). This
- * is the v2-native equivalent of v1's {@code AwsSdkMetrics.setMetricCollector} global hook -- no
- * per-client wiring needed. It resolves the target registry via {@code Spectator.globalRegistry()},
- * which every Spinnaker app's own {@code Registry} bean is added to (see kork-core's {@code
- * SpectatorConfiguration}), so metrics land in the same place regardless of whether a caller
- * injects {@code Registry} directly.
+ * automatically for every v2 client built anywhere in the JVM via {@link
+ * MicrometerExecutionInterceptor}, registered through the SDK's global execution-interceptor
+ * classpath discovery mechanism (see {@code
+ * software/amazon/awssdk/global/handlers/execution.interceptors} in this module's resources) -- no
+ * per-client wiring needed. It resolves the target registry via {@link Metrics#globalRegistry},
+ * which {@link #registerWithGlobalRegistry} adds every Spinnaker app's own {@code MeterRegistry}
+ * bean to, so metrics land in the same place regardless of whether a caller injects {@code
+ * MeterRegistry} directly.
  */
 @Configuration
 public class AwsComponents {
@@ -40,5 +42,10 @@ public class AwsComponents {
   @ConditionalOnMissingBean(AwsCredentialsProvider.class)
   AwsCredentialsProvider v2AwsCredentialsProvider() {
     return DefaultCredentialsProvider.builder().build();
+  }
+
+  @Bean
+  InitializingBean registerWithGlobalRegistry(MeterRegistry meterRegistry) {
+    return () -> Metrics.addRegistry(meterRegistry);
   }
 }

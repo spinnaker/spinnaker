@@ -18,7 +18,7 @@ package com.netflix.spinnaker.config
 
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.netflix.spinnaker.clouddriver.aws.jackson.AwsObjectMapperFactory
-import com.netflix.spectator.api.Registry
+import io.micrometer.core.instrument.MeterRegistry
 import com.netflix.spinnaker.clouddriver.aws.AwsConfigurationProperties
 import com.netflix.spinnaker.clouddriver.aws.deploy.InstanceTypeUtils.BlockDeviceConfig
 import com.netflix.spinnaker.clouddriver.aws.deploy.asg.LaunchTemplateRollOutConfig
@@ -84,7 +84,7 @@ import software.amazon.awssdk.auth.credentials.AwsCredentialsProvider
 class AwsConfiguration {
 
   @Bean
-  AmazonClientProvider amazonClientProvider(AwsConfigurationProperties awsConfigurationProperties, AWSProxy proxy, ServiceLimitConfiguration serviceLimitConfiguration, Registry registry) {
+  AmazonClientProvider amazonClientProvider(AwsConfigurationProperties awsConfigurationProperties, AWSProxy proxy, ServiceLimitConfiguration serviceLimitConfiguration, MeterRegistry registry) {
     new AmazonClientProvider.Builder()
       .maxErrorRetry(awsConfigurationProperties.client.maxErrorRetry)
       .proxy(proxy)
@@ -169,7 +169,7 @@ class AwsConfiguration {
 
   @Bean
   AmazonHealthIndicator amazonHealthIndicator(
-    Registry registry,
+    MeterRegistry registry,
     CredentialsRepository<NetflixAmazonCredentials> credentialsRepository,
     AmazonClientProvider amazonClientProvider,
     AwsConfigurationProperties awsConfigurationProperties

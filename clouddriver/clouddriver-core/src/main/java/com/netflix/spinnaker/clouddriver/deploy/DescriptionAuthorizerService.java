@@ -2,8 +2,6 @@ package com.netflix.spinnaker.clouddriver.deploy;
 
 import static java.lang.String.format;
 
-import com.netflix.spectator.api.Id;
-import com.netflix.spectator.api.Registry;
 import com.netflix.spinnaker.clouddriver.security.AccountDefinitionSecretManager;
 import com.netflix.spinnaker.clouddriver.security.config.SecurityConfig;
 import com.netflix.spinnaker.clouddriver.security.resources.AccountNameable;
@@ -11,6 +9,7 @@ import com.netflix.spinnaker.clouddriver.security.resources.ApplicationNameable;
 import com.netflix.spinnaker.clouddriver.security.resources.ResourcesNameable;
 import com.netflix.spinnaker.fiat.model.resources.ResourceType;
 import com.netflix.spinnaker.fiat.shared.FiatPermissionEvaluator;
+import io.micrometer.core.instrument.MeterRegistry;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
@@ -28,17 +27,17 @@ public class DescriptionAuthorizerService {
 
   private final Logger log = LoggerFactory.getLogger(getClass());
 
-  private final Registry registry;
+  private static final String SKIP_AUTHORIZATION_METRIC_NAME = "authorization.skipped";
+  private static final String MISSING_APPLICATION_METRIC_NAME = "authorization.missingApplication";
+  private static final String AUTHORIZATION_METRIC_NAME = "authorization";
+
+  private final MeterRegistry registry;
   private final FiatPermissionEvaluator fiatPermissionEvaluator;
   private final SecurityConfig.OperationsSecurityConfigurationProperties opsSecurityConfigProps;
   private final AccountDefinitionSecretManager secretManager;
 
-  private final Id skipAuthorizationId;
-  private final Id missingApplicationId;
-  private final Id authorizationId;
-
   public DescriptionAuthorizerService(
-      Registry registry,
+      MeterRegistry registry,
       Optional<FiatPermissionEvaluator> fiatPermissionEvaluator,
       SecurityConfig.OperationsSecurityConfigurationProperties opsSecurityConfigProps,
       AccountDefinitionSecretManager secretManager) {
@@ -46,10 +45,6 @@ public class DescriptionAuthorizerService {
     this.fiatPermissionEvaluator = fiatPermissionEvaluator.orElse(null);
     this.opsSecurityConfigProps = opsSecurityConfigProps;
     this.secretManager = secretManager;
-
-    this.skipAuthorizationId = registry.createId("authorization.skipped");
-    this.missingApplicationId = registry.createId("authorization.missingApplication");
-    this.authorizationId = registry.createId("authorization");
   }
 
   public void authorize(Object description, Errors errors) {
@@ -75,8 +70,9 @@ public class DescriptionAuthorizerService {
       if (!accountNameable.requiresAuthorization(opsSecurityConfigProps)) {
         registry
             .counter(
-                skipAuthorizationId.withTag(
-                    "descriptionClass", description.getClass().getSimpleName()))
+                SKIP_AUTHORIZATION_METRIC_NAME,
+                "descriptionClass",
+                description.getClass().getSimpleName())
             .increment();
 
         log.info(
@@ -132,9 +128,11 @@ public class DescriptionAuthorizerService {
     if (requiresApplicationRestriction && account != null && applications.isEmpty()) {
       registry
           .counter(
-              missingApplicationId
-                  .withTag("descriptionClass", description.getClass().getSimpleName())
-                  .withTag("hasValidationErrors", errors.hasErrors()))
+              MISSING_APPLICATION_METRIC_NAME,
+              "descriptionClass",
+              description.getClass().getSimpleName(),
+              "hasValidationErrors",
+              String.valueOf(errors.hasErrors()))
           .increment();
 
       log.warn(
@@ -146,9 +144,11 @@ public class DescriptionAuthorizerService {
 
     registry
         .counter(
-            authorizationId
-                .withTag("descriptionClass", description.getClass().getSimpleName())
-                .withTag("success", hasPermission))
+            AUTHORIZATION_METRIC_NAME,
+            "descriptionClass",
+            description.getClass().getSimpleName(),
+            "success",
+            String.valueOf(hasPermission))
         .increment();
   }
 }

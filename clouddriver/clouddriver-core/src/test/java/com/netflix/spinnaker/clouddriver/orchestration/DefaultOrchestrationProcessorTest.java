@@ -23,7 +23,6 @@ import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.netflix.spectator.api.NoopRegistry;
 import com.netflix.spinnaker.clouddriver.config.ExceptionClassifierConfigurationProperties;
 import com.netflix.spinnaker.clouddriver.data.task.DefaultTask;
 import com.netflix.spinnaker.clouddriver.data.task.TaskRepository;
@@ -31,6 +30,7 @@ import com.netflix.spinnaker.kork.dynamicconfig.DynamicConfigService;
 import com.netflix.spinnaker.kork.web.context.AuthenticatedRequestContextProvider;
 import com.netflix.spinnaker.kork.web.exceptions.ExceptionMessageDecorator;
 import com.netflix.spinnaker.kork.web.exceptions.ExceptionSummaryService;
+import io.micrometer.core.instrument.simple.SimpleMeterRegistry;
 import java.util.List;
 import java.util.Optional;
 import java.util.concurrent.TimeUnit;
@@ -85,7 +85,7 @@ class DefaultOrchestrationProcessorTest {
     return new DefaultOrchestrationProcessor(
         taskRepository,
         applicationContext,
-        new NoopRegistry(),
+        new SimpleMeterRegistry(),
         Optional.empty(),
         new ObjectMapper(),
         new ExceptionClassifier(

@@ -17,9 +17,9 @@
 package com.netflix.spinnaker.echo.pipelinetriggers.eventhandlers;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.netflix.spectator.api.Registry;
 import com.netflix.spinnaker.echo.model.trigger.HelmOciEvent;
 import com.netflix.spinnaker.fiat.shared.FiatPermissionEvaluator;
+import io.micrometer.core.instrument.MeterRegistry;
 import java.util.Collections;
 import java.util.List;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -36,7 +36,7 @@ public class HelmOciEventHandler extends AbstractOCIRegistryEventHandler<HelmOci
 
   @Autowired
   public HelmOciEventHandler(
-      Registry registry,
+      MeterRegistry registry,
       ObjectMapper objectMapper,
       FiatPermissionEvaluator fiatPermissionEvaluator) {
     super(registry, objectMapper, fiatPermissionEvaluator);

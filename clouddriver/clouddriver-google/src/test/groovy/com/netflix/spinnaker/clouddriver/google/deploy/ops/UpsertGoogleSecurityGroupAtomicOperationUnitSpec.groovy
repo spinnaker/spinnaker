@@ -22,7 +22,7 @@ import com.google.api.client.testing.json.MockJsonFactory
 import com.google.api.services.compute.Compute
 import com.google.api.services.compute.model.Firewall
 import com.google.api.services.compute.model.Operation
-import com.netflix.spectator.api.DefaultRegistry
+import io.micrometer.core.instrument.simple.SimpleMeterRegistry
 import com.netflix.spinnaker.clouddriver.data.task.Task
 import com.netflix.spinnaker.clouddriver.data.task.TaskRepository
 import com.netflix.spinnaker.clouddriver.google.config.GoogleConfigurationProperties
@@ -51,7 +51,7 @@ class UpsertGoogleSecurityGroupAtomicOperationUnitSpec extends Specification {
   private static final INSERT_FIREWALL_OP_NAME = "insert-firewall-op"
   private static final DONE = "DONE"
 
-  def registry = new DefaultRegistry()
+  def registry = new SimpleMeterRegistry()
 
   @Shared
   SafeRetry safeRetry
@@ -68,7 +68,7 @@ class UpsertGoogleSecurityGroupAtomicOperationUnitSpec extends Specification {
     googleOperationPoller = new GoogleOperationPoller(
       googleConfigurationProperties: new GoogleConfigurationProperties(),
       threadSleeper: threadSleeperMock,
-      registry: new DefaultRegistry(),
+      registry: new SimpleMeterRegistry(),
       safeRetry: safeRetry)
   }
 

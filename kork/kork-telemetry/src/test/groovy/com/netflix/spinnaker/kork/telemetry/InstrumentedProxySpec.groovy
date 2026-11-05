@@ -16,16 +16,16 @@
 package com.netflix.spinnaker.kork.telemetry
 
 
-import com.netflix.spectator.api.DefaultRegistry
-import com.netflix.spectator.api.Registry
 import com.netflix.spinnaker.kork.annotations.Metered
+import io.micrometer.core.instrument.MeterRegistry
+import io.micrometer.core.instrument.simple.SimpleMeterRegistry
 import spock.lang.Shared
 import spock.lang.Specification
 
 class InstrumentedProxySpec extends Specification {
 
   @Shared
-  Registry registry = new DefaultRegistry()
+  MeterRegistry registry = new SimpleMeterRegistry()
 
   MyContract subject = InstrumentedProxy.proxy(registry, new MyContractImpl(), "myns")
 

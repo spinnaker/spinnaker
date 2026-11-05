@@ -1,6 +1,6 @@
 package com.netflix.spinnaker.keel.lifecycle
 
-import com.netflix.spectator.api.NoopRegistry
+import io.micrometer.core.instrument.simple.SimpleMeterRegistry
 import com.netflix.spinnaker.config.LifecycleConfig
 import com.netflix.spinnaker.keel.telemetry.LifecycleMonitorLoadFailed
 import com.netflix.spinnaker.time.MutableClock
@@ -20,7 +20,7 @@ class LifecycleMonitorSchedulerTests : JUnit5Minutests {
     val publisher: ApplicationEventPublisher = mockk(relaxed = true)
     val config = LifecycleConfig()
     val clock = MutableClock()
-    val registry = NoopRegistry()
+    val registry = SimpleMeterRegistry()
 
     val version = "123.4"
     val link = "www.bake.com/$version"

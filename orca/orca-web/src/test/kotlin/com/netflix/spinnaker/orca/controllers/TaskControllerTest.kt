@@ -16,7 +16,6 @@
 
 package com.netflix.spinnaker.orca.controllers
 
-import com.netflix.spectator.api.NoopRegistry
 import com.netflix.spinnaker.config.TaskControllerConfigurationProperties
 import com.netflix.spinnaker.config.TaskControllerConfigurationProperties.FailedStagesProperties
 import com.netflix.spinnaker.orca.api.pipeline.models.ExecutionStatus
@@ -31,6 +30,7 @@ import com.netflix.spinnaker.orca.api.pipeline.models.ExecutionStatus.FAILED_CON
 import com.netflix.spinnaker.orca.api.pipeline.models.ExecutionStatus.STOPPED
 import com.netflix.spinnaker.orca.pipeline.model.PipelineExecutionImpl
 import com.netflix.spinnaker.orca.pipeline.model.StageExecutionImpl
+import io.micrometer.core.instrument.simple.SimpleMeterRegistry
 import org.mockito.kotlin.mock
 import dev.minutest.junit.JUnit5Minutests
 import dev.minutest.rootContext
@@ -54,7 +54,7 @@ class TaskControllerTest : JUnit5Minutests {
             ContextParameterProcessor(),
             mock(),
             OrcaObjectMapper.getInstance(),
-            NoopRegistry(),
+            SimpleMeterRegistry(),
             mock(),
             taskControllerConfigurationProperties
         )

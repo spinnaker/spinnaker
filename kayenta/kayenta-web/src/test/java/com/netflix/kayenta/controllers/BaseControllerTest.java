@@ -16,9 +16,9 @@ import com.netflix.kayenta.service.MetricSetPairListService;
 import com.netflix.kayenta.storage.MapBackedStorageServiceRepository;
 import com.netflix.kayenta.storage.StorageService;
 import com.netflix.kayenta.storage.StorageServiceRepository;
-import com.netflix.spectator.api.Registry;
 import com.netflix.spinnaker.orca.pipeline.ExecutionLauncher;
 import com.netflix.spinnaker.orca.pipeline.persistence.ExecutionRepository;
+import io.micrometer.core.instrument.MeterRegistry;
 import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
@@ -57,7 +57,7 @@ public abstract class BaseControllerTest {
   @MockitoBean MetricsServiceRepository metricsServiceRepository;
 
   @MockitoBean(answers = Answers.RETURNS_MOCKS)
-  Registry registry;
+  MeterRegistry registry;
 
   @MockitoBean CanaryJudge canaryJudge;
 
@@ -87,7 +87,7 @@ public abstract class BaseControllerTest {
     ExecutionMapper executionMapper(
         ExecutionRepository executionRepository,
         ExecutionLauncher executionLauncher,
-        Registry registry) {
+        MeterRegistry registry) {
       return new ExecutionMapper(
           new ObjectMapper(),
           registry,

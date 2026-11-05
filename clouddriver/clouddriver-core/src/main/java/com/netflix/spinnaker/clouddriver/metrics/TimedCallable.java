@@ -1,20 +1,21 @@
 package com.netflix.spinnaker.clouddriver.metrics;
 
-import com.netflix.spectator.api.Id;
-import com.netflix.spectator.api.Registry;
 import com.netflix.spinnaker.kork.annotations.DeprecationInfo;
+import io.micrometer.core.instrument.MeterRegistry;
+import io.micrometer.core.instrument.Tags;
 import java.util.concurrent.Callable;
 import java.util.concurrent.TimeUnit;
 
 public class TimedCallable<T> implements Callable<T> {
 
-  public static TimedCallable<Void> forRunnable(Registry registry, Id metricId, Runnable runnable) {
-    return new TimedCallable<Void>(registry, metricId, new RunnableWrapper(runnable));
+  public static TimedCallable<Void> forRunnable(
+      MeterRegistry registry, String metricName, Tags tags, Runnable runnable) {
+    return new TimedCallable<Void>(registry, metricName, tags, new RunnableWrapper(runnable));
   }
 
   public static <T> TimedCallable<T> forCallable(
-      Registry registry, Id metricId, Callable<T> callable) {
-    return new TimedCallable<T>(registry, metricId, callable);
+      MeterRegistry registry, String metricName, Tags tags, Callable<T> callable) {
+    return new TimedCallable<T>(registry, metricName, tags, callable);
   }
 
   @Deprecated
@@ -23,33 +24,35 @@ public class TimedCallable<T> implements Callable<T> {
       since = "1.22.0",
       eol = "1.23.0")
   public static <T> TimedCallable<T> forClosure(
-      Registry registry, Id metricId, Callable<T> closure) {
-    return new TimedCallable<T>(registry, metricId, new CallableWrapper<>(closure));
+      MeterRegistry registry, String metricName, Tags tags, Callable<T> closure) {
+    return new TimedCallable<T>(registry, metricName, tags, new CallableWrapper<>(closure));
   }
 
-  private final Registry registry;
-  private final Id metricId;
+  private final MeterRegistry registry;
+  private final String metricName;
+  private final Tags tags;
   private final Callable<T> callable;
 
-  public TimedCallable(Registry registry, Id metricId, Callable<T> callable) {
+  public TimedCallable(MeterRegistry registry, String metricName, Tags tags, Callable<T> callable) {
     this.registry = registry;
-    this.metricId = metricId;
+    this.metricName = metricName;
+    this.tags = tags;
     this.callable = callable;
   }
 
   @Override
   public T call() throws Exception {
     long start = System.nanoTime();
-    Id thisId = metricId;
+    Tags thisTags = tags;
     try {
       T result = callable.call();
-      thisId = thisId.withTag("success", "true");
+      thisTags = thisTags.and("success", "true");
       return result;
     } catch (Exception ex) {
-      thisId = thisId.withTag("success", "false").withTag("cause", ex.getClass().getSimpleName());
+      thisTags = thisTags.and("success", "false", "cause", ex.getClass().getSimpleName());
       throw ex;
     } finally {
-      registry.timer(thisId).record(System.nanoTime() - start, TimeUnit.NANOSECONDS);
+      registry.timer(metricName, thisTags).record(System.nanoTime() - start, TimeUnit.NANOSECONDS);
     }
   }
 

@@ -1,8 +1,8 @@
 package com.netflix.spinnaker.okhttp;
 
-import com.netflix.spectator.api.Registry;
 import com.netflix.spinnaker.config.OkHttpMetricsInterceptorProperties;
 import com.netflix.spinnaker.kork.common.Header;
+import io.micrometer.core.instrument.MeterRegistry;
 import jakarta.inject.Provider;
 import java.io.IOException;
 import java.net.URL;
@@ -25,12 +25,12 @@ import org.springframework.util.StringUtils;
  * way out and the interceptor logic will not be necessary long term.
  */
 class MetricsInterceptor {
-  private final Provider<Registry> registry;
+  private final Provider<MeterRegistry> registry;
   private final OkHttpMetricsInterceptorProperties okHttpMetricsInterceptorProperties;
   private final Logger log;
 
   MetricsInterceptor(
-      Provider<Registry> registry,
+      Provider<MeterRegistry> registry,
       OkHttpMetricsInterceptorProperties okHttpMetricsInterceptorProperties) {
     this.registry = registry;
     this.okHttpMetricsInterceptorProperties = okHttpMetricsInterceptorProperties;
@@ -112,7 +112,7 @@ class MetricsInterceptor {
   }
 
   private static void recordTimer(
-      Registry registry,
+      MeterRegistry registry,
       URL requestUrl,
       Long durationNs,
       int statusCode,
@@ -120,13 +120,17 @@ class MetricsInterceptor {
       boolean hasAuthHeaders) {
     registry
         .timer(
-            registry
-                .createId("okhttp.requests")
-                .withTag("requestHost", requestUrl.getHost())
-                .withTag("statusCode", String.valueOf(statusCode))
-                .withTag("status", bucket(statusCode))
-                .withTag("success", wasSuccessful)
-                .withTag("authenticated", hasAuthHeaders))
+            "okhttp.requests",
+            "requestHost",
+            requestUrl.getHost(),
+            "statusCode",
+            String.valueOf(statusCode),
+            "status",
+            bucket(statusCode),
+            "success",
+            String.valueOf(wasSuccessful),
+            "authenticated",
+            String.valueOf(hasAuthHeaders))
         .record(durationNs, TimeUnit.NANOSECONDS);
   }
 

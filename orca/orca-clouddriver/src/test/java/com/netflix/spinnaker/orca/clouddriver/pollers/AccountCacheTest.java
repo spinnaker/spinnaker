@@ -24,11 +24,11 @@ import static org.mockito.ArgumentMatchers.anyLong;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
-import com.netflix.spectator.api.NoopRegistry;
 import com.netflix.spinnaker.kork.core.RetrySupport;
 import com.netflix.spinnaker.orca.clouddriver.OortService;
 import com.netflix.spinnaker.orca.jackson.OrcaObjectMapper;
 import com.netflix.spinnaker.orca.notifications.NotificationClusterLock;
+import io.micrometer.core.instrument.simple.SimpleMeterRegistry;
 import java.io.IOException;
 import java.util.List;
 import java.util.Map;
@@ -49,7 +49,7 @@ class AccountCacheTest {
           OrcaObjectMapper.getInstance(),
           oortService,
           retrySupport,
-          new NoopRegistry());
+          new SimpleMeterRegistry());
 
   @BeforeEach
   void singleAttemptRetries() {

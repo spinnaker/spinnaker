@@ -16,13 +16,13 @@
 
 package com.netflix.spinnaker.config
 
-import com.netflix.spectator.api.Registry
 import com.netflix.spinnaker.front50.migrations.StorageServiceMigrator
 import com.netflix.spinnaker.front50.model.CompositeStorageService
 import com.netflix.spinnaker.front50.model.StorageService
 import com.netflix.spinnaker.front50.model.tag.EntityTagsDAO
 import com.netflix.spinnaker.kork.dynamicconfig.DynamicConfigService
 import com.netflix.spinnaker.kork.web.context.RequestContextProvider
+import io.micrometer.core.instrument.MeterRegistry
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty
 import org.springframework.boot.context.properties.ConfigurationProperties
 import org.springframework.boot.context.properties.EnableConfigurationProperties
@@ -38,7 +38,7 @@ class CompositeStorageServiceConfiguration(
   private val applicationContext: ApplicationContext,
   private val properties: StorageServiceMigratorConfigurationProperties,
   private val dynamicConfigService: DynamicConfigService,
-  private val registry: Registry
+  private val registry: MeterRegistry
 ) {
   @Bean
   @Primary

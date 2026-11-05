@@ -37,7 +37,6 @@ import com.google.api.services.compute.model.ResourceGroupReference;
 import com.google.api.services.compute.model.TargetHttpProxy;
 import com.google.api.services.compute.model.TargetHttpsProxy;
 import com.google.api.services.compute.model.UrlMap;
-import com.netflix.spectator.api.Registry;
 import com.netflix.spinnaker.clouddriver.google.batch.GoogleBatchRequest;
 import com.netflix.spinnaker.clouddriver.google.cache.Keys;
 import com.netflix.spinnaker.clouddriver.google.deploy.GCEUtil;
@@ -57,6 +56,7 @@ import com.netflix.spinnaker.clouddriver.google.provider.agent.util.GroupHealthR
 import com.netflix.spinnaker.clouddriver.google.provider.agent.util.LoadBalancerHealthResolution;
 import com.netflix.spinnaker.clouddriver.google.provider.agent.util.PaginatedRequest;
 import com.netflix.spinnaker.clouddriver.google.security.GoogleNamedAccountCredentials;
+import io.micrometer.core.instrument.MeterRegistry;
 import java.io.IOException;
 import java.io.UncheckedIOException;
 import java.util.ArrayList;
@@ -90,7 +90,7 @@ abstract class AbstractGoogleRegionalHttpLoadBalancerCachingAgent<T extends Goog
       String clouddriverUserAgentApplicationName,
       GoogleNamedAccountCredentials credentials,
       ObjectMapper objectMapper,
-      Registry registry,
+      MeterRegistry registry,
       String region) {
     super(clouddriverUserAgentApplicationName, credentials, objectMapper, registry, region);
   }

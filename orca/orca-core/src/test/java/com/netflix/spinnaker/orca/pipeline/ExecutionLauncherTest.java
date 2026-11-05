@@ -20,7 +20,6 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.mock;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.netflix.spectator.api.NoopRegistry;
 import com.netflix.spinnaker.kork.web.filters.ProvidedIdRequestFilterConfigurationProperties;
 import com.netflix.spinnaker.orca.api.pipeline.models.PipelineExecution;
 import com.netflix.spinnaker.orca.config.ExecutionConfigurationProperties;
@@ -60,7 +59,7 @@ public class ExecutionLauncherTest {
           Clock.systemUTC(),
           applicationEventPublisher,
           Optional.empty() /* pipelineValidator */,
-          new NoopRegistry(),
+          Optional.empty(),
           executionConfigurationProperties,
           providedIdRequestFilterConfigurationProperties);
 

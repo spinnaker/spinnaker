@@ -62,7 +62,6 @@ import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;
 import com.netflix.frigga.ami.AppVersion;
-import com.netflix.spectator.api.Registry;
 import com.netflix.spinnaker.cats.agent.AccountAware;
 import com.netflix.spinnaker.cats.agent.AgentDataType;
 import com.netflix.spinnaker.cats.agent.CacheResult;
@@ -108,6 +107,7 @@ import com.netflix.spinnaker.clouddriver.names.NamerRegistry;
 import com.netflix.spinnaker.kork.client.ServiceClientProvider;
 import com.netflix.spinnaker.moniker.Moniker;
 import com.netflix.spinnaker.moniker.Namer;
+import io.micrometer.core.instrument.MeterRegistry;
 import java.io.IOException;
 import java.io.UncheckedIOException;
 import java.time.Duration;
@@ -148,7 +148,7 @@ public abstract class AbstractGoogleServerGroupCachingAgent
 
   private final GoogleNamedAccountCredentials credentials;
   private final GoogleComputeApiFactory computeApiFactory;
-  private final Registry registry;
+  private final MeterRegistry registry;
   private final String region;
   private final OnDemandMetricsSupport onDemandMetricsSupport;
   private final ObjectMapper objectMapper;
@@ -158,7 +158,7 @@ public abstract class AbstractGoogleServerGroupCachingAgent
   AbstractGoogleServerGroupCachingAgent(
       GoogleNamedAccountCredentials credentials,
       GoogleComputeApiFactory computeApiFactory,
-      Registry registry,
+      MeterRegistry registry,
       String region,
       ObjectMapper objectMapper,
       ServiceClientProvider serviceClientProvider) {

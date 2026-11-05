@@ -27,7 +27,7 @@ import com.google.api.services.compute.model.BackendServiceGroupHealth
 import com.google.api.services.compute.model.ForwardingRule
 import com.google.api.services.compute.model.ForwardingRuleList
 import com.google.api.services.compute.model.ResourceGroupReference
-import com.netflix.spectator.api.Registry
+import io.micrometer.core.instrument.MeterRegistry
 import com.netflix.spinnaker.cats.provider.ProviderCache
 import com.netflix.spinnaker.clouddriver.google.batch.GoogleBatchRequest
 import com.netflix.spinnaker.clouddriver.google.deploy.GCEUtil
@@ -62,7 +62,7 @@ abstract class AbstractGoogleRegionalPassthroughLoadBalancerCachingAgent<T exten
   AbstractGoogleRegionalPassthroughLoadBalancerCachingAgent(String clouddriverUserAgentApplicationName,
                                                             GoogleNamedAccountCredentials credentials,
                                                             ObjectMapper objectMapper,
-                                                            Registry registry,
+                                                            MeterRegistry registry,
                                                             String region) {
     super(clouddriverUserAgentApplicationName, credentials, objectMapper, registry, region)
   }

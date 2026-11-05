@@ -18,7 +18,7 @@ package com.netflix.spinnaker.clouddriver.google.deploy.ops.loadbalancer
 
 import com.google.api.services.compute.Compute
 import com.google.api.services.compute.model.*
-import com.netflix.spectator.api.DefaultRegistry
+import io.micrometer.core.instrument.simple.SimpleMeterRegistry
 import com.netflix.spinnaker.clouddriver.data.task.Task
 import com.netflix.spinnaker.clouddriver.data.task.TaskRepository
 import com.netflix.spinnaker.clouddriver.google.deploy.GoogleOperationPoller
@@ -131,7 +131,7 @@ class DeleteGoogleExternalHttpLoadBalancerAtomicOperationUnitSpec extends Specif
         deleteHealthChecks: true)
       @Subject def operation = new DeleteGoogleExternalHttpLoadBalancerAtomicOperation(description)
       setPrivateField(operation, AbstractDeleteGoogleRegionalHttpLoadBalancerAtomicOperation, "googleOperationPoller", poller)
-      operation.registry = new DefaultRegistry()
+      operation.registry = new SimpleMeterRegistry()
       operation.safeRetry = safeRetry
 
     when:
@@ -223,7 +223,7 @@ class DeleteGoogleExternalHttpLoadBalancerAtomicOperationUnitSpec extends Specif
         deleteHealthChecks: true)
       @Subject def operation = new DeleteGoogleExternalHttpLoadBalancerAtomicOperation(description)
       setPrivateField(operation, AbstractDeleteGoogleRegionalHttpLoadBalancerAtomicOperation, "googleOperationPoller", poller)
-      operation.registry = new DefaultRegistry()
+      operation.registry = new SimpleMeterRegistry()
       operation.safeRetry = safeRetry
 
     when:

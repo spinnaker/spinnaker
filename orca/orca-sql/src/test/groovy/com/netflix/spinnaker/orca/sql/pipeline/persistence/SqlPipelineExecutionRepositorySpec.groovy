@@ -17,11 +17,11 @@ package com.netflix.spinnaker.orca.sql.pipeline.persistence
 
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.fasterxml.jackson.module.kotlin.KotlinModule
-import com.netflix.spectator.api.DefaultRegistry
 import com.netflix.spinnaker.config.ExecutionCompressionProperties
 import com.netflix.spinnaker.kork.sql.config.RetryProperties
 import com.netflix.spinnaker.kork.sql.test.SqlTestUtil.TestDatabase
 import com.netflix.spinnaker.kork.telemetry.InstrumentedProxy
+import io.micrometer.core.instrument.simple.SimpleMeterRegistry
 import com.netflix.spinnaker.orca.api.pipeline.models.PipelineExecution
 import com.netflix.spinnaker.orca.api.pipeline.models.StageExecution
 import com.netflix.spinnaker.orca.interlink.Interlink
@@ -104,7 +104,7 @@ abstract class SqlPipelineExecutionRepositorySpec extends PipelineExecutionRepos
 
   ExecutionRepository createExecutionRepository(String partition, Interlink interlink = null, boolean compression = false, boolean enforceForeignPartition = true) {
     return InstrumentedProxy.proxy(
-        new DefaultRegistry(),
+        new SimpleMeterRegistry(),
         createSqlExecutionRepository(partition, interlink, compression, enforceForeignPartition, currentDatabase.context),
         "namespace")
   }

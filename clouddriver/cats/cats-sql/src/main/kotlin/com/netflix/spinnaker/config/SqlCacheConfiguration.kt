@@ -1,7 +1,6 @@
 package com.netflix.spinnaker.config
 
 import com.fasterxml.jackson.databind.ObjectMapper
-import com.netflix.spectator.api.Registry
 import com.netflix.spinnaker.cats.agent.AgentScheduler
 import com.netflix.spinnaker.cats.agent.ExecutionInstrumentation
 import com.netflix.spinnaker.cats.cache.NamedCacheFactory
@@ -11,7 +10,7 @@ import com.netflix.spinnaker.cats.module.CatsModule
 import com.netflix.spinnaker.cats.provider.Provider
 import com.netflix.spinnaker.cats.provider.ProviderRegistry
 import com.netflix.spinnaker.cats.sql.SqlProviderRegistry
-import com.netflix.spinnaker.cats.sql.cache.SpectatorSqlCacheMetrics
+import com.netflix.spinnaker.cats.sql.cache.MicrometerSqlCacheMetrics
 import com.netflix.spinnaker.cats.sql.cache.SqlCacheMetrics
 import com.netflix.spinnaker.cats.sql.cache.SqlCleanupStaleOnDemandCachesAgent
 import com.netflix.spinnaker.cats.sql.cache.SqlNamedCacheFactory
@@ -27,6 +26,7 @@ import com.netflix.spinnaker.kork.discovery.DiscoveryStatusListener
 import com.netflix.spinnaker.kork.dynamicconfig.DynamicConfigService
 import com.netflix.spinnaker.kork.sql.config.DefaultSqlConfiguration
 import com.netflix.spinnaker.kork.sql.config.SqlProperties
+import io.micrometer.core.instrument.MeterRegistry
 import java.time.Clock
 import java.time.Duration
 import kotlin.contracts.ExperimentalContracts
@@ -62,8 +62,8 @@ class SqlCacheConfiguration {
   }
 
   @Bean
-  fun sqlCacheMetrics(registry: Registry): SqlCacheMetrics {
-    return SpectatorSqlCacheMetrics(registry)
+  fun sqlCacheMetrics(registry: MeterRegistry): SqlCacheMetrics {
+    return MicrometerSqlCacheMetrics(registry)
   }
 
   @Bean
@@ -155,7 +155,7 @@ class SqlCacheConfiguration {
   @ConditionalOnExpression("\${sql.read-only:false} == false")
   fun sqlTableMetricsAgent(
     jooq: DSLContext,
-    registry: Registry,
+    registry: MeterRegistry,
     clock: Clock,
     @Value("\${sql.table-namespace:#{null}}") namespace: String?
   ): SqlTableMetricsAgent =
@@ -165,7 +165,7 @@ class SqlCacheConfiguration {
   @ConditionalOnExpression("\${sql.read-only:false} == false")
   fun sqlCleanupStaleOnDemandCachesAgent(
     applicationContext: ApplicationContext,
-    registry: Registry,
+    registry: MeterRegistry,
     clock: Clock
   ): SqlCleanupStaleOnDemandCachesAgent =
     SqlCleanupStaleOnDemandCachesAgent(applicationContext, registry, clock)
@@ -175,7 +175,7 @@ class SqlCacheConfiguration {
   fun sqlUnknownAgentCleanupAgent(
     providerRegistry: ObjectProvider<ProviderRegistry>,
     jooq: DSLContext,
-    registry: Registry,
+    registry: MeterRegistry,
     sqlConstraints: SqlConstraints,
     cleanupProperties: SqlUnknownAgentCleanupProperties,
     shardingFilter: ShardingFilter,

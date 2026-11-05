@@ -20,16 +20,18 @@ import static com.netflix.spinnaker.kork.telemetry.MetricTags.ResultValue.FAILUR
 import static com.netflix.spinnaker.kork.telemetry.MetricTags.ResultValue.SUCCESS;
 
 import com.google.common.base.Strings;
-import com.netflix.spectator.api.Id;
-import com.netflix.spectator.api.Registry;
-import com.netflix.spectator.api.histogram.PercentileTimer;
 import com.netflix.spinnaker.kork.annotations.Metered;
 import com.netflix.spinnaker.kork.telemetry.MetricTags.ResultValue;
+import io.micrometer.core.instrument.MeterRegistry;
+import io.micrometer.core.instrument.Tag;
+import io.micrometer.core.instrument.Tags;
+import io.micrometer.core.instrument.Timer;
 import java.lang.annotation.Annotation;
 import java.lang.reflect.*;
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.TimeUnit;
+import java.util.stream.Collectors;
 
 /**
  * Adds automatic instrumentation to a target object's method invocations.
@@ -51,13 +53,13 @@ import java.util.concurrent.TimeUnit;
  */
 public class InstrumentedProxy implements InvocationHandler {
 
-  public static <T> T proxy(Registry registry, Object target, String metricNamespace) {
+  public static <T> T proxy(MeterRegistry registry, Object target, String metricNamespace) {
     return proxy(registry, target, metricNamespace, new HashMap<>());
   }
 
   @SuppressWarnings("unchecked")
   public static <T> T proxy(
-      Registry registry, Object target, String metricNamespace, Map<String, String> tags) {
+      MeterRegistry registry, Object target, String metricNamespace, Map<String, String> tags) {
     final Set<Class<?>> interfaces = new LinkedHashSet<>();
     addHierarchy(interfaces, target.getClass());
 
@@ -74,7 +76,7 @@ public class InstrumentedProxy implements InvocationHandler {
   private static final String INVOCATIONS = "invocations";
   private static final String TIMING = "timing";
 
-  private final Registry registry;
+  private final MeterRegistry registry;
   private final Object target;
   private final String metricNamespace;
   private final Map<String, String> tags;
@@ -82,12 +84,12 @@ public class InstrumentedProxy implements InvocationHandler {
   private final Map<Method, MethodMetrics> instrumentedMethods = new ConcurrentHashMap<>();
   private final List<Method> seenMethods = new ArrayList<>();
 
-  public InstrumentedProxy(Registry registry, Object target, String metricNamespace) {
+  public InstrumentedProxy(MeterRegistry registry, Object target, String metricNamespace) {
     this(registry, target, metricNamespace, new HashMap<>());
   }
 
   public InstrumentedProxy(
-      Registry registry, Object target, String metricNamespace, Map<String, String> tags) {
+      MeterRegistry registry, Object target, String metricNamespace, Map<String, String> tags) {
     this.registry = registry;
     this.target = target;
     this.metricNamespace = metricNamespace;
@@ -108,36 +110,49 @@ public class InstrumentedProxy implements InvocationHandler {
     } finally {
       if (methodMetrics != null) {
         registry
-            .counter(methodMetrics.invocationsId.withTag(RESULT_KEY, resultValue.toString()))
+            .counter(
+                methodMetrics.invocationsName,
+                methodMetrics.invocationsTags.and(RESULT_KEY, resultValue.toString()))
             .increment();
-        recordTiming(methodMetrics.timingId.withTag(RESULT_KEY, resultValue.toString()), start);
+        recordTiming(
+            methodMetrics.timingName,
+            methodMetrics.timingTags.and(RESULT_KEY, resultValue.toString()),
+            start);
       }
     }
   }
 
-  private void recordTiming(Id id, long startTimeMs) {
-    PercentileTimer.get(registry, id)
+  private void recordTiming(String name, Tags tags, long startTimeMs) {
+    Timer.builder(name)
+        .tags(tags)
+        .publishPercentileHistogram()
+        .register(registry)
         .record(System.currentTimeMillis() - startTimeMs, TimeUnit.MILLISECONDS);
   }
 
-  private Id invocationId(Method method, Map<String, String> tags) {
-    return registry.createId(
-        MethodInstrumentation.toMetricId(metricNamespace, method, INVOCATIONS), tags);
+  private static Tags toTags(Map<String, String> tags) {
+    return Tags.of(
+        tags.entrySet().stream()
+            .map(e -> Tag.of(e.getKey(), e.getValue()))
+            .collect(Collectors.toList()));
   }
 
-  private Id invocationId(String methodOverride, Map<String, String> tags) {
-    return registry.createId(
-        MethodInstrumentation.toMetricId(methodOverride, metricNamespace, INVOCATIONS), tags);
+  private MethodMetrics methodMetrics(Method method, Map<String, String> tags) {
+    Tags micrometerTags = toTags(tags);
+    return new MethodMetrics(
+        MethodInstrumentation.toMetricId(metricNamespace, method, TIMING),
+        micrometerTags,
+        MethodInstrumentation.toMetricId(metricNamespace, method, INVOCATIONS),
+        micrometerTags);
   }
 
-  private Id timingId(Method method, Map<String, String> tags) {
-    return registry.createId(
-        MethodInstrumentation.toMetricId(metricNamespace, method, TIMING), tags);
-  }
-
-  private Id timingId(String methodOverride, Map<String, String> tags) {
-    return registry.createId(
-        MethodInstrumentation.toMetricId(methodOverride, metricNamespace, TIMING), tags);
+  private MethodMetrics methodMetrics(String methodOverride, Map<String, String> tags) {
+    Tags micrometerTags = toTags(tags);
+    return new MethodMetrics(
+        MethodInstrumentation.toMetricId(methodOverride, metricNamespace, TIMING),
+        micrometerTags,
+        MethodInstrumentation.toMetricId(methodOverride, metricNamespace, INVOCATIONS),
+        micrometerTags);
   }
 
   private MethodMetrics getMethodMetrics(Method method) {
@@ -156,26 +171,16 @@ public class InstrumentedProxy implements InvocationHandler {
           Map<String, String> methodTags =
               MethodInstrumentation.coalesceTags(target, method, tags, metered.tags());
           if (Strings.isNullOrEmpty(metered.metricName())) {
-            addInstrumentedMethod(
-                instrumentedMethods,
-                method,
-                new MethodMetrics(timingId(method, methodTags), invocationId(method, methodTags)));
+            addInstrumentedMethod(instrumentedMethods, method, methodMetrics(method, methodTags));
           } else {
             addInstrumentedMethod(
-                instrumentedMethods,
-                method,
-                new MethodMetrics(
-                    timingId(metered.metricName(), methodTags),
-                    invocationId(metered.metricName(), methodTags)));
+                instrumentedMethods, method, methodMetrics(metered.metricName(), methodTags));
           }
         }
       }
 
       if (!processed && !instrumentedMethods.containsKey(method)) {
-        addInstrumentedMethod(
-            instrumentedMethods,
-            method,
-            new MethodMetrics(timingId(method, tags), invocationId(method, tags)));
+        addInstrumentedMethod(instrumentedMethods, method, methodMetrics(method, tags));
       }
     }
     return instrumentedMethods.get(method);
@@ -209,12 +214,17 @@ public class InstrumentedProxy implements InvocationHandler {
   }
 
   private static class MethodMetrics {
-    final Id timingId;
-    final Id invocationsId;
+    final String timingName;
+    final Tags timingTags;
+    final String invocationsName;
+    final Tags invocationsTags;
 
-    MethodMetrics(Id timingId, Id invocationsId) {
-      this.timingId = timingId;
-      this.invocationsId = invocationsId;
+    MethodMetrics(
+        String timingName, Tags timingTags, String invocationsName, Tags invocationsTags) {
+      this.timingName = timingName;
+      this.timingTags = timingTags;
+      this.invocationsName = invocationsName;
+      this.invocationsTags = invocationsTags;
     }
   }
 }

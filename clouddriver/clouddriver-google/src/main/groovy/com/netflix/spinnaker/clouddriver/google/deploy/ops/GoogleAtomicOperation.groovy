@@ -15,13 +15,13 @@
  */
 package com.netflix.spinnaker.clouddriver.google.deploy.ops
 
-import com.netflix.spectator.api.Registry
 import com.netflix.spinnaker.clouddriver.google.GoogleExecutorTraits
 import com.netflix.spinnaker.clouddriver.orchestration.AtomicOperation
+import io.micrometer.core.instrument.MeterRegistry
 import org.springframework.beans.factory.annotation.Autowired
 
 
 public abstract class GoogleAtomicOperation<ResultType> implements AtomicOperation<ResultType>, GoogleExecutorTraits {
   @Autowired
-  Registry registry
+  MeterRegistry registry
 }

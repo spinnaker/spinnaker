@@ -26,14 +26,13 @@ import com.netflix.kayenta.canary.orca.CanaryStageNames;
 import com.netflix.kayenta.canary.providers.metrics.QueryConfigUtils;
 import com.netflix.kayenta.canary.results.CanaryJudgeResult;
 import com.netflix.kayenta.canary.results.CanaryResult;
-import com.netflix.spectator.api.Id;
-import com.netflix.spectator.api.Registry;
 import com.netflix.spinnaker.orca.api.pipeline.models.ExecutionStatus;
 import com.netflix.spinnaker.orca.api.pipeline.models.PipelineExecution;
 import com.netflix.spinnaker.orca.api.pipeline.models.StageExecution;
 import com.netflix.spinnaker.orca.pipeline.ExecutionLauncher;
 import com.netflix.spinnaker.orca.pipeline.model.PipelineBuilder;
 import com.netflix.spinnaker.orca.pipeline.persistence.ExecutionRepository;
+import io.micrometer.core.instrument.MeterRegistry;
 import jakarta.validation.constraints.NotNull;
 import java.io.IOException;
 import java.time.Duration;
@@ -54,21 +53,21 @@ public class ExecutionMapper {
 
   public static final String PIPELINE_NAME = "Standard Canary Pipeline";
 
+  private static final String PIPELINE_RUN_METRIC_NAME = "canary.pipelines.initiated";
+  private static final String FAILURE_METRIC_NAME = "canary.pipelines.startupFailed";
+
   private final ObjectMapper objectMapper;
-  private final Registry registry;
+  private final MeterRegistry registry;
   private final String currentInstanceId;
   private final List<CanaryScopeFactory> canaryScopeFactories;
   private final ExecutionLauncher executionLauncher;
   private final ExecutionRepository executionRepository;
   private final boolean includeAuthentication;
 
-  private final Id pipelineRunId;
-  private final Id failureId;
-
   @Autowired
   public ExecutionMapper(
       ObjectMapper objectMapper,
-      Registry registry,
+      MeterRegistry registry,
       String currentInstanceId,
       Optional<List<CanaryScopeFactory>> canaryScopeFactories,
       ExecutionLauncher executionLauncher,
@@ -83,9 +82,6 @@ public class ExecutionMapper {
     this.executionLauncher = executionLauncher;
     this.executionRepository = executionRepository;
     this.includeAuthentication = includeAuthentication;
-
-    this.pipelineRunId = registry.createId("canary.pipelines.initiated");
-    this.failureId = registry.createId("canary.pipelines.startupFailed");
   }
 
   /**
@@ -359,9 +355,11 @@ public class ExecutionMapper {
       throws JsonProcessingException {
     registry
         .counter(
-            pipelineRunId
-                .withTag("canaryConfigId", canaryConfigId)
-                .withTag("canaryConfigName", canaryConfig.getName()))
+            PIPELINE_RUN_METRIC_NAME,
+            "canaryConfigId",
+            canaryConfigId,
+            "canaryConfigName",
+            canaryConfig.getName())
         .increment();
 
     if (canaryConfig.getMetrics().size() <= 0) {
@@ -653,6 +651,6 @@ public class ExecutionMapper {
     executionRepository.updateStatus(execution.getType(), execution.getId(), status);
     executionRepository.cancel(execution.getType(), execution.getId(), canceledBy, reason);
 
-    registry.counter(failureId).increment();
+    registry.counter(FAILURE_METRIC_NAME).increment();
   }
 }

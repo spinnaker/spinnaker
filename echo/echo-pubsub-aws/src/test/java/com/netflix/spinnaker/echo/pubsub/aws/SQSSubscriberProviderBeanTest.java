@@ -20,7 +20,6 @@ import static org.assertj.core.api.AssertionsForInterfaceTypes.assertThat;
 import static org.mockito.Mockito.mock;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.netflix.spectator.api.NoopRegistry;
 import com.netflix.spinnaker.echo.artifacts.MessageArtifactTranslator;
 import com.netflix.spinnaker.echo.config.AmazonPubsubConfig;
 import com.netflix.spinnaker.echo.config.PubsubConfig;
@@ -31,6 +30,7 @@ import com.netflix.spinnaker.kork.artifacts.parsing.JinjaArtifactExtractor;
 import com.netflix.spinnaker.kork.aws.AwsComponents;
 import com.netflix.spinnaker.kork.discovery.DiscoveryStatusListener;
 import com.netflix.spinnaker.kork.dynamicconfig.DynamicConfigService;
+import io.micrometer.core.instrument.simple.SimpleMeterRegistry;
 import org.junit.jupiter.api.Test;
 import org.springframework.boot.test.context.runner.ApplicationContextRunner;
 import software.amazon.awssdk.auth.credentials.AwsCredentialsProvider;
@@ -38,7 +38,7 @@ import software.amazon.awssdk.auth.credentials.AwsCredentialsProvider;
 public class SQSSubscriberProviderBeanTest {
   private final ApplicationContextRunner contextRunner =
       new ApplicationContextRunner()
-          .withBean(NoopRegistry.class)
+          .withBean(SimpleMeterRegistry.class)
           .withBean(ObjectMapper.class)
           .withBean(EventPropagator.class, () -> mock(EventPropagator.class))
           .withBean(JinjaArtifactExtractor.Factory.class)

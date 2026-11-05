@@ -1,6 +1,6 @@
 package com.netflix.spinnaker.keel.echo
 
-import com.netflix.spectator.api.NoopRegistry
+import io.micrometer.core.instrument.simple.SimpleMeterRegistry
 import com.netflix.spinnaker.config.KeelNotificationConfig
 import com.netflix.spinnaker.keel.api.Environment
 import com.netflix.spinnaker.keel.api.NotificationConfig
@@ -38,7 +38,7 @@ class NotifierTests : JUnit5Minutests {
     val springEnv: SpringframeworkCoreEnvEnvironment = mockk(relaxed = true) {
       every { getProperty("keel.notifications.resource", Boolean::class.java, true)} returns true
     }
-    val registry: NoopRegistry = NoopRegistry()
+    val registry: SimpleMeterRegistry = SimpleMeterRegistry()
     val subject = Notifier(echoService, repository, notificationRepository, keelNotificationConfig, springEnv, registry)
 
     val r = resource()

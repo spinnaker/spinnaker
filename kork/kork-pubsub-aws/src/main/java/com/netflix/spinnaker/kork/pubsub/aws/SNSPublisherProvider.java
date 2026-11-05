@@ -16,7 +16,6 @@
 
 package com.netflix.spinnaker.kork.pubsub.aws;
 
-import com.netflix.spectator.api.Registry;
 import com.netflix.spinnaker.kork.aws.ARN;
 import com.netflix.spinnaker.kork.core.RetrySupport;
 import com.netflix.spinnaker.kork.discovery.DiscoveryStatusListener;
@@ -24,6 +23,7 @@ import com.netflix.spinnaker.kork.dynamicconfig.DynamicConfigService;
 import com.netflix.spinnaker.kork.pubsub.PubsubPublishers;
 import com.netflix.spinnaker.kork.pubsub.aws.config.AmazonPubsubProperties;
 import com.netflix.spinnaker.kork.pubsub.model.PubsubPublisher;
+import io.micrometer.core.instrument.MeterRegistry;
 import jakarta.annotation.PostConstruct;
 import java.util.ArrayList;
 import java.util.List;
@@ -46,7 +46,7 @@ public class SNSPublisherProvider {
   private final AwsCredentialsProvider awsCredentialsProvider;
   private final AmazonPubsubProperties properties;
   private final PubsubPublishers pubsubPublishers;
-  private final Registry registry;
+  private final MeterRegistry registry;
   private final RetrySupport retrySupport;
   private final DiscoveryStatusListener discoveryStatus;
   private final DynamicConfigService dynamicConfig;
@@ -56,7 +56,7 @@ public class SNSPublisherProvider {
       AwsCredentialsProvider awsCredentialsProvider,
       AmazonPubsubProperties properties,
       PubsubPublishers pubsubPublishers,
-      Registry registry,
+      MeterRegistry registry,
       RetrySupport retrySupport,
       DiscoveryStatusListener discoveryStatus,
       DynamicConfigService dynamicConfig) {

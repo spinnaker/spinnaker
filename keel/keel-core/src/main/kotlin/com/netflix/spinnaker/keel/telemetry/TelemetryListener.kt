@@ -1,9 +1,8 @@
 package com.netflix.spinnaker.keel.telemetry
 
-import com.netflix.spectator.api.BasicTag
-import com.netflix.spectator.api.Registry
-import com.netflix.spectator.api.patterns.PolledMeter
-import com.netflix.spectator.api.patterns.ThreadPoolMonitor
+import io.micrometer.core.instrument.MeterRegistry
+import io.micrometer.core.instrument.Tag
+import io.micrometer.core.instrument.Tags
 import com.netflix.spinnaker.keel.activation.ApplicationDown
 import com.netflix.spinnaker.keel.activation.ApplicationUp
 import com.netflix.spinnaker.keel.actuation.ScheduledArtifactCheckStarting
@@ -29,7 +28,7 @@ import java.util.concurrent.atomic.AtomicReference
 
 @Component
 class TelemetryListener(
-  private val spectator: Registry,
+  private val meterRegistry: MeterRegistry,
   private val clock: Clock,
   threadPoolTaskSchedulers: List<ThreadPoolTaskScheduler>,
   threadPoolTaskExecutors: List<ThreadPoolTaskExecutor>,
@@ -50,15 +49,24 @@ class TelemetryListener(
   init {
     // attach monitors for all the thread pools we have
     threadPoolTaskSchedulers.forEach { executor ->
-      ThreadPoolMonitor.attach(spectator, executor.scheduledThreadPoolExecutor, executor.threadNamePrefix + "spring")
+      attachThreadPoolMonitor(executor.scheduledThreadPoolExecutor, executor.threadNamePrefix + "spring")
     }
 
     threadPoolTaskExecutors.forEach { executor ->
-      ThreadPoolMonitor.attach(spectator, executor.threadPoolExecutor, executor.threadNamePrefix + "spring")
+      attachThreadPoolMonitor(executor.threadPoolExecutor, executor.threadNamePrefix + "spring")
     }
 
     // todo: add coroutines once you can actually monitor them as described here: https://github.com/Kotlin/kotlinx.coroutines/issues/1360
     // need to monitor Dispatchers.Default, Dispatchers.IO, and Dispatchers.Unconfined
+  }
+
+  private fun attachThreadPoolMonitor(executor: java.util.concurrent.ThreadPoolExecutor, id: String) {
+    val tags = Tags.of("id", id)
+    meterRegistry.gauge("threadpool.activeCount", tags, executor) { it.activeCount.toDouble() }
+    meterRegistry.gauge("threadpool.maxThreads", tags, executor) { it.maximumPoolSize.toDouble() }
+    meterRegistry.gauge("threadpool.poolSize", tags, executor) { it.poolSize.toDouble() }
+    meterRegistry.gauge("threadpool.corePoolSize", tags, executor) { it.corePoolSize.toDouble() }
+    meterRegistry.gauge("threadpool.queueSize", tags, executor) { it.queue.size.toDouble() }
   }
 
   @EventListener(ApplicationUp::class)
@@ -78,89 +86,89 @@ class TelemetryListener(
       return
     }
 
-    spectator.timer(
+    meterRegistry.timer(
       TIME_SINCE_LAST_CHECK,
       listOf(
-        BasicTag("identifier", event.identifier),
-        BasicTag("type", event.type)
+        Tag.of("identifier", event.identifier ?: "unknown"),
+        Tag.of("type", event.type)
       )
     ).record(Duration.between(event.lastCheckedAt, clock.instant()).toSeconds(), TimeUnit.SECONDS)
   }
 
   @EventListener(ResourceCheckResult::class)
   fun onResourceChecked(event: ResourceCheckResult) {
-    spectator.counter(
+    meterRegistry.counter(
       RESOURCE_CHECKED_COUNTER_ID,
       listOf(
-        BasicTag("resourceId", event.id),
-        BasicTag("resourceKind", event.kind.toString()),
-        BasicTag("resourceState", event.state.name),
-        BasicTag("resourceApplication", event.application)
+        Tag.of("resourceId", event.id),
+        Tag.of("resourceKind", event.kind.toString()),
+        Tag.of("resourceState", event.state.name),
+        Tag.of("resourceApplication", event.application)
       )
     ).safeIncrement()
   }
 
   @EventListener(ResourceCheckSkipped::class)
   fun onResourceCheckSkipped(event: ResourceCheckSkipped) {
-    spectator.counter(
+    meterRegistry.counter(
       RESOURCE_CHECK_SKIPPED_COUNTER_ID,
       listOf(
-        BasicTag("resourceId", event.id),
-        BasicTag("resourceKind", event.kind.toString()),
-        BasicTag("skipper", event.skipper)
+        Tag.of("resourceId", event.id),
+        Tag.of("resourceKind", event.kind.toString()),
+        Tag.of("skipper", event.skipper)
       )
     ).safeIncrement()
   }
 
   @EventListener(ResourceCheckTimedOut::class)
   fun onResourceCheckTimedOut(event: ResourceCheckTimedOut) {
-    spectator.counter(
+    meterRegistry.counter(
       RESOURCE_CHECK_TIMED_OUT_ID,
       listOf(
-        BasicTag("kind", event.kind.kind),
-        BasicTag("resourceId", event.id),
-        BasicTag("application", event.application)
+        Tag.of("kind", event.kind.kind),
+        Tag.of("resourceId", event.id),
+        Tag.of("application", event.application)
       )
     ).safeIncrement()
   }
 
   @EventListener(ResourceLoadFailed::class)
   fun onResourceLoadFailed(event: ResourceLoadFailed) {
-    spectator.counter(RESOURCE_LOAD_FAILED_ID).safeIncrement()
+    meterRegistry.counter(RESOURCE_LOAD_FAILED_ID).safeIncrement()
   }
 
   @EventListener(EnvironmentsCheckTimedOut::class)
   fun onEnvironmentsCheckTimedOut(event: EnvironmentsCheckTimedOut) {
-    spectator.counter(
+    meterRegistry.counter(
       ENVIRONMENT_CHECK_TIMED_OUT_ID,
       listOf(
-        BasicTag("application", event.application),
-        BasicTag("deliveryConfig", event.deliveryConfigName)
+        Tag.of("application", event.application),
+        Tag.of("deliveryConfig", event.deliveryConfigName)
       )
     ).safeIncrement()
   }
 
   @EventListener(ArtifactVersionApproved::class)
   fun onArtifactVersionUpdated(event: ArtifactVersionApproved) {
-    spectator.counter(
+    meterRegistry.counter(
       ARTIFACT_APPROVED_COUNTER_ID,
       listOf(
-        BasicTag("application", event.application),
-        BasicTag("environment", event.environmentName),
-        BasicTag("artifactName", event.artifactName),
-        BasicTag("artifactType", event.artifactType)
+        Tag.of("application", event.application),
+        Tag.of("environment", event.environmentName),
+        Tag.of("artifactName", event.artifactName),
+        Tag.of("artifactType", event.artifactType)
       )
     ).safeIncrement()
   }
 
   @EventListener(ResourceActuationLaunched::class)
   fun onResourceActuationLaunched(event: ResourceActuationLaunched) {
-    spectator.counter(
+    meterRegistry.counter(
       RESOURCE_ACTUATION_LAUNCHED_COUNTER_ID,
       listOf(
-        BasicTag("resourceId", event.id),
-        BasicTag("resourceKind", event.kind.toString()),
-        BasicTag("resourceApplication", event.application)
+        Tag.of("resourceId", event.id),
+        Tag.of("resourceKind", event.kind.toString()),
+        Tag.of("resourceApplication", event.application)
       )
     ).safeIncrement()
   }
@@ -172,7 +180,7 @@ class TelemetryListener(
 
   @EventListener(ResourceCheckCompleted::class)
   fun onEnvironmentCheckComplete(event: ResourceCheckCompleted) {
-    spectator.timer(
+    meterRegistry.timer(
       RESOURCE_CHECK_DURATION_ID,
     ).record(event.duration)
   }
@@ -199,114 +207,114 @@ class TelemetryListener(
 
   @EventListener(ArtifactVersionVetoed::class)
   fun onArtifactVersionVetoed(event: ArtifactVersionVetoed) {
-    spectator.counter(
+    meterRegistry.counter(
       ARTIFACT_VERSION_VETOED,
-      listOf(BasicTag("application", event.application))
+      listOf(Tag.of("application", event.application))
     )
       .safeIncrement()
   }
 
   @EventListener(ArtifactCheckComplete::class)
   fun onArtifactCheckComplete(event: ArtifactCheckComplete) {
-    spectator.timer(
+    meterRegistry.timer(
       ARTIFACT_CHECK_DURATION_ID,
     ).record(event.duration)
   }
 
   @EventListener(EnvironmentCheckComplete::class)
   fun onEnvironmentCheckComplete(event: EnvironmentCheckComplete) {
-    spectator.timer(
+    meterRegistry.timer(
       ENVIRONMENT_CHECK_DURATION_ID,
-      listOf(BasicTag("application", event.application))
+      listOf(Tag.of("application", event.application))
     ).record(event.duration)
   }
 
   @EventListener(VerificationCheckComplete::class)
   fun onVerificationCheckComplete(event: VerificationCheckComplete) {
-    spectator.timer(
+    meterRegistry.timer(
       VERIFICATION_CHECK_DURATION_ID,
     ).record(event.duration)
   }
 
   @EventListener(AgentInvocationComplete::class)
   fun onAgentInvocationComplete(event: AgentInvocationComplete) {
-    spectator.timer(
+    meterRegistry.timer(
       AGENT_DURATION_ID,
-      listOf(BasicTag("agent", event.agentName))
+      listOf(Tag.of("agent", event.agentName))
     ).record(event.duration)
   }
 
   @EventListener(VerificationCompleted::class)
   fun onVerificationCompleted(event: VerificationCompleted) {
-    spectator.counter(
+    meterRegistry.counter(
       VERIFICATION_COMPLETED_COUNTER_ID,
       listOf(
-        BasicTag("application", event.application),
-        BasicTag("verificationType", event.verificationType),
-        BasicTag("status", event.status.name)
+        Tag.of("application", event.application),
+        Tag.of("verificationType", event.verificationType),
+        Tag.of("status", event.status.name)
       )
     ).safeIncrement()
   }
 
   @EventListener(VerificationStarted::class)
   fun onVerificationStarted(event: VerificationStarted) {
-    spectator.counter(
+    meterRegistry.counter(
       VERIFICATION_STARTED_COUNTER_ID,
       listOf(
-        BasicTag("application", event.application),
-        BasicTag("verificationType", event.verificationType)
+        Tag.of("application", event.application),
+        Tag.of("verificationType", event.verificationType)
       )
     ).safeIncrement()
   }
 
   @EventListener(InvalidVerificationIdSeen::class)
   fun onInvalidVerificationId(event: InvalidVerificationIdSeen) {
-    spectator.counter(
+    meterRegistry.counter(
       INVALID_VERIFICATION_ID_SEEN_COUNTER_ID,
       listOf(
-        BasicTag("application", event.application),
-        BasicTag("invalidId", event.id)
+        Tag.of("application", event.application),
+        Tag.of("invalidId", event.id)
       )
     ).safeIncrement()
   }
 
   @EventListener(PostDeployActionCheckComplete::class)
   fun onPostDeployCheckCompleted(event: PostDeployActionCheckComplete) {
-    spectator.timer(
+    meterRegistry.timer(
       POST_DEPLOY_CHECK_DURATION_ID,
     ).record(event.duration)
   }
 
   @EventListener(VerificationBlockedActuation::class)
   fun onBlockedActuation(event: VerificationBlockedActuation) {
-    spectator.counter(
+    meterRegistry.counter(
       BLOCKED_ACTUATION_ID,
       listOf(
-        BasicTag("resourceId", event.id),
-        BasicTag("resourceKind", event.kind.toString()),
-        BasicTag("resourceApplication", event.application)
+        Tag.of("resourceId", event.id),
+        Tag.of("resourceKind", event.kind.toString()),
+        Tag.of("resourceApplication", event.application)
       )
     ).safeIncrement()
   }
 
   @EventListener(FeatureRolloutAttempted::class)
   fun onFeatureRolloutAttempted(event: FeatureRolloutAttempted) {
-    spectator.counter(
+    meterRegistry.counter(
       FEATURE_ROLLOUT_ATTEMPTED_ID,
       listOf(
-        BasicTag("feature", event.feature),
-        BasicTag("resourceId", event.resourceId)
+        Tag.of("feature", event.feature),
+        Tag.of("resourceId", event.resourceId)
       )
     ).safeIncrement()
   }
 
   @EventListener(FeatureRolloutFailed::class)
   fun onFeatureRolloutFailed(event: FeatureRolloutFailed) {
-    spectator.counter(
+    meterRegistry.counter(
       FEATURE_ROLLOUT_FAILED_ID,
       listOf(
-        BasicTag("feature", event.feature),
-        BasicTag("resourceId", event.resourceId)
+        Tag.of("feature", event.feature),
+        Tag.of("resourceId", event.resourceId)
       )
     ).safeIncrement()
   }
@@ -319,15 +327,12 @@ class TelemetryListener(
       .div(1000)
 
   private fun createDriftGauge(name: String): AtomicReference<Instant> =
-    PolledMeter
-      .using(spectator)
-      .withName(name)
-      .monitorValue(AtomicReference(clock.instant())) { previous ->
-        when(enabled.get()) {
-          true -> secondsSince(previous)
-          false -> 0.0
-        }
+    meterRegistry.gauge(name, AtomicReference(clock.instant())) { previous ->
+      when(enabled.get()) {
+        true -> secondsSince(previous)
+        false -> 0.0
       }
+    }!!
 
   private val log by lazy { LoggerFactory.getLogger(javaClass) }
 

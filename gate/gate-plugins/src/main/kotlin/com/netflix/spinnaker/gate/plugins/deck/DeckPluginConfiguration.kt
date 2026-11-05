@@ -15,7 +15,7 @@
  */
 package com.netflix.spinnaker.gate.plugins.deck
 
-import com.netflix.spectator.api.Registry
+import io.micrometer.core.instrument.MeterRegistry
 import com.netflix.spinnaker.kork.dynamicconfig.DynamicConfigService
 import com.netflix.spinnaker.kork.plugins.SpringPluginStatusProvider
 import com.netflix.spinnaker.kork.plugins.SpringStrictPluginLoaderStatusProvider
@@ -42,7 +42,7 @@ class DeckPluginConfiguration {
   @Bean
   fun deckPluginCache(
     updateManager: SpinnakerUpdateManager,
-    registry: Registry,
+    registry: MeterRegistry,
     springStrictPluginLoaderStatusProvider: SpringStrictPluginLoaderStatusProvider,
     dynamicConfigService: DynamicConfigService
   ): DeckPluginCache {
@@ -70,6 +70,6 @@ class DeckPluginConfiguration {
   @Bean
   fun deckPluginService(
     pluginCache: DeckPluginCache,
-    registry: Registry
+    registry: MeterRegistry
   ): DeckPluginService = DeckPluginService(pluginCache, registry)
 }

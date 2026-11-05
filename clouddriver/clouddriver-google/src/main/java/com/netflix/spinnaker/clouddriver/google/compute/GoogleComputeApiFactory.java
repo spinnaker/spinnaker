@@ -18,10 +18,10 @@ package com.netflix.spinnaker.clouddriver.google.compute;
 
 import com.google.api.services.compute.ComputeRequest;
 import com.google.common.util.concurrent.ListeningExecutorService;
-import com.netflix.spectator.api.Registry;
 import com.netflix.spinnaker.clouddriver.google.deploy.GoogleOperationPoller;
 import com.netflix.spinnaker.clouddriver.google.model.GoogleServerGroup;
 import com.netflix.spinnaker.clouddriver.google.security.GoogleNamedAccountCredentials;
+import io.micrometer.core.instrument.MeterRegistry;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Service;
@@ -30,14 +30,14 @@ import org.springframework.stereotype.Service;
 public class GoogleComputeApiFactory {
 
   private final GoogleOperationPoller operationPoller;
-  private final Registry registry;
+  private final MeterRegistry registry;
   private String clouddriverUserAgentApplicationName;
   private ListeningExecutorService batchExecutor;
 
   @Autowired
   public GoogleComputeApiFactory(
       GoogleOperationPoller operationPoller,
-      Registry registry,
+      MeterRegistry registry,
       String clouddriverUserAgentApplicationName,
       @Qualifier(ComputeConfiguration.BATCH_REQUEST_EXECUTOR)
           ListeningExecutorService batchExecutor) {

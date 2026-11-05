@@ -16,7 +16,6 @@
  */
 package com.netflix.spinnaker.front50.config;
 
-import com.netflix.spectator.api.Registry;
 import com.netflix.spinnaker.config.PluginsAutoConfiguration;
 import com.netflix.spinnaker.fiat.shared.EnableFiatAutoConfig;
 import com.netflix.spinnaker.fiat.shared.FiatClientConfigurationProperties;
@@ -38,6 +37,7 @@ import com.netflix.spinnaker.kork.dynamicconfig.DynamicConfigService;
 import com.netflix.spinnaker.kork.web.context.AuthenticatedRequestContextProvider;
 import com.netflix.spinnaker.kork.web.context.RequestContextProvider;
 import com.netflix.spinnaker.kork.web.interceptors.MetricsInterceptor;
+import io.micrometer.core.instrument.MeterRegistry;
 import java.util.*;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnBean;
@@ -65,7 +65,7 @@ import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
 })
 public class Front50WebConfig implements WebMvcConfigurer {
 
-  @Autowired private Registry registry;
+  @Autowired private MeterRegistry registry;
 
   @Bean
   public TaskScheduler taskScheduler() {
@@ -154,7 +154,7 @@ public class Front50WebConfig implements WebMvcConfigurer {
   @Bean
   public FiatStatus fiatStatus(
       DynamicConfigService dynamicConfigService,
-      Registry registry,
+      MeterRegistry registry,
       FiatClientConfigurationProperties fiatClientConfigurationProperties) {
     return new FiatStatus(registry, dynamicConfigService, fiatClientConfigurationProperties);
   }

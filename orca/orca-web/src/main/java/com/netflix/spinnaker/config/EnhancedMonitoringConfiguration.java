@@ -16,12 +16,12 @@
 
 package com.netflix.spinnaker.config;
 
-import com.netflix.spectator.api.Id;
-import com.netflix.spectator.api.Registry;
 import com.netflix.spinnaker.orca.api.pipeline.models.ExecutionStatus;
 import com.netflix.spinnaker.orca.api.pipeline.models.ExecutionType;
 import com.netflix.spinnaker.orca.api.pipeline.models.PipelineExecution;
 import com.netflix.spinnaker.orca.pipeline.persistence.ExecutionRepository;
+import io.micrometer.core.instrument.MeterRegistry;
+import io.micrometer.core.instrument.Tags;
 import io.reactivex.rxjava3.schedulers.Schedulers;
 import java.util.HashMap;
 import java.util.List;
@@ -41,7 +41,7 @@ import org.springframework.scheduling.annotation.Scheduled;
 public class EnhancedMonitoringConfiguration {
   private final Logger log = LoggerFactory.getLogger(getClass());
 
-  private final Registry registry;
+  private final MeterRegistry registry;
   private final ExecutionRepository executionRepository;
   private final EnhancedMonitoringConfigurationProperties configuration;
 
@@ -49,25 +49,22 @@ public class EnhancedMonitoringConfiguration {
 
   @Autowired
   public EnhancedMonitoringConfiguration(
-      Registry registry,
+      MeterRegistry registry,
       ExecutionRepository executionRepository,
       EnhancedMonitoringConfigurationProperties configuration) {
     this.registry = registry;
     this.executionRepository = executionRepository;
     this.configuration = configuration;
 
-    Id runningOrchestrationsId =
-        registry
-            .createId("executions.running")
-            .withTag(
-                "executionType",
-                ExecutionType.ORCHESTRATION
-                    .toString()); // similar to what MetricsTagHelper is doing
+    // similar to what MetricsTagHelper is doing
+    Tags runningOrchestrationsTags =
+        Tags.of("executionType", ExecutionType.ORCHESTRATION.toString());
 
     for (String application : configuration.getApplications()) {
-      Id applicationSpecificId = runningOrchestrationsId.withTag("application", application);
+      Tags applicationSpecificTags = runningOrchestrationsTags.and("application", application);
       orchestrationCountPerApplication.put(
-          application, registry.gauge(applicationSpecificId, new AtomicLong(0)));
+          application,
+          registry.gauge("executions.running", applicationSpecificTags, new AtomicLong(0)));
     }
   }
 

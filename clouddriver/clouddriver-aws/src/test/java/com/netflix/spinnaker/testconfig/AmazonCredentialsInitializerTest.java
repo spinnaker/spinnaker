@@ -19,7 +19,6 @@ package com.netflix.spinnaker.testconfig;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.mock;
 
-import com.netflix.spectator.api.NoopRegistry;
 import com.netflix.spinnaker.clouddriver.aws.AwsConfigurationProperties;
 import com.netflix.spinnaker.clouddriver.aws.security.AWSAccountInfoLookup;
 import com.netflix.spinnaker.clouddriver.aws.security.AWSAccountInfoLookupFactory;
@@ -32,6 +31,7 @@ import com.netflix.spinnaker.credentials.definition.CredentialsDefinition;
 import com.netflix.spinnaker.credentials.definition.CredentialsParser;
 import com.netflix.spinnaker.kork.annotations.NonnullByDefault;
 import com.netflix.spinnaker.kork.aws.AwsComponents;
+import io.micrometer.core.instrument.simple.SimpleMeterRegistry;
 import java.util.ArrayList;
 import java.util.List;
 import javax.annotation.Nullable;
@@ -47,7 +47,7 @@ public class AmazonCredentialsInitializerTest {
   // minimal set of beans necessary to initialize all the beans in AmazonCredentialsInitializer
   private final ApplicationContextRunner runner =
       new ApplicationContextRunner()
-          .withBean(NoopRegistry.class)
+          .withBean(SimpleMeterRegistry.class)
           .withBean(AwsConfigurationProperties.class)
           .withConfiguration(
               UserConfigurations.of(AwsComponents.class, TestCommonDependencyConfiguration.class));

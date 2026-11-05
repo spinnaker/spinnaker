@@ -16,7 +16,6 @@
 
 package com.netflix.spinnaker.igor.artifactory
 
-import com.netflix.spectator.api.NoopRegistry
 import com.netflix.spinnaker.igor.IgorConfigurationProperties
 import com.netflix.spinnaker.igor.artifactory.model.ArtifactoryRepositoryType
 import com.netflix.spinnaker.igor.artifactory.model.ArtifactorySearch
@@ -25,6 +24,7 @@ import com.netflix.spinnaker.igor.history.EchoService
 import com.netflix.spinnaker.igor.polling.LockService
 import com.netflix.spinnaker.kork.discovery.DiscoveryStatusListener
 import com.netflix.spinnaker.kork.dynamicconfig.DynamicConfigService
+import io.micrometer.core.instrument.simple.SimpleMeterRegistry
 import okhttp3.mockwebserver.MockResponse
 import okhttp3.mockwebserver.MockWebServer
 import org.springframework.scheduling.TaskScheduler
@@ -42,7 +42,7 @@ class ArtifactoryBuildMonitorSpec extends Specification {
   ArtifactoryBuildMonitor monitor(search, lockService = null) {
     monitor = new ArtifactoryBuildMonitor(
       igorConfigurationProperties,
-      new NoopRegistry(),
+      new SimpleMeterRegistry(),
       new DynamicConfigService.NoopDynamicConfig(),
       new DiscoveryStatusListener(true),
       Optional.ofNullable(lockService),

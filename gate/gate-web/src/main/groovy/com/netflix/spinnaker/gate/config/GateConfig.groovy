@@ -19,7 +19,6 @@ package com.netflix.spinnaker.gate.config
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.fasterxml.jackson.databind.SerializationFeature
 import com.fasterxml.jackson.dataformat.yaml.YAMLFactory
-import com.netflix.spectator.api.Registry
 import com.netflix.spinnaker.config.DefaultServiceEndpoint
 import com.netflix.spinnaker.config.PluginsAutoConfiguration
 import com.netflix.spinnaker.fiat.shared.FiatClientConfigurationProperties
@@ -38,6 +37,7 @@ import com.netflix.spinnaker.gate.plugins.deck.DeckPluginConfiguration
 import com.netflix.spinnaker.gate.plugins.web.PluginWebConfiguration
 import com.netflix.spinnaker.gate.services.internal.*
 import com.netflix.spinnaker.kork.client.ServiceClientProvider
+import io.micrometer.core.instrument.MeterRegistry
 import com.netflix.spinnaker.kork.dynamicconfig.DynamicConfigService
 import com.netflix.spinnaker.kork.web.context.AuthenticatedRequestContextProvider
 import com.netflix.spinnaker.kork.web.context.RequestContextProvider
@@ -93,7 +93,7 @@ class GateConfig {
   }
 
   @Autowired
-  Registry registry
+  MeterRegistry registry
 
   @Autowired
   ServiceConfiguration serviceConfiguration
@@ -383,14 +383,14 @@ class GateConfig {
 
   @Bean
   FiatStatus fiatStatus(DynamicConfigService dynamicConfigService,
-                        Registry registry,
+                        MeterRegistry registry,
                         FiatClientConfigurationProperties fiatClientConfigurationProperties) {
     return new FiatStatus(registry, dynamicConfigService, fiatClientConfigurationProperties)
   }
 
   @Bean
   FiatPermissionEvaluator fiatPermissionEvaluator(FiatStatus fiatStatus,
-                                                  Registry registry,
+                                                  MeterRegistry registry,
                                                   FiatService fiatService,
                                                   FiatClientConfigurationProperties fiatClientConfigurationProperties) {
     return new FiatPermissionEvaluator(registry, fiatService, fiatClientConfigurationProperties, fiatStatus)

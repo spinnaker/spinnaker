@@ -16,12 +16,12 @@
 
 package com.netflix.spinnaker.front50.model
 
-import com.netflix.spectator.api.NoopRegistry
 import com.netflix.spinnaker.front50.api.model.Timestamped;
 import com.netflix.spinnaker.front50.model.application.Application
 import com.netflix.spinnaker.front50.model.tag.EntityTags
 import com.netflix.spinnaker.kork.dynamicconfig.DynamicConfigService
 import com.netflix.spinnaker.kork.web.exceptions.NotFoundException
+import io.micrometer.core.instrument.simple.SimpleMeterRegistry
 import dev.minutest.junit.JUnit5Minutests
 import dev.minutest.rootContext
 import io.mockk.Called
@@ -39,7 +39,7 @@ internal object CompositeStorageServiceTests : JUnit5Minutests {
   val primary: SqlStorageService = mockk(relaxUnitFun = true)
   val previous: SqlStorageService = mockk(relaxUnitFun = true)
 
-  val subject = CompositeStorageService(dynamicConfigService, NoopRegistry(), primary, previous)
+  val subject = CompositeStorageService(dynamicConfigService, SimpleMeterRegistry(), primary, previous)
 
   val application: Application = Application()
   val operation: AdminOperations.Recover = AdminOperations.Recover()

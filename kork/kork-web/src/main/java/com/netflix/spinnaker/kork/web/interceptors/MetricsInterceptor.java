@@ -18,10 +18,10 @@ package com.netflix.spinnaker.kork.web.interceptors;
 
 import static java.lang.String.format;
 
-import com.netflix.spectator.api.Id;
-import com.netflix.spectator.api.Registry;
-import com.netflix.spectator.api.histogram.PercentileDistributionSummary;
-import com.netflix.spectator.api.histogram.PercentileTimer;
+import io.micrometer.core.instrument.DistributionSummary;
+import io.micrometer.core.instrument.MeterRegistry;
+import io.micrometer.core.instrument.Tags;
+import io.micrometer.core.instrument.Timer;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import java.util.Collection;
@@ -35,7 +35,7 @@ import org.springframework.web.servlet.HandlerMapping;
 
 /**
  * An interceptor that logs Controller metrics to an underlying {@link
- * com.netflix.spectator.api.Registry}.
+ * io.micrometer.core.instrument.MeterRegistry}.
  *
  * <p>A `timer` will be created for each request with the following tags:
  *
@@ -46,7 +46,7 @@ import org.springframework.web.servlet.HandlerMapping;
 public class MetricsInterceptor implements HandlerInterceptor {
   static final String TIMER_ATTRIBUTE = "Metrics_startTime";
 
-  private final Registry registry;
+  private final MeterRegistry registry;
   private final String metricName;
   private final String contentLengthMetricName;
   private final Set<String> pathVariablesToTag = new HashSet<String>();
@@ -58,7 +58,7 @@ public class MetricsInterceptor implements HandlerInterceptor {
    */
   @Deprecated
   public MetricsInterceptor(
-      Registry registry,
+      MeterRegistry registry,
       String metricName,
       Collection<String> pathVariablesToTag,
       Collection<String> controllersToExclude) {
@@ -73,7 +73,7 @@ public class MetricsInterceptor implements HandlerInterceptor {
    * @param controllersToExclude Controller names that should be excluded from metrics
    */
   public MetricsInterceptor(
-      Registry registry,
+      MeterRegistry registry,
       String metricName,
       Collection<String> pathVariablesToTag,
       Collection<String> queryParamsToTag,
@@ -117,45 +117,49 @@ public class MetricsInterceptor implements HandlerInterceptor {
         status = 500;
       }
 
-      Id id =
-          registry
-              .createId(metricName)
-              .withTag("controller", controller)
-              .withTag("method", handlerMethod.getMethod().getName())
-              .withTag("status", status.toString().charAt(0) + "xx")
-              .withTag("statusCode", status.toString())
-              .withTag("criticality", metricCriticality(handlerMethod));
+      Tags tags =
+          Tags.of(
+              "controller", controller,
+              "method", handlerMethod.getMethod().getName(),
+              "status", status.toString().charAt(0) + "xx",
+              "statusCode", status.toString(),
+              "criticality", metricCriticality(handlerMethod));
 
       Map variables = (Map) request.getAttribute(HandlerMapping.URI_TEMPLATE_VARIABLES_ATTRIBUTE);
       for (String pathVariable : pathVariablesToTag) {
         if (variables.containsKey(pathVariable)) {
-          id = id.withTag(pathVariable, variables.get(pathVariable).toString());
+          tags = tags.and(pathVariable, variables.get(pathVariable).toString());
         } else {
-          id = id.withTag(pathVariable, "None");
+          tags = tags.and(pathVariable, "None");
         }
       }
 
       for (String queryParamName : queryParamsToTag) {
         String parameter = request.getParameter(queryParamName);
         if (parameter != null) {
-          id = id.withTag(queryParamName, parameter);
+          tags = tags.and(queryParamName, parameter);
         } else {
-          id = id.withTag(queryParamName, "None");
+          tags = tags.and(queryParamName, "None");
         }
       }
 
       if (ex != null) {
-        id = id.withTag("success", "false").withTag("cause", ex.getClass().getSimpleName());
+        tags = tags.and("success", "false").and("cause", ex.getClass().getSimpleName());
       } else {
-        id = id.withTag("success", "true").withTag("cause", "None");
+        tags = tags.and("success", "true").and("cause", "None");
       }
 
-      PercentileTimer.get(registry, id)
+      Timer.builder(metricName)
+          .tags(tags)
+          .publishPercentileHistogram()
+          .register(registry)
           .record(
               getNanoTime() - ((Long) request.getAttribute(TIMER_ATTRIBUTE)), TimeUnit.NANOSECONDS);
 
-      PercentileDistributionSummary.get(
-              registry, registry.createId(contentLengthMetricName).withTags(id.tags()))
+      DistributionSummary.builder(contentLengthMetricName)
+          .tags(tags)
+          .publishPercentileHistogram()
+          .register(registry)
           .record(request.getContentLengthLong());
     }
   }

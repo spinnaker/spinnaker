@@ -16,7 +16,6 @@
 
 package com.netflix.spinnaker.rosco.executor
 
-import com.netflix.spectator.api.Registry
 import com.netflix.spinnaker.kork.artifacts.model.Artifact
 import com.netflix.spinnaker.rosco.api.Bake
 import com.netflix.spinnaker.rosco.api.BakeRequest
@@ -26,6 +25,9 @@ import com.netflix.spinnaker.rosco.jobs.JobExecutor
 import com.netflix.spinnaker.rosco.persistence.BakeStore
 import com.netflix.spinnaker.rosco.providers.registry.CloudProviderBakeHandlerRegistry
 import groovy.util.logging.Slf4j
+import io.micrometer.core.instrument.MeterRegistry
+import io.micrometer.core.instrument.Tag
+import io.micrometer.core.instrument.Tags
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.beans.factory.annotation.Value
 import org.springframework.context.ApplicationListener
@@ -70,7 +72,7 @@ class BakePoller implements ApplicationListener<ContextRefreshedEvent> {
   CloudProviderBakeHandlerRegistry cloudProviderBakeHandlerRegistry
 
   @Autowired
-  Registry registry
+  MeterRegistry registry
 
   @Override
   void onApplicationEvent(ContextRefreshedEvent event) {
@@ -142,7 +144,7 @@ class BakePoller implements ApplicationListener<ContextRefreshedEvent> {
                               bakeStatus = bakeStore.retrieveBakeStatusById(statusId)
                               def tags = [success: "false", cause: "orphanTimedOut", region: bakeStore.retrieveRegionById(statusId)]
                               long millis = bakeStatus.updatedTimestamp - bakeStatus.createdTimestamp
-                              registry.timer(registry.createId("bakesCompleted", tags)).record(millis, TimeUnit.MILLISECONDS)
+                              registry.timer("bakesCompleted", toTags(tags)).record(millis, TimeUnit.MILLISECONDS)
                             }
                           }
                         },
@@ -197,9 +199,13 @@ class BakePoller implements ApplicationListener<ContextRefreshedEvent> {
       if (bakeStatus) {
         tags.region = bakeStore.retrieveRegionById(statusId)
         long millis = bakeStatus.updatedTimestamp - bakeStatus.createdTimestamp
-        registry.timer(registry.createId("bakesCompleted", tags)).record(millis, TimeUnit.MILLISECONDS)
+        registry.timer("bakesCompleted", toTags(tags)).record(millis, TimeUnit.MILLISECONDS)
       }
     }
+  }
+
+  private static Tags toTags(Map<String, String> tags) {
+    Tags.of(tags.collect { k, v -> Tag.of(k, v as String) })
   }
 
 

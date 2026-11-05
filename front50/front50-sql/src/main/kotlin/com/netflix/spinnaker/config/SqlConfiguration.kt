@@ -17,7 +17,7 @@
 package com.netflix.spinnaker.config
 
 import com.fasterxml.jackson.databind.ObjectMapper
-import com.netflix.spectator.api.Registry
+import io.micrometer.core.instrument.MeterRegistry
 import com.netflix.spinnaker.front50.model.SqlStorageService
 import com.netflix.spinnaker.kork.sql.config.DefaultSqlConfiguration
 import com.netflix.spinnaker.kork.sql.config.SqlProperties
@@ -40,7 +40,7 @@ class SqlConfiguration {
   @Bean
   fun sqlStorageService(
     objectMapper: ObjectMapper,
-    registry: Registry,
+    registry: MeterRegistry,
     jooq: DSLContext,
     sqlProperties: SqlProperties,
     front50SqlProperties: Front50SqlProperties
@@ -61,7 +61,7 @@ class SqlConfiguration {
   @ConditionalOnProperty("sql.enabled", "sql.secondary.enabled")
   fun secondarySqlStorageService(
     objectMapper: ObjectMapper,
-    registry: Registry,
+    registry: MeterRegistry,
     @Autowired(required = false) @Qualifier("secondaryJooq") secondaryJooq: DSLContext?,
     jooq: DSLContext,
     sqlProperties: SqlProperties,

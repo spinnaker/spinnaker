@@ -26,7 +26,7 @@ import com.google.api.services.compute.model.Operation
 import com.google.api.services.compute.model.Region
 import com.google.api.services.compute.model.RegionList
 import com.google.api.services.compute.model.TCPHealthCheck
-import com.netflix.spectator.api.DefaultRegistry
+import io.micrometer.core.instrument.simple.SimpleMeterRegistry
 import com.netflix.spinnaker.clouddriver.data.task.Task
 import com.netflix.spinnaker.clouddriver.data.task.TaskRepository
 import com.netflix.spinnaker.clouddriver.google.config.GoogleConfigurationProperties
@@ -53,7 +53,7 @@ class UpsertGoogleRegionalExternalNetworkLoadBalancerAtomicOperationUnitSpec ext
   private static final String HEALTH_CHECK = "tcp-hc"
   private static final String HEALTH_CHECK_URL = "https://www.googleapis.com/compute/v1/projects/${PROJECT}/regions/${REGION}/healthChecks/${HEALTH_CHECK}"
 
-  @Shared def registry = new DefaultRegistry()
+  @Shared def registry = new SimpleMeterRegistry()
   @Shared def threadSleeper = Mock(GoogleOperationPoller.ThreadSleeper)
   @Shared SafeRetry safeRetry
   @Shared ObjectMapper objectMapper = new ObjectMapper()

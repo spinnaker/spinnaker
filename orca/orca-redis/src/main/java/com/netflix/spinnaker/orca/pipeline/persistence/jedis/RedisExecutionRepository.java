@@ -35,8 +35,6 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.base.Strings;
-import com.netflix.spectator.api.Id;
-import com.netflix.spectator.api.Registry;
 import com.netflix.spinnaker.kork.jedis.RedisClientDelegate;
 import com.netflix.spinnaker.kork.jedis.RedisClientSelector;
 import com.netflix.spinnaker.orca.api.pipeline.SyntheticStageOwner;
@@ -45,6 +43,7 @@ import com.netflix.spinnaker.orca.api.pipeline.models.PipelineExecution.PausedDe
 import com.netflix.spinnaker.orca.jackson.OrcaObjectMapper;
 import com.netflix.spinnaker.orca.pipeline.model.*;
 import com.netflix.spinnaker.orca.pipeline.persistence.*;
+import io.micrometer.core.instrument.MeterRegistry;
 import io.reactivex.rxjava3.core.Observable;
 import io.reactivex.rxjava3.core.Scheduler;
 import io.reactivex.rxjava3.functions.BiFunction;
@@ -85,13 +84,13 @@ public class RedisExecutionRepository implements ExecutionRepository {
   private final int chunkSize;
   private final Scheduler queryAllScheduler;
   private final Scheduler queryByAppScheduler;
-  private final Registry registry;
+  private final MeterRegistry registry;
   private static String bufferedPrefix;
 
   private final Logger log = LoggerFactory.getLogger(getClass());
 
   public RedisExecutionRepository(
-      Registry registry,
+      MeterRegistry registry,
       RedisClientSelector redisClientSelector,
       Scheduler queryAllScheduler,
       Scheduler queryByAppScheduler,
@@ -107,7 +106,7 @@ public class RedisExecutionRepository implements ExecutionRepository {
   }
 
   public RedisExecutionRepository(
-      Registry registry,
+      MeterRegistry registry,
       RedisClientSelector redisClientSelector,
       Integer threadPoolSize,
       Integer threadPoolChunkSize) {
@@ -939,12 +938,6 @@ public class RedisExecutionRepository implements ExecutionRepository {
       @Nonnull PipelineExecution execution,
       @Nonnull Map<String, String> map,
       List<String> stageIds) {
-    Id serializationErrorId =
-        registry
-            .createId("executions.deserialization.error")
-            .withTag("executionType", execution.getType().toString())
-            .withTag("application", execution.getApplication());
-
     try {
       execution.setCanceled(Boolean.parseBoolean(map.get("canceled")));
       execution.setCanceledBy(map.get("canceledBy"));
@@ -988,7 +981,14 @@ public class RedisExecutionRepository implements ExecutionRepository {
             .addAll(mapper.readValue(map.get("systemNotifications"), LIST_OF_SYSTEM_NOTIFICATIONS));
       }
     } catch (Exception e) {
-      registry.counter(serializationErrorId).increment();
+      registry
+          .counter(
+              "executions.deserialization.error",
+              "executionType",
+              execution.getType().toString(),
+              "application",
+              execution.getApplication())
+          .increment();
       throw new ExecutionSerializationException(
           String.format("Failed serializing execution json, id: %s", execution.getId()), e);
     }
@@ -1045,7 +1045,14 @@ public class RedisExecutionRepository implements ExecutionRepository {
             stage.setExecution(execution);
             stages.add(stage);
           } catch (IOException e) {
-            registry.counter(serializationErrorId).increment();
+            registry
+                .counter(
+                    "executions.deserialization.error",
+                    "executionType",
+                    execution.getType().toString(),
+                    "application",
+                    execution.getApplication())
+                .increment();
             throw new StageSerializationException(
                 format(
                     "Failed serializing stage json, executionId: %s, stageId: %s",
@@ -1071,7 +1078,14 @@ public class RedisExecutionRepository implements ExecutionRepository {
               .putAll(mapper.readValue(map.get("initialConfig"), Map.class));
         }
       } catch (IOException e) {
-        registry.counter(serializationErrorId).increment();
+        registry
+            .counter(
+                "executions.deserialization.error",
+                "executionType",
+                execution.getType().toString(),
+                "application",
+                execution.getApplication())
+            .increment();
         throw new ExecutionSerializationException("Failed serializing execution json", e);
       }
     } else if (execution.getType() == ORCHESTRATION) {

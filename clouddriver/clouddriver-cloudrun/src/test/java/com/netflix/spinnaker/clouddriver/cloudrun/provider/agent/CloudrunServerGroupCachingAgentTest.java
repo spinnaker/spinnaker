@@ -26,13 +26,13 @@ import com.google.api.services.run.v1.model.Revision;
 import com.google.api.services.run.v1.model.RevisionStatus;
 import com.google.api.services.run.v1.model.Service;
 import com.google.api.services.run.v1.model.ServiceStatus;
-import com.netflix.spectator.api.NoopRegistry;
 import com.netflix.spinnaker.cats.agent.AgentDataType;
 import com.netflix.spinnaker.cats.agent.CacheResult;
 import com.netflix.spinnaker.cats.cache.CacheData;
 import com.netflix.spinnaker.clouddriver.cloudrun.cache.Keys;
 import com.netflix.spinnaker.clouddriver.cloudrun.model.CloudrunLoadBalancer;
 import com.netflix.spinnaker.clouddriver.cloudrun.security.CloudrunNamedAccountCredentials;
+import io.micrometer.core.instrument.simple.SimpleMeterRegistry;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashMap;
@@ -53,7 +53,7 @@ class CloudrunServerGroupCachingAgentTest {
             ACCOUNT,
             mock(CloudrunNamedAccountCredentials.class),
             new ObjectMapper(),
-            new NoopRegistry());
+            new SimpleMeterRegistry());
   }
 
   /**

@@ -20,7 +20,7 @@ import com.fasterxml.jackson.databind.ObjectMapper
 import com.google.api.services.compute.ComputeRequest
 import com.google.api.services.compute.model.SslCertificate
 import com.google.api.services.compute.model.SslCertificateList
-import com.netflix.spectator.api.Registry
+import io.micrometer.core.instrument.MeterRegistry
 import com.netflix.spinnaker.cats.agent.AgentDataType
 import com.netflix.spinnaker.cats.agent.CacheResult
 import com.netflix.spinnaker.cats.provider.ProviderCache
@@ -46,14 +46,14 @@ class GoogleSslCertificateCachingAgent extends AbstractGoogleCachingAgent  {
   GoogleSslCertificateCachingAgent(String clouddriverUserAgentApplicationName,
                                    GoogleNamedAccountCredentials credentials,
                                    ObjectMapper objectMapper,
-                                   Registry registry) {
+                                   MeterRegistry registry) {
     this(clouddriverUserAgentApplicationName, credentials, objectMapper, registry, null)
   }
 
   GoogleSslCertificateCachingAgent(String clouddriverUserAgentApplicationName,
                                    GoogleNamedAccountCredentials credentials,
                                    ObjectMapper objectMapper,
-                                   Registry registry,
+                                   MeterRegistry registry,
                                    String region) {
     super(clouddriverUserAgentApplicationName,
       credentials,

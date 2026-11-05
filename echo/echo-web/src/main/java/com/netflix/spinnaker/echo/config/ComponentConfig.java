@@ -17,10 +17,10 @@
 package com.netflix.spinnaker.echo.config;
 
 import com.google.common.collect.ImmutableList;
-import com.netflix.spectator.api.Registry;
 import com.netflix.spinnaker.fiat.shared.EnableFiatAutoConfig;
 import com.netflix.spinnaker.filters.AuthenticatedRequestFilter;
 import com.netflix.spinnaker.kork.web.interceptors.MetricsInterceptor;
+import io.micrometer.core.instrument.MeterRegistry;
 import java.util.List;
 import org.springframework.boot.web.servlet.FilterRegistrationBean;
 import org.springframework.context.annotation.Bean;
@@ -43,9 +43,9 @@ import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
     basePackages = {"com.netflix.spinnaker.echo"},
     excludeFilters = @Filter(value = Configuration.class, type = FilterType.ANNOTATION))
 public class ComponentConfig implements WebMvcConfigurer {
-  private Registry registry;
+  private MeterRegistry registry;
 
-  public ComponentConfig(Registry registry) {
+  public ComponentConfig(MeterRegistry registry) {
     this.registry = registry;
   }
 

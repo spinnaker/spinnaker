@@ -15,12 +15,12 @@
  */
 package com.netflix.spinnaker.clouddriver.appengine.deploy.ops
 
-import com.netflix.spectator.api.Registry
+import io.micrometer.core.instrument.MeterRegistry;
 import com.netflix.spinnaker.clouddriver.orchestration.AtomicOperation
 import org.springframework.beans.factory.annotation.Autowired
 
 
 public abstract class AppengineAtomicOperation<ResultType> implements AtomicOperation<ResultType> {
   @Autowired
-  Registry registry
+  MeterRegistry registry
 }

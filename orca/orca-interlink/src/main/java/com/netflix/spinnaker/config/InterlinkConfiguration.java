@@ -17,7 +17,6 @@
 package com.netflix.spinnaker.config;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.netflix.spectator.api.Registry;
 import com.netflix.spinnaker.kork.pubsub.PubsubPublishers;
 import com.netflix.spinnaker.kork.pubsub.aws.SNSPublisherProvider;
 import com.netflix.spinnaker.kork.pubsub.aws.api.AmazonPubsubMessageHandler;
@@ -30,6 +29,7 @@ import com.netflix.spinnaker.orca.interlink.MessageFlagger;
 import com.netflix.spinnaker.orca.interlink.aws.InterlinkAmazonMessageHandler;
 import com.netflix.spinnaker.orca.pipeline.CompoundExecutionOperator;
 import com.netflix.spinnaker.orca.pipeline.persistence.ExecutionRepository;
+import io.micrometer.core.instrument.MeterRegistry;
 import java.time.Clock;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
@@ -71,7 +71,7 @@ public class InterlinkConfiguration {
       PubsubPublishers publishers,
       ObjectMapper objectMapper,
       InterlinkConfigurationProperties properties,
-      Registry registry,
+      MeterRegistry registry,
       Clock clock,
 
       // injected here to make sure the provider ran before Interlink,

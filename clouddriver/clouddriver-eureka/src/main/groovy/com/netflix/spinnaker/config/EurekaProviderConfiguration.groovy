@@ -19,7 +19,7 @@ package com.netflix.spinnaker.config
 import com.fasterxml.jackson.databind.DeserializationFeature
 import com.fasterxml.jackson.databind.MapperFeature
 import com.fasterxml.jackson.databind.ObjectMapper
-import com.netflix.spectator.api.Registry
+import io.micrometer.core.instrument.MeterRegistry
 import com.netflix.spinnaker.clouddriver.eureka.api.EurekaApiFactory
 import com.netflix.spinnaker.clouddriver.eureka.deploy.ops.EurekaSupportConfigurationProperties
 import com.netflix.spinnaker.clouddriver.eureka.provider.EurekaCachingProvider
@@ -51,7 +51,7 @@ import java.util.regex.Pattern
 class EurekaProviderConfiguration {
 
   @Autowired
-  Registry registry
+  MeterRegistry registry
 
   @Autowired
   Environment environment

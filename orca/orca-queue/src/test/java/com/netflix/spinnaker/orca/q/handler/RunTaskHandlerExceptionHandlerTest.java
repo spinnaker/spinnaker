@@ -32,7 +32,6 @@ import static org.mockito.Mockito.when;
 
 import com.google.common.base.Throwables;
 import com.google.common.collect.ImmutableMap;
-import com.netflix.spectator.api.NoopRegistry;
 import com.netflix.spinnaker.kork.core.RetrySupport;
 import com.netflix.spinnaker.kork.dynamicconfig.DynamicConfigService;
 import com.netflix.spinnaker.kork.lock.LockManager;
@@ -71,6 +70,7 @@ import com.netflix.spinnaker.q.QueueProcessor;
 import com.netflix.spinnaker.q.memory.InMemoryQueue;
 import com.netflix.spinnaker.q.metrics.EventPublisher;
 import com.netflix.spinnaker.q.metrics.HandlerThrewError;
+import io.micrometer.core.instrument.simple.SimpleMeterRegistry;
 import java.time.Clock;
 import java.time.Duration;
 import java.time.Instant;
@@ -306,7 +306,7 @@ class RunTaskHandlerExceptionHandlerTest {
         clock,
         exceptionHandlers,
         taskExecutionInterceptors,
-        new NoopRegistry(),
+        new SimpleMeterRegistry(),
         dynamicConfigService,
         retriableLock);
   }

@@ -17,9 +17,7 @@
 
 package com.netflix.spinnaker.clouddriver.aws.provider.agent
 
-import com.netflix.spectator.api.Counter
-import com.netflix.spectator.api.Id
-import com.netflix.spectator.api.Registry
+import io.micrometer.core.instrument.simple.SimpleMeterRegistry
 import com.netflix.spinnaker.clouddriver.aws.model.AmazonReservationReport
 import com.netflix.spinnaker.clouddriver.aws.security.AmazonCredentials
 import com.netflix.spinnaker.clouddriver.aws.security.NetflixAmazonCredentials
@@ -29,9 +27,7 @@ import spock.lang.Unroll
 import java.util.concurrent.ConcurrentHashMap
 
 class ReservationReportCachingAgentSpec extends Specification {
-  def registry = Mock(Registry)
-  def registryId = Mock(Id)
-  def counter = Mock(Counter)
+  def registry = new SimpleMeterRegistry()
 
   def "should record regional error and emit metric"() {
     given:
@@ -60,12 +56,7 @@ class ReservationReportCachingAgentSpec extends Specification {
       "Failed to describe instances in test:us-west-2, reason: This is even better!"
     ]
 
-    3 * registry.createId("reservedInstances.errors") >> registryId
-    2 * registryId.withTag("account", "test") >> registryId
-    2 * registryId.withTag("region", "us-west-1") >> registryId
-    1 * registryId.withTag("account", "test") >> registryId
-    1 * registryId.withTag("region", "us-west-2") >> registryId
-    3 * registry.counter(registryId) >> counter
-    3 * counter.increment()
+    registry.find("reservedInstances.errors").tags("account", "test", "region", "us-west-1").counter().count() == 2
+    registry.find("reservedInstances.errors").tags("account", "test", "region", "us-west-2").counter().count() == 1
   }
 }

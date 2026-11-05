@@ -18,7 +18,7 @@ package com.netflix.spinnaker.clouddriver.google.provider.agent
 
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.google.api.services.compute.model.Address
-import com.netflix.spectator.api.Registry
+import io.micrometer.core.instrument.MeterRegistry
 import com.netflix.spinnaker.cats.agent.AgentDataType
 import com.netflix.spinnaker.cats.agent.CacheResult
 import com.netflix.spinnaker.cats.provider.ProviderCache
@@ -44,7 +44,7 @@ class GoogleRegionalAddressCachingAgent extends AbstractGoogleCachingAgent {
   GoogleRegionalAddressCachingAgent(String clouddriverUserAgentApplicationName,
                                     GoogleNamedAccountCredentials credentials,
                                     ObjectMapper objectMapper,
-                                    Registry registry,
+                                    MeterRegistry registry,
                                     String region) {
     super(clouddriverUserAgentApplicationName,
           credentials,

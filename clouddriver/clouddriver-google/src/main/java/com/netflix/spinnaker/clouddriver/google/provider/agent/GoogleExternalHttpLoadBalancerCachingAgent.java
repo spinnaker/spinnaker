@@ -19,7 +19,6 @@ package com.netflix.spinnaker.clouddriver.google.provider.agent;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.api.services.compute.model.ForwardingRule;
 import com.google.api.services.compute.model.TargetHttpsProxy;
-import com.netflix.spectator.api.Registry;
 import com.netflix.spinnaker.clouddriver.google.deploy.GCEUtil;
 import com.netflix.spinnaker.clouddriver.google.model.callbacks.Utils;
 import com.netflix.spinnaker.clouddriver.google.model.loadbalancing.GoogleBackendService;
@@ -27,6 +26,7 @@ import com.netflix.spinnaker.clouddriver.google.model.loadbalancing.GoogleExtern
 import com.netflix.spinnaker.clouddriver.google.model.loadbalancing.GoogleHostRule;
 import com.netflix.spinnaker.clouddriver.google.model.loadbalancing.GoogleLoadBalancerType;
 import com.netflix.spinnaker.clouddriver.google.security.GoogleNamedAccountCredentials;
+import io.micrometer.core.instrument.MeterRegistry;
 import java.util.ArrayList;
 import java.util.List;
 import org.slf4j.Logger;
@@ -49,7 +49,7 @@ public class GoogleExternalHttpLoadBalancerCachingAgent
       String clouddriverUserAgentApplicationName,
       GoogleNamedAccountCredentials credentials,
       ObjectMapper objectMapper,
-      Registry registry,
+      MeterRegistry registry,
       String region) {
     super(clouddriverUserAgentApplicationName, credentials, objectMapper, registry, region);
   }

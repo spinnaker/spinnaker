@@ -18,16 +18,15 @@ package com.netflix.spinnaker.orca.listeners;
 
 import static com.netflix.spinnaker.orca.api.pipeline.models.ExecutionType.ORCHESTRATION;
 
-import com.netflix.spectator.api.Id;
-import com.netflix.spectator.api.Registry;
 import com.netflix.spinnaker.orca.api.pipeline.models.ExecutionStatus;
 import com.netflix.spinnaker.orca.api.pipeline.models.PipelineExecution;
+import io.micrometer.core.instrument.MeterRegistry;
 import java.util.concurrent.TimeUnit;
 
 public class MetricsExecutionListener implements ExecutionListener {
-  private final Registry registry;
+  private final MeterRegistry registry;
 
-  public MetricsExecutionListener(Registry registry) {
+  public MetricsExecutionListener(MeterRegistry registry) {
     this.registry = registry;
   }
 
@@ -37,13 +36,14 @@ public class MetricsExecutionListener implements ExecutionListener {
       return;
     }
 
-    Id id =
-        registry
-            .createId("executions.started")
-            .withTag("executionType", execution.getType().toString())
-            .withTag("application", execution.getApplication().toLowerCase());
-
-    registry.counter(id).increment();
+    registry
+        .counter(
+            "executions.started",
+            "executionType",
+            execution.getType().toString(),
+            "application",
+            execution.getApplication().toLowerCase())
+        .increment();
   }
 
   @Override
@@ -65,15 +65,15 @@ public class MetricsExecutionListener implements ExecutionListener {
       return;
     }
 
-    Id id =
-        registry
-            .createId("executions.totalTime")
-            .withTag("executionType", execution.getType().toString())
-            .withTag("successful", Boolean.valueOf(wasSuccessful).toString())
-            .withTag("application", execution.getApplication().toLowerCase());
-
     registry
-        .timer(id)
+        .timer(
+            "executions.totalTime",
+            "executionType",
+            execution.getType().toString(),
+            "successful",
+            Boolean.valueOf(wasSuccessful).toString(),
+            "application",
+            execution.getApplication().toLowerCase())
         .record(execution.getEndTime() - execution.getStartTime(), TimeUnit.MILLISECONDS);
   }
 }

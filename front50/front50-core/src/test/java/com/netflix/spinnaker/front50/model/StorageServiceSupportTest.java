@@ -23,11 +23,11 @@ import static org.mockito.Mockito.doReturn;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
 
-import com.netflix.spectator.api.NoopRegistry;
-import com.netflix.spectator.api.Registry;
 import com.netflix.spinnaker.front50.api.model.pipeline.Pipeline;
 import com.netflix.spinnaker.front50.config.StorageServiceConfigurationProperties;
 import io.github.resilience4j.circuitbreaker.CircuitBreakerRegistry;
+import io.micrometer.core.instrument.MeterRegistry;
+import io.micrometer.core.instrument.simple.SimpleMeterRegistry;
 import io.reactivex.rxjava3.core.Scheduler;
 import java.util.Collections;
 import java.util.HashSet;
@@ -48,7 +48,7 @@ class StorageServiceSupportTest {
         Scheduler scheduler,
         ObjectKeyLoader objectKeyLoader,
         StorageServiceConfigurationProperties.PerObjectType configurationProperties,
-        Registry registry,
+        MeterRegistry registry,
         CircuitBreakerRegistry circuitBreakerRegistry) {
       super(
           ObjectType.PIPELINE,
@@ -74,7 +74,7 @@ class StorageServiceSupportTest {
           scheduler,
           new DefaultObjectKeyLoader(storageService),
           testDAOConfigProperties,
-          new NoopRegistry(),
+          new SimpleMeterRegistry(),
           CircuitBreakerRegistry.ofDefaults());
 
   @Test
@@ -147,7 +147,7 @@ class StorageServiceSupportTest {
             scheduler,
             new DefaultObjectKeyLoader(service),
             properties,
-            new NoopRegistry(),
+            new SimpleMeterRegistry(),
             CircuitBreakerRegistry.ofDefaults());
 
     Thread first = new Thread(dao::refresh);

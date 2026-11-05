@@ -10,7 +10,7 @@
 package com.netflix.spinnaker.clouddriver.oracle.provider.agent
 
 import com.fasterxml.jackson.databind.ObjectMapper
-import com.netflix.spectator.api.Registry
+import io.micrometer.core.instrument.MeterRegistry
 import com.netflix.spinnaker.clouddriver.oracle.cache.Keys
 import com.netflix.spinnaker.clouddriver.oracle.security.OracleNamedAccountCredentials
 import com.oracle.bmc.Region
@@ -33,7 +33,7 @@ class OracleSecurityGroupCachingAgentSpec extends Specification {
     creds.name = "foo"
     creds.compartmentId = "bar"
     creds.region = Region.US_PHOENIX_1.regionId
-    def registry = Mock(Registry)
+    def registry = Mock(MeterRegistry)
     def agent = new OracleSecurityGroupCachingAgent("", creds, objectMapper, registry)
     def expectedAgentType = "${creds.name}/${creds.region}/${OracleSecurityGroupCachingAgent.class.simpleName}"
 
@@ -47,7 +47,7 @@ class OracleSecurityGroupCachingAgentSpec extends Specification {
   def "agent handles null items in list rsp"() {
     setup:
     def creds = Mock(OracleNamedAccountCredentials)
-    def registry = Mock(Registry)
+    def registry = Mock(MeterRegistry)
     def networkClient = Mock(VirtualNetworkClient)
     networkClient.listVcns(_) >> ListVcnsResponse.builder().build()
     creds.networkClient >> networkClient
@@ -74,7 +74,7 @@ class OracleSecurityGroupCachingAgentSpec extends Specification {
     def creds = Mock(OracleNamedAccountCredentials)
     creds.name = "foo"
     creds.region = Region.US_PHOENIX_1.regionId
-    def registry = Mock(Registry)
+    def registry = Mock(MeterRegistry)
     def networkClient = Mock(VirtualNetworkClient)
     def vcnId = "ocid.vcn.123"
     def vcns = [

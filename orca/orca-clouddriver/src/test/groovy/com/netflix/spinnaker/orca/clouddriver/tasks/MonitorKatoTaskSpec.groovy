@@ -16,7 +16,6 @@
 
 package com.netflix.spinnaker.orca.clouddriver.tasks
 
-import com.netflix.spectator.api.NoopRegistry
 import com.netflix.spinnaker.kork.core.RetrySupport
 import com.netflix.spinnaker.kork.dynamicconfig.DynamicConfigService
 import com.netflix.spinnaker.kork.retrofit.exceptions.SpinnakerHttpException
@@ -27,6 +26,7 @@ import com.netflix.spinnaker.orca.clouddriver.model.Task
 import com.netflix.spinnaker.orca.clouddriver.model.TaskId
 import com.netflix.spinnaker.orca.pipeline.model.PipelineExecutionImpl
 import com.netflix.spinnaker.orca.pipeline.model.StageExecutionImpl
+import io.micrometer.core.instrument.simple.SimpleMeterRegistry
 import okhttp3.MediaType
 import okhttp3.ResponseBody
 import retrofit2.Response
@@ -50,7 +50,7 @@ class MonitorKatoTaskSpec extends Specification {
   KatoService kato = Mock(KatoService)
   DynamicConfigService dynamicConfigService = Mock()
 
-  @Subject task = new MonitorKatoTask(kato, new NoopRegistry(), Clock.fixed(now, ZoneId.of("UTC")), dynamicConfigService, retrySupport)
+  @Subject task = new MonitorKatoTask(kato, new SimpleMeterRegistry(), Clock.fixed(now, ZoneId.of("UTC")), dynamicConfigService, retrySupport)
 
   @Unroll("result is #expectedResult if kato task is #katoStatus")
   def "result depends on Kato task status"() {

@@ -16,8 +16,6 @@
 package com.netflix.spinnaker.orca.telemetry
 
 import com.fasterxml.jackson.databind.ObjectMapper
-import com.netflix.spectator.api.Id
-import com.netflix.spectator.api.Registry
 import com.netflix.spinnaker.kork.jedis.RedisClientSelector
 import com.netflix.spinnaker.orca.api.pipeline.models.ExecutionType
 import com.netflix.spinnaker.orca.api.pipeline.models.PipelineExecution
@@ -27,6 +25,8 @@ import com.netflix.spinnaker.orca.events.ExecutionStarted
 import com.netflix.spinnaker.orca.pipeline.persistence.ExecutionNotFoundException
 import com.netflix.spinnaker.orca.pipeline.persistence.ExecutionRepository
 import com.netflix.spinnaker.orca.pipeline.persistence.StageSerializationException
+import io.micrometer.core.instrument.MeterRegistry
+import io.micrometer.core.instrument.Tags
 import java.util.concurrent.ConcurrentHashMap
 import java.util.concurrent.Executors
 import java.util.concurrent.TimeUnit
@@ -42,7 +42,7 @@ import org.springframework.stereotype.Component
  * A monitor that records active executions.
  *
  * On every ExecutionStarted event, a record is added to a Redis hash by its execution ID. In the background, the
- * monitor will update an in-memory snapshot of active executions and register dynamic gauges into Spectator.
+ * monitor will update an in-memory snapshot of active executions and register dynamic gauges into Micrometer.
  *
  * Lastly a slower background job will iterate through all executions it knows about to verify that no active
  * executions have been orphaned by out-of-band failures.
@@ -55,7 +55,7 @@ class RedisActiveExecutionsMonitor(
   private val executionRepository: ExecutionRepository,
   redisClientSelector: RedisClientSelector,
   private val objectMapper: ObjectMapper,
-  private val registry: Registry,
+  private val registry: MeterRegistry,
   @Value("\${monitor.active-executions.refresh.frequency.ms:60000}") refreshFrequencyMs: Long,
   @Value("\${monitor.active-executions.cleanup.frequency.ms:300000}") cleanupFrequencyMs: Long,
   @Value("\${monitor.active-executions.key:monitor.active-executions}") val redisKey: String
@@ -64,17 +64,19 @@ class RedisActiveExecutionsMonitor(
   private val log = LoggerFactory.getLogger(javaClass)
 
   private val redisClientDelegate = redisClientSelector.primary("default")
-  private val snapshot: MutableMap<Id, AtomicLong> = ConcurrentHashMap()
+  private val snapshot: MutableMap<Tags, AtomicLong> = ConcurrentHashMap()
 
   private val executor = Executors.newScheduledThreadPool(2)
 
   private val activePipelineCounter = registry.gauge(
-    registry.createId("executions.active").withTag("executionType", ExecutionType.PIPELINE.toString()),
+    "executions.active",
+    Tags.of("executionType", ExecutionType.PIPELINE.toString()),
     AtomicInteger(0)
   )
 
   private val activeOrchestrationCounter = registry.gauge(
-    registry.createId("executions.active").withTag("executionType", ExecutionType.ORCHESTRATION.toString()),
+    "executions.active",
+    Tags.of("executionType", ExecutionType.ORCHESTRATION.toString()),
     AtomicInteger(0)
   )
 
@@ -119,7 +121,7 @@ class RedisActiveExecutionsMonitor(
   private fun snapshotActivity(): List<ActiveExecution> {
     val activeExecutions = getActiveExecutions()
 
-    val working = mutableMapOf<Id, Long>()
+    val working = mutableMapOf<Tags, Long>()
     activeExecutions
       .map { it.getMetricId() }
       .forEach { working.computeIfAbsent(it, { 0L }).inc() }
@@ -203,8 +205,7 @@ class RedisActiveExecutionsMonitor(
     }
 
   private fun ActiveExecution.getMetricId() =
-    registry.createId("executions.active")
-      .withTag("executionType", type.toString())
+    Tags.of("executionType", type.toString())
 
   data class ActiveExecution(
     val id: String,

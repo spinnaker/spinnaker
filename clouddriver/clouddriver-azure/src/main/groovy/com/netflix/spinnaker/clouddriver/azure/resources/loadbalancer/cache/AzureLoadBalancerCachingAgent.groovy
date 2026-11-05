@@ -18,7 +18,7 @@ package com.netflix.spinnaker.clouddriver.azure.resources.loadbalancer.cache
 
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.fasterxml.jackson.databind.SerializationFeature
-import com.netflix.spectator.api.Registry
+import io.micrometer.core.instrument.MeterRegistry
 import com.netflix.spinnaker.cats.agent.AccountAware
 import com.netflix.spinnaker.cats.agent.AgentDataType
 import com.netflix.spinnaker.cats.agent.CacheResult
@@ -50,7 +50,7 @@ class AzureLoadBalancerCachingAgent implements CachingAgent, OnDemandAgent, Acco
   final AzureCredentials creds
   final String region
   final ObjectMapper objectMapper
-  final Registry registry
+  final MeterRegistry registry
   final OnDemandMetricsSupport metricsSupport
 
   static final Set<AgentDataType> types = Collections.unmodifiableSet([
@@ -62,7 +62,7 @@ class AzureLoadBalancerCachingAgent implements CachingAgent, OnDemandAgent, Acco
                            AzureCredentials creds,
                            String region,
                            ObjectMapper objectMapper,
-                           Registry registry) {
+                           MeterRegistry registry) {
     this.azureCloudProvider = azureCloudProvider
     this.accountName = accountName
     this.creds = creds

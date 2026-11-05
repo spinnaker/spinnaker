@@ -16,11 +16,16 @@
 
 package com.netflix.spinnaker.fiat.config;
 
-import com.netflix.spectator.api.Id;
-import com.netflix.spectator.api.Registry;
 import com.netflix.spinnaker.fiat.providers.HealthTrackable;
+import io.micrometer.core.instrument.MeterRegistry;
+import io.micrometer.core.instrument.Tags;
 import java.util.List;
+import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.concurrent.atomic.AtomicReference;
+import java.util.stream.Collectors;
+import java.util.stream.StreamSupport;
 import lombok.Setter;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -36,16 +41,24 @@ public class ResourceProvidersHealthIndicator extends AbstractHealthIndicator {
 
   @Autowired @Setter List<HealthTrackable> providers;
 
-  @Autowired @Setter Registry registry;
+  @Autowired @Setter MeterRegistry registry;
+
+  private final Map<String, AtomicReference<Double>> gauges = new ConcurrentHashMap<>();
 
   private AtomicBoolean previousHealthCheckIsUp = new AtomicBoolean(false);
 
   private AtomicBoolean upOnce = new AtomicBoolean(false);
 
-  private Id id(String name, HealthTrackable provider) {
-    return registry
-        .createId("fiat.resourceProvider." + name)
-        .withTag("provider", provider.getClass().getSimpleName());
+  private AtomicReference<Double> gauge(String name, Tags tags) {
+    String key =
+        name
+            + ":"
+            + StreamSupport.stream(tags.spliterator(), false)
+                .map(t -> t.getKey() + "=" + t.getValue())
+                .sorted()
+                .collect(Collectors.joining(","));
+    return gauges.computeIfAbsent(
+        key, k -> registry.gauge(name, tags, new AtomicReference<>(0.0), AtomicReference::get));
   }
 
   @Override
@@ -55,14 +68,15 @@ public class ResourceProvidersHealthIndicator extends AbstractHealthIndicator {
       builder.withDetail(
           provider.getClass().getSimpleName(), provider.getHealthTracker().getHealthView());
       isDown = isDown || !provider.getHealthTracker().isProviderHealthy();
-      registry
-          .gauge(id("healthy", provider))
-          .set(provider.getHealthTracker().isProviderHealthy() ? 1 : 0);
+      Tags providerTags = Tags.of("provider", provider.getClass().getSimpleName());
+      gauge("fiat.resourceProvider.healthy", providerTags)
+          .set(provider.getHealthTracker().isProviderHealthy() ? 1.0 : 0.0);
       long dataAge = provider.getHealthTracker().getHealthView().getMsSinceLastSuccess();
       long timeTillStaleMillis =
           provider.getHealthTracker().getHealthView().getMaximumStalenessTimeMs() - dataAge;
-      registry
-          .gauge(id("dataAgeSeconds", provider).withTag("stale", timeTillStaleMillis < 0))
+      gauge(
+              "fiat.resourceProvider.dataAgeSeconds",
+              providerTags.and("stale", String.valueOf(timeTillStaleMillis < 0)))
           .set(((double) dataAge) / 1000.0d);
     }
 

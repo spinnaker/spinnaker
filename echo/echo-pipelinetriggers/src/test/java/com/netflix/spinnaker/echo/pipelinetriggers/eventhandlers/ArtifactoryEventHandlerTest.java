@@ -22,7 +22,6 @@ import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
-import com.netflix.spectator.api.NoopRegistry;
 import com.netflix.spinnaker.echo.api.events.Metadata;
 import com.netflix.spinnaker.echo.jackson.EchoObjectMapper;
 import com.netflix.spinnaker.echo.model.Pipeline;
@@ -31,6 +30,7 @@ import com.netflix.spinnaker.echo.model.trigger.ArtifactoryEvent;
 import com.netflix.spinnaker.fiat.shared.FiatPermissionEvaluator;
 import com.netflix.spinnaker.kork.artifacts.model.Artifact;
 import com.netflix.spinnaker.kork.artifacts.model.ExpectedArtifact;
+import io.micrometer.core.instrument.simple.SimpleMeterRegistry;
 import java.util.Collections;
 import java.util.List;
 import java.util.concurrent.TimeoutException;
@@ -51,7 +51,7 @@ class ArtifactoryEventHandlerTest {
         .thenReturn(true);
     eventHandler =
         new ArtifactoryEventHandler(
-            new NoopRegistry(), EchoObjectMapper.getInstance(), fiatPermissionEvaluator);
+            new SimpleMeterRegistry(), EchoObjectMapper.getInstance(), fiatPermissionEvaluator);
   }
 
   private static ArtifactoryEvent createArtifactoryEvent() {

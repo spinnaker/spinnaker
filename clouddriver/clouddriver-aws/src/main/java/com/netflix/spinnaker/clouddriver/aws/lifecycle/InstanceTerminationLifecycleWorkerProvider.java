@@ -17,11 +17,11 @@ package com.netflix.spinnaker.clouddriver.aws.lifecycle;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.util.concurrent.ThreadFactoryBuilder;
-import com.netflix.spectator.api.Registry;
 import com.netflix.spinnaker.clouddriver.aws.deploy.ops.discovery.AwsEurekaSupport;
 import com.netflix.spinnaker.clouddriver.aws.security.AmazonClientProvider;
 import com.netflix.spinnaker.clouddriver.aws.security.NetflixAmazonCredentials;
 import com.netflix.spinnaker.credentials.CredentialsRepository;
+import io.micrometer.core.instrument.MeterRegistry;
 import jakarta.annotation.PostConstruct;
 import jakarta.inject.Provider;
 import java.util.concurrent.ExecutorService;
@@ -52,7 +52,7 @@ public class InstanceTerminationLifecycleWorkerProvider {
   private final CredentialsRepository<NetflixAmazonCredentials> credentialsRepository;
   private final InstanceTerminationConfigurationProperties properties;
   private final Provider<AwsEurekaSupport> discoverySupport;
-  private final Registry registry;
+  private final MeterRegistry registry;
 
   @Autowired
   InstanceTerminationLifecycleWorkerProvider(
@@ -61,7 +61,7 @@ public class InstanceTerminationLifecycleWorkerProvider {
       CredentialsRepository<NetflixAmazonCredentials> credentialsRepository,
       InstanceTerminationConfigurationProperties properties,
       Provider<AwsEurekaSupport> discoverySupport,
-      Registry registry) {
+      MeterRegistry registry) {
     this.objectMapper = objectMapper;
     this.amazonClientProvider = amazonClientProvider;
     this.credentialsRepository = credentialsRepository;

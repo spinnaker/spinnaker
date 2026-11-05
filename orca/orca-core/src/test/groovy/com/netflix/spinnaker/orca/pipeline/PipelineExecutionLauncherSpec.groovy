@@ -16,7 +16,6 @@
 
 package com.netflix.spinnaker.orca.pipeline
 
-import com.netflix.spectator.api.NoopRegistry
 import com.netflix.spinnaker.kork.web.filters.ProvidedIdRequestFilterConfigurationProperties
 import com.netflix.spinnaker.orca.api.pipeline.graph.StageDefinitionBuilder
 import com.netflix.spinnaker.orca.config.ExecutionConfigurationProperties
@@ -28,6 +27,8 @@ import java.time.Clock
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.netflix.spinnaker.orca.pipeline.persistence.ExecutionRepository
 import com.netflix.spinnaker.orca.test.TestConfiguration
+import io.micrometer.core.instrument.MeterRegistry
+import io.micrometer.core.instrument.simple.SimpleMeterRegistry
 import org.springframework.context.annotation.AnnotationConfigApplicationContext
 import spock.lang.Shared
 import spock.lang.Specification
@@ -51,7 +52,7 @@ class PipelineExecutionLauncherSpec extends Specification {
       Clock.systemDefaultZone(),
       applicationEventPublisher,
       Optional.of(pipelineValidator),
-      new NoopRegistry(),
+      Optional.<MeterRegistry> empty(),
       new ExecutionConfigurationProperties(),
       providedIdRequestFilterConfigurationProperties
     )
@@ -76,7 +77,7 @@ class PipelineExecutionLauncherSpec extends Specification {
           }
         })
         registerSingleton("executionConfigurationProperties", new ExecutionConfigurationProperties())
-        registerSingleton("registry", new NoopRegistry())
+        registerSingleton("registry", new SimpleMeterRegistry())
       }
       register(ExecutionLauncher)
       refresh()
@@ -104,7 +105,7 @@ class PipelineExecutionLauncherSpec extends Specification {
           }
         })
         registerSingleton("executionConfigurationProperties", new ExecutionConfigurationProperties())
-        registerSingleton("registry", new NoopRegistry())
+        registerSingleton("registry", new SimpleMeterRegistry())
         registerSingleton("providedIdRequestFilterConfigurationProperties", new ProvidedIdRequestFilterConfigurationProperties())
       }
       register(ExecutionLauncher)

@@ -16,11 +16,11 @@
 
 package com.netflix.spinnaker.clouddriver.aws.model
 
-import com.netflix.spectator.api.Registry
 import com.netflix.spinnaker.clouddriver.aws.model.AmazonReservationReport.OverallReservationDetail
 import com.netflix.spinnaker.clouddriver.aws.provider.view.AmazonS3DataProvider
 import com.netflix.spinnaker.clouddriver.model.DataProvider
 import groovy.util.logging.Slf4j
+import io.micrometer.core.instrument.MeterRegistry
 
 import java.util.concurrent.atomic.AtomicInteger
 
@@ -67,7 +67,7 @@ interface AmazonReservationReportBuilder {
       "i3.metal" : 16
     ]
 
-    List<OverallReservationDetail> aggregateRegionalReservations(Registry registry,
+    List<OverallReservationDetail> aggregateRegionalReservations(MeterRegistry registry,
                                                                  List<OverallReservationDetail> reservations) {
       def regionalReservations = filterRegionalReservations(reservations)
 
@@ -170,7 +170,7 @@ interface AmazonReservationReportBuilder {
   class V3 implements AmazonReservationReportBuilder {
     private final Support support = new Support()
 
-    AmazonReservationReport build(Registry registry, AmazonReservationReport source) {
+    AmazonReservationReport build(MeterRegistry registry, AmazonReservationReport source) {
       def reservations = source.reservations.sort(
         false, new AmazonReservationReport.DescendingOverallReservationDetailComparator()
       )

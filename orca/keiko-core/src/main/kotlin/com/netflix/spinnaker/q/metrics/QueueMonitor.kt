@@ -16,8 +16,7 @@
 
 package com.netflix.spinnaker.q.metrics
 
-import com.netflix.spectator.api.Registry
-import com.netflix.spectator.api.patterns.PolledMeter
+import io.micrometer.core.instrument.MeterRegistry
 import java.time.Clock
 import java.util.concurrent.atomic.AtomicReference
 import org.springframework.scheduling.annotation.Scheduled
@@ -26,46 +25,26 @@ import org.springframework.scheduling.annotation.Scheduled
  * publishes gauges based on regular polling of the queue state
  */
 class QueueMonitor(
-  val registry: Registry,
+  val registry: MeterRegistry,
   val clock: Clock,
   val queue: MonitorableQueue
 ) {
   init {
-    PolledMeter.using(registry)
-      .withName("queue.depth")
-      .monitorValue(
-        this,
-        {
-          it.lastState.depth.toDouble()
-        }
-      )
+    registry.gauge("queue.depth", this) {
+      it.lastState.depth.toDouble()
+    }
 
-    PolledMeter.using(registry)
-      .withName("queue.unacked.depth")
-      .monitorValue(
-        this,
-        {
-          it.lastState.unacked.toDouble()
-        }
-      )
+    registry.gauge("queue.unacked.depth", this) {
+      it.lastState.unacked.toDouble()
+    }
 
-    PolledMeter.using(registry)
-      .withName("queue.ready.depth")
-      .monitorValue(
-        this,
-        {
-          it.lastState.ready.toDouble()
-        }
-      )
+    registry.gauge("queue.ready.depth", this) {
+      it.lastState.ready.toDouble()
+    }
 
-    PolledMeter.using(registry)
-      .withName("queue.orphaned.messages")
-      .monitorValue(
-        this,
-        {
-          it.lastState.orphaned.toDouble()
-        }
-      )
+    registry.gauge("queue.orphaned.messages", this) {
+      it.lastState.orphaned.toDouble()
+    }
   }
 
   val lastState: QueueState

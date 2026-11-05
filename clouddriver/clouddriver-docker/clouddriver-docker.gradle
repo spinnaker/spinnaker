@@ -12,7 +12,7 @@ dependencies {
   implementation "org.springframework.cloud:spring-cloud-context"
   implementation "org.apache.groovy:groovy"
   implementation "com.google.guava:guava"
-  implementation "com.netflix.spectator:spectator-api"
+  implementation "io.micrometer:micrometer-core"
   implementation "com.squareup.retrofit2:converter-jackson"
   implementation "org.apache.commons:commons-compress:$commonsCompressVersion"
   implementation "commons-io:commons-io"

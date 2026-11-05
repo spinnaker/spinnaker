@@ -17,7 +17,7 @@
 
 package com.netflix.spinnaker.clouddriver.dcos.health
 
-import com.netflix.spectator.api.Registry
+import io.micrometer.core.instrument.MeterRegistry
 import com.netflix.spinnaker.clouddriver.core.AlwaysUpHealthIndicator
 import com.netflix.spinnaker.clouddriver.dcos.DcosClientProvider
 import com.netflix.spinnaker.clouddriver.dcos.security.DcosAccountCredentials
@@ -37,7 +37,7 @@ class DcosHealthIndicator extends AlwaysUpHealthIndicator {
   private final DcosClientProvider dcosClientProvider
   private final AtomicReference<Exception> lastException = new AtomicReference<>(null)
 
-  DcosHealthIndicator(Registry registry,
+  DcosHealthIndicator(MeterRegistry registry,
                       AccountCredentialsProvider accountCredentialsProvider,
                       DcosClientProvider dcosClientProvider) {
     super(registry, "dcos")

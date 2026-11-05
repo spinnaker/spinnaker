@@ -23,7 +23,6 @@ import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.netflix.spectator.api.NoopRegistry;
 import com.netflix.spinnaker.echo.api.events.Metadata;
 import com.netflix.spinnaker.echo.jackson.EchoObjectMapper;
 import com.netflix.spinnaker.echo.model.Pipeline;
@@ -31,6 +30,7 @@ import com.netflix.spinnaker.echo.model.Trigger;
 import com.netflix.spinnaker.echo.model.trigger.HelmEvent;
 import com.netflix.spinnaker.echo.pipelinetriggers.PipelineCache;
 import com.netflix.spinnaker.fiat.shared.FiatPermissionEvaluator;
+import io.micrometer.core.instrument.simple.SimpleMeterRegistry;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
@@ -45,7 +45,7 @@ import org.junit.jupiter.params.provider.Arguments;
 import org.junit.jupiter.params.provider.MethodSource;
 
 class HelmEventHandlerTest {
-  private final NoopRegistry registry = new NoopRegistry();
+  private final SimpleMeterRegistry registry = new SimpleMeterRegistry();
   private final ObjectMapper objectMapper = EchoObjectMapper.getInstance();
   private final TestEventHandlerSupport testEventSupport = new TestEventHandlerSupport();
   private final AtomicInteger nextId = new AtomicInteger(1);

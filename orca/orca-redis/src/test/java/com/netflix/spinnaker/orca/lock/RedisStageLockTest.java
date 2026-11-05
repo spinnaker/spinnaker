@@ -18,7 +18,6 @@ package com.netflix.spinnaker.orca.lock;
 import static org.junit.jupiter.api.Assertions.*;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.netflix.spectator.api.NoopRegistry;
 import com.netflix.spinnaker.kork.core.RetrySupport;
 import com.netflix.spinnaker.kork.jedis.EmbeddedRedis;
 import com.netflix.spinnaker.kork.jedis.JedisClientDelegate;
@@ -26,6 +25,7 @@ import com.netflix.spinnaker.kork.jedis.lock.RedisLockManager;
 import com.netflix.spinnaker.kork.lock.LockManager.LockCallbackException;
 import com.netflix.spinnaker.kork.lock.LockManager.LockOptions;
 import com.netflix.spinnaker.kork.lock.LockManager.LockStatus;
+import io.micrometer.core.instrument.simple.SimpleMeterRegistry;
 import java.time.Clock;
 import java.time.Duration;
 import java.util.ArrayList;
@@ -154,7 +154,7 @@ class RedisStageLockTest {
         new RedisLockManager(
             owner,
             Clock.systemUTC(),
-            new NoopRegistry(),
+            new SimpleMeterRegistry(),
             new ObjectMapper(),
             new JedisClientDelegate(redis.getPool()),
             Optional.of(25L),

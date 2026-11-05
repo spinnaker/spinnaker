@@ -15,8 +15,7 @@
  */
 package com.netflix.spinnaker.kork.jedis.telemetry;
 
-import com.netflix.spectator.api.Id;
-import com.netflix.spectator.api.Registry;
+import io.micrometer.core.instrument.Tags;
 import java.io.UnsupportedEncodingException;
 import java.util.List;
 import java.util.Map;
@@ -30,29 +29,24 @@ public class TelemetryHelper {
 
   private static Logger log = LoggerFactory.getLogger(TelemetryHelper.class);
 
-  static Id timerId(Registry registry, String name, String command, boolean pipelined) {
-    return registry
-        .createId(DEFAULT_ID_PREFIX + ".latency." + command)
-        .withTags(POOL_TAG, name, "pipelined", String.valueOf(pipelined));
+  static String timerName(String command) {
+    return DEFAULT_ID_PREFIX + ".latency." + command;
   }
 
-  static Id payloadSizeId(Registry registry, String name, String command, boolean pipelined) {
-    return registry
-        .createId(DEFAULT_ID_PREFIX + ".payloadSize." + command)
-        .withTags(POOL_TAG, name, "pipelined", String.valueOf(pipelined));
+  static String payloadSizeName(String command) {
+    return DEFAULT_ID_PREFIX + ".payloadSize." + command;
   }
 
-  static Id invocationId(
-      Registry registry, String name, String command, boolean pipelined, boolean success) {
-    return registry
-        .createId(DEFAULT_ID_PREFIX + ".invocation." + command)
-        .withTags(
-            POOL_TAG,
-            name,
-            "pipelined",
-            String.valueOf(pipelined),
-            "success",
-            String.valueOf(success));
+  static String invocationName(String command) {
+    return DEFAULT_ID_PREFIX + ".invocation." + command;
+  }
+
+  static Tags commandTags(String name, boolean pipelined) {
+    return Tags.of("pipelined", String.valueOf(pipelined)).and(POOL_TAG, name);
+  }
+
+  static Tags invocationTags(String name, boolean pipelined, boolean success) {
+    return commandTags(name, pipelined).and("success", String.valueOf(success));
   }
 
   static long payloadSize(String payload) {

@@ -22,7 +22,6 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.MapperFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.netflix.spectator.api.Registry;
 import com.netflix.spinnaker.cats.agent.AccountAware;
 import com.netflix.spinnaker.cats.agent.CachingAgent;
 import com.netflix.spinnaker.cats.cache.CacheData;
@@ -35,6 +34,7 @@ import com.netflix.spinnaker.clouddriver.cloudfoundry.client.CloudFoundryClient;
 import com.netflix.spinnaker.clouddriver.cloudfoundry.model.Views;
 import com.netflix.spinnaker.clouddriver.cloudfoundry.provider.CloudFoundryProvider;
 import com.netflix.spinnaker.clouddriver.cloudfoundry.security.CloudFoundryCredentials;
+import io.micrometer.core.instrument.MeterRegistry;
 import java.io.IOException;
 import java.time.Clock;
 import java.util.Collection;
@@ -56,12 +56,12 @@ abstract class AbstractCloudFoundryCachingAgent
   private final Clock internalClock;
   private final CloudFoundryCredentials credentials;
 
-  AbstractCloudFoundryCachingAgent(CloudFoundryCredentials credentials, Registry registry) {
+  AbstractCloudFoundryCachingAgent(CloudFoundryCredentials credentials, MeterRegistry registry) {
     this(credentials, registry, Clock.systemDefaultZone());
   }
 
   private AbstractCloudFoundryCachingAgent(
-      CloudFoundryCredentials credentials, Registry registry, Clock internalClock) {
+      CloudFoundryCredentials credentials, MeterRegistry registry, Clock internalClock) {
     this.credentials = credentials;
     cacheViewMapper.setConfig(cacheViewMapper.getSerializationConfig().withView(Views.Cache.class));
     this.metricsSupport =

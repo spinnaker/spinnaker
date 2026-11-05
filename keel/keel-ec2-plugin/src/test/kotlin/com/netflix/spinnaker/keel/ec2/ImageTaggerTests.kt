@@ -1,7 +1,7 @@
 package com.netflix.spinnaker.keel.ec2
 
-import com.netflix.spectator.api.NoopRegistry
-import com.netflix.spectator.api.Registry
+import io.micrometer.core.instrument.simple.SimpleMeterRegistry
+import io.micrometer.core.instrument.MeterRegistry
 import com.netflix.spinnaker.keel.api.DeliveryConfig
 import com.netflix.spinnaker.keel.api.Environment
 import com.netflix.spinnaker.keel.api.ResourceKind
@@ -72,7 +72,7 @@ class ImageTaggerTests {
   )
   private val config: DeliveryConfig = deliveryConfig(application = "waffles", configName = "waffles", env = env, artifact = artifact)
 
-  private val spectator: Registry = NoopRegistry()
+  private val meterRegistry: MeterRegistry = SimpleMeterRegistry()
   private val keelRepository: KeelRepository = mockk() {
     every { getDeliveryConfigForApplication("waffles") } returns config
   }
@@ -80,7 +80,7 @@ class ImageTaggerTests {
     every { allPassed(any(), ActionType.VERIFICATION) } returns false
   }
 
-  private val tagger: ImageTagger = ImageTagger(mapper, taskLauncher, actionRepository, keelRepository, springEnv, spectator)
+  private val tagger: ImageTagger = ImageTagger(mapper, taskLauncher, actionRepository, keelRepository, springEnv, meterRegistry)
   private val ec2images = listOf(CurrentImages(
     ResourceKind.parseKind("ec2/cluster@v1.1"),
     listOf(ImageInRegion("us-east-1", "my-waffles-are-great", "kitchen")),

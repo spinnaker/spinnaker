@@ -16,13 +16,13 @@
 
 package com.netflix.spinnaker.kork.pubsub.aws;
 
-import com.netflix.spectator.api.Counter;
-import com.netflix.spectator.api.Registry;
 import com.netflix.spinnaker.kork.aws.ARN;
 import com.netflix.spinnaker.kork.core.RetrySupport;
 import com.netflix.spinnaker.kork.pubsub.aws.config.AmazonPubsubConfig;
 import com.netflix.spinnaker.kork.pubsub.aws.config.AmazonPubsubProperties;
 import com.netflix.spinnaker.kork.pubsub.model.PubsubPublisher;
+import io.micrometer.core.instrument.Counter;
+import io.micrometer.core.instrument.MeterRegistry;
 import java.time.Duration;
 import java.util.Map;
 import java.util.Optional;
@@ -39,7 +39,7 @@ public class SNSPublisher implements PubsubPublisher {
 
   private final SnsClient snsClient;
   private final AmazonPubsubProperties.AmazonPubsubSubscription subscription;
-  private final Registry registry;
+  private final MeterRegistry registry;
   private final Supplier<Boolean> isEnabled;
 
   private final ARN topicARN;
@@ -50,7 +50,7 @@ public class SNSPublisher implements PubsubPublisher {
       AmazonPubsubProperties.AmazonPubsubSubscription subscription,
       SnsClient snsClient,
       Supplier<Boolean> isEnabled,
-      Registry registry,
+      MeterRegistry registry,
       RetrySupport retrySupport) {
     this.subscription = subscription;
     this.snsClient = snsClient;

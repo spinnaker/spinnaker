@@ -21,9 +21,6 @@ import static java.lang.String.format;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.collect.ImmutableMap;
-import com.netflix.spectator.api.Counter;
-import com.netflix.spectator.api.Id;
-import com.netflix.spectator.api.Registry;
 import com.netflix.spinnaker.kork.core.RetrySupport;
 import com.netflix.spinnaker.kork.exceptions.SystemException;
 import com.netflix.spinnaker.kork.retrofit.Retrofit2SyncCall;
@@ -41,6 +38,8 @@ import com.netflix.spinnaker.orca.notifications.NotificationClusterLock;
 import com.netflix.spinnaker.orca.pipeline.ExecutionLauncher;
 import com.netflix.spinnaker.security.AuthenticatedRequest;
 import groovy.util.logging.Slf4j;
+import io.micrometer.core.instrument.Counter;
+import io.micrometer.core.instrument.MeterRegistry;
 import java.time.ZoneOffset;
 import java.time.ZonedDateTime;
 import java.util.*;
@@ -62,7 +61,7 @@ public class EphemeralServerGroupsPoller extends AbstractPollingNotificationAgen
   private final ObjectMapper objectMapper;
   private final CloudDriverService cloudDriverService;
   private final RetrySupport retrySupport;
-  private final Registry registry;
+  private final MeterRegistry registry;
   private final ExecutionLauncher executionLauncher;
   private final Front50Service front50Service;
   private final PollerConfigurationProperties pollerConfigurationProperties;
@@ -70,7 +69,6 @@ public class EphemeralServerGroupsPoller extends AbstractPollingNotificationAgen
   private final PollerSupport pollerSupport;
 
   private final Counter errorsCounter;
-  private final Id triggeredCounterId;
 
   @Autowired
   public EphemeralServerGroupsPoller(
@@ -78,7 +76,7 @@ public class EphemeralServerGroupsPoller extends AbstractPollingNotificationAgen
       ObjectMapper objectMapper,
       CloudDriverService cloudDriverService,
       RetrySupport retrySupport,
-      Registry registry,
+      MeterRegistry registry,
       ExecutionLauncher executionLauncher,
       Front50Service front50Service,
       PollerConfigurationProperties pollerConfigurationProperties) {
@@ -94,7 +92,6 @@ public class EphemeralServerGroupsPoller extends AbstractPollingNotificationAgen
 
     this.pollerSupport = new PollerSupport(retrySupport, cloudDriverService);
 
-    this.triggeredCounterId = registry.createId("poller.ephemeralServerGroups.triggered");
     this.errorsCounter = registry.counter("poller.ephemeralServerGroups.errors");
   }
 
@@ -188,7 +185,9 @@ public class EphemeralServerGroupsPoller extends AbstractPollingNotificationAgen
               ephemeralServerGroupTag.expiry);
         }
 
-        registry.counter(triggeredCounterId.withTag("stale", isStale)).increment();
+        registry
+            .counter("poller.ephemeralServerGroups.triggered", "stale", String.valueOf(isStale))
+            .increment();
       } catch (Exception e) {
         log.error(
             "Failed to destroy ephemeral server group (id: {})", ephemeralServerGroupTag.id, e);

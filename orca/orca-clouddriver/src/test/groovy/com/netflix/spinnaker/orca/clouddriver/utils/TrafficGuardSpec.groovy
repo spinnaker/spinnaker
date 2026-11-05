@@ -17,8 +17,8 @@
 package com.netflix.spinnaker.orca.clouddriver.utils
 
 import com.fasterxml.jackson.databind.ObjectMapper
-import com.netflix.spectator.api.NoopRegistry
-import com.netflix.spectator.api.Registry
+import io.micrometer.core.instrument.MeterRegistry
+import io.micrometer.core.instrument.simple.SimpleMeterRegistry
 import com.netflix.spinnaker.kork.dynamicconfig.DynamicConfigService
 import com.netflix.spinnaker.kork.retrofit.exceptions.SpinnakerHttpException
 import com.netflix.spinnaker.moniker.Moniker
@@ -45,7 +45,7 @@ import spock.lang.Unroll
 class TrafficGuardSpec extends Specification {
 
   Front50Service front50Service = Mock(Front50Service)
-  Registry registry = new NoopRegistry()
+  MeterRegistry registry = new SimpleMeterRegistry()
   DynamicConfigService dynamicConfigService = Mock(DynamicConfigService)
   CloudDriverService cloudDriverService = Mock()
 

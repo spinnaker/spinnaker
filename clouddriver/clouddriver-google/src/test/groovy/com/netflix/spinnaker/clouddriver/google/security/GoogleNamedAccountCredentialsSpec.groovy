@@ -20,7 +20,7 @@ import com.fasterxml.jackson.core.type.TypeReference
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.google.api.services.compute.Compute
 import com.google.api.services.compute.model.*
-import com.netflix.spectator.api.NoopRegistry
+import io.micrometer.core.instrument.simple.SimpleMeterRegistry
 import com.netflix.spinnaker.clouddriver.google.GoogleExecutor
 import spock.lang.Specification
 
@@ -356,7 +356,7 @@ class GoogleNamedAccountCredentialsSpec extends Specification implements TestDef
 
   def 'queryAcceleratorTypes should use page token for pagination'() {
     setup:
-      GoogleExecutor.globalRegistry = new NoopRegistry()
+      GoogleExecutor.globalRegistry = new SimpleMeterRegistry()
       def computeMock = Mock(Compute)
       def acceleratorTypesMock = Mock(Compute.AcceleratorTypes)
       def firstCallMock = Mock(Compute.AcceleratorTypes.AggregatedList)
@@ -410,7 +410,7 @@ class GoogleNamedAccountCredentialsSpec extends Specification implements TestDef
 
   def 'queryInstanceTypes should use page token for pagination'() {
     setup:
-      GoogleExecutor.globalRegistry = new NoopRegistry()
+      GoogleExecutor.globalRegistry = new SimpleMeterRegistry()
       def computeMock = Mock(Compute)
       def machineTypesMock = Mock(Compute.MachineTypes)
       def firstCallMock = Mock(Compute.MachineTypes.AggregatedList)
@@ -462,7 +462,7 @@ class GoogleNamedAccountCredentialsSpec extends Specification implements TestDef
 
   def 'queryCpuPlatforms should use page token for pagination'() {
     setup:
-    GoogleExecutor.globalRegistry = new NoopRegistry()
+    GoogleExecutor.globalRegistry = new SimpleMeterRegistry()
       def computeMock = Mock(Compute)
       def zonesMock = Mock(Compute.Zones)
       def firstCallMock = Mock(Compute.Zones.List)

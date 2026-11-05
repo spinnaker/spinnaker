@@ -21,7 +21,6 @@ import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.ArgumentMatchers.eq;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.netflix.spectator.api.NoopRegistry;
 import com.netflix.spinnaker.echo.api.events.Event;
 import com.netflix.spinnaker.echo.config.RestProperties;
 import com.netflix.spinnaker.echo.config.RestUrls;
@@ -32,6 +31,7 @@ import io.github.resilience4j.circuitbreaker.CallNotPermittedException;
 import io.github.resilience4j.circuitbreaker.CircuitBreaker;
 import io.github.resilience4j.circuitbreaker.CircuitBreakerConfig;
 import io.github.resilience4j.circuitbreaker.CircuitBreakerRegistry;
+import io.micrometer.core.instrument.simple.SimpleMeterRegistry;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -75,7 +75,10 @@ class RestEventListenerTest {
 
     listener =
         new RestEventListener(
-            new RestUrls(), new SimpleEventTemplateEngine(), restEventService, new NoopRegistry());
+            new RestUrls(),
+            new SimpleEventTemplateEngine(),
+            restEventService,
+            new SimpleMeterRegistry());
 
     event = new Event();
     event.setContent(Map.of("uno", "dos"));
@@ -344,7 +347,7 @@ class RestEventListenerTest {
             new RestUrls(),
             new SimpleEventTemplateEngine(),
             mockedRestEventService,
-            new NoopRegistry());
+            new SimpleMeterRegistry());
     listener.setMapper(objectMapper);
 
     listener.getRestUrls().setServices(List.of(service));

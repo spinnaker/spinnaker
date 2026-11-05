@@ -22,7 +22,7 @@ import com.google.api.services.compute.model.BackendService
 import com.google.api.services.compute.model.HTTPHealthCheck
 import com.google.api.services.compute.model.HealthCheck
 import com.google.api.services.compute.model.Operation
-import com.netflix.spectator.api.DefaultRegistry
+import io.micrometer.core.instrument.simple.SimpleMeterRegistry
 import com.netflix.spinnaker.clouddriver.data.task.Task
 import com.netflix.spinnaker.clouddriver.data.task.TaskRepository
 import com.netflix.spinnaker.clouddriver.google.config.GoogleConfigurationProperties
@@ -53,7 +53,7 @@ class UpsertGoogleSslLoadBalancerAtomicOperationUnitSpec extends Specification {
 
   @Shared GoogleHealthCheck hc
   @Shared def threadSleeperMock = Mock(GoogleOperationPoller.ThreadSleeper)
-  @Shared def registry = new DefaultRegistry()
+  @Shared def registry = new SimpleMeterRegistry()
   @Shared SafeRetry safeRetry
 
   def setupSpec() {

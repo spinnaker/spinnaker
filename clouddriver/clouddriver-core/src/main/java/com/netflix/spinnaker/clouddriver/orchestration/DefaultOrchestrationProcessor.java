@@ -20,8 +20,6 @@ import static com.netflix.spinnaker.security.AuthenticatedRequest.propagate;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.util.concurrent.ThreadFactoryBuilder;
-import com.netflix.spectator.api.Id;
-import com.netflix.spectator.api.Registry;
 import com.netflix.spinnaker.clouddriver.config.OrchestrationExecutorProperties;
 import com.netflix.spinnaker.clouddriver.core.ClouddriverHostname;
 import com.netflix.spinnaker.clouddriver.data.task.Task;
@@ -33,6 +31,8 @@ import com.netflix.spinnaker.clouddriver.orchestration.events.OperationEventHand
 import com.netflix.spinnaker.kork.api.exceptions.ExceptionSummary;
 import com.netflix.spinnaker.kork.web.context.RequestContextProvider;
 import com.netflix.spinnaker.kork.web.exceptions.ExceptionSummaryService;
+import io.micrometer.core.instrument.MeterRegistry;
+import io.micrometer.core.instrument.Tags;
 import java.io.PrintWriter;
 import java.io.StringWriter;
 import java.util.ArrayList;
@@ -63,6 +63,10 @@ import org.springframework.security.concurrent.DelegatingSecurityContextCallable
 @Slf4j
 public class DefaultOrchestrationProcessor implements OrchestrationProcessor {
   private static final String TASK_PHASE = "ORCHESTRATION";
+  private static final String ORCHESTRATIONS_METRIC_NAME = "orchestrations";
+  private static final String ORCHESTRATIONS_REJECTED_METRIC_NAME = "orchestrations.rejected";
+  private static final String OPERATIONS_METRIC_NAME = "operations";
+  private static final String TASKS_METRIC_NAME = "tasks";
 
   protected ExecutorService executorService;
 
@@ -70,7 +74,7 @@ public class DefaultOrchestrationProcessor implements OrchestrationProcessor {
 
   private final TaskRepository taskRepository;
   private final ApplicationContext applicationContext;
-  private final Registry registry;
+  private final MeterRegistry registry;
   private final Collection<OperationEventHandler> operationEventHandlers;
   private final ObjectMapper objectMapper;
   private final ExceptionClassifier exceptionClassifier;
@@ -80,7 +84,7 @@ public class DefaultOrchestrationProcessor implements OrchestrationProcessor {
   public DefaultOrchestrationProcessor(
       TaskRepository taskRepository,
       ApplicationContext applicationContext,
-      Registry registry,
+      MeterRegistry registry,
       Optional<Collection<OperationEventHandler>> operationEventHandlers,
       ObjectMapper objectMapper,
       ExceptionClassifier exceptionClassifier,
@@ -101,7 +105,7 @@ public class DefaultOrchestrationProcessor implements OrchestrationProcessor {
   public DefaultOrchestrationProcessor(
       TaskRepository taskRepository,
       ApplicationContext applicationContext,
-      Registry registry,
+      MeterRegistry registry,
       Optional<Collection<OperationEventHandler>> operationEventHandlers,
       ObjectMapper objectMapper,
       ExceptionClassifier exceptionClassifier,
@@ -119,15 +123,8 @@ public class DefaultOrchestrationProcessor implements OrchestrationProcessor {
     this.executorProperties = executorProperties;
     this.executorService = newExecutor(executorProperties);
 
-    // TODO: report these through Micrometer once this class has a MeterRegistry.
-    registry.gauge(
-        registry.createId("orchestrations.active"),
-        this,
-        p -> p.executorStat(e -> e.getActiveCount()));
-    registry.gauge(
-        registry.createId("orchestrations.queued"),
-        this,
-        p -> p.executorStat(e -> e.getQueue().size()));
+    registry.gauge("orchestrations.active", this, p -> p.executorStat(e -> e.getActiveCount()));
+    registry.gauge("orchestrations.queued", this, p -> p.executorStat(e -> e.getQueue().size()));
   }
 
   /**
@@ -183,18 +180,11 @@ public class DefaultOrchestrationProcessor implements OrchestrationProcessor {
       @Nullable String cloudProvider,
       @Nonnull List<AtomicOperation> atomicOperations,
       @Nonnull String clientRequestId) {
-    Id orchestrationsId =
-        registry
-            .createId("orchestrations")
-            .withTag("cloudProvider", cloudProvider != null ? cloudProvider : "unknown");
-    Id atomicOperationId =
-        registry
-            .createId("operations")
-            .withTag("cloudProvider", cloudProvider != null ? cloudProvider : "unknown");
-    Id tasksId =
-        registry
-            .createId("tasks")
-            .withTag("cloudProvider", cloudProvider != null ? cloudProvider : "unknown");
+    Tags orchestrationsTags =
+        Tags.of("cloudProvider", cloudProvider != null ? cloudProvider : "unknown");
+    Tags atomicOperationTags =
+        Tags.of("cloudProvider", cloudProvider != null ? cloudProvider : "unknown");
+    Tags tasksTags = Tags.of("cloudProvider", cloudProvider != null ? cloudProvider : "unknown");
 
     // Get the task (either an existing one, or a new one). If the task already exists,
     // `shouldExecute` will be false if the task is in a failed state and the failure is not
@@ -219,15 +209,16 @@ public class DefaultOrchestrationProcessor implements OrchestrationProcessor {
             List<Object> results = new ArrayList<>();
             boolean failed = false;
             for (AtomicOperation atomicOperation : atomicOperations) {
-              Id thisOp =
-                  atomicOperationId.withTag(
+              Tags thisOpTags =
+                  atomicOperationTags.and(
                       "OperationType", atomicOperation.getClass().getSimpleName());
               task.updateStatus(
                   TASK_PHASE, "Processing op: " + atomicOperation.getClass().getSimpleName());
               try {
                 TimedCallable.forCallable(
                         registry,
-                        thisOp,
+                        OPERATIONS_METRIC_NAME,
+                        thisOpTags,
                         (Callable<Void>)
                             () -> {
                               results.add(atomicOperation.operate(results));
@@ -350,13 +341,12 @@ public class DefaultOrchestrationProcessor implements OrchestrationProcessor {
                 task.complete();
               }
             }
-            registry.counter(tasksId.withTag("success", "true")).increment();
+            registry.counter(TASKS_METRIC_NAME, tasksTags.and("success", "true")).increment();
           } catch (Exception e) {
             registry
                 .counter(
-                    tasksId
-                        .withTag("success", "false")
-                        .withTag("cause", e.getClass().getSimpleName()))
+                    TASKS_METRIC_NAME,
+                    tasksTags.and("success", "false", "cause", e.getClass().getSimpleName()))
                 .increment();
             if (task.getStatus() != null && task.getStatus().isCompleted()) {
               // The task already reached a terminal state, which can't be changed.
@@ -386,7 +376,8 @@ public class DefaultOrchestrationProcessor implements OrchestrationProcessor {
     TimedCallable<Void> timedCallable =
         TimedCallable.forCallable(
             registry,
-            orchestrationsId,
+            ORCHESTRATIONS_METRIC_NAME,
+            orchestrationsTags,
             new DelegatingSecurityContextCallable<>(propagate(operationClosure, true)));
     try {
       executorService.submit(timedCallable);
@@ -399,7 +390,9 @@ public class DefaultOrchestrationProcessor implements OrchestrationProcessor {
       } catch (Exception failure) {
         log.warn("Unable to record that task {} was rejected", task.getId(), failure);
       }
-      registry.counter(orchestrationsId.withTag("rejected", "true")).increment();
+      // A separate name: "orchestrations" is already a Timer, and Micrometer registries such as
+      // Prometheus reject a Counter registered under the same name.
+      registry.counter(ORCHESTRATIONS_REJECTED_METRIC_NAME, orchestrationsTags).increment();
       throw saturated();
     }
 

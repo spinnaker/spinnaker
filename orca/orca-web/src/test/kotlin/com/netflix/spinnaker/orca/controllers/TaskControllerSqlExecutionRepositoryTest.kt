@@ -17,7 +17,6 @@
 package com.netflix.spinnaker.orca.controllers
 
 import com.fasterxml.jackson.core.type.TypeReference
-import com.netflix.spectator.api.NoopRegistry
 import com.netflix.spinnaker.config.ExecutionCompressionProperties
 import com.netflix.spinnaker.config.TaskControllerConfigurationProperties
 import com.netflix.spinnaker.kork.sql.config.RetryProperties
@@ -27,6 +26,7 @@ import com.netflix.spinnaker.orca.front50.Front50Service
 import com.netflix.spinnaker.orca.jackson.OrcaObjectMapper
 import com.netflix.spinnaker.orca.pipeline.util.ContextParameterProcessor
 import com.netflix.spinnaker.orca.sql.pipeline.persistence.SqlExecutionRepository
+import io.micrometer.core.instrument.simple.SimpleMeterRegistry
 import org.mockito.kotlin.mock
 import dev.minutest.ContextBuilder
 import dev.minutest.junit.JUnit5Minutests
@@ -82,7 +82,7 @@ class TaskControllerSqlExecutionRepositoryTest : JUnit5Minutests {
       ContextParameterProcessor(),
       mock(),
       OrcaObjectMapper.getInstance(),
-      NoopRegistry(),
+      SimpleMeterRegistry(),
       mock(),
       taskControllerConfigurationProperties
     )

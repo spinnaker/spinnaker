@@ -21,7 +21,6 @@ import static com.netflix.spinnaker.clouddriver.aws.cache.Keys.Namespace.STACKS;
 import static com.netflix.spinnaker.clouddriver.core.provider.agent.Namespace.ON_DEMAND;
 
 import com.google.common.collect.ImmutableMap;
-import com.netflix.spectator.api.Registry;
 import com.netflix.spinnaker.cats.agent.*;
 import com.netflix.spinnaker.cats.cache.CacheData;
 import com.netflix.spinnaker.cats.cache.DefaultCacheData;
@@ -34,6 +33,7 @@ import com.netflix.spinnaker.clouddriver.aws.security.NetflixAmazonCredentials;
 import com.netflix.spinnaker.clouddriver.cache.OnDemandAgent;
 import com.netflix.spinnaker.clouddriver.cache.OnDemandMetricsSupport;
 import com.netflix.spinnaker.clouddriver.cache.OnDemandType;
+import io.micrometer.core.instrument.MeterRegistry;
 import java.time.Duration;
 import java.util.*;
 import java.util.stream.Collectors;
@@ -69,7 +69,7 @@ public class AmazonCloudFormationCachingAgent
       AmazonClientProvider amazonClientProvider,
       NetflixAmazonCredentials account,
       String region,
-      Registry registry) {
+      MeterRegistry registry) {
     this.amazonClientProvider = amazonClientProvider;
     this.account = account;
     this.region = region;

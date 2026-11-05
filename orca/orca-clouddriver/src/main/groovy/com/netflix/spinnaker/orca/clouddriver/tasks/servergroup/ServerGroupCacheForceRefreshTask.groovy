@@ -16,8 +16,6 @@
 
 package com.netflix.spinnaker.orca.clouddriver.tasks.servergroup
 
-import com.netflix.spectator.api.Id
-import com.netflix.spectator.api.Registry
 import com.netflix.spinnaker.kork.retrofit.Retrofit2SyncCall
 import com.netflix.spinnaker.orca.api.pipeline.models.StageExecution
 
@@ -30,6 +28,7 @@ import com.netflix.spinnaker.orca.api.pipeline.TaskResult
 import com.netflix.spinnaker.orca.clouddriver.CloudDriverCacheService
 import com.netflix.spinnaker.orca.clouddriver.CloudDriverCacheStatusService
 import com.netflix.spinnaker.orca.clouddriver.utils.CloudProviderAware
+import io.micrometer.core.instrument.MeterRegistry
 
 import groovy.util.logging.Slf4j
 import org.springframework.beans.factory.annotation.Autowired
@@ -45,9 +44,7 @@ class ServerGroupCacheForceRefreshTask implements CloudProviderAware, RetryableT
   private final CloudDriverCacheStatusService cacheStatusService
   private final CloudDriverCacheService cacheService
   private final ObjectMapper objectMapper
-  private final Registry registry
-
-  private final Id cacheForceRefreshTaskId
+  private final MeterRegistry registry
 
   long backoffPeriod = TimeUnit.SECONDS.toMillis(10)
   long timeout = TimeUnit.MINUTES.toMillis(15)
@@ -60,13 +57,11 @@ class ServerGroupCacheForceRefreshTask implements CloudProviderAware, RetryableT
   ServerGroupCacheForceRefreshTask(CloudDriverCacheStatusService cacheStatusService,
                                    CloudDriverCacheService cacheService,
                                    ObjectMapper objectMapper,
-                                   Registry registry) {
+                                   MeterRegistry registry) {
     this.cacheStatusService = cacheStatusService
     this.cacheService = cacheService
     this.objectMapper = objectMapper
     this.registry = registry
-
-    this.cacheForceRefreshTaskId = registry.createId("tasks.serverGroupCacheForceRefresh")
   }
 
   @Override
@@ -83,7 +78,7 @@ class ServerGroupCacheForceRefreshTask implements CloudProviderAware, RetryableT
         clock.millis() - stage.startTime
       )
 
-      registry.counter(cacheForceRefreshTaskId.withTag("stageType", stage.type)).increment()
+      registry.counter("tasks.serverGroupCacheForceRefresh", "stageType", stage.type).increment()
       return TaskResult.builder(SUCCEEDED).context(["shortCircuit": true]).build()
     }
 
@@ -102,7 +97,7 @@ class ServerGroupCacheForceRefreshTask implements CloudProviderAware, RetryableT
       // ensure clean stage data such that a subsequent ServerGroupCacheForceRefresh (in this stage) starts fresh
       stageData.reset()
 
-      registry.counter(cacheForceRefreshTaskId.withTag("stageType", stage.type)).increment()
+      registry.counter("tasks.serverGroupCacheForceRefresh", "stageType", stage.type).increment()
     }
 
     return TaskResult.builder(allAreComplete ? SUCCEEDED : RUNNING).context(convertAndStripNullValues(stageData)).build()

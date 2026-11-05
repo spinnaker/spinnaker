@@ -90,5 +90,4 @@ dependencies {
 
     testImplementation "com.squareup.retrofit2:retrofit-mock"
     testImplementation "org.wiremock:wiremock"
-    testImplementation "com.netflix.spectator:spectator-reg-micrometer"
 }

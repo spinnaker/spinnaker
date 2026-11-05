@@ -25,8 +25,6 @@ import static java.util.stream.Collectors.toSet;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.annotations.VisibleForTesting;
 import com.netflix.frigga.Names;
-import com.netflix.spectator.api.DefaultRegistry;
-import com.netflix.spectator.api.Registry;
 import com.netflix.spinnaker.cats.agent.AccountAware;
 import com.netflix.spinnaker.cats.agent.AgentDataType;
 import com.netflix.spinnaker.cats.agent.CacheResult;
@@ -53,6 +51,8 @@ import com.netflix.spinnaker.config.LambdaServiceConfig;
 import com.netflix.spinnaker.kork.exceptions.SpinnakerException;
 import com.netflix.spinnaker.moniker.Moniker;
 import com.netflix.spinnaker.moniker.Namer;
+import io.micrometer.core.instrument.MeterRegistry;
+import io.micrometer.core.instrument.simple.SimpleMeterRegistry;
 import java.time.Clock;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
@@ -73,7 +73,7 @@ public class LambdaCachingAgent implements CachingAgent, AccountAware, OnDemandA
   private final NetflixAmazonCredentials account;
   private final String region;
   private OnDemandMetricsSupport metricsSupport;
-  private final Registry registry;
+  private final MeterRegistry registry;
   private final Clock clock = Clock.systemDefaultZone();
   @Setter @VisibleForTesting private LambdaService lambdaService;
   private final Namer<LambdaResource> naming;
@@ -106,7 +106,7 @@ public class LambdaCachingAgent implements CachingAgent, AccountAware, OnDemandA
       Namer<LambdaResource> naming) {
     this.account = account;
     this.region = region;
-    this.registry = new DefaultRegistry();
+    this.registry = new SimpleMeterRegistry();
     this.metricsSupport =
         new OnDemandMetricsSupport(
             registry,

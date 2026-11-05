@@ -16,7 +16,6 @@
 package com.netflix.spinnaker.config
 
 import com.google.common.util.concurrent.ThreadFactoryBuilder
-import com.netflix.spectator.api.Registry
 import com.netflix.spinnaker.kork.dynamicconfig.DynamicConfigService
 import com.netflix.spinnaker.orca.notifications.NotificationClusterLock
 import com.netflix.spinnaker.orca.peering.CustomPeerer
@@ -25,6 +24,7 @@ import com.netflix.spinnaker.orca.peering.MySqlRawAccess
 import com.netflix.spinnaker.orca.peering.PeeringAgent
 import com.netflix.spinnaker.orca.peering.PeeringMetrics
 import com.netflix.spinnaker.orca.peering.SqlRawAccess
+import io.micrometer.core.instrument.MeterRegistry
 import java.util.concurrent.Executors
 import javax.naming.ConfigurationException
 import org.jooq.DSLContext
@@ -47,7 +47,7 @@ class PeeringAgentConfiguration {
     jooq: DSLContext,
     clusterLock: NotificationClusterLock,
     dynamicConfigService: DynamicConfigService,
-    registry: Registry,
+    registry: MeterRegistry,
     properties: PeeringAgentConfigurationProperties,
     customPeerer: CustomPeerer?
   ): PeeringAgent {

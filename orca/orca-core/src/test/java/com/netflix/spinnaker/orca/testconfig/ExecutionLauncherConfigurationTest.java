@@ -22,10 +22,6 @@ import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.*;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.netflix.spectator.api.Counter;
-import com.netflix.spectator.api.Id;
-import com.netflix.spectator.api.NoopRegistry;
-import com.netflix.spectator.api.Registry;
 import com.netflix.spinnaker.kork.common.Header;
 import com.netflix.spinnaker.kork.web.filters.ProvidedIdRequestFilterConfigurationProperties;
 import com.netflix.spinnaker.orca.api.pipeline.models.ExecutionType;
@@ -41,6 +37,8 @@ import com.netflix.spinnaker.orca.pipeline.persistence.ExecutionRepository;
 import com.netflix.spinnaker.orca.sql.PipelineRefTriggerDeserializerSupplier;
 import com.netflix.spinnaker.orca.sql.pipeline.persistence.PipelineRefTrigger;
 import com.netflix.spinnaker.orca.test.YamlFileApplicationContextInitializer;
+import io.micrometer.core.instrument.MeterRegistry;
+import io.micrometer.core.instrument.simple.SimpleMeterRegistry;
 import java.time.Clock;
 import java.util.Map;
 import java.util.Optional;
@@ -73,7 +71,7 @@ public class ExecutionLauncherConfigurationTest extends YamlFileApplicationConte
   @Mock private ExecutionRunner executionRunner;
   private Clock clock;
   private Optional<PipelineValidator> pipelineValidator;
-  private Registry registry;
+  private Optional<MeterRegistry> registry;
   @Mock private ApplicationEventPublisher applicationEventPublisher;
   private ExecutionLauncher executionLauncher;
 
@@ -94,7 +92,7 @@ public class ExecutionLauncherConfigurationTest extends YamlFileApplicationConte
     objectMapper = new ObjectMapper();
     clock = Clock.systemUTC();
     pipelineValidator = Optional.empty();
-    registry = new NoopRegistry();
+    registry = Optional.empty();
     MDC.clear();
 
     executionLauncher =
@@ -226,12 +224,8 @@ public class ExecutionLauncherConfigurationTest extends YamlFileApplicationConte
   @Test
   public void testThatSystemErrorCounterIsSetCorrectly() throws Exception {
     // when:
-    registry = mock(Registry.class);
-    Id mockId = mock(Id.class);
-    Counter mockCounter = mock(Counter.class);
-    when(registry.createId(anyString())).thenReturn(mockId);
-    when(mockId.withTags(anyString(), anyString(), anyString(), anyString())).thenReturn(mockId);
-    when(registry.counter(mockId)).thenReturn(mockCounter);
+    SimpleMeterRegistry meterRegistry = new SimpleMeterRegistry();
+    registry = Optional.of(meterRegistry);
 
     executionLauncher =
         new ExecutionLauncher(
@@ -258,11 +252,13 @@ public class ExecutionLauncherConfigurationTest extends YamlFileApplicationConte
     verify(executionRepository)
         .cancel(ExecutionType.ORCHESTRATION, pipelineExecution.getId(), "system", expectedReason);
 
-    verify(registry).createId("execution.trigger.system.errors");
-    verify(registry).counter(mockId);
-    verify(mockCounter).increment();
-    verify(mockId)
-        .withTags("type", ExecutionType.ORCHESTRATION.toString(), "reason", expectedReason);
+    assertThat(
+            meterRegistry
+                .get("execution.trigger.system.errors")
+                .tags("type", ExecutionType.ORCHESTRATION.toString(), "reason", expectedReason)
+                .counter()
+                .count())
+        .isEqualTo(1.0);
   }
 
   @DisplayName(

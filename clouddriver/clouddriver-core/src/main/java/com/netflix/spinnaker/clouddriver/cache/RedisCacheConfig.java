@@ -16,13 +16,13 @@
 
 package com.netflix.spinnaker.clouddriver.cache;
 
-import com.netflix.spectator.api.Registry;
 import com.netflix.spinnaker.cats.cluster.AgentIntervalProvider;
 import com.netflix.spinnaker.cats.cluster.NodeStatusProvider;
 import com.netflix.spinnaker.cats.redis.cache.RedisCache.CacheMetrics;
 import com.netflix.spinnaker.cats.redis.cache.RedisCacheOptions;
 import com.netflix.spinnaker.clouddriver.core.RedisConfigurationProperties;
 import com.netflix.spinnaker.kork.discovery.DiscoveryStatusListener;
+import io.micrometer.core.instrument.MeterRegistry;
 import java.util.concurrent.TimeUnit;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnExpression;
 import org.springframework.boot.context.properties.ConfigurationProperties;
@@ -47,8 +47,8 @@ class RedisCacheConfig {
   }
 
   @Bean
-  CacheMetrics cacheMetrics(Registry registry) {
-    return new SpectatorRedisCacheMetrics(registry);
+  CacheMetrics cacheMetrics(MeterRegistry registry) {
+    return new MicrometerRedisCacheMetrics(registry);
   }
 
   @Bean

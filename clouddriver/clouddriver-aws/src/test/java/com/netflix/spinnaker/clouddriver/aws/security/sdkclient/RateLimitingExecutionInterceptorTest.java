@@ -20,7 +20,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.*;
 
 import com.google.common.util.concurrent.RateLimiter;
-import com.netflix.spectator.api.Counter;
+import io.micrometer.core.instrument.Counter;
 import org.junit.jupiter.api.Test;
 import software.amazon.awssdk.core.interceptor.Context;
 import software.amazon.awssdk.core.interceptor.ExecutionAttributes;

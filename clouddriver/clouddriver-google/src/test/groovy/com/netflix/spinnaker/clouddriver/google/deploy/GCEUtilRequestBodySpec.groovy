@@ -22,8 +22,8 @@ import com.google.api.services.compute.Compute
 import com.google.api.services.compute.model.InstanceProperties
 import com.google.api.services.compute.model.InstanceTemplate
 import com.google.api.services.compute.model.Metadata
-import com.netflix.spectator.api.DefaultRegistry
-import com.netflix.spectator.api.Registry
+import io.micrometer.core.instrument.simple.SimpleMeterRegistry
+import io.micrometer.core.instrument.MeterRegistry
 import com.netflix.spinnaker.clouddriver.data.task.Task
 import com.netflix.spinnaker.clouddriver.google.GoogleExecutorTraits
 import com.netflix.spinnaker.clouddriver.google.model.GoogleServerGroup
@@ -163,6 +163,6 @@ class GCEUtilRequestBodySpec extends Specification {
   }
 
   private static class TestExecutor implements GoogleExecutorTraits {
-    Registry registry = new DefaultRegistry()
+    MeterRegistry registry = new SimpleMeterRegistry()
   }
 }

@@ -6,7 +6,7 @@ dependencies {
   compileOnly "org.apache.commons:commons-lang3"
   implementation "com.github.ben-manes.caffeine:guava"
   implementation "com.netflix.frigga:frigga"
-  implementation "com.netflix.spectator:spectator-api"
+  implementation "io.micrometer:micrometer-core"
   implementation "io.spinnaker.fiat:fiat-api"
   implementation "io.spinnaker.fiat:fiat-core"
   implementation "io.spinnaker.kork:kork-moniker"

@@ -16,7 +16,7 @@
 
 package com.netflix.spinnaker.echo.scheduler.actions.pipeline;
 
-import com.netflix.spectator.api.Registry;
+import io.micrometer.core.instrument.MeterRegistry;
 import java.util.concurrent.TimeUnit;
 import org.quartz.Scheduler;
 import org.quartz.Trigger;
@@ -30,9 +30,9 @@ import org.springframework.stereotype.Component;
  */
 @Component
 public class TriggerListener extends TriggerListenerSupport {
-  private final Registry registry;
+  private final MeterRegistry registry;
 
-  public TriggerListener(Registry registry) {
+  public TriggerListener(MeterRegistry registry) {
     this.registry = registry;
   }
 

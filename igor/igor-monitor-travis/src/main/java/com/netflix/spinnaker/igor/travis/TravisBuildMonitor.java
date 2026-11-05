@@ -19,7 +19,6 @@ package com.netflix.spinnaker.igor.travis;
 
 import static net.logstash.logback.argument.StructuredArguments.kv;
 
-import com.netflix.spectator.api.Registry;
 import com.netflix.spinnaker.igor.IgorConfigurationProperties;
 import com.netflix.spinnaker.igor.build.BuildCache;
 import com.netflix.spinnaker.igor.build.model.GenericBuild;
@@ -42,6 +41,7 @@ import com.netflix.spinnaker.kork.discovery.DiscoveryStatusListener;
 import com.netflix.spinnaker.kork.dynamicconfig.DynamicConfigService;
 import com.netflix.spinnaker.kork.retrofit.Retrofit2SyncCall;
 import com.netflix.spinnaker.security.AuthenticatedRequest;
+import io.micrometer.core.instrument.MeterRegistry;
 import java.time.Duration;
 import java.time.Instant;
 import java.util.List;
@@ -74,7 +74,7 @@ public class TravisBuildMonitor
   @Autowired
   public TravisBuildMonitor(
       IgorConfigurationProperties properties,
-      Registry registry,
+      MeterRegistry registry,
       DynamicConfigService dynamicConfigService,
       DiscoveryStatusListener discoveryStatusListener,
       BuildCache buildCache,
@@ -281,7 +281,7 @@ public class TravisBuildMonitor
             kv("master", master),
             branchedSlug,
             buildDelta.getBuild().getNumber());
-        registry.counter(missedNotificationId.withTag("monitor", getName())).increment();
+        registry.counter(missedNotificationId, "monitor", getName()).increment();
       }
     }
   }

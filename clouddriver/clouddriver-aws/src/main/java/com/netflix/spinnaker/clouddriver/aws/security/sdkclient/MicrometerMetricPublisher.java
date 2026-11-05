@@ -18,7 +18,7 @@ package com.netflix.spinnaker.clouddriver.aws.security.sdkclient;
 
 import static java.util.Objects.requireNonNull;
 
-import com.netflix.spectator.api.Registry;
+import io.micrometer.core.instrument.MeterRegistry;
 import java.time.Duration;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
@@ -27,8 +27,8 @@ import software.amazon.awssdk.metrics.MetricCollection;
 import software.amazon.awssdk.metrics.MetricPublisher;
 
 /**
- * A {@link MetricPublisher} that bridges AWS SDK v2 metric events to the Spectator {@link
- * Registry}.
+ * A {@link MetricPublisher} that bridges AWS SDK v2 metric events to a Micrometer {@link
+ * MeterRegistry}.
  *
  * <p>Records:
  *
@@ -38,17 +38,14 @@ import software.amazon.awssdk.metrics.MetricPublisher;
  * </ul>
  *
  * <p>Metrics are tagged with {@code serviceName} and {@code operationName} when available.
- *
- * <p>TODO: Consider migrating to Micrometer's MeterRegistry when Spectator is phased out in favour
- * of OTEL-aligned instrumentation.
  */
-public class SpectatorMetricPublisher implements MetricPublisher {
+public class MicrometerMetricPublisher implements MetricPublisher {
 
   private static final int MAX_DEPTH = 5;
 
-  private final Registry registry;
+  private final MeterRegistry registry;
 
-  public SpectatorMetricPublisher(Registry registry) {
+  public MicrometerMetricPublisher(MeterRegistry registry) {
     this.registry = requireNonNull(registry, "registry");
   }
 

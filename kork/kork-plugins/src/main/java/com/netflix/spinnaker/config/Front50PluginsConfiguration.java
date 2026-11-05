@@ -21,7 +21,6 @@ import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.SerializationFeature;
 import com.fasterxml.jackson.module.kotlin.KotlinModule;
-import com.netflix.spectator.api.Registry;
 import com.netflix.spinnaker.config.PluginsConfigurationProperties.PluginRepositoryProperties;
 import com.netflix.spinnaker.kork.plugins.update.EnvironmentServerGroupLocationResolver;
 import com.netflix.spinnaker.kork.plugins.update.EnvironmentServerGroupNameResolver;
@@ -40,6 +39,7 @@ import com.netflix.spinnaker.okhttp.OkHttp3MetricsInterceptor;
 import com.netflix.spinnaker.okhttp.OkHttpClientConfigurationProperties;
 import com.netflix.spinnaker.okhttp.Retrofit2EncodeCorrectionInterceptor;
 import com.netflix.spinnaker.retrofit.Retrofit2ConfigurationProperties;
+import io.micrometer.core.instrument.MeterRegistry;
 import jakarta.inject.Provider;
 import java.net.URL;
 import java.util.Map;
@@ -67,7 +67,7 @@ public class Front50PluginsConfiguration {
   @Bean
   public static PluginOkHttpClientProvider pluginsOkHttpClient(
       Environment environment,
-      Provider<Registry> registry,
+      Provider<MeterRegistry> registry,
       Retrofit2EncodeCorrectionInterceptor correctionInterceptor) {
     OkHttpClientConfigurationProperties okHttpClientProperties =
         Binder.get(environment)

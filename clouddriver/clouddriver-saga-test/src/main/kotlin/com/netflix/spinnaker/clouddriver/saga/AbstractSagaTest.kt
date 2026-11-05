@@ -15,10 +15,10 @@
  */
 package com.netflix.spinnaker.clouddriver.saga
 
-import com.netflix.spectator.api.NoopRegistry
 import com.netflix.spinnaker.clouddriver.saga.models.Saga
 import com.netflix.spinnaker.clouddriver.saga.persistence.SagaRepository
 import dev.minutest.junit.JUnit5Minutests
+import io.micrometer.core.instrument.simple.SimpleMeterRegistry
 import io.mockk.every
 import io.mockk.mockk
 import org.springframework.context.ApplicationContext
@@ -52,7 +52,7 @@ abstract class AbstractSagaTest : JUnit5Minutests {
       }
       registerBeans(applicationContext, *options.registerTypes.toTypedArray())
 
-      sagaService = SagaService(sagaRepository, NoopRegistry()).apply {
+      sagaService = SagaService(sagaRepository, SimpleMeterRegistry()).apply {
         setApplicationContext(applicationContext)
       }
     }

@@ -16,11 +16,8 @@
 
 package com.netflix.spinnaker.kork.web.interceptors
 
-import com.netflix.spectator.api.DefaultRegistry
-import com.netflix.spectator.api.DefaultTimer
-import com.netflix.spectator.api.Id
-import com.netflix.spectator.api.Registry
-import com.netflix.spectator.api.Timer
+import io.micrometer.core.instrument.Timer
+import io.micrometer.core.instrument.simple.SimpleMeterRegistry
 import org.springframework.web.method.HandlerMethod
 import org.springframework.web.servlet.HandlerMapping
 import spock.lang.Specification
@@ -28,6 +25,8 @@ import spock.lang.Unroll
 
 import jakarta.servlet.http.HttpServletRequest
 import jakarta.servlet.http.HttpServletResponse
+
+import java.util.concurrent.TimeUnit
 
 class MetricsInterceptorSpec extends Specification {
   def "should store current time as request attribute"() {
@@ -63,7 +62,7 @@ class MetricsInterceptorSpec extends Specification {
     }
 
     and:
-    def registry = new StubRegistry()
+    def registry = new SimpleMeterRegistry()
     def handler = new HandlerMethod(new Example(), Example.getMethod(handlerMethod))
     def interceptor = Spy(MetricsInterceptor, constructorArgs: [
       registry, metric, variablesToTag, requestParamsToAdd, null
@@ -75,9 +74,10 @@ class MetricsInterceptorSpec extends Specification {
     interceptor.afterCompletion(request, response, handler, exception)
 
     then:
-    registry.id.tags().collectEntries { [it.key(), it.value()] } == expectedTags
-    registry.timer.totalTime() == (endTime - startTime)
-    registry.timer.count() == 1
+    Timer timer = registry.find(metric).timer()
+    timer.getId().getTags().collectEntries { [it.getKey(), it.getValue()] } == expectedTags
+    timer.totalTime(TimeUnit.NANOSECONDS) == (endTime - startTime)
+    timer.count() == 1
 
     where:
     exception                  | handlerMethod      | variablesToTag | requestParamsToAdd | expectedTags
@@ -108,20 +108,5 @@ class MetricsInterceptorSpec extends Specification {
 
     @Criticality(Criticality.Value.HIGH)
     void highCriticality() {}
-  }
-
-  class StubRegistry implements Registry {
-    Id id = null
-    Timer timer = null
-
-    @Delegate(deprecated = true)
-    DefaultRegistry defaultRegistry = new DefaultRegistry()
-
-    @Override
-    Timer timer(Id id) {
-      this.id = id
-      this.timer = new DefaultTimer(null, id)
-      return timer
-    }
   }
 }

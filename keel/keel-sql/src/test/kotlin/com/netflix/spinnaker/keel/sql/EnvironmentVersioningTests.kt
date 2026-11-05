@@ -1,6 +1,6 @@
 package com.netflix.spinnaker.keel.sql
 
-import com.netflix.spectator.api.NoopRegistry
+import io.micrometer.core.instrument.simple.SimpleMeterRegistry
 import com.netflix.spinnaker.keel.api.DeliveryConfig
 import com.netflix.spinnaker.keel.api.Environment
 import com.netflix.spinnaker.keel.api.NotificationConfig
@@ -79,7 +79,7 @@ class EnvironmentVersioningTests {
     resourceFactory,
     sqlRetry,
     mockk(relaxed = true),
-    NoopRegistry(),
+    SimpleMeterRegistry(),
     mockEnvironment()
   )
 

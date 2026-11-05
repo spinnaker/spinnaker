@@ -19,7 +19,7 @@ package com.netflix.spinnaker.clouddriver.appengine.provider.agent
 import com.fasterxml.jackson.core.type.TypeReference
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.google.api.services.appengine.v1.model.Service
-import com.netflix.spectator.api.Registry
+import io.micrometer.core.instrument.MeterRegistry;
 import com.netflix.spinnaker.cats.agent.AgentDataType
 import com.netflix.spinnaker.cats.agent.CacheResult
 import com.netflix.spinnaker.cats.agent.DefaultCacheResult
@@ -73,7 +73,7 @@ class AppengineLoadBalancerCachingAgent extends AbstractAppengineCachingAgent im
   AppengineLoadBalancerCachingAgent(String accountName,
                                     AppengineNamedAccountCredentials credentials,
                                     ObjectMapper objectMapper,
-                                    Registry registry) {
+                                    MeterRegistry registry) {
     super(accountName, objectMapper, credentials)
     metricsSupport = new OnDemandMetricsSupport(
       registry,

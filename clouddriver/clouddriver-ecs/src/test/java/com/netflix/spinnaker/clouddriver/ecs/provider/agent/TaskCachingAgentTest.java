@@ -24,12 +24,12 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.when;
 
-import com.netflix.spectator.api.DefaultRegistry;
 import com.netflix.spinnaker.cats.cache.CacheData;
 import com.netflix.spinnaker.cats.cache.DefaultCacheData;
 import com.netflix.spinnaker.cats.mem.InMemoryCache;
 import com.netflix.spinnaker.cats.provider.DefaultProviderCache;
 import com.netflix.spinnaker.clouddriver.ecs.cache.Keys;
+import io.micrometer.core.instrument.simple.SimpleMeterRegistry;
 import java.time.Instant;
 import java.util.Collection;
 import java.util.Collections;
@@ -302,7 +302,7 @@ public class TaskCachingAgentTest extends CommonCachingAgent {
     DefaultProviderCache testProviderCache = new DefaultProviderCache(new InMemoryCache());
     TaskCachingAgent testAgent =
         new TaskCachingAgent(
-            netflixAmazonCredentials, REGION, clientProvider, new DefaultRegistry());
+            netflixAmazonCredentials, REGION, clientProvider, new SimpleMeterRegistry());
 
     testAgent.storeOnDemand(testProviderCache, Map.of("serverGroupName", SERVICE_NAME_1));
 

@@ -15,7 +15,6 @@
  */
 package com.netflix.spinnaker.gate.config;
 
-import com.netflix.spectator.api.Registry;
 import com.netflix.spinnaker.gate.ratelimit.RateLimitPrincipalProvider;
 import com.netflix.spinnaker.gate.ratelimit.RateLimiter;
 import com.netflix.spinnaker.gate.ratelimit.RateLimitingFilter;
@@ -23,6 +22,7 @@ import com.netflix.spinnaker.gate.ratelimit.RedisRateLimitPrincipalProvider;
 import com.netflix.spinnaker.gate.ratelimit.RedisRateLimiter;
 import com.netflix.spinnaker.gate.ratelimit.StaticRateLimitPrincipalProvider;
 import com.netflix.spinnaker.gate.security.RequestIdentityExtractor;
+import io.micrometer.core.instrument.MeterRegistry;
 import java.util.List;
 import java.util.Optional;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -61,7 +61,7 @@ public class RateLimiterConfig {
   @Bean
   FilterRegistrationBean<RateLimitingFilter> rateLimitingFilter(
       RateLimiter rateLimiter,
-      Registry registry,
+      MeterRegistry registry,
       RateLimitPrincipalProvider rateLimitPrincipalProvider,
       Optional<List<RequestIdentityExtractor>> requestIdentityExtractors) {
     var frb =

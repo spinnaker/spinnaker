@@ -25,7 +25,6 @@ import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.huawei.openstack4j.openstack.vpc.v1.domain.SecurityGroup;
 import com.huawei.openstack4j.openstack.vpc.v1.domain.SecurityGroupRule;
-import com.netflix.spectator.api.Registry;
 import com.netflix.spinnaker.cats.agent.AgentDataType;
 import com.netflix.spinnaker.cats.provider.ProviderCache;
 import com.netflix.spinnaker.clouddriver.cache.OnDemandAgent;
@@ -37,6 +36,7 @@ import com.netflix.spinnaker.clouddriver.huaweicloud.cache.CacheResultBuilder.Na
 import com.netflix.spinnaker.clouddriver.huaweicloud.cache.Keys;
 import com.netflix.spinnaker.clouddriver.huaweicloud.model.HuaweiCloudSecurityGroupCacheData;
 import com.netflix.spinnaker.clouddriver.huaweicloud.security.HuaweiCloudNamedAccountCredentials;
+import io.micrometer.core.instrument.MeterRegistry;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
@@ -57,7 +57,7 @@ public class HuaweiCloudSecurityGroupCachingAgent extends AbstractOnDemandCachin
   public HuaweiCloudSecurityGroupCachingAgent(
       HuaweiCloudNamedAccountCredentials credentials,
       ObjectMapper objectMapper,
-      Registry registry,
+      MeterRegistry registry,
       String region) {
 
     super(credentials, objectMapper, SECURITY_GROUPS.ns, region);

@@ -15,7 +15,6 @@
  */
 package com.netflix.spinnaker.cats.sql.cache
 
-import com.netflix.spectator.api.Registry
 import com.netflix.spinnaker.cats.agent.Agent
 import com.netflix.spinnaker.cats.agent.AgentDataType.Authority.AUTHORITATIVE
 import com.netflix.spinnaker.cats.agent.CachingAgent
@@ -31,6 +30,7 @@ import com.netflix.spinnaker.clouddriver.sql.SqlAgent
 import com.netflix.spinnaker.config.ConnectionPools
 import com.netflix.spinnaker.config.SqlUnknownAgentCleanupProperties
 import com.netflix.spinnaker.kork.sql.routing.withPool
+import io.micrometer.core.instrument.MeterRegistry
 import java.sql.SQLException
 import java.util.concurrent.TimeUnit
 import org.jooq.DSLContext
@@ -47,7 +47,7 @@ import org.springframework.beans.factory.ObjectProvider
 class SqlUnknownAgentCleanupAgent(
   private val providerRegistry: ObjectProvider<ProviderRegistry>,
   private val jooq: DSLContext,
-  private val registry: Registry,
+  private val registry: MeterRegistry,
   private val sqlNames: SqlNames,
   private val cleanupProperties: SqlUnknownAgentCleanupProperties,
   private val shardingFilter: ShardingFilter,
@@ -56,8 +56,8 @@ class SqlUnknownAgentCleanupAgent(
 
   private val log by lazy { LoggerFactory.getLogger(javaClass) }
 
-  private val deletedId = registry.createId("sql.cacheCleanupAgent.dataTypeRecordsDeleted")
-  private val timingId = registry.createId("sql.cacheCleanupAgent.dataTypeCleanupDuration")
+  private val deletedMetricName = "sql.cacheCleanupAgent.dataTypeRecordsDeleted"
+  private val timingMetricName = "sql.cacheCleanupAgent.dataTypeCleanupDuration"
 
   override fun run() {
     log.info("Scanning for cache records to cleanup")
@@ -100,10 +100,10 @@ class SqlUnknownAgentCleanupAgent(
         }
         log.info("Scanning '$dataType' (${i + 1}/$numDataTypes) cache records to cleanup")
         try {
-          registry.timer(timingId.withTag("dataType", dataType)).record {
+          registry.timer(timingMetricName, "dataType", dataType).record(Runnable {
             cleanTable(CacheTable.RELATIONSHIP, dataType, runState)
             cleanTable(CacheTable.RESOURCE, dataType, runState)
-          }
+          })
         } catch (e: SQLException) {
           log.error("Failed to cleanup '$dataType'", e)
           failures++
@@ -205,8 +205,8 @@ class SqlUnknownAgentCleanupAgent(
             .execute()
         }
         registry
-          .counter(deletedId.withTags("dataType", dataType, "table", cacheTable.name))
-          .increment(idsToClean.size.toLong())
+          .counter(deletedMetricName, "dataType", dataType, "table", cacheTable.name)
+          .increment(idsToClean.size.toDouble())
       }
     }
 

@@ -18,7 +18,6 @@ package com.netflix.spinnaker.igor.gitlabci;
 
 import static net.logstash.logback.argument.StructuredArguments.kv;
 
-import com.netflix.spectator.api.Registry;
 import com.netflix.spinnaker.igor.IgorConfigurationProperties;
 import com.netflix.spinnaker.igor.build.BuildCache;
 import com.netflix.spinnaker.igor.build.model.GenericProject;
@@ -43,6 +42,7 @@ import com.netflix.spinnaker.kork.discovery.DiscoveryStatusListener;
 import com.netflix.spinnaker.kork.dynamicconfig.DynamicConfigService;
 import com.netflix.spinnaker.kork.retrofit.Retrofit2SyncCall;
 import com.netflix.spinnaker.security.AuthenticatedRequest;
+import io.micrometer.core.instrument.MeterRegistry;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
@@ -70,7 +70,7 @@ public class GitlabCiBuildMonitor
   @Autowired
   public GitlabCiBuildMonitor(
       IgorConfigurationProperties properties,
-      Registry registry,
+      MeterRegistry registry,
       DynamicConfigService dynamicConfigService,
       DiscoveryStatusListener discoveryStatusListener,
       Optional<LockService> lockService,
@@ -210,7 +210,7 @@ public class GitlabCiBuildMonitor
   private void sendEvent(Project project, Pipeline pipeline, String address, String master) {
     if (!echoService.isPresent()) {
       log.warn("Cannot send build notification: Echo is not enabled");
-      registry.counter(missedNotificationId.withTag("monitor", getName())).increment();
+      registry.counter(missedNotificationId, "monitor", getName()).increment();
       return;
     }
 

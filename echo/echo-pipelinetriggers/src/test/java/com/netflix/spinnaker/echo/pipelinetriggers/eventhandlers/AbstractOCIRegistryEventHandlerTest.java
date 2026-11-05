@@ -26,14 +26,14 @@ import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.netflix.spectator.api.NoopRegistry;
-import com.netflix.spectator.api.Registry;
 import com.netflix.spinnaker.echo.model.Trigger;
 import com.netflix.spinnaker.echo.model.trigger.AbstractOCIRegistryEvent;
 import com.netflix.spinnaker.echo.model.trigger.DockerEvent;
 import com.netflix.spinnaker.echo.model.trigger.HelmOciEvent;
 import com.netflix.spinnaker.fiat.shared.FiatPermissionEvaluator;
 import com.netflix.spinnaker.kork.artifacts.model.Artifact;
+import io.micrometer.core.instrument.MeterRegistry;
+import io.micrometer.core.instrument.simple.SimpleMeterRegistry;
 import java.util.Collections;
 import java.util.List;
 import org.junit.jupiter.api.BeforeEach;
@@ -41,7 +41,7 @@ import org.junit.jupiter.api.Test;
 
 public class AbstractOCIRegistryEventHandlerTest {
 
-  private Registry registry;
+  private MeterRegistry registry;
   private ObjectMapper objectMapper;
   private FiatPermissionEvaluator fiatPermissionEvaluator;
 
@@ -50,7 +50,7 @@ public class AbstractOCIRegistryEventHandlerTest {
 
   @BeforeEach
   public void setUp() {
-    registry = new NoopRegistry();
+    registry = new SimpleMeterRegistry();
     objectMapper = new ObjectMapper();
     fiatPermissionEvaluator = mock(FiatPermissionEvaluator.class);
     when(fiatPermissionEvaluator.hasPermission(anyString(), any(), any(), any())).thenReturn(true);
@@ -212,7 +212,7 @@ public class AbstractOCIRegistryEventHandlerTest {
     private static final List<String> SUPPORTED_TYPES = Collections.singletonList("docker");
 
     public TestDockerEventHandler(
-        Registry registry,
+        MeterRegistry registry,
         ObjectMapper objectMapper,
         FiatPermissionEvaluator fiatPermissionEvaluator) {
       super(registry, objectMapper, fiatPermissionEvaluator);
@@ -250,7 +250,7 @@ public class AbstractOCIRegistryEventHandlerTest {
     private static final List<String> SUPPORTED_TYPES = Collections.singletonList("helm/oci");
 
     public TestHelmOciEventHandler(
-        Registry registry,
+        MeterRegistry registry,
         ObjectMapper objectMapper,
         FiatPermissionEvaluator fiatPermissionEvaluator) {
       super(registry, objectMapper, fiatPermissionEvaluator);

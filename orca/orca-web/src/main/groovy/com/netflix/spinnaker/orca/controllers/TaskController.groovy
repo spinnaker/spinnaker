@@ -22,7 +22,6 @@ import com.google.common.base.Preconditions
 import com.google.common.base.Strings
 import com.google.common.collect.ImmutableList
 import com.google.common.util.concurrent.ThreadFactoryBuilder
-import com.netflix.spectator.api.Registry
 import com.netflix.spinnaker.config.TaskControllerConfigurationProperties
 import com.netflix.spinnaker.kork.retrofit.Retrofit2SyncCall
 import com.netflix.spinnaker.kork.retrofit.exceptions.SpinnakerHttpException
@@ -47,6 +46,7 @@ import com.netflix.spinnaker.orca.util.ExpressionUtils
 import com.netflix.spinnaker.security.AuthenticatedRequest
 import groovy.transform.InheritConstructors
 import groovy.util.logging.Slf4j
+import io.micrometer.core.instrument.MeterRegistry
 import org.springframework.http.HttpStatus
 import org.springframework.lang.Nullable
 import org.springframework.security.access.prepost.PostAuthorize
@@ -91,7 +91,7 @@ class TaskController {
   ContextParameterProcessor contextParameterProcessor
   ExpressionUtils expressionUtils
   ObjectMapper mapper
-  Registry registry
+  MeterRegistry registry
   StageDefinitionBuilderFactory stageDefinitionBuilderFactory
   TaskControllerConfigurationProperties configurationProperties
   Clock clock
@@ -104,7 +104,7 @@ class TaskController {
                  ContextParameterProcessor contextParameterProcessor,
                  ExpressionUtils expressionUtils,
                  ObjectMapper mapper,
-                 Registry registry,
+                 MeterRegistry registry,
                  StageDefinitionBuilderFactory stageDefinitionBuilderFactory,
                  TaskControllerConfigurationProperties configurationProperties
   ) {

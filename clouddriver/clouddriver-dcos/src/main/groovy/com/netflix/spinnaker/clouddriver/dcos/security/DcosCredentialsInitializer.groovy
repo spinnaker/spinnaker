@@ -17,7 +17,7 @@
 
 package com.netflix.spinnaker.clouddriver.dcos.security
 
-import com.netflix.spectator.api.Registry
+import io.micrometer.core.instrument.MeterRegistry
 import com.netflix.spinnaker.cats.module.CatsModule
 import com.netflix.spinnaker.clouddriver.dcos.DcosClientCompositeKey
 import com.netflix.spinnaker.clouddriver.dcos.DcosClientProvider
@@ -39,7 +39,7 @@ import org.springframework.context.annotation.DependsOn
 class DcosCredentialsInitializer {
   private final static LOGGER = LoggerFactory.getLogger(DcosCredentialsInitializer)
 
-  @Autowired Registry spectatorRegistry
+  @Autowired MeterRegistry meterRegistry
 
   @Bean
   @DependsOn("dockerRegistryNamedAccountCredentials")
@@ -97,7 +97,7 @@ class DcosCredentialsInitializer {
           DcosClusterCredentials clusterCredentials = DcosClusterCredentials.builder().key(key.get()).dcosUrl(cluster.dcosUrl)
             .secretStore(cluster.secretStore).dockerRegistries(dockerRegistries)
             .dcosConfig(DcosConfigurationProperties.buildConfig(account, cluster, clusterConfig))
-            .spectatorRegistry(spectatorRegistry).build()
+            .meterRegistry(meterRegistry).build()
 
           DCOS client = clientProvider.getDcosClient(clusterCredentials)
           try {
@@ -112,7 +112,7 @@ class DcosCredentialsInitializer {
         DcosAccountCredentials dcosCredentials = DcosAccountCredentials.builder().account(account.name).environment(account.environment)
                 .accountType(account.accountType).dockerRegistries(account.dockerRegistries)
                 .requiredGroupMembership(account.requiredGroupMembership).clusters(allAccountClusterCredentials)
-                .permissions(account.permissions.build()).spectatorRegistry(spectatorRegistry).build()
+                .permissions(account.permissions.build()).meterRegistry(meterRegistry).build()
 
         // Note: The MapBackedAccountCredentialsRepository doesn't actually use the key for anything currently.
         accountCredentialsRepository.save(dcosCredentials.name, dcosCredentials)

@@ -15,12 +15,12 @@
  */
 package com.netflix.spinnaker.orca.qos.bufferstate
 
-import com.netflix.spectator.api.Registry
 import com.netflix.spinnaker.kork.dynamicconfig.DynamicConfigService
 import com.netflix.spinnaker.orca.qos.BufferState
 import com.netflix.spinnaker.orca.qos.BufferState.ACTIVE
 import com.netflix.spinnaker.orca.qos.BufferState.INACTIVE
 import com.netflix.spinnaker.orca.qos.BufferStateSupplier
+import io.micrometer.core.instrument.MeterRegistry
 import org.slf4j.LoggerFactory
 import org.springframework.scheduling.annotation.Scheduled
 import org.springframework.stereotype.Component
@@ -35,7 +35,7 @@ import org.springframework.stereotype.Component
 @Component
 class ActiveExecutionsBufferStateSupplier(
   private val configService: DynamicConfigService,
-  private val registry: Registry
+  private val registry: MeterRegistry
 ) : BufferStateSupplier {
 
   private val log = LoggerFactory.getLogger(ActiveExecutionsBufferStateSupplier::class.java)
@@ -49,11 +49,9 @@ class ActiveExecutionsBufferStateSupplier(
       return
     }
 
-    val activeExecutions = registry.gauges()
-      .filter { it.id().name() == "executions.active" }
-      .map { it.value() }
-      .reduce { p: Double, o: Double -> o + p }
-      .get().toInt()
+    val activeExecutions = registry.find("executions.active").gauges()
+      .sumOf { it.value() }
+      .toInt()
 
     val threshold = getThreshold()
     state = if (activeExecutions > threshold) {

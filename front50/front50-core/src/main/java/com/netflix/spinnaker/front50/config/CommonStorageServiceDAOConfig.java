@@ -16,7 +16,6 @@
 
 package com.netflix.spinnaker.front50.config;
 
-import com.netflix.spectator.api.Registry;
 import com.netflix.spinnaker.front50.model.DefaultObjectKeyLoader;
 import com.netflix.spinnaker.front50.model.ObjectKeyLoader;
 import com.netflix.spinnaker.front50.model.StorageService;
@@ -47,6 +46,7 @@ import com.netflix.spinnaker.front50.model.snapshot.SnapshotDAO;
 import com.netflix.spinnaker.front50.model.tag.DefaultEntityTagsDAO;
 import com.netflix.spinnaker.front50.model.tag.EntityTagsDAO;
 import io.github.resilience4j.circuitbreaker.CircuitBreakerRegistry;
+import io.micrometer.core.instrument.MeterRegistry;
 import io.reactivex.rxjava3.schedulers.Schedulers;
 import java.util.concurrent.Executors;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
@@ -71,7 +71,7 @@ public class CommonStorageServiceDAOConfig {
       StorageService storageService,
       StorageServiceConfigurationProperties storageServiceConfigurationProperties,
       ObjectKeyLoader objectKeyLoader,
-      Registry registry,
+      MeterRegistry registry,
       CircuitBreakerRegistry circuitBreakerRegistry) {
     return new DefaultApplicationDAO(
         storageService,
@@ -90,7 +90,7 @@ public class CommonStorageServiceDAOConfig {
       StorageService storageService,
       StorageServiceConfigurationProperties storageServiceConfigurationProperties,
       ObjectKeyLoader objectKeyLoader,
-      Registry registry,
+      MeterRegistry registry,
       CircuitBreakerRegistry circuitBreakerRegistry) {
     return new DefaultApplicationPermissionDAO(
         storageService,
@@ -108,7 +108,7 @@ public class CommonStorageServiceDAOConfig {
       StorageService storageService,
       StorageServiceConfigurationProperties storageServiceConfigurationProperties,
       ObjectKeyLoader objectKeyLoader,
-      Registry registry,
+      MeterRegistry registry,
       CircuitBreakerRegistry circuitBreakerRegistry) {
     return new DefaultServiceAccountDAO(
         storageService,
@@ -126,7 +126,7 @@ public class CommonStorageServiceDAOConfig {
       StorageService storageService,
       StorageServiceConfigurationProperties storageServiceConfigurationProperties,
       ObjectKeyLoader objectKeyLoader,
-      Registry registry,
+      MeterRegistry registry,
       CircuitBreakerRegistry circuitBreakerRegistry) {
     return new DefaultProjectDAO(
         storageService,
@@ -144,7 +144,7 @@ public class CommonStorageServiceDAOConfig {
       StorageService storageService,
       StorageServiceConfigurationProperties storageServiceConfigurationProperties,
       ObjectKeyLoader objectKeyLoader,
-      Registry registry,
+      MeterRegistry registry,
       CircuitBreakerRegistry circuitBreakerRegistry) {
     return new DefaultNotificationDAO(
         storageService,
@@ -162,7 +162,7 @@ public class CommonStorageServiceDAOConfig {
       StorageService storageService,
       StorageServiceConfigurationProperties storageServiceConfigurationProperties,
       ObjectKeyLoader objectKeyLoader,
-      Registry registry,
+      MeterRegistry registry,
       CircuitBreakerRegistry circuitBreakerRegistry) {
     return new DefaultPipelineStrategyDAO(
         storageService,
@@ -180,7 +180,7 @@ public class CommonStorageServiceDAOConfig {
       StorageService storageService,
       StorageServiceConfigurationProperties storageServiceConfigurationProperties,
       ObjectKeyLoader objectKeyLoader,
-      Registry registry,
+      MeterRegistry registry,
       CircuitBreakerRegistry circuitBreakerRegistry) {
     return new DefaultPipelineDAO(
         storageService,
@@ -198,7 +198,7 @@ public class CommonStorageServiceDAOConfig {
       StorageService storageService,
       StorageServiceConfigurationProperties storageServiceConfigurationProperties,
       ObjectKeyLoader objectKeyLoader,
-      Registry registry,
+      MeterRegistry registry,
       CircuitBreakerRegistry circuitBreakerRegistry) {
     return new DefaultPipelineTemplateDAO(
         storageService,
@@ -216,7 +216,7 @@ public class CommonStorageServiceDAOConfig {
       StorageService storageService,
       StorageServiceConfigurationProperties storageServiceConfigurationProperties,
       ObjectKeyLoader objectKeyLoader,
-      Registry registry,
+      MeterRegistry registry,
       CircuitBreakerRegistry circuitBreakerRegistry) {
     return new DefaultSnapshotDAO(
         storageService,
@@ -234,7 +234,7 @@ public class CommonStorageServiceDAOConfig {
       StorageService storageService,
       StorageServiceConfigurationProperties storageServiceConfigurationProperties,
       ObjectKeyLoader objectKeyLoader,
-      Registry registry,
+      MeterRegistry registry,
       CircuitBreakerRegistry circuitBreakerRegistry) {
     return new DefaultEntityTagsDAO(
         storageService,
@@ -252,7 +252,7 @@ public class CommonStorageServiceDAOConfig {
       StorageService storageService,
       StorageServiceConfigurationProperties storageServiceConfigurationProperties,
       ObjectKeyLoader objectKeyLoader,
-      Registry registry,
+      MeterRegistry registry,
       CircuitBreakerRegistry circuitBreakerRegistry) {
     return new DefaultDeliveryRepository(
         storageService,
@@ -270,7 +270,7 @@ public class CommonStorageServiceDAOConfig {
       StorageService storageService,
       StorageServiceConfigurationProperties storageServiceConfigurationProperties,
       ObjectKeyLoader objectKeyLoader,
-      Registry registry,
+      MeterRegistry registry,
       CircuitBreakerRegistry circuitBreakerRegistry) {
     return new DefaultPluginInfoRepository(
         storageService,
@@ -288,7 +288,7 @@ public class CommonStorageServiceDAOConfig {
       StorageService storageService,
       StorageServiceConfigurationProperties storageServiceConfigurationProperties,
       ObjectKeyLoader objectKeyLoader,
-      Registry registry,
+      MeterRegistry registry,
       CircuitBreakerRegistry circuitBreakerRegistry) {
     return new DefaultPluginVersionPinningRepository(
         storageService,

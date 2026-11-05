@@ -44,8 +44,8 @@ class DcosClientProvider {
 
     return dcosClients.computeIfAbsent(compositeKey.toString(), { k ->
       newProxyInstance(DCOS.class.getClassLoader(), [DCOS.class] as Class<?>[],
-              new DcosSpectatorHandler(DCOSClient.getInstance(trueCredentials.dcosUrl, trueCredentials.dcosConfig),
-                      credentials.account, clusterName, credentials.spectatorRegistry))
+              new DcosMetricsHandler(DCOSClient.getInstance(trueCredentials.dcosUrl, trueCredentials.dcosConfig),
+                      credentials.account, clusterName, credentials.meterRegistry))
     })
   }
 
@@ -54,8 +54,8 @@ class DcosClientProvider {
 
     return dcosClients.computeIfAbsent(compositeKey.toString(), { k ->
       newProxyInstance(DCOS.class.getClassLoader(), [DCOS.class] as Class<?>[],
-              new DcosSpectatorHandler(DCOSClient.getInstance(credentials.dcosUrl, credentials.dcosConfig),
-                      credentials.account, credentials.cluster, credentials.spectatorRegistry))
+              new DcosMetricsHandler(DCOSClient.getInstance(credentials.dcosUrl, credentials.dcosConfig),
+                      credentials.account, credentials.cluster, credentials.meterRegistry))
     })
   }
 }

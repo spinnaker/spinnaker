@@ -21,7 +21,6 @@ import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.Mockito.mock;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.netflix.spectator.api.NoopRegistry;
 import com.netflix.spinnaker.clouddriver.ecs.EcsNativeCloudProvider;
 import com.netflix.spinnaker.clouddriver.ecs.deploy.description.CloneServiceDescription;
 import com.netflix.spinnaker.clouddriver.ecs.deploy.description.DeleteScalingPolicyDescription;
@@ -42,6 +41,7 @@ import com.netflix.spinnaker.clouddriver.orchestration.OperationsService;
 import com.netflix.spinnaker.clouddriver.security.AccountCredentialsProvider;
 import com.netflix.spinnaker.clouddriver.security.AccountCredentialsRepository;
 import com.netflix.spinnaker.kork.web.exceptions.ExceptionMessageDecorator;
+import io.micrometer.core.instrument.simple.SimpleMeterRegistry;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -107,7 +107,7 @@ class EcsNativeDescriptionPreProcessingTest {
             Optional.of(List.of(preProcessor)),
             mock(AccountCredentialsRepository.class),
             Optional.empty(),
-            new NoopRegistry(),
+            new SimpleMeterRegistry(),
             new ObjectMapper(),
             mock(ExceptionMessageDecorator.class));
   }

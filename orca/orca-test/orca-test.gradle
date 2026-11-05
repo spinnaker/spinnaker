@@ -16,7 +16,6 @@
 
 dependencies {
   implementation(project(":orca-core"))
-  implementation("com.netflix.spectator:spectator-api")
   implementation("org.springframework:spring-context")
   implementation("io.spinnaker.kork:kork-retrofit")
   implementation("io.spinnaker.kork:kork-retrofit2")

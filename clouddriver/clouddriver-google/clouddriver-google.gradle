@@ -18,7 +18,7 @@ dependencies {
   implementation "com.google.apis:google-api-services-iam"
   implementation 'com.google.auth:google-auth-library-oauth2-http'
   implementation "com.netflix.frigga:frigga"
-  implementation "com.netflix.spectator:spectator-api"
+  implementation "io.micrometer:micrometer-core"
   implementation "io.spinnaker.fiat:fiat-api"
   implementation "io.spinnaker.fiat:fiat-core"
   implementation "io.spinnaker.kork:kork-annotations"

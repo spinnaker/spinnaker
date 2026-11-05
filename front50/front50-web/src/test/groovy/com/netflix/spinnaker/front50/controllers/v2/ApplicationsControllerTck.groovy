@@ -18,7 +18,7 @@
 package com.netflix.spinnaker.front50.controllers.v2
 
 import com.fasterxml.jackson.databind.ObjectMapper
-import com.netflix.spectator.api.NoopRegistry
+import io.micrometer.core.instrument.simple.SimpleMeterRegistry
 import com.netflix.spinnaker.config.Front50SqlProperties
 import com.netflix.spinnaker.fiat.shared.FiatStatus
 import com.netflix.spinnaker.front50.config.FiatConfigurationProperties
@@ -401,7 +401,7 @@ class SqlApplicationsControllerTck extends ApplicationsControllerTck {
 
   @Override
   ApplicationDAO createApplicationDAO() {
-    def registry = new NoopRegistry()
+    def registry = new SimpleMeterRegistry()
 
     def storageService = new SqlStorageService(
       objectMapper,
@@ -419,7 +419,7 @@ class SqlApplicationsControllerTck extends ApplicationsControllerTck {
       scheduler,
       new DefaultObjectKeyLoader(storageService),
       new StorageServiceConfigurationProperties.PerObjectType(),
-      new NoopRegistry(),
+      new SimpleMeterRegistry(),
       new InMemoryCircuitBreakerRegistry()
     )
   }

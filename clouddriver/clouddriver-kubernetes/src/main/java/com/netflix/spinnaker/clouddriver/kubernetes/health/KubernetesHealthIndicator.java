@@ -18,11 +18,11 @@
 package com.netflix.spinnaker.clouddriver.kubernetes.health;
 
 import com.google.common.collect.ImmutableList;
-import com.netflix.spectator.api.Registry;
 import com.netflix.spinnaker.clouddriver.core.AccountHealthIndicator;
 import com.netflix.spinnaker.clouddriver.kubernetes.config.KubernetesConfigurationProperties;
 import com.netflix.spinnaker.clouddriver.kubernetes.security.KubernetesNamedAccountCredentials;
 import com.netflix.spinnaker.credentials.CredentialsRepository;
+import io.micrometer.core.instrument.MeterRegistry;
 import java.util.Optional;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -36,7 +36,7 @@ public class KubernetesHealthIndicator
 
   @Autowired
   public KubernetesHealthIndicator(
-      Registry registry,
+      MeterRegistry registry,
       CredentialsRepository<KubernetesNamedAccountCredentials> credentialsRepository,
       KubernetesConfigurationProperties kubernetesConfigurationProperties) {
     super(ID, registry);

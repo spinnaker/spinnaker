@@ -31,8 +31,6 @@ import com.google.common.base.Suppliers;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;
-import com.netflix.spectator.api.Clock;
-import com.netflix.spectator.api.Registry;
 import com.netflix.spinnaker.clouddriver.data.task.Task;
 import com.netflix.spinnaker.clouddriver.kubernetes.caching.agent.KubernetesCacheDataConverter;
 import com.netflix.spinnaker.clouddriver.kubernetes.config.CustomKubernetesResource;
@@ -63,6 +61,10 @@ import com.netflix.spinnaker.kork.configserver.ConfigFileService;
 import com.netflix.spinnaker.moniker.Namer;
 import io.kubernetes.client.openapi.models.V1CustomResourceDefinition;
 import io.kubernetes.client.openapi.models.V1DeleteOptions;
+import io.micrometer.core.instrument.Clock;
+import io.micrometer.core.instrument.MeterRegistry;
+import io.micrometer.core.instrument.Tag;
+import io.micrometer.core.instrument.Tags;
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.TimeUnit;
@@ -85,7 +87,7 @@ public class KubernetesCredentials {
   private static final int CRD_EXPIRY_SECONDS = 30;
   private static final int NAMESPACE_EXPIRY_SECONDS = 30;
 
-  private final Registry registry;
+  private final MeterRegistry registry;
   private final Clock clock;
   private final KubectlJobExecutor jobExecutor;
   private final GlobalResourcePropertyRegistry globalResourcePropertyRegistry;
@@ -145,7 +147,7 @@ public class KubernetesCredentials {
   @Getter private final Namer<KubernetesManifest> namer;
 
   public KubernetesCredentials(
-      Registry registry,
+      MeterRegistry registry,
       KubectlJobExecutor jobExecutor,
       ManagedAccount managedAccount,
       AccountResourcePropertyRegistry.Factory resourcePropertyRegistryFactory,
@@ -157,7 +159,7 @@ public class KubernetesCredentials {
       CustomResourceStatusEvaluator customResourceStatusEvaluator) {
     this.registry = registry;
     this.customResourceStatusEvaluator = customResourceStatusEvaluator;
-    this.clock = registry.clock();
+    this.clock = registry.config().clock();
     this.jobExecutor = jobExecutor;
     this.kindRegistry =
         kindRegistryFactory.create(
@@ -726,9 +728,16 @@ public class KubernetesCredentials {
       throw e;
     } finally {
       registry
-          .timer(registry.createId("kubernetes.api", tags))
+          .timer("kubernetes.api", toTags(tags))
           .record(clock.monotonicTime() - startTime, TimeUnit.NANOSECONDS);
     }
+  }
+
+  private static Tags toTags(Map<String, String> tags) {
+    return Tags.of(
+        tags.entrySet().stream()
+            .map(e -> Tag.of(e.getKey(), e.getValue()))
+            .collect(Collectors.toList()));
   }
 
   /**
@@ -836,7 +845,7 @@ public class KubernetesCredentials {
   @Component
   @RequiredArgsConstructor
   public static class Factory {
-    private final Registry spectatorRegistry;
+    private final MeterRegistry meterRegistry;
     private final KubernetesNamerRegistry kubernetesNamerRegistry;
     private final KubectlJobExecutor jobExecutor;
     private final ConfigFileService configFileService;
@@ -850,7 +859,7 @@ public class KubernetesCredentials {
       Namer<KubernetesManifest> manifestNamer =
           kubernetesNamerRegistry.get(managedAccount.getNamingStrategy());
       return new KubernetesCredentials(
-          spectatorRegistry,
+          meterRegistry,
           jobExecutor,
           managedAccount,
           resourcePropertyRegistryFactory,

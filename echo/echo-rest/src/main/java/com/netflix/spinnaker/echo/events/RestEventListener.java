@@ -18,13 +18,13 @@ package com.netflix.spinnaker.echo.events;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.netflix.spectator.api.Registry;
 import com.netflix.spinnaker.echo.api.events.Event;
 import com.netflix.spinnaker.echo.api.events.EventListener;
 import com.netflix.spinnaker.echo.config.RestUrls;
 import com.netflix.spinnaker.echo.jackson.EchoObjectMapper;
 import io.github.resilience4j.circuitbreaker.CallNotPermittedException;
 import io.github.resilience4j.circuitbreaker.CircuitBreaker;
+import io.micrometer.core.instrument.MeterRegistry;
 import java.util.HashMap;
 import java.util.Map;
 import lombok.Getter;
@@ -51,7 +51,7 @@ class RestEventListener implements EventListener {
   private final RestUrls restUrls;
   private final RestEventTemplateEngine restEventTemplateEngine;
   private final RestEventService restEventService;
-  private final Registry registry;
+  private final MeterRegistry registry;
 
   @Value("${rest.default-event-name:spinnaker_events}")
   private String eventName;
@@ -67,7 +67,7 @@ class RestEventListener implements EventListener {
       RestUrls restUrls,
       RestEventTemplateEngine restEventTemplateEngine,
       RestEventService restEventService,
-      Registry registry) {
+      MeterRegistry registry) {
     this.restUrls = restUrls;
     this.restEventTemplateEngine = restEventTemplateEngine;
     this.restEventService = restEventService;

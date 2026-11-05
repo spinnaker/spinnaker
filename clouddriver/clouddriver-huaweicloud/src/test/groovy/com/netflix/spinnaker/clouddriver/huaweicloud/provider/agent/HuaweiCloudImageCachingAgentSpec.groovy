@@ -18,7 +18,7 @@ package com.netflix.spinnaker.clouddriver.huaweicloud.provider.agent
 
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.huawei.openstack4j.openstack.ims.v2.domain.Image
-import com.netflix.spectator.api.DefaultRegistry
+import io.micrometer.core.instrument.simple.SimpleMeterRegistry
 import com.netflix.spinnaker.cats.cache.CacheData
 import com.netflix.spinnaker.cats.provider.ProviderCache
 import com.netflix.spinnaker.clouddriver.huaweicloud.cache.Keys
@@ -34,7 +34,7 @@ class HuaweiCloudImageCachingAgentSpec extends Specification {
 
   void "should add images on initial run"() {
     setup:
-      def registry = new DefaultRegistry()
+      def registry = new SimpleMeterRegistry()
       def cloudClient = Mock(HuaweiCloudClient);
       def credentials = Mock(HuaweiCloudNamedAccountCredentials)
       credentials.cloudClient >> cloudClient

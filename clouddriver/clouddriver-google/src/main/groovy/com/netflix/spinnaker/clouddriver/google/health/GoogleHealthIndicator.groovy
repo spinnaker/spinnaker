@@ -16,7 +16,6 @@
 
 package com.netflix.spinnaker.clouddriver.google.health
 
-import com.netflix.spectator.api.Registry
 import com.netflix.spinnaker.clouddriver.google.GoogleExecutorTraits
 import com.netflix.spinnaker.clouddriver.google.config.GoogleConfigurationProperties
 import com.netflix.spinnaker.clouddriver.google.security.GoogleCredentials
@@ -25,6 +24,7 @@ import com.netflix.spinnaker.clouddriver.security.AccountCredentialsProvider
 import com.netflix.spinnaker.credentials.CredentialsRepository
 import com.netflix.spinnaker.credentials.CredentialsTypeBaseConfiguration
 import groovy.transform.InheritConstructors
+import io.micrometer.core.instrument.MeterRegistry
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
 import org.springframework.beans.factory.annotation.Autowired
@@ -43,7 +43,7 @@ class GoogleHealthIndicator implements HealthIndicator, GoogleExecutorTraits {
   private static final Logger LOG = LoggerFactory.getLogger(GoogleHealthIndicator)
 
   @Autowired
-  Registry registry
+  MeterRegistry registry
 
   @Autowired
   CredentialsTypeBaseConfiguration<GoogleNamedAccountCredentials, ?> credentialsTypeBaseConfiguration

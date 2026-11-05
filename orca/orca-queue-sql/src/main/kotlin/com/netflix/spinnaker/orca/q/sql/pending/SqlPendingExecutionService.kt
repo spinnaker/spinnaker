@@ -1,8 +1,6 @@
 package com.netflix.spinnaker.orca.q.sql.pending
 
 import com.fasterxml.jackson.databind.ObjectMapper
-import com.netflix.spectator.api.Registry
-import com.netflix.spectator.api.histogram.PercentileTimer
 import com.netflix.spinnaker.kork.core.RetrySupport
 import com.netflix.spinnaker.kork.sql.config.RetryProperties
 import com.netflix.spinnaker.orca.api.pipeline.models.ExecutionStatus
@@ -15,6 +13,8 @@ import com.netflix.spinnaker.orca.q.pending.PendingExecutionService
 import com.netflix.spinnaker.q.Message
 import com.netflix.spinnaker.q.Queue
 import de.huxhorn.sulky.ulid.ULID
+import io.micrometer.core.instrument.MeterRegistry
+import io.micrometer.core.instrument.Timer
 import java.lang.Exception
 import java.time.Clock
 import java.time.Duration
@@ -33,7 +33,7 @@ class SqlPendingExecutionService(
   private val repository: ExecutionRepository,
   private val mapper: ObjectMapper,
   private val clock: Clock,
-  private val registry: Registry,
+  private val registry: MeterRegistry,
   private val retryProperties: RetryProperties,
   private val maxDepth: Int
 ) : PendingExecutionService {
@@ -49,9 +49,9 @@ class SqlPendingExecutionService(
     private val log: Logger = LoggerFactory.getLogger(SqlPendingExecutionService::class.java)
   }
 
-  private val enqueueId = registry.createId("queue.pending.enqueue")
-  private val cancelId = registry.createId("queue.pending.cancelled")
-  private val popId = registry.createId("queue.pending.pop")
+  private val enqueueTimer = Timer.builder("queue.pending.enqueue").publishPercentileHistogram().register(registry)
+  private val popOldestTimer = Timer.builder("queue.pending.pop").tag("purge", "false").publishPercentileHistogram().register(registry)
+  private val popNewestTimer = Timer.builder("queue.pending.pop").tag("purge", "true").publishPercentileHistogram().register(registry)
 
   private var shardCondition = if (shard.isNullOrBlank()) {
     shardField.isNull
@@ -60,10 +60,7 @@ class SqlPendingExecutionService(
   }
 
   override fun enqueue(pipelineConfigId: String, message: Message) {
-    PercentileTimer.get(registry, enqueueId)
-      .record {
-        doEnqueue(pipelineConfigId, message)
-      }
+    enqueueTimer.record(Runnable { doEnqueue(pipelineConfigId, message) })
   }
 
   private fun doEnqueue(pipelineConfigId: String, message: Message) {
@@ -81,7 +78,7 @@ class SqlPendingExecutionService(
             "Canceling execution ${message.executionId} for pipeline $pipelineConfigId due to pending " +
               "depth of $queued executions"
           )
-          registry.counter(cancelId).increment()
+          registry.counter("queue.pending.cancelled").increment()
 
           try {
             val execution = repository.retrieve(PIPELINE, message.executionId)
@@ -117,8 +114,7 @@ class SqlPendingExecutionService(
     val start = clock.millis()
     val message = pop(pipelineConfigId, idField.asc())
 
-    PercentileTimer.get(registry, popId.withTag("purge", "false"))
-      .record(clock.millis() - start, TimeUnit.MILLISECONDS)
+    popOldestTimer.record(clock.millis() - start, TimeUnit.MILLISECONDS)
 
     return message
   }
@@ -127,8 +123,7 @@ class SqlPendingExecutionService(
     val start = clock.millis()
     val message = pop(pipelineConfigId, idField.desc())
 
-    PercentileTimer.get(registry, popId.withTag("purge", "true"))
-      .record(clock.millis() - start, TimeUnit.MILLISECONDS)
+    popNewestTimer.record(clock.millis() - start, TimeUnit.MILLISECONDS)
 
     return message
   }

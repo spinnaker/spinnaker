@@ -16,7 +16,7 @@
 
 package com.netflix.spinnaker.kork.tomcat.x509;
 
-import com.netflix.spectator.api.Spectator;
+import io.micrometer.core.instrument.Metrics;
 import org.apache.tomcat.util.net.SSLHostConfigCertificate;
 import org.apache.tomcat.util.net.SSLUtil;
 import org.apache.tomcat.util.net.jsse.JSSEImplementation;
@@ -38,8 +38,9 @@ public class BlocklistingSSLImplementation extends JSSEImplementation {
 
   @Override
   public SSLUtil getSSLUtil(SSLHostConfigCertificate certificate) {
-    // this is not DI friendly since its instantiated by classname by Tomcat
-    // so we need to use Spectator.globalRegistry Singleton:
-    return new BlocklistingJSSESocketFactory(certificate, Spectator.globalRegistry());
+    // this is not DI friendly since its instantiated by classname by Tomcat, so we need to use
+    // Micrometer's static global registry, which Spring Boot Actuator automatically populates
+    // with the application's MeterRegistry bean(s):
+    return new BlocklistingJSSESocketFactory(certificate, Metrics.globalRegistry);
   }
 }

@@ -23,7 +23,6 @@ dependencies {
   implementation "io.spinnaker.kork:kork-artifacts"
   implementation "io.spinnaker.kork:kork-aws"
   implementation "io.spinnaker.kork:kork-pubsub-aws"
-  implementation "com.netflix.spectator:spectator-api"
   implementation "software.amazon.awssdk:sns"
   implementation "software.amazon.awssdk:sqs"
   implementation "jakarta.validation:jakarta.validation-api"

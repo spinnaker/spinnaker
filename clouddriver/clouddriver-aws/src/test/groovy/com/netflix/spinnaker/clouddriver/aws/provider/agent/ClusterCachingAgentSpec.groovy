@@ -28,7 +28,7 @@ import software.amazon.awssdk.services.autoscaling.model.TagDescription
 import software.amazon.awssdk.services.ec2.Ec2Client
 import com.netflix.spinnaker.clouddriver.aws.jackson.AwsObjectMapperFactory
 import com.netflix.spinnaker.clouddriver.aws.jackson.AwsSdkV2Module
-import com.netflix.spectator.api.Spectator
+import io.micrometer.core.instrument.simple.SimpleMeterRegistry
 import com.netflix.spinnaker.cats.provider.ProviderCache
 import com.netflix.spinnaker.clouddriver.aws.AmazonCloudProvider
 import com.netflix.spinnaker.clouddriver.aws.security.AmazonClientProvider
@@ -77,7 +77,7 @@ class ClusterCachingAgentSpec extends Specification {
     def client = Stub(AmazonClientProvider) {
       getAmazonEC2V2(creds, region) >> ec2
     }
-    new ClusterCachingAgent(cloud, client, creds, region, AwsObjectMapperFactory.createConfigured().registerModule(new AwsSdkV2Module()), Spectator.globalRegistry(), filter)
+    new ClusterCachingAgent(cloud, client, creds, region, AwsObjectMapperFactory.createConfigured().registerModule(new AwsSdkV2Module()), new SimpleMeterRegistry(), filter)
   }
 
   @Unroll

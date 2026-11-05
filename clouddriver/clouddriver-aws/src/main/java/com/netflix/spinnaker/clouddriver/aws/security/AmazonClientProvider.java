@@ -16,11 +16,11 @@
 
 package com.netflix.spinnaker.clouddriver.aws.security;
 
-import com.netflix.spectator.api.NoopRegistry;
-import com.netflix.spectator.api.Registry;
 import com.netflix.spinnaker.clouddriver.aws.security.sdkclient.*;
 import com.netflix.spinnaker.clouddriver.core.limits.ServiceLimitConfiguration;
 import com.netflix.spinnaker.clouddriver.core.limits.ServiceLimitConfigurationBuilder;
+import io.micrometer.core.instrument.MeterRegistry;
+import io.micrometer.core.instrument.simple.SimpleMeterRegistry;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
@@ -68,7 +68,7 @@ public class AmazonClientProvider {
     private boolean logEndpoints = false;
     private ServiceLimitConfiguration serviceLimitConfiguration =
         new ServiceLimitConfigurationBuilder().build();
-    private Registry registry = new NoopRegistry();
+    private MeterRegistry registry = new SimpleMeterRegistry();
     private List<ExecutionInterceptor> v2ExecutionInterceptors = new ArrayList<>();
 
     public Builder proxy(AWSProxy proxy) {
@@ -86,7 +86,7 @@ public class AmazonClientProvider {
       return this;
     }
 
-    public Builder registry(Registry registry) {
+    public Builder registry(MeterRegistry registry) {
       this.registry = registry;
       return this;
     }
@@ -139,7 +139,7 @@ public class AmazonClientProvider {
         null,
         false,
         new ServiceLimitConfigurationBuilder().build(),
-        new NoopRegistry(),
+        new SimpleMeterRegistry(),
         Collections.emptyList());
   }
 
@@ -148,7 +148,7 @@ public class AmazonClientProvider {
       AWSProxy proxy,
       boolean addSpinnakerUserToUserAgent,
       ServiceLimitConfiguration serviceLimitConfiguration,
-      Registry registry,
+      MeterRegistry registry,
       List<ExecutionInterceptor> v2ExecutionInterceptors) {
     RateLimiterSupplier rateLimiterSupplier =
         new RateLimiterSupplier(serviceLimitConfiguration, registry);

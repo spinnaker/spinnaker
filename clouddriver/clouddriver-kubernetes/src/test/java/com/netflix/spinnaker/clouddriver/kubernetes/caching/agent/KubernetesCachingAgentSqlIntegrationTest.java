@@ -25,7 +25,6 @@ import static org.mockito.Mockito.when;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
-import com.netflix.spectator.api.NoopRegistry;
 import com.netflix.spinnaker.cats.agent.AgentExecution;
 import com.netflix.spinnaker.cats.cache.CacheData;
 import com.netflix.spinnaker.cats.provider.ProviderCache;
@@ -53,6 +52,7 @@ import com.netflix.spinnaker.kork.dynamicconfig.DynamicConfigService;
 import com.netflix.spinnaker.kork.sql.config.RetryProperties;
 import com.netflix.spinnaker.kork.sql.config.SqlRetryProperties;
 import com.netflix.spinnaker.kork.sql.test.SqlTestUtil;
+import io.micrometer.core.instrument.simple.SimpleMeterRegistry;
 import java.time.Clock;
 import java.util.HashMap;
 import java.util.List;
@@ -192,7 +192,7 @@ class KubernetesCachingAgentSqlIntegrationTest {
     return new KubernetesCoreCachingAgent(
         namedAccountCredentials,
         new ObjectMapper(),
-        new NoopRegistry(),
+        new SimpleMeterRegistry(),
         0,
         1,
         10L,

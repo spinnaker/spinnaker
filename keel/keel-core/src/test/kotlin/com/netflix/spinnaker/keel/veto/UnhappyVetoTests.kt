@@ -17,7 +17,7 @@
  */
 package com.netflix.spinnaker.keel.veto
 
-import com.netflix.spectator.api.NoopRegistry
+import io.micrometer.core.instrument.simple.SimpleMeterRegistry
 import com.netflix.spinnaker.config.UnhappyVetoConfig
 import com.netflix.spinnaker.keel.persistence.DiffFingerprintRepository
 import com.netflix.spinnaker.keel.persistence.ResourceRepository
@@ -61,7 +61,7 @@ class UnhappyVetoTests : JUnit5Minutests {
       resourceRepository,
       springEnv,
       config,
-      NoopRegistry(),
+      SimpleMeterRegistry(),
       clock
     )
 

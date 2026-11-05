@@ -10,7 +10,7 @@ package com.netflix.spinnaker.clouddriver.oracle.provider.config
 
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.fasterxml.jackson.databind.SerializationFeature
-import com.netflix.spectator.api.Registry
+import io.micrometer.core.instrument.MeterRegistry
 import com.netflix.spinnaker.cats.agent.Agent
 import com.netflix.spinnaker.config.OracleConfiguration
 import com.netflix.spinnaker.clouddriver.oracle.provider.OracleInfrastructureProvider
@@ -34,7 +34,7 @@ class OracleInfrastructureProviderConfig {
   OracleInfrastructureProvider oracleInfrastructureProvider(String clouddriverUserAgentApplicationName,
                                                                     AccountCredentialsRepository accountCredentialsRepository,
                                                                     ObjectMapper objectMapper,
-                                                                    Registry registry,
+                                                                    MeterRegistry registry,
                                                                     OracleServerGroupService oracleServerGroupService) {
     def oracleInfrastructureProvider =
       new OracleInfrastructureProvider(Collections.newSetFromMap(new ConcurrentHashMap<Agent, Boolean>()))
@@ -55,7 +55,7 @@ class OracleInfrastructureProviderConfig {
     OracleInfrastructureProvider oracleInfrastructureProvider,
     AccountCredentialsRepository accountCredentialsRepository,
     ObjectMapper objectMapper,
-    Registry registry,
+    MeterRegistry registry,
     OracleServerGroupService oracleServerGroupService) {
     def scheduledAccounts = ProviderUtils.getScheduledAccounts(oracleInfrastructureProvider)
     def allAccounts = ProviderUtils.buildThreadSafeSetOfAccounts(accountCredentialsRepository,

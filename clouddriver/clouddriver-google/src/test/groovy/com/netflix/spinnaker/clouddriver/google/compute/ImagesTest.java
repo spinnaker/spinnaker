@@ -24,16 +24,16 @@ import com.google.api.client.json.gson.GsonFactory;
 import com.google.api.client.testing.http.MockLowLevelHttpResponse;
 import com.google.api.services.compute.Compute;
 import com.google.api.services.compute.model.Image;
-import com.netflix.spectator.api.BasicTag;
-import com.netflix.spectator.api.DefaultRegistry;
-import com.netflix.spectator.api.NoopRegistry;
-import com.netflix.spectator.api.Registry;
-import com.netflix.spectator.api.Tag;
-import com.netflix.spectator.api.Timer;
 import com.netflix.spinnaker.clouddriver.google.deploy.GoogleOperationPoller;
 import com.netflix.spinnaker.clouddriver.google.security.FakeGoogleCredentials;
 import com.netflix.spinnaker.clouddriver.google.security.GoogleNamedAccountCredentials;
+import io.micrometer.core.instrument.MeterRegistry;
+import io.micrometer.core.instrument.Tag;
+import io.micrometer.core.instrument.Timer;
+import io.micrometer.core.instrument.simple.SimpleConfig;
+import io.micrometer.core.instrument.simple.SimpleMeterRegistry;
 import java.io.IOException;
+import java.util.concurrent.TimeUnit;
 import org.junit.jupiter.api.Test;
 
 final class ImagesTest {
@@ -74,7 +74,8 @@ final class ImagesTest {
   @Test
   public void get_successMetrics() throws IOException {
 
-    Registry registry = new DefaultRegistry(new SteppingClock(CLOCK_STEP_TIME_MS));
+    MeterRegistry registry =
+        new SimpleMeterRegistry(SimpleConfig.DEFAULT, new SteppingClock(CLOCK_STEP_TIME_MS));
     HttpTransport transport =
         new ComputeOperationMockHttpTransport(
             new MockLowLevelHttpResponse().setStatusCode(200).setContent("{\"items\": []}"));
@@ -83,24 +84,25 @@ final class ImagesTest {
 
     imagesApi.get("my-project", "my-image").execute();
 
-    assertThat(registry.timers().count()).isEqualTo(1);
-    Timer timer = registry.timers().findFirst().orElseThrow(AssertionError::new);
-    assertThat(timer.id().name()).isEqualTo("google.api");
+    assertThat(registry.getMeters()).hasSize(1);
+    Timer timer = (Timer) registry.getMeters().get(0);
+    assertThat(timer.getId().getName()).isEqualTo("google.api");
     // TODO(plumpy): Come up with something better than AccountForClient (which uses a bunch of
     //               global state) so that we can test for the account tags
-    assertThat(timer.id().tags())
+    assertThat(timer.getId().getTags())
         .contains(
             tag("api", "compute.images.get"),
             tag("scope", "global"),
             tag("status", "2xx"),
             tag("success", "true"));
-    assertThat(timer.totalTime()).isEqualTo(CLOCK_STEP_TIME_NS);
+    assertThat(timer.totalTime(TimeUnit.NANOSECONDS)).isEqualTo((double) CLOCK_STEP_TIME_NS);
   }
 
   @Test
   public void get_errorMetrics() {
 
-    Registry registry = new DefaultRegistry(new SteppingClock(CLOCK_STEP_TIME_MS));
+    MeterRegistry registry =
+        new SimpleMeterRegistry(SimpleConfig.DEFAULT, new SteppingClock(CLOCK_STEP_TIME_MS));
     HttpTransport transport =
         new ComputeOperationMockHttpTransport(
             new MockLowLevelHttpResponse().setStatusCode(404).setContent("{}"));
@@ -109,25 +111,25 @@ final class ImagesTest {
 
     assertThatIOException().isThrownBy(() -> imagesApi.get("my-project", "my-image").execute());
 
-    assertThat(registry.timers().count()).isEqualTo(1);
-    Timer timer = registry.timers().findFirst().orElseThrow(AssertionError::new);
-    assertThat(timer.id().name()).isEqualTo("google.api");
+    assertThat(registry.getMeters()).hasSize(1);
+    Timer timer = (Timer) registry.getMeters().get(0);
+    assertThat(timer.getId().getName()).isEqualTo("google.api");
     // TODO(plumpy): Come up with something better than AccountForClient (which uses a bunch of
     //               global state) so that we can test for the account tags
-    assertThat(timer.id().tags())
+    assertThat(timer.getId().getTags())
         .contains(
             tag("api", "compute.images.get"),
             tag("scope", "global"),
             tag("status", "4xx"),
             tag("success", "false"));
-    assertThat(timer.totalTime()).isEqualTo(CLOCK_STEP_TIME_NS);
+    assertThat(timer.totalTime(TimeUnit.NANOSECONDS)).isEqualTo((double) CLOCK_STEP_TIME_NS);
   }
 
   private static Images createImages(HttpTransport transport) {
-    return createImages(transport, new NoopRegistry());
+    return createImages(transport, new SimpleMeterRegistry());
   }
 
-  private static Images createImages(HttpTransport transport, Registry registry) {
+  private static Images createImages(HttpTransport transport, MeterRegistry registry) {
     Compute compute =
         new Compute(
             transport, GsonFactory.getDefaultInstance(), /* httpRequestInitializer= */ null);
@@ -142,6 +144,6 @@ final class ImagesTest {
   }
 
   private static Tag tag(String key, String value) {
-    return new BasicTag(key, value);
+    return Tag.of(key, value);
   }
 }

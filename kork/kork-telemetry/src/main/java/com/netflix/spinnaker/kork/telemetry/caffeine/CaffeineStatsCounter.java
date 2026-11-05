@@ -19,9 +19,9 @@ package com.netflix.spinnaker.kork.telemetry.caffeine;
 import com.github.benmanes.caffeine.cache.RemovalCause;
 import com.github.benmanes.caffeine.cache.stats.CacheStats;
 import com.github.benmanes.caffeine.cache.stats.StatsCounter;
-import com.netflix.spectator.api.Counter;
-import com.netflix.spectator.api.Registry;
-import com.netflix.spectator.api.Timer;
+import io.micrometer.core.instrument.Counter;
+import io.micrometer.core.instrument.MeterRegistry;
+import io.micrometer.core.instrument.Timer;
 import java.util.concurrent.TimeUnit;
 
 public class CaffeineStatsCounter implements StatsCounter {
@@ -39,7 +39,7 @@ public class CaffeineStatsCounter implements StatsCounter {
    * @param registry the registry of metric instances
    * @param metricsPrefix the prefix name for the metrics
    */
-  public CaffeineStatsCounter(Registry registry, String metricsPrefix) {
+  public CaffeineStatsCounter(MeterRegistry registry, String metricsPrefix) {
     hitCount = registry.counter(metricsPrefix + ".hits");
     missCount = registry.counter(metricsPrefix + ".misses");
     totalLoadTime = registry.timer(metricsPrefix + ".loads");
@@ -80,13 +80,13 @@ public class CaffeineStatsCounter implements StatsCounter {
   @Override
   public CacheStats snapshot() {
     return CacheStats.of(
-        hitCount.count(),
-        missCount.count(),
-        loadSuccessCount.count(),
-        loadFailureCount.count(),
+        (long) hitCount.count(),
+        (long) missCount.count(),
+        (long) loadSuccessCount.count(),
+        (long) loadFailureCount.count(),
         totalLoadTime.count(),
-        evictionCount.count(),
-        evictionWeight.count());
+        (long) evictionCount.count(),
+        (long) evictionWeight.count());
   }
 
   @Override

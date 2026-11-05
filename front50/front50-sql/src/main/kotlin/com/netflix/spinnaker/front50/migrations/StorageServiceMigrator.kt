@@ -16,13 +16,13 @@
 
 package com.netflix.spinnaker.front50.migrations
 
-import com.netflix.spectator.api.Registry
 import com.netflix.spinnaker.front50.model.ObjectType
 import com.netflix.spinnaker.front50.model.StorageService
 import com.netflix.spinnaker.front50.api.model.Timestamped
 import com.netflix.spinnaker.front50.model.tag.EntityTagsDAO
 import com.netflix.spinnaker.kork.dynamicconfig.DynamicConfigService
 import com.netflix.spinnaker.kork.web.context.RequestContextProvider
+import io.micrometer.core.instrument.MeterRegistry
 import java.util.concurrent.TimeUnit
 import kotlin.system.measureTimeMillis
 import kotlinx.coroutines.GlobalScope
@@ -34,7 +34,7 @@ import org.springframework.scheduling.annotation.Scheduled
 
 class StorageServiceMigrator(
   private val dynamicConfigService: DynamicConfigService,
-  private val registry: Registry,
+  private val registry: MeterRegistry,
   private val target: StorageService,
   private val source: StorageService,
   private val entityTagsDAO: EntityTagsDAO,
@@ -45,7 +45,7 @@ class StorageServiceMigrator(
     private val log = LoggerFactory.getLogger(StorageServiceMigrator::class.java)
   }
 
-  var migratorObjectsId = registry.createId("storageServiceMigrator.objects")
+  val migratorObjectsMetricName = "storageServiceMigrator.objects"
 
   fun migrate(objectType: ObjectType) {
     log.info("Migrating {}", objectType)
@@ -149,11 +149,11 @@ class StorageServiceMigrator(
               contextProvider.get().setUser(obj.lastModifiedBy)
               target.storeObject(objectType, key, obj)
               registry.counter(
-                migratorObjectsId.withTag("objectType", objectType.name).withTag("success", true)
+                migratorObjectsMetricName, "objectType", objectType.name, "success", "true"
               ).increment()
             } catch (e: Exception) {
               registry.counter(
-                migratorObjectsId.withTag("objectType", objectType.name).withTag("success", false)
+                migratorObjectsMetricName, "objectType", objectType.name, "success", "false"
               ).increment()
 
               throw e

@@ -19,12 +19,12 @@ package com.netflix.spinnaker.echo.pipelinetriggers.eventhandlers;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.mock;
 
-import com.netflix.spectator.api.NoopRegistry;
 import com.netflix.spinnaker.echo.api.events.Metadata;
 import com.netflix.spinnaker.echo.jackson.EchoObjectMapper;
 import com.netflix.spinnaker.echo.model.Trigger;
 import com.netflix.spinnaker.echo.model.trigger.PluginEvent;
 import com.netflix.spinnaker.fiat.shared.FiatPermissionEvaluator;
+import io.micrometer.core.instrument.simple.SimpleMeterRegistry;
 import java.util.Map;
 import java.util.function.Predicate;
 import org.junit.jupiter.params.ParameterizedTest;
@@ -33,7 +33,9 @@ import org.junit.jupiter.params.provider.CsvSource;
 class PluginEventHandlerTest {
   private final PluginEventHandler eventHandler =
       new PluginEventHandler(
-          new NoopRegistry(), EchoObjectMapper.getInstance(), mock(FiatPermissionEvaluator.class));
+          new SimpleMeterRegistry(),
+          EchoObjectMapper.getInstance(),
+          mock(FiatPermissionEvaluator.class));
 
   @ParameterizedTest
   @CsvSource(

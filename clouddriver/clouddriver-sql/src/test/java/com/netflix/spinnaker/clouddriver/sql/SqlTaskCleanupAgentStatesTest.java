@@ -21,11 +21,11 @@ import static org.jooq.impl.DSL.field;
 import static org.jooq.impl.DSL.table;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.netflix.spectator.api.NoopRegistry;
 import com.netflix.spinnaker.clouddriver.data.task.Task;
 import com.netflix.spinnaker.config.ConnectionPools;
 import com.netflix.spinnaker.config.SqlTaskCleanupAgentProperties;
 import com.netflix.spinnaker.kork.sql.test.SqlTestUtil;
+import io.micrometer.core.instrument.simple.SimpleMeterRegistry;
 import java.time.Clock;
 import java.time.Duration;
 import java.time.Instant;
@@ -116,7 +116,8 @@ class SqlTaskCleanupAgentStatesTest {
   }
 
   private void runCleanup() {
-    new SqlTaskCleanupAgent(database.context, Clock.systemUTC(), new NoopRegistry(), properties)
+    new SqlTaskCleanupAgent(
+            database.context, Clock.systemUTC(), new SimpleMeterRegistry(), properties)
         .run();
   }
 

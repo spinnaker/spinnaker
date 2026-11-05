@@ -22,9 +22,9 @@ import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
-import com.netflix.spectator.api.NoopRegistry;
 import com.netflix.spinnaker.echo.config.QuietPeriodIndicatorConfigurationProperties;
 import com.netflix.spinnaker.kork.dynamicconfig.DynamicConfigService;
+import io.micrometer.core.instrument.simple.SimpleMeterRegistry;
 import java.time.Instant;
 import java.util.ArrayList;
 import java.util.List;
@@ -32,7 +32,7 @@ import org.junit.jupiter.api.Test;
 
 class QuietPeriodIndicatorTest {
 
-  private final NoopRegistry registry = new NoopRegistry();
+  private final SimpleMeterRegistry registry = new SimpleMeterRegistry();
   private final DynamicConfigService dynamicConfigService = mock(DynamicConfigService.class);
 
   private static final String goodStartDate = "2018-01-01T00:00:00Z";

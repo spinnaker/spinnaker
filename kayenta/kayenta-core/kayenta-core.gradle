@@ -3,7 +3,7 @@ dependencies {
   api "io.spinnaker.kork:kork-core"
   api "io.spinnaker.kork:kork-web"
   api "io.spinnaker.kork:kork-retrofit"
-  api "com.netflix.spectator:spectator-api"
+  api "io.micrometer:micrometer-core"
 
   api "io.spinnaker.orca:orca-core"
   api "io.spinnaker.orca:orca-retrofit"

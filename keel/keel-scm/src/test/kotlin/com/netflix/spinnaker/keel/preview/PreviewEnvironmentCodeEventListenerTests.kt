@@ -1,8 +1,8 @@
 package com.netflix.spinnaker.keel.preview
 
-import com.netflix.spectator.api.Registry
-import com.netflix.spectator.api.Tag
-import com.netflix.spectator.api.Timer
+import io.micrometer.core.instrument.MeterRegistry
+import io.micrometer.core.instrument.Tag
+import io.micrometer.core.instrument.Timer
 import com.netflix.spinnaker.keel.api.ArtifactReferenceProvider
 import com.netflix.spinnaker.keel.api.DeliveryConfig
 import com.netflix.spinnaker.keel.api.DependencyType.LOAD_BALANCER
@@ -106,7 +106,7 @@ internal class PreviewEnvironmentCodeEventListenerTests : JUnit5Minutests {
     val importer: DeliveryConfigImporter = mockk()
     val front50Cache: Front50Cache = mockk()
     val springEnv: org.springframework.core.env.Environment = mockk()
-    val spectator: Registry = mockk()
+    val meterRegistry: MeterRegistry = mockk()
     val eventPublisher: ApplicationEventPublisher = mockk()
     val validator: DeliveryConfigValidator = mockk()
     val scmUtils: ScmUtils = mockk()
@@ -146,7 +146,7 @@ internal class PreviewEnvironmentCodeEventListenerTests : JUnit5Minutests {
         front50Cache = front50Cache,
         objectMapper = objectMapper,
         springEnv = springEnv,
-        spectator = spectator,
+        meterRegistry = meterRegistry,
         clock = clock,
         eventPublisher = eventPublisher,
         scmUtils = scmUtils,
@@ -263,7 +263,7 @@ internal class PreviewEnvironmentCodeEventListenerTests : JUnit5Minutests {
       } returns true
 
       every {
-        spectator.counter(any(), any<Iterable<Tag>>())
+        meterRegistry.counter(any(), any<Iterable<Tag>>())
       } returns mockk {
         every {
           increment()
@@ -275,7 +275,7 @@ internal class PreviewEnvironmentCodeEventListenerTests : JUnit5Minutests {
       } just runs
 
       every {
-        spectator.timer(any(), any<Iterable<Tag>>())
+        meterRegistry.timer(any(), any<Iterable<Tag>>())
       } returns fakeTimer
 
       every {
@@ -406,7 +406,7 @@ internal class PreviewEnvironmentCodeEventListenerTests : JUnit5Minutests {
           test("a successful delivery config retrieval is counted") {
             val tags = mutableListOf<Iterable<Tag>>()
             verify {
-              spectator.counter(CODE_EVENT_COUNTER, capture(tags))
+              meterRegistry.counter(CODE_EVENT_COUNTER, capture(tags))
             }
             expectThat(tags).one {
               contains(DELIVERY_CONFIG_RETRIEVAL_SUCCESS.toTags())
@@ -416,7 +416,7 @@ internal class PreviewEnvironmentCodeEventListenerTests : JUnit5Minutests {
           test("a successful preview environment upsert is counted") {
             val tags = mutableListOf<Iterable<Tag>>()
             verify {
-              spectator.counter(CODE_EVENT_COUNTER, capture(tags))
+              meterRegistry.counter(CODE_EVENT_COUNTER, capture(tags))
             }
             expectThat(tags).one {
               contains(PREVIEW_ENVIRONMENT_UPSERT_SUCCESS.toTags())
@@ -425,7 +425,7 @@ internal class PreviewEnvironmentCodeEventListenerTests : JUnit5Minutests {
 
           test("a duration is recorded for successful handling of the PR event") {
             verify(exactly = 1) {
-              spectator.timer(COMMIT_HANDLING_DURATION, any<Iterable<Tag>>())
+              meterRegistry.timer(COMMIT_HANDLING_DURATION, any<Iterable<Tag>>())
               fakeTimer.record(any<Duration>())
             }
           }
@@ -561,7 +561,7 @@ internal class PreviewEnvironmentCodeEventListenerTests : JUnit5Minutests {
         test("a delivery config not found is counted") {
           val tags = mutableListOf<Iterable<Tag>>()
           verify {
-            spectator.counter(CODE_EVENT_COUNTER, capture(tags))
+            meterRegistry.counter(CODE_EVENT_COUNTER, capture(tags))
           }
           expectThat(tags).one {
             contains(DELIVERY_CONFIG_NOT_FOUND.toTags())
@@ -607,7 +607,7 @@ internal class PreviewEnvironmentCodeEventListenerTests : JUnit5Minutests {
           test("a metric is counted for successfully marking for deletion") {
             val tags = mutableListOf<Iterable<Tag>>()
             verify {
-              spectator.counter(CODE_EVENT_COUNTER, capture(tags))
+              meterRegistry.counter(CODE_EVENT_COUNTER, capture(tags))
             }
             expectThat(tags).one {
               contains(PREVIEW_ENVIRONMENT_MARK_FOR_DELETION_SUCCESS.toTags())
@@ -675,7 +675,7 @@ internal class PreviewEnvironmentCodeEventListenerTests : JUnit5Minutests {
         test("a delivery config retrieval error is counted") {
           val tags = mutableListOf<Iterable<Tag>>()
           verify {
-            spectator.counter(CODE_EVENT_COUNTER, capture(tags))
+            meterRegistry.counter(CODE_EVENT_COUNTER, capture(tags))
           }
           expectThat(tags).one {
             contains(DELIVERY_CONFIG_RETRIEVAL_ERROR.toTags())
@@ -705,7 +705,7 @@ internal class PreviewEnvironmentCodeEventListenerTests : JUnit5Minutests {
         test("an application retrieval error is counted") {
           val tags = mutableListOf<Iterable<Tag>>()
           verify {
-            spectator.counter(CODE_EVENT_COUNTER, capture(tags))
+            meterRegistry.counter(CODE_EVENT_COUNTER, capture(tags))
           }
           expectThat(tags).one {
             contains(APPLICATION_RETRIEVAL_ERROR.toTags())
@@ -727,7 +727,7 @@ internal class PreviewEnvironmentCodeEventListenerTests : JUnit5Minutests {
         test("an upsert error is counted") {
           val tags = mutableListOf<Iterable<Tag>>()
           verify {
-            spectator.counter(CODE_EVENT_COUNTER, capture(tags))
+            meterRegistry.counter(CODE_EVENT_COUNTER, capture(tags))
           }
           expectThat(tags).one {
             contains(PREVIEW_ENVIRONMENT_UPSERT_ERROR.toTags())

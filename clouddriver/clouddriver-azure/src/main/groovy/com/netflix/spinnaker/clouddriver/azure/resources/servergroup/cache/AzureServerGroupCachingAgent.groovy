@@ -18,7 +18,7 @@ package com.netflix.spinnaker.clouddriver.azure.resources.servergroup.cache
 
 import com.fasterxml.jackson.core.type.TypeReference
 import com.fasterxml.jackson.databind.ObjectMapper
-import com.netflix.spectator.api.Registry
+import io.micrometer.core.instrument.MeterRegistry
 import com.netflix.spinnaker.cats.agent.AgentDataType
 import com.netflix.spinnaker.cats.agent.CacheResult
 import com.netflix.spinnaker.cats.agent.DefaultCacheResult
@@ -47,10 +47,10 @@ import static com.netflix.spinnaker.cats.agent.AgentDataType.Authority.INFORMATI
 @Slf4j
 class AzureServerGroupCachingAgent extends AzureCachingAgent {
 
-  final Registry registry
+  final MeterRegistry registry
   final OnDemandMetricsSupport metricsSupport
 
-  AzureServerGroupCachingAgent(AzureCloudProvider azureCloudProvider, String accountName, AzureCredentials creds, String region, ObjectMapper objectMapper, Registry registry) {
+  AzureServerGroupCachingAgent(AzureCloudProvider azureCloudProvider, String accountName, AzureCredentials creds, String region, ObjectMapper objectMapper, MeterRegistry registry) {
     super(azureCloudProvider, accountName, creds, region, objectMapper)
 
     this.registry = registry

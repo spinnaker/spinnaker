@@ -18,14 +18,9 @@
 package com.netflix.spinnaker.clouddriver.aws.controllers
 
 import com.google.common.collect.Iterables
-import com.netflix.spectator.api.Counter
-import com.netflix.spectator.api.Gauge
-import com.netflix.spectator.api.Measurement
-
-import java.util.function.Supplier
-
-import com.netflix.spectator.api.DefaultRegistry
-import com.netflix.spectator.api.Registry
+import io.micrometer.core.instrument.Counter
+import io.micrometer.core.instrument.MeterRegistry
+import io.micrometer.core.instrument.simple.SimpleMeterRegistry
 import com.netflix.spinnaker.cats.cache.Cache
 import com.netflix.spinnaker.cats.cache.CacheData
 import com.netflix.spinnaker.cats.cache.DefaultCacheData
@@ -44,7 +39,7 @@ import static com.netflix.spinnaker.clouddriver.core.provider.agent.Namespace.NA
 
 class AmazonNamedImageLookupControllerSpec extends Specification {
 
-  Registry registry = new DefaultRegistry();
+  MeterRegistry registry = new SimpleMeterRegistry();
 
   void "should extract tags from query parameters"() {
     given:
@@ -213,9 +208,9 @@ class AmazonNamedImageLookupControllerSpec extends Specification {
 
     // Since we're only talking about one image, make sure there's no activity
     // on the discarded images metric
-    Counter counter = registry.counters().findFirst().orElseThrow(AssertionError.metaClass.&invokeConstructor as Supplier);
-    counter.id().name() == 'aws.discardedImages'
-    counter.actualCount() == 0
+    Counter counter = registry.find('aws.discardedImages').counter()
+    counter.id.name == 'aws.discardedImages'
+    counter.count() == 0
   }
 
   void "find reports a metric when discarding results"() {
@@ -298,9 +293,9 @@ class AmazonNamedImageLookupControllerSpec extends Specification {
 
     and:
     results.size() == AmazonNamedImageLookupController.MAX_SEARCH_RESULTS
-    Counter counter = registry.counters().findFirst().orElseThrow(AssertionError.metaClass.&invokeConstructor as Supplier);
-    counter.id().name() == 'aws.discardedImages'
-    counter.actualCount() == extraImages
+    Counter counter = registry.find('aws.discardedImages').counter()
+    counter.id.name == 'aws.discardedImages'
+    counter.count() == extraImages
   }
 
   void "find by - name and tags - two amis - same account - same region - same name - different ids - only one has tags"() {

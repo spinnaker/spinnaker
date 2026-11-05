@@ -22,7 +22,6 @@ import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.ImmutableSetMultimap;
-import com.netflix.spectator.api.Registry;
 import com.netflix.spinnaker.cats.agent.AccountAware;
 import com.netflix.spinnaker.cats.agent.AgentIntervalAware;
 import com.netflix.spinnaker.cats.agent.CacheResult;
@@ -45,6 +44,7 @@ import com.netflix.spinnaker.clouddriver.kubernetes.description.manifest.Kuberne
 import com.netflix.spinnaker.clouddriver.kubernetes.op.job.KubectlJobExecutor;
 import com.netflix.spinnaker.clouddriver.kubernetes.security.KubernetesCredentials;
 import com.netflix.spinnaker.clouddriver.kubernetes.security.KubernetesNamedAccountCredentials;
+import io.micrometer.core.instrument.MeterRegistry;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
@@ -83,7 +83,7 @@ public abstract class KubernetesCachingAgent
           SpinnakerKind.SECURITY_GROUPS);
 
   @Getter @Nonnull protected final String accountName;
-  protected final Registry registry;
+  protected final MeterRegistry registry;
   protected final KubernetesCredentials credentials;
   protected final ObjectMapper objectMapper;
 
@@ -103,7 +103,7 @@ public abstract class KubernetesCachingAgent
   protected KubernetesCachingAgent(
       KubernetesNamedAccountCredentials namedAccountCredentials,
       ObjectMapper objectMapper,
-      Registry registry,
+      MeterRegistry registry,
       int agentIndex,
       int agentCount,
       Long agentInterval,

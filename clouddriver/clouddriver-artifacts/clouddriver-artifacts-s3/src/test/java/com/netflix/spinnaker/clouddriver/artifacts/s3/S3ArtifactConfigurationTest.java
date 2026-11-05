@@ -18,9 +18,9 @@ package com.netflix.spinnaker.clouddriver.artifacts.s3;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
-import com.netflix.spectator.api.NoopRegistry;
 import com.netflix.spinnaker.config.ArtifactConfiguration;
 import com.netflix.spinnaker.credentials.CredentialsTypeProperties;
+import io.micrometer.core.instrument.simple.SimpleMeterRegistry;
 import okhttp3.OkHttpClient;
 import org.junit.jupiter.api.Test;
 import org.springframework.boot.context.annotation.UserConfigurations;
@@ -29,7 +29,7 @@ import org.springframework.boot.test.context.runner.ApplicationContextRunner;
 public class S3ArtifactConfigurationTest {
   private final ApplicationContextRunner runner =
       new ApplicationContextRunner()
-          .withBean(NoopRegistry.class)
+          .withBean(SimpleMeterRegistry.class)
           .withConfiguration(UserConfigurations.of(ArtifactConfiguration.class));
 
   @Test

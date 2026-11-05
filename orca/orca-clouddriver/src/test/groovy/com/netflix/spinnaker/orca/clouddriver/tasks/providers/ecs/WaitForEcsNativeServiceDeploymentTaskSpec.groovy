@@ -16,7 +16,7 @@
 
 package com.netflix.spinnaker.orca.clouddriver.tasks.providers.ecs
 
-import com.netflix.spectator.api.NoopRegistry
+import io.micrometer.core.instrument.simple.SimpleMeterRegistry
 import com.netflix.spinnaker.kork.core.RetrySupport
 import com.netflix.spinnaker.kork.dynamicconfig.DynamicConfigService
 import com.netflix.spinnaker.kork.retrofit.exceptions.SpinnakerHttpException
@@ -190,7 +190,7 @@ class WaitForEcsNativeServiceDeploymentTaskSpec extends Specification {
   def 'monitorDeploy output merged into the createServerGroup context hands off its own ARN over an upstream deploy'() {
     given: 'a succeeded clouddriver task for this stage whose result carries the new deployment ARN'
     def kato = Mock(KatoService)
-    def monitor = new MonitorKatoTask(kato, new NoopRegistry(), Clock.systemUTC(), Mock(DynamicConfigService), new RetrySupport())
+    def monitor = new MonitorKatoTask(kato, new SimpleMeterRegistry(), Clock.systemUTC(), Mock(DynamicConfigService), new RetrySupport())
     def katoResult = new Task('kato-1', new Task.Status(completed: true, failed: false), [[
       serverGroupNames: ['us-west-2:myapp'],
       deployments     : [[cloudProvider: 'ecs-native', serverGroupName: 'myapp',

@@ -20,7 +20,7 @@ import com.fasterxml.jackson.databind.ObjectMapper
 import com.google.api.services.compute.Compute
 import com.google.api.services.compute.model.SslCertificate
 import com.google.api.services.compute.model.SslCertificateList
-import com.netflix.spectator.api.DefaultRegistry
+import io.micrometer.core.instrument.simple.SimpleMeterRegistry
 import com.netflix.spinnaker.cats.provider.ProviderCache
 import com.netflix.spinnaker.clouddriver.google.cache.Keys
 import com.netflix.spinnaker.clouddriver.google.security.GoogleNamedAccountCredentials
@@ -169,7 +169,7 @@ class GoogleSslCertificateCachingAgentSpec extends Specification {
       "clouddriver",
       credentials,
       new ObjectMapper(),
-      new DefaultRegistry(),
+      new SimpleMeterRegistry(),
       region)
   }
 }

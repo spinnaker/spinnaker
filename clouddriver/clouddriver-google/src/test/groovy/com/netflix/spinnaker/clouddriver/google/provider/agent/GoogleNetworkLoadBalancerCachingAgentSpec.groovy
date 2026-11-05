@@ -24,7 +24,7 @@ import com.google.api.services.compute.Compute
 import com.google.api.services.compute.ComputeRequest
 import com.google.api.services.compute.model.ForwardingRule
 import com.google.api.services.compute.model.ForwardingRuleList
-import com.netflix.spectator.api.DefaultRegistry
+import io.micrometer.core.instrument.simple.SimpleMeterRegistry
 import com.netflix.spinnaker.cats.provider.ProviderCache
 import com.netflix.spinnaker.clouddriver.google.batch.GoogleBatchRequest
 import com.netflix.spinnaker.clouddriver.google.security.GoogleCredentials
@@ -106,7 +106,7 @@ class GoogleNetworkLoadBalancerCachingAgentSpec extends Specification {
         .credentials(Mock(GoogleCredentials))
         .build(),
       new ObjectMapper(),
-      new DefaultRegistry(),
+      new SimpleMeterRegistry(),
       REGION
     )
   }
@@ -117,7 +117,7 @@ class GoogleNetworkLoadBalancerCachingAgentSpec extends Specification {
       String clouddriverUserAgentApplicationName,
       GoogleNamedAccountCredentials credentials,
       ObjectMapper objectMapper,
-      DefaultRegistry registry,
+      SimpleMeterRegistry registry,
       String region) {
       super(clouddriverUserAgentApplicationName, credentials, objectMapper, registry, region)
     }

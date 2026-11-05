@@ -15,7 +15,6 @@
  */
 package com.netflix.spinnaker.clouddriver.saga
 
-import com.netflix.spectator.api.Registry
 import com.netflix.spinnaker.clouddriver.saga.exceptions.SagaIntegrationException
 import com.netflix.spinnaker.clouddriver.saga.exceptions.SagaMissingRequiredCommandException
 import com.netflix.spinnaker.clouddriver.saga.exceptions.SagaNotFoundException
@@ -26,6 +25,7 @@ import com.netflix.spinnaker.clouddriver.saga.models.Saga
 import com.netflix.spinnaker.clouddriver.saga.persistence.SagaRepository
 import com.netflix.spinnaker.kork.annotations.Beta
 import com.netflix.spinnaker.kork.exceptions.SpinnakerException
+import io.micrometer.core.instrument.MeterRegistry
 import org.slf4j.LoggerFactory
 import org.springframework.context.ApplicationContext
 import org.springframework.context.ApplicationContextAware
@@ -57,14 +57,14 @@ import org.springframework.context.ApplicationContextAware
 @Beta
 class SagaService(
   private val sagaRepository: SagaRepository,
-  private val registry: Registry
+  private val registry: MeterRegistry
 ) : ApplicationContextAware {
 
   private lateinit var applicationContext: ApplicationContext
 
   private val log by lazy { LoggerFactory.getLogger(javaClass) }
 
-  private val actionInvocationsId = registry.createId("sagas.actions.invocations")
+  private val actionInvocationsMetricName = "sagas.actions.invocations"
 
   fun <T> applyBlocking(sagaName: String, sagaId: String, flow: SagaFlow, startingCommand: SagaCommand): T? {
     val initialSaga = initializeSaga(startingCommand, sagaName, sagaId)
@@ -92,7 +92,10 @@ class SagaService(
         val result = try {
           action.apply(stepCommand, saga).also {
             registry
-              .counter(actionInvocationsId.withTags("result", "success", "action", action.javaClass.simpleName))
+              .counter(
+                actionInvocationsMetricName,
+                "result", "success", "action", action.javaClass.simpleName
+              )
               .increment()
           }
         } catch (e: Exception) {
@@ -117,7 +120,10 @@ class SagaService(
           sagaRepository.save(saga)
 
           registry
-            .counter(actionInvocationsId.withTags("result", "failure", "action", action.javaClass.simpleName))
+            .counter(
+              actionInvocationsMetricName,
+              "result", "failure", "action", action.javaClass.simpleName
+            )
             .increment()
 
           log.error("Failed to apply action ${action.javaClass.simpleName} for ${saga.name}/${saga.id}")

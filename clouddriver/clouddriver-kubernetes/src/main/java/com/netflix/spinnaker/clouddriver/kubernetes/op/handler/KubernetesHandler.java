@@ -21,7 +21,6 @@ import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
-import com.netflix.spectator.api.Registry;
 import com.netflix.spinnaker.clouddriver.kubernetes.artifact.ArtifactReplacer;
 import com.netflix.spinnaker.clouddriver.kubernetes.artifact.ArtifactReplacer.ReplaceResult;
 import com.netflix.spinnaker.clouddriver.kubernetes.artifact.Replacer;
@@ -39,6 +38,7 @@ import com.netflix.spinnaker.clouddriver.kubernetes.model.Manifest.Status;
 import com.netflix.spinnaker.clouddriver.kubernetes.model.Manifest.Warning;
 import com.netflix.spinnaker.clouddriver.kubernetes.security.KubernetesNamedAccountCredentials;
 import com.netflix.spinnaker.kork.artifacts.model.Artifact;
+import io.micrometer.core.instrument.MeterRegistry;
 import java.util.*;
 import javax.annotation.Nonnull;
 import lombok.Getter;
@@ -107,7 +107,7 @@ public abstract class KubernetesHandler implements CanDeploy, CanDelete, CanPatc
   public KubernetesCachingAgent buildCachingAgent(
       KubernetesNamedAccountCredentials namedAccountCredentials,
       ObjectMapper objectMapper,
-      Registry registry,
+      MeterRegistry registry,
       int agentIndex,
       int agentCount,
       Long agentInterval,

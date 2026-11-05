@@ -23,7 +23,7 @@ dependencies {
   implementation "org.springframework:spring-web"
   implementation "org.springframework.security:spring-security-core"
   implementation "org.springframework.security:spring-security-web"
-  implementation "com.netflix.spectator:spectator-api"
+  implementation "io.micrometer:micrometer-core"
   implementation "io.spinnaker.kork:kork-core"
   implementation "io.spinnaker.kork:kork-security"
   implementation "io.spinnaker.kork:kork-telemetry"

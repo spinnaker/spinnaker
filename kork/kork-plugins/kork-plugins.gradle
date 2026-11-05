@@ -15,7 +15,6 @@ dependencies {
   implementation project(":kork-retrofit")
 
   implementation "com.github.ben-manes.caffeine:caffeine"
-  implementation "com.netflix.spectator:spectator-api"
 
   implementation project(":kork-plugins-spring-api")
 

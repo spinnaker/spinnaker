@@ -24,13 +24,13 @@ import static org.mockito.Mockito.verifyNoInteractions;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.api.services.compute.Compute;
 import com.google.api.services.compute.model.*;
-import com.netflix.spectator.api.DefaultRegistry;
 import com.netflix.spinnaker.clouddriver.google.batch.GoogleBatchRequest;
 import com.netflix.spinnaker.clouddriver.google.model.GoogleHealthCheck;
 import com.netflix.spinnaker.clouddriver.google.model.loadbalancing.GoogleBackendService;
 import com.netflix.spinnaker.clouddriver.google.model.loadbalancing.GoogleInternalHttpLoadBalancer;
 import com.netflix.spinnaker.clouddriver.google.security.GoogleCredentials;
 import com.netflix.spinnaker.clouddriver.google.security.GoogleNamedAccountCredentials;
+import io.micrometer.core.instrument.simple.SimpleMeterRegistry;
 import java.util.ArrayList;
 import java.util.List;
 import org.junit.jupiter.api.Test;
@@ -377,6 +377,6 @@ public class GoogleInternalHttpLoadBalancerCachingAgentTest {
             .credentials(mock(GoogleCredentials.class))
             .build();
     return new GoogleInternalHttpLoadBalancerCachingAgent(
-        "clouddriver", credentials, new ObjectMapper(), new DefaultRegistry(), "us-central1");
+        "clouddriver", credentials, new ObjectMapper(), new SimpleMeterRegistry(), "us-central1");
   }
 }

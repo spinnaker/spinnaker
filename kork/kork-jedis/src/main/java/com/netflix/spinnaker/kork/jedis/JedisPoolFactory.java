@@ -15,10 +15,10 @@
  */
 package com.netflix.spinnaker.kork.jedis;
 
-import com.netflix.spectator.api.NoopRegistry;
-import com.netflix.spectator.api.Registry;
 import com.netflix.spinnaker.kork.jedis.exception.MissingRequiredConfiguration;
 import com.netflix.spinnaker.kork.jedis.telemetry.InstrumentedJedisPool;
+import io.micrometer.core.instrument.MeterRegistry;
+import io.micrometer.core.instrument.simple.SimpleMeterRegistry;
 import java.net.URI;
 import java.util.Optional;
 import org.apache.commons.pool2.impl.GenericObjectPoolConfig;
@@ -28,13 +28,13 @@ import redis.clients.jedis.util.Pool;
 
 public class JedisPoolFactory {
 
-  private final Registry registry;
+  private final MeterRegistry registry;
 
   public JedisPoolFactory() {
-    this(new NoopRegistry());
+    this(new SimpleMeterRegistry());
   }
 
-  public JedisPoolFactory(Registry registry) {
+  public JedisPoolFactory(MeterRegistry registry) {
     this.registry = registry;
   }
 

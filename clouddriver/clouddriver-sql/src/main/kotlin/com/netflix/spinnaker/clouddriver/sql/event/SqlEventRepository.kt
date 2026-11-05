@@ -16,7 +16,6 @@
 package com.netflix.spinnaker.clouddriver.sql.event
 
 import com.fasterxml.jackson.databind.ObjectMapper
-import com.netflix.spectator.api.Registry
 import com.netflix.spinnaker.clouddriver.event.Aggregate
 import com.netflix.spinnaker.clouddriver.event.CompositeSpinnakerEvent
 import com.netflix.spinnaker.clouddriver.event.EventMetadata
@@ -31,6 +30,7 @@ import com.netflix.spinnaker.config.ConnectionPools
 import com.netflix.spinnaker.kork.sql.routing.withPool
 import com.netflix.spinnaker.kork.version.ServiceVersion
 import de.huxhorn.sulky.ulid.ULID
+import io.micrometer.core.instrument.MeterRegistry
 import java.sql.SQLIntegrityConstraintViolationException
 import java.util.UUID
 import org.jooq.Condition
@@ -47,14 +47,14 @@ class SqlEventRepository @JvmOverloads constructor(
   private val serviceVersion: ServiceVersion,
   private val objectMapper: ObjectMapper,
   private val applicationEventPublisher: ApplicationEventPublisher,
-  private val registry: Registry,
+  private val registry: MeterRegistry,
   private val retries: SqlRetries = SqlRetries()
 ) : EventRepository {
 
   private val log by lazy { LoggerFactory.getLogger(javaClass) }
 
-  private val eventCountId = registry.createId("eventing.events")
-  private val eventErrorCountId = registry.createId("eventing.errors")
+  private val eventCountMetricName = "eventing.events"
+  private val eventErrorCountMetricName = "eventing.errors"
 
   override fun save(
     aggregateType: String,
@@ -155,23 +155,21 @@ class SqlEventRepository @JvmOverloads constructor(
       }
     } catch (e: AggregateChangeRejectedException) {
       registry.counter(
-        eventErrorCountId
-          .withTags("aggregateType", aggregateType, "exception", e.javaClass.simpleName)
+        eventErrorCountMetricName, "aggregateType", aggregateType, "exception", e.javaClass.simpleName
       )
         .increment()
       throw e
     } catch (e: Exception) {
       // This is totally handling it...
       registry.counter(
-        eventErrorCountId
-          .withTags("aggregateType", aggregateType, "exception", e.javaClass.simpleName)
+        eventErrorCountMetricName, "aggregateType", aggregateType, "exception", e.javaClass.simpleName
       )
         .increment()
       throw SqlEventSystemException("Failed saving new events", e)
     }
 
     log.debug("Saved $aggregateType/$aggregateId: [${newEvents.joinToString { it.javaClass.simpleName}}]")
-    registry.counter(eventCountId.withTags("aggregateType", aggregateType)).increment(newEvents.size.toLong())
+    registry.counter(eventCountMetricName, "aggregateType", aggregateType).increment(newEvents.size.toDouble())
 
     newEvents.forEach { applicationEventPublisher.publishEvent(it) }
   }

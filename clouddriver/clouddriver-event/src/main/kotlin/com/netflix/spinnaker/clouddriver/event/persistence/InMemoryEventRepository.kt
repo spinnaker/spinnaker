@@ -15,17 +15,18 @@
  */
 package com.netflix.spinnaker.clouddriver.event.persistence
 
-import com.netflix.spectator.api.Registry
 import com.netflix.spinnaker.clouddriver.event.Aggregate
 import com.netflix.spinnaker.clouddriver.event.EventMetadata
 import com.netflix.spinnaker.clouddriver.event.SpinnakerEvent
 import com.netflix.spinnaker.clouddriver.event.config.MemoryEventRepositoryConfigProperties
 import com.netflix.spinnaker.clouddriver.event.exceptions.AggregateChangeRejectedException
 import com.netflix.spinnaker.kork.exceptions.SystemException
+import io.micrometer.core.instrument.MeterRegistry
 import java.time.Duration
 import java.time.Instant
 import java.util.UUID
 import java.util.concurrent.ConcurrentHashMap
+import java.util.concurrent.atomic.AtomicReference
 import kotlin.math.max
 import org.slf4j.LoggerFactory
 import org.springframework.context.ApplicationEventPublisher
@@ -37,17 +38,17 @@ import org.springframework.scheduling.annotation.Scheduled
 class InMemoryEventRepository(
   private val config: MemoryEventRepositoryConfigProperties,
   private val applicationEventPublisher: ApplicationEventPublisher,
-  private val registry: Registry
+  private val registry: MeterRegistry
 ) : EventRepository {
 
   private val log by lazy { LoggerFactory.getLogger(javaClass) }
 
-  private val aggregateCountId = registry.createId("eventing.aggregates")
-  private val aggregateWriteCountId = registry.createId("eventing.aggregates.writes")
-  private val aggregateReadCountId = registry.createId("eventing.aggregates.reads")
-  private val eventCountId = registry.createId("eventing.events")
-  private val eventWriteCountId = registry.createId("eventing.events.writes")
-  private val eventReadCountId = registry.createId("eventing.events.reads")
+  private val aggregateCountGauge = registry.gauge("eventing.aggregates", AtomicReference(0.0)) { it.get() }
+  private val aggregateWriteCountName = "eventing.aggregates.writes"
+  private val aggregateReadCountName = "eventing.aggregates.reads"
+  private val eventCountGauge = registry.gauge("eventing.events", AtomicReference(0.0)) { it.get() }
+  private val eventWriteCountName = "eventing.events.writes"
+  private val eventReadCountName = "eventing.events.reads"
 
   private val events: MutableMap<Aggregate, MutableList<SpinnakerEvent>> = ConcurrentHashMap()
 
@@ -57,7 +58,7 @@ class InMemoryEventRepository(
     originatingVersion: Long,
     newEvents: List<SpinnakerEvent>
   ) {
-    registry.counter(aggregateWriteCountId).increment()
+    registry.counter(aggregateWriteCountName).increment()
 
     val aggregate = getAggregate(aggregateType, aggregateId)
 
@@ -83,7 +84,7 @@ class InMemoryEventRepository(
         )
       }
 
-      registry.counter(eventWriteCountId).increment(newEvents.size.toLong())
+      registry.counter(eventWriteCountName).increment(newEvents.size.toDouble())
       aggregateEvents.addAll(newEvents)
       aggregate.version = aggregate.version + 1
     }
@@ -97,7 +98,7 @@ class InMemoryEventRepository(
   }
 
   override fun list(aggregateType: String, aggregateId: String): List<SpinnakerEvent> {
-    registry.counter(eventReadCountId).increment()
+    registry.counter(eventReadCountName).increment()
 
     return getAggregate(aggregateType, aggregateId)
       .let {
@@ -134,7 +135,7 @@ class InMemoryEventRepository(
   }
 
   private fun getAggregate(aggregateType: String, aggregateId: String): Aggregate {
-    registry.counter(aggregateReadCountId).increment()
+    registry.counter(aggregateReadCountName).increment()
 
     val aggregate = Aggregate(
       aggregateType,
@@ -147,7 +148,7 @@ class InMemoryEventRepository(
 
   @Scheduled(fixedDelayString = "\${spinnaker.clouddriver.eventing.memory-repository.cleanup-job-delay-ms:60000}")
   private fun cleanup() {
-    registry.counter(eventReadCountId).increment()
+    registry.counter(eventReadCountName).increment()
 
     config.maxAggregateAgeMs
       ?.let { Duration.ofMillis(it) }
@@ -182,8 +183,8 @@ class InMemoryEventRepository(
 
   @Scheduled(fixedRate = 1_000)
   private fun recordMetrics() {
-    registry.gauge(aggregateCountId).set(events.size.toDouble())
-    registry.gauge(eventCountId).set(events.flatMap { it.value }.size.toDouble())
+    aggregateCountGauge!!.set(events.size.toDouble())
+    eventCountGauge!!.set(events.flatMap { it.value }.size.toDouble())
   }
 
   inner class MissingAggregateEventsException(aggregateType: String, aggregateId: String) : SystemException(

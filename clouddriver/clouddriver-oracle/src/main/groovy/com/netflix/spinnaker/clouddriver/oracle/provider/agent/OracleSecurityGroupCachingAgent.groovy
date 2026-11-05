@@ -9,7 +9,7 @@
 package com.netflix.spinnaker.clouddriver.oracle.provider.agent
 
 import com.fasterxml.jackson.databind.ObjectMapper
-import com.netflix.spectator.api.Registry
+import io.micrometer.core.instrument.MeterRegistry
 import com.netflix.spinnaker.cats.agent.AgentDataType
 import com.netflix.spinnaker.cats.agent.CacheResult
 import com.netflix.spinnaker.cats.agent.DefaultCacheResult
@@ -41,7 +41,7 @@ class OracleSecurityGroupCachingAgent extends AbstractOracleCachingAgent impleme
   final String onDemandAgentType = "${agentType}-OnDemand"
   final OnDemandMetricsSupport metricsSupport
 
-  OracleSecurityGroupCachingAgent(String clouddriverUserAgentApplicationName, OracleNamedAccountCredentials credentials, ObjectMapper objectMapper, Registry registry) {
+  OracleSecurityGroupCachingAgent(String clouddriverUserAgentApplicationName, OracleNamedAccountCredentials credentials, ObjectMapper objectMapper, MeterRegistry registry) {
     super(objectMapper, credentials, clouddriverUserAgentApplicationName)
     this.metricsSupport = new OnDemandMetricsSupport(registry, this, "${OracleCloudProvider.ID}:${OnDemandType.SecurityGroup}")
   }

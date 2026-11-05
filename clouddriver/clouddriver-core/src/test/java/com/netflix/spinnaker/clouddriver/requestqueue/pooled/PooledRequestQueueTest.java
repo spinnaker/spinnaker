@@ -22,9 +22,9 @@ import static org.assertj.core.api.Assertions.fail;
 import static org.mockito.Mockito.mock;
 
 import ch.qos.logback.classic.Level;
-import com.netflix.spectator.api.NoopRegistry;
 import com.netflix.spinnaker.kork.dynamicconfig.DynamicConfigService;
 import com.netflix.spinnaker.kork.test.log.MemoryAppender;
+import io.micrometer.core.instrument.simple.SimpleMeterRegistry;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.Callable;
@@ -47,7 +47,7 @@ final class PooledRequestQueueTest {
   @Test
   void shouldExecuteRequests() throws Throwable {
     PooledRequestQueue queue =
-        new PooledRequestQueue(dynamicConfigService, new NoopRegistry(), 1000, 1000, 1);
+        new PooledRequestQueue(dynamicConfigService, new SimpleMeterRegistry(), 1000, 1000, 1);
 
     assertThat(queue.execute("foo", () -> 12345L)).isEqualTo(12345L);
   }
@@ -58,7 +58,7 @@ final class PooledRequestQueueTest {
     MemoryAppender memoryAppender = new MemoryAppender(PooledRequestQueueTest.class);
 
     PooledRequestQueue queue =
-        new PooledRequestQueue(dynamicConfigService, new NoopRegistry(), 1000, 1000, 1);
+        new PooledRequestQueue(dynamicConfigService, new SimpleMeterRegistry(), 1000, 1000, 1);
 
     Callable<Long> testCallable =
         () -> {
@@ -86,7 +86,7 @@ final class PooledRequestQueueTest {
   @Test
   void timesOutIfRequestDoesNotComplete() {
     PooledRequestQueue queue =
-        new PooledRequestQueue(dynamicConfigService, new NoopRegistry(), 5000, 10, 1);
+        new PooledRequestQueue(dynamicConfigService, new SimpleMeterRegistry(), 5000, 10, 1);
 
     CountDownLatch block = new CountDownLatch(1);
     assertThatThrownBy(
@@ -110,7 +110,7 @@ final class PooledRequestQueueTest {
     long startTimeout = 50;
     PooledRequestQueue queue =
         new PooledRequestQueue(
-            dynamicConfigService, new NoopRegistry(), startTimeout, 5 * startTimeout, 1);
+            dynamicConfigService, new SimpleMeterRegistry(), startTimeout, 5 * startTimeout, 1);
 
     ExecutorService executor = Executors.newFixedThreadPool(2);
 

@@ -31,7 +31,7 @@ import com.netflix.spinnaker.clouddriver.deploy.DeploymentResult
 import com.netflix.spinnaker.clouddriver.orchestration.AtomicOperation
 import com.netflix.spinnaker.kork.artifacts.model.Artifact
 
-import com.netflix.spectator.api.Registry
+import io.micrometer.core.instrument.MeterRegistry
 import groovy.util.logging.Slf4j
 
 import java.nio.file.Path
@@ -49,7 +49,7 @@ class DeployAppengineAtomicOperation implements AtomicOperation<DeploymentResult
   }
 
   @Autowired
-  Registry registry
+  MeterRegistry registry
 
   @Autowired
   AppengineJobExecutor jobExecutor
@@ -127,9 +127,9 @@ class DeployAppengineAtomicOperation implements AtomicOperation<DeploymentResult
     * favor of using temporary directories encapsulated to the request. However
     * this means that the downloads would not be incremental without more work.
     */
-    registry.counter(registry.createId("appengine.deployStart",
-                                       "account", serviceAccount,
-                                       "region", region))
+    registry.counter("appengine.deployStart",
+                     "account", serviceAccount,
+                     "region", region)
             .increment()
     return AppengineMutexRepository.atomicWrapper(directoryPath, {
       task.updateStatus BASE_PHASE, "Initializing creation of version..."
@@ -140,32 +140,31 @@ class DeployAppengineAtomicOperation implements AtomicOperation<DeploymentResult
         createEmptyDirectory(directoryPath)
         deployPath = directoryPath
       } else {
-        def startTime = registry.clock().monotonicTime()
+        def startTime = registry.config().clock().monotonicTime()
         def success = "false"
         try {
           deployPath = cloneOrUpdateLocalRepository(directoryPath, 1)
           success = "true"
         } finally {
-          def duration = registry.clock().monotonicTime() - startTime
-          registry.timer(
-              registry.createId("appengine.repositoryDownload",
-                                "account", serviceAccount,
-                                "repositoryType", usesGcs ? "gcs" : "git",
-                                "success", success))
+          def duration = registry.config().clock().monotonicTime() - startTime
+          registry.timer("appengine.repositoryDownload",
+                        "account", serviceAccount,
+                        "repositoryType", usesGcs ? "gcs" : "git",
+                        "success", success)
               .record(duration, TimeUnit.NANOSECONDS);
         }
       }
-      def startTime = registry.clock().monotonicTime()
+      def startTime = registry.config().clock().monotonicTime()
       def success = "false"
       try {
           newVersionName = deploy(deployPath)
           success = "true"
       } finally {
-          def duration = registry.clock().monotonicTime() - startTime
-          registry.timer(registry.createId("appengine.deploy",
-                                           "success", success,
-                                           "account", serviceAccount,
-                                           "region", region))
+          def duration = registry.config().clock().monotonicTime() - startTime
+          registry.timer("appengine.deploy",
+                        "success", success,
+                        "account", serviceAccount,
+                        "region", region)
               .record(duration, TimeUnit.NANOSECONDS);
       }
 
@@ -275,7 +274,7 @@ class DeployAppengineAtomicOperation implements AtomicOperation<DeploymentResult
     }
 
     task.updateStatus BASE_PHASE, "Deploying version $versionName..."
-    def startTime = registry.clock().monotonicTime()
+    def startTime = registry.config().clock().monotonicTime()
     def success = "false"
     try {
       jobExecutor.runCommand(deployCommand)
@@ -283,12 +282,12 @@ class DeployAppengineAtomicOperation implements AtomicOperation<DeploymentResult
     } catch (e) {
       throw new AppengineOperationException("Failed to deploy to App Engine with command ${deployCommand.join(' ')}: ${e.getMessage()}")
     } finally {
-      def duration = registry.clock().monotonicTime() - startTime
-      def id = registry.createId("appengine.deploy",
-                                 "account", description.credentials.serviceAccountEmail,
-                                 "region", description.credentials.region,
-                                 "success", success)
-      registry.timer(id).record(duration, TimeUnit.NANOSECONDS);
+      def duration = registry.config().clock().monotonicTime() - startTime
+      registry.timer("appengine.deploy",
+                     "account", description.credentials.serviceAccountEmail,
+                     "region", description.credentials.region,
+                     "success", success)
+          .record(duration, TimeUnit.NANOSECONDS);
       deleteFiles(writtenFullConfigFilePaths)
     }
     task.updateStatus BASE_PHASE, "Done deploying version $versionName..."

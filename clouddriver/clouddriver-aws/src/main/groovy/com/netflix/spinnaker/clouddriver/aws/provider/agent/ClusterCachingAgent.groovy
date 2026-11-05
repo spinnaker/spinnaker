@@ -37,7 +37,7 @@ import com.fasterxml.jackson.core.type.TypeReference
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.fasterxml.jackson.databind.SerializationFeature
 import com.netflix.frigga.Names
-import com.netflix.spectator.api.Registry
+import io.micrometer.core.instrument.MeterRegistry
 import com.netflix.spinnaker.cats.agent.AccountAware
 import com.netflix.spinnaker.cats.agent.AgentDataType
 import com.netflix.spinnaker.cats.agent.CachingAgent
@@ -88,7 +88,7 @@ class ClusterCachingAgent implements CachingAgent, OnDemandAgent, AccountAware, 
   final NetflixAmazonCredentials account
   final String region
   final ObjectMapper objectMapper
-  final Registry registry
+  final MeterRegistry registry
   final AmazonCachingAgentFilter amazonCachingAgentFilter
 
   final OnDemandMetricsSupport metricsSupport
@@ -98,7 +98,7 @@ class ClusterCachingAgent implements CachingAgent, OnDemandAgent, AccountAware, 
                       NetflixAmazonCredentials account,
                       String region,
                       ObjectMapper objectMapper,
-                      Registry registry,
+                      MeterRegistry registry,
                       AmazonCachingAgentFilter amazonCachingAgentFilter) {
     this.amazonCloudProvider = amazonCloudProvider
     this.amazonClientProvider = amazonClientProvider

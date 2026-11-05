@@ -25,8 +25,6 @@ import static java.util.Collections.emptyList;
 import static java.util.Collections.emptyMap;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.netflix.spectator.api.Id;
-import com.netflix.spectator.api.Registry;
 import com.netflix.spinnaker.kork.annotations.VisibleForTesting;
 import com.netflix.spinnaker.kork.exceptions.HasAdditionalAttributes;
 import com.netflix.spinnaker.kork.exceptions.SystemException;
@@ -43,6 +41,7 @@ import com.netflix.spinnaker.orca.pipeline.model.PipelineExecutionImpl;
 import com.netflix.spinnaker.orca.pipeline.model.StageExecutionImpl;
 import com.netflix.spinnaker.orca.pipeline.persistence.ExecutionNotFoundException;
 import com.netflix.spinnaker.orca.pipeline.persistence.ExecutionRepository;
+import io.micrometer.core.instrument.MeterRegistry;
 import io.micrometer.core.instrument.util.StringUtils;
 import java.time.Clock;
 import java.util.Collections;
@@ -70,12 +69,11 @@ public class ExecutionLauncher {
   private final ExecutionRunner executionRunner;
   private final Clock clock;
   private final Optional<PipelineValidator> pipelineValidator;
-  private final Registry registry;
+  private final Optional<MeterRegistry> registry;
   private final ApplicationEventPublisher applicationEventPublisher;
   private final ExecutionConfigurationProperties executionConfigurationProperties;
   private final ProvidedIdRequestFilterConfigurationProperties
       providedIdRequestFilterConfigurationProperties;
-  private final Id executionTriggerSystemErrorsId;
 
   @Autowired
   public ExecutionLauncher(
@@ -85,7 +83,7 @@ public class ExecutionLauncher {
       Clock clock,
       ApplicationEventPublisher applicationEventPublisher,
       Optional<PipelineValidator> pipelineValidator,
-      Registry registry,
+      Optional<MeterRegistry> registry,
       ExecutionConfigurationProperties executionConfigurationProperties,
       ProvidedIdRequestFilterConfigurationProperties
           providedIdRequestFilterConfigurationProperties) {
@@ -99,7 +97,6 @@ public class ExecutionLauncher {
     this.executionConfigurationProperties = executionConfigurationProperties;
     this.providedIdRequestFilterConfigurationProperties =
         providedIdRequestFilterConfigurationProperties;
-    this.executionTriggerSystemErrorsId = registry.createId("execution.trigger.system.errors");
   }
 
   /** Start executing a top-level pipeline */
@@ -217,11 +214,16 @@ public class ExecutionLauncher {
       }
     }
 
-    registry
-        .counter(
-            executionTriggerSystemErrorsId.withTags(
-                "type", execution.getType().toString(), "reason", reason))
-        .increment();
+    String failureReason = reason;
+    registry.ifPresent(
+        r ->
+            r.counter(
+                    "execution.trigger.system.errors",
+                    "type",
+                    execution.getType().toString(),
+                    "reason",
+                    failureReason)
+                .increment());
     if (failure instanceof UserException) {
       log.warn(
           "Failed to start {} {} due to user error or misconfiguration",

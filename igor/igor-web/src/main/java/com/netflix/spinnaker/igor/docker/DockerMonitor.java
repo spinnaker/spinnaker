@@ -18,8 +18,6 @@ package com.netflix.spinnaker.igor.docker;
 
 import static net.logstash.logback.argument.StructuredArguments.kv;
 
-import com.netflix.spectator.api.BasicTag;
-import com.netflix.spectator.api.Registry;
 import com.netflix.spinnaker.igor.IgorConfigurationProperties;
 import com.netflix.spinnaker.igor.build.model.GenericArtifact;
 import com.netflix.spinnaker.igor.config.DockerRegistryProperties;
@@ -38,8 +36,9 @@ import com.netflix.spinnaker.kork.discovery.DiscoveryStatusListener;
 import com.netflix.spinnaker.kork.dynamicconfig.DynamicConfigService;
 import com.netflix.spinnaker.kork.retrofit.Retrofit2SyncCall;
 import com.netflix.spinnaker.security.AuthenticatedRequest;
+import io.micrometer.core.instrument.MeterRegistry;
+import io.micrometer.core.instrument.Tags;
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -69,7 +68,7 @@ public class DockerMonitor
   @Autowired
   public DockerMonitor(
       IgorConfigurationProperties properties,
-      Registry registry,
+      MeterRegistry registry,
       DynamicConfigService dynamicConfigService,
       DiscoveryStatusListener discoveryStatusListener,
       Optional<LockService> lockService,
@@ -140,9 +139,7 @@ public class DockerMonitor
         "Executed generateDelta:DockerMonitor with includeData=true in {}ms", endTime - startTime);
 
     registry
-        .timer(
-            "pollingMonitor.docker.retrieveImagesByAccount",
-            Collections.singleton(new BasicTag("account", account)))
+        .timer("pollingMonitor.docker.retrieveImagesByAccount", Tags.of("account", account))
         .record(System.currentTimeMillis() - startTime, TimeUnit.MILLISECONDS);
 
     List<ImageDelta> delta = new ArrayList<>();
@@ -229,14 +226,16 @@ public class DockerMonitor
                   if (!sendEvents) {
                     registry
                         .counter(
-                            missedNotificationId.withTags(
-                                "monitor", getName(), "reason", "fastForward"))
+                            missedNotificationId, "monitor", getName(), "reason", "fastForward")
                         .increment();
                   } else {
                     registry
                         .counter(
-                            missedNotificationId.withTags(
-                                "monitor", getName(), "reason", "skippedDueToEmptyCache"))
+                            missedNotificationId,
+                            "monitor",
+                            getName(),
+                            "reason",
+                            "skippedDueToEmptyCache")
                         .increment();
                   }
                 }
@@ -253,7 +252,7 @@ public class DockerMonitor
     if (!echoService.isPresent()) {
       log.warn("Cannot send tagged image notification: Echo is not enabled");
       registry
-          .counter(missedNotificationId.withTags("monitor", getName(), "reason", "echoDisabled"))
+          .counter(missedNotificationId, "monitor", getName(), "reason", "echoDisabled")
           .increment();
       return;
     }

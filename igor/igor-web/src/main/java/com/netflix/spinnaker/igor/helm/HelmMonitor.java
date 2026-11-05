@@ -18,7 +18,6 @@ package com.netflix.spinnaker.igor.helm;
 
 import static net.logstash.logback.argument.StructuredArguments.kv;
 
-import com.netflix.spectator.api.Registry;
 import com.netflix.spinnaker.igor.IgorConfigurationProperties;
 import com.netflix.spinnaker.igor.build.model.GenericArtifact;
 import com.netflix.spinnaker.igor.helm.accounts.HelmAccount;
@@ -33,6 +32,7 @@ import com.netflix.spinnaker.kork.dynamicconfig.DynamicConfigService;
 import com.netflix.spinnaker.kork.exceptions.ConstraintViolationException;
 import com.netflix.spinnaker.kork.retrofit.Retrofit2SyncCall;
 import com.netflix.spinnaker.security.AuthenticatedRequest;
+import io.micrometer.core.instrument.MeterRegistry;
 import java.util.*;
 import java.util.stream.Collectors;
 import lombok.AllArgsConstructor;
@@ -53,7 +53,7 @@ public class HelmMonitor
   @Autowired
   public HelmMonitor(
       IgorConfigurationProperties properties,
-      Registry registry,
+      MeterRegistry registry,
       DynamicConfigService dynamicConfigService,
       DiscoveryStatusListener discoveryStatusListener,
       Optional<LockService> lockService,
@@ -163,9 +163,7 @@ public class HelmMonitor
   private void sendEvent(String account, HelmDelta delta) {
     if (!echoService.isPresent()) {
       log.warn("Cannot send Helm notification: Echo is not enabled");
-      registry
-          .counter(missedNotificationId.withTag("monitor", getClass().getSimpleName()))
-          .increment();
+      registry.counter(missedNotificationId, "monitor", getClass().getSimpleName()).increment();
       return;
     }
 

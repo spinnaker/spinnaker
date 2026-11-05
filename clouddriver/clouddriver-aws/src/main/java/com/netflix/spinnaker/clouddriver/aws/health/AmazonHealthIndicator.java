@@ -1,11 +1,11 @@
 package com.netflix.spinnaker.clouddriver.aws.health;
 
-import com.netflix.spectator.api.Registry;
 import com.netflix.spinnaker.clouddriver.aws.AwsConfigurationProperties;
 import com.netflix.spinnaker.clouddriver.aws.security.AmazonClientProvider;
 import com.netflix.spinnaker.clouddriver.aws.security.NetflixAmazonCredentials;
 import com.netflix.spinnaker.clouddriver.core.AccountHealthIndicator;
 import com.netflix.spinnaker.credentials.CredentialsRepository;
+import io.micrometer.core.instrument.MeterRegistry;
 import java.util.Optional;
 import lombok.extern.slf4j.Slf4j;
 import software.amazon.awssdk.awscore.exception.AwsServiceException;
@@ -20,7 +20,7 @@ public class AmazonHealthIndicator extends AccountHealthIndicator<NetflixAmazonC
   private final AwsConfigurationProperties awsConfigurationProperties;
 
   public AmazonHealthIndicator(
-      Registry registry,
+      MeterRegistry registry,
       CredentialsRepository<NetflixAmazonCredentials> credentialsRepository,
       AmazonClientProvider amazonClientProvider,
       AwsConfigurationProperties awsConfigurationProperties) {

@@ -16,8 +16,8 @@
 
 package com.netflix.spinnaker.clouddriver.requestqueue.pooled;
 
-import com.netflix.spectator.api.Registry;
-import com.netflix.spectator.api.Timer;
+import io.micrometer.core.instrument.MeterRegistry;
+import io.micrometer.core.instrument.Timer;
 import java.util.Map;
 import java.util.concurrent.Callable;
 import java.util.concurrent.CancellationException;
@@ -30,9 +30,8 @@ class PooledRequest<T> implements Runnable {
   private final Callable<T> work;
   private final long startTime = System.nanoTime();
 
-  PooledRequest(Registry registry, String partition, Callable<T> work) {
-    this.timer =
-        registry.timer(registry.createId("pooledRequestQueue.enqueueTime", "partition", partition));
+  PooledRequest(MeterRegistry registry, String partition, Callable<T> work) {
+    this.timer = registry.timer("pooledRequestQueue.enqueueTime", "partition", partition);
     this.result = new Promise<>(registry, partition);
 
     // Copy the MDC before doing the work.  That way information from the MDC

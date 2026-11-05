@@ -28,7 +28,7 @@ import com.google.api.services.compute.model.InstanceProperties
 import com.google.api.services.compute.model.InstanceTemplate
 import com.google.api.services.compute.model.NetworkInterface
 import com.google.api.services.compute.model.TargetHttpProxy
-import com.netflix.spectator.api.DefaultRegistry
+import io.micrometer.core.instrument.simple.SimpleMeterRegistry
 import com.netflix.spinnaker.clouddriver.data.task.Task
 import com.netflix.spinnaker.clouddriver.data.task.TaskRepository
 import com.netflix.spinnaker.clouddriver.google.config.GoogleConfigurationProperties
@@ -76,7 +76,7 @@ class UpsertGoogleExternalHttpLoadBalancerAtomicOperationUnitSpec extends Specif
 
   @Shared GoogleHealthCheck hc
   @Shared def threadSleeperMock = Mock(GoogleOperationPoller.ThreadSleeper)
-  @Shared def registry = new DefaultRegistry()
+  @Shared def registry = new SimpleMeterRegistry()
   @Shared SafeRetry safeRetry
   @Shared ObjectMapper objectMapper = new ObjectMapper()
 
@@ -378,7 +378,7 @@ class UpsertGoogleExternalHttpLoadBalancerAtomicOperationUnitSpec extends Specif
       def targetHttpProxiesGet = Mock(Compute.RegionTargetHttpProxies.Get)
       @Subject def operation = new UpsertGoogleExternalHttpLoadBalancerAtomicOperation(
         new UpsertGoogleLoadBalancerDescription())
-      operation.registry = new com.netflix.spectator.api.DefaultRegistry()
+      operation.registry = new SimpleMeterRegistry()
       operation.safeRetry = com.netflix.spinnaker.clouddriver.google.deploy.SafeRetry.withoutDelay()
 
     when:
@@ -697,7 +697,7 @@ class UpsertGoogleExternalHttpLoadBalancerAtomicOperationUnitSpec extends Specif
       def forwardingRulesGet = Mock(Compute.ForwardingRules.Get)
       @Subject def operation = new UpsertGoogleExternalHttpLoadBalancerAtomicOperation(
         new UpsertGoogleLoadBalancerDescription())
-      operation.registry = new com.netflix.spectator.api.DefaultRegistry()
+      operation.registry = new SimpleMeterRegistry()
       operation.safeRetry = com.netflix.spinnaker.clouddriver.google.deploy.SafeRetry.withoutDelay()
 
     when:

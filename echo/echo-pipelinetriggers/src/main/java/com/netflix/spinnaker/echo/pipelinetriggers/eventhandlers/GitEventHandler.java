@@ -17,12 +17,12 @@
 package com.netflix.spinnaker.echo.pipelinetriggers.eventhandlers;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.netflix.spectator.api.Registry;
 import com.netflix.spinnaker.echo.config.PipelineTriggerConfiguration;
 import com.netflix.spinnaker.echo.model.Trigger;
 import com.netflix.spinnaker.echo.model.trigger.GitEvent;
 import com.netflix.spinnaker.fiat.shared.FiatPermissionEvaluator;
 import com.netflix.spinnaker.kork.artifacts.model.Artifact;
+import io.micrometer.core.instrument.MeterRegistry;
 import java.nio.charset.StandardCharsets;
 import java.security.MessageDigest;
 import java.util.*;
@@ -56,7 +56,7 @@ public class GitEventHandler extends BaseTriggerEventHandler<GitEvent> {
 
   @Autowired
   public GitEventHandler(
-      Registry registry,
+      MeterRegistry registry,
       ObjectMapper objectMapper,
       FiatPermissionEvaluator fiatPermissionEvaluator,
       PipelineTriggerConfiguration pipelineTriggerConfiguration) {

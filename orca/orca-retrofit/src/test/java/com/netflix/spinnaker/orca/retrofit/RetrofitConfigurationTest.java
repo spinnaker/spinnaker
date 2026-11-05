@@ -20,7 +20,6 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Fail.fail;
 import static org.mockito.Mockito.mock;
 
-import com.netflix.spectator.api.NoopRegistry;
 import com.netflix.spinnaker.config.OkHttpClientComponents;
 import com.netflix.spinnaker.orca.config.OrcaConfiguration;
 import com.netflix.spinnaker.orca.exceptions.DefaultExceptionHandler;
@@ -28,6 +27,7 @@ import com.netflix.spinnaker.orca.exceptions.ExceptionHandler;
 import com.netflix.spinnaker.orca.pipeline.ExecutionRunner;
 import com.netflix.spinnaker.orca.pipeline.persistence.ExecutionRepository;
 import com.netflix.spinnaker.orca.retrofit.exceptions.SpinnakerServerExceptionHandler;
+import io.micrometer.core.instrument.simple.SimpleMeterRegistry;
 import java.util.List;
 import okhttp3.logging.HttpLoggingInterceptor;
 import org.junit.jupiter.api.Test;
@@ -41,7 +41,7 @@ class RetrofitConfigurationTest {
 
   private final ApplicationContextRunner runner =
       new ApplicationContextRunner()
-          .withBean(NoopRegistry.class)
+          .withBean(SimpleMeterRegistry.class)
           .withBean(SimpleAsyncTaskExecutorBuilder.class)
           .withAllowBeanDefinitionOverriding(true)
           .withConfiguration(
