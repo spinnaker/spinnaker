@@ -328,6 +328,9 @@ class PipelineController {
                                          @RequestBody(required = false) Map trigger) {
     trigger = trigger ?: [:]
     AuthenticatedRequest.setApplication(application)
+    if (pipelineControllerConfigProperties.isCheckRequiredParametersOnExecution()) {
+      pipelineService.validateRequiredParameters(application, pipelineNameOrId, trigger)
+    }
     try {
       def body = pipelineService.triggerViaEcho(application, pipelineNameOrId, trigger)
       return new ResponseEntity(body, HttpStatus.ACCEPTED)
