@@ -1,19 +1,39 @@
 .user-menu {
   .dropdown-toggle {
-    background-color: var(--color-primary);
+    background: transparent;
     border: none;
+    border-radius: 0;
     box-shadow: none;
     color: var(--color-white);
     font-weight: 200;
     padding: var(--padd);
   }
 
+  .dropdown.open .dropdown-toggle,
+  .dropdown-toggle:active,
+  .dropdown-toggle:focus {
+    background: transparent;
+    box-shadow: none;
+    color: var(--color-white);
+  }
+
   .dropdown-menu {
     top: 80%;
-    min-width: 125px;
+    // at least 200px, and never narrower than the toggle (long emails)
+    min-width: ~'max(200px, 100%)';
+    padding: 8px 0;
     @media (max-width: 480px) {
       position: static;
     }
     border: 0;
+
+    > li > a {
+      padding: 6px 20px;
+      white-space: nowrap;
+    }
+
+    .divider {
+      margin: 8px 0;
+    }
   }
 }
