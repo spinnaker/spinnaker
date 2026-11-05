@@ -232,6 +232,43 @@ public class CreateBakeManifestTaskTest {
   }
 
   @Test
+  public void shouldRejectRemovedKustomize3RenderersWithHelpfulMessage()
+      throws JsonProcessingException {
+    for (String renderer : new String[] {"KUSTOMIZE", "KUSTOMIZE3"}) {
+      String stageJson =
+          "{\n"
+              + "  \"expectedArtifacts\": [\n"
+              + "    {\"id\": \"ea011068-f42e-4df0-8cf0-2fad1a6fc47e\",\n"
+              + "     \"matchArtifact\": {\"id\": \"86c1ef35\", \"name\": \"hi\", \"type\": \"embedded/base64\"}}\n"
+              + "  ],\n"
+              + "  \"inputArtifacts\": [\n"
+              + "    {\"account\": \"no-auth-http-account\",\n"
+              + "     \"artifact\": {\"id\": \"c4d18108\", \"reference\": \"kustomization.yml\", \"type\": \"http/file\"}}\n"
+              + "  ],\n"
+              + "  \"name\": \"BakeManifest\",\n"
+              + "  \"outputName\": \"hi\",\n"
+              + "  \"type\": \"bakeKustomizeManifest\",\n"
+              + "  \"templateRenderer\": \""
+              + renderer
+              + "\"\n"
+              + "}";
+
+      StageExecutionImpl stage = new StageExecutionImpl();
+      stage.setContext(mapper.readValue(stageJson, Map.class));
+      when(artifactUtils.getBoundArtifactForStage(any(), any(), any()))
+          .thenReturn(Artifact.builder().build());
+
+      Exception exception =
+          assertThrows(IllegalArgumentException.class, () -> createBakeManifestTask.execute(stage));
+      assertThat(exception.getMessage())
+          .isEqualTo(
+              "Template renderer "
+                  + renderer
+                  + " (Kustomize 3) is no longer supported. Use KUSTOMIZE4 or KUSTOMIZE5.");
+    }
+  }
+
+  @Test
   public void shouldNotThrowErrorIfTemplateRendererDoesExist() throws JsonProcessingException {
     String stageJson =
         "{\n"
