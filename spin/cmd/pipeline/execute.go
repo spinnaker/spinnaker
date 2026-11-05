@@ -18,7 +18,9 @@ import (
 	"errors"
 	"fmt"
 	"net/http"
+	"path"
 	"strings"
+	"time"
 
 	"github.com/spf13/cobra"
 
@@ -33,7 +35,11 @@ type executeOptions struct {
 	parameterFile string
 	artifactsFile string
 	parameters    []string
+	startTimeout  time.Duration
 }
+
+// startPollInterval is how often to check whether a triggered execution exists yet.
+var startPollInterval = time.Second
 
 var (
 	executePipelineShort = "Execute the provided pipeline"
@@ -59,6 +65,8 @@ func NewExecuteCmd(pipelineOptions *PipelineOptions) *cobra.Command {
 	cmd.PersistentFlags().StringVarP(&options.parameterFile, "parameter-file", "f", "", "file to load pipeline parameter values from")
 	cmd.PersistentFlags().StringVarP(&options.artifactsFile, "artifacts-file", "t", "", "file to load pipeline artifacts from")
 	cmd.PersistentFlags().StringSliceVarP(&options.parameters, "parameter", "p", []string{}, "parameter in the form of key=value. can be used repeatedly.")
+
+	cmd.PersistentFlags().DurationVar(&options.startTimeout, "start-timeout", time.Minute, "how long to wait for the triggered execution to start before giving up")
 
 	return cmd
 }
@@ -91,23 +99,22 @@ func executePipeline(cmd *cobra.Command, options *executeOptions) error {
 		return fmt.Errorf("Could not parse supplied artifacts: %v.\n", err)
 	}
 
-	trigger := map[string]map[string]interface{}{
-		"trigger": {
-			"type": "manual",
-		},
+	trigger := map[string]interface{}{
+		"type": "manual",
 	}
 	if len(parameters) > 0 {
-		trigger["trigger"]["parameters"] = parameters
+		trigger["parameters"] = parameters
 	}
 
 	if _, ok := artifactsFile["artifacts"]; ok {
 		artifacts := artifactsFile["artifacts"].([]interface{})
 		if len(artifacts) > 0 {
-			trigger["trigger"]["artifacts"] = artifacts
+			trigger["artifacts"] = artifacts
 		}
 	}
 
-	_, resp, err := options.GateClient.PipelineControllerAPI.InvokePipelineConfig(options.GateClient.Context,
+	// The v2 endpoint hands the trigger to Echo and returns before the execution exists.
+	payload, resp, err := options.GateClient.PipelineControllerAPI.InvokePipelineConfigViaEcho(options.GateClient.Context,
 		options.application,
 		options.name).RequestBody(trigger).Execute()
 	if err != nil {
@@ -118,7 +125,35 @@ func executePipeline(cmd *cobra.Command, options *executeOptions) error {
 		return fmt.Errorf("Encountered an error executing pipeline, status code: %d\n", resp.StatusCode)
 	}
 
+	ref, _ := payload["ref"].(string)
+	if ref == "" {
+		return fmt.Errorf("Gate accepted the pipeline execution but did not return an execution reference: %v\n", payload)
+	}
+
+	// Wait for the execution to exist so that, like the original synchronous endpoint, a
+	// successful return means the pipeline actually started.
+	if err := waitForExecution(options, path.Base(ref)); err != nil {
+		return err
+	}
+
 	options.Ui.Success("Pipeline execution started")
 
 	return nil
+}
+
+func waitForExecution(options *executeOptions, executionId string) error {
+	deadline := time.Now().Add(options.startTimeout)
+	for {
+		_, resp, err := options.GateClient.PipelineControllerAPI.GetPipeline(options.GateClient.Context, executionId).Execute()
+		if err == nil {
+			return nil
+		}
+		if resp == nil || resp.StatusCode != http.StatusNotFound {
+			return fmt.Errorf("Pipeline execution %s was accepted, but checking on it failed: %v\n", executionId, err)
+		}
+		if time.Now().After(deadline) {
+			return fmt.Errorf("Pipeline execution %s was accepted but had not started after %s\n", executionId, options.startTimeout)
+		}
+		time.Sleep(startPollInterval)
+	}
 }

@@ -37,7 +37,6 @@ import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 
 import org.springframework.beans.factory.annotation.Autowired
-import org.springframework.http.HttpEntity
 import org.springframework.http.HttpStatus
 import org.springframework.http.ResponseEntity
 import org.springframework.security.access.prepost.PreAuthorize
@@ -294,7 +293,11 @@ class PipelineController {
     })
   }
 
-  @Operation(summary = "Trigger a pipeline execution")
+  @Deprecated
+  @Operation(
+    summary = "Trigger a pipeline execution",
+    description = "Deprecated: use POST /pipelines/v2/{application}/{pipelineNameOrId} instead.",
+    deprecated = true)
   @PreAuthorize("hasPermission(#application, 'APPLICATION', 'EXECUTE')")
   @PostMapping("/{application}/{pipelineNameOrId:.+}")
   @ResponseBody
@@ -323,9 +326,10 @@ class PipelineController {
   @Operation(summary = "Trigger a pipeline execution")
   @PreAuthorize("hasPermission(#application, 'APPLICATION', 'EXECUTE')")
   @PostMapping("/v2/{application}/{pipelineNameOrId:.+}")
-  HttpEntity invokePipelineConfigViaEcho(@PathVariable("application") String application,
-                                         @PathVariable("pipelineNameOrId") String pipelineNameOrId,
-                                         @RequestBody(required = false) Map trigger) {
+  ResponseEntity<Map<String, Object>> invokePipelineConfigViaEcho(
+    @PathVariable("application") String application,
+    @PathVariable("pipelineNameOrId") String pipelineNameOrId,
+    @RequestBody(required = false) Map trigger) {
     trigger = trigger ?: [:]
     AuthenticatedRequest.setApplication(application)
     try {
