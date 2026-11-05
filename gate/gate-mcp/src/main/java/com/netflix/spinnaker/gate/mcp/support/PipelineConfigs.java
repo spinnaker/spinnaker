@@ -55,7 +55,11 @@ public final class PipelineConfigs {
         (Map<String, Object>)
             Retrofit2SyncCall.execute(front50Service.getPipelineConfigById(pipelineNameOrId));
     if (pipelineNameOrId.equals(byId.get("id"))) {
-      return byId;
+      // Pipeline ids are global in front50, but the caller asked for a pipeline in a particular
+      // application; don't hand back (or let a caller trigger) another application's pipeline.
+      if (application.equalsIgnoreCase(String.valueOf(byId.get("application")))) {
+        return byId;
+      }
     }
 
     throw new NotFoundException(

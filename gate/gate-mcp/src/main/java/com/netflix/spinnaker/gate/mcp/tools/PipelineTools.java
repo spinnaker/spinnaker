@@ -29,6 +29,7 @@ import java.util.List;
 import java.util.Map;
 import org.springaicommunity.mcp.annotation.McpTool;
 import org.springaicommunity.mcp.annotation.McpToolParam;
+import org.springframework.security.access.prepost.PreAuthorize;
 
 /**
  * MCP tools for triggering and controlling pipeline *executions* - see {@link PipelineConfigTools}
@@ -56,6 +57,7 @@ public class PipelineTools {
       name = "trigger_pipeline",
       description =
           "Trigger (start) a pipeline execution by pipeline name or config id, optionally supplying pipeline parameters.")
+  @PreAuthorize("hasPermission(#application, 'APPLICATION', 'EXECUTE')")
   public Map<String, Object> triggerPipeline(
       @McpToolParam(description = "Application name", required = true) String application,
       @McpToolParam(description = "Pipeline name or config id", required = true)
