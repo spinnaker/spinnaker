@@ -48,6 +48,7 @@ import com.netflix.spinnaker.clouddriver.names.NamerRegistry;
 import com.netflix.spinnaker.credentials.CredentialsRepository;
 import com.netflix.spinnaker.moniker.Moniker;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
@@ -181,17 +182,38 @@ public class EcsServerClusterProvider implements ClusterProvider<EcsServerCluste
       Collection<String> serviceNamePatterns,
       boolean includeDetails) {
 
-    Set<String> ecsServices = new HashSet<>();
-    for (String pattern : serviceNamePatterns) {
-      ecsServices.addAll(
-          serviceCacheClient.filterIdentifiers(
-              Keys.getServiceKey(credentials.getName(), awsRegion.getName(), pattern)));
-    }
-    if (ecsServices.isEmpty()) {
-      return clusterMap;
-    }
+    // The application comes from tags for these accounts, so look it up through the application
+    // index rather than reading every service in the account/region. An empty index result may just
+    // mean the services have not been re-cached with the indexed application yet, so fall back to
+    // the scan below.
+    Collection<Service> indexed =
+        application != null
+                && monikerFromTags(credentials)
+                && serviceCacheClient.canFindByApplication()
+            ? serviceCacheClient.findByApplication(application)
+            : Collections.emptyList();
 
-    Collection<Service> services = serviceCacheClient.getAll(ecsServices);
+    Collection<Service> services;
+    if (!indexed.isEmpty()) {
+      services =
+          indexed.stream()
+              .filter(
+                  service ->
+                      credentials.getName().equals(service.getAccount())
+                          && awsRegion.getName().equals(service.getRegion()))
+              .collect(Collectors.toList());
+    } else {
+      Set<String> ecsServices = new HashSet<>();
+      for (String pattern : serviceNamePatterns) {
+        ecsServices.addAll(
+            serviceCacheClient.filterIdentifiers(
+                Keys.getServiceKey(credentials.getName(), awsRegion.getName(), pattern)));
+      }
+      if (ecsServices.isEmpty()) {
+        return clusterMap;
+      }
+      services = serviceCacheClient.getAll(ecsServices);
+    }
     if (services.isEmpty()) {
       return clusterMap;
     }
