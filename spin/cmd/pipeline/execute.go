@@ -36,6 +36,8 @@ type executeOptions struct {
 	artifactsFile string
 	parameters    []string
 	startTimeout  time.Duration
+	wait          bool
+	waitTimeout   time.Duration
 }
 
 // startPollInterval is how often to check whether a triggered execution exists yet.
@@ -67,6 +69,9 @@ func NewExecuteCmd(pipelineOptions *PipelineOptions) *cobra.Command {
 	cmd.PersistentFlags().StringSliceVarP(&options.parameters, "parameter", "p", []string{}, "parameter in the form of key=value. can be used repeatedly.")
 
 	cmd.PersistentFlags().DurationVar(&options.startTimeout, "start-timeout", time.Minute, "how long to wait for the triggered execution to start before giving up")
+
+	cmd.PersistentFlags().BoolVar(&options.wait, "wait", false, "wait for the execution to complete, and fail unless it succeeds")
+	cmd.PersistentFlags().DurationVar(&options.waitTimeout, "wait-timeout", 0, "with --wait, how long to wait for completion before giving up (0 waits indefinitely)")
 
 	return cmd
 }
@@ -132,27 +137,57 @@ func executePipeline(cmd *cobra.Command, options *executeOptions) error {
 
 	// Wait for the execution to exist so that, like the original synchronous endpoint, a
 	// successful return means the pipeline actually started.
-	if err := waitForExecution(options, path.Base(ref)); err != nil {
+	executionId := path.Base(ref)
+	execution, err := waitForExecution(options, executionId, options.startTimeout, func(map[string]interface{}) bool { return true })
+	if err != nil {
 		return err
 	}
-
 	options.Ui.Success("Pipeline execution started")
+
+	if !options.wait {
+		return nil
+	}
+
+	execution, err = waitForExecution(options, executionId, options.waitTimeout, isExecutionComplete)
+	if err != nil {
+		return err
+	}
+	status, _ := execution["status"].(string)
+	if status != "SUCCEEDED" {
+		return fmt.Errorf("Pipeline execution %s finished with status %s\n", executionId, status)
+	}
+	options.Ui.Success("Pipeline execution succeeded")
 
 	return nil
 }
 
-func waitForExecution(options *executeOptions, executionId string) error {
-	deadline := time.Now().Add(options.startTimeout)
+// isExecutionComplete mirrors orca's ExecutionStatus.isComplete.
+func isExecutionComplete(execution map[string]interface{}) bool {
+	status, _ := execution["status"].(string)
+	switch status {
+	case "SUCCEEDED", "TERMINAL", "CANCELED", "STOPPED", "SKIPPED", "FAILED_CONTINUE":
+		return true
+	}
+	return false
+}
+
+// waitForExecution polls the execution until it exists and done reports true for it. A timeout
+// of zero waits indefinitely.
+func waitForExecution(options *executeOptions, executionId string, timeout time.Duration, done func(map[string]interface{}) bool) (map[string]interface{}, error) {
+	var deadline time.Time
+	if timeout > 0 {
+		deadline = time.Now().Add(timeout)
+	}
 	for {
-		_, resp, err := options.GateClient.PipelineControllerAPI.GetPipeline(options.GateClient.Context, executionId).Execute()
-		if err == nil {
-			return nil
+		execution, resp, err := options.GateClient.PipelineControllerAPI.GetPipeline(options.GateClient.Context, executionId).Execute()
+		if err == nil && done(execution) {
+			return execution, nil
 		}
-		if resp == nil || resp.StatusCode != http.StatusNotFound {
-			return fmt.Errorf("Pipeline execution %s was accepted, but checking on it failed: %v\n", executionId, err)
+		if err != nil && (resp == nil || resp.StatusCode != http.StatusNotFound) {
+			return nil, fmt.Errorf("Pipeline execution %s was accepted, but checking on it failed: %v\n", executionId, err)
 		}
-		if time.Now().After(deadline) {
-			return fmt.Errorf("Pipeline execution %s was accepted but had not started after %s\n", executionId, options.startTimeout)
+		if !deadline.IsZero() && time.Now().After(deadline) {
+			return nil, fmt.Errorf("Pipeline execution %s was accepted but had not reached the expected state after %s\n", executionId, timeout)
 		}
 		time.Sleep(startPollInterval)
 	}

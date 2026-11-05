@@ -115,7 +115,8 @@ func TestPipelineExecute_missingapp(t *testing.T) {
 // resulting execution visible after a configurable number of lookups, like an asynchronous echo would.
 type gateExecuteServer struct {
 	*httptest.Server
-	notFoundLookups int // lookups of the execution that 404 before it exists
+	notFoundLookups int      // lookups of the execution that 404 before it exists
+	statuses        []string // statuses returned in order once it exists; the last one repeats
 	lookups         int
 	triggerBody     map[string]interface{}
 	v1Called        bool
@@ -141,7 +142,11 @@ func newGateExecuteServer(notFoundLookups int, ref string) *gateExecuteServer {
 			return
 		}
 		w.Header().Add("content-type", "application/json")
-		fmt.Fprintln(w, `{"id": "01EXEC", "status": "RUNNING"}`)
+		status := "RUNNING"
+		if n := g.lookups - g.notFoundLookups - 1; len(g.statuses) > 0 {
+			status = g.statuses[min(n, len(g.statuses)-1)]
+		}
+		fmt.Fprintf(w, `{"id": "01EXEC", "status": %q}`, status)
 	}))
 	g.Server = httptest.NewServer(mux)
 	return g
@@ -185,7 +190,7 @@ func TestPipelineExecute_startTimeout(t *testing.T) {
 	defer ts.Close()
 
 	err := executePipelineAgainst(t, ts, "--start-timeout", "50ms")
-	if err == nil || !strings.Contains(err.Error(), "had not started") {
+	if err == nil || !strings.Contains(err.Error(), "had not reached the expected state") {
 		t.Fatalf("expected a start timeout error, got: %v", err)
 	}
 }
@@ -197,5 +202,49 @@ func TestPipelineExecute_missingRef(t *testing.T) {
 	err := executePipelineAgainst(t, ts)
 	if err == nil || !strings.Contains(err.Error(), "did not return an execution reference") {
 		t.Fatalf("expected a missing reference error, got: %v", err)
+	}
+}
+
+func TestPipelineExecute_waitForSuccess(t *testing.T) {
+	ts := newGateExecuteServer(1, "/pipelines/01EXEC")
+	ts.statuses = []string{"RUNNING", "RUNNING", "SUCCEEDED"}
+	defer ts.Close()
+
+	if err := executePipelineAgainst(t, ts, "--wait"); err != nil {
+		t.Fatalf("Command failed with: %s", err)
+	}
+	// 1 not found, RUNNING (start check), RUNNING, SUCCEEDED
+	if ts.lookups != 4 {
+		t.Errorf("expected to poll until completion (4 lookups), got %d", ts.lookups)
+	}
+}
+
+func TestPipelineExecute_waitForFailure(t *testing.T) {
+	ts := newGateExecuteServer(0, "/pipelines/01EXEC")
+	ts.statuses = []string{"RUNNING", "TERMINAL"}
+	defer ts.Close()
+
+	err := executePipelineAgainst(t, ts, "--wait")
+	if err == nil || !strings.Contains(err.Error(), "finished with status TERMINAL") {
+		t.Fatalf("expected a failure for a TERMINAL execution, got: %v", err)
+	}
+}
+
+func TestPipelineExecute_waitTimeout(t *testing.T) {
+	ts := newGateExecuteServer(0, "/pipelines/01EXEC") // stays RUNNING
+	defer ts.Close()
+
+	err := executePipelineAgainst(t, ts, "--wait", "--wait-timeout", "50ms")
+	if err == nil || !strings.Contains(err.Error(), "had not reached the expected state") {
+		t.Fatalf("expected a wait timeout error, got: %v", err)
+	}
+}
+
+func TestPipelineExecute_noWaitReturnsWhileRunning(t *testing.T) {
+	ts := newGateExecuteServer(0, "/pipelines/01EXEC") // stays RUNNING
+	defer ts.Close()
+
+	if err := executePipelineAgainst(t, ts); err != nil {
+		t.Fatalf("Command failed with: %s", err)
 	}
 }
