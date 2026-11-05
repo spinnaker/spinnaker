@@ -9,7 +9,7 @@ project information.
 For that, use:
 
 - **Project status, docs, and release info:** https://spinnaker.io
-- **Changelogs:** https://spinnaker.io/changelogs/
+- **Changelogs:** https://spinnaker.io/docs/releases/versions/
 - **Contribution guidelines:** https://spinnaker.io/docs/community/contributing/
 
 Original RFC: https://github.com/spinnaker/governance/pull/336

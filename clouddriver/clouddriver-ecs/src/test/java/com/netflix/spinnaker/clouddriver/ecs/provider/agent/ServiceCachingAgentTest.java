@@ -166,6 +166,10 @@ public class ServiceCachingAgentTest extends CommonCachingAgent {
               + ". The service ARN is: "
               + cacheData.getAttributes().get("serviceArn")
               + ".");
+      assertEquals(
+          cacheData.getAttributes().get("applicationName"),
+          cacheData.getAttributes().get("application"),
+          "Expected the indexed application attribute to match applicationName");
     }
   }
 
