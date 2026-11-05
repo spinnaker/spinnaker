@@ -141,11 +141,16 @@ public class CreateBakeManifestTask implements RetryableTask {
             new HelmfileBakeManifestRequest(
                 context, resolvedInputArtifacts, outputArtifactName, overrides);
         break;
-      case "KUSTOMIZE":
       case "KUSTOMIZE4":
         Artifact inputArtifact = resolvedInputArtifacts.get(0);
         request = new KustomizeBakeManifestRequest(context, inputArtifact, outputArtifactName);
         break;
+      case "KUSTOMIZE":
+      case "KUSTOMIZE3":
+        throw new IllegalArgumentException(
+            "Template renderer "
+                + context.getTemplateRenderer()
+                + " (Kustomize 3) is no longer supported. Use KUSTOMIZE4 or KUSTOMIZE5.");
       default:
         throw new IllegalArgumentException(
             "Invalid template renderer " + context.getTemplateRenderer());
