@@ -24,6 +24,21 @@
   background-color: var(--color-accent-g2);
 }
 
+/* Menu toggles (user, theme, help) sit directly on the navbar; keep Bootstrap's .btn-default
+   hover/focus/open backgrounds from painting a box behind them. */
+.spinnaker-header .dropdown .dropdown-toggle.btn-default,
+.spinnaker-header .dropdown .dropdown-toggle.btn-default:hover,
+.spinnaker-header .dropdown .dropdown-toggle.btn-default:focus,
+.spinnaker-header .dropdown .dropdown-toggle.btn-default:active,
+.spinnaker-header .dropdown.open .dropdown-toggle.btn-default,
+.spinnaker-header .dropdown.open .dropdown-toggle.btn-default:hover,
+.spinnaker-header .dropdown.open .dropdown-toggle.btn-default:focus {
+  background-color: transparent;
+  border-color: transparent;
+  box-shadow: none;
+  color: var(--color-white);
+}
+
 .spinnaker-header a {
   color: var(--color-text-on-dark);
 }
