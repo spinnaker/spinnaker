@@ -295,6 +295,7 @@ class PipelineController {
   }
 
   @Operation(summary = "Trigger a pipeline execution")
+  @PreAuthorize("hasPermission(#application, 'APPLICATION', 'EXECUTE')")
   @PostMapping("/{application}/{pipelineNameOrId:.+}")
   @ResponseBody
   @ResponseStatus(HttpStatus.ACCEPTED)
@@ -302,7 +303,8 @@ class PipelineController {
                            @PathVariable("pipelineNameOrId") String pipelineNameOrId,
                            @RequestBody(required = false) Map trigger) {
     trigger = trigger ?: [:]
-    trigger.user = trigger.user ?: AuthenticatedRequest.getSpinnakerUser().orElse('anonymous')
+    // never trust a caller-supplied user: orca uses trigger.user for some authorization decisions
+    trigger.user = AuthenticatedRequest.getSpinnakerUser().orElse('anonymous')
     trigger.notifications = trigger.notifications ?: [];
 
     AuthenticatedRequest.setApplication(application)
