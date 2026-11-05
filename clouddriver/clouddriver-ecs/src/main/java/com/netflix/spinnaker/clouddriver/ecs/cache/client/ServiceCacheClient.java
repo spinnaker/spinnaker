@@ -21,12 +21,15 @@ import static com.netflix.spinnaker.clouddriver.ecs.cache.Keys.Namespace.SERVICE
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.netflix.spinnaker.cats.cache.Cache;
 import com.netflix.spinnaker.cats.cache.CacheData;
+import com.netflix.spinnaker.clouddriver.ecs.EcsConfigurationProperties;
 import com.netflix.spinnaker.clouddriver.ecs.cache.model.Service;
 import com.netflix.spinnaker.moniker.Moniker;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
+import java.util.stream.Collectors;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 import software.amazon.awssdk.services.ecs.model.LoadBalancer;
@@ -34,11 +37,44 @@ import software.amazon.awssdk.services.ecs.model.LoadBalancer;
 @Component
 public class ServiceCacheClient extends AbstractCacheClient<Service> {
   private ObjectMapper objectMapper;
+  private final boolean queryByApplication;
 
-  @Autowired
   public ServiceCacheClient(Cache cacheView, ObjectMapper objectMapper) {
+    this(cacheView, objectMapper, false);
+  }
+
+  /** See {@link EcsConfigurationProperties.CacheProperties#queryByApplication}. */
+  @Autowired
+  public ServiceCacheClient(
+      Cache cacheView, ObjectMapper objectMapper, EcsConfigurationProperties properties) {
+    this(cacheView, objectMapper, properties.getCache().isQueryByApplication());
+  }
+
+  public ServiceCacheClient(
+      Cache cacheView, ObjectMapper objectMapper, boolean queryByApplication) {
     super(cacheView, SERVICES.toString());
     this.objectMapper = objectMapper;
+    this.queryByApplication = queryByApplication;
+  }
+
+  /** Whether {@link #findByApplication} may be used: enabled by config and backed by an index. */
+  public boolean canFindByApplication() {
+    return queryByApplication && cacheView.supportsGetAllByApplication();
+  }
+
+  /**
+   * Finds the services of an application across all accounts and regions through the cache's
+   * application index. Unlike a service name glob this also finds services whose application comes
+   * from tags. Callers must check {@link #canFindByApplication()} first.
+   */
+  public Collection<Service> findByApplication(String application) {
+    Map<String, Collection<CacheData>> byType =
+        cacheView.getAllByApplication(SERVICES.toString(), application);
+    Collection<CacheData> data = byType == null ? null : byType.get(SERVICES.toString());
+    if (data == null) {
+      return Collections.emptyList();
+    }
+    return data.stream().map(this::convert).collect(Collectors.toList());
   }
 
   @Override
