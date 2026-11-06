@@ -76,8 +76,8 @@ public interface ExecutionRepository {
    * does not close the window between the check and the update. Implementations should override it
    * to perform both atomically.
    *
-   * <p>TODO: make the default implementation atomic for repositories that don't override it (e.g.
-   * Redis). Tracked in https://github.com/spinnaker/spinnaker/issues/8207.
+   * <p>TODO: make the default implementation atomic for repositories that don't override it.
+   * Tracked in https://github.com/spinnaker/spinnaker/issues/8207.
    *
    * @return {@code true} if the status was stored, {@code false} if the stored status was not
    *     {@code expectedStatus} and nothing was changed
@@ -160,8 +160,8 @@ public interface ExecutionRepository {
       @Nonnull String application, @Nonnull ExecutionCriteria criteria);
 
   /**
-   * Returns executions in the time boundary. Redis impl does not respect pageSize or offset params,
-   * and returns all executions. Sql impl respects these params.
+   * Returns executions in the time boundary. Implementations should respect the pageSize and offset
+   * params.
    *
    * @param executionCriteria use this param to specify: if there are statuses, only those will be
    *     returned if there is a sort type that will be used to sort the results use pageSize and
