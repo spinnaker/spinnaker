@@ -23,6 +23,8 @@ include(
   "kork-api",
   "kork-artifacts",
   "kork-artifacts-sql",
+  "kork-authz",
+  "kork-authz-api",
   "kork-aws",
   "kork-bom",
   "kork-cloud-config-server",

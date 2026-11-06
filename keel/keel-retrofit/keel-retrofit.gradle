@@ -7,8 +7,8 @@ dependencies {
   api("io.spinnaker.kork:kork-retrofit")
   implementation("io.spinnaker.kork:kork-security")
   implementation("com.squareup.okhttp3:logging-interceptor")
-  implementation("io.spinnaker.fiat:fiat-api")
-  implementation("io.spinnaker.fiat:fiat-core")
+  implementation("io.spinnaker.kork:kork-authz")
+  implementation("io.spinnaker.kork:kork-authz-api")
 
   testImplementation("com.squareup.okhttp3:mockwebserver")
   testImplementation("com.fasterxml.jackson.module:jackson-module-kotlin")
