@@ -285,6 +285,10 @@ public class DeployManifestStage extends ExpressionAwareStageDefinitionBuilder {
      */
     List<Map<String, ?>> getNewManifests(Map<String, Object> parentContext) {
       var manifestsFromParentContext = (List<Map<String, ?>>) parentContext.get(OUTPUTS_MANIFEST);
+      if (manifestsFromParentContext == null) {
+        // A failed manifest resolution can complete the stage before any manifests are deployed.
+        return Collections.emptyList();
+      }
       return manifestsFromParentContext.stream()
           .filter(manifest -> REPLICA_SET.equalsIgnoreCase((String) manifest.get(KIND)))
           .collect(Collectors.toList());
@@ -339,29 +343,31 @@ public class DeployManifestStage extends ExpressionAwareStageDefinitionBuilder {
     List<DeployedManifest> get(Map<String, Object> parentContext) {
 
       var deployedManifests = new ArrayList<DeployedManifest>();
+      var newManifests = this.manifestOperationsHelper.getNewManifests(parentContext);
+      if (newManifests.isEmpty()) {
+        return deployedManifests;
+      }
       var account = (String) parentContext.get("account");
       var manifestMoniker = (Map) parentContext.get("moniker");
       var application = (String) manifestMoniker.get("app");
 
-      this.manifestOperationsHelper
-          .getNewManifests(parentContext)
-          .forEach(
-              manifest -> {
-                var manifestMetadata = (Map) manifest.get("metadata");
-                var annotations = (Map) manifestMetadata.get("annotations");
+      newManifests.forEach(
+          manifest -> {
+            var manifestMetadata = (Map) manifest.get("metadata");
+            var annotations = (Map) manifestMetadata.get("annotations");
 
-                deployedManifests.add(
-                    new DeployedManifest(
-                        account,
-                        manifestMoniker,
-                        application,
-                        (Map) manifest.get("metadata"),
-                        String.format("replicaSet %s", manifestMetadata.get("name")),
-                        (String) manifestMetadata.get("namespace"),
-                        (Map) manifestMetadata.get("annotations"),
-                        (String) annotations.get("moniker.spinnaker.io/cluster"),
-                        "kubernetes"));
-              });
+            deployedManifests.add(
+                new DeployedManifest(
+                    account,
+                    manifestMoniker,
+                    application,
+                    (Map) manifest.get("metadata"),
+                    String.format("replicaSet %s", manifestMetadata.get("name")),
+                    (String) manifestMetadata.get("namespace"),
+                    (Map) manifestMetadata.get("annotations"),
+                    (String) annotations.get("moniker.spinnaker.io/cluster"),
+                    "kubernetes"));
+          });
       return deployedManifests;
     }
   }
