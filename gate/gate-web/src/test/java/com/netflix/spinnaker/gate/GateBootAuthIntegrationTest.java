@@ -46,6 +46,12 @@ public abstract class GateBootAuthIntegrationTest {
   /** Generate a request to a gate endpoint that uses authorization and fails. */
   protected HttpResponse<String> callGateWithPath(String urlPath, String methodType)
       throws Exception {
+    return callGateWithPath(urlPath, methodType, null);
+  }
+
+  /** As above, with a JSON request body. */
+  protected HttpResponse<String> callGateWithPath(
+      String urlPath, String methodType, String jsonBody) throws Exception {
     HttpClient client = HttpClient.newBuilder().build();
 
     URI uri = new URI("http://localhost:" + port + urlPath);
@@ -53,12 +59,18 @@ public abstract class GateBootAuthIntegrationTest {
     byte[] encodedCredentials =
         Base64.getEncoder().encode(credentials.getBytes(StandardCharsets.UTF_8));
 
-    HttpRequest request =
+    HttpRequest.Builder request =
         HttpRequest.newBuilder(uri)
-            .method(methodType, HttpRequest.BodyPublishers.noBody())
-            .header("Authorization", "Basic " + new String(encodedCredentials))
-            .build();
+            .method(
+                methodType,
+                jsonBody == null
+                    ? HttpRequest.BodyPublishers.noBody()
+                    : HttpRequest.BodyPublishers.ofString(jsonBody))
+            .header("Authorization", "Basic " + new String(encodedCredentials));
+    if (jsonBody != null) {
+      request.header("Content-Type", "application/json");
+    }
 
-    return client.send(request, HttpResponse.BodyHandlers.ofString());
+    return client.send(request.build(), HttpResponse.BodyHandlers.ofString());
   }
 }
