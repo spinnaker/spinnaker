@@ -30,7 +30,9 @@ RB_OPT_SCHEMA='{"content":{"application/json":{"schema":{"additionalProperties":
 # It would be really nice if jq did in-place editing
 cat ./gate-web/swagger.json | jq --argjson rbschema "$RB_OPT_SCHEMA" '.paths.["/applications/{application}/pipelineConfigs/{pipelineName}"].post.requestBody = $rbschema' > ./gate-web/swagger2.json
 mv ./gate-web/swagger2.json ./gate-web/swagger.json
-cat ./gate-web/swagger.json | jq --argjson rbschema "$RB_OPT_SCHEMA" '.paths.["/pipelines/v2/{application}/{pipelineNameOrId}"].post.requestBody = $rbschema' > ./gate-web/swagger2.json
+# A trigger is a free-form object (strings, lists and maps), so spin needs map[string]interface{} rather than a map of maps
+RB_OPT_FREEFORM_SCHEMA='{"content":{"application/json":{"schema":{"additionalProperties":{},"type":"object"}}},"required":false}'
+cat ./gate-web/swagger.json | jq --argjson rbschema "$RB_OPT_FREEFORM_SCHEMA" '.paths.["/pipelines/v2/{application}/{pipelineNameOrId}"].post.requestBody = $rbschema' > ./gate-web/swagger2.json
 mv ./gate-web/swagger2.json ./gate-web/swagger.json
 cat ./gate-web/swagger.json | jq --argjson rbschema "$RB_OPT_SCHEMA" '.paths.["/pipelines/{application}/{pipelineNameOrId}"].post.requestBody = $rbschema' > ./gate-web/swagger2.json
 mv ./gate-web/swagger2.json ./gate-web/swagger.json
