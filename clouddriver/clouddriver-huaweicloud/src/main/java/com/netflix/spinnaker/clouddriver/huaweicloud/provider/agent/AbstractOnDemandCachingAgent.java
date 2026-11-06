@@ -18,7 +18,6 @@ package com.netflix.spinnaker.clouddriver.huaweicloud.provider.agent;
 
 import static com.netflix.spinnaker.clouddriver.huaweicloud.cache.Keys.Namespace.ON_DEMAND;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
 import com.netflix.spinnaker.cats.agent.CacheResult;
 import com.netflix.spinnaker.cats.agent.DefaultCacheResult;
 import com.netflix.spinnaker.cats.cache.CacheData;
@@ -37,6 +36,7 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.stream.Collectors;
 import org.slf4j.Logger;
+import tools.jackson.databind.ObjectMapper;
 
 public abstract class AbstractOnDemandCachingAgent extends AbstractHuaweiCloudCachingAgent
     implements OnDemandAgent {

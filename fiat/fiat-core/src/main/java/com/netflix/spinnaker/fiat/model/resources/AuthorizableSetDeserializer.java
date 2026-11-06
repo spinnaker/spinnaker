@@ -16,14 +16,14 @@
 
 package com.netflix.spinnaker.fiat.model.resources;
 
-import com.fasterxml.jackson.core.JsonParser;
-import com.fasterxml.jackson.databind.DeserializationContext;
-import com.fasterxml.jackson.databind.JavaType;
-import com.fasterxml.jackson.databind.deser.std.StdDeserializer;
-import java.io.IOException;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
+import tools.jackson.core.JacksonException;
+import tools.jackson.core.JsonParser;
+import tools.jackson.databind.DeserializationContext;
+import tools.jackson.databind.JavaType;
+import tools.jackson.databind.deser.std.StdDeserializer;
 
 /**
  * Reads a JSON array of extension resource views as {@link GenericAuthorizable}s, since {@link
@@ -39,7 +39,7 @@ public class AuthorizableSetDeserializer extends StdDeserializer<Set<Authorizabl
 
   @Override
   public Set<Authorizable> deserialize(JsonParser parser, DeserializationContext context)
-      throws IOException {
+      throws JacksonException {
     JavaType listType =
         context.getTypeFactory().constructCollectionType(List.class, GenericAuthorizable.class);
     List<GenericAuthorizable> values = context.readValue(parser, listType);

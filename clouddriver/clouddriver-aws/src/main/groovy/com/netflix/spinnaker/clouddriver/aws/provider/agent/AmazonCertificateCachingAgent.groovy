@@ -19,7 +19,6 @@ package com.netflix.spinnaker.clouddriver.aws.provider.agent
 import software.amazon.awssdk.services.iam.model.IamException
 import software.amazon.awssdk.services.iam.model.ListServerCertificatesRequest
 import software.amazon.awssdk.services.iam.model.ServerCertificateMetadata
-import com.fasterxml.jackson.databind.ObjectMapper
 import com.netflix.spectator.api.Id
 import com.netflix.spectator.api.Registry
 import com.netflix.spinnaker.cats.agent.AccountAware
@@ -35,6 +34,7 @@ import com.netflix.spinnaker.clouddriver.aws.provider.AwsInfrastructureProvider
 import com.netflix.spinnaker.clouddriver.aws.security.AmazonClientProvider
 import com.netflix.spinnaker.clouddriver.aws.security.NetflixAmazonCredentials
 import groovy.util.logging.Slf4j
+import tools.jackson.databind.ObjectMapper
 
 import java.time.Duration
 import java.time.Instant

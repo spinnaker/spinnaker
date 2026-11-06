@@ -1,6 +1,6 @@
 package com.netflix.spinnaker.keel.rest
 
-import com.fasterxml.jackson.dataformat.yaml.YAMLMapper
+import tools.jackson.dataformat.yaml.YAMLMapper
 import com.netflix.spinnaker.keel.api.DeliveryConfig
 import com.netflix.spinnaker.keel.auth.AuthorizationSupport
 import com.netflix.spinnaker.keel.auth.AuthorizationSupport.TargetEntity.APPLICATION

@@ -14,7 +14,6 @@ import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
 import com.github.tomakehurst.wiremock.junit5.WireMockExtension;
 import com.netflix.spinnaker.kork.artifacts.model.Artifact;
 import com.netflix.spinnaker.kork.client.ServiceClientProvider;
@@ -24,6 +23,7 @@ import com.netflix.spinnaker.kork.docker.service.DockerBearerTokenService;
 import com.netflix.spinnaker.kork.docker.service.DockerRegistryClient;
 import com.netflix.spinnaker.kork.docker.service.RegistryService;
 import com.netflix.spinnaker.kork.retrofit.ErrorHandlingExecutorCallAdapterFactory;
+import com.netflix.spinnaker.kork.retrofit.util.CustomConverterFactory;
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
@@ -40,7 +40,7 @@ import org.junitpioneer.jupiter.TempDirectory;
 import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
 import retrofit2.Retrofit;
-import retrofit2.converter.jackson.JacksonConverterFactory;
+import tools.jackson.core.JacksonException;
 
 @ExtendWith(TempDirectory.class)
 public class HelmOciDockerArtifactCredentialsTest {
@@ -63,7 +63,7 @@ public class HelmOciDockerArtifactCredentialsTest {
   private Path tempDir;
 
   @BeforeEach
-  public void init(@TempDirectory.TempDir Path tempDir) throws JsonProcessingException {
+  public void init(@TempDirectory.TempDir Path tempDir) throws JacksonException {
     MockitoAnnotations.openMocks(this);
     this.tempDir = tempDir;
 
@@ -98,7 +98,7 @@ public class HelmOciDockerArtifactCredentialsTest {
         .baseUrl(baseUrl)
         .client(new OkHttpClient())
         .addCallAdapterFactory(ErrorHandlingExecutorCallAdapterFactory.getInstance())
-        .addConverterFactory(JacksonConverterFactory.create())
+        .addConverterFactory(CustomConverterFactory.create())
         .build()
         .create(type);
   }

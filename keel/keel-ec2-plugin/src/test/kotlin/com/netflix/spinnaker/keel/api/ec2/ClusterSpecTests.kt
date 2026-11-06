@@ -1,8 +1,8 @@
 package com.netflix.spinnaker.keel.api.ec2
 
-import com.fasterxml.jackson.databind.InjectableValues
-import com.fasterxml.jackson.databind.node.ObjectNode
-import com.fasterxml.jackson.module.kotlin.readValue
+import tools.jackson.databind.InjectableValues
+import tools.jackson.databind.node.ObjectNode
+import tools.jackson.module.kotlin.readValue
 import com.netflix.spinnaker.keel.api.Moniker
 import com.netflix.spinnaker.keel.api.SubnetAwareLocations
 import com.netflix.spinnaker.keel.api.SubnetAwareRegionSpec
@@ -103,12 +103,12 @@ internal class ClusterSpecTests : JUnit5Minutests {
         deriveFixture {
           with(configuredTestObjectMapper().registerKeelEc2ApiModule()) {
             val tree = valueToTree<ObjectNode>(spec)
-              .without<ObjectNode>("locations")
+              .without("locations")
             val text = writeValueAsString(tree)
-            copy().run {
-              injectableValues = InjectableValues.Std(mapOf("locations" to spec.locations))
-              readValue<ClusterSpec>(text)
-            }
+            rebuild()
+              .injectableValues(InjectableValues.Std(mapOf("locations" to spec.locations)))
+              .build()
+              .readValue<ClusterSpec>(text)
           } to spec.locations
         }
 

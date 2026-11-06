@@ -1,6 +1,5 @@
 package com.netflix.spinnaker.clouddriver.google.provider.agent;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.api.services.compute.model.ForwardingRule;
 import com.google.api.services.compute.model.TargetHttpsProxy;
 import com.netflix.spectator.api.Registry;
@@ -13,6 +12,7 @@ import com.netflix.spinnaker.clouddriver.google.security.GoogleNamedAccountCrede
 import java.util.ArrayList;
 import java.util.List;
 import java.util.NoSuchElementException;
+import tools.jackson.databind.ObjectMapper;
 
 /**
  * Caches regional internal HTTP(S) ({@code INTERNAL_MANAGED}) Application Load Balancers. A thin

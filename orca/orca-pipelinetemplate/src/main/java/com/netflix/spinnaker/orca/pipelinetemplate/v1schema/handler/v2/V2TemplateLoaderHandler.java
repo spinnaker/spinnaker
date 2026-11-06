@@ -16,8 +16,6 @@
 
 package com.netflix.spinnaker.orca.pipelinetemplate.v1schema.handler.v2;
 
-import com.fasterxml.jackson.core.type.TypeReference;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import com.netflix.spinnaker.kork.artifacts.model.Artifact;
 import com.netflix.spinnaker.orca.pipeline.util.ContextParameterProcessor;
 import com.netflix.spinnaker.orca.pipelinetemplate.handler.Handler;
@@ -34,6 +32,8 @@ import jakarta.validation.constraints.NotNull;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
+import tools.jackson.core.type.TypeReference;
+import tools.jackson.databind.ObjectMapper;
 
 public class V2TemplateLoaderHandler implements Handler {
 

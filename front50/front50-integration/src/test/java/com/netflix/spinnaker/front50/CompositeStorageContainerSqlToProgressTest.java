@@ -21,8 +21,6 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assumptions.assumeTrue;
 import static org.testcontainers.shaded.org.awaitility.Awaitility.await;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import java.io.File;
 import java.io.FileReader;
 import java.io.IOException;
@@ -49,6 +47,9 @@ import org.testcontainers.containers.output.Slf4jLogConsumer;
 import org.testcontainers.containers.wait.strategy.Wait;
 import org.testcontainers.junit.jupiter.Testcontainers;
 import org.testcontainers.utility.DockerImageName;
+import tools.jackson.core.JacksonException;
+import tools.jackson.databind.ObjectMapper;
+import tools.jackson.databind.json.JsonMapper;
 
 @Testcontainers
 class CompositeStorageContainerSqlToProgressTest {
@@ -104,7 +105,7 @@ class CompositeStorageContainerSqlToProgressTest {
     front50Container.followOutput(logConsumer);
   }
 
-  private static String getSpringApplicationJson() throws JsonProcessingException {
+  private static String getSpringApplicationJson() throws JacksonException {
     String jdbcUrl =
         "jdbc:mysql://"
             + MYSQL_NETWORK_ALIAS
@@ -153,7 +154,7 @@ class CompositeStorageContainerSqlToProgressTest {
             Map.entry("sql.secondaryMigration.user", postgres.getUsername()),
             Map.entry("sql.secondaryMigration.password", postgres.getPassword()),
             Map.entry("services.fiat.baseUrl", "http://nowhere"));
-    ObjectMapper mapper = new ObjectMapper();
+    ObjectMapper mapper = JsonMapper.builder().build();
     return mapper.writeValueAsString(properties);
   }
 

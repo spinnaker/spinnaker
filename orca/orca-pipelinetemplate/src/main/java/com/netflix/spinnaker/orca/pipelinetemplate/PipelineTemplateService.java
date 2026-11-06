@@ -17,7 +17,6 @@ package com.netflix.spinnaker.orca.pipelinetemplate;
 
 import static com.netflix.spinnaker.orca.api.pipeline.models.ExecutionType.PIPELINE;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
 import com.netflix.spinnaker.orca.api.pipeline.models.PipelineExecution;
 import com.netflix.spinnaker.orca.jackson.OrcaObjectMapper;
 import com.netflix.spinnaker.orca.pipeline.persistence.ExecutionNotFoundException;
@@ -35,6 +34,7 @@ import javax.annotation.Nullable;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
+import tools.jackson.databind.ObjectMapper;
 
 @Component
 public class PipelineTemplateService {

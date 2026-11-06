@@ -16,13 +16,13 @@
 
 package com.netflix.spinnaker.clouddriver.aws.deploy.converters
 
-import com.fasterxml.jackson.databind.DeserializationFeature
-import com.fasterxml.jackson.databind.ObjectMapper
 import com.netflix.spinnaker.clouddriver.aws.deploy.description.UpsertAlarmDescription
 import com.netflix.spinnaker.clouddriver.aws.deploy.ops.UpsertAlarmAtomicOperation
 import com.netflix.spinnaker.clouddriver.security.AbstractAtomicOperationsCredentialsSupport
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Component
+import tools.jackson.databind.DeserializationFeature
+import tools.jackson.databind.ObjectMapper
 
 @Component('upsertAlarmDescription')
 class UpsertAlarmDescriptionAtomicOperationConverter extends AbstractAtomicOperationsCredentialsSupport {
@@ -37,7 +37,7 @@ class UpsertAlarmDescriptionAtomicOperationConverter extends AbstractAtomicOpera
 
   @Override
   UpsertAlarmDescription convertDescription(Map input) {
-    def converted = objectMapper.copy().configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false).convertValue(input, UpsertAlarmDescription)
+    def converted = objectMapper.rebuild().disable(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES).build().convertValue(input, UpsertAlarmDescription)
     converted.credentials = getCredentialsObject(input.credentials as String)
     converted
   }

@@ -1,6 +1,6 @@
 package com.netflix.spinnaker.keel.rest
 
-import com.fasterxml.jackson.databind.ObjectMapper
+import tools.jackson.databind.ObjectMapper
 import com.netflix.spinnaker.keel.KeelApplication
 import com.netflix.spinnaker.keel.auth.PermissionLevel.READ
 import com.netflix.spinnaker.keel.auth.PermissionLevel.WRITE

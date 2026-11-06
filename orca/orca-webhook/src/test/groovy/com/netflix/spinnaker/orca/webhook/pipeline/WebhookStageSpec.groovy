@@ -16,7 +16,7 @@
 
 package com.netflix.spinnaker.orca.webhook.pipeline
 
-import com.fasterxml.jackson.databind.ObjectMapper
+import tools.jackson.databind.ObjectMapper
 import com.netflix.spinnaker.kork.exceptions.UserException
 import com.netflix.spinnaker.orca.api.pipeline.graph.TaskNode
 import com.netflix.spinnaker.orca.jackson.OrcaObjectMapper

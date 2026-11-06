@@ -16,7 +16,7 @@
 
 package com.netflix.spinnaker.clouddriver.google.deploy
 
-  import com.fasterxml.jackson.databind.ObjectMapper
+  import tools.jackson.databind.ObjectMapper
   import com.google.api.client.googleapis.auth.oauth2.GoogleCredential
   import com.google.api.client.googleapis.javanet.GoogleNetHttpTransport
   import com.google.api.client.http.HttpRequest
@@ -49,6 +49,7 @@ package com.netflix.spinnaker.clouddriver.google.deploy
   import spock.lang.Shared
   import spock.lang.Specification
   import spock.lang.Unroll
+import tools.jackson.databind.json.JsonMapper
 
   class GCEUtilSpec extends Specification {
   class TestExecutor implements GoogleExecutorTraits {
@@ -596,7 +597,7 @@ package com.netflix.spinnaker.clouddriver.google.deploy
       }
 
     when:
-      GCEUtil.addHttpLoadBalancerBackends(computeMock, new ObjectMapper(), PROJECT_NAME, serverGroup, googleLoadBalancerProviderMock, task, "PHASE", googleOperationPoller, executor)
+      GCEUtil.addHttpLoadBalancerBackends(computeMock, JsonMapper.builder().build(), PROJECT_NAME, serverGroup, googleLoadBalancerProviderMock, task, "PHASE", googleOperationPoller, executor)
 
     then:
       _ * computeMock.backendServices() >> backendServicesMock
@@ -1855,7 +1856,7 @@ package com.netflix.spinnaker.clouddriver.google.deploy
     when:
       GCEUtil.addExternalHttpLoadBalancerBackends(
         compute,
-        new ObjectMapper(),
+        JsonMapper.builder().build(),
         PROJECT_NAME,
         serverGroup,
         googleLoadBalancerProvider,
@@ -1897,7 +1898,7 @@ package com.netflix.spinnaker.clouddriver.google.deploy
         compute, PROJECT_NAME, serverGroup, googleLoadBalancerProvider, taskMock, PHASE, googleOperationPoller, executor)
     } else {
       GCEUtil."$helper"(
-        compute, new ObjectMapper(), PROJECT_NAME, serverGroup, googleLoadBalancerProvider, taskMock, PHASE, googleOperationPoller, executor)
+        compute, JsonMapper.builder().build(), PROJECT_NAME, serverGroup, googleLoadBalancerProvider, taskMock, PHASE, googleOperationPoller, executor)
     }
   }
 

@@ -16,8 +16,6 @@
 
 package com.netflix.spinnaker.echo.pubsub.google;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.api.core.ApiFuture;
 import com.google.api.core.ApiFutureCallback;
 import com.google.api.core.ApiFutures;
@@ -41,6 +39,8 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.threeten.bp.Duration;
+import tools.jackson.core.JacksonException;
+import tools.jackson.databind.ObjectMapper;
 
 @Data
 @Slf4j
@@ -94,7 +94,7 @@ public class GooglePubsubPublisher implements PubsubPublisher {
     String jsonPayload;
     try {
       jsonPayload = mapper.writeValueAsString(event);
-    } catch (JsonProcessingException jpe) {
+    } catch (JacksonException jpe) {
       log.error("Could not serialize event message", jpe);
       return;
     }
@@ -145,7 +145,7 @@ public class GooglePubsubPublisher implements PubsubPublisher {
     String jsonPayload;
     try {
       jsonPayload = mapper.writeValueAsString(payload);
-    } catch (JsonProcessingException jpe) {
+    } catch (JacksonException jpe) {
       log.error("Could not serialize event message", jpe);
       return;
     }

@@ -18,7 +18,6 @@ package com.netflix.spinnaker.orca.pipeline.tasks;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
 import com.netflix.spinnaker.kork.artifacts.model.Artifact;
 import com.netflix.spinnaker.kork.expressions.ExpressionEvaluationSummary;
 import com.netflix.spinnaker.orca.api.pipeline.TaskResult;
@@ -36,13 +35,14 @@ import java.util.List;
 import java.util.Map;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
+import tools.jackson.databind.json.JsonMapper;
 
 public class EvaluateArtifactsStageTest {
 
   private final ContextParameterProcessor contextParameterProcessor =
       new ContextParameterProcessor();
   private final EvaluateArtifactsStage evaluateArtifactsStage =
-      new EvaluateArtifactsStage(new ObjectMapper());
+      new EvaluateArtifactsStage(JsonMapper.builder().build());
 
   private StageExecution newStage(Map<String, Object> context) {
     return new StageExecutionImpl(

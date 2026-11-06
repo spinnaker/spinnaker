@@ -27,7 +27,7 @@ dependencies {
   implementation("org.springframework.boot:spring-boot-autoconfigure")
   implementation("com.netflix.frigga:frigga")
   implementation("io.spinnaker.kork:kork-moniker")
-  implementation("com.fasterxml.jackson.module:jackson-module-kotlin")
+  implementation("tools.jackson.module:jackson-module-kotlin")
   implementation("io.spinnaker.kork:kork-retrofit")
 
   testImplementation(project(":orca-test"))

@@ -16,8 +16,6 @@
 
 package com.netflix.spinnaker.clouddriver.aws.deploy.converters
 
-import com.fasterxml.jackson.databind.DeserializationFeature
-import com.fasterxml.jackson.databind.ObjectMapper
 import com.netflix.spinnaker.clouddriver.aws.AmazonOperation
 import com.netflix.spinnaker.clouddriver.orchestration.AtomicOperations
 import com.netflix.spinnaker.clouddriver.security.AbstractAtomicOperationsCredentialsSupport
@@ -25,6 +23,8 @@ import com.netflix.spinnaker.clouddriver.aws.deploy.description.UpsertSecurityGr
 import com.netflix.spinnaker.clouddriver.aws.deploy.ops.securitygroup.UpsertSecurityGroupAtomicOperation
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Component
+import tools.jackson.databind.DeserializationFeature
+import tools.jackson.databind.ObjectMapper
 
 @AmazonOperation(AtomicOperations.UPSERT_SECURITY_GROUP)
 @Component("upsertSecurityGroupDescription")
@@ -39,7 +39,7 @@ class UpsertSecurityGroupAtomicOperationConverter extends AbstractAtomicOperatio
 
   @Override
   UpsertSecurityGroupDescription convertDescription(Map input) {
-    def converted = objectMapper.copy().configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false).convertValue(input, UpsertSecurityGroupDescription)
+    def converted = objectMapper.rebuild().disable(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES).build().convertValue(input, UpsertSecurityGroupDescription)
     converted.credentials = getCredentialsObject(input.credentials as String)
     converted
   }

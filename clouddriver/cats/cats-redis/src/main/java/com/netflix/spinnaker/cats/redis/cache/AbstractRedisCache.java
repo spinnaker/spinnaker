@@ -15,8 +15,6 @@
  */
 package com.netflix.spinnaker.cats.redis.cache;
 
-import com.fasterxml.jackson.core.type.TypeReference;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.collect.Iterables;
 import com.netflix.spinnaker.cats.cache.CacheData;
 import com.netflix.spinnaker.cats.cache.CacheFilter;
@@ -29,6 +27,8 @@ import org.slf4j.LoggerFactory;
 import redis.clients.jedis.Response;
 import redis.clients.jedis.params.ScanParams;
 import redis.clients.jedis.resps.ScanResult;
+import tools.jackson.core.type.TypeReference;
+import tools.jackson.databind.ObjectMapper;
 
 public abstract class AbstractRedisCache implements WriteableCache {
 

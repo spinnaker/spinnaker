@@ -15,7 +15,7 @@
  */
 package com.netflix.spinnaker.orca.pipelinetemplate.v1schema.handler
 
-import com.fasterxml.jackson.databind.ObjectMapper
+import tools.jackson.databind.ObjectMapper
 import com.netflix.spinnaker.kork.yaml.YamlHelper
 import com.netflix.spinnaker.kork.yaml.YamlParserProperties
 import com.netflix.spinnaker.orca.front50.Front50Service
@@ -29,10 +29,11 @@ import com.netflix.spinnaker.orca.pipelinetemplate.v1schema.render.Renderer
 import spock.lang.Specification
 import spock.lang.Subject
 import spock.lang.Unroll
+import tools.jackson.databind.json.JsonMapper
 
 class V1TemplateLoaderHandlerSpec extends Specification {
 
-  ObjectMapper objectMapper = new ObjectMapper()
+  ObjectMapper objectMapper = JsonMapper.builder().build()
 
   Renderer renderer = new JinjaRenderer(objectMapper, Mock(Front50Service), [])
 

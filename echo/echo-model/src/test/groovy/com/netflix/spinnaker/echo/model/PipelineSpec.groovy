@@ -16,13 +16,13 @@
 
 package com.netflix.spinnaker.echo.model
 
-import com.fasterxml.jackson.core.type.TypeReference
-import com.fasterxml.jackson.databind.DeserializationFeature
-import com.fasterxml.jackson.databind.ObjectMapper
 import com.netflix.spinnaker.echo.jackson.EchoObjectMapper
 import spock.lang.Shared
 import spock.lang.Specification
 import spock.lang.Unroll
+import tools.jackson.core.type.TypeReference
+import tools.jackson.databind.DeserializationFeature
+import tools.jackson.databind.ObjectMapper
 
 class PipelineSpec extends Specification {
 
@@ -30,7 +30,9 @@ class PipelineSpec extends Specification {
   ObjectMapper objectMapper = EchoObjectMapper.getInstance()
 
   void setupSpec() {
-    objectMapper.configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false)
+    objectMapper = objectMapper.rebuild()
+      .disable(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES)
+      .build()
   }
 
   void 'pipeline config deserialization should work fine'() {

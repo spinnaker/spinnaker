@@ -16,7 +16,6 @@
 
 package com.netflix.kayenta.index.config;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
 import com.netflix.kayenta.index.CanaryConfigIndex;
 import com.netflix.kayenta.index.CanaryConfigIndexingAgent;
 import com.netflix.kayenta.security.AccountCredentialsRepository;
@@ -27,6 +26,7 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.scheduling.concurrent.ThreadPoolTaskScheduler;
 import redis.clients.jedis.JedisPool;
+import tools.jackson.databind.ObjectMapper;
 
 @Configuration
 @ConditionalOnProperty(name = "kayenta.index.enabled", havingValue = "true", matchIfMissing = true)

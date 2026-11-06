@@ -23,7 +23,6 @@ import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.api.client.googleapis.batch.json.JsonBatchCallback;
 import com.google.api.client.googleapis.json.GoogleJsonError;
 import com.google.api.client.googleapis.json.GoogleJsonResponseException;
@@ -62,6 +61,8 @@ import java.util.Collections;
 import java.util.List;
 import java.util.concurrent.CopyOnWriteArrayList;
 import org.junit.jupiter.api.Test;
+import tools.jackson.databind.ObjectMapper;
+import tools.jackson.databind.json.JsonMapper;
 
 public class GoogleExternalHttpLoadBalancerCachingAgentTest {
   private static final String ACCOUNT = "auto";
@@ -552,7 +553,7 @@ public class GoogleExternalHttpLoadBalancerCachingAgentTest {
             .credentials(mock(GoogleCredentials.class))
             .build();
     return new TestGoogleExternalHttpLoadBalancerCachingAgent(
-        "clouddriver", credentials, new ObjectMapper(), new DefaultRegistry(), REGION);
+        "clouddriver", credentials, JsonMapper.builder().build(), new DefaultRegistry(), REGION);
   }
 
   private static void configureSharedRegionalData(Compute compute) throws IOException {

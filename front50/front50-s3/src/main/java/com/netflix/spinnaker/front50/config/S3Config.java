@@ -1,6 +1,5 @@
 package com.netflix.spinnaker.front50.config;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
 import com.netflix.appinfo.ApplicationInfoManager;
 import com.netflix.spectator.api.Registry;
 import com.netflix.spinnaker.front50.api.model.Timestamped;
@@ -26,6 +25,8 @@ import software.amazon.awssdk.regions.Region;
 import software.amazon.awssdk.services.s3.S3Client;
 import software.amazon.awssdk.services.sns.SnsClient;
 import software.amazon.awssdk.services.sqs.SqsClient;
+import tools.jackson.databind.ObjectMapper;
+import tools.jackson.databind.json.JsonMapper;
 
 /**
  * S3 configuration for Front50.
@@ -56,9 +57,10 @@ public class S3Config {
     DeprecatedStorageBackend.warn(log, "S3");
 
     ObjectMapper awsObjectMapper =
-        new ObjectMapper()
+        JsonMapper.builder()
             .addMixIn(Timestamped.class, TimestampedMixins.class)
-            .addMixIn(Pipeline.class, PipelineMixins.class);
+            .addMixIn(Pipeline.class, PipelineMixins.class)
+            .build();
 
     S3StorageService service =
         new S3StorageService(

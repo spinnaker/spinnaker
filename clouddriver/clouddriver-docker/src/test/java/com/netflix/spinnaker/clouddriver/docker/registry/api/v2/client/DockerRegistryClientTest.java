@@ -25,8 +25,6 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertIterableEquals;
 import static org.mockito.ArgumentMatchers.anyString;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import com.github.tomakehurst.wiremock.client.WireMock;
 import com.github.tomakehurst.wiremock.junit5.WireMockExtension;
 import com.netflix.spinnaker.kork.docker.model.DockerBearerToken;
@@ -36,6 +34,7 @@ import com.netflix.spinnaker.kork.docker.service.DockerBearerTokenService;
 import com.netflix.spinnaker.kork.docker.service.DockerRegistryClient;
 import com.netflix.spinnaker.kork.docker.service.RegistryService;
 import com.netflix.spinnaker.kork.retrofit.ErrorHandlingExecutorCallAdapterFactory;
+import com.netflix.spinnaker.kork.retrofit.util.CustomConverterFactory;
 import java.util.Arrays;
 import java.util.Map;
 import okhttp3.OkHttpClient;
@@ -47,7 +46,9 @@ import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.http.HttpStatus;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import retrofit2.Retrofit;
-import retrofit2.converter.jackson.JacksonConverterFactory;
+import tools.jackson.core.JacksonException;
+import tools.jackson.databind.ObjectMapper;
+import tools.jackson.databind.json.JsonMapper;
 
 @SpringBootTest(classes = {DockerBearerTokenService.class})
 public class DockerRegistryClientTest {
@@ -59,7 +60,7 @@ public class DockerRegistryClientTest {
   static RegistryService dockerRegistryService;
   @MockitoBean DockerBearerTokenService dockerBearerTokenService;
   static DockerRegistryClient dockerRegistryClient;
-  ObjectMapper objectMapper = new ObjectMapper();
+  ObjectMapper objectMapper = JsonMapper.builder().build();
   Map<String, Object> tagsResponse;
   String tagsResponseString;
   String tagsSecondResponseString;
@@ -70,7 +71,7 @@ public class DockerRegistryClientTest {
   String catalogThirdResponseString;
 
   @BeforeEach
-  public void init() throws JsonProcessingException {
+  public void init() throws JacksonException {
     tagsResponse =
         Map.of(
             "name",
@@ -110,7 +111,7 @@ public class DockerRegistryClientTest {
         .baseUrl(baseUrl)
         .client(new OkHttpClient())
         .addCallAdapterFactory(ErrorHandlingExecutorCallAdapterFactory.getInstance())
-        .addConverterFactory(JacksonConverterFactory.create())
+        .addConverterFactory(CustomConverterFactory.create())
         .build()
         .create(type);
   }
@@ -222,7 +223,7 @@ public class DockerRegistryClientTest {
   }
 
   @Test
-  public void testTagsResponse_With_AdditionalFields() throws JsonProcessingException {
+  public void testTagsResponse_With_AdditionalFields() throws JacksonException {
     Map<String, Object> tagsResponse =
         Map.of(
             "child",

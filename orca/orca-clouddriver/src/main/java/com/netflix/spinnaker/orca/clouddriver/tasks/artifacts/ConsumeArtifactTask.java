@@ -16,8 +16,6 @@
 
 package com.netflix.spinnaker.orca.clouddriver.tasks.artifacts;
 
-import com.fasterxml.jackson.core.type.TypeReference;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import com.netflix.spinnaker.kork.artifacts.model.Artifact;
 import com.netflix.spinnaker.kork.core.RetrySupport;
 import com.netflix.spinnaker.kork.retrofit.Retrofit2SyncCall;
@@ -34,6 +32,9 @@ import java.util.Optional;
 import javax.annotation.Nonnull;
 import okhttp3.ResponseBody;
 import org.springframework.stereotype.Component;
+import tools.jackson.core.type.TypeReference;
+import tools.jackson.databind.ObjectMapper;
+import tools.jackson.databind.json.JsonMapper;
 
 @Component
 public class ConsumeArtifactTask implements Task {
@@ -42,7 +43,7 @@ public class ConsumeArtifactTask implements Task {
   private ArtifactUtils artifactUtils;
   private OortService oort;
   private RetrySupport retrySupport;
-  private ObjectMapper objectMapper = new ObjectMapper();
+  private ObjectMapper objectMapper = JsonMapper.builder().build();
 
   public ConsumeArtifactTask(
       ArtifactUtils artifactUtils, OortService oortService, RetrySupport retrySupport) {

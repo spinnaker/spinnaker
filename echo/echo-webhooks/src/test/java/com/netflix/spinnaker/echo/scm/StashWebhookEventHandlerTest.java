@@ -3,8 +3,6 @@ package com.netflix.spinnaker.echo.scm;
 import static org.assertj.core.api.Assertions.*;
 import static org.assertj.core.api.Assertions.entry;
 
-import com.fasterxml.jackson.core.type.TypeReference;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import com.netflix.spinnaker.echo.api.events.Event;
 import com.netflix.spinnaker.echo.api.events.Metadata;
 import com.netflix.spinnaker.echo.jackson.EchoObjectMapper;
@@ -14,6 +12,8 @@ import java.nio.file.Files;
 import java.util.Map;
 import org.junit.jupiter.api.Test;
 import org.springframework.http.HttpHeaders;
+import tools.jackson.core.type.TypeReference;
+import tools.jackson.databind.ObjectMapper;
 
 class StashWebhookEventHandlerTest {
 

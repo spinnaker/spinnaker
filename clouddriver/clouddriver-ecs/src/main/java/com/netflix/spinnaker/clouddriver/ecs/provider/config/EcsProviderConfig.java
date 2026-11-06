@@ -16,17 +16,19 @@
 
 package com.netflix.spinnaker.clouddriver.ecs.provider.config;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
 import com.netflix.spinnaker.clouddriver.ecs.provider.EcsProvider;
 import com.netflix.spinnaker.clouddriver.ecs.provider.agent.IamPolicyReader;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import tools.jackson.databind.ObjectMapper;
 
 @Configuration
 public class EcsProviderConfig {
 
   @Bean
-  public IamPolicyReader iamPolicyReader(ObjectMapper objectMapper) {
+  public IamPolicyReader iamPolicyReader(
+      @Qualifier("amazonObjectMapper") ObjectMapper objectMapper) {
     return new IamPolicyReader(objectMapper);
   }
 

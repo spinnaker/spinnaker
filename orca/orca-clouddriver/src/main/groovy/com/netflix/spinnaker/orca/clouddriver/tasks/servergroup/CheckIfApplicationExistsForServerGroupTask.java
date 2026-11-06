@@ -16,7 +16,6 @@
 
 package com.netflix.spinnaker.orca.clouddriver.tasks.servergroup;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
 import com.netflix.frigga.Names;
 import com.netflix.spinnaker.kork.core.RetrySupport;
 import com.netflix.spinnaker.moniker.Moniker;
@@ -32,6 +31,7 @@ import javax.annotation.Nonnull;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.lang.Nullable;
 import org.springframework.stereotype.Component;
+import tools.jackson.databind.ObjectMapper;
 
 /**
  * This checks if the application name provided for any server group related tasks actually exists

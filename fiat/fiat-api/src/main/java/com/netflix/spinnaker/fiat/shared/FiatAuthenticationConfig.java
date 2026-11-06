@@ -18,11 +18,10 @@ package com.netflix.spinnaker.fiat.shared;
 
 import static org.springframework.core.Ordered.HIGHEST_PRECEDENCE;
 
-import com.fasterxml.jackson.databind.DeserializationFeature;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import com.netflix.spinnaker.config.ErrorConfiguration;
 import com.netflix.spinnaker.config.OkHttp3ClientConfiguration;
 import com.netflix.spinnaker.kork.retrofit.ErrorHandlingExecutorCallAdapterFactory;
+import com.netflix.spinnaker.kork.retrofit.util.CustomConverterFactory;
 import com.netflix.spinnaker.kork.retrofit.util.RetrofitUtils;
 import com.netflix.spinnaker.kork.web.exceptions.ExceptionMessageDecorator;
 import lombok.val;
@@ -46,7 +45,9 @@ import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.AnonymousAuthenticationFilter;
 import org.springframework.security.web.authentication.AuthenticationConverter;
 import retrofit2.Retrofit;
-import retrofit2.converter.jackson.JacksonConverterFactory;
+import tools.jackson.databind.DeserializationFeature;
+import tools.jackson.databind.cfg.EnumFeature;
+import tools.jackson.databind.json.JsonMapper;
 
 @Import(ErrorConfiguration.class)
 @EnableWebSecurity
@@ -63,15 +64,17 @@ public class FiatAuthenticationConfig {
       FiatClientConfigurationProperties fiatConfigurationProperties,
       OkHttp3ClientConfiguration okHttpClientConfig) {
     // New role providers break deserialization if this is not enabled.
-    val objectMapper = new ObjectMapper();
-    objectMapper.enable(DeserializationFeature.READ_UNKNOWN_ENUM_VALUES_AS_NULL);
-    objectMapper.disable(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES);
+    val objectMapper =
+        JsonMapper.builder()
+            .enable(EnumFeature.READ_UNKNOWN_ENUM_VALUES_AS_NULL)
+            .disable(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES)
+            .build();
 
     return new Retrofit.Builder()
         .baseUrl(RetrofitUtils.getBaseUrl(fiatConfigurationProperties.getBaseUrl()))
         .client(okHttpClientConfig.createForRetrofit2().build())
         .addCallAdapterFactory(ErrorHandlingExecutorCallAdapterFactory.getInstance())
-        .addConverterFactory(JacksonConverterFactory.create(objectMapper))
+        .addConverterFactory(CustomConverterFactory.create(objectMapper))
         .build()
         .create(FiatService.class);
   }

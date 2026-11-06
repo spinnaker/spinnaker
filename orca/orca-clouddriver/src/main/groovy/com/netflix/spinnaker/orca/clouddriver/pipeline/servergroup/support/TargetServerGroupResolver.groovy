@@ -16,7 +16,7 @@
 
 package com.netflix.spinnaker.orca.clouddriver.pipeline.servergroup.support
 
-import com.fasterxml.jackson.databind.ObjectMapper
+import tools.jackson.databind.ObjectMapper
 import com.netflix.spinnaker.kork.annotations.VisibleForTesting
 import com.netflix.spinnaker.kork.core.RetrySupport
 import com.netflix.spinnaker.kork.retrofit.Retrofit2SyncCall

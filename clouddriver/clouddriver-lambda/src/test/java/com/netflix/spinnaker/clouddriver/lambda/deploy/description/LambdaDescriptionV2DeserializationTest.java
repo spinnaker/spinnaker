@@ -18,11 +18,12 @@ package com.netflix.spinnaker.clouddriver.lambda.deploy.description;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
-import com.fasterxml.jackson.databind.DeserializationFeature;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import com.netflix.spinnaker.clouddriver.aws.jackson.AwsSdkV2Module;
 import java.util.Map;
 import org.junit.jupiter.api.Test;
+import tools.jackson.databind.DeserializationFeature;
+import tools.jackson.databind.ObjectMapper;
+import tools.jackson.databind.json.JsonMapper;
 
 /**
  * Verifies that Lambda descriptions carrying AWS SDK v2 model fields (which are immutable and
@@ -33,9 +34,10 @@ import org.junit.jupiter.api.Test;
 class LambdaDescriptionV2DeserializationTest {
 
   private final ObjectMapper mapper =
-      new ObjectMapper()
-          .registerModule(new AwsSdkV2Module())
-          .configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
+      JsonMapper.builder()
+          .addModule(new AwsSdkV2Module())
+          .disable(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES)
+          .build();
 
   @Test
   void createDescriptionDeserializesV2DeadLetterAndTracingConfig() {

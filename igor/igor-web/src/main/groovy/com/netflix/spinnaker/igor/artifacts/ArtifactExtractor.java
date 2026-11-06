@@ -16,8 +16,6 @@
 
 package com.netflix.spinnaker.igor.artifacts;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import com.netflix.spinnaker.igor.build.model.GenericBuild;
 import com.netflix.spinnaker.kork.annotations.VisibleForTesting;
 import com.netflix.spinnaker.kork.artifacts.model.Artifact;
@@ -31,6 +29,8 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.stereotype.Component;
+import tools.jackson.core.JacksonException;
+import tools.jackson.databind.ObjectMapper;
 
 /** TODO(rz): Cannot move to kork-core due to Jenkins dependency */
 @Component
@@ -45,7 +45,7 @@ public class ArtifactExtractor {
     final String messageString;
     try {
       messageString = objectMapper.writeValueAsString(build);
-    } catch (JsonProcessingException e) {
+    } catch (JacksonException e) {
       log.error("Error processing JSON:", e);
       return Collections.emptyList();
     }

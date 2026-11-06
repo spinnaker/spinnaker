@@ -18,19 +18,24 @@ package com.netflix.kayenta.canary.providers.metrics;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
-import com.fasterxml.jackson.databind.DeserializationFeature;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import com.netflix.kayenta.canary.CanaryConfig;
 import java.util.Collections;
 import org.junit.jupiter.api.Test;
+import tools.jackson.databind.DeserializationFeature;
+import tools.jackson.databind.ObjectMapper;
+import tools.jackson.databind.json.JsonMapper;
+import tools.jackson.databind.node.ObjectNode;
 
 public class AbstractCanaryMetricSetQueryConfigTest {
 
   @Test
   public void jsonAlias_deserializesLegacyCustomInlineTemplateKeyIntoTemplateField()
       throws Exception {
-    ObjectMapper objectMapper = new ObjectMapper();
-    objectMapper.registerSubtypes(TestConcreteCanaryMetricSetQueryConfig.class);
+    ObjectMapper objectMapper =
+        JsonMapper.builder()
+            .registerSubtypes(TestConcreteCanaryMetricSetQueryConfig.class)
+            .enable(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES)
+            .build();
     String legacyJson = "{\"type\":\"test-concrete\",\"customInlineTemplate\":\"legacy raw text\"}";
 
     TestConcreteCanaryMetricSetQueryConfig deserialized =
@@ -41,7 +46,8 @@ public class AbstractCanaryMetricSetQueryConfigTest {
 
   @Test
   public void deserialization_acceptsTemplateKey() throws Exception {
-    ObjectMapper objectMapper = new ObjectMapper();
+    ObjectMapper objectMapper =
+        JsonMapper.builder().enable(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES).build();
     String json = "{\"type\":\"test-concrete\",\"template\":\"new text\"}";
 
     TestConcreteCanaryMetricSetQueryConfig deserialized =
@@ -52,7 +58,8 @@ public class AbstractCanaryMetricSetQueryConfigTest {
 
   @Test
   public void deserialization_templateWinsOverLegacyKeyInEitherOrder() throws Exception {
-    ObjectMapper objectMapper = new ObjectMapper();
+    ObjectMapper objectMapper =
+        JsonMapper.builder().enable(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES).build();
 
     String templateFirst =
         "{\"type\":\"test-concrete\",\"template\":\"edited\",\"customInlineTemplate\":\"stale\"}";
@@ -76,15 +83,11 @@ public class AbstractCanaryMetricSetQueryConfigTest {
       throws Exception {
     // Kayenta's mapper ignores unknown properties (e.g. the serialized serviceType).
     ObjectMapper objectMapper =
-        new ObjectMapper()
-            .configure(
-                com.fasterxml.jackson.databind.DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES,
-                false);
+        JsonMapper.builder().disable(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES).build();
     TestConcreteCanaryMetricSetQueryConfig original =
         TestConcreteCanaryMetricSetQueryConfig.builder().template("ORIGINAL").build();
 
-    com.fasterxml.jackson.databind.node.ObjectNode tree =
-        (com.fasterxml.jackson.databind.node.ObjectNode) objectMapper.valueToTree(original);
+    ObjectNode tree = (ObjectNode) objectMapper.valueToTree(original);
     tree.put("template", "EDITED");
 
     TestConcreteCanaryMetricSetQueryConfig result =
@@ -95,14 +98,12 @@ public class AbstractCanaryMetricSetQueryConfigTest {
 
   @Test
   public void serialization_writesBothTemplateAndLegacyCustomInlineTemplateKeys() throws Exception {
-    ObjectMapper objectMapper = new ObjectMapper();
+    ObjectMapper objectMapper =
+        JsonMapper.builder().disable(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES).build();
     TestConcreteCanaryMetricSetQueryConfig query =
         TestConcreteCanaryMetricSetQueryConfig.builder().template("some text").build();
 
     String json = objectMapper.writeValueAsString(query);
-
-    // the production mapper ignores unknown properties (e.g. the polymorphic "serviceType")
-    objectMapper.configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
 
     assertThat(json).contains("\"template\":\"some text\"");
     assertThat(json).contains("\"customInlineTemplate\":\"some text\"");

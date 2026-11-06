@@ -15,15 +15,16 @@
  */
 package com.netflix.spinnaker.kork.artifacts.artifactstore.entities;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
 import com.netflix.spinnaker.kork.artifacts.ArtifactTypes;
 import com.netflix.spinnaker.kork.artifacts.artifactstore.ArtifactReferenceURI;
 import com.netflix.spinnaker.kork.artifacts.artifactstore.ArtifactStore;
 import com.netflix.spinnaker.kork.artifacts.artifactstore.exceptions.ArtifactStoreHandlerException;
 import com.netflix.spinnaker.kork.artifacts.model.Artifact;
-import java.io.IOException;
 import java.util.Base64;
 import java.util.Map;
+import tools.jackson.core.JacksonException;
+import tools.jackson.core.JsonParser;
+import tools.jackson.databind.DeserializationContext;
 
 /** Handler to handle simple expansion of artifacts to the appropriate map */
 public class ExpandToMapHandler implements ArtifactExpandHandler {
@@ -34,15 +35,16 @@ public class ExpandToMapHandler implements ArtifactExpandHandler {
   }
 
   @Override
-  public <T> T handle(ArtifactStore store, Object v, Class<T> clazz, ObjectMapper objectMapper) {
+  public <T> T handle(
+      ArtifactStore store, Object v, Class<T> clazz, DeserializationContext context) {
     Map m = (Map) v;
     String uri = (String) m.get("reference");
     Artifact artifact = store.get(ArtifactReferenceURI.parse(uri));
     String reference = artifact.getReference();
     byte[] b = Base64.getDecoder().decode(reference);
-    try {
-      return objectMapper.readValue(b, clazz);
-    } catch (IOException e) {
+    try (JsonParser parser = context.tokenStreamFactory().createParser(b)) {
+      return context.readValue(parser, clazz);
+    } catch (JacksonException e) {
       throw new ArtifactStoreHandlerException("Failed to handle expansion", e);
     }
   }

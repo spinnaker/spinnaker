@@ -20,7 +20,6 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.Mockito.mock;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
 import com.netflix.spectator.api.NoopRegistry;
 import com.netflix.spinnaker.clouddriver.ecs.EcsNativeCloudProvider;
 import com.netflix.spinnaker.clouddriver.ecs.deploy.description.CloneServiceDescription;
@@ -53,6 +52,8 @@ import org.junit.jupiter.params.provider.Arguments;
 import org.junit.jupiter.params.provider.MethodSource;
 import org.springframework.context.annotation.AnnotationConfigApplicationContext;
 import org.springframework.test.util.ReflectionTestUtils;
+import tools.jackson.databind.ObjectMapper;
+import tools.jackson.databind.json.JsonMapper;
 
 /**
  * Sends each ecs-native operation through {@link OperationsService} and checks the description type
@@ -108,7 +109,7 @@ class EcsNativeDescriptionPreProcessingTest {
             mock(AccountCredentialsRepository.class),
             Optional.empty(),
             new NoopRegistry(),
-            new ObjectMapper(),
+            JsonMapper.builder().build(),
             mock(ExceptionMessageDecorator.class));
   }
 

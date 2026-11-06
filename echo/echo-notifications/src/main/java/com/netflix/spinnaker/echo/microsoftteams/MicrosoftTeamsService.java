@@ -19,13 +19,13 @@ package com.netflix.spinnaker.echo.microsoftteams;
 import com.netflix.spinnaker.config.OkHttp3ClientConfiguration;
 import com.netflix.spinnaker.kork.retrofit.ErrorHandlingExecutorCallAdapterFactory;
 import com.netflix.spinnaker.kork.retrofit.Retrofit2SyncCall;
+import com.netflix.spinnaker.kork.retrofit.util.CustomConverterFactory;
 import lombok.extern.slf4j.Slf4j;
 import okhttp3.HttpUrl;
 import okhttp3.MediaType;
 import okhttp3.RequestBody;
 import okhttp3.ResponseBody;
 import retrofit2.Retrofit;
-import retrofit2.converter.jackson.JacksonConverterFactory;
 
 @Slf4j
 public class MicrosoftTeamsService {
@@ -51,7 +51,7 @@ public class MicrosoftTeamsService {
             .baseUrl(HttpUrl.get(webhookUrl).resolve("/").toString())
             .client(okHttp3ClientConfiguration.createForRetrofit2().build())
             .addCallAdapterFactory(ErrorHandlingExecutorCallAdapterFactory.getInstance())
-            .addConverterFactory(JacksonConverterFactory.create())
+            .addConverterFactory(CustomConverterFactory.create())
             .build()
             .create(MicrosoftTeamsClient.class);
 

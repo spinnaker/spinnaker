@@ -17,7 +17,6 @@
 package com.netflix.spinnaker.orca.clouddriver.tasks.image;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import com.netflix.spinnaker.kork.artifacts.model.Artifact;
 import com.netflix.spinnaker.orca.api.pipeline.RetryableTask;
 import com.netflix.spinnaker.orca.api.pipeline.TaskResult;
@@ -34,6 +33,7 @@ import java.util.UUID;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
+import tools.jackson.databind.ObjectMapper;
 
 @Component
 public class FindImageFromTagsTask implements CloudProviderAware, RetryableTask {

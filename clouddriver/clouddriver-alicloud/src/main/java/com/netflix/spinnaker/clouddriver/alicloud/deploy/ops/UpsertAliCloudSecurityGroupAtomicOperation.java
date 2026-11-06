@@ -22,7 +22,7 @@ import com.aliyuncs.ecs.model.v20140526.DescribeSecurityGroupAttributeResponse.P
 import com.aliyuncs.ecs.model.v20140526.DescribeSecurityGroupsResponse.SecurityGroup;
 import com.aliyuncs.exceptions.ClientException;
 import com.aliyuncs.exceptions.ServerException;
-import com.fasterxml.jackson.databind.ObjectMapper;
+import tools.jackson.databind.ObjectMapper;
 import com.netflix.spinnaker.clouddriver.alicloud.common.ClientFactory;
 import com.netflix.spinnaker.clouddriver.alicloud.deploy.description.UpsertAliCloudSecurityGroupDescription;
 import com.netflix.spinnaker.clouddriver.alicloud.exception.AliCloudException;

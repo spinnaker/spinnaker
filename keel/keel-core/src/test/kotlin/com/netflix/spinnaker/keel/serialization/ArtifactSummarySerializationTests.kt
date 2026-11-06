@@ -1,15 +1,13 @@
 package com.netflix.spinnaker.keel.serialization
 
-import com.fasterxml.jackson.databind.node.ObjectNode
+import tools.jackson.databind.node.ObjectNode
 import com.netflix.spinnaker.keel.core.api.ActionMetadata
 import com.netflix.spinnaker.keel.core.api.ArtifactSummaryInEnvironment
 import dev.minutest.junit.JUnit5Minutests
 import dev.minutest.rootContext
 import java.time.Instant.now
 import strikt.api.expectThat
-import strikt.jackson.has
-import strikt.jackson.isObject
-import strikt.jackson.path
+import strikt.assertions.isTrue
 
 class ArtifactSummarySerializationTests : JUnit5Minutests {
 
@@ -25,9 +23,7 @@ class ArtifactSummarySerializationTests : JUnit5Minutests {
       val tree = configuredObjectMapper()
         .valueToTree<ObjectNode>(obj)
 
-      expectThat(tree)
-        .has("pinned")
-        .path("pinned").isObject()
+      expectThat(tree.get("pinned").isObject).isTrue()
     }
   }
 }

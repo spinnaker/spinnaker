@@ -16,7 +16,7 @@
 
 package com.netflix.spinnaker.clouddriver.appengine.deploy.converters
 
-import com.fasterxml.jackson.databind.ObjectMapper
+import tools.jackson.databind.ObjectMapper
 import com.netflix.spinnaker.clouddriver.appengine.deploy.description.DeployAppengineDescription
 import com.netflix.spinnaker.clouddriver.appengine.deploy.ops.DeployAppengineAtomicOperation
 import com.netflix.spinnaker.clouddriver.appengine.security.AppengineNamedAccountCredentials
@@ -24,6 +24,7 @@ import com.netflix.spinnaker.clouddriver.appengine.deploy.exception.AppengineDes
 import com.netflix.spinnaker.credentials.CredentialsRepository
 import spock.lang.Shared
 import spock.lang.Specification
+import tools.jackson.databind.json.JsonMapper
 
 class DeployAppengineAtomicOperationConverterSpec extends Specification {
   private static final ACCOUNT_NAME = "my-appengine-account"
@@ -33,7 +34,7 @@ class DeployAppengineAtomicOperationConverterSpec extends Specification {
   private static final CONFIG_FILEPATHS = ["/path/to/app.yaml"]
 
   @Shared
-  ObjectMapper mapper = new ObjectMapper()
+  ObjectMapper mapper = JsonMapper.builder().build()
 
   @Shared
   DeployAppengineAtomicOperationConverter converter

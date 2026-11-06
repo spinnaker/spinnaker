@@ -15,14 +15,14 @@
  */
 package com.netflix.spinnaker.kork.artifacts.artifactstore;
 
-import com.fasterxml.jackson.core.type.TypeReference;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import com.netflix.spinnaker.kork.artifacts.ArtifactTypes;
 import com.netflix.spinnaker.kork.artifacts.artifactstore.exceptions.ArtifactStoreInvalidStateException;
 import com.netflix.spinnaker.kork.artifacts.artifactstore.exceptions.ArtifactStoreInvalidTypeException;
 import com.netflix.spinnaker.kork.artifacts.model.Artifact;
 import java.util.Base64;
 import lombok.experimental.UtilityClass;
+import tools.jackson.core.type.TypeReference;
+import tools.jackson.databind.ObjectMapper;
 
 @UtilityClass
 public class ArtifactStoreConverter {

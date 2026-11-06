@@ -18,8 +18,6 @@ package com.netflix.spinnaker.orca.clouddriver.pipeline.job;
 
 import static java.util.Collections.emptyMap;
 
-import com.fasterxml.jackson.core.type.TypeReference;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import com.netflix.spinnaker.orca.api.pipeline.CancellableStage;
 import com.netflix.spinnaker.orca.api.pipeline.graph.StageDefinitionBuilder;
 import com.netflix.spinnaker.orca.api.pipeline.graph.StageGraphBuilder;
@@ -39,6 +37,8 @@ import javax.annotation.Nonnull;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Component;
+import tools.jackson.core.type.TypeReference;
+import tools.jackson.databind.ObjectMapper;
 
 @Component
 public class RunJobStage implements StageDefinitionBuilder, CancellableStage {

@@ -1,7 +1,7 @@
 package com.netflix.spinnaker.keel.jackson
 
-import com.fasterxml.jackson.module.kotlin.convertValue
-import com.fasterxml.jackson.module.kotlin.readValue
+import tools.jackson.module.kotlin.convertValue
+import tools.jackson.module.kotlin.readValue
 import com.netflix.spinnaker.keel.api.artifacts.DeliveryArtifact
 import com.netflix.spinnaker.keel.artifacts.DebianArtifact
 import com.netflix.spinnaker.keel.artifacts.DockerArtifact

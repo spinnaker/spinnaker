@@ -24,10 +24,10 @@ import static org.mockserver.model.HttpRequest.request;
 import static org.mockserver.model.HttpResponse.response;
 import static org.mockserver.verify.VerificationTimes.exactly;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
 import com.netflix.spinnaker.config.OkHttp3ClientConfiguration;
 import com.netflix.spinnaker.kork.retrofit.ErrorHandlingExecutorCallAdapterFactory;
 import com.netflix.spinnaker.kork.retrofit.exceptions.SpinnakerConversionException;
+import com.netflix.spinnaker.kork.retrofit.util.CustomConverterFactory;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -47,8 +47,8 @@ import org.mockserver.model.MediaType;
 import org.mockserver.netty.MockServer;
 import retrofit2.Call;
 import retrofit2.Retrofit;
-import retrofit2.converter.jackson.JacksonConverterFactory;
 import retrofit2.http.GET;
+import tools.jackson.databind.json.JsonMapper;
 
 /**
  * Tests for {@link RetrofitClientFactory} authentication behavior.
@@ -139,7 +139,7 @@ public class RetrofitClientFactoryTest {
     TestService service =
         factory.createClient(
             TestService.class,
-            JacksonConverterFactory.create(),
+            CustomConverterFactory.createWithJsonStringResponses(JsonMapper.builder().build()),
             remoteService,
             null,
             null,
@@ -512,7 +512,7 @@ public class RetrofitClientFactoryTest {
      * Demonstrates the exact error a user sees in production when using Kayenta with Coralogix:
      *
      * <pre>
-     * Caused by: com.fasterxml.jackson.core.JsonParseException: Unrecognized token 'OK':
+     * Caused by: tools.jackson.core.JacksonException: Unrecognized token 'OK':
      *   was expecting (JSON String, Number, Array, Object or token 'null', 'true' or 'false')
      * </pre>
      *
@@ -558,7 +558,7 @@ public class RetrofitClientFactoryTest {
         .baseUrl(baseUrl)
         .client(okHttpClient)
         .addCallAdapterFactory(ErrorHandlingExecutorCallAdapterFactory.getInstance())
-        .addConverterFactory(JacksonConverterFactory.create(new ObjectMapper()))
+        .addConverterFactory(CustomConverterFactory.create(JsonMapper.builder().build()))
         .build()
         .create(TestService.class);
   }

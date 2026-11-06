@@ -21,7 +21,8 @@ dependencies {
     api "io.spinnaker.kork:kork-plugins"
 
     implementation "com.squareup.retrofit2:retrofit"
-    implementation "com.squareup.retrofit2:converter-jackson"
+    implementation "tools.jackson.core:jackson-databind"
+    implementation "tools.jackson.module:jackson-module-kotlin"
     implementation "io.spinnaker.kork:kork-web"
     implementation "io.spinnaker.kork:kork-artifacts"
 

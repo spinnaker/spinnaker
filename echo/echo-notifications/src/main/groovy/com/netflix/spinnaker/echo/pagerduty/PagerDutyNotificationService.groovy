@@ -17,7 +17,7 @@
 
 package com.netflix.spinnaker.echo.pagerduty
 
-import com.fasterxml.jackson.databind.ObjectMapper
+import tools.jackson.databind.ObjectMapper
 import com.netflix.spinnaker.echo.api.Notification
 import com.netflix.spinnaker.echo.config.PagerDutyConfigurationProperties
 import com.netflix.spinnaker.echo.controller.EchoResponse

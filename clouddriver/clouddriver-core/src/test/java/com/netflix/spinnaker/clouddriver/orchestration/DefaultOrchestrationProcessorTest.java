@@ -22,7 +22,6 @@ import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
 import com.netflix.spectator.api.NoopRegistry;
 import com.netflix.spinnaker.clouddriver.config.ExceptionClassifierConfigurationProperties;
 import com.netflix.spinnaker.clouddriver.data.task.DefaultTask;
@@ -37,6 +36,7 @@ import java.util.concurrent.TimeUnit;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.config.AutowireCapableBeanFactory;
 import org.springframework.context.ApplicationContext;
+import tools.jackson.databind.json.JsonMapper;
 
 class DefaultOrchestrationProcessorTest {
 
@@ -87,7 +87,7 @@ class DefaultOrchestrationProcessorTest {
         applicationContext,
         new NoopRegistry(),
         Optional.empty(),
-        new ObjectMapper(),
+        JsonMapper.builder().build(),
         new ExceptionClassifier(
             new ExceptionClassifierConfigurationProperties(), mock(DynamicConfigService.class)),
         new AuthenticatedRequestContextProvider(),

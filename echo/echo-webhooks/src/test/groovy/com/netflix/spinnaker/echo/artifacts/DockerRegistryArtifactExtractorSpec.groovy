@@ -1,6 +1,6 @@
 package com.netflix.spinnaker.echo.artifacts
 
-import com.fasterxml.jackson.databind.ObjectMapper
+import tools.jackson.databind.ObjectMapper
 import com.netflix.spinnaker.echo.jackson.EchoObjectMapper
 import com.netflix.spinnaker.kork.artifacts.model.Artifact
 import spock.lang.Specification

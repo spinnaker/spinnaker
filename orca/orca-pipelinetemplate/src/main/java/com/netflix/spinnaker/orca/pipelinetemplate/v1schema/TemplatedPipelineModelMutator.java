@@ -15,8 +15,6 @@
  */
 package com.netflix.spinnaker.orca.pipelinetemplate.v1schema;
 
-import com.fasterxml.jackson.core.type.TypeReference;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import com.netflix.spinnaker.orca.front50.PipelineModelMutator;
 import com.netflix.spinnaker.orca.pipelinetemplate.exceptions.TemplateLoaderException;
 import com.netflix.spinnaker.orca.pipelinetemplate.loader.TemplateLoader;
@@ -34,6 +32,8 @@ import java.util.Map;
 import java.util.stream.Collectors;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import tools.jackson.core.type.TypeReference;
+import tools.jackson.databind.ObjectMapper;
 
 /**
  * Maps pipeline configurations of concurrency settings, notifications, triggers and parameters from

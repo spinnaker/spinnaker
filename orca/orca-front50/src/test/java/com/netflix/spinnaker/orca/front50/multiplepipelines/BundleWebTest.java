@@ -3,20 +3,21 @@ package com.netflix.spinnaker.orca.front50.multiplepipelines;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotEquals;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import java.util.HashMap;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.junit.jupiter.MockitoExtension;
+import tools.jackson.core.JacksonException;
+import tools.jackson.databind.ObjectMapper;
+import tools.jackson.databind.json.JsonMapper;
 
 @ExtendWith(MockitoExtension.class)
 public class BundleWebTest {
 
-  private final ObjectMapper objectMapper = new ObjectMapper();
+  private final ObjectMapper objectMapper = JsonMapper.builder().build();
 
   @Test
-  public void shouldDeserializeCorrectly() throws JsonProcessingException {
+  public void shouldDeserializeCorrectly() throws JacksonException {
     var testBundleWebJson =
         "{" + "\"bundle_web\": {" + "\"foo\": 101," + "\"bar\": 102" + "}" + "}";
     var bundleWeb = objectMapper.readValue(testBundleWebJson, BundleWeb.class);

@@ -1,7 +1,7 @@
 package com.netflix.spinnaker.keel.orca
 
-import com.fasterxml.jackson.databind.ObjectMapper
-import com.fasterxml.jackson.module.kotlin.convertValue
+import tools.jackson.databind.ObjectMapper
+import tools.jackson.module.kotlin.convertValue
 import com.netflix.spinnaker.keel.actuation.ExecutionSummary
 import com.netflix.spinnaker.keel.actuation.ExecutionSummaryService
 import com.netflix.spinnaker.keel.actuation.RolloutLocation

@@ -18,7 +18,6 @@ package com.netflix.spinnaker.echo.scm;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
-import com.fasterxml.jackson.core.type.TypeReference;
 import com.netflix.spinnaker.echo.api.events.Event;
 import com.netflix.spinnaker.echo.api.events.Metadata;
 import com.netflix.spinnaker.echo.jackson.EchoObjectMapper;
@@ -27,6 +26,7 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.CsvSource;
 import org.springframework.http.HttpHeaders;
+import tools.jackson.core.type.TypeReference;
 
 class GiteaWebhookEventHandlerTest {
   private final GiteaWebhookEventHandler handler = new GiteaWebhookEventHandler();

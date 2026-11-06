@@ -15,7 +15,6 @@
  */
 package com.netflix.kayenta.wavefront.config;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
 import com.netflix.kayenta.metrics.MetricsService;
 import com.netflix.kayenta.retrofit.config.RetrofitClientFactory;
 import com.netflix.kayenta.security.AccountCredentials;
@@ -24,6 +23,7 @@ import com.netflix.kayenta.wavefront.metrics.WavefrontMetricsService;
 import com.netflix.kayenta.wavefront.security.WavefrontCredentials;
 import com.netflix.kayenta.wavefront.security.WavefrontNamedAccountCredentials;
 import com.netflix.kayenta.wavefront.service.WavefrontRemoteService;
+import com.netflix.spinnaker.kork.retrofit.util.CustomConverterFactory;
 import java.util.List;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
@@ -32,7 +32,7 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.ComponentScan;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.util.CollectionUtils;
-import retrofit2.converter.jackson.JacksonConverterFactory;
+import tools.jackson.databind.ObjectMapper;
 
 @Configuration
 @ConditionalOnProperty("kayenta.wavefront.enabled")
@@ -75,7 +75,7 @@ public class WavefrontConfiguration {
           WavefrontRemoteService wavefrontRemoteService =
               retrofitClientFactory.createClient(
                   WavefrontRemoteService.class,
-                  JacksonConverterFactory.create(objectMapper),
+                  CustomConverterFactory.create(objectMapper),
                   wavefrontManagedAccount.getEndpoint());
 
           wavefrontNamedAccountCredentialsBuilder.wavefrontRemoteService(wavefrontRemoteService);

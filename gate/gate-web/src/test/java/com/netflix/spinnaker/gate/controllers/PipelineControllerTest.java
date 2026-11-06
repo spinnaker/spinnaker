@@ -25,8 +25,6 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 import static org.springframework.test.web.servlet.setup.MockMvcBuilders.webAppContextSetup;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import com.netflix.spinnaker.gate.Main;
 import com.netflix.spinnaker.gate.health.DownstreamServicesHealthIndicator;
 import com.netflix.spinnaker.gate.services.ApplicationService;
@@ -48,6 +46,8 @@ import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.RequestBuilder;
 import org.springframework.web.context.WebApplicationContext;
+import tools.jackson.core.JacksonException;
+import tools.jackson.databind.ObjectMapper;
 
 /**
  * See https://github.com/spring-projects/spring-boot/issues/5574#issuecomment-506282892 for a
@@ -91,7 +91,7 @@ class PipelineControllerTest {
   private final Map<String, Object> TRIGGER = Collections.emptyMap(); // arbitrary
 
   @BeforeEach
-  void init(TestInfo testInfo) throws JsonProcessingException {
+  void init(TestInfo testInfo) throws JacksonException {
     System.out.println("--------------- Test " + testInfo.getDisplayName());
 
     webAppMockMvc =
@@ -114,7 +114,7 @@ class PipelineControllerTest {
   }
 
   /** Generate a request to the endpoint that PipelineController.invokePipelineConfig serves */
-  private RequestBuilder invokePipelineConfigRequest() throws JsonProcessingException {
+  private RequestBuilder invokePipelineConfigRequest() throws JacksonException {
     return post("/pipelines/" + APPLICATION + "/" + PIPELINE_ID)
         .contentType(MediaType.APPLICATION_JSON_VALUE)
         .characterEncoding(StandardCharsets.UTF_8.toString())

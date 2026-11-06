@@ -16,14 +16,14 @@
 
 package com.netflix.spinnaker.clouddriver.aws.model
 
-import com.fasterxml.jackson.databind.ObjectMapper
 import com.netflix.spinnaker.clouddriver.aws.jackson.AwsSdkV2Module
 import software.amazon.awssdk.services.cloudformation.model.Change
+import tools.jackson.databind.json.JsonMapper
 import spock.lang.Specification
 
 class AmazonCloudFormationStackSpec extends Specification {
 
-  def objectMapper = new ObjectMapper().registerModule(new AwsSdkV2Module())
+  def objectMapper = JsonMapper.builder().addModule(new AwsSdkV2Module()).build()
 
   def "should deserialize a full cached object"() {
     given:

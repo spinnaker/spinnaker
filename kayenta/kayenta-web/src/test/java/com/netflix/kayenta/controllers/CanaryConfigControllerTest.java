@@ -15,7 +15,6 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
 import com.netflix.kayenta.canary.CanaryConfig;
 import com.netflix.kayenta.canary.CanaryMetricConfig;
 import com.netflix.kayenta.canary.providers.metrics.AtlasCanaryMetricSetQueryConfig;
@@ -27,6 +26,8 @@ import org.apache.commons.io.IOUtils;
 import org.junit.jupiter.api.Test;
 import org.mockito.ArgumentCaptor;
 import org.springframework.beans.factory.annotation.Autowired;
+import tools.jackson.databind.ObjectMapper;
+import tools.jackson.databind.json.JsonMapper;
 
 public class CanaryConfigControllerTest extends BaseControllerTest {
 
@@ -138,8 +139,8 @@ public class CanaryConfigControllerTest extends BaseControllerTest {
   // @JsonAlias and normalizeMetricTemplates end-to-end -- without depending on that unrelated test
   // infra gap.
   private static CanaryConfig deserializeLegacyCanaryConfig(String json) throws Exception {
-    ObjectMapper objectMapper = new ObjectMapper();
-    objectMapper.registerSubtypes(AtlasCanaryMetricSetQueryConfig.class);
+    ObjectMapper objectMapper =
+        JsonMapper.builder().registerSubtypes(AtlasCanaryMetricSetQueryConfig.class).build();
     return objectMapper.readValue(json, CanaryConfig.class);
   }
 

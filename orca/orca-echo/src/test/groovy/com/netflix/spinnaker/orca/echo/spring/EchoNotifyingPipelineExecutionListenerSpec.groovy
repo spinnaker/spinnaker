@@ -16,7 +16,7 @@
 
 package com.netflix.spinnaker.orca.echo.spring
 
-import com.fasterxml.jackson.databind.ObjectMapper
+import tools.jackson.databind.ObjectMapper
 import com.netflix.spectator.api.DefaultRegistry
 import com.netflix.spectator.api.Registry
 import com.netflix.spinnaker.kork.common.Header
@@ -35,12 +35,13 @@ import spock.lang.Specification
 import spock.lang.Subject
 
 import static com.netflix.spinnaker.orca.api.pipeline.models.ExecutionType.PIPELINE
+import tools.jackson.databind.json.JsonMapper
 
 class EchoNotifyingPipelineExecutionListenerSpec extends Specification {
 
   def echoService = Mock(EchoService)
   def front50Service = Mock(Front50Service)
-  def objectMapper = new ObjectMapper()
+  def objectMapper = JsonMapper.builder().build()
 
   @Shared ContextParameterProcessor contextParameterProcessor = new ContextParameterProcessor()
   @Shared Registry registry = new DefaultRegistry()

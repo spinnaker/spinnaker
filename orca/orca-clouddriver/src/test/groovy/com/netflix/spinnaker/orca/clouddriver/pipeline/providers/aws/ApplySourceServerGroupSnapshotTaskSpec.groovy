@@ -16,7 +16,7 @@
 
 package com.netflix.spinnaker.orca.clouddriver.pipeline.providers.aws
 
-import com.fasterxml.jackson.databind.ObjectMapper
+import tools.jackson.databind.ObjectMapper
 import com.netflix.spinnaker.orca.api.pipeline.models.StageExecution
 import com.netflix.spinnaker.orca.clouddriver.CloudDriverService
 import com.netflix.spinnaker.orca.clouddriver.pipeline.servergroup.support.TargetServerGroup
@@ -30,6 +30,7 @@ import spock.lang.Unroll
 import static com.netflix.spinnaker.orca.api.pipeline.models.ExecutionType.PIPELINE
 import static com.netflix.spinnaker.orca.test.model.ExecutionBuilder.pipeline
 import static com.netflix.spinnaker.orca.test.model.ExecutionBuilder.stage
+import tools.jackson.databind.json.JsonMapper
 
 class ApplySourceServerGroupSnapshotTaskSpec extends Specification {
   ExecutionRepository executionRepository = Mock()
@@ -39,7 +40,7 @@ class ApplySourceServerGroupSnapshotTaskSpec extends Specification {
   def task = new ApplySourceServerGroupCapacityTask(
     executionRepository: executionRepository,
     cloudDriverService: cloudDriverService,
-    objectMapper: new ObjectMapper()
+    objectMapper: JsonMapper.builder().build()
   )
 
   void "should support ancestor deploy stages w/ a custom strategy"() {

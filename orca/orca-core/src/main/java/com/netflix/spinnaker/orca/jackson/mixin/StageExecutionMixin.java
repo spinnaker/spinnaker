@@ -19,7 +19,6 @@ import com.fasterxml.jackson.annotation.JsonBackReference;
 import com.fasterxml.jackson.annotation.JsonIdentityInfo;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.ObjectIdGenerators;
-import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 import com.netflix.spinnaker.orca.api.pipeline.models.PipelineExecution;
 import com.netflix.spinnaker.orca.api.pipeline.models.StageExecution;
 import com.netflix.spinnaker.orca.pipeline.model.support.RequisiteStageRefIdDeserializer;
@@ -27,6 +26,7 @@ import java.util.Collection;
 import java.util.List;
 import java.util.Optional;
 import javax.annotation.Nonnull;
+import tools.jackson.databind.annotation.JsonDeserialize;
 
 @JsonIdentityInfo(generator = ObjectIdGenerators.PropertyGenerator.class, property = "id")
 public interface StageExecutionMixin {

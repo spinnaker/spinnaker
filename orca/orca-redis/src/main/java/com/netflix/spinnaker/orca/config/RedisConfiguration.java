@@ -15,7 +15,6 @@
  */
 package com.netflix.spinnaker.orca.config;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
 import com.netflix.spectator.api.Registry;
 import com.netflix.spinnaker.kork.jedis.JedisClientConfiguration;
 import com.netflix.spinnaker.kork.jedis.RedisClientSelector;
@@ -45,6 +44,7 @@ import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.context.annotation.*;
 import redis.clients.jedis.JedisCluster;
 import redis.clients.jedis.JedisPoolConfig;
+import tools.jackson.databind.ObjectMapper;
 
 @Slf4j
 @Configuration

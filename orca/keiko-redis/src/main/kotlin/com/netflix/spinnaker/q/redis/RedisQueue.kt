@@ -17,8 +17,6 @@
 package com.netflix.spinnaker.q.redis
 
 import arrow.core.partially1
-import com.fasterxml.jackson.core.JsonParseException
-import com.fasterxml.jackson.databind.ObjectMapper
 import com.netflix.spinnaker.KotlinOpen
 import com.netflix.spinnaker.q.AttemptsAttribute
 import com.netflix.spinnaker.q.DeadMessageCallback
@@ -56,6 +54,9 @@ import redis.clients.jedis.commands.ScriptingKeyCommands
 import redis.clients.jedis.exceptions.JedisDataException
 import redis.clients.jedis.params.ZAddParams.zAddParams
 import redis.clients.jedis.util.Pool
+import tools.jackson.core.JacksonException
+import tools.jackson.core.exc.StreamReadException
+import tools.jackson.databind.ObjectMapper
 
 @KotlinOpen
 class RedisQueue(
@@ -386,13 +387,13 @@ class RedisQueue(
           val message = mapper.readValue<Message>(runSerializationMigration(it))
           block.invoke(message)
         }
-    } catch (e: IOException) {
+    } catch (e: StreamReadException) {
+      log.error("Payload for unacked message $fingerprint is missing or corrupt", e)
+      removeMessage(fingerprint)
+    } catch (e: JacksonException) {
       log.error("Failed to read unacked message $fingerprint, requeuing...", e)
       hincrBy(attemptsKey, fingerprint, 1L)
       requeueMessage(fingerprint)
-    } catch (e: JsonParseException) {
-      log.error("Payload for unacked message $fingerprint is missing or corrupt", e)
-      removeMessage(fingerprint)
     }
   }
 
@@ -459,7 +460,7 @@ class RedisQueue(
         hset(messagesKey, fingerprint, mapper.writeValueAsString(message))
 
         block.invoke(message)
-      } catch (e: IOException) {
+      } catch (e: JacksonException) {
         log.error("Failed to read message $fingerprint, requeuing...", e)
         hincrBy(attemptsKey, fingerprint, 1L)
         requeueMessage(fingerprint)

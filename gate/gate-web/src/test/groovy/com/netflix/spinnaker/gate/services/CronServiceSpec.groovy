@@ -16,14 +16,14 @@
 
 package com.netflix.spinnaker.gate.services
 
-import com.fasterxml.jackson.databind.ObjectMapper
+import tools.jackson.databind.ObjectMapper
 import com.netflix.spinnaker.gate.services.internal.EchoService
 import com.netflix.spinnaker.kork.retrofit.exceptions.SpinnakerHttpException
 import okhttp3.MediaType
 import okhttp3.ResponseBody
 import retrofit2.Response
 import retrofit2.Retrofit
-import retrofit2.converter.jackson.JacksonConverterFactory
+import com.netflix.spinnaker.kork.retrofit.util.CustomConverterFactory
 import retrofit2.mock.Calls
 import spock.lang.Specification
 import spock.lang.Unroll
@@ -107,7 +107,7 @@ class CronServiceSpec extends Specification {
     Retrofit retrofit =
       new Retrofit.Builder()
         .baseUrl(url)
-        .addConverterFactory(JacksonConverterFactory.create())
+        .addConverterFactory(CustomConverterFactory.create())
         .build();
 
     return new SpinnakerHttpException(retrofit2Response, retrofit);

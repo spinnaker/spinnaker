@@ -16,8 +16,6 @@
 
 package com.netflix.spinnaker.gate.banner;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
@@ -28,6 +26,8 @@ import redis.clients.jedis.Pipeline;
 import redis.clients.jedis.Response;
 import redis.clients.jedis.params.ScanParams;
 import redis.clients.jedis.resps.ScanResult;
+import tools.jackson.core.JacksonException;
+import tools.jackson.databind.ObjectMapper;
 
 /**
  * Manages all Redis I/O for global UI banners.
@@ -191,7 +191,7 @@ public class RedisBannerRepository {
   private String toJson(BannerRecord record) {
     try {
       return objectMapper.writeValueAsString(record);
-    } catch (JsonProcessingException e) {
+    } catch (JacksonException e) {
       throw new IllegalStateException("Failed to serialise BannerRecord id=" + record.getId(), e);
     }
   }
@@ -199,7 +199,7 @@ public class RedisBannerRepository {
   private BannerRecord fromJson(String json) {
     try {
       return objectMapper.readValue(json, BannerRecord.class);
-    } catch (JsonProcessingException e) {
+    } catch (JacksonException e) {
       throw new IllegalStateException("Failed to deserialise BannerRecord: " + json, e);
     }
   }

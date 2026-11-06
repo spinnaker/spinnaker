@@ -16,10 +16,11 @@
 
 package com.netflix.spinnaker.clouddriver.data.task
 
-import com.fasterxml.jackson.databind.ObjectMapper
+import tools.jackson.databind.ObjectMapper
 import com.netflix.spinnaker.clouddriver.data.task.DefaultTask
 import spock.lang.Specification
 import spock.lang.Subject
+import tools.jackson.databind.json.JsonMapper
 
 class DefaultTaskSpec extends Specification {
 
@@ -78,7 +79,7 @@ class DefaultTaskSpec extends Specification {
 
   void "history status object doesnt serialize complete and fail"() {
     setup:
-    def om = new ObjectMapper()
+    def om = JsonMapper.builder().build()
     task.updateStatus "TEST", "Testing Serialization"
 
     when:

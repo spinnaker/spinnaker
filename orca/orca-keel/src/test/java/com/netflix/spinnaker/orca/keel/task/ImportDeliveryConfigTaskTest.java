@@ -28,14 +28,13 @@ import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import com.github.tomakehurst.wiremock.client.WireMock;
 import com.github.tomakehurst.wiremock.http.Fault;
 import com.github.tomakehurst.wiremock.http.HttpHeaders;
 import com.github.tomakehurst.wiremock.junit5.WireMockExtension;
 import com.netflix.spinnaker.kork.retrofit.ErrorHandlingExecutorCallAdapterFactory;
 import com.netflix.spinnaker.kork.retrofit.exceptions.SpinnakerHttpException;
+import com.netflix.spinnaker.kork.retrofit.util.CustomConverterFactory;
 import com.netflix.spinnaker.orca.KeelService;
 import com.netflix.spinnaker.orca.api.pipeline.TaskResult;
 import com.netflix.spinnaker.orca.api.pipeline.models.ExecutionStatus;
@@ -62,7 +61,8 @@ import org.junit.jupiter.params.provider.Arguments;
 import org.junit.jupiter.params.provider.MethodSource;
 import org.springframework.http.HttpStatus;
 import retrofit2.Retrofit;
-import retrofit2.converter.jackson.JacksonConverterFactory;
+import tools.jackson.core.JacksonException;
+import tools.jackson.databind.ObjectMapper;
 
 /*
  *  @see com.netflix.spinnaker.orca.keel.ImportDeliveryConfigTaskTests.kt already covers up few tests related to @see ImportDeliveryConfigTask.
@@ -91,7 +91,7 @@ public class ImportDeliveryConfigTaskTest {
             .baseUrl("http://localhost:" + keelPort)
             .client(new OkHttpClient())
             .addCallAdapterFactory(ErrorHandlingExecutorCallAdapterFactory.getInstance())
-            .addConverterFactory(JacksonConverterFactory.create(objectMapper))
+            .addConverterFactory(CustomConverterFactory.create(objectMapper))
             .build()
             .create(KeelService.class);
   }
@@ -148,7 +148,7 @@ public class ImportDeliveryConfigTaskTest {
   @MethodSource("parameterizePositiveHttpErrorScenario")
   public void verifyPositiveHttpErrorScenarios(
       HttpStatus httpStatus, ImportDeliveryConfigTask.SpringHttpError httpError)
-      throws JsonProcessingException {
+      throws JacksonException {
 
     TaskResult expectedTaskResult =
         TaskResult.builder(ExecutionStatus.TERMINAL).context(Map.of("error", httpError)).build();
@@ -180,7 +180,7 @@ public class ImportDeliveryConfigTaskTest {
   @MethodSource("parameterizeNegativeHttpErrorScenario")
   public void verifyNegativeHttpErrorScenarios(
       HttpStatus httpStatus, ImportDeliveryConfigTask.SpringHttpError httpError)
-      throws JsonProcessingException {
+      throws JacksonException {
 
     // simulate SpringHttpError with http error status code
     simulateFault("/delivery-configs/", objectMapper.writeValueAsString(httpError), httpStatus);
@@ -210,7 +210,7 @@ public class ImportDeliveryConfigTaskTest {
    * default value {@link Instant#now}
    */
   @Test
-  public void testSpringHttpErrorWithoutTimestamp() throws JsonProcessingException {
+  public void testSpringHttpErrorWithoutTimestamp() throws JacksonException {
 
     var httpStatus = HttpStatus.BAD_REQUEST;
 

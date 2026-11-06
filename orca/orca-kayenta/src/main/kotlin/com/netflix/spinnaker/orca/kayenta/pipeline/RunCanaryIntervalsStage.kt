@@ -17,8 +17,6 @@
 package com.netflix.spinnaker.orca.kayenta.pipeline
 
 import com.fasterxml.jackson.annotation.JsonCreator
-import com.fasterxml.jackson.databind.SerializationFeature.WRITE_DATES_AS_TIMESTAMPS
-import com.fasterxml.jackson.module.kotlin.convertValue
 import com.netflix.spinnaker.orca.api.pipeline.graph.StageDefinitionBuilder
 import com.netflix.spinnaker.orca.api.pipeline.graph.StageGraphBuilder
 import com.netflix.spinnaker.orca.api.pipeline.graph.TaskNode
@@ -36,13 +34,18 @@ import java.time.Instant
 import java.time.temporal.ChronoUnit
 import java.util.HashMap
 import org.springframework.stereotype.Component
+import tools.jackson.core.type.TypeReference
+import tools.jackson.databind.cfg.DateTimeFeature
+import tools.jackson.databind.json.JsonMapper
 
 @Component
 class RunCanaryIntervalsStage(private val clock: Clock) : StageDefinitionBuilder {
 
   private val mapper = OrcaObjectMapper
     .newInstance()
-    .disable(WRITE_DATES_AS_TIMESTAMPS) // we want Instant serialized as ISO string
+    .rebuild<JsonMapper, JsonMapper.Builder>()
+    .disable(DateTimeFeature.WRITE_DATES_AS_TIMESTAMPS) // we want Instant serialized as ISO string
+    .build()
 
   override fun taskGraph(stage: StageExecution, builder: TaskNode.Builder) {
   }
@@ -113,7 +116,9 @@ class RunCanaryIntervalsStage(private val clock: Clock) : StageDefinitionBuilder
       graph.append {
         it.type = RunCanaryPipelineStage.STAGE_TYPE
         it.name = "${RunCanaryPipelineStage.STAGE_NAME_PREFIX}$i"
-        it.context.putAll(mapper.convertValue<Map<String, Any>>(runCanaryContext))
+        it.context.putAll(
+          mapper.convertValue(runCanaryContext, object : TypeReference<Map<String, Any>>() {})
+        )
         it.context["continuePipeline"] = parent.context["continuePipeline"]
       }
     }

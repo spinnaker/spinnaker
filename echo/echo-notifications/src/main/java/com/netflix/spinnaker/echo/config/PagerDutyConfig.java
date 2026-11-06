@@ -19,6 +19,7 @@ package com.netflix.spinnaker.echo.config;
 import com.netflix.spinnaker.config.OkHttp3ClientConfiguration;
 import com.netflix.spinnaker.echo.pagerduty.PagerDutyService;
 import com.netflix.spinnaker.kork.retrofit.ErrorHandlingExecutorCallAdapterFactory;
+import com.netflix.spinnaker.kork.retrofit.util.CustomConverterFactory;
 import com.netflix.spinnaker.kork.retrofit.util.RetrofitUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -27,7 +28,6 @@ import org.springframework.boot.context.properties.EnableConfigurationProperties
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import retrofit2.Retrofit;
-import retrofit2.converter.jackson.JacksonConverterFactory;
 
 @Configuration
 @EnableConfigurationProperties(PagerDutyConfigurationProperties.class)
@@ -45,7 +45,7 @@ public class PagerDutyConfig {
         .baseUrl(RetrofitUtils.getBaseUrl(pagerDutyProps.getEndpoint()))
         .client(okHttpClientConfig.createForRetrofit2().build())
         .addCallAdapterFactory(ErrorHandlingExecutorCallAdapterFactory.getInstance())
-        .addConverterFactory(JacksonConverterFactory.create())
+        .addConverterFactory(CustomConverterFactory.create())
         .build()
         .create(PagerDutyService.class);
   }

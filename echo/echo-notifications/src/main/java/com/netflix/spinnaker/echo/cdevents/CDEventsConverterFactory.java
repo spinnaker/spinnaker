@@ -16,33 +16,40 @@
 
 package com.netflix.spinnaker.echo.cdevents;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.JavaType;
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.databind.SerializationFeature;
+import com.netflix.spinnaker.echo.jackson.EchoObjectMapper;
 import com.netflix.spinnaker.kork.web.exceptions.InvalidRequestException;
 import io.cloudevents.CloudEvent;
+import io.cloudevents.core.format.EventSerializationException;
 import io.cloudevents.jackson.JsonFormat;
 import java.io.IOException;
 import java.lang.annotation.Annotation;
 import java.lang.reflect.Type;
+import java.nio.charset.StandardCharsets;
 import okhttp3.MediaType;
 import okhttp3.RequestBody;
 import okhttp3.ResponseBody;
 import retrofit2.Converter;
 import retrofit2.Retrofit;
+import tools.jackson.core.JacksonException;
+import tools.jackson.databind.JavaType;
+import tools.jackson.databind.ObjectMapper;
+import tools.jackson.databind.SerializationFeature;
 
 public class CDEventsConverterFactory extends Converter.Factory {
   private final ObjectMapper objectMapper;
+  private final JsonFormat jsonFormat;
 
   public CDEventsConverterFactory(ObjectMapper objectMapper) {
     this.objectMapper = objectMapper;
+    this.jsonFormat = new JsonFormat();
   }
 
   public static CDEventsConverterFactory create() {
-    ObjectMapper objectMapper = new ObjectMapper();
-    objectMapper.registerModule(JsonFormat.getCloudEventJacksonModule());
-    objectMapper.disable(SerializationFeature.FAIL_ON_EMPTY_BEANS);
+    ObjectMapper objectMapper =
+        EchoObjectMapper.getInstance()
+            .rebuild()
+            .disable(SerializationFeature.FAIL_ON_EMPTY_BEANS)
+            .build();
     return new CDEventsConverterFactory(objectMapper);
   }
 
@@ -69,7 +76,7 @@ public class CDEventsConverterFactory extends Converter.Factory {
           try {
             String json = objectMapper.writeValueAsString(value);
             return RequestBody.create(MediaType.parse("application/json"), json);
-          } catch (JsonProcessingException e) {
+          } catch (JacksonException e) {
             throw new IOException("Failed to serialize object to JSON", e);
           }
         };
@@ -77,8 +84,8 @@ public class CDEventsConverterFactory extends Converter.Factory {
 
   public String convertCDEventToJson(CloudEvent cdEvent) {
     try {
-      return objectMapper.writeValueAsString(cdEvent);
-    } catch (JsonProcessingException e) {
+      return new String(jsonFormat.serialize(cdEvent), StandardCharsets.UTF_8);
+    } catch (EventSerializationException e) {
       throw new InvalidRequestException("Unable to convert CDEvent to Json format.", e);
     }
   }

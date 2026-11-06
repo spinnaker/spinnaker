@@ -17,16 +17,17 @@
 
 package com.netflix.spinnaker.clouddriver.kubernetes.description
 
-import com.fasterxml.jackson.databind.ObjectMapper
+import tools.jackson.databind.ObjectMapper
 import com.google.gson.Gson
 import com.netflix.spinnaker.clouddriver.kubernetes.description.manifest.KubernetesApiVersion
 import com.netflix.spinnaker.clouddriver.kubernetes.description.manifest.KubernetesKind
 import com.netflix.spinnaker.clouddriver.kubernetes.description.manifest.KubernetesManifest
 import groovy.text.SimpleTemplateEngine
 import spock.lang.Specification
+import tools.jackson.databind.json.JsonMapper
 
 class KubernetesManifestSpec extends Specification {
-  def objectMapper = new ObjectMapper()
+  def objectMapper = JsonMapper.builder().build()
 
   def gsonObj = new Gson()
   def NAME = "my-name"

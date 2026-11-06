@@ -19,7 +19,6 @@ package com.netflix.spinnaker.orca.clouddriver.pollers;
 import static com.netflix.spinnaker.orca.clouddriver.tasks.servergroup.PinnedServerGroupTagGenerator.PINNED_CAPACITY_TAG;
 import static java.lang.String.format;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.collect.ImmutableMap;
 import com.netflix.spectator.api.Counter;
@@ -45,6 +44,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnExpression;
 import org.springframework.stereotype.Component;
+import tools.jackson.databind.ObjectMapper;
 
 @Component
 @ConditionalOnExpression(value = "${pollers.restore-pinned-server-groups.enabled:false}")

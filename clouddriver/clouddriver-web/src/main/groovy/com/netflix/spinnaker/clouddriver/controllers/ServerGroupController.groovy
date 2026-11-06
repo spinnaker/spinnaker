@@ -18,7 +18,7 @@ package com.netflix.spinnaker.clouddriver.controllers
 
 import com.fasterxml.jackson.annotation.JsonAnyGetter
 import com.fasterxml.jackson.annotation.JsonIgnore
-import com.fasterxml.jackson.databind.ObjectMapper
+import tools.jackson.databind.ObjectMapper
 import com.netflix.frigga.Names
 import com.netflix.spinnaker.clouddriver.model.*
 import com.netflix.spinnaker.clouddriver.model.view.ClusterViewModelPostProcessor

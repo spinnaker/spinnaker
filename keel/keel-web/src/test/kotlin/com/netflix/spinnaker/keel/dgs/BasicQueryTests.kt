@@ -1,6 +1,6 @@
 package com.netflix.spinnaker.keel.dgs
 
-import com.fasterxml.jackson.dataformat.yaml.YAMLMapper
+import tools.jackson.dataformat.yaml.YAMLMapper
 import com.netflix.graphql.dgs.DgsQueryExecutor
 import com.netflix.graphql.dgs.springgraphql.autoconfig.DgsSpringGraphQLAutoConfiguration
 import com.netflix.spinnaker.keel.actuation.ExecutionSummaryService

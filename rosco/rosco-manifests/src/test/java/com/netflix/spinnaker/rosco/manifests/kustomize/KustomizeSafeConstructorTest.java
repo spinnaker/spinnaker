@@ -48,8 +48,8 @@ import retrofit2.Response;
  * org.yaml.snakeyaml.constructor.SafeConstructor}), which only produces standard types (Map, List,
  * String, etc.). The resulting map is then mapped to {@link
  * com.netflix.spinnaker.rosco.manifests.kustomize.mapping.Kustomization} via Jackson's {@link
- * com.fasterxml.jackson.databind.ObjectMapper#convertValue}. This two-step process prevents
- * arbitrary object instantiation via YAML tags.
+ * tools.jackson.databind.ObjectMapper#convertValue}. This two-step process prevents arbitrary
+ * object instantiation via YAML tags.
  */
 class KustomizeSafeConstructorTest {
 

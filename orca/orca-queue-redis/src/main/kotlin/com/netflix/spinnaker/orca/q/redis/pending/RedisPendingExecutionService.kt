@@ -16,12 +16,12 @@
 
 package com.netflix.spinnaker.orca.q.redis.pending
 
-import com.fasterxml.jackson.databind.ObjectMapper
-import com.fasterxml.jackson.module.kotlin.readValue
 import com.netflix.spinnaker.orca.q.pending.PendingExecutionService
 import com.netflix.spinnaker.q.Message
 import redis.clients.jedis.Jedis
 import redis.clients.jedis.util.Pool
+import tools.jackson.databind.ObjectMapper
+import tools.jackson.module.kotlin.readValue
 
 class RedisPendingExecutionService(
   private val pool: Pool<Jedis>,

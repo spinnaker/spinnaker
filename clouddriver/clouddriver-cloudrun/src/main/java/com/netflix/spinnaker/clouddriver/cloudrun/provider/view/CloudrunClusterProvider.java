@@ -18,7 +18,6 @@ package com.netflix.spinnaker.clouddriver.cloudrun.provider.view;
 
 import static com.netflix.spinnaker.clouddriver.cloudrun.cache.Keys.Namespace.*;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
 import com.netflix.frigga.Names;
 import com.netflix.spinnaker.cats.cache.Cache;
 import com.netflix.spinnaker.cats.cache.CacheData;
@@ -33,6 +32,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 import org.springframework.util.CollectionUtils;
+import tools.jackson.databind.ObjectMapper;
 
 @Slf4j
 @Component

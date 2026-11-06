@@ -17,7 +17,6 @@
 
 package com.netflix.spinnaker.clouddriver.aws.provider.config;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
 import com.netflix.spectator.api.Registry;
 import com.netflix.spinnaker.cats.agent.Agent;
 import com.netflix.spinnaker.cats.agent.AgentProvider;
@@ -46,6 +45,7 @@ import java.util.concurrent.ExecutorService;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.ApplicationContext;
+import tools.jackson.databind.ObjectMapper;
 
 public class ProviderHelpers {
 

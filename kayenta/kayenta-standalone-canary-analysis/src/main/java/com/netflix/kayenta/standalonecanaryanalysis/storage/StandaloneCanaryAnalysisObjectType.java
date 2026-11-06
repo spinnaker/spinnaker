@@ -16,11 +16,11 @@
 
 package com.netflix.kayenta.standalonecanaryanalysis.storage;
 
-import com.fasterxml.jackson.core.type.TypeReference;
 import com.netflix.kayenta.standalonecanaryanalysis.domain.CanaryAnalysisExecutionStatusResponse;
 import com.netflix.kayenta.storage.ObjectType;
 import com.netflix.kayenta.storage.StandardObjectType;
 import lombok.experimental.UtilityClass;
+import tools.jackson.core.type.TypeReference;
 
 @UtilityClass
 public class StandaloneCanaryAnalysisObjectType {

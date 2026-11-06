@@ -16,7 +16,6 @@
 
 package com.netflix.spinnaker.clouddriver.aws.lifecycle;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
 import com.netflix.spinnaker.cats.agent.Agent;
 import com.netflix.spinnaker.cats.agent.AgentProvider;
 import com.netflix.spinnaker.clouddriver.aws.provider.AwsProvider;
@@ -30,6 +29,7 @@ import java.util.Collections;
 import java.util.List;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
+import tools.jackson.databind.ObjectMapper;
 
 public class LaunchFailureNotificationAgentProvider implements AgentProvider {
   private static final String REGION_TEMPLATE_PATTERN = Pattern.quote("{{region}}");

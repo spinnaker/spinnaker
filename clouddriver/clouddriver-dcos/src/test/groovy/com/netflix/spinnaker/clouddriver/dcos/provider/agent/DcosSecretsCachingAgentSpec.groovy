@@ -16,7 +16,7 @@
 
 package com.netflix.spinnaker.clouddriver.dcos.provider.agent
 
-import com.fasterxml.jackson.databind.ObjectMapper
+import tools.jackson.databind.ObjectMapper
 import com.netflix.spinnaker.cats.provider.ProviderCache
 import com.netflix.spinnaker.clouddriver.dcos.DcosClientProvider
 import com.netflix.spinnaker.clouddriver.dcos.security.DcosAccountCredentials
@@ -26,6 +26,7 @@ import com.netflix.spinnaker.clouddriver.security.AccountCredentialsRepository
 import mesosphere.dcos.client.DCOS
 import mesosphere.dcos.client.DCOSException
 import mesosphere.dcos.client.model.ListSecretsResponse
+import tools.jackson.databind.json.JsonMapper
 
 class DcosSecretsCachingAgentSpec extends BaseSpecification {
   DcosAccountCredentials credentials
@@ -42,7 +43,7 @@ class DcosSecretsCachingAgentSpec extends BaseSpecification {
     credentials = defaultCredentialsBuilder().build()
     dcosClient = Mock(DCOS)
     providerCache = Mock(ProviderCache)
-    objectMapper = new ObjectMapper()
+    objectMapper = JsonMapper.builder().build()
 
     clientProvider = Mock(DcosClientProvider) {
       getDcosClient(credentials, DEFAULT_REGION) >> dcosClient

@@ -25,7 +25,7 @@ import retrofit2.Response
 import retrofit2.mock.Calls
 
 import java.nio.charset.Charset
-import com.fasterxml.jackson.databind.ObjectMapper
+import tools.jackson.databind.ObjectMapper
 import com.netflix.spinnaker.orca.api.pipeline.models.ExecutionStatus
 import com.netflix.spinnaker.orca.api.pipeline.TaskResult
 import com.netflix.spinnaker.orca.clouddriver.InstanceService
@@ -36,6 +36,7 @@ import spock.lang.Specification
 import spock.lang.Subject
 import spock.lang.Unroll
 import static com.netflix.spinnaker.orca.test.model.ExecutionBuilder.pipeline
+import tools.jackson.databind.json.JsonMapper
 
 class TriggerQuipTaskSpec extends Specification {
 
@@ -43,7 +44,7 @@ class TriggerQuipTaskSpec extends Specification {
   InstanceService instanceService = Mock(InstanceService)
 
   @Shared
-  ObjectMapper mapper = new ObjectMapper()
+  ObjectMapper mapper = JsonMapper.builder().build()
 
   def setup() {
     task.objectMapper = mapper

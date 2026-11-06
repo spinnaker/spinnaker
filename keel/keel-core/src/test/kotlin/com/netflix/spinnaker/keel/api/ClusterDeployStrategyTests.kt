@@ -1,22 +1,13 @@
 package com.netflix.spinnaker.keel.api
 
-import com.fasterxml.jackson.databind.node.ObjectNode
+import tools.jackson.databind.node.ObjectNode
 import com.netflix.spinnaker.keel.serialization.configuredObjectMapper
 import dev.minutest.junit.JUnit5Minutests
 import dev.minutest.rootContext
 import strikt.api.expectThat
 import strikt.assertions.isEqualTo
 import strikt.assertions.isFalse
-import strikt.jackson.at
-import strikt.jackson.booleanValue
-import strikt.jackson.hasSize
-import strikt.jackson.isArray
-import strikt.jackson.isBoolean
-import strikt.jackson.isMissing
-import strikt.jackson.isTextual
-import strikt.jackson.numberValue
-import strikt.jackson.path
-import strikt.jackson.textValue
+import strikt.assertions.isTrue
 
 internal class ClusterDeployStrategyTests : JUnit5Minutests {
   data class Fixture(
@@ -30,10 +21,9 @@ internal class ClusterDeployStrategyTests : JUnit5Minutests {
       fixture { Fixture(Highlander()) }
 
       test("serializes to JSON") {
-        expectThat<ObjectNode>(mapper.valueToTree(strategy)) {
-          path("strategy").textValue() isEqualTo "highlander"
-          path("health").textValue() isEqualTo DeployHealth.AUTO.name
-        }
+        val tree = mapper.valueToTree<ObjectNode>(strategy)
+        expectThat(tree.get("strategy").textValue()).isEqualTo("highlander")
+        expectThat(tree.get("health").textValue()).isEqualTo(DeployHealth.AUTO.name)
       }
     }
 
@@ -41,16 +31,15 @@ internal class ClusterDeployStrategyTests : JUnit5Minutests {
       fixture { Fixture(RedBlack()) }
 
       test("serializes to JSON") {
-        expectThat<ObjectNode>(mapper.valueToTree(strategy)) {
-          path("strategy").textValue() isEqualTo "red-black"
-          path("health").textValue() isEqualTo DeployHealth.AUTO.name
-          path("resizePreviousToZero").isBoolean().booleanValue().isFalse()
-          path("rollbackOnFailure").isBoolean().booleanValue().isFalse()
-          path("maxServerGroups").numberValue().isEqualTo(2)
-          path("delayBeforeDisable").isTextual().textValue() isEqualTo "PT0S"
-          path("delayBeforeScaleDown").isTextual().textValue() isEqualTo "PT0S"
-          path("stagger").isMissing()
-        }
+        val tree = mapper.valueToTree<ObjectNode>(strategy)
+        expectThat(tree.get("strategy").textValue()).isEqualTo("red-black")
+        expectThat(tree.get("health").textValue()).isEqualTo(DeployHealth.AUTO.name)
+        expectThat(tree.get("resizePreviousToZero").booleanValue()).isFalse()
+        expectThat(tree.get("rollbackOnFailure").booleanValue()).isFalse()
+        expectThat(tree.get("maxServerGroups").numberValue()).isEqualTo(2)
+        expectThat(tree.get("delayBeforeDisable").textValue()).isEqualTo("PT0S")
+        expectThat(tree.get("delayBeforeScaleDown").textValue()).isEqualTo("PT0S")
+        expectThat(tree.path("stagger").isMissingNode).isTrue()
       }
 
       context("with stagger") {
@@ -68,20 +57,18 @@ internal class ClusterDeployStrategyTests : JUnit5Minutests {
         }
 
         test("serializes to JSON") {
-          println(mapper.writeValueAsString(strategy))
-          expectThat<ObjectNode>(mapper.valueToTree(strategy)) {
-            path("strategy").textValue() isEqualTo "red-black"
-            path("resizePreviousToZero").isBoolean().booleanValue().isFalse()
-            path("rollbackOnFailure").isBoolean().booleanValue().isFalse()
-            path("maxServerGroups").numberValue().isEqualTo(2)
-            path("delayBeforeDisable").isTextual().textValue() isEqualTo "PT0S"
-            path("delayBeforeScaleDown").isTextual().textValue() isEqualTo "PT0S"
-            path("stagger").isArray().hasSize(1)
-            at("/stagger/0/region").isTextual().textValue() isEqualTo "us-west-2"
-            at("/stagger/0/hours").isTextual().textValue() isEqualTo "12-18"
-            at("/stagger/0/allowedHours").isMissing()
-            at("/stagger/0/pauseTime").isMissing()
-          }
+          val tree = mapper.valueToTree<ObjectNode>(strategy)
+          expectThat(tree.get("strategy").textValue()).isEqualTo("red-black")
+          expectThat(tree.get("resizePreviousToZero").booleanValue()).isFalse()
+          expectThat(tree.get("rollbackOnFailure").booleanValue()).isFalse()
+          expectThat(tree.get("maxServerGroups").numberValue()).isEqualTo(2)
+          expectThat(tree.get("delayBeforeDisable").textValue()).isEqualTo("PT0S")
+          expectThat(tree.get("delayBeforeScaleDown").textValue()).isEqualTo("PT0S")
+          expectThat(tree.get("stagger").size()).isEqualTo(1)
+          expectThat(tree.get("stagger").get(0).get("region").textValue()).isEqualTo("us-west-2")
+          expectThat(tree.get("stagger").get(0).get("hours").textValue()).isEqualTo("12-18")
+          expectThat(tree.path("stagger").path(0).path("allowedHours").isMissingNode).isTrue()
+          expectThat(tree.path("stagger").path(0).path("pauseTime").isMissingNode).isTrue()
         }
       }
     }

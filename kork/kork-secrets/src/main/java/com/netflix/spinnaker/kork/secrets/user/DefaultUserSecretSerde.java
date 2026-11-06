@@ -16,22 +16,21 @@
 
 package com.netflix.spinnaker.kork.secrets.user;
 
-import com.fasterxml.jackson.core.JsonFactory;
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import com.netflix.spinnaker.kork.jackson.UserFriendlyErrorHandler;
-import java.io.IOException;
 import java.util.Collection;
 import java.util.Map;
 import java.util.TreeMap;
 import org.springframework.core.NestedExceptionUtils;
+import tools.jackson.core.JacksonException;
+import tools.jackson.core.TokenStreamFactory;
+import tools.jackson.databind.ObjectMapper;
 
 /**
  * Maps structured user secret data types to a corresponding {@link UserSecretData} instance using
  * different encoding formats. Encoding formats are specified by an {@link ObjectMapper}'s {@link
- * JsonFactory#getFormatName()} use case-insensitive string comparison. The type of user secret
- * being encoded is provided by metadata and must correspond to a UserSecretData class annotated
- * with {@link UserSecretType}.
+ * TokenStreamFactory#getFormatName()} use case-insensitive string comparison. The type of user
+ * secret being encoded is provided by metadata and must correspond to a UserSecretData class
+ * annotated with {@link UserSecretType}.
  *
  * @see UserSecretData
  * @see UserSecretReference
@@ -46,7 +45,7 @@ public class DefaultUserSecretSerde implements UserSecretSerde {
   public DefaultUserSecretSerde(
       Collection<ObjectMapper> mappers, Collection<Class<? extends UserSecretData>> types) {
     mappers.forEach(
-        mapper -> mappersByEncodingFormat.put(mapper.getFactory().getFormatName(), mapper));
+        mapper -> mappersByEncodingFormat.put(mapper.tokenStreamFactory().getFormatName(), mapper));
     types.forEach(
         type -> userSecretTypes.put(type.getAnnotation(UserSecretType.class).value(), type));
   }
@@ -77,7 +76,7 @@ public class DefaultUserSecretSerde implements UserSecretSerde {
     UserSecretData data;
     try {
       data = mapper.readValue(encoded, type);
-    } catch (IOException e) {
+    } catch (JacksonException e) {
       throw sanitizedSecretDataException(e);
     }
     return UserSecret.builder().metadata(metadata).data(data).build();
@@ -87,10 +86,11 @@ public class DefaultUserSecretSerde implements UserSecretSerde {
    * Returns a sanitized exception for a secret data parsing error, making sure not to leak the
    * contents of the secret data that originally caused the error. Should be safe to log.
    */
-  private static InvalidUserSecretDataException sanitizedSecretDataException(final IOException e) {
+  private static InvalidUserSecretDataException sanitizedSecretDataException(
+      final JacksonException e) {
     Throwable rootCause = NestedExceptionUtils.getRootCause(e);
     final String suffix;
-    if (rootCause instanceof JsonProcessingException) { // includes JsonParseException
+    if (rootCause instanceof JacksonException) {
       suffix = UserFriendlyErrorHandler.translateJacksonError(rootCause);
     } else {
       suffix = "unknown error encountered while decoding the contents as JSON";
@@ -112,7 +112,7 @@ public class DefaultUserSecretSerde implements UserSecretSerde {
     }
     try {
       return mapper.writeValueAsBytes(secret);
-    } catch (IOException e) {
+    } catch (JacksonException e) {
       throw sanitizedSecretDataException(e);
     }
   }

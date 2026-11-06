@@ -18,7 +18,6 @@ package com.netflix.spinnaker.igor.gcb;
 
 import static com.github.tomakehurst.wiremock.core.WireMockConfiguration.options;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
 import com.github.tomakehurst.wiremock.WireMockServer;
 import com.google.api.client.googleapis.testing.auth.oauth2.MockTokenServerTransport;
 import com.google.api.client.http.HttpTransport;
@@ -31,11 +30,13 @@ import java.io.InputStream;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Primary;
+import tools.jackson.databind.ObjectMapper;
+import tools.jackson.databind.json.JsonMapper;
 
 public class GoogleCloudBuildTestConfig {
   @Bean
   ObjectMapper objectMapper() {
-    return new ObjectMapper();
+    return JsonMapper.builder().build();
   }
 
   @Bean

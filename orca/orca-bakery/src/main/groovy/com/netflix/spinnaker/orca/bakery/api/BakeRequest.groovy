@@ -21,7 +21,7 @@ import com.fasterxml.jackson.annotation.JsonAnySetter
 import com.fasterxml.jackson.annotation.JsonIgnore
 import com.fasterxml.jackson.annotation.JsonInclude
 import com.fasterxml.jackson.annotation.JsonProperty
-import com.fasterxml.jackson.databind.PropertyNamingStrategies
+import tools.jackson.databind.PropertyNamingStrategies
 import com.netflix.spinnaker.kork.artifacts.model.Artifact
 import groovy.transform.CompileStatic
 import groovy.transform.Immutable
@@ -37,7 +37,7 @@ import groovy.transform.Immutable
 )
 @CompileStatic
 class BakeRequest {
-  private static final PropertyNamingStrategies.NamingBase namingStrategy = new PropertyNamingStrategies.SnakeCaseStrategy()
+  private static final SnakeCaseStrategy namingStrategy = new SnakeCaseStrategy()
 
   static final Default = new BakeRequest(user: System.getProperty("user.name"),
                                          cloudProviderType: CloudProviderType.aws,
@@ -47,7 +47,8 @@ class BakeRequest {
   String user
   @JsonProperty("package") String packageName
   String packageType
-  List<Artifact> packageArtifacts
+  @JsonInclude(JsonInclude.Include.NON_EMPTY)
+  List<Artifact> packageArtifacts = []
   String buildHost
   String job
   String buildNumber
@@ -91,7 +92,13 @@ class BakeRequest {
 
   @JsonAnySetter
   public void set(String name, Object value) {
-    other.put(namingStrategy.translate(name), value)
+    other.put(namingStrategy.translateName(name), value)
+  }
+
+  private static class SnakeCaseStrategy extends PropertyNamingStrategies.SnakeCaseStrategy {
+    String translateName(String name) {
+      return translate(name)
+    }
   }
 
   static enum CloudProviderType {
@@ -106,4 +113,3 @@ class BakeRequest {
     ebs, s3, docker
   }
 }
-

@@ -15,7 +15,7 @@
  */
 package com.netflix.spinnaker.front50.controllers
 
-import com.fasterxml.jackson.databind.ObjectMapper
+import tools.jackson.databind.ObjectMapper
 import com.netflix.spinnaker.fiat.shared.FiatPermissionEvaluator
 import com.netflix.spinnaker.front50.api.model.pipeline.Pipeline
 import com.netflix.spinnaker.front50.config.Front50CoreConfiguration
@@ -40,6 +40,7 @@ import spock.mock.DetachedMockFactory
 import jakarta.servlet.http.HttpServletResponse
 
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get
+import tools.jackson.databind.json.JsonMapper
 
 /**
  * Verifies PipelineController's @PostFilter expressions through Spring's real method security
@@ -129,7 +130,7 @@ class PipelineControllerSecuritySpec extends Specification {
 
     @Bean
     ObjectMapper objectMapper() {
-      new ObjectMapper()
+      JsonMapper.builder().build()
     }
   }
 

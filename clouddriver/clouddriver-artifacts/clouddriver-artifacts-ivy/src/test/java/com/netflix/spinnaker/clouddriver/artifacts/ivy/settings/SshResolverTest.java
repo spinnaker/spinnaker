@@ -18,9 +18,9 @@ package com.netflix.spinnaker.clouddriver.artifacts.ivy.settings;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
-import com.fasterxml.jackson.dataformat.xml.XmlMapper;
 import java.io.IOException;
 import org.junit.jupiter.api.Test;
+import tools.jackson.dataformat.xml.XmlMapper;
 
 class SshResolverTest {
   @Test

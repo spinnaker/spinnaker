@@ -16,10 +16,6 @@
 
 package com.netflix.spinnaker.clouddriver.cloudrun.deploy.ops;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.DeserializationFeature;
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.dataformat.yaml.YAMLFactory;
 import com.netflix.spinnaker.clouddriver.cloudrun.CloudrunJobExecutor;
 import com.netflix.spinnaker.clouddriver.cloudrun.deploy.CloudrunServerGroupNameResolver;
 import com.netflix.spinnaker.clouddriver.cloudrun.deploy.description.DeployCloudrunDescription;
@@ -41,6 +37,11 @@ import org.apache.commons.io.FileUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import tools.jackson.core.JacksonException;
+import tools.jackson.databind.DeserializationFeature;
+import tools.jackson.databind.ObjectMapper;
+import tools.jackson.databind.json.JsonMapper;
+import tools.jackson.dataformat.yaml.YAMLMapper;
 
 public class DeployCloudrunAtomicOperation implements AtomicOperation<DeploymentResult> {
 
@@ -59,10 +60,9 @@ public class DeployCloudrunAtomicOperation implements AtomicOperation<Deployment
   DeployCloudrunDescription description;
 
   private final ObjectMapper objectMapper =
-      new ObjectMapper().configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
+      JsonMapper.builder().disable(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES).build();
 
-  private final ObjectMapper yamlReader =
-      new ObjectMapper(YAMLFactory.builder().loaderOptions(YamlHelper.getLoaderOptions()).build());
+  private final ObjectMapper yamlReader = YAMLMapper.builder(YamlHelper.newYamlFactory()).build();
 
   private CloudrunYmlData ymlData = new CloudrunYmlData();
 
@@ -126,7 +126,7 @@ public class DeployCloudrunAtomicOperation implements AtomicOperation<Deployment
     return versionName;
   }
 
-  private void populateCloudrunYmlData(List<String> configFiles) throws JsonProcessingException {
+  private void populateCloudrunYmlData(List<String> configFiles) throws JacksonException {
 
     for (String configFile : configFiles) {
       CloudrunService yamlObj = yamlReader.readValue(configFile, CloudrunService.class);
@@ -183,7 +183,7 @@ public class DeployCloudrunAtomicOperation implements AtomicOperation<Deployment
                   }
                 }
                 return yamlReader.writeValueAsString(ymlData);
-              } catch (JsonProcessingException e) {
+              } catch (JacksonException e) {
                 throw new RuntimeException(e);
               }
             })

@@ -18,11 +18,11 @@ package com.netflix.spinnaker.clouddriver.lambda.cache.model;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
 import com.netflix.spinnaker.clouddriver.aws.jackson.AwsObjectMapperFactory;
 import java.util.List;
 import java.util.Map;
 import org.junit.jupiter.api.Test;
+import tools.jackson.databind.ObjectMapper;
 
 /**
  * Verifies that {@link LambdaFunction}'s typed accessors expose the fields that the v1

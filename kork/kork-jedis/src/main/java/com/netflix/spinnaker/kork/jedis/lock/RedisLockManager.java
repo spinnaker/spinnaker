@@ -19,7 +19,6 @@ package com.netflix.spinnaker.kork.jedis.lock;
 import static com.netflix.spinnaker.kork.jedis.lock.RedisLockManager.LockScripts.*;
 import static com.netflix.spinnaker.kork.lock.LockManager.LockReleaseStatus.*;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
 import com.netflix.spectator.api.Id;
 import com.netflix.spectator.api.Registry;
 import com.netflix.spectator.api.patterns.LongTaskTimer;
@@ -27,7 +26,6 @@ import com.netflix.spinnaker.kork.jedis.RedisClientDelegate;
 import com.netflix.spinnaker.kork.lock.RefreshableLockManager;
 import jakarta.annotation.Nonnull;
 import jakarta.annotation.PreDestroy;
-import java.io.IOException;
 import java.time.Clock;
 import java.time.Duration;
 import java.util.Arrays;
@@ -39,6 +37,8 @@ import java.util.concurrent.*;
 import java.util.concurrent.atomic.AtomicInteger;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import tools.jackson.core.JacksonException;
+import tools.jackson.databind.ObjectMapper;
 
 public class RedisLockManager implements RefreshableLockManager {
   private static final Logger log = LoggerFactory.getLogger(RedisLockManager.class);
@@ -563,7 +563,7 @@ public class RedisLockManager implements RefreshableLockManager {
       }
 
       return objectMapper.readValue(payload.toString(), Lock.class);
-    } catch (IOException e) {
+    } catch (JacksonException e) {
       throw new LockNotAcquiredException(String.format("Lock not acquired %s", lockOptions), e);
     }
   }
@@ -608,7 +608,7 @@ public class RedisLockManager implements RefreshableLockManager {
 
     try {
       return objectMapper.readValue(payload.toString(), Lock.class);
-    } catch (IOException e) {
+    } catch (JacksonException e) {
       throw new LockFailedHeartbeatException(String.format("Lock not acquired %s", lock), e);
     }
   }

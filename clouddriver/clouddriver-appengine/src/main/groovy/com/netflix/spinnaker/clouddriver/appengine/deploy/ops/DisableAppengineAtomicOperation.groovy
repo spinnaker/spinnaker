@@ -16,7 +16,7 @@
 
 package com.netflix.spinnaker.clouddriver.appengine.deploy.ops
 
-import com.fasterxml.jackson.databind.ObjectMapper
+import tools.jackson.databind.ObjectMapper
 import com.netflix.spinnaker.clouddriver.appengine.deploy.AppengineSafeRetry
 import com.netflix.spinnaker.clouddriver.appengine.deploy.AppengineUtils
 import com.netflix.spinnaker.clouddriver.appengine.deploy.description.EnableDisableAppengineDescription
@@ -31,6 +31,7 @@ import com.netflix.spinnaker.clouddriver.data.task.TaskRepository
 import org.springframework.beans.factory.annotation.Autowired
 
 import java.math.RoundingMode
+import tools.jackson.databind.json.JsonMapper
 
 class DisableAppengineAtomicOperation extends AppengineAtomicOperation<Void> {
   private static final String BASE_PHASE = "DISABLE_SERVER_GROUP"
@@ -86,7 +87,7 @@ class DisableAppengineAtomicOperation extends AppengineAtomicOperation<Void> {
     // We need to make a live call to make sure we have an up-to-date service, since the new traffic split we build is
     // dependent on the existing service's traffic split.
     def service = AppengineUtils.queryService(projectName, loadBalancerName, description.credentials, task, BASE_PHASE)
-    def oldSplit = new ObjectMapper().convertValue(service.getSplit(), AppengineTrafficSplit)
+    def oldSplit = JsonMapper.builder().build().convertValue(service.getSplit(), AppengineTrafficSplit)
 
     if (!oldSplit.allocations.containsKey(serverGroupName)) {
       task.updateStatus BASE_PHASE, "Server group $serverGroupName does not receive traffic from load balancer $loadBalancerName," +

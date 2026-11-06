@@ -3,7 +3,7 @@ package com.netflix.spinnaker.clouddriver.aws.deploy.ops.actions
 import software.amazon.awssdk.services.autoscaling.model.AutoScalingGroup
 import software.amazon.awssdk.services.autoscaling.model.LaunchTemplateSpecification
 import software.amazon.awssdk.services.ec2.model.*
-import com.fasterxml.jackson.databind.JsonMappingException
+import tools.jackson.databind.DatabindException
 import com.netflix.spinnaker.clouddriver.aws.TestCredential
 import com.netflix.spinnaker.clouddriver.aws.deploy.description.ModifyServerGroupLaunchTemplateDescription
 import com.netflix.spinnaker.clouddriver.aws.services.LaunchTemplateService
@@ -15,6 +15,7 @@ import com.netflix.spinnaker.clouddriver.aws.jackson.AwsObjectMapperFactory
 import spock.lang.Specification
 import spock.lang.Subject
 import spock.lang.Unroll
+import tools.jackson.core.JacksonException
 
 class ModifyServerGroupLaunchTemplateSpec extends Specification {
   def credentials = TestCredential.named("test")
@@ -82,7 +83,7 @@ class ModifyServerGroupLaunchTemplateSpec extends Specification {
       false           |        true               |        false        ||      false           ||      2L            // update ASG LT with new LT version, but don't use MIP
   }
 
-  def "should not throw JsonProcessingException when deserializing"() {
+  def "should not throw JacksonException when deserializing"() {
     given:
     def objectMapper = AwsObjectMapperFactory.createConfigured()
     def json = objectMapper.writeValueAsString(dummyDescription)
@@ -91,6 +92,6 @@ class ModifyServerGroupLaunchTemplateSpec extends Specification {
     objectMapper.readValue(json, ModifyServerGroupLaunchTemplateDescription.class)
 
     then:
-    notThrown(JsonMappingException)
+    notThrown(DatabindException)
   }
 }

@@ -17,7 +17,7 @@
 
 package com.netflix.spinnaker.orca.clouddriver.pipeline.providers.aws
 
-import com.fasterxml.jackson.databind.ObjectMapper
+import tools.jackson.databind.ObjectMapper
 import com.netflix.spinnaker.orca.api.pipeline.models.ExecutionStatus
 import com.netflix.spinnaker.orca.api.pipeline.Task
 import com.netflix.spinnaker.orca.api.pipeline.models.StageExecution

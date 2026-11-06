@@ -16,9 +16,6 @@
 
 package com.netflix.kayenta.s3.storage;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.core.type.TypeReference;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Lists;
 import com.netflix.kayenta.aws.security.AwsNamedAccountCredentials;
@@ -44,6 +41,9 @@ import org.springframework.util.StringUtils;
 import software.amazon.awssdk.core.sync.RequestBody;
 import software.amazon.awssdk.services.s3.S3Client;
 import software.amazon.awssdk.services.s3.model.*;
+import tools.jackson.core.JacksonException;
+import tools.jackson.core.type.TypeReference;
+import tools.jackson.databind.ObjectMapper;
 
 @Builder
 @Slf4j
@@ -214,7 +214,7 @@ public class S3StorageService implements StorageService {
 
       try {
         canaryConfigSummaryJson = objectMapper.writeValueAsString(canaryConfigSummary);
-      } catch (JsonProcessingException e) {
+      } catch (JacksonException e) {
         throw new IllegalArgumentException(
             "Problem serializing canaryConfigSummary -> " + canaryConfigSummary, e);
       }
@@ -330,7 +330,7 @@ public class S3StorageService implements StorageService {
 
         try {
           canaryConfigSummaryJson = objectMapper.writeValueAsString(canaryConfigSummary);
-        } catch (JsonProcessingException e) {
+        } catch (JacksonException e) {
           throw new IllegalArgumentException(
               "Problem serializing canaryConfigSummary -> " + canaryConfigSummary, e);
         }

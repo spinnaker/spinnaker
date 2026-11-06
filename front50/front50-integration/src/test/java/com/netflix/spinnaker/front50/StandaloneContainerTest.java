@@ -18,8 +18,6 @@ package com.netflix.spinnaker.front50;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assumptions.assumeTrue;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import java.net.URI;
 import java.net.http.HttpClient;
 import java.net.http.HttpRequest;
@@ -40,6 +38,9 @@ import org.testcontainers.containers.output.Slf4jLogConsumer;
 import org.testcontainers.containers.wait.strategy.Wait;
 import org.testcontainers.junit.jupiter.Testcontainers;
 import org.testcontainers.utility.DockerImageName;
+import tools.jackson.core.JacksonException;
+import tools.jackson.databind.ObjectMapper;
+import tools.jackson.databind.json.JsonMapper;
 
 @Testcontainers
 class StandaloneContainerTest {
@@ -83,7 +84,7 @@ class StandaloneContainerTest {
     front50Container.followOutput(logConsumer);
   }
 
-  private static String getSpringApplicationJson() throws JsonProcessingException {
+  private static String getSpringApplicationJson() throws JacksonException {
     String jdbcUrl =
         "jdbc:mysql://"
             + MYSQL_NETWORK_ALIAS
@@ -113,7 +114,7 @@ class StandaloneContainerTest {
             mysql.getPassword(),
             "services.fiat.baseUrl",
             "http://nowhere");
-    ObjectMapper mapper = new ObjectMapper();
+    ObjectMapper mapper = JsonMapper.builder().build();
     return mapper.writeValueAsString(properties);
   }
 

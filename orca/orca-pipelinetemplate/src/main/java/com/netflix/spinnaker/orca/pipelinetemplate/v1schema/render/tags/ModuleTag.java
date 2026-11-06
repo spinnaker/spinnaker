@@ -15,8 +15,6 @@
  */
 package com.netflix.spinnaker.orca.pipelinetemplate.v1schema.render.tags;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.base.Splitter;
 import com.hubspot.jinjava.interpret.Context;
 import com.hubspot.jinjava.interpret.InterpretException;
@@ -44,6 +42,8 @@ import java.util.Optional;
 import java.util.function.Supplier;
 import java.util.stream.Collectors;
 import org.apache.commons.lang3.StringUtils;
+import tools.jackson.core.JacksonException;
+import tools.jackson.databind.ObjectMapper;
 
 public class ModuleTag implements Tag {
   private static final Splitter ON_EQUALS = Splitter.on("=");
@@ -169,7 +169,7 @@ public class ModuleTag implements Tag {
 
     try {
       return objectMapper.writeValueAsString(rendered);
-    } catch (JsonProcessingException e) {
+    } catch (JacksonException e) {
       throw TemplateRenderException.fromError(
           new Error()
               .withMessage("Failed rendering module as JSON")

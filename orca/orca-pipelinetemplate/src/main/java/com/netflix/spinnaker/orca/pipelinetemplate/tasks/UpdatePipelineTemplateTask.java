@@ -15,7 +15,6 @@
  */
 package com.netflix.spinnaker.orca.pipelinetemplate.tasks;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
 import com.netflix.spinnaker.kork.retrofit.Retrofit2SyncCall;
 import com.netflix.spinnaker.orca.api.pipeline.RetryableTask;
 import com.netflix.spinnaker.orca.api.pipeline.TaskResult;
@@ -35,6 +34,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Component;
 import org.springframework.util.StringUtils;
 import retrofit2.Response;
+import tools.jackson.databind.ObjectMapper;
 
 @Component
 public class UpdatePipelineTemplateTask implements RetryableTask, SavePipelineTemplateTask {

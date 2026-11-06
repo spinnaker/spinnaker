@@ -15,8 +15,8 @@
  */
 package com.netflix.spinnaker.orca.sql.pipeline.persistence
 
-import com.fasterxml.jackson.databind.ObjectMapper
-import com.fasterxml.jackson.module.kotlin.readValue
+import tools.jackson.databind.ObjectMapper
+import tools.jackson.module.kotlin.readValue
 import com.google.common.annotations.VisibleForTesting
 import com.netflix.spinnaker.config.CompressionType
 import com.netflix.spinnaker.config.ExecutionCompressionProperties

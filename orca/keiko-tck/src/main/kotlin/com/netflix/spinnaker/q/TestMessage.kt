@@ -20,3 +20,12 @@ import com.fasterxml.jackson.annotation.JsonTypeName
 
 @JsonTypeName("test")
 data class TestMessage(val payload: String, override val ackTimeoutMs: Long? = null) : Message()
+
+@JsonTypeName("enumTest")
+data class EnumTestMessage(val executionType: ExecutionType) : Message() {
+  enum class ExecutionType {
+    PIPELINE;
+
+    override fun toString() = name.lowercase()
+  }
+}

@@ -15,10 +15,12 @@
  */
 package com.netflix.spinnaker.front50.model.application
 
-import com.fasterxml.jackson.databind.ObjectMapper
+import tools.jackson.databind.MapperFeature
+import tools.jackson.databind.ObjectMapper
 import com.netflix.spinnaker.front50.api.model.Timestamped
 import com.netflix.spinnaker.front50.jackson.mixins.TimestampedMixins
 import spock.lang.Specification
+import tools.jackson.databind.json.JsonMapper
 
 class ApplicationModelSpec extends Specification {
 
@@ -59,7 +61,7 @@ class ApplicationModelSpec extends Specification {
     application.setLastModifiedBy("foo")
     application.setLastModified(new Long(1))
 
-    ObjectMapper mapper = new ObjectMapper().addMixIn(Timestamped.class, TimestampedMixins.class)
+    ObjectMapper mapper = JsonMapper.builder().addMixIn(Timestamped.class, TimestampedMixins.class).disable(MapperFeature.SORT_PROPERTIES_ALPHABETICALLY).disable(MapperFeature.SORT_CREATOR_PROPERTIES_FIRST).build()
     String appJSON = mapper.writeValueAsString(application)
 
     expect:

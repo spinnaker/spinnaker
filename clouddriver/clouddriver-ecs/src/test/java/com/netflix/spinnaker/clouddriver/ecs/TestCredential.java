@@ -17,10 +17,10 @@
 
 package com.netflix.spinnaker.clouddriver.ecs;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
 import com.netflix.spinnaker.clouddriver.aws.security.NetflixAmazonCredentials;
 import com.netflix.spinnaker.clouddriver.aws.security.NetflixAssumeRoleAmazonCredentials;
 import java.util.*;
+import tools.jackson.databind.json.JsonMapper;
 
 public class TestCredential {
 
@@ -35,6 +35,7 @@ public class TestCredential {
     params.put("accountType", name);
     params.put("accountId", "123456789012" + name);
     params.put("defaultKeyPair", "default-keypair");
+    params.put("allowPrivateThirdPartyImages", false);
 
     final Map<String, Object> region1 = new LinkedHashMap<>();
     region1.put("name", "us-east-1");
@@ -48,7 +49,7 @@ public class TestCredential {
 
     params.putAll(additionalParams);
 
-    return new ObjectMapper().convertValue(params, NetflixAmazonCredentials.class);
+    return JsonMapper.builder().build().convertValue(params, NetflixAmazonCredentials.class);
   }
 
   public static NetflixAssumeRoleAmazonCredentials assumeRoleNamed(String name) {
@@ -63,6 +64,7 @@ public class TestCredential {
     params.put("accountType", name);
     params.put("accountId", "123456789012" + name);
     params.put("defaultKeyPair", "default-keypair");
+    params.put("allowPrivateThirdPartyImages", false);
 
     final Map<String, Object> region1 = new LinkedHashMap<>();
     region1.put("name", "us-east-1");
@@ -80,6 +82,8 @@ public class TestCredential {
 
     params.putAll(additionalParams);
 
-    return new ObjectMapper().convertValue(params, NetflixAssumeRoleAmazonCredentials.class);
+    return JsonMapper.builder()
+        .build()
+        .convertValue(params, NetflixAssumeRoleAmazonCredentials.class);
   }
 }

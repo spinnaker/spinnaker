@@ -15,7 +15,6 @@
 
 package com.netflix.spinnaker.clouddriver.ecs.security
 
-import com.fasterxml.jackson.databind.ObjectMapper
 import com.netflix.spinnaker.clouddriver.aws.AmazonCloudProvider
 import com.netflix.spinnaker.clouddriver.aws.security.NetflixAssumeRoleAmazonCredentials
 import com.netflix.spinnaker.clouddriver.ecs.EcsCloudProvider
@@ -27,6 +26,7 @@ import com.netflix.spinnaker.clouddriver.names.NamerRegistry
 import com.netflix.spinnaker.credentials.CompositeCredentialsRepository
 import com.netflix.spinnaker.credentials.definition.CredentialsParser
 import spock.lang.Specification
+import tools.jackson.databind.json.JsonMapper
 
 class EcsCredentialsParserSpec extends Specification{
 
@@ -38,12 +38,13 @@ class EcsCredentialsParserSpec extends Specification{
     accountType: "one",
     accountId: "123456789012" + "one",
     defaultKeyPair: 'default-keypair',
+    allowPrivateThirdPartyImages: false,
     regions: [[name: 'us-east-1', availabilityZones: ['us-east-1b', 'us-east-1c', 'us-east-1d']],
               [name: 'us-west-1', availabilityZones: ["us-west-1a", "us-west-1b"]]],
     assumeRole: "oneRole",
     sessionName: "sessionOne"
   ]
-  def assumeRoleCred = new ObjectMapper().convertValue(credJson, NetflixAssumeRoleAmazonCredentials)
+  def assumeRoleCred = JsonMapper.builder().build().convertValue(credJson, NetflixAssumeRoleAmazonCredentials)
 
   def compositeCredentialsRepository = Mock(CompositeCredentialsRepository)
   def parser = Mock(CredentialsParser)

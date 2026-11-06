@@ -23,7 +23,7 @@ import retrofit2.Response
 import retrofit2.mock.Calls
 
 import java.util.concurrent.atomic.AtomicInteger
-import com.fasterxml.jackson.databind.ObjectMapper
+import tools.jackson.databind.ObjectMapper
 import com.netflix.spinnaker.orca.api.pipeline.models.ExecutionStatus
 import com.netflix.spinnaker.orca.clouddriver.OortService
 import com.netflix.spinnaker.orca.pipeline.model.PipelineExecutionImpl
@@ -31,11 +31,12 @@ import com.netflix.spinnaker.orca.pipeline.model.StageExecutionImpl
 import spock.lang.Specification
 import spock.lang.Subject
 import spock.lang.Unroll
+import tools.jackson.databind.json.JsonMapper
 
 class ClusterSizePreconditionTaskSpec extends Specification {
 
   static AtomicInteger cnt = new AtomicInteger(100)
-  ObjectMapper objectMapper = new ObjectMapper()
+  ObjectMapper objectMapper = JsonMapper.builder().build()
   OortService oortService = Mock(OortService)
 
   @Subject

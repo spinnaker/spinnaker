@@ -16,11 +16,11 @@
 
 package com.netflix.spinnaker.clouddriver.cloudfoundry.client.model.v3;
 
-import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
-import com.fasterxml.jackson.databind.annotation.JsonPOJOBuilder;
 import javax.annotation.Nullable;
 import lombok.Builder;
 import lombok.Value;
+import tools.jackson.databind.annotation.JsonDeserialize;
+import tools.jackson.databind.annotation.JsonPOJOBuilder;
 
 @Value
 @JsonDeserialize(builder = CreateTask.CreateTaskBuilder.class)

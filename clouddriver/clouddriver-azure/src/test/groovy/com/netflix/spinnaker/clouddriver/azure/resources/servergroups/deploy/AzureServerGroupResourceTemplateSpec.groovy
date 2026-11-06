@@ -16,15 +16,17 @@
 
 package com.netflix.spinnaker.clouddriver.azure.resources.servergroups.deploy
 
-import com.fasterxml.jackson.databind.DeserializationFeature
-import com.fasterxml.jackson.databind.ObjectMapper
-import com.fasterxml.jackson.databind.SerializationFeature
+import tools.jackson.databind.DeserializationFeature
+import tools.jackson.databind.MapperFeature
+import tools.jackson.databind.ObjectMapper
+import tools.jackson.databind.SerializationFeature
 import com.netflix.spinnaker.clouddriver.azure.resources.loadbalancer.model.AzureLoadBalancer
 import com.netflix.spinnaker.clouddriver.azure.resources.servergroup.model.AzureServerGroupDescription
 import com.netflix.spinnaker.clouddriver.azure.resources.vmimage.model.AzureNamedImage
 import com.netflix.spinnaker.clouddriver.azure.security.AzureCredentials
 import com.netflix.spinnaker.clouddriver.azure.templates.AzureServerGroupResourceTemplate
 import spock.lang.Specification
+import tools.jackson.databind.json.JsonMapper
 
 class AzureServerGroupResourceTemplateSpec extends Specification {
   ObjectMapper objectMapper
@@ -36,8 +38,13 @@ class AzureServerGroupResourceTemplateSpec extends Specification {
   }
   void setup() {
     description = createDescription(false)
-    objectMapper = new ObjectMapper().configure(SerializationFeature.INDENT_OUTPUT, true)
-    objectMapper.configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false)
+    objectMapper =
+        JsonMapper.builder()
+            .enable(SerializationFeature.INDENT_OUTPUT)
+            .disable(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES)
+            .disable(MapperFeature.SORT_PROPERTIES_ALPHABETICALLY)
+            .disable(MapperFeature.SORT_CREATOR_PROPERTIES_FIRST)
+            .build()
   }
 
   def 'should generate correct ServerGroup resource template'() {

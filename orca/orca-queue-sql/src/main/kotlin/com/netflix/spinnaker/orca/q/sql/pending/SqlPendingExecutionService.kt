@@ -1,6 +1,5 @@
 package com.netflix.spinnaker.orca.q.sql.pending
 
-import com.fasterxml.jackson.databind.ObjectMapper
 import com.netflix.spectator.api.Registry
 import com.netflix.spectator.api.histogram.PercentileTimer
 import com.netflix.spinnaker.kork.core.RetrySupport
@@ -25,6 +24,7 @@ import org.jooq.SortOrder
 import org.jooq.impl.DSL
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
+import tools.jackson.databind.ObjectMapper
 
 class SqlPendingExecutionService(
   private val shard: String?,

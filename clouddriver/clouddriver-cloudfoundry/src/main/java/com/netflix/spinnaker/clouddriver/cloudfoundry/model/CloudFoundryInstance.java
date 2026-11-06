@@ -17,7 +17,6 @@
 package com.netflix.spinnaker.clouddriver.cloudfoundry.model;
 
 import com.fasterxml.jackson.annotation.JsonView;
-import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 import com.netflix.spinnaker.clouddriver.cloudfoundry.CloudFoundryCloudProvider;
 import com.netflix.spinnaker.clouddriver.model.HealthState;
 import com.netflix.spinnaker.clouddriver.model.Instance;
@@ -28,12 +27,14 @@ import java.util.Map;
 import lombok.Builder;
 import lombok.EqualsAndHashCode;
 import lombok.Value;
+import tools.jackson.databind.annotation.JsonDeserialize;
+import tools.jackson.databind.annotation.JsonPOJOBuilder;
 
 @Value
 @EqualsAndHashCode(
     of = {"appGuid", "key"},
     callSuper = false)
-@Builder
+@Builder(builderClassName = "CloudFoundryInstanceBuilder")
 @JsonDeserialize(builder = CloudFoundryInstance.CloudFoundryInstanceBuilder.class)
 public class CloudFoundryInstance extends CloudFoundryModel implements Instance {
   @JsonView(Views.Cache.class)
@@ -78,4 +79,7 @@ public class CloudFoundryInstance extends CloudFoundryModel implements Instance 
   public String getName() {
     return appGuid + "-" + key;
   }
+
+  @JsonPOJOBuilder(withPrefix = "")
+  public static class CloudFoundryInstanceBuilder {}
 }

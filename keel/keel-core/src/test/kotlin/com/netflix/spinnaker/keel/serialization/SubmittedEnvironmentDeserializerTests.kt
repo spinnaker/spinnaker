@@ -1,10 +1,10 @@
 package com.netflix.spinnaker.keel.serialization
 
 import com.fasterxml.jackson.annotation.JsonIgnore
-import com.fasterxml.jackson.core.JsonProcessingException
-import com.fasterxml.jackson.databind.DeserializationFeature
-import com.fasterxml.jackson.databind.jsontype.NamedType
-import com.fasterxml.jackson.module.kotlin.readValue
+import tools.jackson.core.JacksonException
+import tools.jackson.databind.DeserializationFeature
+import tools.jackson.databind.jsontype.NamedType
+import tools.jackson.module.kotlin.readValue
 import com.netflix.spinnaker.keel.api.Locatable
 import com.netflix.spinnaker.keel.api.ResourceKind.Companion.parseKind
 import com.netflix.spinnaker.keel.api.SimpleLocations
@@ -23,11 +23,13 @@ class SubmittedEnvironmentDeserializerTests : JUnit5Minutests {
     val json: String
   ) {
     val mapper = configuredYamlMapper()
-      .apply {
-        configure(DeserializationFeature.WRAP_EXCEPTIONS, true)
-        registerSubtypes(NamedType(TestSubnetAwareLocatableResource::class.java, parseKind("test/test-subnet-aware-locatable@v1").toString()))
-        registerSubtypes(NamedType(TestSimpleLocatableResource::class.java, parseKind("test/test-simple-locatable@v1").toString()))
-      }
+      .rebuild()
+      .configure(DeserializationFeature.WRAP_EXCEPTIONS, true)
+      .registerSubtypes(
+        NamedType(TestSubnetAwareLocatableResource::class.java, parseKind("test/test-subnet-aware-locatable@v1").toString()),
+        NamedType(TestSimpleLocatableResource::class.java, parseKind("test/test-simple-locatable@v1").toString())
+      )
+      .build()
   }
 
   fun tests() = rootContext<Fixture> {
@@ -173,7 +175,7 @@ class SubmittedEnvironmentDeserializerTests : JUnit5Minutests {
       }
 
       test("locations does not leak from one environment to another") {
-        expectThrows<JsonProcessingException> {
+        expectThrows<JacksonException> {
           mapper.readValue<List<SubmittedEnvironment>>(json)
         }
       }
@@ -197,7 +199,7 @@ class SubmittedEnvironmentDeserializerTests : JUnit5Minutests {
       }
 
       test("the resource cannot be parsed") {
-        expectThrows<JsonProcessingException> {
+        expectThrows<JacksonException> {
           mapper.readValue<SubmittedEnvironment>(json)
         }
       }

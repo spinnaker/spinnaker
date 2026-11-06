@@ -19,7 +19,6 @@ package com.netflix.spinnaker.clouddriver.google.config;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.mock;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
 import com.netflix.spectator.api.Registry;
 import com.netflix.spinnaker.clouddriver.google.GoogleExecutor;
 import com.netflix.spinnaker.clouddriver.google.deploy.converters.AbandonAndDecrementGoogleServerGroupAtomicOperationConverter;
@@ -34,6 +33,8 @@ import org.springframework.boot.context.annotation.UserConfigurations;
 import org.springframework.boot.test.context.TestConfiguration;
 import org.springframework.boot.test.context.runner.ApplicationContextRunner;
 import org.springframework.context.annotation.Bean;
+import tools.jackson.databind.ObjectMapper;
+import tools.jackson.databind.json.JsonMapper;
 
 public class GoogleCredentialsConfigurationTest {
 
@@ -53,7 +54,7 @@ public class GoogleCredentialsConfigurationTest {
   static class TestConfiguration {
     @Bean
     ObjectMapper getObjectMapper() {
-      return new ObjectMapper();
+      return JsonMapper.builder().build();
     }
 
     @Bean

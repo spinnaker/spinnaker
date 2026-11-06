@@ -20,6 +20,7 @@ import com.netflix.spinnaker.config.OkHttp3ClientConfiguration
 import com.netflix.spinnaker.echo.googlechat.GoogleChatService
 import com.netflix.spinnaker.echo.googlechat.GoogleChatClient
 import com.netflix.spinnaker.kork.retrofit.ErrorHandlingExecutorCallAdapterFactory
+import com.netflix.spinnaker.kork.retrofit.util.CustomConverterFactory
 import com.netflix.spinnaker.kork.retrofit.util.RetrofitUtils
 import groovy.transform.CompileStatic
 import groovy.util.logging.Slf4j
@@ -27,7 +28,6 @@ import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
 import retrofit2.Retrofit
-import retrofit2.converter.jackson.JacksonConverterFactory
 
 @Configuration
 @ConditionalOnProperty('googlechat.enabled')
@@ -46,7 +46,7 @@ class GoogleChatConfig {
             .baseUrl(RetrofitUtils.getBaseUrl(baseUrl))
             .client(okHttpClientConfig.createForRetrofit2().build())
             .addCallAdapterFactory(ErrorHandlingExecutorCallAdapterFactory.getInstance())
-            .addConverterFactory(JacksonConverterFactory.create())
+            .addConverterFactory(CustomConverterFactory.create())
             .build()
             .create(GoogleChatClient.class)
 

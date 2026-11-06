@@ -16,10 +16,6 @@
 
 package com.netflix.spinnaker.orca.config;
 
-import com.fasterxml.jackson.databind.DeserializationFeature;
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.databind.SerializationFeature;
-import com.fasterxml.jackson.module.kotlin.KotlinModule;
 import com.hubspot.jinjava.lib.tag.Tag;
 import com.netflix.spinnaker.orca.front50.Front50Service;
 import com.netflix.spinnaker.orca.front50.PipelineModelMutator;
@@ -36,6 +32,8 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnExpression;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.ComponentScan;
+import tools.jackson.databind.ObjectMapper;
+import tools.jackson.databind.SerializationFeature;
 
 @ConditionalOnExpression("${pipeline-templates.enabled:true}")
 @ComponentScan(
@@ -53,10 +51,10 @@ public class PipelineTemplateConfiguration {
 
   @Bean
   ObjectMapper pipelineTemplateObjectMapper() {
-    return new ObjectMapper()
+    return com.netflix.spinnaker.orca.jackson.OrcaObjectMapper.getInstance()
+        .rebuild()
         .enable(SerializationFeature.INDENT_OUTPUT)
-        .disable(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES)
-        .registerModule(new KotlinModule.Builder().build());
+        .build();
   }
 
   @Bean

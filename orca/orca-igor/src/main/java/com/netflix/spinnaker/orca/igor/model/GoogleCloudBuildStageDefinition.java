@@ -16,6 +16,7 @@
 
 package com.netflix.spinnaker.orca.igor.model;
 
+import com.fasterxml.jackson.annotation.JsonAlias;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.netflix.spinnaker.kork.artifacts.model.Artifact;
 import java.util.Map;
@@ -38,7 +39,7 @@ public class GoogleCloudBuildStageDefinition implements RetryableStageDefinition
   // Jackson can use to deserialize.
   public GoogleCloudBuildStageDefinition(
       @JsonProperty("account") String account,
-      @JsonProperty("buildInfo") GoogleCloudBuild build,
+      @JsonProperty("buildInfo") @JsonAlias("build") GoogleCloudBuild build,
       @JsonProperty("buildDefinition") Map<String, Object> buildDefinition,
       @JsonProperty("buildDefinitionSource") String buildDefinitionSource,
       @JsonProperty("buildDefinitionArtifact")

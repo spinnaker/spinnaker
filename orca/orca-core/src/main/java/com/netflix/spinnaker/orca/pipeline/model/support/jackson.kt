@@ -16,22 +16,22 @@
 
 package com.netflix.spinnaker.orca.pipeline.model.support
 
-import com.fasterxml.jackson.core.JsonParser
-import com.fasterxml.jackson.databind.JsonNode
+import tools.jackson.databind.DeserializationContext
+import tools.jackson.databind.JsonNode
 
 /**
  * Parses the [JsonNode] as a [MutableList].
  */
-inline fun <reified E> JsonNode.listValue(parser: JsonParser): MutableList<E> =
-  this.map { parser.codec.treeToValue(it, E::class.java) }.toMutableList()
+inline fun <reified E> JsonNode.listValue(context: DeserializationContext): MutableList<E> =
+  this.values().map { context.readTreeAsValue(it, E::class.java) }.toMutableList()
 
 /**
  * Parses the [JsonNode] as a [MutableMap].
  */
-inline fun <reified V> JsonNode.mapValue(parser: JsonParser): MutableMap<String, V> {
+inline fun <reified V> JsonNode.mapValue(context: DeserializationContext): MutableMap<String, V> {
   val m = mutableMapOf<String, V>()
-  this.fields().asSequence().forEach { entry ->
-    m[entry.key] = parser.codec.treeToValue(entry.value, V::class.java)
+  this.properties().forEach { entry ->
+    m[entry.key] = context.readTreeAsValue(entry.value, V::class.java)
   }
   return m
 }
@@ -39,6 +39,5 @@ inline fun <reified V> JsonNode.mapValue(parser: JsonParser): MutableMap<String,
 /**
  * Parses the [JsonNode] as a [T].
  */
-inline fun <reified T> JsonNode.parseValue(parser: JsonParser): T =
-  parser.codec.treeToValue(this, T::class.java)
-
+inline fun <reified T> JsonNode.parseValue(context: DeserializationContext): T =
+  context.readTreeAsValue(this, T::class.java)

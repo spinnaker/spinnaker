@@ -18,7 +18,6 @@ package com.netflix.spinnaker.gate.converters;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
 import java.util.List;
 import java.util.Map;
 import org.junit.jupiter.api.Test;
@@ -28,6 +27,7 @@ import org.springframework.http.converter.HttpMessageConverter;
 import org.springframework.http.converter.StringHttpMessageConverter;
 import org.springframework.mock.web.MockHttpServletRequest;
 import org.springframework.web.servlet.function.ServerRequest;
+import tools.jackson.databind.json.JsonMapper;
 
 /**
  * Gate registers {@link JsonHttpMessageConverter} ahead of {@link StringHttpMessageConverter}. It
@@ -41,7 +41,7 @@ class JsonHttpMessageConverterTest {
   private static final String JSON_BODY = "{\"jsonrpc\":\"2.0\",\"id\":1,\"method\":\"ping\"}";
 
   private final JsonHttpMessageConverter converter =
-      new JsonHttpMessageConverter(new ObjectMapper());
+      new JsonHttpMessageConverter(JsonMapper.builder().build());
 
   @Test
   void stillReadsMapsAndPojos() {

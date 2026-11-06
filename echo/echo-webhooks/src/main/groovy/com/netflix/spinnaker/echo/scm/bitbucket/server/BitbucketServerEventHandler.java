@@ -16,12 +16,12 @@
 
 package com.netflix.spinnaker.echo.scm.bitbucket.server;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
 import com.netflix.spinnaker.echo.api.events.Event;
 import com.netflix.spinnaker.echo.jackson.EchoObjectMapper;
 import java.util.List;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.stereotype.Component;
+import tools.jackson.databind.ObjectMapper;
 
 @Component
 public class BitbucketServerEventHandler {

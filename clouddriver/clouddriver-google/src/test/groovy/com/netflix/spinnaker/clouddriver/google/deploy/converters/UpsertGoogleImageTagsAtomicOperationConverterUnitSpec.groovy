@@ -16,13 +16,14 @@
 
 package com.netflix.spinnaker.clouddriver.google.deploy.converters
 
-import com.fasterxml.jackson.databind.ObjectMapper
+import tools.jackson.databind.ObjectMapper
 import com.netflix.spinnaker.clouddriver.google.deploy.description.UpsertGoogleImageTagsDescription
 import com.netflix.spinnaker.clouddriver.google.deploy.ops.UpsertGoogleImageTagsAtomicOperation
 import com.netflix.spinnaker.clouddriver.google.security.GoogleNamedAccountCredentials
 import com.netflix.spinnaker.credentials.CredentialsRepository
 import spock.lang.Shared
 import spock.lang.Specification
+import tools.jackson.databind.json.JsonMapper
 
 class UpsertGoogleImageTagsAtomicOperationConverterUnitSpec extends Specification {
   private static final IMAGE_NAME = 'spinnaker-image-v000'
@@ -30,7 +31,7 @@ class UpsertGoogleImageTagsAtomicOperationConverterUnitSpec extends Specificatio
   private static final ACCOUNT_NAME = 'auto'
 
   @Shared
-  ObjectMapper mapper = new ObjectMapper()
+  ObjectMapper mapper = JsonMapper.builder().build()
 
   @Shared
   UpsertGoogleImageTagsAtomicOperationConverter converter

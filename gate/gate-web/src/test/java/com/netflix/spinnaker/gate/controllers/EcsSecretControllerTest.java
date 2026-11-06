@@ -21,7 +21,6 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
 import com.netflix.spinnaker.gate.controllers.ecs.EcsSecretController;
 import com.netflix.spinnaker.gate.services.EcsSecretService;
 import com.netflix.spinnaker.gate.services.internal.ClouddriverService;
@@ -41,6 +40,8 @@ import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.setup.MockMvcBuilders;
 import retrofit2.Call;
 import retrofit2.mock.Calls;
+import tools.jackson.databind.ObjectMapper;
+import tools.jackson.databind.json.JsonMapper;
 
 @ExtendWith(MockitoExtension.class)
 public class EcsSecretControllerTest {
@@ -61,7 +62,7 @@ public class EcsSecretControllerTest {
     EcsSecretController controller = new EcsSecretController();
     controller.setEcsSecretService(ecsSecretService);
     mockMvc = MockMvcBuilders.standaloneSetup(controller).build();
-    objectMapper = new ObjectMapper();
+    objectMapper = JsonMapper.builder().build();
   }
 
   @AfterEach

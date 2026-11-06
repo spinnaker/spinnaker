@@ -17,17 +17,18 @@ package com.netflix.spinnaker.clouddriver.alicloud.provider.view;
 
 import static org.mockito.Mockito.mock;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
+import tools.jackson.databind.ObjectMapper;
 import com.netflix.spinnaker.cats.cache.Cache;
 import com.netflix.spinnaker.clouddriver.alicloud.AliCloudProvider;
 import spock.lang.Subject;
+import tools.jackson.databind.json.JsonMapper;
 
 public class CommonProvider {
 
   static final String ACCOUNT = "test-account";
   static final String REGION = "cn-test";
 
-  @Subject ObjectMapper objectMapper = new ObjectMapper();
+  @Subject ObjectMapper objectMapper = JsonMapper.builder().build();
 
   @Subject AliCloudProvider oldProvider = new AliCloudProvider();
 

@@ -16,7 +16,7 @@
 
 package com.netflix.spinnaker.clouddriver.controllers
 
-import com.fasterxml.jackson.databind.ObjectMapper
+import tools.jackson.databind.ObjectMapper
 import com.netflix.spinnaker.clouddriver.elasticsearch.converters.UpsertEntityTagsAtomicOperationConverter
 import com.netflix.spinnaker.clouddriver.orchestration.AtomicOperation
 import com.netflix.spinnaker.clouddriver.orchestration.AtomicOperationConverter
@@ -29,9 +29,10 @@ import java.lang.annotation.ElementType
 import java.lang.annotation.Retention
 import java.lang.annotation.RetentionPolicy
 import java.lang.annotation.Target
+import tools.jackson.databind.json.JsonMapper
 
 class FeaturesControllerSpec extends Specification {
-  def objectMapper = new ObjectMapper();
+  def objectMapper = JsonMapper.builder().build();
 
   void "should favor @Operation over @Component when determining stage names"() {
     given:

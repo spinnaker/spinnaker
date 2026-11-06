@@ -15,13 +15,13 @@
  */
 package com.netflix.spinnaker.kork.jackson;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.databind.jsontype.NamedType;
 import com.netflix.spinnaker.kork.ClassScanner;
 import java.util.List;
 import java.util.Objects;
 import javax.annotation.Nonnull;
 import org.springframework.util.ClassUtils;
+import tools.jackson.databind.ObjectMapper;
+import tools.jackson.databind.jsontype.NamedType;
 
 /**
  * Handles discovery and registration of ObjectMapper subtypes.
@@ -47,14 +47,24 @@ public class ObjectMapperSubtypeConfigurer {
     this.namedTypeParser = namedTypeParser;
   }
 
-  public void registerSubtypes(ObjectMapper mapper, List<SubtypeLocator> subtypeLocators) {
-    subtypeLocators.forEach(locator -> registerSubtype(mapper, locator));
+  public ObjectMapper registerSubtypes(ObjectMapper mapper, List<SubtypeLocator> subtypeLocators) {
+    ObjectMapper configuredMapper = mapper;
+    for (SubtypeLocator locator : subtypeLocators) {
+      configuredMapper = registerSubtype(configuredMapper, locator);
+    }
+    return configuredMapper;
   }
 
-  public void registerSubtype(ObjectMapper mapper, SubtypeLocator subtypeLocator) {
-    subtypeLocator
-        .searchPackages()
-        .forEach(pkg -> mapper.registerSubtypes(findSubtypes(subtypeLocator.rootType(), pkg)));
+  public ObjectMapper registerSubtype(ObjectMapper mapper, SubtypeLocator subtypeLocator) {
+    ObjectMapper configuredMapper = mapper;
+    for (String pkg : subtypeLocator.searchPackages()) {
+      configuredMapper =
+          configuredMapper
+              .rebuild()
+              .registerSubtypes(findSubtypes(subtypeLocator.rootType(), pkg))
+              .build();
+    }
+    return configuredMapper;
   }
 
   private NamedType[] findSubtypes(Class<?> clazz, String pkg) {

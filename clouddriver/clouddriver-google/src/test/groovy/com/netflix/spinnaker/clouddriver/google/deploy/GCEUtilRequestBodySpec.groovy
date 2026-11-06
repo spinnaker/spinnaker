@@ -16,7 +16,8 @@
 
 package com.netflix.spinnaker.clouddriver.google.deploy
 
-import com.fasterxml.jackson.databind.ObjectMapper
+import tools.jackson.databind.ObjectMapper
+import tools.jackson.databind.json.JsonMapper
 import com.google.api.client.json.gson.GsonFactory
 import com.google.api.services.compute.Compute
 import com.google.api.services.compute.model.InstanceProperties
@@ -43,7 +44,7 @@ class GCEUtilRequestBodySpec extends Specification {
   private static final String SERVER_GROUP = "server-group-v001"
   private static final String PHASE = "TEST-PHASE"
 
-  private final ObjectMapper objectMapper = new ObjectMapper()
+  private final ObjectMapper objectMapper = JsonMapper.builder().build()
   private final TestExecutor executor = new TestExecutor()
 
   void "regional external network attachment serializes a connection backend without capacity fields"() {

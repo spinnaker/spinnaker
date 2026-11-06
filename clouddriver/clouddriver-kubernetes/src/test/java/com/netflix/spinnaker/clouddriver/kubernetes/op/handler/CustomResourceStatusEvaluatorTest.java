@@ -18,7 +18,6 @@ package com.netflix.spinnaker.clouddriver.kubernetes.op.handler;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
 import com.netflix.spinnaker.clouddriver.kubernetes.config.KubernetesConfigurationProperties;
 import com.netflix.spinnaker.clouddriver.kubernetes.description.manifest.KubernetesManifest;
 import com.netflix.spinnaker.clouddriver.kubernetes.model.Manifest.Status;
@@ -31,6 +30,7 @@ import org.junit.jupiter.params.provider.Arguments;
 import org.junit.jupiter.params.provider.MethodSource;
 import org.springframework.boot.context.properties.bind.Binder;
 import org.springframework.boot.context.properties.source.MapConfigurationPropertySource;
+import tools.jackson.databind.json.JsonMapper;
 
 final class CustomResourceStatusEvaluatorTest {
   private static final String OLD_GENERATION = UnstableReason.OLD_GENERATION.getMessage();
@@ -59,7 +59,8 @@ final class CustomResourceStatusEvaluatorTest {
   }
 
   private static KubernetesManifest manifest(String yaml) {
-    return new ObjectMapper()
+    return JsonMapper.builder()
+        .build()
         .convertValue(Yaml.getSnakeYaml(null).load(yaml), KubernetesManifest.class);
   }
 

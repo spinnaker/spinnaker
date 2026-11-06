@@ -38,7 +38,7 @@ import retrofit2.http.Header;
 import retrofit2.http.POST
 import retrofit2.Call
 import retrofit2.Retrofit
-import retrofit2.converter.jackson.JacksonConverterFactory;
+import com.netflix.spinnaker.kork.retrofit.util.CustomConverterFactory;
 
 /**
  * Implements the flow of interactive notification processing as described in {@link InteractiveNotificationService}.
@@ -130,7 +130,7 @@ class InteractiveNotificationCallbackHandler {
           .baseUrl(RetrofitUtils.getBaseUrl(baseUrl))
           .client(okHttp3ClientConfiguration.createForRetrofit2().build())
           .addCallAdapterFactory(ErrorHandlingExecutorCallAdapterFactory.getInstance())
-          .addConverterFactory(JacksonConverterFactory.create())
+          .addConverterFactory(CustomConverterFactory.create())
           .build()
           .create(SpinnakerService.class)
   );

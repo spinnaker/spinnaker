@@ -17,12 +17,12 @@
 package com.netflix.spinnaker.orca.kato.tasks.quip
 
 import com.netflix.spinnaker.kork.retrofit.ErrorHandlingExecutorCallAdapterFactory
+import com.netflix.spinnaker.kork.retrofit.util.CustomConverterFactory
 import com.netflix.spinnaker.kork.retrofit.util.RetrofitUtils
 import com.netflix.spinnaker.orca.api.pipeline.Task
 import com.netflix.spinnaker.orca.clouddriver.InstanceService
 import okhttp3.OkHttpClient
 import retrofit2.Retrofit
-import retrofit2.converter.jackson.JacksonConverterFactory;
 
 @Deprecated
 abstract class AbstractQuipTask implements Task {
@@ -31,7 +31,7 @@ abstract class AbstractQuipTask implements Task {
         .baseUrl(RetrofitUtils.getBaseUrl(address))
         .client(new OkHttpClient(retryOnConnectionFailure: false))
         .addCallAdapterFactory(ErrorHandlingExecutorCallAdapterFactory.getInstance())
-        .addConverterFactory(JacksonConverterFactory.create())
+        .addConverterFactory(CustomConverterFactory.create())
         .build()
         .create(InstanceService.class);
   }

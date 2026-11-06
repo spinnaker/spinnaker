@@ -15,16 +15,15 @@
  */
 package com.netflix.spinnaker.orca.pipelinetemplate.loader;
 
-import com.fasterxml.jackson.core.type.TypeReference;
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.dataformat.yaml.YAMLFactory;
 import com.netflix.spinnaker.orca.pipelinetemplate.exceptions.TemplateLoaderException;
 import java.io.File;
 import java.io.FileNotFoundException;
-import java.io.IOException;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.util.Map;
+import tools.jackson.core.JacksonException;
+import tools.jackson.core.type.TypeReference;
+import tools.jackson.databind.ObjectMapper;
 
 /** Used strictly for testing, not available as a template loader at runtime. */
 public class ResourceSchemeLoader implements TemplateSchemeLoader {
@@ -37,10 +36,7 @@ public class ResourceSchemeLoader implements TemplateSchemeLoader {
   public ResourceSchemeLoader(String rootPath, ObjectMapper objectMapper) {
     this.rootPath = rootPath;
     this.jsonObjectMapper = objectMapper;
-    this.yamlObjectMapper =
-        new ObjectMapper(new YAMLFactory())
-            .setConfig(jsonObjectMapper.getSerializationConfig())
-            .setConfig(jsonObjectMapper.getDeserializationConfig());
+    this.yamlObjectMapper = YamlObjectMapperFactory.create(jsonObjectMapper);
   }
 
   @Override
@@ -63,7 +59,7 @@ public class ResourceSchemeLoader implements TemplateSchemeLoader {
     try {
       ObjectMapper objectMapper = isJson(u) ? jsonObjectMapper : yamlObjectMapper;
       return objectMapper.readValue(templateFile, new TypeReference<>() {});
-    } catch (IOException e) {
+    } catch (JacksonException e) {
       throw new TemplateLoaderException(e);
     }
   }

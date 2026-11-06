@@ -18,8 +18,6 @@
 package com.netflix.spinnaker.clouddriver.aws.deploy.ops.actions;
 
 import com.fasterxml.jackson.annotation.JsonTypeName;
-import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
-import com.fasterxml.jackson.databind.annotation.JsonPOJOBuilder;
 import com.netflix.spinnaker.clouddriver.aws.deploy.description.ModifyServerGroupLaunchTemplateDescription;
 import com.netflix.spinnaker.clouddriver.aws.deploy.ops.ModifyServerGroupLaunchTemplateAtomicOperation.LaunchTemplateException;
 import com.netflix.spinnaker.clouddriver.aws.security.NetflixAmazonCredentials;
@@ -48,6 +46,8 @@ import software.amazon.awssdk.services.autoscaling.model.LaunchTemplateSpecifica
 import software.amazon.awssdk.services.autoscaling.model.MixedInstancesPolicy;
 import software.amazon.awssdk.services.autoscaling.model.UpdateAutoScalingGroupRequest;
 import software.amazon.awssdk.services.ec2.model.LaunchTemplateVersion;
+import tools.jackson.databind.annotation.JsonDeserialize;
+import tools.jackson.databind.annotation.JsonPOJOBuilder;
 
 /** Action to update an AWS EC2 Auto Scaling Group. */
 @Slf4j

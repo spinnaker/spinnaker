@@ -15,20 +15,20 @@
  */
 package com.netflix.kayenta.atlas.backends;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
 import com.netflix.kayenta.atlas.model.AtlasStorage;
 import com.netflix.kayenta.atlas.service.AtlasStorageRemoteService;
 import com.netflix.kayenta.retrofit.config.RemoteService;
 import com.netflix.kayenta.retrofit.config.RetrofitClientFactory;
 import com.netflix.spinnaker.kork.retrofit.exceptions.SpinnakerHttpException;
 import com.netflix.spinnaker.kork.retrofit.exceptions.SpinnakerServerException;
+import com.netflix.spinnaker.kork.retrofit.util.CustomConverterFactory;
 import com.netflix.spinnaker.security.AuthenticatedRequest;
 import jakarta.validation.constraints.NotNull;
 import java.util.Map;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
-import retrofit2.converter.jackson.JacksonConverterFactory;
+import tools.jackson.databind.ObjectMapper;
 
 @Slf4j
 @Builder
@@ -48,7 +48,7 @@ public class AtlasStorageUpdater {
     AtlasStorageRemoteService atlasStorageRemoteService =
         retrofitClientFactory.createClient(
             AtlasStorageRemoteService.class,
-            JacksonConverterFactory.create(objectMapper),
+            CustomConverterFactory.create(objectMapper),
             remoteService);
     try {
       Map<String, Map<String, AtlasStorage>> atlasStorageMap =

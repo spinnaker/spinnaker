@@ -16,7 +16,6 @@
 
 package com.netflix.spinnaker.orca.clouddriver.tasks.providers.cf;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.collect.ImmutableMap;
 import com.netflix.spinnaker.orca.api.pipeline.Task;
 import com.netflix.spinnaker.orca.api.pipeline.TaskResult;
@@ -34,6 +33,7 @@ import javax.annotation.Nonnull;
 import lombok.RequiredArgsConstructor;
 import org.jetbrains.annotations.NotNull;
 import org.springframework.stereotype.Component;
+import tools.jackson.databind.ObjectMapper;
 
 @RequiredArgsConstructor
 @Component

@@ -27,7 +27,6 @@ dependencies {
   implementation "io.spinnaker.kork:kork-security"
   implementation 'io.spinnaker.kork:kork-web'
   implementation 'com.squareup.retrofit2:retrofit'
-  implementation 'com.squareup.retrofit2:converter-jackson'
   implementation 'de.huxhorn.sulky:de.huxhorn.sulky.ulid'
   implementation "org.apache.commons:commons-lang3"
   testImplementation 'io.mockk:mockk'

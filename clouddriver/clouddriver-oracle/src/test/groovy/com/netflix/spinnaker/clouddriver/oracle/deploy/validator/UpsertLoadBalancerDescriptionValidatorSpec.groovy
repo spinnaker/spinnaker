@@ -8,8 +8,8 @@
  */
 package com.netflix.spinnaker.clouddriver.oracle.deploy.validator
 
-import com.fasterxml.jackson.core.type.TypeReference
-import com.fasterxml.jackson.databind.ObjectMapper
+import tools.jackson.core.type.TypeReference
+import tools.jackson.databind.ObjectMapper
 import com.netflix.spinnaker.clouddriver.data.task.Task
 import com.netflix.spinnaker.clouddriver.data.task.TaskRepository
 import com.netflix.spinnaker.clouddriver.deploy.ValidationErrors
@@ -25,10 +25,11 @@ import com.oracle.bmc.loadbalancer.requests.CreateLoadBalancerRequest
 import com.oracle.bmc.loadbalancer.responses.CreateLoadBalancerResponse
 import spock.lang.Shared
 import spock.lang.Specification
+import tools.jackson.databind.json.JsonMapper
 
 class UpsertLoadBalancerDescriptionValidatorSpec extends Specification {
 
-  @Shared ObjectMapper mapper = new ObjectMapper()
+  @Shared ObjectMapper mapper = JsonMapper.builder().build()
   @Shared UpsertOracleLoadBalancerAtomicOperationConverter converter
   @Shared UpsertLoadBalancerDescriptionValidator validator
   @Shared String context = 'upsertLoadBalancerDescriptionValidator.'

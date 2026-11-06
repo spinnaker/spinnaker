@@ -16,7 +16,7 @@
 
 package com.netflix.spinnaker.gate.plugins.web.info
 
-import com.fasterxml.jackson.databind.ObjectMapper
+import tools.jackson.databind.ObjectMapper
 import com.netflix.spinnaker.config.ErrorConfiguration
 import com.netflix.spinnaker.config.PluginsAutoConfiguration
 import com.netflix.spinnaker.config.okhttp3.OkHttpClientProvider

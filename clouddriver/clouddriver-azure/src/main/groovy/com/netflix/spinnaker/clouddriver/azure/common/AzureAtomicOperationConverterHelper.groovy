@@ -16,7 +16,7 @@
 
 package com.netflix.spinnaker.clouddriver.azure.common
 
-import com.fasterxml.jackson.databind.DeserializationFeature
+import tools.jackson.databind.DeserializationFeature
 import com.netflix.spinnaker.clouddriver.security.AbstractAtomicOperationsCredentialsSupport
 
 class AzureAtomicOperationConverterHelper {
@@ -38,8 +38,7 @@ class AzureAtomicOperationConverterHelper {
     // Save these to re-assign after ObjectMapper does its work.
     def credentials = input.remove("credentials")
     def converted = credentialsSupport.objectMapper
-      .copy()
-      .configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false)
+      .rebuild().disable(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES).build()
       .convertValue(input, targetDescriptionType)
 
     // Re-assign the credentials.

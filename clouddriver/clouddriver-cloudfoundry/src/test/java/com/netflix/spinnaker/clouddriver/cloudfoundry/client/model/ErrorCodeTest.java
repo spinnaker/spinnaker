@@ -18,10 +18,10 @@ package com.netflix.spinnaker.clouddriver.cloudfoundry.client.model;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
 import com.netflix.spinnaker.clouddriver.cloudfoundry.client.CloudFoundryClientUtils;
 import java.io.IOException;
 import org.junit.jupiter.api.Test;
+import tools.jackson.databind.ObjectMapper;
 
 class ErrorCodeTest {
 

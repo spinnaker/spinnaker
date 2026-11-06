@@ -16,7 +16,8 @@
 
 package com.netflix.spinnaker.clouddriver.aws.deploy.converters
 
-import com.fasterxml.jackson.databind.ObjectMapper
+import tools.jackson.databind.ObjectMapper
+import tools.jackson.databind.json.JsonMapper
 import com.netflix.spinnaker.clouddriver.aws.deploy.converters.CopyLastAsgAtomicOperationConverter
 import com.netflix.spinnaker.clouddriver.aws.security.NetflixAmazonCredentials
 import com.netflix.spinnaker.clouddriver.security.AccountCredentialsProvider
@@ -28,7 +29,7 @@ import spock.lang.Specification
 class CopyLastAsgAtomicOperationConverterUnitSpec extends Specification {
 
   @Shared
-  ObjectMapper mapper = new ObjectMapper()
+  ObjectMapper mapper = JsonMapper.builder().build()
 
   @Shared
   CopyLastAsgAtomicOperationConverter converter

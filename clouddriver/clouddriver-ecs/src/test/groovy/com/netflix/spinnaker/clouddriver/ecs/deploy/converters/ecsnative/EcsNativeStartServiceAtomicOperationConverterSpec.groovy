@@ -16,7 +16,8 @@
 
 package com.netflix.spinnaker.clouddriver.ecs.deploy.converters.ecsnative
 
-import com.fasterxml.jackson.databind.ObjectMapper
+import tools.jackson.databind.ObjectMapper
+import tools.jackson.databind.json.JsonMapper
 import com.netflix.spinnaker.clouddriver.ecs.TestCredential
 import com.netflix.spinnaker.clouddriver.ecs.deploy.description.StartServiceDescription
 import com.netflix.spinnaker.clouddriver.ecs.deploy.ops.StartServiceAtomicOperation
@@ -26,7 +27,7 @@ class EcsNativeStartServiceAtomicOperationConverterSpec
     extends EcsNativeCredentialsOnlyAtomicOperationConverterSpec<StartServiceDescription, StartServiceAtomicOperation> {
   @Override
   AbstractAtomicOperationsCredentialsSupport getConverter() {
-    new EcsNativeStartServiceAtomicOperationConverter(objectMapper: new ObjectMapper())
+    new EcsNativeStartServiceAtomicOperationConverter(objectMapper: JsonMapper.builder().build())
   }
 
   @Override

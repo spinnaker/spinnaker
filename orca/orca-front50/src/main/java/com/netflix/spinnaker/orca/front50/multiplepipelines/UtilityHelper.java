@@ -16,13 +16,13 @@
 
 package com.netflix.spinnaker.orca.front50.multiplepipelines;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.graph.GraphBuilder;
 import com.google.common.graph.MutableGraph;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import org.apache.commons.lang3.ObjectUtils;
+import tools.jackson.databind.ObjectMapper;
 
 public class UtilityHelper {
 
