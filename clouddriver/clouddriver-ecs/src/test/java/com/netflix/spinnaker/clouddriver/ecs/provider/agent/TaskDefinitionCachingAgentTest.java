@@ -19,23 +19,41 @@ package com.netflix.spinnaker.clouddriver.ecs.provider.agent;
 import static com.netflix.spinnaker.clouddriver.ecs.cache.Keys.Namespace.SERVICES;
 import static com.netflix.spinnaker.clouddriver.ecs.cache.Keys.Namespace.TASK_DEFINITIONS;
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertSame;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.ArgumentMatchers.argThat;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
+import com.netflix.spectator.api.NoopRegistry;
 import com.netflix.spinnaker.cats.cache.CacheData;
 import com.netflix.spinnaker.cats.cache.DefaultCacheData;
+import com.netflix.spinnaker.clouddriver.aws.security.AmazonClientProvider;
+import com.netflix.spinnaker.clouddriver.cache.OnDemandAgent;
 import com.netflix.spinnaker.clouddriver.ecs.cache.Keys;
 import com.netflix.spinnaker.kork.aws.jackson.AwsSdkV2Module;
 import java.util.*;
+import java.util.stream.Collectors;
 import org.junit.jupiter.api.Test;
+import software.amazon.awssdk.awscore.exception.AwsErrorDetails;
+import software.amazon.awssdk.core.exception.SdkClientException;
+import software.amazon.awssdk.services.ecs.EcsClient;
+import software.amazon.awssdk.services.ecs.model.AccessDeniedException;
+import software.amazon.awssdk.services.ecs.model.ClientException;
 import software.amazon.awssdk.services.ecs.model.ContainerDefinition;
 import software.amazon.awssdk.services.ecs.model.DescribeTaskDefinitionRequest;
 import software.amazon.awssdk.services.ecs.model.DescribeTaskDefinitionResponse;
+import software.amazon.awssdk.services.ecs.model.EcsException;
 import software.amazon.awssdk.services.ecs.model.HealthCheck;
+import software.amazon.awssdk.services.ecs.model.InvalidParameterException;
 import software.amazon.awssdk.services.ecs.model.KeyValuePair;
 import software.amazon.awssdk.services.ecs.model.PortMapping;
+import software.amazon.awssdk.services.ecs.model.ServerException;
 import software.amazon.awssdk.services.ecs.model.TaskDefinition;
 import spock.lang.Subject;
 import tools.jackson.databind.ObjectMapper;
@@ -205,14 +223,186 @@ public class TaskDefinitionCachingAgentTest extends CommonCachingAgent {
         "Expected a complete cache entry to be reused rather than described again");
   }
 
+  @Test
+  public void shouldSkipServicesWithoutTaskDefinition() {
+    // Given a service on the EXTERNAL deployment controller, which keeps its task definitions on
+    // task sets, so ECS returns it without one
+    givenServices(service(TASK_DEFINITION_ARN_1), service(null), service(""));
+    EcsClient ecsClient = mock(EcsClient.class);
+    givenDescribedTaskDefinition(ecsClient, taskDefinition(TASK_DEFINITION_ARN_1, DESCRIBED_IMAGE));
+
+    // When
+    List<TaskDefinition> returnedTaskDefs = agent.getItems(ecsClient, providerCache);
+
+    // Then only the service with a task definition is described
+    assertEquals(List.of(TASK_DEFINITION_ARN_1), arns(returnedTaskDefs));
+    verify(ecsClient, times(1)).describeTaskDefinition(any(DescribeTaskDefinitionRequest.class));
+    verify(ecsClient).describeTaskDefinition(describeRequestFor(TASK_DEFINITION_ARN_1));
+  }
+
+  @Test
+  public void shouldSkipServicesWithoutTaskDefinitionOnDemand() {
+    // Given
+    givenServices(service(TASK_DEFINITION_ARN_1), service(TASK_DEFINITION_ARN_2), service(null));
+    EcsClient ecsClient = mock(EcsClient.class);
+    when(ecsClient.describeTaskDefinition(describeRequestFor(TASK_DEFINITION_ARN_1)))
+        .thenThrow(invalidParameter());
+    givenDescribedTaskDefinition(ecsClient, taskDefinition(TASK_DEFINITION_ARN_2, DESCRIBED_IMAGE));
+    AmazonClientProvider amazonClientProvider = mock(AmazonClientProvider.class);
+    when(amazonClientProvider.getAmazonEcsV2(netflixAmazonCredentials, REGION))
+        .thenReturn(ecsClient);
+    TaskDefinitionCachingAgent onDemandAgent =
+        new TaskDefinitionCachingAgent(
+            netflixAmazonCredentials, REGION, amazonClientProvider, new NoopRegistry(), mapper);
+
+    // When
+    OnDemandAgent.OnDemandResult result =
+        onDemandAgent.handle(providerCache, Map.of("account", ACCOUNT, "region", REGION));
+
+    // Then
+    assertEquals(
+        Set.of(Keys.getTaskDefinitionKey(ACCOUNT, REGION, TASK_DEFINITION_ARN_2)),
+        result.getCacheResult().getCacheResults().get(TASK_DEFINITIONS.toString()).stream()
+            .map(CacheData::getId)
+            .collect(Collectors.toSet()));
+  }
+
+  @Test
+  public void shouldCacheOtherTaskDefinitionsWhenOneIsRejected() {
+    // Given
+    givenServices(service(TASK_DEFINITION_ARN_1), service(TASK_DEFINITION_ARN_2));
+    EcsClient ecsClient = mock(EcsClient.class);
+    when(ecsClient.describeTaskDefinition(describeRequestFor(TASK_DEFINITION_ARN_1)))
+        .thenThrow(invalidParameter());
+    givenDescribedTaskDefinition(ecsClient, taskDefinition(TASK_DEFINITION_ARN_2, DESCRIBED_IMAGE));
+
+    // When
+    List<TaskDefinition> returnedTaskDefs = agent.getItems(ecsClient, providerCache);
+
+    // Then
+    assertEquals(List.of(TASK_DEFINITION_ARN_2), arns(returnedTaskDefs));
+  }
+
+  @Test
+  public void shouldKeepCachedTaskDefinitionWhenDescribingItAgainIsRejected() {
+    // Given a cached entry that is missing the load balanced port mapping, so it is described again
+    givenServiceCache(LOAD_BALANCED_CONTAINER_PORT);
+    givenCachedTaskDefinition(taskDefinition(CACHED_IMAGE));
+    EcsClient ecsClient = mock(EcsClient.class);
+    when(ecsClient.describeTaskDefinition(any(DescribeTaskDefinitionRequest.class)))
+        .thenThrow(invalidParameter());
+
+    // When
+    List<TaskDefinition> returnedTaskDefs = agent.getItems(ecsClient, providerCache);
+
+    // Then the cached entry is returned, so the authoritative result does not evict it
+    assertEquals(1, returnedTaskDefs.size());
+    assertEquals(CACHED_IMAGE, returnedTaskDefs.get(0).containerDefinitions().get(0).image());
+  }
+
+  @Test
+  public void shouldKeepCachedTaskDefinitionWhenDescribingItAgainReturnsNone() {
+    // Given a cached entry that is missing the load balanced port mapping, so it is described again
+    givenServiceCache(LOAD_BALANCED_CONTAINER_PORT);
+    givenCachedTaskDefinition(taskDefinition(CACHED_IMAGE));
+    EcsClient ecsClient = mock(EcsClient.class);
+    when(ecsClient.describeTaskDefinition(any(DescribeTaskDefinitionRequest.class)))
+        .thenReturn(DescribeTaskDefinitionResponse.builder().build());
+
+    // When
+    List<TaskDefinition> returnedTaskDefs = agent.getItems(ecsClient, providerCache);
+
+    // Then the cached entry is returned, so the authoritative result does not evict it
+    assertEquals(1, returnedTaskDefs.size());
+    assertEquals(CACHED_IMAGE, returnedTaskDefs.get(0).containerDefinitions().get(0).image());
+  }
+
+  @Test
+  public void shouldFailOnErrorsNotSpecificToOneTaskDefinition() {
+    givenServices(service(TASK_DEFINITION_ARN_1), service(TASK_DEFINITION_ARN_2));
+
+    List<RuntimeException> accountWideErrors =
+        List.of(
+            EcsException.builder()
+                .awsErrorDetails(
+                    AwsErrorDetails.builder()
+                        .errorCode("ThrottlingException")
+                        .errorMessage("Rate exceeded")
+                        .build())
+                .statusCode(400)
+                .build(),
+            AccessDeniedException.builder().message("not authorized").build(),
+            ClientException.builder().message("not authorized to perform the action").build(),
+            ServerException.builder().message("Service unavailable").build(),
+            SdkClientException.create("Unable to load credentials"));
+
+    for (RuntimeException error : accountWideErrors) {
+      EcsClient ecsClient = mock(EcsClient.class);
+      when(ecsClient.describeTaskDefinition(any(DescribeTaskDefinitionRequest.class)))
+          .thenThrow(error);
+
+      // the run fails without an authoritative result, so the existing cache is left intact
+      RuntimeException thrown =
+          assertThrows(RuntimeException.class, () -> agent.getItems(ecsClient, providerCache));
+      assertSame(error, thrown);
+      verify(ecsClient, times(1)).describeTaskDefinition(any(DescribeTaskDefinitionRequest.class));
+    }
+  }
+
+  private static InvalidParameterException invalidParameter() {
+    return InvalidParameterException.builder()
+        .message("The specified parameter isn't valid.")
+        .build();
+  }
+
+  private static DescribeTaskDefinitionRequest describeRequestFor(String arn) {
+    return argThat(
+        (DescribeTaskDefinitionRequest request) ->
+            request != null && arn.equals(request.taskDefinition()));
+  }
+
+  private static List<String> arns(List<TaskDefinition> taskDefinitions) {
+    return taskDefinitions.stream().map(TaskDefinition::taskDefinitionArn).sorted().toList();
+  }
+
+  private static DefaultCacheData service(String taskDefinitionArn) {
+    Map<String, Object> serviceAttr = new HashMap<>();
+    serviceAttr.put("taskDefinition", taskDefinitionArn);
+    serviceAttr.put("desiredCount", 1);
+    serviceAttr.put("serviceName", SERVICE_NAME_1);
+    serviceAttr.put("maximumPercent", 200);
+    serviceAttr.put("minimumHealthyPercent", 50);
+    serviceAttr.put("createdAt", 8976543L);
+    return new DefaultCacheData("service-" + taskDefinitionArn, serviceAttr, Map.of());
+  }
+
+  private void givenServices(DefaultCacheData... services) {
+    when(providerCache.filterIdentifiers(
+            SERVICES.toString(), "ecs;services;test-account;us-west-2;*"))
+        .thenReturn(
+            Arrays.stream(services).map(DefaultCacheData::getId).collect(Collectors.toSet()));
+    when(providerCache.getAll(anyString(), any(Set.class))).thenReturn(Arrays.asList(services));
+  }
+
+  private static void givenDescribedTaskDefinition(
+      EcsClient ecsClient, TaskDefinition taskDefinition) {
+    when(ecsClient.describeTaskDefinition(describeRequestFor(taskDefinition.taskDefinitionArn())))
+        .thenReturn(
+            DescribeTaskDefinitionResponse.builder().taskDefinition(taskDefinition).build());
+  }
+
   private static TaskDefinition taskDefinition(String image, int... containerPorts) {
+    return taskDefinition(TASK_DEFINITION_ARN_1, image, containerPorts);
+  }
+
+  private static TaskDefinition taskDefinition(String arn, String image, int... containerPorts) {
     List<PortMapping> portMappings = new ArrayList<>();
     for (int containerPort : containerPorts) {
       portMappings.add(PortMapping.builder().containerPort(containerPort).build());
     }
 
     return TaskDefinition.builder()
-        .taskDefinitionArn(TASK_DEFINITION_ARN_1)
+        .taskDefinitionArn(arn)
         .containerDefinitions(
             ContainerDefinition.builder()
                 .name("test-container")

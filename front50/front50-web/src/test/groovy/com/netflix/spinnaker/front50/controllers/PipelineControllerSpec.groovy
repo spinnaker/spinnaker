@@ -2,6 +2,7 @@ package com.netflix.spinnaker.front50.controllers
 
 import tools.jackson.databind.JacksonModule
 import tools.jackson.databind.ObjectMapper
+import tools.jackson.databind.json.JsonMapper
 import com.netflix.spinnaker.fiat.shared.FiatPermissionEvaluator
 import com.netflix.spinnaker.front50.api.model.pipeline.Pipeline
 import com.netflix.spinnaker.front50.api.validator.PipelineValidator
@@ -34,7 +35,7 @@ import java.util.stream.Collectors
 
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post
-import tools.jackson.databind.json.JsonMapper
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.put
 
 @AutoConfigureMockMvc(addFilters = false)
 @WebMvcTest(controllers = [PipelineController])
@@ -425,6 +426,105 @@ class PipelineControllerSpec extends Specification {
     ))
     then:
     (all.get(0).get().status == 200 && all.get(1).get().status == 400) || (all.get(0).get().status == 400 && all.get(1).get().status == 200)
+  }
+
+  def "should not let a save reuse the id of a pipeline in another application"() {
+    given:
+    def pipelineDAO = new InMemoryPipelineDAO()
+    pipelineDAO.create("dev", new Pipeline([id: "dev", name: "deploy", application: "app-a"]))
+    def mockMvcWithController = MockMvcBuilders.standaloneSetup(new PipelineController(
+      pipelineDAO, JsonMapper.builder().build(), Optional.empty(), [], Optional.empty(), pipelineControllerConfig,
+      fiatPermissionEvaluator, authorizationSupport
+    )).build()
+
+    when: "app-b saves a pipeline with the id of app-a's pipeline"
+    def response = mockMvcWithController.perform(post("/pipelines")
+      .contentType(MediaType.APPLICATION_JSON)
+      .content(JsonMapper.builder().build().writeValueAsString([
+        id         : "dev",
+        name       : "hijack",
+        application: "app-b",
+      ]))).andReturn().response
+
+    then: "the request is rejected and app-a's pipeline is untouched"
+    response.status == 400
+    pipelineDAO.findById("dev").application == "app-a"
+    pipelineDAO.findById("dev").name == "deploy"
+  }
+
+  def "should allow a save that reuses the id of a pipeline in the same application"() {
+    given:
+    def pipelineDAO = new InMemoryPipelineDAO()
+    pipelineDAO.create("dev", new Pipeline([id: "dev", name: "deploy", application: "app-a"]))
+    def mockMvcWithController = MockMvcBuilders.standaloneSetup(new PipelineController(
+      pipelineDAO, JsonMapper.builder().build(), Optional.empty(), [], Optional.empty(), pipelineControllerConfig,
+      fiatPermissionEvaluator, authorizationSupport
+    )).build()
+
+    when:
+    def response = mockMvcWithController.perform(post("/pipelines")
+      .contentType(MediaType.APPLICATION_JSON)
+      .content(JsonMapper.builder().build().writeValueAsString([
+        id         : "dev",
+        name       : "deploy-renamed",
+        application: "APP-A",
+      ]))).andReturn().response
+
+    then:
+    response.status == 200
+    pipelineDAO.findById("dev").name == "deploy-renamed"
+  }
+
+  def "should not let an update change the application of a pipeline"() {
+    given:
+    def pipelineDAO = new InMemoryPipelineDAO()
+    pipelineDAO.create("dev", new Pipeline([id: "dev", name: "deploy", application: "app-a"]))
+    def mockMvcWithController = MockMvcBuilders.standaloneSetup(new PipelineController(
+      pipelineDAO, JsonMapper.builder().build(), Optional.empty(), [], Optional.empty(), pipelineControllerConfig,
+      fiatPermissionEvaluator, authorizationSupport
+    )).build()
+
+    when:
+    def response = mockMvcWithController.perform(put("/pipelines/dev")
+      .contentType(MediaType.APPLICATION_JSON)
+      .content(JsonMapper.builder().build().writeValueAsString([
+        id         : "dev",
+        name       : "hijack",
+        application: "app-b",
+      ]))).andReturn().response
+
+    then:
+    response.status == 400
+    pipelineDAO.findById("dev").application == "app-a"
+    pipelineDAO.findById("dev").name == "deploy"
+  }
+
+  def "batchUpdate should fail only the pipelines whose id belongs to another application"() {
+    given:
+    def localFiatPermissionEvaluator = Mock(FiatPermissionEvaluator)
+    _ * localFiatPermissionEvaluator.hasPermission(_, _, "APPLICATION", "WRITE") >> true
+    def pipelineDAO = new InMemoryPipelineDAO() {
+      @Override
+      void bulkImport(Collection<Pipeline> items) {
+        items.each { create(it.id, it) }
+      }
+    }
+    pipelineDAO.create("dev", new Pipeline([id: "dev", name: "deploy", application: "app-a"]))
+    def pipelineController = new PipelineController(
+      pipelineDAO, JsonMapper.builder().build(), Optional.empty(), [], Optional.empty(), pipelineControllerConfig,
+      localFiatPermissionEvaluator, authorizationSupport)
+
+    when:
+    def response = pipelineController.batchUpdate([
+      [id: "dev", name: "hijack", application: "app-b"],
+      [id: "other", name: "fine", application: "app-b"],
+    ], false)
+
+    then:
+    response.successful_pipelines == ["fine"]
+    response.failed_pipelines_count == 1
+    response.failed_pipelines[0].any.errorMsg == "The pipeline id dev is already in use by a pipeline in another application"
+    pipelineDAO.findById("dev").application == "app-a"
   }
 
   @Unroll

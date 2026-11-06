@@ -542,6 +542,61 @@ class EcsServerClusterProviderSpec extends Specification {
       .setNamer(EcsResource, NamerRegistry.getDefaultNamer())
   }
 
+  def 'looks tag-named services up through the application index when enabled'() {
+    given:
+    NamerRegistry.lookup().withProvider(EcsCloudProvider.ID).withAccount(CREDS_NAME)
+      .setNamer(EcsResource, new EcsTagNamer())
+    def indexedProvider = indexedProvider()
+    def creds = Mock(NetflixECSCredentials) {
+      getCloudProvider() >> 'ecs'
+      getName() >> CREDS_NAME
+    }
+    def attributes = TestServiceCachingAgentFactory.create(creds, 'us-east-1').convertServiceToAttributes(cachedService)
+
+    when:
+    indexedProvider.getClusterDetails('myapp')
+
+    then: 'the index is queried and no service names are scanned for the tag-named account'
+    cacheView.supportsGetAllByApplication() >> true
+    (1.._) * cacheView.getAllByApplication(Keys.Namespace.SERVICES.ns, 'myapp') >> [(Keys.Namespace.SERVICES.ns): [new DefaultCacheData('k', attributes, [:])]]
+    0 * cacheView.filterIdentifiers(Keys.Namespace.SERVICES.ns, { it.startsWith("ecs;services;${CREDS_NAME};") })
+
+    cleanup:
+    NamerRegistry.lookup().withProvider(EcsCloudProvider.ID).withAccount(CREDS_NAME)
+      .setNamer(EcsResource, NamerRegistry.getDefaultNamer())
+  }
+
+  def 'falls back to scanning when the application index has no services yet'() {
+    given:
+    NamerRegistry.lookup().withProvider(EcsCloudProvider.ID).withAccount(CREDS_NAME)
+      .setNamer(EcsResource, new EcsTagNamer())
+
+    when:
+    indexedProvider().getClusterDetails('myapp')
+
+    then: 'services not yet re-cached with the indexed application are found by the scan'
+    cacheView.supportsGetAllByApplication() >> true
+    (1.._) * cacheView.getAllByApplication(Keys.Namespace.SERVICES.ns, 'myapp') >> [(Keys.Namespace.SERVICES.ns): []]
+    (1.._) * cacheView.filterIdentifiers(Keys.Namespace.SERVICES.ns, { it.startsWith("ecs;services;${CREDS_NAME};") && it.endsWith(';*') }) >> []
+
+    cleanup:
+    NamerRegistry.lookup().withProvider(EcsCloudProvider.ID).withAccount(CREDS_NAME)
+      .setNamer(EcsResource, NamerRegistry.getDefaultNamer())
+  }
+
+  private EcsServerClusterProvider indexedProvider() {
+    new EcsServerClusterProvider(credentialsRepository,
+      containerInformationService,
+      subnetSelector,
+      taskCacheClient,
+      new ServiceCacheClient(cacheView, objectMapper, true),
+      scalableTargetCacheClient,
+      ecsLoadbalancerCacheClient,
+      taskDefinitionCacheClient,
+      ecsCloudWatchAlarmCacheClient,
+      ecsTaskDefinitionRevisionService)
+  }
+
   def 'looks up a server group by its exact service key in only the requested region'() {
     when:
     provider.getServerGroup(CREDS_NAME, 'us-east-1', "${FAMILY_NAME}-v007", true)
