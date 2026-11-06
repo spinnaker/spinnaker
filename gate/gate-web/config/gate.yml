@@ -101,6 +101,12 @@ swagger:
     - .*managed.*
     - .*plugins.*
 
+# First-class, revocable API tokens for programmatic access to Gate (stored in Redis). Only values
+# carrying the token prefix are handled by the token filter, so existing authentication is
+# unaffected. Only Fiat admins can mint tokens until api-tokens.allowed-minting-roles is set.
+api-tokens:
+  enabled: true
+
 integrations:
   gremlin:
     enabled: false

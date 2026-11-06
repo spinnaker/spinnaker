@@ -42,8 +42,7 @@ server:
 ## API tokens
 ## ---------------------------------------------------------------------------
 ## Long-lived bearer tokens for programmatic Spinnaker API access (CI bots,
-## scripts, dashboards). Off by default today; expected to become default-on in
-## a future release — flip `enabled: true` to opt in.
+## scripts, dashboards). On by default; set `enabled: false` to opt out.
 ##
 ## Tokens are sent via the X-Spinnaker-Token header (IAP-safe) or
 ## Authorization: Bearer spk_...   Minting is gated by either Fiat admin OR
@@ -51,7 +50,7 @@ server:
 ## tokens additionally require the SA to be declared in front50's
 ## `service-accounts:` config (see front50-local.yml).
 api-tokens:
-  enabled: false
+  enabled: true
   ## All values below are optional — shown with their defaults. Uncomment to override.
   ## Token value prefix — used to distinguish from OAuth2 Bearer tokens.
   #token-prefix: spk_
