@@ -21,8 +21,8 @@ import com.google.api.services.compute.model.*
 import com.netflix.spectator.api.DefaultRegistry
 import com.netflix.spinnaker.clouddriver.data.task.Task
 import com.netflix.spinnaker.clouddriver.data.task.TaskRepository
+import com.netflix.spinnaker.clouddriver.google.GoogleApiTestUtils
 import com.netflix.spinnaker.clouddriver.google.config.GoogleConfigurationProperties
-import com.netflix.spinnaker.clouddriver.google.deploy.GCEUtil
 import com.netflix.spinnaker.clouddriver.google.deploy.GoogleOperationPoller
 import com.netflix.spinnaker.clouddriver.google.deploy.SafeRetry
 import com.netflix.spinnaker.clouddriver.google.deploy.description.DeleteGoogleLoadBalancerDescription
@@ -102,6 +102,7 @@ class DeleteGoogleTcpLoadBalancerAtomicOperationUnitSpec extends Specification {
         status: DONE)
 
       def globalOperations = Mock(Compute.GlobalOperations)
+      def forwardingRuleOperationGet = Mock(Compute.GlobalOperations.Get)
       def targetTcpProxiesOperationGet = Mock(Compute.GlobalOperations.Get)
       def backendServicesOperationGet = Mock(Compute.GlobalOperations.Get)
       def healthChecksOperationGet = Mock(Compute.GlobalOperations.Get)
@@ -156,7 +157,10 @@ class DeleteGoogleTcpLoadBalancerAtomicOperationUnitSpec extends Specification {
       1 * healthChecks.delete(PROJECT_NAME, HEALTH_CHECK_NAME) >> healthChecksDelete
       1 * healthChecksDelete.execute() >> healthChecksDeleteOp
 
-      3 * computeMock.globalOperations() >> globalOperations
+      4 * computeMock.globalOperations() >> globalOperations
+
+      1 * globalOperations.get(PROJECT_NAME, FORWARDING_RULE_DELETE_OP_NAME) >> forwardingRuleOperationGet
+      1 * forwardingRuleOperationGet.execute() >> globalForwardingRulesDeleteOp
 
       1 * globalOperations.get(PROJECT_NAME, TARGET_TCP_PROXY_DELETE_OP_NAME) >> targetTcpProxiesOperationGet
       1 * targetTcpProxiesOperationGet.execute() >> targetTcpProxiesDeleteOp
@@ -166,6 +170,343 @@ class DeleteGoogleTcpLoadBalancerAtomicOperationUnitSpec extends Specification {
 
       1 * globalOperations.get(PROJECT_NAME, HEALTH_CHECK_DELETE_OP_NAME) >> healthChecksOperationGet
       1 * healthChecksOperationGet.execute() >> healthChecksDeleteOp
+  }
+
+  void "should finish deleting tcp load balancer when its target proxy is already gone"() {
+    setup:
+      def computeMock = Mock(Compute)
+      def globalForwardingRules = Mock(Compute.GlobalForwardingRules)
+      def globalForwardingRulesList = Mock(Compute.GlobalForwardingRules.List)
+      def globalForwardingRulesGet = Mock(Compute.GlobalForwardingRules.Get)
+      def globalForwardingRulesDelete = Mock(Compute.GlobalForwardingRules.Delete)
+      def forwardingRule = new ForwardingRule(target: TARGET_TCP_PROXY_URL, name: TCP_LOAD_BALANCER_NAME)
+      def targetTcpProxies = Mock(Compute.TargetTcpProxies)
+      def targetTcpProxiesGet = Mock(Compute.TargetTcpProxies.Get)
+      def targetTcpProxiesDel = Mock(Compute.TargetTcpProxies.Delete)
+      def backendServices = Mock(Compute.BackendServices)
+      def backendServicesGet = Mock(Compute.BackendServices.Get)
+      def backendServicesDelete = Mock(Compute.BackendServices.Delete)
+      def healthChecks = Mock(Compute.HealthChecks)
+      def healthChecksGet = Mock(Compute.HealthChecks.Get)
+      def healthChecksDelete = Mock(Compute.HealthChecks.Delete)
+      def poller = Mock(GoogleOperationPoller)
+
+      def credentials = new GoogleNamedAccountCredentials.Builder().project(PROJECT_NAME).compute(computeMock).build()
+      def description = new DeleteGoogleLoadBalancerDescription(
+        loadBalancerName: TCP_LOAD_BALANCER_NAME,
+        accountName: ACCOUNT_NAME,
+        credentials: credentials)
+      @Subject def operation = new DeleteGoogleTcpLoadBalancerAtomicOperation(description)
+      operation.googleOperationPoller = poller
+      operation.registry = registry
+      operation.safeRetry = safeRetry
+
+    when:
+      operation.operate([])
+
+    then:
+      _ * computeMock.globalForwardingRules() >> globalForwardingRules
+      1 * globalForwardingRules.list(PROJECT_NAME) >> globalForwardingRulesList
+      1 * globalForwardingRulesList.execute() >> [items: [forwardingRule]]
+      1 * globalForwardingRules.get(PROJECT_NAME, TCP_LOAD_BALANCER_NAME) >> globalForwardingRulesGet
+      1 * globalForwardingRulesGet.execute() >> forwardingRule
+      1 * globalForwardingRules.delete(PROJECT_NAME, TCP_LOAD_BALANCER_NAME) >> globalForwardingRulesDelete
+      1 * globalForwardingRulesDelete.execute() >> new Operation(name: FORWARDING_RULE_DELETE_OP_NAME, status: DONE)
+
+      _ * computeMock.targetTcpProxies() >> targetTcpProxies
+      _ * targetTcpProxies.get(PROJECT_NAME, TARGET_TCP_PROXY_NAME) >> targetTcpProxiesGet
+      _ * targetTcpProxiesGet.execute() >> new TargetTcpProxy(service: BACKEND_SERVICE_URL)
+      1 * targetTcpProxies.delete(PROJECT_NAME, TARGET_TCP_PROXY_NAME) >> targetTcpProxiesDel
+      1 * targetTcpProxiesDel.execute() >> { throw GoogleApiTestUtils.makeGoogleJsonResponseException(404) }
+
+      _ * computeMock.backendServices() >> backendServices
+      1 * backendServices.get(PROJECT_NAME, BACKEND_SERVICE_NAME) >> backendServicesGet
+      1 * backendServicesGet.execute() >> new BackendService(healthChecks: [HEALTH_CHECK_URL])
+      1 * backendServices.delete(PROJECT_NAME, BACKEND_SERVICE_NAME) >> backendServicesDelete
+      1 * backendServicesDelete.execute() >> new Operation(name: BACKEND_SERVICE_DELETE_OP_NAME, status: DONE)
+      _ * computeMock.healthChecks() >> healthChecks
+      1 * healthChecks.get(PROJECT_NAME, HEALTH_CHECK_NAME) >> healthChecksGet
+      1 * healthChecksGet.execute() >> new HealthCheck(name: HEALTH_CHECK_NAME)
+      1 * healthChecks.delete(PROJECT_NAME, HEALTH_CHECK_NAME) >> healthChecksDelete
+      1 * healthChecksDelete.execute() >> new Operation(name: HEALTH_CHECK_DELETE_OP_NAME, status: DONE)
+
+      1 * poller.waitForGlobalOperation(computeMock, PROJECT_NAME, FORWARDING_RULE_DELETE_OP_NAME, *_)
+      1 * poller.waitForGlobalOperation(computeMock, PROJECT_NAME, BACKEND_SERVICE_DELETE_OP_NAME, *_)
+      1 * poller.waitForGlobalOperation(computeMock, PROJECT_NAME, HEALTH_CHECK_DELETE_OP_NAME, *_)
+      0 * poller.waitForGlobalOperation(*_)
+  }
+
+  void "should finish deleting tcp load balancer when another load balancer still uses its health check"() {
+    setup:
+      def computeMock = Mock(Compute)
+      def globalForwardingRules = Mock(Compute.GlobalForwardingRules)
+      def globalForwardingRulesList = Mock(Compute.GlobalForwardingRules.List)
+      def globalForwardingRulesGet = Mock(Compute.GlobalForwardingRules.Get)
+      def globalForwardingRulesDelete = Mock(Compute.GlobalForwardingRules.Delete)
+      def forwardingRule = new ForwardingRule(target: TARGET_TCP_PROXY_URL, name: TCP_LOAD_BALANCER_NAME)
+      def targetTcpProxies = Mock(Compute.TargetTcpProxies)
+      def targetTcpProxiesGet = Mock(Compute.TargetTcpProxies.Get)
+      def targetTcpProxiesDel = Mock(Compute.TargetTcpProxies.Delete)
+      def backendServices = Mock(Compute.BackendServices)
+      def backendServicesGet = Mock(Compute.BackendServices.Get)
+      def backendServicesDelete = Mock(Compute.BackendServices.Delete)
+      def healthChecks = Mock(Compute.HealthChecks)
+      def healthChecksGet = Mock(Compute.HealthChecks.Get)
+      def healthChecksDelete = Mock(Compute.HealthChecks.Delete)
+      def poller = Mock(GoogleOperationPoller)
+      def inUse = GoogleApiTestUtils.makeGoogleJsonResponseException(400, "resourceInUseByAnotherResource")
+
+      def credentials = new GoogleNamedAccountCredentials.Builder().project(PROJECT_NAME).compute(computeMock).build()
+      def description = new DeleteGoogleLoadBalancerDescription(
+        loadBalancerName: TCP_LOAD_BALANCER_NAME,
+        accountName: ACCOUNT_NAME,
+        credentials: credentials)
+      @Subject def operation = new DeleteGoogleTcpLoadBalancerAtomicOperation(description)
+      operation.googleOperationPoller = poller
+      operation.registry = registry
+      operation.safeRetry = safeRetry
+
+    when:
+      operation.operate([])
+
+    then:
+      _ * computeMock.globalForwardingRules() >> globalForwardingRules
+      1 * globalForwardingRules.list(PROJECT_NAME) >> globalForwardingRulesList
+      1 * globalForwardingRulesList.execute() >> [items: [forwardingRule]]
+      1 * globalForwardingRules.get(PROJECT_NAME, TCP_LOAD_BALANCER_NAME) >> globalForwardingRulesGet
+      1 * globalForwardingRulesGet.execute() >> forwardingRule
+      1 * globalForwardingRules.delete(PROJECT_NAME, TCP_LOAD_BALANCER_NAME) >> globalForwardingRulesDelete
+      1 * globalForwardingRulesDelete.execute() >> new Operation(name: FORWARDING_RULE_DELETE_OP_NAME, status: DONE)
+
+      _ * computeMock.targetTcpProxies() >> targetTcpProxies
+      _ * targetTcpProxies.get(PROJECT_NAME, TARGET_TCP_PROXY_NAME) >> targetTcpProxiesGet
+      _ * targetTcpProxiesGet.execute() >> new TargetTcpProxy(service: BACKEND_SERVICE_URL)
+      1 * targetTcpProxies.delete(PROJECT_NAME, TARGET_TCP_PROXY_NAME) >> targetTcpProxiesDel
+      1 * targetTcpProxiesDel.execute() >> new Operation(name: TARGET_TCP_PROXY_DELETE_OP_NAME, status: DONE)
+
+      _ * computeMock.backendServices() >> backendServices
+      1 * backendServices.get(PROJECT_NAME, BACKEND_SERVICE_NAME) >> backendServicesGet
+      1 * backendServicesGet.execute() >> new BackendService(healthChecks: [HEALTH_CHECK_URL])
+      1 * backendServices.delete(PROJECT_NAME, BACKEND_SERVICE_NAME) >> backendServicesDelete
+      1 * backendServicesDelete.execute() >> new Operation(name: BACKEND_SERVICE_DELETE_OP_NAME, status: DONE)
+      _ * computeMock.healthChecks() >> healthChecks
+      1 * healthChecks.get(PROJECT_NAME, HEALTH_CHECK_NAME) >> healthChecksGet
+      1 * healthChecksGet.execute() >> new HealthCheck(name: HEALTH_CHECK_NAME)
+      _ * healthChecks.delete(PROJECT_NAME, HEALTH_CHECK_NAME) >> healthChecksDelete
+      (1.._) * healthChecksDelete.execute() >> { throw inUse }
+
+      1 * poller.waitForGlobalOperation(computeMock, PROJECT_NAME, FORWARDING_RULE_DELETE_OP_NAME, *_)
+      1 * poller.waitForGlobalOperation(computeMock, PROJECT_NAME, TARGET_TCP_PROXY_DELETE_OP_NAME, *_)
+      1 * poller.waitForGlobalOperation(computeMock, PROJECT_NAME, BACKEND_SERVICE_DELETE_OP_NAME, *_)
+      0 * poller.waitForGlobalOperation(*_)
+  }
+
+  void "should #outcome when the backend service delete returns no operation because it is #state"() {
+    setup:
+      def computeMock = Mock(Compute)
+      def globalForwardingRules = Mock(Compute.GlobalForwardingRules)
+      def globalForwardingRulesList = Mock(Compute.GlobalForwardingRules.List)
+      def globalForwardingRulesGet = Mock(Compute.GlobalForwardingRules.Get)
+      def globalForwardingRulesDelete = Mock(Compute.GlobalForwardingRules.Delete)
+      def forwardingRule = new ForwardingRule(target: TARGET_TCP_PROXY_URL, name: TCP_LOAD_BALANCER_NAME)
+      def targetTcpProxies = Mock(Compute.TargetTcpProxies)
+      def targetTcpProxiesGet = Mock(Compute.TargetTcpProxies.Get)
+      def targetTcpProxiesDel = Mock(Compute.TargetTcpProxies.Delete)
+      def backendServices = Mock(Compute.BackendServices)
+      def backendServicesGet = Mock(Compute.BackendServices.Get)
+      def backendServicesDelete = Mock(Compute.BackendServices.Delete)
+      def healthChecks = Mock(Compute.HealthChecks)
+      def healthChecksGet = Mock(Compute.HealthChecks.Get)
+      def healthChecksDelete = Mock(Compute.HealthChecks.Delete)
+      def poller = Mock(GoogleOperationPoller)
+      def backendService = new BackendService(healthChecks: [HEALTH_CHECK_URL])
+
+      def credentials = new GoogleNamedAccountCredentials.Builder().project(PROJECT_NAME).compute(computeMock).build()
+      def description = new DeleteGoogleLoadBalancerDescription(
+        loadBalancerName: TCP_LOAD_BALANCER_NAME,
+        accountName: ACCOUNT_NAME,
+        credentials: credentials)
+      @Subject def operation = new DeleteGoogleTcpLoadBalancerAtomicOperation(description)
+      operation.googleOperationPoller = poller
+      operation.registry = registry
+      operation.safeRetry = safeRetry
+
+    when:
+      def error = null
+      try {
+        operation.operate([])
+      } catch (IllegalStateException e) {
+        error = e
+      }
+
+    then:
+      _ * computeMock.globalForwardingRules() >> globalForwardingRules
+      1 * globalForwardingRules.list(PROJECT_NAME) >> globalForwardingRulesList
+      1 * globalForwardingRulesList.execute() >> [items: [forwardingRule]]
+      1 * globalForwardingRules.get(PROJECT_NAME, TCP_LOAD_BALANCER_NAME) >> globalForwardingRulesGet
+      1 * globalForwardingRulesGet.execute() >> forwardingRule
+      1 * globalForwardingRules.delete(PROJECT_NAME, TCP_LOAD_BALANCER_NAME) >> globalForwardingRulesDelete
+      1 * globalForwardingRulesDelete.execute() >> new Operation(name: FORWARDING_RULE_DELETE_OP_NAME, status: DONE)
+
+      _ * computeMock.targetTcpProxies() >> targetTcpProxies
+      _ * targetTcpProxies.get(PROJECT_NAME, TARGET_TCP_PROXY_NAME) >> targetTcpProxiesGet
+      _ * targetTcpProxiesGet.execute() >> new TargetTcpProxy(service: BACKEND_SERVICE_URL)
+      1 * targetTcpProxies.delete(PROJECT_NAME, TARGET_TCP_PROXY_NAME) >> targetTcpProxiesDel
+      1 * targetTcpProxiesDel.execute() >> new Operation(name: TARGET_TCP_PROXY_DELETE_OP_NAME, status: DONE)
+
+      _ * computeMock.backendServices() >> backendServices
+      2 * backendServices.get(PROJECT_NAME, BACKEND_SERVICE_NAME) >> backendServicesGet
+      2 * backendServicesGet.execute() >>> [backendService] >> {
+        if (stillExists) {
+          return backendService
+        }
+        throw GoogleApiTestUtils.makeGoogleJsonResponseException(404)
+      }
+      _ * backendServices.delete(PROJECT_NAME, BACKEND_SERVICE_NAME) >> backendServicesDelete
+      (1.._) * backendServicesDelete.execute() >> {
+        throw GoogleApiTestUtils.makeGoogleJsonResponseException(deleteStatus, deleteReason)
+      }
+      _ * computeMock.healthChecks() >> healthChecks
+      1 * healthChecks.get(PROJECT_NAME, HEALTH_CHECK_NAME) >> healthChecksGet
+      1 * healthChecksGet.execute() >> new HealthCheck(name: HEALTH_CHECK_NAME)
+      (stillExists ? 0 : 1) * healthChecks.delete(PROJECT_NAME, HEALTH_CHECK_NAME) >> healthChecksDelete
+      (stillExists ? 0 : 1) * healthChecksDelete.execute() >> new Operation(name: HEALTH_CHECK_DELETE_OP_NAME, status: DONE)
+
+      (stillExists ? 2 : 3) * poller.waitForGlobalOperation(*_)
+      stillExists ? error.message.contains("Backend service $BACKEND_SERVICE_NAME is still used by another resource") : error == null
+
+    where:
+      state          | deleteStatus | deleteReason                     | stillExists || outcome
+      "still in use" | 400          | "resourceInUseByAnotherResource" | true        || "fail with a clear error"
+      "already gone" | 404          | null                             | false       || "keep deleting"
+  }
+
+  void "should delete tcp load balancer when another rule's target proxy disappears during the lookup"() {
+    setup:
+      def computeMock = Mock(Compute)
+      def globalForwardingRules = Mock(Compute.GlobalForwardingRules)
+      def globalForwardingRulesList = Mock(Compute.GlobalForwardingRules.List)
+      def globalForwardingRulesGet = Mock(Compute.GlobalForwardingRules.Get)
+      def globalForwardingRulesDelete = Mock(Compute.GlobalForwardingRules.Delete)
+      def forwardingRule = new ForwardingRule(target: TARGET_TCP_PROXY_URL, name: TCP_LOAD_BALANCER_NAME)
+      def otherRule = new ForwardingRule(
+        target: "projects/$PROJECT_NAME/global/targetTcpProxies/other-proxy", name: "other-load-balancer")
+      def targetTcpProxies = Mock(Compute.TargetTcpProxies)
+      def targetTcpProxiesGet = Mock(Compute.TargetTcpProxies.Get)
+      def otherProxyGet = Mock(Compute.TargetTcpProxies.Get)
+      def targetTcpProxiesDel = Mock(Compute.TargetTcpProxies.Delete)
+      def backendServices = Mock(Compute.BackendServices)
+      def backendServicesGet = Mock(Compute.BackendServices.Get)
+      def backendServicesDelete = Mock(Compute.BackendServices.Delete)
+      def healthChecks = Mock(Compute.HealthChecks)
+      def healthChecksGet = Mock(Compute.HealthChecks.Get)
+      def healthChecksDelete = Mock(Compute.HealthChecks.Delete)
+      def poller = Mock(GoogleOperationPoller)
+
+      def credentials = new GoogleNamedAccountCredentials.Builder().project(PROJECT_NAME).compute(computeMock).build()
+      def description = new DeleteGoogleLoadBalancerDescription(
+        loadBalancerName: TCP_LOAD_BALANCER_NAME,
+        accountName: ACCOUNT_NAME,
+        credentials: credentials)
+      @Subject def operation = new DeleteGoogleTcpLoadBalancerAtomicOperation(description)
+      operation.googleOperationPoller = poller
+      operation.registry = registry
+      operation.safeRetry = safeRetry
+
+    when:
+      operation.operate([])
+
+    then:
+      _ * computeMock.globalForwardingRules() >> globalForwardingRules
+      1 * globalForwardingRules.list(PROJECT_NAME) >> globalForwardingRulesList
+      1 * globalForwardingRulesList.execute() >> [items: [forwardingRule, otherRule]]
+      1 * globalForwardingRules.get(PROJECT_NAME, TCP_LOAD_BALANCER_NAME) >> globalForwardingRulesGet
+      1 * globalForwardingRulesGet.execute() >> forwardingRule
+      1 * globalForwardingRules.delete(PROJECT_NAME, TCP_LOAD_BALANCER_NAME) >> globalForwardingRulesDelete
+      1 * globalForwardingRulesDelete.execute() >> new Operation(name: FORWARDING_RULE_DELETE_OP_NAME, status: DONE)
+      0 * globalForwardingRules.delete(PROJECT_NAME, "other-load-balancer")
+
+      _ * computeMock.targetTcpProxies() >> targetTcpProxies
+      _ * targetTcpProxies.get(PROJECT_NAME, TARGET_TCP_PROXY_NAME) >> targetTcpProxiesGet
+      _ * targetTcpProxiesGet.execute() >> new TargetTcpProxy(service: BACKEND_SERVICE_URL)
+      1 * targetTcpProxies.get(PROJECT_NAME, "other-proxy") >> otherProxyGet
+      1 * otherProxyGet.execute() >> { throw GoogleApiTestUtils.makeGoogleJsonResponseException(404) }
+      1 * targetTcpProxies.delete(PROJECT_NAME, TARGET_TCP_PROXY_NAME) >> targetTcpProxiesDel
+      1 * targetTcpProxiesDel.execute() >> new Operation(name: TARGET_TCP_PROXY_DELETE_OP_NAME, status: DONE)
+
+      _ * computeMock.backendServices() >> backendServices
+      1 * backendServices.get(PROJECT_NAME, BACKEND_SERVICE_NAME) >> backendServicesGet
+      1 * backendServicesGet.execute() >> new BackendService(healthChecks: [HEALTH_CHECK_URL])
+      1 * backendServices.delete(PROJECT_NAME, BACKEND_SERVICE_NAME) >> backendServicesDelete
+      1 * backendServicesDelete.execute() >> new Operation(name: BACKEND_SERVICE_DELETE_OP_NAME, status: DONE)
+      _ * computeMock.healthChecks() >> healthChecks
+      1 * healthChecks.get(PROJECT_NAME, HEALTH_CHECK_NAME) >> healthChecksGet
+      1 * healthChecksGet.execute() >> new HealthCheck(name: HEALTH_CHECK_NAME)
+      1 * healthChecks.delete(PROJECT_NAME, HEALTH_CHECK_NAME) >> healthChecksDelete
+      1 * healthChecksDelete.execute() >> new Operation(name: HEALTH_CHECK_DELETE_OP_NAME, status: DONE)
+      4 * poller.waitForGlobalOperation(*_)
+  }
+
+  void "should delete tcp load balancer's target proxy when its rule disappears after the lookup"() {
+    setup:
+      def computeMock = Mock(Compute)
+      def globalForwardingRules = Mock(Compute.GlobalForwardingRules)
+      def globalForwardingRulesList = Mock(Compute.GlobalForwardingRules.List)
+      def globalForwardingRulesGet = Mock(Compute.GlobalForwardingRules.Get)
+      def forwardingRule = new ForwardingRule(target: TARGET_TCP_PROXY_URL, name: TCP_LOAD_BALANCER_NAME)
+      def targetTcpProxies = Mock(Compute.TargetTcpProxies)
+      def targetTcpProxiesGet = Mock(Compute.TargetTcpProxies.Get)
+      def targetTcpProxiesDel = Mock(Compute.TargetTcpProxies.Delete)
+      def backendServices = Mock(Compute.BackendServices)
+      def backendServicesGet = Mock(Compute.BackendServices.Get)
+      def backendServicesDelete = Mock(Compute.BackendServices.Delete)
+      def healthChecks = Mock(Compute.HealthChecks)
+      def healthChecksGet = Mock(Compute.HealthChecks.Get)
+      def healthChecksDelete = Mock(Compute.HealthChecks.Delete)
+      def poller = Mock(GoogleOperationPoller)
+
+      def credentials = new GoogleNamedAccountCredentials.Builder().project(PROJECT_NAME).compute(computeMock).build()
+      def description = new DeleteGoogleLoadBalancerDescription(
+        loadBalancerName: TCP_LOAD_BALANCER_NAME,
+        accountName: ACCOUNT_NAME,
+        credentials: credentials)
+      @Subject def operation = new DeleteGoogleTcpLoadBalancerAtomicOperation(description)
+      operation.googleOperationPoller = poller
+      operation.registry = registry
+      operation.safeRetry = safeRetry
+
+    when:
+      operation.operate([])
+
+    then:
+      _ * computeMock.globalForwardingRules() >> globalForwardingRules
+      1 * globalForwardingRules.list(PROJECT_NAME) >> globalForwardingRulesList
+      1 * globalForwardingRulesList.execute() >> [items: [forwardingRule]]
+      1 * globalForwardingRules.get(PROJECT_NAME, TCP_LOAD_BALANCER_NAME) >> globalForwardingRulesGet
+      1 * globalForwardingRulesGet.execute() >> { throw GoogleApiTestUtils.makeGoogleJsonResponseException(404) }
+      0 * globalForwardingRules.delete(*_)
+
+      _ * computeMock.targetTcpProxies() >> targetTcpProxies
+      _ * targetTcpProxies.get(PROJECT_NAME, TARGET_TCP_PROXY_NAME) >> targetTcpProxiesGet
+      _ * targetTcpProxiesGet.execute() >> new TargetTcpProxy(service: BACKEND_SERVICE_URL)
+      1 * targetTcpProxies.delete(PROJECT_NAME, TARGET_TCP_PROXY_NAME) >> targetTcpProxiesDel
+      1 * targetTcpProxiesDel.execute() >> new Operation(name: TARGET_TCP_PROXY_DELETE_OP_NAME, status: DONE)
+
+      _ * computeMock.backendServices() >> backendServices
+      1 * backendServices.get(PROJECT_NAME, BACKEND_SERVICE_NAME) >> backendServicesGet
+      1 * backendServicesGet.execute() >> new BackendService(healthChecks: [HEALTH_CHECK_URL])
+      1 * backendServices.delete(PROJECT_NAME, BACKEND_SERVICE_NAME) >> backendServicesDelete
+      1 * backendServicesDelete.execute() >> new Operation(name: BACKEND_SERVICE_DELETE_OP_NAME, status: DONE)
+      _ * computeMock.healthChecks() >> healthChecks
+      1 * healthChecks.get(PROJECT_NAME, HEALTH_CHECK_NAME) >> healthChecksGet
+      1 * healthChecksGet.execute() >> new HealthCheck(name: HEALTH_CHECK_NAME)
+      1 * healthChecks.delete(PROJECT_NAME, HEALTH_CHECK_NAME) >> healthChecksDelete
+      1 * healthChecksDelete.execute() >> new Operation(name: HEALTH_CHECK_DELETE_OP_NAME, status: DONE)
+
+      1 * poller.waitForGlobalOperation(computeMock, PROJECT_NAME, TARGET_TCP_PROXY_DELETE_OP_NAME, *_)
+      1 * poller.waitForGlobalOperation(computeMock, PROJECT_NAME, BACKEND_SERVICE_DELETE_OP_NAME, *_)
+      1 * poller.waitForGlobalOperation(computeMock, PROJECT_NAME, HEALTH_CHECK_DELETE_OP_NAME, *_)
+      0 * poller.waitForGlobalOperation(*_)
   }
 
   void "should fail to delete tcp load balancer that doesn't exist"() {
@@ -229,9 +570,9 @@ class DeleteGoogleTcpLoadBalancerAtomicOperationUnitSpec extends Specification {
       def targetTcpProxiesDeleteOp = new Operation(
         name: TARGET_TCP_PROXY_DELETE_OP_NAME,
         status: PENDING)
-      GCEUtil.deleteGlobalListener(computeMock, PROJECT_NAME, TCP_LOAD_BALANCER_NAME, BASE_PHASE, safeRetry) >> targetTcpProxiesDeleteOp
 
       def globalOperations = Mock(Compute.GlobalOperations)
+      def forwardingRuleOperationGet = Mock(Compute.GlobalOperations.Get)
       def targetTcpProxiesOperationGet = Mock(Compute.GlobalOperations.Get)
 
       def credentials = new GoogleNamedAccountCredentials.Builder().project(PROJECT_NAME).compute(computeMock).build()
@@ -279,7 +620,10 @@ class DeleteGoogleTcpLoadBalancerAtomicOperationUnitSpec extends Specification {
       1 * targetTcpProxies.delete(PROJECT_NAME, TARGET_TCP_PROXY_NAME) >> targetTcpProxiesDel
       1 * targetTcpProxiesDel.execute() >> targetTcpProxiesDeleteOp
 
-      1 * computeMock.globalOperations() >> globalOperations
+      2 * computeMock.globalOperations() >> globalOperations
+
+      1 * globalOperations.get(PROJECT_NAME, FORWARDING_RULE_DELETE_OP_NAME) >> forwardingRuleOperationGet
+      1 * forwardingRuleOperationGet.execute() >> globalForwardingRulesDeleteOp
 
       1 * globalOperations.get(PROJECT_NAME, TARGET_TCP_PROXY_DELETE_OP_NAME) >> targetTcpProxiesOperationGet
       1 * targetTcpProxiesOperationGet.execute() >> targetTcpProxiesDeleteOp

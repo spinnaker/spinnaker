@@ -19,6 +19,7 @@ package com.netflix.spinnaker.clouddriver.google.deploy.ops.loadbalancer
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.google.api.services.compute.Compute
 import com.google.api.services.compute.model.BackendService
+import com.google.api.services.compute.model.ForwardingRule
 import com.google.api.services.compute.model.HTTPHealthCheck
 import com.google.api.services.compute.model.HealthCheck
 import com.google.api.services.compute.model.Operation
@@ -179,6 +180,90 @@ class UpsertGoogleTcpLoadBalancerAtomicOperationUnitSpec extends Specification {
     1 * globalOperationGet.execute() >> proxyOp
     1 * globalOperations.get(PROJECT_NAME, FORWARDING_RULE_OP_NAME) >> globalOperationGet
     1 * globalOperationGet.execute() >> forwardingRuleOp
+  }
+
+  void "should wait for the target proxy delete of each removed listener"() {
+    def computeMock = Mock(Compute)
+
+    def credentialsRepo = new MapBackedCredentialsRepository(GoogleNamedAccountCredentials.CREDENTIALS_TYPE,
+      new NoopCredentialsLifecycleHandler<>())
+    def credentials = new GoogleNamedAccountCredentials.Builder().name(ACCOUNT_NAME).project(PROJECT_NAME).applicationName("my-application").compute(computeMock).credentials(new FakeGoogleCredentials()).build()
+    credentialsRepo.save(credentials)
+    def converter = new UpsertGoogleLoadBalancerAtomicOperationConverter(
+      credentialsRepository: credentialsRepo
+    )
+
+    def forwardingRules = Mock(Compute.GlobalForwardingRules)
+    def forwardingRulesGet = Mock(Compute.GlobalForwardingRules.Get)
+    def forwardingRulesInsert = Mock(Compute.GlobalForwardingRules.Insert)
+    def removedListenerGet = Mock(Compute.GlobalForwardingRules.Get)
+    def removedListenerDelete = Mock(Compute.GlobalForwardingRules.Delete)
+    def targetProxies = Mock(Compute.TargetTcpProxies)
+    def targetProxiesInsert = Mock(Compute.TargetTcpProxies.Insert)
+    def removedProxyDelete = Mock(Compute.TargetTcpProxies.Delete)
+    def healthChecks = Mock(Compute.HealthChecks)
+    def healthChecksGet = Mock(Compute.HealthChecks.Get)
+    def healthChecksInsert = Mock(Compute.HealthChecks.Insert)
+    def backendServices = Mock(Compute.BackendServices)
+    def backendServicesGet = Mock(Compute.BackendServices.Get)
+    def backendServicesInsert = Mock(Compute.BackendServices.Insert)
+    def poller = Mock(GoogleOperationPoller)
+
+    def input = [
+      accountName        : ACCOUNT_NAME,
+      "loadBalancerName" : LOAD_BALANCER_NAME,
+      "portRange"        : PORT_RANGE,
+      "region"           : 'global',
+      "backendService"   : [
+        "name"           : DEFAULT_SERVICE,
+        "backends"       : [],
+        "healthCheck"    : hc,
+        "sessionAffinity": "NONE",
+      ],
+      "listenersToDelete": ["removed-listener"]
+    ]
+
+    def description = converter.convertDescription(input)
+    @Subject def operation = new UpsertGoogleTcpLoadBalancerAtomicOperation(description)
+    operation.googleOperationPoller = poller
+    operation.registry = registry
+    operation.safeRetry = safeRetry
+
+    when:
+    operation.operate([])
+
+    then:
+    _ * computeMock.globalForwardingRules() >> forwardingRules
+    1 * forwardingRules.get(PROJECT_NAME, LOAD_BALANCER_NAME) >> forwardingRulesGet
+    1 * forwardingRulesGet.execute() >> null
+    1 * forwardingRules.insert(PROJECT_NAME, _) >> forwardingRulesInsert
+    1 * forwardingRulesInsert.execute() >> new Operation(name: FORWARDING_RULE_OP_NAME, status: DONE)
+    _ * computeMock.targetTcpProxies() >> targetProxies
+    1 * targetProxies.insert(PROJECT_NAME, _) >> targetProxiesInsert
+    1 * targetProxiesInsert.execute() >> new Operation(name: PROXY_OP_NAME, status: DONE)
+    _ * computeMock.healthChecks() >> healthChecks
+    1 * healthChecks.get(PROJECT_NAME, "basic-check") >> healthChecksGet
+    1 * healthChecksGet.execute() >> null
+    1 * healthChecks.insert(PROJECT_NAME, _) >> healthChecksInsert
+    1 * healthChecksInsert.execute() >> new Operation(name: HEALTH_CHECK_OP_NAME, status: DONE)
+    _ * computeMock.backendServices() >> backendServices
+    1 * backendServices.get(PROJECT_NAME, DEFAULT_SERVICE) >> backendServicesGet
+    1 * backendServicesGet.execute() >> null
+    1 * backendServices.insert(PROJECT_NAME, _) >> backendServicesInsert
+    1 * backendServicesInsert.execute() >> new Operation(name: BACKEND_SERVICE_OP_NAME, status: DONE)
+
+    1 * forwardingRules.get(PROJECT_NAME, "removed-listener") >> removedListenerGet
+    1 * removedListenerGet.execute() >> new ForwardingRule(
+      name: "removed-listener",
+      target: "projects/$PROJECT_NAME/global/targetTcpProxies/removed-proxy")
+    1 * forwardingRules.delete(PROJECT_NAME, "removed-listener") >> removedListenerDelete
+    1 * removedListenerDelete.execute() >> new Operation(name: "removed-listener-delete")
+    1 * targetProxies.delete(PROJECT_NAME, "removed-proxy") >> removedProxyDelete
+    1 * removedProxyDelete.execute() >> new Operation(name: "removed-proxy-delete")
+
+    1 * poller.waitForGlobalOperation(computeMock, PROJECT_NAME, "removed-listener-delete", *_)
+    1 * poller.waitForGlobalOperation(computeMock, PROJECT_NAME, "removed-proxy-delete", *_)
+    4 * poller.waitForGlobalOperation(*_)
   }
 
   void "should update backend service if it exists"() {
