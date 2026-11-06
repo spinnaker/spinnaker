@@ -80,11 +80,27 @@ public class ContainerInformationService {
       String taskId, String serviceName, String accountName, String region) {
     Service service = getService(serviceName, accountName, region);
 
-    String healthKey = Keys.getTaskHealthKey(accountName, region, taskId);
-    TaskHealth taskHealth = taskHealthCacheClient.get(healthKey);
-
     String taskKey = Keys.getTaskKey(accountName, region, taskId);
     Task task = taskCacheClient.get(taskKey);
+
+    boolean hasHealthCheck = task != null && taskHasHealthCheck(service, accountName, region);
+    return getHealthStatus(taskId, task, service, hasHealthCheck, accountName, region);
+  }
+
+  /**
+   * Variant for callers that already hold the task, its service and whether the service's task
+   * definition has a health check (e.g. when building a whole server group), so none of them are
+   * read from the cache again for every task.
+   */
+  public List<Map<String, Object>> getHealthStatus(
+      String taskId,
+      Task task,
+      Service service,
+      boolean hasHealthCheck,
+      String accountName,
+      String region) {
+    String healthKey = Keys.getTaskHealthKey(accountName, region, taskId);
+    TaskHealth taskHealth = taskHealthCacheClient.get(healthKey);
 
     List<Map<String, Object>> healthMetrics = new ArrayList<>();
 
@@ -107,10 +123,8 @@ public class ContainerInformationService {
 
     // Task-based health
     if (task != null) {
-      boolean hasHealthCheck = false;
       EcsTargetHealth targetHealth = null;
       if (service != null) {
-        hasHealthCheck = taskHasHealthCheck(service, accountName, region);
         LoadBalancer loadBalancer = service.getLoadBalancers().stream().findFirst().orElse(null);
         if (loadBalancer != null) {
           String targetGroupKey =
@@ -137,14 +151,18 @@ public class ContainerInformationService {
     if (service != null) {
       String taskDefinitionCacheKey =
           Keys.getTaskDefinitionKey(accountName, region, service.getTaskDefinition());
-      TaskDefinition taskDefinition = taskDefinitionCacheClient.get(taskDefinitionCacheKey);
+      return taskDefinitionHasHealthCheck(taskDefinitionCacheClient.get(taskDefinitionCacheKey));
+    }
 
-      if (taskDefinition != null) {
-        for (ContainerDefinition containerDefinition : taskDefinition.containerDefinitions()) {
-          if (containerDefinition.healthCheck() != null
-              && containerDefinition.healthCheck().command() != null) {
-            return true;
-          }
+    return false;
+  }
+
+  public boolean taskDefinitionHasHealthCheck(TaskDefinition taskDefinition) {
+    if (taskDefinition != null) {
+      for (ContainerDefinition containerDefinition : taskDefinition.containerDefinitions()) {
+        if (containerDefinition.healthCheck() != null
+            && containerDefinition.healthCheck().command() != null) {
+          return true;
         }
       }
     }
