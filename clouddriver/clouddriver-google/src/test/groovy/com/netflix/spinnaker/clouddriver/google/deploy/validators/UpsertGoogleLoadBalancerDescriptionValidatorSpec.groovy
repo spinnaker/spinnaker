@@ -40,6 +40,7 @@ import static com.netflix.spinnaker.clouddriver.google.deploy.ops.loadbalancer.U
 class UpsertGoogleLoadBalancerDescriptionValidatorSpec extends Specification {
   private static final LOAD_BALANCER_NAME = "spinnaker-test-v000"
   private static final REGION = "us-central1"
+  private static final UNMANAGED_REGION = "us-east1"
   private static final ACCOUNT_NAME = "auto"
   private static final INSTANCE = "inst"
 
@@ -62,7 +63,7 @@ class UpsertGoogleLoadBalancerDescriptionValidatorSpec extends Specification {
       .credentials(new FakeGoogleCredentials())
       .compute(compute)
       .regionsToManage([REGION], [])
-      .regionToZonesMap(["us-central1": ["us-central1-a"]])
+      .regionToZonesMap(["us-central1": ["us-central1-a"], (UNMANAGED_REGION): ["us-east1-b"]])
       .build()
     credentialsRepo.save(credentials)
     validator.credentialsRepository = credentialsRepo
@@ -381,6 +382,40 @@ class UpsertGoogleLoadBalancerDescriptionValidatorSpec extends Specification {
         "upsertGoogleLoadBalancerDescription.certificateMap.internalManagedNotSupported")
   }
 
+  @Unroll
+  void "internal managed HTTP upsert validates its region (region: #region)"() {
+    setup:
+      def input = [
+        accountName       : ACCOUNT_NAME,
+        loadBalancerType  : GoogleLoadBalancerType.INTERNAL_MANAGED,
+        "loadBalancerName": LOAD_BALANCER_NAME,
+        "region"          : region,
+        "portRange"       : PORT_RANGE,
+        "defaultService"  : [
+          "name"       : DEFAULT_SERVICE,
+          "backends"   : [],
+          "healthCheck": hc,
+        ],
+        "hostRules"       : null,
+      ]
+      def description = converter.convertDescription(input)
+      def errors = Mock(ValidationErrors)
+
+    when:
+      validator.validate([], description, errors)
+
+    then:
+      (code ? 1 : 0) * errors.rejectValue("region", code)
+      0 * errors._
+
+    where:
+      region           | code
+      REGION           | null
+      null             | "upsertGoogleLoadBalancerDescription.region.empty"
+      "us-nowhere1"    | "upsertGoogleLoadBalancerDescription.region.invalid"
+      UNMANAGED_REGION | "upsertGoogleLoadBalancerDescription.region.unconfigured"
+  }
+
   void "pass validation with proper external managed HTTP inputs"() {
     setup:
       def input = [
@@ -457,6 +492,91 @@ class UpsertGoogleLoadBalancerDescriptionValidatorSpec extends Specification {
       1 * errors.rejectValue("defaultService",
         "upsertGoogleLoadBalancerDescription.backendServiceRequired")
       0 * errors._
+  }
+
+  @Unroll
+  void "#type rejects a URL map entry without a backend service name at #field"() {
+    setup:
+      def service = [name: DEFAULT_SERVICE, backends: [], healthCheck: hc]
+      def nameless = [backends: [], healthCheck: hc]
+      def input = [
+        accountName       : ACCOUNT_NAME,
+        loadBalancerType  : type,
+        region            : REGION,
+        network           : "default",
+        "loadBalancerName": LOAD_BALANCER_NAME,
+        "portRange"       : PORT_RANGE,
+        "defaultService"  : missingAt == "default" ? null : service,
+        "hostRules"       : [[
+          hostPatterns: ["*"],
+          pathMatcher : [
+            defaultService: missingAt == "pathMatcher" ? null : service,
+            pathRules     : [[paths: ["/api/*"], backendService: missingAt == "pathRule" ? nameless : service]],
+          ],
+        ]],
+      ]
+      def description = converter.convertDescription(input)
+      def errors = Mock(ValidationErrors)
+
+    when:
+      validator.validate([], description, errors)
+
+    then:
+      1 * errors.rejectValue(field, "upsertGoogleLoadBalancerDescription.backendServiceRequired")
+      0 * errors._
+
+    where:
+      type                                    | missingAt     || field
+      GoogleLoadBalancerType.INTERNAL_MANAGED | "default"     || "defaultService"
+      GoogleLoadBalancerType.INTERNAL_MANAGED | "pathMatcher" || "hostRules.pathMatcher.defaultService"
+      GoogleLoadBalancerType.INTERNAL_MANAGED | "pathRule"    || "hostRules.pathMatcher.pathRules.backendService"
+      GoogleLoadBalancerType.EXTERNAL_MANAGED | "pathMatcher" || "hostRules.pathMatcher.defaultService"
+      GoogleLoadBalancerType.EXTERNAL_MANAGED | "pathRule"    || "hostRules.pathMatcher.pathRules.backendService"
+      GoogleLoadBalancerType.HTTP             | "default"     || "defaultService"
+      GoogleLoadBalancerType.HTTP             | "pathMatcher" || "hostRules.pathMatcher.defaultService"
+      GoogleLoadBalancerType.HTTP             | "pathRule"    || "hostRules.pathMatcher.pathRules.backendService"
+  }
+
+  @Unroll
+  void "#type rejects a #shape at #field"() {
+    setup:
+      def service = [name: DEFAULT_SERVICE, backends: [], healthCheck: hc]
+      def hostRules = [
+        "null host rule"   : [null],
+        "null path matcher": [[hostPatterns: ["*"], pathMatcher: null]],
+        "null path rule"   : [[hostPatterns: ["*"], pathMatcher: [defaultService: service, pathRules: [null]]]],
+      ][shape]
+      def input = [
+        accountName       : ACCOUNT_NAME,
+        loadBalancerType  : type,
+        region            : REGION,
+        network           : "default",
+        "loadBalancerName": LOAD_BALANCER_NAME,
+        "portRange"       : PORT_RANGE,
+        "defaultService"  : service,
+        "hostRules"       : hostRules,
+      ]
+      def description = converter.convertDescription(input)
+      def errors = Mock(ValidationErrors)
+
+    when:
+      validator.validate([], description, errors)
+
+    then:
+      1 * errors.rejectValue(field, "upsertGoogleLoadBalancerDescription.backendServiceRequired")
+      0 * errors._
+
+    where:
+      type                                    | shape               || field
+      GoogleLoadBalancerType.INTERNAL_MANAGED | "null host rule"    || "hostRules.pathMatcher.defaultService"
+      GoogleLoadBalancerType.INTERNAL_MANAGED | "null path matcher" || "hostRules.pathMatcher.defaultService"
+      GoogleLoadBalancerType.INTERNAL_MANAGED | "null path rule"    || "hostRules.pathMatcher.pathRules.backendService"
+      GoogleLoadBalancerType.EXTERNAL_MANAGED | "null host rule"    || "hostRules.pathMatcher.defaultService"
+      GoogleLoadBalancerType.EXTERNAL_MANAGED | "null path matcher" || "hostRules.pathMatcher.defaultService"
+      GoogleLoadBalancerType.EXTERNAL_MANAGED | "null path rule"    || "hostRules.pathMatcher.pathRules.backendService"
+      GoogleLoadBalancerType.HTTP             | "null host rule"    || "hostRules.pathMatcher.defaultService"
+      GoogleLoadBalancerType.HTTP             | "null path matcher" || "hostRules.pathMatcher.defaultService"
+      GoogleLoadBalancerType.HTTP             | "null path rule"    || "hostRules.pathMatcher.pathRules.backendService"
   }
 
   void "pass validation when regional external network optional address and networkTier are omitted"() {
@@ -1154,6 +1274,54 @@ class UpsertGoogleLoadBalancerDescriptionValidatorSpec extends Specification {
       "backendService.sessionAffinity" | "upsertGoogleLoadBalancerDescription.backendService.sessionAffinity.notSupported" | { it.backendService.sessionAffinity = GoogleSessionAffinity.GENERATED_COOKIE }
       "ipAddress"                      | "upsertGoogleLoadBalancerDescription.ipAddress.ipv6NotSupported"                  | { it.ipAddress = "2001:db8::1" }
       "backendService.healthCheck.port" | "upsertGoogleLoadBalancerDescription.healthCheck.port.invalid"                  | { it.backendService.healthCheck.port = 0 }
+  }
+
+  @Unroll
+  void "#type rejects a request without #field"() {
+    setup:
+      def description = singleBackendServiceDescription(type)
+      mutation(description)
+      def errors = Mock(ValidationErrors)
+
+    when:
+      validator.validate([], description, errors)
+
+    then:
+      1 * errors.rejectValue(field, code)
+      0 * errors._
+
+    where:
+      type                                             | field                             | code                                                                        | mutation
+      GoogleLoadBalancerType.INTERNAL                  | "backendService"                  | "upsertGoogleLoadBalancerDescription.backendServiceRequired"                | { it.backendService = null }
+      GoogleLoadBalancerType.INTERNAL                  | "backendService.name"             | "upsertGoogleLoadBalancerDescription.backendService.name.empty"             | { it.backendService.name = null }
+      GoogleLoadBalancerType.INTERNAL                  | "backendService.healthCheck.name" | "upsertGoogleLoadBalancerDescription.backendService.healthCheck.name.empty" | { it.backendService.healthCheck.name = null }
+      GoogleLoadBalancerType.INTERNAL                  | "backendService.name"             | "upsertGoogleLoadBalancerDescription.backendService.name.empty"             | { it.backendService.name = "" }
+      GoogleLoadBalancerType.INTERNAL                  | "backendService.healthCheck.name" | "upsertGoogleLoadBalancerDescription.backendService.healthCheck.name.empty" | { it.backendService.healthCheck.name = "" }
+      GoogleLoadBalancerType.REGIONAL_EXTERNAL_NETWORK | "backendService.name"             | "upsertGoogleLoadBalancerDescription.backendService.name.empty"             | { it.backendService.name = null }
+      GoogleLoadBalancerType.REGIONAL_EXTERNAL_NETWORK | "backendService.healthCheck.name" | "upsertGoogleLoadBalancerDescription.backendService.healthCheck.name.empty" | { it.backendService.healthCheck.name = null }
+      GoogleLoadBalancerType.SSL                       | "backendService.name"             | "upsertGoogleLoadBalancerDescription.backendService.name.empty"             | { it.backendService.name = null }
+      GoogleLoadBalancerType.SSL                       | "backendService.healthCheck.name" | "upsertGoogleLoadBalancerDescription.backendService.healthCheck.name.empty" | { it.backendService.healthCheck.name = null }
+      GoogleLoadBalancerType.TCP                       | "backendService.name"             | "upsertGoogleLoadBalancerDescription.backendService.name.empty"             | { it.backendService.name = null }
+      GoogleLoadBalancerType.TCP                       | "backendService.healthCheck.name" | "upsertGoogleLoadBalancerDescription.backendService.healthCheck.name.empty" | { it.backendService.healthCheck.name = null }
+  }
+
+  // Each type ignores the fields only the others validate.
+  private static UpsertGoogleLoadBalancerDescription singleBackendServiceDescription(GoogleLoadBalancerType type) {
+    if (type == GoogleLoadBalancerType.REGIONAL_EXTERNAL_NETWORK) {
+      return regionalExternalNetworkDescription()
+    }
+    new UpsertGoogleLoadBalancerDescription(
+      loadBalancerType: type,
+      loadBalancerName: LOAD_BALANCER_NAME,
+      region: REGION,
+      accountName: ACCOUNT_NAME,
+      network: "default",
+      subnet: "default",
+      portRange: SSL_PROXY_PORT_RANGE,
+      certificate: CERTIFICATE,
+      backendService: new GoogleBackendService(
+        name: DEFAULT_SERVICE,
+        healthCheck: new GoogleHealthCheck(name: "health-check", port: 80)))
   }
 
   private static UpsertGoogleLoadBalancerDescription regionalExternalNetworkDescription() {
