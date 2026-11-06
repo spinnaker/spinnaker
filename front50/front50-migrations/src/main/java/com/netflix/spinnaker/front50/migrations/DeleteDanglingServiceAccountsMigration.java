@@ -17,7 +17,6 @@
 
 package com.netflix.spinnaker.front50.migrations;
 
-import com.netflix.spinnaker.front50.config.annotations.ConditionalOnAnyProviderExceptRedisIsEnabled;
 import com.netflix.spinnaker.front50.model.pipeline.PipelineDAO;
 import com.netflix.spinnaker.front50.model.serviceaccount.ServiceAccount;
 import com.netflix.spinnaker.front50.model.serviceaccount.ServiceAccountDAO;
@@ -29,11 +28,12 @@ import java.util.stream.Collectors;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.stereotype.Component;
 
 @Slf4j
 @Component
-@ConditionalOnAnyProviderExceptRedisIsEnabled
+@ConditionalOnProperty("sql.enabled")
 public class DeleteDanglingServiceAccountsMigration implements Migration {
 
   // Only valid until December 31, 2020, unless migrations.deleteDanglingManagedServiceAccounts or

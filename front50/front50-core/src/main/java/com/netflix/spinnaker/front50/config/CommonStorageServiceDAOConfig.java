@@ -50,15 +50,10 @@ import io.github.resilience4j.circuitbreaker.CircuitBreakerRegistry;
 import io.reactivex.rxjava3.schedulers.Schedulers;
 import java.util.concurrent.Executors;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
-import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
 @Configuration
-@ConditionalOnProperty(
-    value = "spinnaker.redis.enabled",
-    havingValue = "false",
-    matchIfMissing = true)
 public class CommonStorageServiceDAOConfig {
   @Bean
   @ConditionalOnMissingBean(ObjectKeyLoader.class)
@@ -85,7 +80,7 @@ public class CommonStorageServiceDAOConfig {
   }
 
   @Bean
-  @ConditionalOnMissingBean // GcsConfig overrides this
+  @ConditionalOnMissingBean // allows an alternate implementation to override this
   ApplicationPermissionDAO applicationPermissionDAO(
       StorageService storageService,
       StorageServiceConfigurationProperties storageServiceConfigurationProperties,

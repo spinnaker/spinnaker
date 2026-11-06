@@ -20,7 +20,6 @@ import com.netflix.spinnaker.fiat.shared.FiatClientConfigurationProperties;
 import com.netflix.spinnaker.fiat.shared.FiatPermissionEvaluator;
 import com.netflix.spinnaker.fiat.shared.FiatService;
 import com.netflix.spinnaker.front50.config.FiatConfigurationProperties;
-import com.netflix.spinnaker.front50.config.annotations.ConditionalOnAnyProviderExceptRedisIsEnabled;
 import com.netflix.spinnaker.front50.model.serviceaccount.ServiceAccount;
 import com.netflix.spinnaker.front50.model.serviceaccount.ServiceAccountDAO;
 import com.netflix.spinnaker.kork.retrofit.Retrofit2SyncCall;
@@ -34,12 +33,13 @@ import java.util.stream.Collectors;
 import java.util.stream.Stream;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 
 @Service
-@ConditionalOnAnyProviderExceptRedisIsEnabled
+@ConditionalOnProperty("sql.enabled")
 public class ServiceAccountsService {
   private static final Logger log = LoggerFactory.getLogger(ServiceAccountsService.class);
   private static final String MANAGED_SERVICE_ACCOUNT_SUFFIX = "@managed-service-account";

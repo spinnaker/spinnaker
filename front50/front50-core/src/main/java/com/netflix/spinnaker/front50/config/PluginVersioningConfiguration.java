@@ -15,12 +15,12 @@
  */
 package com.netflix.spinnaker.front50.config;
 
-import com.netflix.spinnaker.front50.config.annotations.ConditionalOnAnyProviderExceptRedisIsEnabled;
 import com.netflix.spinnaker.front50.model.plugins.PluginInfoRepository;
 import com.netflix.spinnaker.front50.model.plugins.PluginVersionCleanupAgent;
 import com.netflix.spinnaker.front50.model.plugins.PluginVersionPinningRepository;
 import com.netflix.spinnaker.front50.model.plugins.PluginVersionPinningService;
 import com.netflix.spinnaker.moniker.Namer;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -28,7 +28,7 @@ import org.springframework.scheduling.TaskScheduler;
 
 @Configuration
 @EnableConfigurationProperties(PluginVersionCleanupProperties.class)
-@ConditionalOnAnyProviderExceptRedisIsEnabled
+@ConditionalOnProperty("sql.enabled")
 public class PluginVersioningConfiguration {
 
   @Bean
