@@ -18,7 +18,6 @@ package com.netflix.spinnaker.clouddriver.cloudrun.config;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.netflix.spinnaker.clouddriver.cloudrun.CloudrunJobExecutor;
 import com.netflix.spinnaker.clouddriver.googlecommon.config.GoogleCommonManagedAccount;
 import java.io.File;
 import java.util.ArrayList;
@@ -30,7 +29,11 @@ import org.springframework.util.StringUtils;
 @Data
 public class CloudrunConfigurationProperties {
   private List<ManagedAccount> accounts = new ArrayList<>();
-  private String gcloudPath;
+
+  /**
+   * @deprecated no longer used; Cloud Run is called through the API instead of {@code gcloud}.
+   */
+  @Deprecated private String gcloudPath;
 
   @Data
   @EqualsAndHashCode(callSuper = true)
@@ -40,10 +43,8 @@ public class CloudrunConfigurationProperties {
     private String localRepositoryDirectory = "/tmp";
     private boolean sshTrustUnknownHosts;
 
-    public void initialize(CloudrunJobExecutor jobExecutor, String gcloudPath) {
+    public void initialize() {
       if (!StringUtils.isEmpty(getJsonPath())) {
-        jobExecutor.runCommand(
-            List.of(gcloudPath, "auth", "activate-service-account", "--key-file", getJsonPath()));
         ObjectMapper mapper = new ObjectMapper();
         try {
           JsonNode node = mapper.readTree(new File(getJsonPath()));

@@ -16,7 +16,8 @@
 
 package com.netflix.spinnaker.clouddriver.cloudrun.deploy.ops;
 
-import com.netflix.spinnaker.clouddriver.cloudrun.CloudrunJobExecutor;
+import com.google.api.services.run.v1.model.TrafficTarget;
+import com.netflix.spinnaker.clouddriver.cloudrun.deploy.CloudrunServiceClient;
 import com.netflix.spinnaker.clouddriver.cloudrun.deploy.description.CloudrunTrafficSplitDescription;
 import com.netflix.spinnaker.clouddriver.cloudrun.deploy.description.UpsertCloudrunLoadBalancerDescription;
 import com.netflix.spinnaker.clouddriver.cloudrun.deploy.exception.CloudrunOperationException;
@@ -27,16 +28,14 @@ import java.util.ArrayList;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.concurrent.atomic.AtomicInteger;
 import lombok.Getter;
-import org.springframework.beans.factory.annotation.Autowired;
 
 @Slf4j
 public class UpsertCloudrunLoadBalancerAtomicOperation extends CloudrunAtomicOperation {
 
   @Getter private static final String BASE_PHASE = "UPSERT_LOAD_BALANCER";
   @Getter private final UpsertCloudrunLoadBalancerDescription description;
-  @Autowired CloudrunJobExecutor jobExecutor;
+  CloudrunServiceClient serviceClient;
 
   private static Task getTask() {
     return TaskRepository.threadLocalTask.get();
@@ -66,27 +65,15 @@ public class UpsertCloudrunLoadBalancerAtomicOperation extends CloudrunAtomicOpe
                 + "...");
 
     String region = description.getRegion();
-    String project = description.getCredentials().getProject();
-    List<String> deployCommand = new ArrayList<>();
-    deployCommand.add("gcloud");
-    deployCommand.add("run");
-    deployCommand.add("services");
-    deployCommand.add("update-traffic");
-    deployCommand.add(description.getLoadBalancerName());
-    deployCommand.add("--to-revisions=" + appendRevisionNameTrafficSplit(description));
-    deployCommand.add("--region=" + region);
-    deployCommand.add("--project=" + project);
-
-    String success = "false";
     try {
-      jobExecutor.runCommand(deployCommand);
-      success = "true";
+      if (serviceClient == null) {
+        serviceClient = CloudrunServiceClient.forAccount(description.getCredentials());
+      }
+      serviceClient.updateTraffic(
+          region, description.getLoadBalancerName(), trafficTargets(description));
     } catch (Exception e) {
       throw new CloudrunOperationException(
-          "Failed to update traffic for revisions with command "
-              + deployCommand
-              + "exception "
-              + e.getMessage());
+          "Failed to update traffic for revisions: " + e.getMessage(), e);
     }
     getTask()
         .updateStatus(
@@ -107,27 +94,19 @@ public class UpsertCloudrunLoadBalancerAtomicOperation extends CloudrunAtomicOpe
     return loadBalancers;
   }
 
-  private String appendRevisionNameTrafficSplit(UpsertCloudrunLoadBalancerDescription description) {
-
-    StringBuilder builder = new StringBuilder();
-    if (description.getSplitDescription() != null) {
-      CloudrunTrafficSplitDescription splitDesc = description.getSplitDescription();
-      AtomicInteger counter = new AtomicInteger();
-      if (splitDesc != null && !(splitDesc.getAllocationDescriptions().isEmpty())) {
-        splitDesc
-            .getAllocationDescriptions()
-            .forEach(
-                trafficSplit -> {
-                  builder.append(trafficSplit.getRevisionName());
-                  builder.append("=");
-                  builder.append(trafficSplit.getPercent());
-                  if (!(counter.get() == (splitDesc.getAllocationDescriptions().size() - 1))) {
-                    builder.append(",");
-                  }
-                  counter.getAndIncrement();
-                });
-      }
+  private List<TrafficTarget> trafficTargets(UpsertCloudrunLoadBalancerDescription description) {
+    List<TrafficTarget> targets = new ArrayList<>();
+    CloudrunTrafficSplitDescription splitDesc = description.getSplitDescription();
+    if (splitDesc != null && splitDesc.getAllocationDescriptions() != null) {
+      splitDesc
+          .getAllocationDescriptions()
+          .forEach(
+              allocation ->
+                  targets.add(
+                      new TrafficTarget()
+                          .setRevisionName(allocation.getRevisionName())
+                          .setPercent(allocation.getPercent())));
     }
-    return builder.toString();
+    return targets;
   }
 }
