@@ -52,10 +52,6 @@ public class CloudrunDeployManifestOperation implements AtomicOperation<Deployme
 
   private static final String OP_NAME = "DEPLOY_CLOUDRUN_MANIFEST";
 
-  private static final String SPINNAKER_APPLICATION_ANNOTATION = "spinnaker/application";
-
-  private static final String LOCATION_LABEL = "cloud.googleapis.com/location";
-
   private static Task getTask() {
     return TaskRepository.threadLocalTask.get();
   }
@@ -82,10 +78,11 @@ public class CloudrunDeployManifestOperation implements AtomicOperation<Deployme
     // Work on copies of the manifests as free-form maps so that every field the user supplied
     // reaches gcloud; Spinnaker only overwrites the handful of fields it owns.
     List<Map<String, Object>> manifests = copyManifests(description.getManifests());
+    CloudrunManifestEditor.requireExactlyOne(manifests);
     if (!allArtifacts.isEmpty()) {
       manifests.forEach(manifest -> bindArtifacts(manifest, allArtifacts.values()));
     }
-    populateRegionFromManifest(manifests);
+    CloudrunManifestEditor.locationLabel(manifests.get(0)).ifPresent(description::setRegion);
     CloudrunServerGroupNameResolver serverGroupNameResolver =
         new CloudrunServerGroupNameResolver(
             project, description.getRegion(), description.getCredentials());
@@ -196,17 +193,10 @@ public class CloudrunDeployManifestOperation implements AtomicOperation<Deployme
     return manifests.stream()
         .map(
             manifest -> {
-              Map<String, Object> metadata = childMap(manifest, "metadata");
-              Map<String, Object> spec = childMap(manifest, "spec");
-              metadata.put("name", clusterName);
-              childMap(metadata, "annotations")
-                  .put(SPINNAKER_APPLICATION_ANNOTATION, description.getApplication());
-              childMap(childMap(spec, "template"), "metadata").put("name", versionName);
               CloudrunLoadBalancer loadBalancer =
                   provider.getLoadBalancer(description.getAccountName(), clusterName);
-              if (loadBalancer != null) {
-                insertTrafficPercent(spec, loadBalancer);
-              }
+              CloudrunManifestEditor.applySpinnakerFields(
+                  manifest, description.getApplication(), clusterName, versionName, loadBalancer);
               try {
                 return yamlMapper.writeValueAsString(manifest);
               } catch (JsonProcessingException e) {
@@ -217,7 +207,7 @@ public class CloudrunDeployManifestOperation implements AtomicOperation<Deployme
   }
 
   private void bindArtifacts(Map<String, Object> manifest, Collection<Artifact> artifacts) {
-    List<Map<String, Object>> containers = containers(manifest);
+    List<Map<String, Object>> containers = CloudrunManifestEditor.containers(manifest);
     for (Artifact artifact : artifacts) {
       boolean bound = false;
       if ("docker/image".equals(artifact.getType()) && artifact.getName() != null) {
@@ -242,25 +232,6 @@ public class CloudrunDeployManifestOperation implements AtomicOperation<Deployme
     }
   }
 
-  @SuppressWarnings("unchecked")
-  private List<Map<String, Object>> containers(Map<String, Object> manifest) {
-    Object spec = manifest.get("spec");
-    Object template = spec instanceof Map ? ((Map<String, Object>) spec).get("template") : null;
-    Object templateSpec =
-        template instanceof Map ? ((Map<String, Object>) template).get("spec") : null;
-    Object containers =
-        templateSpec instanceof Map ? ((Map<String, Object>) templateSpec).get("containers") : null;
-    List<Map<String, Object>> result = new ArrayList<>();
-    if (containers instanceof List) {
-      for (Object container : (List<Object>) containers) {
-        if (container instanceof Map) {
-          result.add((Map<String, Object>) container);
-        }
-      }
-    }
-    return result;
-  }
-
   private static String imageWithoutTagOrDigest(String image) {
     String withoutDigest = image.split("@", 2)[0];
     int lastColon = withoutDigest.lastIndexOf(':');
@@ -272,51 +243,6 @@ public class CloudrunDeployManifestOperation implements AtomicOperation<Deployme
 
   private static String lastPathSegment(String name) {
     return name.substring(name.lastIndexOf('/') + 1);
-  }
-
-  @SuppressWarnings("unchecked")
-  private static Map<String, Object> childMap(Map<String, Object> parent, String key) {
-    Object child = parent.get(key);
-    if (child == null) {
-      child = new LinkedHashMap<String, Object>();
-      parent.put(key, child);
-    }
-    if (!(child instanceof Map)) {
-      throw new IllegalArgumentException(
-          String.format("Expected '%s' in the manifest to be an object", key));
-    }
-    return (Map<String, Object>) child;
-  }
-
-  @SuppressWarnings("unchecked")
-  private void populateRegionFromManifest(List<Map<String, Object>> manifests) {
-    for (Map<String, Object> manifest : manifests) {
-      Object labels = childMap(manifest, "metadata").get("labels");
-      if (labels instanceof Map) {
-        Object location = ((Map<String, Object>) labels).get(LOCATION_LABEL);
-        if (location != null) {
-          description.setRegion(location.toString());
-        }
-      }
-    }
-  }
-
-  private void insertTrafficPercent(Map<String, Object> spec, CloudrunLoadBalancer loadBalancer) {
-
-    List<Map<String, Object>> trafficTargets = new ArrayList<>();
-    if (loadBalancer.getSplit() != null && loadBalancer.getSplit().getTrafficTargets() != null) {
-      loadBalancer
-          .getSplit()
-          .getTrafficTargets()
-          .forEach(
-              trafficTarget -> {
-                Map<String, Object> existingTrafficMap = new LinkedHashMap<>();
-                existingTrafficMap.put("percent", trafficTarget.getPercent());
-                existingTrafficMap.put("revisionName", trafficTarget.getRevisionName());
-                trafficTargets.add(existingTrafficMap);
-              });
-      spec.put("traffic", trafficTargets);
-    }
   }
 
   public static void deleteFiles(List<String> paths) {
