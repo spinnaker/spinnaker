@@ -20,6 +20,7 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.netflix.spinnaker.clouddriver.googlecommon.config.GoogleCommonManagedAccount;
 import java.io.File;
+import java.time.Duration;
 import java.util.ArrayList;
 import java.util.List;
 import lombok.Data;
@@ -29,6 +30,12 @@ import org.springframework.util.StringUtils;
 @Data
 public class CloudrunConfigurationProperties {
   private List<ManagedAccount> accounts = new ArrayList<>();
+
+  /** How long to wait for a deployed or modified service to report Ready. */
+  private Duration serviceReadyTimeout = Duration.ofMinutes(10);
+
+  /** How often to check whether a deployed or modified service is Ready. */
+  private Duration serviceReadyPollInterval = Duration.ofSeconds(2);
 
   /**
    * @deprecated no longer used; Cloud Run is called through the API instead of {@code gcloud}.

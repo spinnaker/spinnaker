@@ -17,6 +17,7 @@
 package com.netflix.spinnaker.clouddriver.cloudrun.deploy.ops;
 
 import com.google.api.services.run.v1.model.TrafficTarget;
+import com.netflix.spinnaker.clouddriver.cloudrun.config.CloudrunConfigurationProperties;
 import com.netflix.spinnaker.clouddriver.cloudrun.deploy.CloudrunServiceClient;
 import com.netflix.spinnaker.clouddriver.cloudrun.deploy.description.CloudrunTrafficSplitDescription;
 import com.netflix.spinnaker.clouddriver.cloudrun.deploy.description.UpsertCloudrunLoadBalancerDescription;
@@ -29,6 +30,7 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import lombok.Getter;
+import org.springframework.beans.factory.annotation.Autowired;
 
 @Slf4j
 public class UpsertCloudrunLoadBalancerAtomicOperation extends CloudrunAtomicOperation {
@@ -36,6 +38,9 @@ public class UpsertCloudrunLoadBalancerAtomicOperation extends CloudrunAtomicOpe
   @Getter private static final String BASE_PHASE = "UPSERT_LOAD_BALANCER";
   @Getter private final UpsertCloudrunLoadBalancerDescription description;
   CloudrunServiceClient serviceClient;
+
+  @Autowired(required = false)
+  CloudrunConfigurationProperties configurationProperties;
 
   private static Task getTask() {
     return TaskRepository.threadLocalTask.get();
@@ -67,7 +72,8 @@ public class UpsertCloudrunLoadBalancerAtomicOperation extends CloudrunAtomicOpe
     String region = description.getRegion();
     try {
       if (serviceClient == null) {
-        serviceClient = CloudrunServiceClient.forAccount(description.getCredentials());
+        serviceClient =
+            CloudrunServiceClient.forAccount(description.getCredentials(), configurationProperties);
       }
       serviceClient.updateTraffic(
           region, description.getLoadBalancerName(), trafficTargets(description));

@@ -16,6 +16,7 @@
 
 package com.netflix.spinnaker.clouddriver.cloudrun.deploy.ops;
 
+import com.netflix.spinnaker.clouddriver.cloudrun.config.CloudrunConfigurationProperties;
 import com.netflix.spinnaker.clouddriver.cloudrun.deploy.CloudrunServiceClient;
 import com.netflix.spinnaker.clouddriver.cloudrun.deploy.description.DestroyCloudrunDescription;
 import com.netflix.spinnaker.clouddriver.cloudrun.deploy.exception.CloudrunOperationException;
@@ -41,6 +42,9 @@ public class DestroyCloudrunAtomicOperation extends CloudrunAtomicOperation<Void
   @Autowired CloudrunClusterProvider cloudrunClusterProvider;
 
   CloudrunServiceClient serviceClient;
+
+  @Autowired(required = false)
+  CloudrunConfigurationProperties configurationProperties;
 
   public DestroyCloudrunAtomicOperation(DestroyCloudrunDescription description) {
     this.description = description;
@@ -74,7 +78,9 @@ public class DestroyCloudrunAtomicOperation extends CloudrunAtomicOperation<Void
       String region = description.getRegion();
       try {
         if (serviceClient == null) {
-          serviceClient = CloudrunServiceClient.forAccount(description.getCredentials());
+          serviceClient =
+              CloudrunServiceClient.forAccount(
+                  description.getCredentials(), configurationProperties);
         }
         serviceClient.deleteRevision(region, description.getServerGroupName());
       } catch (Exception e) {

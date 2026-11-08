@@ -16,6 +16,7 @@
 
 package com.netflix.spinnaker.clouddriver.cloudrun.deploy.ops;
 
+import com.netflix.spinnaker.clouddriver.cloudrun.config.CloudrunConfigurationProperties;
 import com.netflix.spinnaker.clouddriver.cloudrun.deploy.CloudrunServiceClient;
 import com.netflix.spinnaker.clouddriver.cloudrun.deploy.description.DeleteCloudrunLoadBalancerDescription;
 import com.netflix.spinnaker.clouddriver.cloudrun.deploy.exception.CloudrunOperationException;
@@ -36,6 +37,9 @@ public class DeleteCloudrunLoadBalancerAtomicOperation implements AtomicOperatio
 
   private final DeleteCloudrunLoadBalancerDescription description;
   CloudrunServiceClient serviceClient;
+
+  @Autowired(required = false)
+  CloudrunConfigurationProperties configurationProperties;
 
   @Autowired CloudrunLoadBalancerProvider provider;
 
@@ -64,7 +68,9 @@ public class DeleteCloudrunLoadBalancerAtomicOperation implements AtomicOperatio
       String region = loadBalancer.getRegion();
       try {
         if (serviceClient == null) {
-          serviceClient = CloudrunServiceClient.forAccount(description.getCredentials());
+          serviceClient =
+              CloudrunServiceClient.forAccount(
+                  description.getCredentials(), configurationProperties);
         }
         serviceClient.deleteService(region, loadBalancerName);
       } catch (Exception e) {

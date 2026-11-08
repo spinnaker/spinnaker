@@ -19,6 +19,7 @@ package com.netflix.spinnaker.clouddriver.cloudrun.op.manifest;
 
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.netflix.spinnaker.clouddriver.cloudrun.config.CloudrunConfigurationProperties;
 import com.netflix.spinnaker.clouddriver.cloudrun.deploy.CloudrunServerGroupNameResolver;
 import com.netflix.spinnaker.clouddriver.cloudrun.deploy.CloudrunServiceClient;
 import com.netflix.spinnaker.clouddriver.cloudrun.deploy.exception.CloudrunOperationException;
@@ -47,6 +48,9 @@ public class CloudrunDeployManifestOperation implements AtomicOperation<Deployme
   }
 
   CloudrunServiceClient serviceClient;
+
+  @Autowired(required = false)
+  CloudrunConfigurationProperties configurationProperties;
 
   @Autowired CloudrunLoadBalancerProvider provider;
 
@@ -99,7 +103,8 @@ public class CloudrunDeployManifestOperation implements AtomicOperation<Deployme
 
   private CloudrunServiceClient serviceClient() {
     if (serviceClient == null) {
-      serviceClient = CloudrunServiceClient.forAccount(description.getCredentials());
+      serviceClient =
+          CloudrunServiceClient.forAccount(description.getCredentials(), configurationProperties);
     }
     return serviceClient;
   }

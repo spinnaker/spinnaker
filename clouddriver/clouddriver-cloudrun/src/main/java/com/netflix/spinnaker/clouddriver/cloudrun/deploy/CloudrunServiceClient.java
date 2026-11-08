@@ -25,6 +25,7 @@ import com.google.api.services.run.v1.model.ObjectMeta;
 import com.google.api.services.run.v1.model.Service;
 import com.google.api.services.run.v1.model.ServiceStatus;
 import com.google.api.services.run.v1.model.TrafficTarget;
+import com.netflix.spinnaker.clouddriver.cloudrun.config.CloudrunConfigurationProperties;
 import com.netflix.spinnaker.clouddriver.cloudrun.deploy.exception.CloudrunOperationException;
 import com.netflix.spinnaker.clouddriver.cloudrun.security.CloudrunNamedAccountCredentials;
 import java.io.IOException;
@@ -73,12 +74,14 @@ public class CloudrunServiceClient {
     this.sleeper = sleeper;
   }
 
-  public static CloudrunServiceClient forAccount(CloudrunNamedAccountCredentials credentials) {
+  /** {@code properties} may be null, in which case the default wait settings are used. */
+  public static CloudrunServiceClient forAccount(
+      CloudrunNamedAccountCredentials credentials, CloudrunConfigurationProperties properties) {
     return new CloudrunServiceClient(
         credentials.getCloudRun(),
         credentials.getProject(),
-        DEFAULT_POLL_INTERVAL,
-        DEFAULT_TIMEOUT,
+        properties == null ? DEFAULT_POLL_INTERVAL : properties.getServiceReadyPollInterval(),
+        properties == null ? DEFAULT_TIMEOUT : properties.getServiceReadyTimeout(),
         duration -> Thread.sleep(duration.toMillis()));
   }
 
