@@ -18,14 +18,15 @@
 package com.netflix.spinnaker.clouddriver.cloudrun.op.manifest;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.DeserializationFeature;
+import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.dataformat.yaml.YAMLFactory;
 import com.netflix.spinnaker.clouddriver.cloudrun.CloudrunJobExecutor;
 import com.netflix.spinnaker.clouddriver.cloudrun.deploy.CloudrunServerGroupNameResolver;
 import com.netflix.spinnaker.clouddriver.cloudrun.deploy.exception.CloudrunOperationException;
 import com.netflix.spinnaker.clouddriver.cloudrun.description.manifest.CloudrunDeployManifestDescription;
-import com.netflix.spinnaker.clouddriver.cloudrun.model.*;
+import com.netflix.spinnaker.clouddriver.cloudrun.model.CloudrunLoadBalancer;
+import com.netflix.spinnaker.clouddriver.cloudrun.model.CloudrunService;
 import com.netflix.spinnaker.clouddriver.cloudrun.op.CloudrunManifestOperationResult;
 import com.netflix.spinnaker.clouddriver.cloudrun.provider.view.CloudrunLoadBalancerProvider;
 import com.netflix.spinnaker.clouddriver.data.task.Task;
@@ -51,6 +52,10 @@ public class CloudrunDeployManifestOperation implements AtomicOperation<Deployme
 
   private static final String OP_NAME = "DEPLOY_CLOUDRUN_MANIFEST";
 
+  private static final String SPINNAKER_APPLICATION_ANNOTATION = "spinnaker/application";
+
+  private static final String LOCATION_LABEL = "cloud.googleapis.com/location";
+
   private static Task getTask() {
     return TaskRepository.threadLocalTask.get();
   }
@@ -66,8 +71,6 @@ public class CloudrunDeployManifestOperation implements AtomicOperation<Deployme
   private final ObjectMapper yamlMapper =
       new ObjectMapper(YAMLFactory.builder().loaderOptions(YamlHelper.getLoaderOptions()).build());
 
-  private CloudrunYmlData ymlData = new CloudrunYmlData();
-
   public CloudrunDeployManifestOperation(CloudrunDeployManifestDescription description) {
     this.description = description;
   }
@@ -75,31 +78,25 @@ public class CloudrunDeployManifestOperation implements AtomicOperation<Deployme
   public String deploy(String repositoryPath) {
     String project = description.getCredentials().getProject();
     String applicationDirectoryRoot = null;
-    List<CloudrunService> configFiles = description.getManifests();
     Map<String, Artifact> allArtifacts = initializeArtifacts();
-    try {
-      populateCloudrunYmlData(configFiles);
-    } catch (Exception e) {
-      throw new CloudrunOperationException(
-          "Failed to deploy manifest to Cloud Run with command " + e.getMessage());
+    // Work on copies of the manifests as free-form maps so that every field the user supplied
+    // reaches gcloud; Spinnaker only overwrites the handful of fields it owns.
+    List<Map<String, Object>> manifests = copyManifests(description.getManifests());
+    if (!allArtifacts.isEmpty()) {
+      manifests.forEach(manifest -> bindArtifacts(manifest, allArtifacts.values()));
     }
-    List<String> modConfigFiles = null;
-    if (allArtifacts != null && !allArtifacts.values().isEmpty()) {
-      modConfigFiles = bindArtifacts(configFiles, allArtifacts.values());
-    }
+    populateRegionFromManifest(manifests);
     CloudrunServerGroupNameResolver serverGroupNameResolver =
         new CloudrunServerGroupNameResolver(
             project, description.getRegion(), description.getCredentials());
-    populateRegionFromManifest(configFiles);
-    serverGroupNameResolver.setRegion(description.getRegion());
     String clusterName =
         serverGroupNameResolver.getClusterName(
             description.getApplication(), description.getStack(), description.getDetails());
     String versionName =
         serverGroupNameResolver.resolveNextServerGroupName(
             description.getApplication(), description.getStack(), description.getDetails(), false);
-    modConfigFiles =
-        insertSpinnakerAppNameServiceNameVersionName(configFiles, clusterName, versionName);
+    List<String> modConfigFiles =
+        insertSpinnakerAppNameServiceNameVersionName(manifests, clusterName, versionName);
     List<String> writtenFullConfigFilePaths =
         writeConfigFiles(modConfigFiles, repositoryPath, applicationDirectoryRoot);
     String region = description.getRegion();
@@ -172,46 +169,46 @@ public class CloudrunDeployManifestOperation implements AtomicOperation<Deployme
     return result;
   }
 
+  private List<Map<String, Object>> copyManifests(List<CloudrunService> services) {
+    List<Map<String, Object>> manifests = new ArrayList<>();
+    for (CloudrunService service : services) {
+      if (service == null || service.getMetadata() == null || service.getSpec() == null) {
+        continue;
+      }
+      Map<String, Object> manifest = new LinkedHashMap<>();
+      manifest.put("apiVersion", service.getApiVersion());
+      manifest.put("kind", service.getKind());
+      // status is output only, so it is intentionally not carried over
+      manifest.put("metadata", deepCopy(service.getMetadata()));
+      manifest.put("spec", deepCopy(service.getSpec()));
+      manifests.add(manifest);
+    }
+    return manifests;
+  }
+
+  private Map<String, Object> deepCopy(Map<String, Object> source) {
+    return objectMapper.convertValue(source, new TypeReference<LinkedHashMap<String, Object>>() {});
+  }
+
   private List<String> insertSpinnakerAppNameServiceNameVersionName(
-      List<CloudrunService> configFiles, String clusterName, String versionName) {
+      List<Map<String, Object>> manifests, String clusterName, String versionName) {
 
-    return configFiles.stream()
+    return manifests.stream()
         .map(
-            (configFile) -> {
+            manifest -> {
+              Map<String, Object> metadata = childMap(manifest, "metadata");
+              Map<String, Object> spec = childMap(manifest, "spec");
+              metadata.put("name", clusterName);
+              childMap(metadata, "annotations")
+                  .put(SPINNAKER_APPLICATION_ANNOTATION, description.getApplication());
+              childMap(childMap(spec, "template"), "metadata").put("name", versionName);
+              CloudrunLoadBalancer loadBalancer =
+                  provider.getLoadBalancer(description.getAccountName(), clusterName);
+              if (loadBalancer != null) {
+                insertTrafficPercent(spec, loadBalancer);
+              }
               try {
-                CloudrunService yamlObj = configFile;
-                if (yamlObj != null) {
-                  if (yamlObj.getMetadata() != null) {
-                    CloudrunMetaData metadata = ymlData.getMetadata();
-                    CloudrunSpec spec = ymlData.getSpec();
-                    if (metadata != null && spec != null) {
-                      if (spec.getTemplate() != null && spec.getTemplate().getMetadata() != null) {
-                        CloudrunSpecTemplateMetadata specMetadata =
-                            spec.getTemplate().getMetadata();
-                        specMetadata.setName(versionName);
-                        metadata.setName(clusterName);
-                        CloudrunLoadBalancer loadBalancer =
-                            provider.getLoadBalancer(description.getAccountName(), clusterName);
-                        if (loadBalancer != null) {
-                          insertTrafficPercent(spec, loadBalancer);
-                        }
-                      }
-                    }
-                    CloudrunMetadataAnnotations annotations = metadata.getAnnotations();
-                    CloudrunMetadataLabels labels = metadata.getLabels();
-                    if (annotations == null) {
-                      CloudrunMetadataAnnotations metadataAnnotations =
-                          new CloudrunMetadataAnnotations();
-                      metadataAnnotations.setSpinnakerApplication(description.getApplication());
-                      metadata.setAnnotations(metadataAnnotations);
-                      description.setRegion(labels.getCloudGoogleapisComLocation());
-                    } else if (annotations != null && labels != null) {
-                      annotations.setSpinnakerApplication(description.getApplication());
-                      description.setRegion(labels.getCloudGoogleapisComLocation());
-                    }
-                  }
-                }
-                return yamlMapper.writeValueAsString(ymlData);
+                return yamlMapper.writeValueAsString(manifest);
               } catch (JsonProcessingException e) {
                 throw new RuntimeException(e);
               }
@@ -219,142 +216,106 @@ public class CloudrunDeployManifestOperation implements AtomicOperation<Deployme
         .collect(Collectors.toList());
   }
 
-  private List<String> bindArtifacts(
-      List<CloudrunService> configFiles, Collection<Artifact> artifacts) {
-
-    return configFiles.stream()
-        .map(
-            (configFile) -> {
-              try {
-                CloudrunService yamlObj = configFile;
-                if (yamlObj != null && yamlObj.getMetadata() != null) {
-                  CloudrunMetaData metadata = ymlData.getMetadata();
-                  CloudrunSpec spec = ymlData.getSpec();
-                  if (metadata != null && metadata != null) {
-                    if (metadata.getAnnotations() != null && spec.getTemplate().getSpec() != null) {
-                      CloudrunTemplateSpec specSpec = spec.getTemplate().getSpec();
-                      CloudrunMetadataAnnotations annotations = metadata.getAnnotations();
-                      bindTheRequiredArtifact(annotations, specSpec, artifacts);
-                    }
-                  }
-                }
-                return yamlMapper.writeValueAsString(yamlObj);
-              } catch (JsonProcessingException e) {
-                throw new RuntimeException(e);
-              }
-            })
-        .collect(Collectors.toList());
+  private void bindArtifacts(Map<String, Object> manifest, Collection<Artifact> artifacts) {
+    List<Map<String, Object>> containers = containers(manifest);
+    for (Artifact artifact : artifacts) {
+      boolean bound = false;
+      if ("docker/image".equals(artifact.getType()) && artifact.getName() != null) {
+        for (Map<String, Object> container : containers) {
+          Object image = container.get("image");
+          if (image instanceof String
+              && lastPathSegment(imageWithoutTagOrDigest((String) image))
+                  .equals(lastPathSegment(artifact.getName()))) {
+            container.put("image", artifact.getReference());
+            bound = true;
+          }
+        }
+      }
+      if (!bound) {
+        throw new IllegalArgumentException(
+            String.format(
+                "The following required artifacts could not be bound: '%s'. "
+                    + "Check that the Docker image name above matches the name used in the image field of your manifest. "
+                    + "Failing the stage as this is likely a configuration error.",
+                ArtifactKey.fromArtifact(artifact)));
+      }
+    }
   }
 
-  private void bindTheRequiredArtifact(
-      CloudrunMetadataAnnotations annotations,
-      CloudrunTemplateSpec specSpec,
-      Collection<Artifact> artifacts) {
+  @SuppressWarnings("unchecked")
+  private List<Map<String, Object>> containers(Map<String, Object> manifest) {
+    Object spec = manifest.get("spec");
+    Object template = spec instanceof Map ? ((Map<String, Object>) spec).get("template") : null;
+    Object templateSpec =
+        template instanceof Map ? ((Map<String, Object>) template).get("spec") : null;
+    Object containers =
+        templateSpec instanceof Map ? ((Map<String, Object>) templateSpec).get("containers") : null;
+    List<Map<String, Object>> result = new ArrayList<>();
+    if (containers instanceof List) {
+      for (Object container : (List<Object>) containers) {
+        if (container instanceof Map) {
+          result.add((Map<String, Object>) container);
+        }
+      }
+    }
+    return result;
+  }
 
-    if (specSpec.getContainers() != null) {
-      CloudrunSpecContainer[] containerArray = specSpec.getContainers();
-      if (containerArray != null && !(containerArray.length == 0)) {
-        CloudrunSpecContainer container = containerArray[0];
-        for (Artifact artifact : artifacts) {
-          if (artifact.getType().equals("docker/image")) {
-            String cloudrunImage = (String) annotations.getClientKnativeDevUserImage();
-            if (cloudrunImage != null) {
-              String[] imageArray = cloudrunImage.split(":");
-              String image = imageArray[0];
-              if (image != null && artifact.getName() != null) {
-                String[] imageArr = image.split("/");
-                String[] artifactArr = artifact.getName().split("/");
-                if (imageArr != null
-                    && artifactArr != null
-                    && imageArr.length > 0
-                    && artifactArr.length > 0) {
-                  String appImage = imageArr[imageArr.length - 1];
-                  String artifactImage = artifactArr[artifactArr.length - 1];
-                  if (appImage != null && artifactImage != null && appImage.equals(artifactImage)) {
-                    annotations.setClientKnativeDevUserImage(artifact.getReference());
-                    container.setImage(artifact.getReference());
-                  } else {
-                    throw new IllegalArgumentException(
-                        String.format(
-                            "The following required artifacts could not be bound: '%s'. "
-                                + "Check that the Docker image name above matches the name used in the image field of your manifest. "
-                                + "Failing the stage as this is likely a configuration error.",
-                            ArtifactKey.fromArtifact(artifact)));
-                  }
-                }
-              } else {
-                throw new IllegalArgumentException(
-                    String.format(
-                        "The following required artifacts could not be bound: '%s'. "
-                            + "Check that the Docker image name above matches the name used in the image field of your manifest. "
-                            + "Failing the stage as this is likely a configuration error.",
-                        ArtifactKey.fromArtifact(artifact)));
-              }
-            }
-          } else {
-            throw new IllegalArgumentException(
-                String.format(
-                    "The following required artifacts could not be bound: '%s'. "
-                        + "Check that the Docker image name above matches the name used in the image field of your manifest. "
-                        + "Failing the stage as this is likely a configuration error.",
-                    ArtifactKey.fromArtifact(artifact)));
-          }
+  private static String imageWithoutTagOrDigest(String image) {
+    String withoutDigest = image.split("@", 2)[0];
+    int lastColon = withoutDigest.lastIndexOf(':');
+    // a colon before the last slash is a registry port, not a tag
+    return lastColon > withoutDigest.lastIndexOf('/')
+        ? withoutDigest.substring(0, lastColon)
+        : withoutDigest;
+  }
+
+  private static String lastPathSegment(String name) {
+    return name.substring(name.lastIndexOf('/') + 1);
+  }
+
+  @SuppressWarnings("unchecked")
+  private static Map<String, Object> childMap(Map<String, Object> parent, String key) {
+    Object child = parent.get(key);
+    if (child == null) {
+      child = new LinkedHashMap<String, Object>();
+      parent.put(key, child);
+    }
+    if (!(child instanceof Map)) {
+      throw new IllegalArgumentException(
+          String.format("Expected '%s' in the manifest to be an object", key));
+    }
+    return (Map<String, Object>) child;
+  }
+
+  @SuppressWarnings("unchecked")
+  private void populateRegionFromManifest(List<Map<String, Object>> manifests) {
+    for (Map<String, Object> manifest : manifests) {
+      Object labels = childMap(manifest, "metadata").get("labels");
+      if (labels instanceof Map) {
+        Object location = ((Map<String, Object>) labels).get(LOCATION_LABEL);
+        if (location != null) {
+          description.setRegion(location.toString());
         }
       }
     }
   }
 
-  private void populateCloudrunYmlData(List<CloudrunService> configFiles)
-      throws JsonProcessingException {
+  private void insertTrafficPercent(Map<String, Object> spec, CloudrunLoadBalancer loadBalancer) {
 
-    for (CloudrunService configFile : configFiles) {
-      CloudrunService yamlObj = configFile;
-      if (yamlObj != null && yamlObj.getMetadata() != null && yamlObj.getSpec() != null) {
-        ymlData.setKind(yamlObj.getKind());
-        ymlData.setApiVersion(yamlObj.getApiVersion());
-        objectMapper.configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
-        String metaDataJson = objectMapper.writeValueAsString(yamlObj.getMetadata());
-        CloudrunMetaData cloudrunMetaData =
-            objectMapper.readValue(metaDataJson, CloudrunMetaData.class);
-        ymlData.setMetadata(cloudrunMetaData);
-        String specJson = objectMapper.writeValueAsString(yamlObj.getSpec());
-        CloudrunSpec spec = objectMapper.readValue(specJson, CloudrunSpec.class);
-        ymlData.setSpec(spec);
-      }
-    }
-  }
-
-  private void populateRegionFromManifest(List<CloudrunService> configFiles) {
-
-    for (CloudrunService configFile : configFiles) {
-      CloudrunService yamlObj = configFile;
-      if (yamlObj != null) {
-        if (yamlObj.getMetadata() != null) {
-          CloudrunMetaData metadata = ymlData.getMetadata();
-          CloudrunMetadataLabels labels = metadata.getLabels();
-          if (labels != null) {
-            description.setRegion(labels.getCloudGoogleapisComLocation());
-          }
-        }
-      }
-    }
-  }
-
-  private void insertTrafficPercent(CloudrunSpec spec, CloudrunLoadBalancer loadBalancer) {
-
-    List<CloudrunSpecTraffic> trafficTargets = new ArrayList<>();
+    List<Map<String, Object>> trafficTargets = new ArrayList<>();
     if (loadBalancer.getSplit() != null && loadBalancer.getSplit().getTrafficTargets() != null) {
       loadBalancer
           .getSplit()
           .getTrafficTargets()
           .forEach(
               trafficTarget -> {
-                CloudrunSpecTraffic existingTrafficMap = new CloudrunSpecTraffic();
-                existingTrafficMap.setPercent(trafficTarget.getPercent());
-                existingTrafficMap.setRevisionName(trafficTarget.getRevisionName());
+                Map<String, Object> existingTrafficMap = new LinkedHashMap<>();
+                existingTrafficMap.put("percent", trafficTarget.getPercent());
+                existingTrafficMap.put("revisionName", trafficTarget.getRevisionName());
                 trafficTargets.add(existingTrafficMap);
               });
-      spec.setTraffic(trafficTargets.toArray(new CloudrunSpecTraffic[0]));
+      spec.put("traffic", trafficTargets);
     }
   }
 

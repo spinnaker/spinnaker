@@ -17,6 +17,7 @@
 package com.netflix.spinnaker.clouddriver.cloudrun.op.manifest;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.anyList;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.RETURNS_DEEP_STUBS;
@@ -294,6 +295,44 @@ class CloudrunDeployManifestOperationTest {
 
     assertThat(firstContainer(singleDeployedManifest()))
         .containsEntry("image", "gcr.io/project/example-image:v2");
+  }
+
+  @Test
+  void failsWhenARequiredArtifactMatchesNoContainer() throws IOException {
+    description.setRequiredArtifacts(
+        List.of(
+            Artifact.builder()
+                .type("docker/image")
+                .name("gcr.io/project/other-image")
+                .reference("gcr.io/project/other-image:v2")
+                .build()));
+    description.setManifests(List.of(manifest(MANIFEST_WITH_ENV_AND_PROBE)));
+
+    assertThatThrownBy(() -> operation.operate(new ArrayList<>()))
+        .isInstanceOf(IllegalArgumentException.class)
+        .hasMessageContaining("could not be bound");
+    assertThat(commands).isEmpty();
+  }
+
+  @Test
+  void bindsArtifactWhenTheManifestImageHasARegistryPortAndTag() throws IOException {
+    description.setRequiredArtifacts(
+        List.of(
+            Artifact.builder()
+                .type("docker/image")
+                .name("registry.example.com:5000/team/example-image")
+                .reference("registry.example.com:5000/team/example-image:v2")
+                .build()));
+    description.setManifests(
+        List.of(
+            manifest(
+                MANIFEST_WITH_ENV_AND_PROBE.replace(
+                    "example-image-url", "registry.example.com:5000/team/example-image:v1"))));
+
+    operation.operate(new ArrayList<>());
+
+    assertThat(firstContainer(singleDeployedManifest()))
+        .containsEntry("image", "registry.example.com:5000/team/example-image:v2");
   }
 
   // --- helpers --------------------------------------------------------------------------------
