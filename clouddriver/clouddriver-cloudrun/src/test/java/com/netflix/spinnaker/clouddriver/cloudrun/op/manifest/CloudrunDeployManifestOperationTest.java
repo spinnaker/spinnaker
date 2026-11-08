@@ -30,6 +30,7 @@ import com.fasterxml.jackson.dataformat.yaml.YAMLFactory;
 import com.google.api.services.run.v1.CloudRun;
 import com.google.api.services.run.v1.model.ListRevisionsResponse;
 import com.netflix.spinnaker.clouddriver.cloudrun.CloudrunJobExecutor;
+import com.netflix.spinnaker.clouddriver.cloudrun.deploy.exception.CloudrunOperationException;
 import com.netflix.spinnaker.clouddriver.cloudrun.description.manifest.CloudrunDeployManifestDescription;
 import com.netflix.spinnaker.clouddriver.cloudrun.model.CloudrunService;
 import com.netflix.spinnaker.clouddriver.cloudrun.provider.view.CloudrunLoadBalancerProvider;
@@ -333,6 +334,17 @@ class CloudrunDeployManifestOperationTest {
 
     assertThat(firstContainer(singleDeployedManifest()))
         .containsEntry("image", "registry.example.com:5000/team/example-image:v2");
+  }
+
+  @Test
+  void rejectsMoreThanOneManifestInsteadOfBuildingAnInvalidGcloudCommand() throws IOException {
+    description.setManifests(
+        List.of(manifest(MANIFEST_WITH_ENV_AND_PROBE), manifest(MANIFEST_WITH_ENV_AND_PROBE)));
+
+    assertThatThrownBy(() -> operation.operate(new ArrayList<>()))
+        .isInstanceOf(CloudrunOperationException.class)
+        .hasMessageContaining("exactly one");
+    assertThat(commands).isEmpty();
   }
 
   // --- helpers --------------------------------------------------------------------------------
