@@ -29,6 +29,9 @@ public class TomcatConfigurationProperties {
 
   private int apiPort = -1;
 
+  // Null preserves Tomcat's default; negative values disable the locale-count limit.
+  private Integer maxLocaleCount;
+
   private String relaxedQueryCharacters = "";
   private String relaxedPathCharacters = "";
 
@@ -54,6 +57,14 @@ public class TomcatConfigurationProperties {
 
   public void setApiPort(int apiPort) {
     this.apiPort = apiPort;
+  }
+
+  public Integer getMaxLocaleCount() {
+    return maxLocaleCount;
+  }
+
+  public void setMaxLocaleCount(Integer maxLocaleCount) {
+    this.maxLocaleCount = maxLocaleCount;
   }
 
   public String getRelaxedQueryCharacters() {
