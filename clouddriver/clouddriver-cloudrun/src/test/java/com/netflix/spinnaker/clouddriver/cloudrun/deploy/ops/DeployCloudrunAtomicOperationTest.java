@@ -18,7 +18,7 @@ package com.netflix.spinnaker.clouddriver.cloudrun.deploy.ops;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
-import static org.mockito.ArgumentMatchers.anyList;
+import static org.mockito.ArgumentMatchers.anyMap;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.RETURNS_DEEP_STUBS;
 import static org.mockito.Mockito.doAnswer;
@@ -29,7 +29,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.dataformat.yaml.YAMLFactory;
 import com.google.api.services.run.v1.CloudRun;
 import com.google.api.services.run.v1.model.ListRevisionsResponse;
-import com.netflix.spinnaker.clouddriver.cloudrun.CloudrunJobExecutor;
+import com.netflix.spinnaker.clouddriver.cloudrun.deploy.CloudrunServiceClient;
 import com.netflix.spinnaker.clouddriver.cloudrun.deploy.description.DeployCloudrunDescription;
 import com.netflix.spinnaker.clouddriver.cloudrun.deploy.exception.CloudrunOperationException;
 import com.netflix.spinnaker.clouddriver.cloudrun.provider.view.CloudrunLoadBalancerProvider;
@@ -38,17 +38,13 @@ import com.netflix.spinnaker.clouddriver.cloudrun.security.CloudrunNamedAccountC
 import com.netflix.spinnaker.clouddriver.data.task.Task;
 import com.netflix.spinnaker.clouddriver.data.task.TaskRepository;
 import java.io.IOException;
-import java.nio.charset.StandardCharsets;
-import java.nio.file.Files;
-import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.io.TempDir;
 
-/** Inspects the YAML that the legacy server group deploy hands to {@code gcloud}. */
+/** Inspects the manifest that the legacy server group deploy hands to Cloud Run. */
 class DeployCloudrunAtomicOperationTest {
 
   private static final ObjectMapper YAML = new ObjectMapper(new YAMLFactory());
@@ -79,12 +75,10 @@ class DeployCloudrunAtomicOperationTest {
           "              port: 8182",
           "");
 
-  @TempDir Path localRepository;
-
   private DeployCloudrunDescription description;
   private DeployCloudrunAtomicOperation operation;
-  private final List<String> deployedYaml = new ArrayList<>();
-  private final List<List<String>> commands = new ArrayList<>();
+  private final List<Map<String, Object>> deployedManifests = new ArrayList<>();
+  private final List<String> regions = new ArrayList<>();
 
   @BeforeEach
   void setUp() throws IOException {
@@ -107,10 +101,10 @@ class DeployCloudrunAtomicOperationTest {
             .setEnvironment("test")
             .setJsonKey("jsonkey")
             .setLiveLookupsEnabled(false)
-            .setLocalRepositoryDirectory(localRepository.toString())
+            .setLocalRepositoryDirectory("/localdirectory")
             .setJsonPath("/jsonpath")
             .setProject("my-project")
-            .build(mock(CloudrunJobExecutor.class));
+            .build();
 
     description = new DeployCloudrunDescription();
     description.setAccountName("cloudrunaccount");
@@ -119,19 +113,18 @@ class DeployCloudrunAtomicOperationTest {
     description.setRegion("us-central1");
     description.setCredentials(credentials);
 
-    CloudrunJobExecutor jobExecutor = mock(CloudrunJobExecutor.class);
+    CloudrunServiceClient serviceClient = mock(CloudrunServiceClient.class);
     doAnswer(
             invocation -> {
-              List<String> command = invocation.getArgument(0);
-              commands.add(command);
-              deployedYaml.add(Files.readString(Path.of(command.get(4)), StandardCharsets.UTF_8));
+              regions.add(invocation.getArgument(0));
+              deployedManifests.add(invocation.getArgument(1));
               return null;
             })
-        .when(jobExecutor)
-        .runCommand(anyList());
+        .when(serviceClient)
+        .deployService(anyString(), anyMap());
 
     operation = new DeployCloudrunAtomicOperation(description);
-    operation.jobExecutor = jobExecutor;
+    operation.serviceClient = serviceClient;
     operation.provider = mock(CloudrunLoadBalancerProvider.class);
   }
 
@@ -185,7 +178,7 @@ class DeployCloudrunAtomicOperationTest {
 
     operation.operate(new ArrayList<>());
 
-    assertThat(commands.get(0)).contains("--region=us-central1");
+    assertThat(regions).containsExactly("us-central1");
     assertThat(path(singleDeployedManifest(), "metadata", "annotations", "spinnaker/application"))
         .isEqualTo("myapp");
   }
@@ -197,12 +190,12 @@ class DeployCloudrunAtomicOperationTest {
     assertThatThrownBy(() -> operation.operate(new ArrayList<>()))
         .isInstanceOf(CloudrunOperationException.class)
         .hasMessageContaining("exactly one");
-    assertThat(commands).isEmpty();
+    assertThat(deployedManifests).isEmpty();
   }
 
   private Map<String, Object> singleDeployedManifest() throws IOException {
-    assertThat(deployedYaml).hasSize(1);
-    return YAML.readValue(deployedYaml.get(0), Map.class);
+    assertThat(deployedManifests).hasSize(1);
+    return deployedManifests.get(0);
   }
 
   private static Object path(Map<String, Object> root, String... keys) {
