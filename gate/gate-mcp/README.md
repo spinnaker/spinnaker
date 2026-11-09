@@ -179,8 +179,8 @@ controls used when a rollout is stuck.
 | `spinnaker://applications/{application}/pipelines` | Recent executions |
 | `spinnaker://executions/{executionId}` | Execution detail |
 | `spinnaker://applications/{application}/manual-judgments` | Pending manual judgments |
-| `spinnaker://mcp/audit-log` | Recent mutating MCP tool calls, most recent first |
-| `spinnaker://mcp/audit-log/{application}` | The above, filtered to one application/target |
+| `spinnaker://mcp/audit-log` | Admin-only: recent mutating MCP tool calls, most recent first |
+| `spinnaker://mcp/audit-log/{application}` | Admin-only: the above, filtered to one application/target |
 
 ## Prompts
 
