@@ -1,11 +1,10 @@
 package com.netflix.spinnaker.clouddriver.cloudrun.deploy.ops;
 
-import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.*;
 
 import com.google.api.services.run.v1.CloudRun;
-import com.netflix.spinnaker.clouddriver.cloudrun.CloudrunJobExecutor;
+import com.netflix.spinnaker.clouddriver.cloudrun.deploy.CloudrunServiceClient;
 import com.netflix.spinnaker.clouddriver.cloudrun.deploy.description.DestroyCloudrunDescription;
 import com.netflix.spinnaker.clouddriver.cloudrun.model.CloudrunServerGroup;
 import com.netflix.spinnaker.clouddriver.cloudrun.provider.view.CloudrunClusterProvider;
@@ -13,6 +12,7 @@ import com.netflix.spinnaker.clouddriver.cloudrun.security.CloudrunCredentials;
 import com.netflix.spinnaker.clouddriver.cloudrun.security.CloudrunNamedAccountCredentials;
 import com.netflix.spinnaker.clouddriver.data.task.Task;
 import com.netflix.spinnaker.clouddriver.data.task.TaskRepository;
+import java.io.IOException;
 import java.util.ArrayList;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -24,7 +24,7 @@ public class DestroyCloudrunAtomicOperationTest {
   DestroyCloudrunDescription description;
   CloudrunNamedAccountCredentials mockcredentials;
   Task task;
-  CloudrunJobExecutor jobExecutor;
+  CloudrunServiceClient serviceClient;
   CloudrunClusterProvider provider;
 
   CloudrunServerGroup serverGroup;
@@ -45,12 +45,12 @@ public class DestroyCloudrunAtomicOperationTest {
             .setLocalRepositoryDirectory("/localdirectory")
             .setJsonPath("/jsonpath")
             .setProject(" my project")
-            .build(mock(CloudrunJobExecutor.class));
+            .build();
     taskRepository = mock(TaskRepository.class);
     task = mock(Task.class);
     taskRepository.threadLocalTask.set(task);
     provider = mock(CloudrunClusterProvider.class);
-    jobExecutor = mock(CloudrunJobExecutor.class);
+    serviceClient = mock(CloudrunServiceClient.class);
     description = new DestroyCloudrunDescription();
     description.setAccountName("cloudrunaccount");
     description.setAccount("acc");
@@ -59,16 +59,16 @@ public class DestroyCloudrunAtomicOperationTest {
     description.setCredentials(mockcredentials);
     operation = new DestroyCloudrunAtomicOperation(description);
     operation.cloudrunClusterProvider = provider;
-    operation.jobExecutor = jobExecutor;
+    operation.serviceClient = serviceClient;
     serverGroup = new CloudrunServerGroup();
     serverGroup.setRegion("us-central");
   }
 
   @Test
-  public void DestroyServerGroupOperateTest() throws NoSuchFieldException {
+  public void DestroyServerGroupOperateTest() throws NoSuchFieldException, IOException {
 
     when(provider.getServerGroup(anyString(), anyString(), anyString())).thenReturn(serverGroup);
     operation.operate(new ArrayList<>());
-    verify(jobExecutor, times(1)).runCommand(any());
+    verify(serviceClient).deleteRevision("region-1", "revision-1");
   }
 }
