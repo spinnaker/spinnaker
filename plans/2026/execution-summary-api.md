@@ -16,7 +16,7 @@ Update the status table and the relevant phase section as each phase lands.
 
 ## 1. Context / problem
 
-Findings below come from reading the code; payload sizes are not quoted because they have not been measured yet (Phase 0).
+Findings below come from reading the code. Payload sizes are not quoted here; the only measurements so far are preliminary figures from one small instance (Phase 0), and the large-install case is still to be measured.
 
 - Deck's 5s poll of in-flight executions uses `expand=true`: up to 30 executions with full stage context/outputs/tasks, overwriting the lighter list items. The 30s history poll uses `expand=false`; `GET /executions` (pipeline/tag filter) omits `expand`, so Gate defaults it to true.
 - N+1: `mergeRunningExecutionsIntoExecutions` calls `GET /pipelines/{id}` per active execution missing from the running payload.
@@ -26,9 +26,9 @@ Findings below come from reading the code; payload sizes are not quoted because 
 - MCP: `get_latest_executions` hardcodes `expand=true`; `get_pipeline_execution` always returns the full execution.
 - Deck CPU: JSON-stringify change detection per execution per refresh, in-place mutation, per-card/per-marker timers, per-group guessed-height virtualization, search limited to loaded executions.
 
-Goals: (a) in-flight and list views read a small summary; (b) stage detail, artifact lists/contents and manifests load on demand; (c) Orca does less DB/CPU work, not just less network; (d) MCP/LLM clients get bounded payloads.
+Goals: (a) in-flight and list views read a small summary whose size does not depend on what the pipeline carries; (b) stage detail, trigger parameters, artifacts, artifact evaluations and manifests load on demand; (c) Orca does less DB/CPU work, not just less network; (d) MCP/LLM clients get bounded payloads.
 
-Non-goals: changing existing endpoints' default behavior; removing the legacy Deck path in this effort.
+Non-goals: changing existing endpoints' default behavior; removing the legacy Deck path in this effort; the Tasks (orchestrations) page, which is a separate initiative (see section 10); extending the entity store (see section 4.1).
 
 ## 2. Data flow: today vs proposed
 
@@ -43,6 +43,7 @@ PROPOSED
  Deck --5s/30s(since=)--> Gate --> Orca --> SQL: execution row + stage `summary` column only
       <-typed DTO,small-  <-typed-  <-ExecutionSummary
  Click stage  -> GET /pipelines/{id}/stages/{stageId}?fields=context,outputs,tasks
+ Open parameters/artifacts popup -> GET /pipelines/{id}/trigger?fields=parameters,artifacts,evaluations
  Open artifacts tab -> GET /pipelines/{id}/artifacts   (contents via existing artifact fetch)
  Open manifests    -> GET /pipelines/{id}/stages/{stageId}/manifests (live status via existing /manifests/...)
 ```
@@ -81,8 +82,7 @@ Response `ExecutionSummaryPage`:
       "type": "jenkins", "user": "jane@example.com", "dryRun": false,
       "parentExecution": null,
       "buildInfo": {"name": "build-job", "number": 412, "url": "https://ci/job/412"},
-      "parameters": {"env": "prod"}, "parametersTruncated": false,
-      "artifacts": [{"id": "x1", "name": "app.yaml", "type": "github/file", "reference": "..."}],
+      "parameterCount": 1, "artifactCount": 1, "expectedArtifactCount": 0,
       "link": null
     },
     "stages": [{
@@ -104,7 +104,14 @@ Response `ExecutionSummaryPage`:
 }
 ```
 
-Rules: no stage `context`/`outputs`/`tasks`; `hints` capped (~512 B per stage); `parameters` capped with `parametersTruncated`; `parentExecution` is id+application only. ETag `W/"<maxRevision>-<count>"` supported; `If-None-Match` -> 304.
+Rules:
+- No stage `context`/`outputs`/`tasks`.
+- **No trigger parameter values, artifacts, expected-artifact definitions or artifact evaluations (`resolvedExpectedArtifacts`, `boundArtifacts`) in the summary at all.** Only counts. Pipelines are seen with thousands of parameters, or with a handful of parameters holding entire manifests, and with large artifact payloads; a cap that truncates still ships a variable amount of data and still makes the UI render it. The data is loaded on demand from section 3.6 instead.
+- `trigger.buildInfo` is limited to `name`, `number` and `url` (each length-capped); the rest of CI build info (SCM lists, test results) is detail.
+- `hints` are capped (~512 B per stage) and are built only from an allowlist of fields, never copied wholesale from `context`/`outputs`; an oversized hint is dropped, not truncated.
+- `parentExecution` is id+application only.
+- The size of an item therefore depends on stage count, not on pipeline content.
+- ETag `W/"<maxRevision>-<count>"` supported; `If-None-Match` -> 304.
 
 Delta semantics: the client sends the previous `serverTime` minus ~5s overlap; a periodic full refresh (~5 min) reconciles deletions.
 
@@ -127,6 +134,17 @@ Delta semantics: the client sends the previous `serverTime` minus ~5s overlap; a
 - Deck sends `expand=false` on `GET /executions` with `pipelineConfigIds`.
 - MCP: see section 6.
 
+### 3.6 Trigger detail (parameters, artifacts, evaluations)
+
+`GET /pipelines/{id}/trigger?fields=parameters,artifacts,expectedArtifacts,evaluations` (default: none; the caller asks for what the open popup needs).
+
+- `parameters`: `[{ "name", "valueSize", "value", "valueTruncated" }]`, sorted by name, pageable (`offset`/`limit`, default 100) so a trigger with thousands of parameters does not arrive at once. Values over a cap (default 2 KB) are returned truncated with `valueTruncated: true`; the full value is fetched by `GET /pipelines/{id}/trigger/parameters/{name}` only when the user opens that parameter. This is the "3-4 parameters holding a whole manifest" case: the popup lists the names and sizes, and the manifest is fetched when the user expands it.
+- `artifacts` and `expectedArtifacts`: references only, same shape as section 3.3 (name, type, reference or `ref://` URI, `sizeBytes?`). Contents use the existing artifact fetch.
+- `evaluations`: for each expected artifact, whether and what it matched or resolved to (`resolvedExpectedArtifacts`/`boundArtifacts`), as references, not contents.
+- Same Fiat application-read authorization as `GET /pipelines/{id}`; an execution without these fields returns empty lists, not 404.
+
+Deck shows these in a popup (or similar) opened from the row's "Parameters/Artifacts" affordance, which today renders them inline on the card. The row itself shows only the counts from the summary.
+
 ## 4. Backend design
 
 **Orca persistence.** Add a nullable `summary` JSON column to the stage tables (plus compressed-table variants where applicable) via Liquibase, following the existing MySQL/Postgres/MariaDB changelog patterns; written in the same statement as `body`. A NULL `summary` (old rows) falls back to parse-and-project; no mandatory backfill. Add an indexed, DB-assigned `updated_at`/revision on the execution row for `since` and ETag (reuse an existing column if one fits - check first). Cost to measure: write amplification and index cost.
@@ -139,6 +157,18 @@ Delta semantics: the client sends the previous `serverTime` minus ~5s overlap; a
 
 **Alternatives considered for the SQL projection:** (A) load the full body, drop fields in Java (no DB/CPU saving); (B) `readTree` + drop (cheaper, still a full read); (C) SQL JSON functions (dialect-specific, unusable with compressed bodies); (D/E) summary column (chosen). Only (D/E) avoids reading the body at all.
 
+### 4.1 Interaction with the artifact-store entity storage
+
+The existing entity storage in `kork-artifacts` (`artifactstore/entities`, README there) replaces manifests and artifacts in stage context with `remote/map/base64` / `remote/base64` references (`ref://...`) at serialization time, and Deck resolves some of them on demand (`core/src/manifest/storedManifest.ts`, used by `ManifestYaml`, and the `deployManifest` forms and status panels in the `kubernetes` and `cloudrun` packages). It is operator-enabled and already shrinks stored execution size.
+
+How this plan relates to it:
+
+- **Orthogonal, no dependency.** The summary is bounded by construction (section 3.1 rules), so it must not rely on the entity store being enabled. The entity store reduces what Orca persists and loads; the summary column is what stops Orca reading the body for list requests. They solve different problems and compose.
+- **Not extended here.** Offloading more fields (for example Clouddriver `kato.tasks[].history`) would cost more UI functionality, since every consumer of those fields must then resolve references. A size-threshold handler was considered and is out of scope for this effort; revisit separately if Phase 0 shows Orca-side cost still dominated by stage-detail payloads.
+- **Stage detail returns references.** On installs with the entity store on, section 3.2 returns references inside `context`/`outputs`. Deck needs one shared helper that resolves references when a detail view is opened (generalizing `resolveStoredManifests`), so the raw JSON and execution-details views stop showing opaque `ref://` entries. This is an explicit Deck work item (section 5). References must be fetched through the existing artifact fetch path so its authorization applies.
+- **Hint ordering.** The hints contributor runs on the in-memory stage before the serializer hooks replace values with references. A hint that read manifest fields after offload would only see the reference's small `metadata` (kind, name, namespace). A contract test covers a stage with the entity store on and off producing the same hints.
+- **Verify before relying on it.** Confirm in `ArtifactDeserializer` and the Orca wiring that serving a stage does not re-expand references (the demo instance returns references from `GET /applications/{app}/pipelines?expand=true`, but that is one observation).
+
 ## 5. Deck consumption
 
 Behind `SETTINGS.feature.executionSummary`, falling back to the legacy path on 404.
@@ -148,6 +178,9 @@ Behind `SETTINGS.feature.executionSummary`, falling back to the legacy path on 4
 - `ExecutionsTransformer` prefers `stage.hints`.
 - Per-stage hydration stored separately from list items so polls cannot wipe it.
 - Lazy artifacts/manifests; a single shared ticker for durations; remove the N+1.
+- Trigger parameters, artifacts and evaluations move out of the card into an on-demand popup (section 3.6): list names and sizes first, fetch a large value only when it is expanded, page long parameter lists.
+- One shared "resolve references on view" helper for stage detail, generalizing `resolveStoredManifests` (section 4.1), so raw JSON and execution-details views resolve entity-store references instead of showing `ref://` entries.
+- A paged, polled list datasource and a lazy JSON viewer will be extracted as shared Deck primitives only if that turns out to be natural while building this; the Tasks page (section 10) is a separate initiative and is not a reason to design for it up front.
 
 ## 6. MCP
 
@@ -158,10 +191,13 @@ Behind `SETTINGS.feature.executionSummary`, falling back to the legacy path on 4
 
 ## 7. Phases
 
-- **0 Baseline:** fixtures (50 executions x ~20 stages; 10 in-flight with 1MB+ bodies; k8s manifest-heavy); Orca/Gate/Deck metrics; acceptance table (e.g. 5s poll < 50KB for 30 running executions).
+- **0 Baseline:** fixtures (50 executions x ~20 stages; 10 in-flight with 1MB+ bodies; k8s manifest-heavy); Orca/Gate/Deck metrics; acceptance table (e.g. 5s poll < 50KB for 30 running executions). Additions:
+  - **Large-scale fixture:** 50+ pipelines, 50-stage executions, manifest-heavy stages, triggers with thousands of parameters, triggers with a few parameters whose values are entire manifests, large artifact lists with embedded manifests, and artifact evaluations (`resolvedExpectedArtifacts`/`boundArtifacts`). Measure the 5s running poll and the 30s list, per `expand` value and summary vs legacy, on the wire (gzip) and decoded, plus Orca time/DB rows and Deck main-thread time (parse, `stringVal`, transform, render).
+  - **Entity store on vs off:** run every fixture with `artifact-store` enabled and disabled to quantify its effect on stored size, Orca load/parse time and response size, and to confirm references are not re-expanded when stages are served (section 4.1).
+  - **Preliminary data (one small instance, 2026-11-09, `demo` app, entity store on):** 13 executions / 96 stages, `limit=30&expand=true` = 567 KB decoded vs 48 KB with `expand=false` for 12 executions (about 10x, gzip about 8x on both); stage `context` 62%, `tasks` 21.5%, `outputs` 6.6%, with 166 `remote/map/base64` references already in the payload. The largest remaining item was Clouddriver `kato.tasks` (118 KB for `deployManifest`, about 79 KB of it `history`). Latency differed by only 10-15 ms at this size, so the cost here is client CPU and bytes, not Orca time; this does not yet reproduce the slowness seen on large installs, which is what the large-scale fixture is for.
 - **1 Cheap wins:** Deck running poll -> `expand=false` with a non-clobbering merge; `expand=false` on `/executions`; remove the N+1; `expand` on `GET /pipelines/{id}`; verify compression Orca->Gate->client; MCP `expand` default false; Redis stage-field skipping; benchmark `optimizeExecutionRetrieval`.
 - **2-3** Orca model + API, **4** Deck, **5** MCP, as above.
-- **Tests:** SQL (MySQL/Postgres testcontainers) + Redis contract suite (summary == projection of full, `since`, cursor stability, NULL-summary fallback, compressed tables, hint caps); Gate authz (403, 304, headers); Deck merge/Profiler tests; payload-size regression tests with large fixtures; end-to-end flag on/off comparison against Phase 0.
+- **Tests:** SQL (MySQL/Postgres testcontainers) + Redis contract suite (summary == projection of full, `since`, cursor stability, NULL-summary fallback, compressed tables, hint caps, hints identical with the entity store on and off, summary size independent of trigger parameter/artifact volume, trigger detail paging and truncation); Gate authz (403, 304, headers); Deck merge/Profiler tests; payload-size regression tests with large fixtures; end-to-end flag on/off comparison against Phase 0.
 - **Risks:** hint drift for plugin stages (SPI + lazy fallback); write amplification; online DDL on big stage tables; clock skew for `since` (DB-assigned time + overlap); authz regressions on new endpoints; Deck/Gate/Orca version skew (flag + 404 fallback).
 
 ## 8. Pipelines UI - for broad discussion (no decision)
@@ -245,7 +281,7 @@ Verify                                              |..|
         0m        5m        10m       15m
 ```
 
-Foundation work regardless of look: windowed list, cursor paging, server-side search/filter (status, pipeline, trigger, date), failure summary on the row from `hints.failureMessage`.
+Foundation work regardless of look: windowed list, cursor paging, server-side status/pipeline filters (already parameters of section 3.1), failure summary on the row from `hints.failureMessage`. Free-text server-side search is deliberately not part of this list: see the open question below.
 
 Proposed next step: prototype A+B+C against the summary API with the flag on, collect feedback, then choose; coordinate with other UI initiatives that should be bundled.
 
@@ -256,3 +292,10 @@ Proposed next step: prototype A+B+C against the summary API with the flag on, co
 - Is plugin stage UI in scope for the hints SPI?
 - Delta polling in the first cut, or ETag only?
 - Staging environment for the Phase 0 baseline, or synthetic fixtures?
+- Is server-side search needed at all? Search today only covers loaded executions, which is mostly a symptom of loading heavy payloads. With summaries small enough to load far more of them (cursor paging plus server-side status/pipeline filters), client-side search over loaded summaries may cover most needs. Decide from Phase 0 numbers and Phase 4 usage rather than building it up front. If it is needed later: parameterized, index-scoped queries only, no load-then-filter, and no free-text search over `context`/`outputs`.
+- What should the trigger popup do for parameter values that are themselves manifests (render as YAML, download, copy)? Does it share the lazy JSON/YAML viewer used for stage detail?
+
+## 10. Related work
+
+- **Tasks (orchestrations) page**: [spinnaker/spinnaker#8188](https://github.com/spinnaker/spinnaker/issues/8188) proposes a paged, polled, lazily-loaded rework of the application Tasks page (25 per page, active tasks polled faster than the first page, status filter on the server, JSON tab loaded when opened). It has the same overfetch problem as pipelines and lists a lighter list payload as optional later work. It is **a separate initiative** with its own plan and PRs and is not planned or in progress yet. This plan does not cover orchestrations. When the Tasks work is planned, it should reference this document, and the two can share a paged/polled list datasource and a lazy JSON viewer if that proves natural; neither depends on the other.
+- **Artifact-store entity storage** (`kork-artifacts`): see section 4.1.
