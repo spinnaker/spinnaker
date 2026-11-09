@@ -91,8 +91,8 @@ table.instances {
     margin: 0;
     display: inline-block;
     width: @instance-width;
-    border-right: 1px solid var(--color-white);
-    border-bottom: 1px solid var(--color-white);
+    border-right: 1px solid var(--color-surface);
+    border-bottom: 1px solid var(--color-surface);
     height: @instance-height;
     background-color: var(--color-success-light);
 
@@ -106,7 +106,7 @@ table.instances {
     }
 
     &.health-status-OutOfService {
-      background-color: var(--color-concrete);
+      background-color: var(--color-fill-concrete);
     }
 
     &.health-status-Unknown {
@@ -136,7 +136,7 @@ table.instances {
       }
 
       &.health-status-OutOfService {
-        background-color: var(--color-dovegray);
+        background-color: var(--color-fill-dovegray);
         border-color: var(--color-mineshaft);
       }
 
@@ -202,7 +202,7 @@ table.instances {
   height: 36px;
   line-height: 36px;
   font-size: 16px;
-  color: var(--color-primary);
+  color: var(--color-text-primary);
 
   .pod-center {
     min-width: 0;
@@ -269,7 +269,7 @@ table.instances {
   }
 
   .popover-title {
-    background-color: var(--color-dovegray);
+    background-color: var(--color-fill-dovegray);
     color: var(--color-white);
   }
 
@@ -278,7 +278,7 @@ table.instances {
   .menu-load-balancers-header {
     font-weight: 600;
     color: var(--color-cirrus);
-    background-color: var(--color-dovegray);
+    background-color: var(--color-fill-dovegray);
   }
 
   .menu-load-balancers-header,
@@ -354,7 +354,7 @@ table.instances {
 
   .badge-counter {
     color: var(--color-text-link);
-    background-color: var(--color-white);
+    background-color: var(--color-surface);
     border: 1px solid var(--color-accent);
     right: 0;
     font-size: 100%;
@@ -391,7 +391,7 @@ table.instances {
   }
 
   .clickable-row {
-    background-color: var(--color-white);
+    background-color: var(--color-surface);
     border: 1px solid var(--color-alto);
     margin: 5px 15px 3px;
     position: relative;
@@ -428,7 +428,7 @@ table.instances {
 
     .rollup-pod-server-group {
       .server-group-title {
-        background-color: rgba(255, 255, 255, 0.9);
+        background-color: var(--color-surface);
       }
 
       &.running {

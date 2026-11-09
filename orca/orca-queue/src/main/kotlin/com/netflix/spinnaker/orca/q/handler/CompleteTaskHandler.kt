@@ -100,7 +100,7 @@ class CompleteTaskHandler(
     }
 
     // the task _should not_ run subsequent tasks
-    return status.isHalt
+    return status.isHalt || originalStatus?.isHalt == true
   }
 
   override val messageType = CompleteTask::class.java

@@ -21,6 +21,7 @@ import com.netflix.kayenta.canary.CanaryConfig;
 import com.netflix.kayenta.canary.CanaryMetricConfig;
 import com.netflix.kayenta.canary.CanaryScope;
 import com.netflix.kayenta.canary.providers.metrics.GraphiteCanaryMetricSetQueryConfig;
+import com.netflix.kayenta.canary.providers.metrics.QueryConfigUtils;
 import com.netflix.kayenta.graphite.model.GraphiteMetricDescriptor;
 import com.netflix.kayenta.graphite.model.GraphiteMetricDescriptorsResponse;
 import com.netflix.kayenta.graphite.model.GraphiteResults;
@@ -78,6 +79,7 @@ public class GraphiteMetricsService implements MetricsService {
   }
 
   @Override
+  @SuppressWarnings("deprecation")
   public String buildQuery(
       String metricsAccountName,
       CanaryConfig canaryConfig,
@@ -85,6 +87,16 @@ public class GraphiteMetricsService implements MetricsService {
       CanaryScope canaryScope) {
     GraphiteCanaryMetricSetQueryConfig queryConfig =
         (GraphiteCanaryMetricSetQueryConfig) canaryMetricConfig.getQuery();
+    String[] baseScopeAttributes = new String[] {"scope", "location"};
+
+    String customFilter =
+        QueryConfigUtils.expandCustomFilter(
+            canaryConfig, queryConfig, canaryScope, baseScopeAttributes);
+
+    if (!Strings.isNullOrEmpty(customFilter)) {
+      log.debug("Query sent to graphite: {}.", customFilter);
+      return customFilter;
+    }
 
     String query = queryConfig.getMetricName();
     if (!Strings.isNullOrEmpty(canaryScope.getScope())) {

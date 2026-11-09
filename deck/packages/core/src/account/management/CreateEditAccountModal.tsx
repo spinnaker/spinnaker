@@ -66,7 +66,7 @@ export function CreateEditAccountModal({ existing, defaultType, onClose, onSaved
   const sample = ACCOUNT_SAMPLES[typeTrimmed];
 
   const typeSuggestions = Array.from(
-    new Set([...Object.keys(ACCOUNT_SAMPLES), ...CloudProviderRegistry.listRegisteredProviders()]),
+    new Set([...Object.keys(ACCOUNT_SAMPLES), ...CloudProviderRegistry.listRegisteredAccountTypes()]),
   ).sort();
 
   useEffect(() => {

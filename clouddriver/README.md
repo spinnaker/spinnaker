@@ -6,6 +6,50 @@ This service is the main integration point for Spinnaker cloud providers like AW
 It lives in this monorepo at `clouddriver/`; commands below are run from the monorepo root, not
 from within this directory — see [CLAUDE.md](../CLAUDE.md) for the full set of build/test commands.
 
+### Kubernetes CLI versions
+
+Both `Dockerfile.slim` and `Dockerfile.ubuntu` bundle one pinned kubectl binary per minor version,
+at `/usr/local/bin/kubectl-1.<minor>`, for Linux amd64 and arm64. The unversioned `kubectl` symlink
+uses the default selected in [kubectl-versions.json](kubectl-versions.json), currently minor
+**1.36**, replacing the previous 1.30 default.
+
+The packaged versions cover all minors in [Amazon EKS standard or extended support](https://docs.aws.amazon.com/eks/latest/userguide/kubernetes-versions.html)
+as of October 9, 2026. Version 1.30 is retained as an explicit compatibility option for existing deployments.
+
+The shared JSON file drives both image builds and the Kubernetes integration tests:
+
+- `defaultMinor` selects the unversioned image binary and the default local test client and cluster.
+- `versions` maps each minor to its pinned `kubectl` patch release. Every entry is packaged.
+- `kubernetesImage` optionally selects a digest-pinned kind node image for integration testing.
+  Images are required for the default minor and its two adjacent minors.
+- `kindVersion` pins kind for the integration-test harness. A version entry can override it
+  when its node image was published for an older kind release.
+
+CI runs exactly three integration jobs, using only the default kubectl client against servers
+at the same minor version and one minor below and above it. With the current default, kubectl
+1.36.5 runs against Kubernetes 1.35, 1.36, and 1.37. The matrix follows `defaultMinor` when it changes.
+
+Kubernetes [supports kubectl within one minor version of the API server](https://kubernetes.io/releases/version-skew-policy/#kubectl).
+The default 1.36 client covers servers at 1.35–1.37; select a matching bundled client for older clusters.
+Clouddriver does not automatically select kubectl based on the cluster version. Set
+`kubernetes.kubectl.executable` globally or `kubectlExecutable` on an individual account, which takes
+precedence over the global setting:
+
+```yaml
+kubernetes:
+  kubectl:
+    executable: /usr/local/bin/kubectl-1.36
+  accounts:
+    - name: eks-1-31
+      kubectlExecutable: /usr/local/bin/kubectl-1.31
+      # Add the account's existing context, credentials, and other settings here.
+```
+
+Image builds verify each download against Kubernetes' published SHA-512 checksum and stop on a
+download or checksum failure. Update `kubectl-versions.json` when refreshing client patches,
+the supported minor-version range, or the integration-test coverage. For local test commands
+and overrides, see the [integration-test README](clouddriver-kubernetes/src/integration/README.md).
+
 ### Developing with Intellij
 
 To configure this repo as an Intellij project, run `./gradlew idea` from the monorepo root.

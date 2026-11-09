@@ -8,15 +8,13 @@ import com.netflix.spinnaker.cats.cluster.NodeStatusProvider;
 import com.netflix.spinnaker.cats.provider.ProviderRegistry;
 import com.netflix.spinnaker.clouddriver.config.PubSubSchedulerProperties;
 import com.netflix.spinnaker.kork.annotations.Alpha;
+import com.netflix.spinnaker.kork.instance.InstanceIdentity;
 import io.micrometer.core.instrument.MeterRegistry;
 import io.micrometer.core.instrument.Tag;
-import java.net.InetAddress;
-import java.net.UnknownHostException;
 import java.time.Duration;
 import java.util.Collection;
 import java.util.List;
 import java.util.Set;
-import java.util.UUID;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.Semaphore;
@@ -401,10 +399,6 @@ public class PubSubAgentRunner
   }
 
   private static String resolveConsumerName() {
-    try {
-      return InetAddress.getLocalHost().getHostName();
-    } catch (UnknownHostException e) {
-      return "runner-" + UUID.randomUUID();
-    }
+    return InstanceIdentity.getLocalInstanceId();
   }
 }

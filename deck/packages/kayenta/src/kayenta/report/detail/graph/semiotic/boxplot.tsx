@@ -230,7 +230,7 @@ export default class BoxPlot extends React.Component<ISemioticChartProps, IBoxPl
         return {
           fill: d.color,
           fillOpacity: 0.4,
-          stroke: '#6a6a6a',
+          stroke: 'var(--color-dovegray)',
           strokeWidth: 2,
         };
       },

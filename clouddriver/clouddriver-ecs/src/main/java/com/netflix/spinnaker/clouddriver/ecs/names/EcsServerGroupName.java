@@ -24,12 +24,26 @@ public class EcsServerGroupName {
 
   private Moniker moniker;
 
+  /**
+   * When true, the ECS service name is the bare family/cluster name with no {@code -vNNN} version
+   * suffix. Used by the ecs-native provider, which keeps a single durable ECS service and rolls new
+   * task-definition revisions in place (via ECS-native deployments) rather than creating a new
+   * versioned server group per deploy. The classic {@code ecs} provider leaves this false and keeps
+   * the versioned red/black naming.
+   */
+  private final boolean fixedName;
+
   public EcsServerGroupName(String fullName) {
     this(MonikerHelper.applicationNameToMoniker(fullName));
   }
 
   public EcsServerGroupName(Moniker moniker) {
+    this(moniker, false);
+  }
+
+  public EcsServerGroupName(Moniker moniker, boolean fixedName) {
     this.moniker = moniker;
+    this.fixedName = fixedName;
   }
 
   public Moniker getMoniker() {
@@ -47,11 +61,27 @@ public class EcsServerGroupName {
   }
 
   public String getServiceName() {
+    if (fixedName) {
+      return getFamilyName();
+    }
     return String.join("-", getFamilyName(), getContainerName());
   }
 
   public String getContainerName() {
+    // A fixed-name server group has no sequence, so there is no vNNN segment to format. Callers in
+    // the shared create path still invoke this (container-definition name, load-balancer and
+    // service-registry container fallbacks), so return the stable family name instead of formatting
+    // a null sequence (which would NPE). For artifact-based ecs-native deploys the real container
+    // names come from the task-definition artifact, so this fallback value is not used as an AWS
+    // container name in practice.
+    if (fixedName || moniker.getSequence() == null) {
+      return getFamilyName();
+    }
     return String.format("v%03d", moniker.getSequence());
+  }
+
+  public boolean isFixedName() {
+    return fixedName;
   }
 
   @Override

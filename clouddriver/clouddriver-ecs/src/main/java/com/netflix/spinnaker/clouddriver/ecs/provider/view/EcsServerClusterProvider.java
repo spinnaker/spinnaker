@@ -32,17 +32,21 @@ import com.netflix.spinnaker.clouddriver.ecs.cache.model.Task;
 import com.netflix.spinnaker.clouddriver.ecs.model.EcsServerCluster;
 import com.netflix.spinnaker.clouddriver.ecs.model.EcsServerGroup;
 import com.netflix.spinnaker.clouddriver.ecs.model.EcsTask;
+import com.netflix.spinnaker.clouddriver.ecs.model.EcsTaskDefinitionRevision;
 import com.netflix.spinnaker.clouddriver.ecs.model.TaskDefinition;
+import com.netflix.spinnaker.clouddriver.ecs.names.EcsResource;
+import com.netflix.spinnaker.clouddriver.ecs.names.EcsTagNamer;
 import com.netflix.spinnaker.clouddriver.ecs.security.NetflixECSCredentials;
 import com.netflix.spinnaker.clouddriver.ecs.services.ContainerInformationService;
+import com.netflix.spinnaker.clouddriver.ecs.services.EcsTaskDefinitionRevisionService;
 import com.netflix.spinnaker.clouddriver.ecs.services.SubnetSelector;
 import com.netflix.spinnaker.clouddriver.model.ClusterProvider;
 import com.netflix.spinnaker.clouddriver.model.Instance;
 import com.netflix.spinnaker.clouddriver.model.LoadBalancer;
 import com.netflix.spinnaker.clouddriver.model.ServerGroup;
+import com.netflix.spinnaker.clouddriver.names.NamerRegistry;
 import com.netflix.spinnaker.credentials.CredentialsRepository;
 import com.netflix.spinnaker.moniker.Moniker;
-import com.netflix.spinnaker.moniker.MonikerHelper;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -73,6 +77,7 @@ public class EcsServerClusterProvider implements ClusterProvider<EcsServerCluste
   private final CredentialsRepository<NetflixECSCredentials> credentialsRepository;
   private final ContainerInformationService containerInformationService;
   private final SubnetSelector subnetSelector;
+  private final EcsTaskDefinitionRevisionService ecsTaskDefinitionRevisionService;
 
   private final Logger log = LoggerFactory.getLogger(getClass());
 
@@ -86,7 +91,8 @@ public class EcsServerClusterProvider implements ClusterProvider<EcsServerCluste
       ScalableTargetCacheClient scalableTargetCacheClient,
       EcsLoadbalancerCacheClient ecsLoadbalancerCacheClient,
       TaskDefinitionCacheClient taskDefinitionCacheClient,
-      EcsCloudWatchAlarmCacheClient ecsCloudWatchAlarmCacheClient) {
+      EcsCloudWatchAlarmCacheClient ecsCloudWatchAlarmCacheClient,
+      EcsTaskDefinitionRevisionService ecsTaskDefinitionRevisionService) {
     this.credentialsRepository = credentialsRepository;
     this.containerInformationService = containerInformationService;
     this.subnetSelector = subnetSelector;
@@ -96,24 +102,102 @@ public class EcsServerClusterProvider implements ClusterProvider<EcsServerCluste
     this.taskDefinitionCacheClient = taskDefinitionCacheClient;
     this.ecsLoadbalancerCacheClient = ecsLoadbalancerCacheClient;
     this.ecsCloudWatchAlarmCacheClient = ecsCloudWatchAlarmCacheClient;
+    this.ecsTaskDefinitionRevisionService = ecsTaskDefinitionRevisionService;
   }
 
   private Map<String, Set<EcsServerCluster>> findClusters(
       Map<String, Set<EcsServerCluster>> clusterMap, AmazonCredentials credentials) {
-    return findClusters(clusterMap, credentials, null, true);
+    return findClusters(clusterMap, credentials, null, true, null);
   }
 
   private Map<String, Set<EcsServerCluster>> findClusters(
       Map<String, Set<EcsServerCluster>> clusterMap,
       AmazonCredentials credentials,
       String application,
-      boolean inludeDetails) {
+      boolean includeDetails,
+      Collection<Service> indexedServices) {
+    return findClusters(
+        clusterMap,
+        credentials,
+        null,
+        application,
+        serviceNamePatterns(credentials, application),
+        includeDetails,
+        indexedServices);
+  }
+
+  /**
+   * The services of an application across all accounts and regions, read once through the cache's
+   * application index. Without this every ECS account and region would be probed separately for the
+   * application, which on a large installation is one query per account/region even when the
+   * application does not exist there at all.
+   *
+   * @return null when the index is not enabled, so callers scan by service name instead. An empty
+   *     result is trusted: it means the application has no services.
+   */
+  private Collection<Service> lookupByApplication(String application) {
+    if (application == null || !serviceCacheClient.canFindByApplication()) {
+      return null;
+    }
+    return serviceCacheClient.findByApplication(application);
+  }
+
+  /**
+   * @param region when non-null, only this region is searched
+   * @param serviceNamePatterns glob patterns for the service names to load; keeps the cache read
+   *     scoped to the services that are actually wanted instead of every service in the account
+   * @param indexedServices the application's services from {@link #lookupByApplication}, or null to
+   *     scan by {@code serviceNamePatterns}
+   */
+  private Map<String, Set<EcsServerCluster>> findClusters(
+      Map<String, Set<EcsServerCluster>> clusterMap,
+      AmazonCredentials credentials,
+      String region,
+      String application,
+      Collection<String> serviceNamePatterns,
+      boolean includeDetails,
+      Collection<Service> indexedServices) {
     for (AmazonCredentials.AWSRegion awsRegion : credentials.getRegions()) {
+      if (region != null && !region.equals(awsRegion.getName())) {
+        continue;
+      }
       clusterMap =
-          findClustersForRegion(clusterMap, credentials, awsRegion, application, inludeDetails);
+          findClustersForRegion(
+              clusterMap,
+              credentials,
+              awsRegion,
+              application,
+              serviceNamePatterns,
+              includeDetails,
+              indexedServices);
     }
 
     return clusterMap;
+  }
+
+  /**
+   * Service names are the application name optionally followed by {@code -stack-detail-vNNN}, so
+   * {@code app} and {@code app-*} cover every service of the application without also pulling in
+   * unrelated applications that merely share a prefix (e.g. {@code app2}).
+   *
+   * <p>That only holds when the moniker is derived from the service name. With the tag naming
+   * strategy the application comes from the service's tags and may bear no relation to its name,
+   * and the cache key is the bare service name, so nothing can be scoped by name: fall back to
+   * every service in the account/region and let the cached moniker filter.
+   */
+  private List<String> serviceNamePatterns(AmazonCredentials credentials, String application) {
+    if (application == null || monikerFromTags(credentials)) {
+      return List.of("*");
+    }
+    return List.of(application, application + "-*");
+  }
+
+  private boolean monikerFromTags(AmazonCredentials credentials) {
+    return NamerRegistry.lookup()
+            .withProvider(EcsCloudProvider.ID)
+            .withAccount(credentials.getName())
+            .withResource(EcsResource.class)
+        instanceof EcsTagNamer;
   }
 
   private Map<String, Set<EcsServerCluster>> findClustersForRegion(
@@ -121,16 +205,44 @@ public class EcsServerClusterProvider implements ClusterProvider<EcsServerCluste
       AmazonCredentials credentials,
       AmazonCredentials.AWSRegion awsRegion,
       String application,
-      boolean includeDetails) {
+      Collection<String> serviceNamePatterns,
+      boolean includeDetails,
+      Collection<Service> indexedServices) {
 
-    String glob =
-        application != null
-            ? Keys.getServiceKey(credentials.getName(), awsRegion.getName(), application + "*")
-            : Keys.getServiceKey(credentials.getName(), awsRegion.getName(), "*");
+    Collection<Service> services;
+    if (indexedServices != null) {
+      services =
+          indexedServices.stream()
+              .filter(
+                  service ->
+                      credentials.getName().equals(service.getAccount())
+                          && awsRegion.getName().equals(service.getRegion()))
+              .collect(Collectors.toList());
+    } else {
+      Set<String> ecsServices = new HashSet<>();
+      for (String pattern : serviceNamePatterns) {
+        ecsServices.addAll(
+            serviceCacheClient.filterIdentifiers(
+                Keys.getServiceKey(credentials.getName(), awsRegion.getName(), pattern)));
+      }
+      if (ecsServices.isEmpty()) {
+        return clusterMap;
+      }
+      services = serviceCacheClient.getAll(ecsServices);
+    }
+    if (services.isEmpty()) {
+      return clusterMap;
+    }
 
-    Collection<String> ecsServices = serviceCacheClient.filterIdentifiers(glob);
-    Collection<Service> services = serviceCacheClient.getAll(ecsServices);
+    // Tasks are keyed by task id only (not by service), so they cannot be glob-scoped to the
+    // services above. They are loaded once per region, and only when there are services to attach
+    // them to.
+    // TODO: relate tasks to their service in TaskCachingAgent so this can be an identifier lookup.
     Collection<Task> allTasks = taskCacheClient.getAll(credentials.getName(), awsRegion.getName());
+
+    // Load balancers are per account/region, not per service.
+    Set<LoadBalancer> loadBalancers =
+        new HashSet<>(ecsLoadbalancerCacheClient.find(credentials.getName(), awsRegion.getName()));
 
     for (Service service : services) {
       final Moniker moniker = service.getMoniker();
@@ -141,19 +253,6 @@ public class EcsServerClusterProvider implements ClusterProvider<EcsServerCluste
         continue;
       }
 
-      Set<LoadBalancer> loadBalancers =
-          new HashSet<>(
-              ecsLoadbalancerCacheClient.find(credentials.getName(), awsRegion.getName()));
-
-      Set<Instance> instances =
-          allTasks.stream()
-              .filter(task -> task.getGroup().equals("service:" + serviceName))
-              .map(
-                  task ->
-                      convertToEcsTask(
-                          credentials.getName(), awsRegion.getName(), serviceName, task))
-              .collect(Collectors.toSet());
-
       String taskDefinitionKey =
           Keys.getTaskDefinitionKey(
               credentials.getName(), awsRegion.getName(), service.getTaskDefinition());
@@ -162,6 +261,23 @@ public class EcsServerClusterProvider implements ClusterProvider<EcsServerCluste
       if (taskDefinition == null) {
         continue;
       }
+
+      // Per-service, not per-task: the service and its task definition are already in hand, so the
+      // tasks must not look them up again.
+      boolean hasHealthCheck =
+          containerInformationService.taskDefinitionHasHealthCheck(taskDefinition);
+      Set<Instance> instances =
+          allTasks.stream()
+              .filter(task -> task.getGroup().equals("service:" + serviceName))
+              .map(
+                  task ->
+                      convertToEcsTask(
+                          credentials.getName(),
+                          awsRegion.getName(),
+                          service,
+                          hasHealthCheck,
+                          task))
+              .collect(Collectors.toSet());
 
       EcsServerGroup ecsServerGroup =
           buildEcsServerGroup(
@@ -176,6 +292,7 @@ public class EcsServerClusterProvider implements ClusterProvider<EcsServerCluste
               taskDefinition,
               service.getSubnets(),
               service.getSecurityGroups(),
+              service,
               includeDetails);
 
       if (ecsServerGroup == null) {
@@ -210,18 +327,16 @@ public class EcsServerClusterProvider implements ClusterProvider<EcsServerCluste
     return clusterMap;
   }
 
-  private EcsTask convertToEcsTask(String account, String region, String serviceName, Task task) {
+  private EcsTask convertToEcsTask(
+      String account, String region, Service service, boolean hasHealthCheck, Task task) {
     String taskId = task.getTaskId();
     Long launchTime = task.getStartedAt();
 
     String address = containerInformationService.getTaskPrivateAddress(account, region, task);
     List<Map<String, Object>> healthStatus =
-        containerInformationService.getHealthStatus(taskId, serviceName, account, region);
+        containerInformationService.getHealthStatus(
+            taskId, task, service, hasHealthCheck, account, region);
     String availabilityZone = containerInformationService.getTaskZone(account, region, task);
-
-    Service service = containerInformationService.getService(serviceName, account, region);
-    boolean hasHealthCheck =
-        containerInformationService.taskHasHealthCheck(service, account, region);
 
     NetworkInterface networkInterface =
         !task.getContainers().isEmpty()
@@ -281,6 +396,22 @@ public class EcsServerClusterProvider implements ClusterProvider<EcsServerCluste
         .setEnvironmentVariables(containerDefinition.environment());
   }
 
+  /**
+   * Extracts the task-definition revision from a task-definition ARN. ECS ARNs end with {@code
+   * family:revision} (e.g. {@code arn:aws:ecs:...:task-definition/my-family:42}), so the revision
+   * is the integer after the final colon. Returns null if the ARN is null or not in that form.
+   */
+  private Integer parseTaskDefinitionRevision(String taskDefinitionArn) {
+    if (taskDefinitionArn == null) {
+      return null;
+    }
+    String revision = StringUtils.substringAfterLast(taskDefinitionArn, ":");
+    if (StringUtils.isNumeric(revision)) {
+      return Integer.valueOf(revision);
+    }
+    return null;
+  }
+
   private ServerGroup.Capacity buildServerGroupCapacity(int desiredCount, ScalableTarget target) {
     ServerGroup.Capacity capacity = new ServerGroup.Capacity();
     capacity.setDesired(desiredCount);
@@ -318,6 +449,7 @@ public class EcsServerClusterProvider implements ClusterProvider<EcsServerCluste
       software.amazon.awssdk.services.ecs.model.TaskDefinition taskDefinition,
       List<String> eniSubnets,
       List<String> eniSecurityGroups,
+      Service service,
       boolean includeDetails) {
     ServerGroup.InstanceCounts instanceCounts = buildInstanceCount(instances);
     String scalableTargetId = "service/" + ecsClusterName + "/" + serviceName;
@@ -379,6 +511,8 @@ public class EcsServerClusterProvider implements ClusterProvider<EcsServerCluste
             .stream()
             .map(EcsMetricAlarm::getAlarmName)
             .collect(Collectors.toSet());
+    Integer taskDefinitionRevision =
+        parseTaskDefinitionRevision(taskDefinition.taskDefinitionArn());
     EcsServerGroup serverGroup = new EcsServerGroup();
     if (includeDetails) {
       TaskDefinition ecsTaskDefinition = buildTaskDefinition(taskDefinition);
@@ -419,6 +553,22 @@ public class EcsServerClusterProvider implements ClusterProvider<EcsServerCluste
           .setMetricAlarms(metricAlarmNames)
           .setMoniker(moniker);
     }
+
+    // Task-def revision and ECS rollout state apply to both the summary (clusters listing) and the
+    // detailed view, so set them regardless of includeDetails -- the clusters-view card header
+    // reads them from the summary payload.
+    serverGroup.setTaskDefinitionRevision(taskDefinitionRevision);
+    // Name shape is not ownership evidence: external Terraform/CDK/hand-created services can also
+    // be unversioned. Only the durable ECS service tag persisted by ecs-native marks ownership.
+    if (service != null && service.isEcsNative()) {
+      serverGroup.setIsNative(true);
+    }
+    if (service != null) {
+      serverGroup
+          .setDeploymentId(service.getDeploymentId())
+          .setRolloutState(service.getRolloutState())
+          .setRolloutStateReason(service.getRolloutStateReason());
+    }
     EcsServerGroup.AutoScalingGroup asg =
         new EcsServerGroup.AutoScalingGroup()
             .setDesiredCapacity(scalableTarget.maxCapacity())
@@ -429,6 +579,40 @@ public class EcsServerClusterProvider implements ClusterProvider<EcsServerCluste
     // serverGroup.setAsg(asg);
 
     return serverGroup;
+  }
+
+  /**
+   * Attaches the family's task-definition revisions to a single native server group for Deck's
+   * rollback picker. This is a live {@code ListTaskDefinitions} call, so it is only made from
+   * {@link #getServerGroup(String, String, String, boolean)} for the one requested server group,
+   * never from cluster/application listings. Best-effort: any failure is logged and leaves the
+   * revisions unset rather than failing the whole details view (the picker then simply shows no
+   * options).
+   */
+  private void attachTaskDefinitionRevisions(
+      EcsServerGroup serverGroup, NetflixECSCredentials credentials, String region) {
+    if (!Boolean.TRUE.equals(serverGroup.getIsNative())) {
+      return;
+    }
+    try {
+      Service service =
+          serviceCacheClient.get(
+              Keys.getServiceKey(credentials.getName(), region, serverGroup.getName()));
+      if (service == null) {
+        return;
+      }
+      List<EcsTaskDefinitionRevision> revisions =
+          ecsTaskDefinitionRevisionService.listRevisions(
+              credentials, region, service.getTaskDefinition());
+      serverGroup.setTaskDefinitionRevisions(revisions);
+    } catch (Exception e) {
+      log.warn(
+          "Failed to list task-definition revisions for ecs-native service {} in {}/{}",
+          serverGroup.getName(),
+          credentials.getName(),
+          region,
+          e);
+    }
   }
 
   private ServerGroup.InstanceCounts buildInstanceCount(Set<Instance> instances) {
@@ -471,7 +655,7 @@ public class EcsServerClusterProvider implements ClusterProvider<EcsServerCluste
     return credentialsRepository.getAll();
   }
 
-  private AmazonCredentials getEcsCredentials(String account) {
+  private NetflixECSCredentials getEcsCredentials(String account) {
     NetflixECSCredentials creds = credentialsRepository.getOne(account);
     if (creds == null) {
       throw new NoSuchElementException(
@@ -504,8 +688,10 @@ public class EcsServerClusterProvider implements ClusterProvider<EcsServerCluste
       String application, boolean includeDetails) {
     Map<String, Set<EcsServerCluster>> clusterMap = new HashMap<>();
 
+    Collection<Service> indexedServices = lookupByApplication(application);
     for (AmazonCredentials credentials : getEcsCredentials()) {
-      clusterMap = findClusters(clusterMap, credentials, application, includeDetails);
+      clusterMap =
+          findClusters(clusterMap, credentials, application, includeDetails, indexedServices);
     }
     return clusterMap;
   }
@@ -515,7 +701,9 @@ public class EcsServerClusterProvider implements ClusterProvider<EcsServerCluste
   public Set<EcsServerCluster> getClusters(String application, String account) {
     try {
       AmazonCredentials credentials = getEcsCredentials(account);
-      return findClusters(new HashMap<>(), credentials, application, true).get(application);
+      return findClusters(
+              new HashMap<>(), credentials, application, true, lookupByApplication(application))
+          .get(application);
     } catch (NoSuchElementException exception) {
       log.info("No ECS Credentials were found for account " + account);
       return null;
@@ -528,15 +716,42 @@ public class EcsServerClusterProvider implements ClusterProvider<EcsServerCluste
    */
   @Override
   public EcsServerCluster getCluster(String application, String account, String name) {
-    Set<EcsServerCluster> ecsServerClusters = getClusters(application, account);
-    if (ecsServerClusters != null && ecsServerClusters.size() > 0) {
-      for (EcsServerCluster cluster : ecsServerClusters) {
-        if (cluster.getName().equals(name)) {
-          return cluster;
+    try {
+      AmazonCredentials credentials = getEcsCredentials(account);
+      // Only services of the requested cluster are loaded; the cluster name is the service name
+      // minus its version suffix.
+      Set<EcsServerCluster> ecsServerClusters =
+          findClusters(
+                  new HashMap<>(),
+                  credentials,
+                  null,
+                  application,
+                  monikerFromTags(credentials) ? List.of("*") : List.of(name, name + "-*"),
+                  true,
+                  clusterServices(lookupByApplication(application), name))
+              .get(application);
+      if (ecsServerClusters != null) {
+        for (EcsServerCluster cluster : ecsServerClusters) {
+          if (cluster.getName().equals(name)) {
+            return cluster;
+          }
         }
       }
+    } catch (NoSuchElementException exception) {
+      log.info("No ECS Credentials were found for account " + account);
     }
     return null;
+  }
+
+  private Collection<Service> clusterServices(Collection<Service> services, String clusterName) {
+    return services == null
+        ? null
+        : services.stream()
+            .filter(
+                service ->
+                    service.getMoniker() != null
+                        && clusterName.equals(service.getMoniker().getCluster()))
+            .collect(Collectors.toList());
   }
 
   /**
@@ -561,12 +776,15 @@ public class EcsServerClusterProvider implements ClusterProvider<EcsServerCluste
     }
 
     Map<String, Set<EcsServerCluster>> clusterMap = new HashMap<>();
+    NetflixECSCredentials credentials = null;
 
     try {
-      AmazonCredentials credentials = getEcsCredentials(account);
-      Moniker moniker = MonikerHelper.applicationNameToMoniker(serverGroupName);
-      log.debug("App Name is: " + moniker.getApp());
-      clusterMap = findClusters(clusterMap, credentials, moniker.getApp(), true);
+      credentials = getEcsCredentials(account);
+      // A server group is a single service, so look up exactly that service in the one region. No
+      // application filter: the name-derived app need not match a tag-derived moniker, and the
+      // exact service key already identifies the server group.
+      clusterMap =
+          findClusters(clusterMap, credentials, region, null, List.of(serverGroupName), true, null);
     } catch (NoSuchElementException exception) {
       /* This is ugly, but not sure how else to do it. If we don't have creds due
        *  to not being an ECS account, there's nothing to do here, and we should
@@ -580,6 +798,11 @@ public class EcsServerClusterProvider implements ClusterProvider<EcsServerCluste
         for (ServerGroup serverGroup : ecsServerCluster.getServerGroups()) {
           if (region.equals(serverGroup.getRegion())
               && serverGroupName.equals(serverGroup.getName())) {
+            // Deliberately not gated on includeDetails: Deck's server-group details pane (the
+            // rollback picker's source) requests includeDetails=false, and this method has always
+            // returned the full model regardless of the flag. Scoping the live call to the single
+            // requested server group is what keeps it off listings and sibling services.
+            attachTaskDefinitionRevisions((EcsServerGroup) serverGroup, credentials, region);
             return serverGroup;
           }
         }

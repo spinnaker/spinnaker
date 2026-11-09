@@ -141,11 +141,14 @@ public abstract class AbstractGoogleServerGroupCachingAgent
       String.join(":", GoogleCloudProvider.getID(), OnDemandType.ServerGroup.getValue());
 
   private static final Splitter COMMA = Splitter.on(',').omitEmptyStrings().trimResults();
+  private static final String SERVER_GROUP_BUILD_FAILURES_METRIC =
+      "google.serverGroupCaching.buildFailures";
   private static final MapSplitter IMAGE_DESCRIPTION_SPLITTER =
       Splitter.on(',').withKeyValueSeparator(": ");
 
   private final GoogleNamedAccountCredentials credentials;
   private final GoogleComputeApiFactory computeApiFactory;
+  private final Registry registry;
   private final String region;
   private final OnDemandMetricsSupport onDemandMetricsSupport;
   private final ObjectMapper objectMapper;
@@ -161,6 +164,7 @@ public abstract class AbstractGoogleServerGroupCachingAgent
       ServiceClientProvider serviceClientProvider) {
     this.credentials = credentials;
     this.computeApiFactory = computeApiFactory;
+    this.registry = registry;
     this.region = region;
     this.onDemandMetricsSupport = new OnDemandMetricsSupport(registry, this, ON_DEMAND_TYPE);
     this.objectMapper = objectMapper;
@@ -582,23 +586,50 @@ public abstract class AbstractGoogleServerGroupCachingAgent
     return managers.stream()
         .map(
             manager -> {
-              ImmutableSet<GoogleInstance> ownedInstances = ImmutableSet.of();
-              if (manager.getBaseInstanceName() != null) {
-                ownedInstances =
-                    instances.stream()
-                        .filter(
-                            instance ->
-                                instance.getName().startsWith(manager.getBaseInstanceName()))
-                        .filter(instance -> instanceScopedToManager(instance, manager))
-                        .collect(toImmutableSet());
+              try {
+                ImmutableSet<GoogleInstance> ownedInstances = ImmutableSet.of();
+                if (manager.getBaseInstanceName() != null) {
+                  ownedInstances =
+                      instances.stream()
+                          .filter(
+                              instance ->
+                                  instance.getName().startsWith(manager.getBaseInstanceName()))
+                          .filter(instance -> instanceScopedToManager(instance, manager))
+                          .collect(toImmutableSet());
+                }
+                TargetAndScope key = TargetAndScope.forInstanceGroupManager(manager);
+                Autoscaler autoscaler = autoscalerMap.get(key);
+                InstanceTemplate instanceTemplate =
+                    instanceTemplatesMap.get(Utils.getLocalName(manager.getInstanceTemplate()));
+                return Optional.of(
+                    createServerGroup(
+                        manager, ownedInstances, instanceTemplate, autoscaler, providerCache));
+              } catch (Exception e) {
+                // SERVER_GROUPS is authoritative for this agent, so a server group skipped here is
+                // evicted from the cache until a later cycle builds it successfully. Skipping one
+                // broken server group keeps the rest of the region cached instead of failing the
+                // whole cycle.
+                registry
+                    .counter(
+                        SERVER_GROUP_BUILD_FAILURES_METRIC,
+                        "account",
+                        getAccountName(),
+                        "region",
+                        region)
+                    .increment();
+                log.error(
+                    "Failed to build server group {} in account {} region {}; skipping it for this"
+                        + " caching cycle, so it will be evicted from the cache until it is built"
+                        + " successfully.",
+                    manager.getName(),
+                    getAccountName(),
+                    region,
+                    e);
+                return Optional.<GoogleServerGroup>empty();
               }
-              TargetAndScope key = TargetAndScope.forInstanceGroupManager(manager);
-              Autoscaler autoscaler = autoscalerMap.get(key);
-              InstanceTemplate instanceTemplate =
-                  instanceTemplatesMap.get(Utils.getLocalName(manager.getInstanceTemplate()));
-              return createServerGroup(
-                  manager, ownedInstances, instanceTemplate, autoscaler, providerCache);
             })
+        .filter(Optional::isPresent)
+        .map(Optional::get)
         .collect(toImmutableList());
   }
 
@@ -1088,7 +1119,7 @@ public abstract class AbstractGoogleServerGroupCachingAgent
       ScalingSchedule output = new ScalingSchedule();
       output.setScheduleName(key);
       output.setScheduleDescription(input.getDescription());
-      output.setEnabled(!input.getDisabled());
+      output.setEnabled(!Boolean.TRUE.equals(input.getDisabled()));
       output.setDuration(input.getDurationSec());
       output.setMinimumRequiredInstances(input.getMinRequiredReplicas());
       output.setScheduleCron(input.getSchedule());

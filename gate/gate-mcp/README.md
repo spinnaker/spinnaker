@@ -25,6 +25,28 @@ mcp:
 error instead of executing - a safe way to expose read/query tools to an MCP client before opting
 into write access.
 
+### Allowlisting tools
+
+By default every tool in the catalog below is exposed. To expose only specific tools, list them
+by name under `allowed-tools`:
+
+```yaml
+mcp:
+  server:
+    enabled: true
+    allowed-tools:
+      - get_application
+      - get_pipeline_execution
+      - get_failed_stages
+      - trigger_pipeline
+```
+
+Tools not on the list are never registered with the MCP server, so they don't appear in
+`tools/list` and can't be called. The allowlist is applied on top of `read-only`: an allowlisted
+mutating tool still rejects while `read-only` is true. Resources and prompts are not affected.
+Names that don't match a registered tool (a typo, or a tool whose backing service such as Kayenta
+or Keel isn't enabled) are logged as a warning at startup.
+
 ## Tool catalog
 
 ### Applications & infrastructure
@@ -157,8 +179,8 @@ controls used when a rollout is stuck.
 | `spinnaker://applications/{application}/pipelines` | Recent executions |
 | `spinnaker://executions/{executionId}` | Execution detail |
 | `spinnaker://applications/{application}/manual-judgments` | Pending manual judgments |
-| `spinnaker://mcp/audit-log` | Recent mutating MCP tool calls, most recent first |
-| `spinnaker://mcp/audit-log/{application}` | The above, filtered to one application/target |
+| `spinnaker://mcp/audit-log` | Admin-only: recent mutating MCP tool calls, most recent first |
+| `spinnaker://mcp/audit-log/{application}` | Admin-only: the above, filtered to one application/target |
 
 ## Prompts
 

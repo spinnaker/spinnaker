@@ -5,31 +5,16 @@ on:
   workflow_call:
     inputs:
       version-override:
-        description: Overrides the version for artifacts (e.g. "1.37.1").  Otherwise, uses the auto-incrementing build number for the current branch.
+        description: The release version to publish (e.g. "2026.3.2").
         type: string
+        required: true
 
   workflow_dispatch:
     inputs:
       version-override:
-        description: Overrides the version for artifacts (e.g. "1.37.1").  Otherwise, uses the auto-incrementing build number for the current branch.
+        description: The release version to publish (e.g. "2026.3.2").
         type: string
-
-  push:
-    branches:
-      - main
-      - release-*
-    paths:
-      - 'clouddriver/**'
-      - 'echo/**'
-      - 'fiat/**'
-      - 'front50/**'
-      - 'gate/**'
-      - 'igor/**'
-      - 'kayenta/**'
-      - 'keel/**'
-      - 'kork/**'
-      - 'orca/**'
-      - 'rosco/**'
+        required: true
 
 jobs:
   libraries-nexus:

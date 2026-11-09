@@ -28,6 +28,23 @@ describe('CloudProviderRegistry: API', function () {
     });
   });
 
+  describe('listRegisteredAccountTypes', function () {
+    it('maps a provider that declares an accountType onto that account type', function () {
+      CloudProviderRegistry.registerProvider(registrationTestProvider, { name: 'base' });
+      CloudProviderRegistry.registerProvider(lookupTestProvider, {
+        name: 'alias',
+        accountType: registrationTestProvider,
+      });
+
+      const accountTypes = CloudProviderRegistry.listRegisteredAccountTypes();
+      expect(accountTypes).toContain(registrationTestProvider);
+      expect(accountTypes).not.toContain(lookupTestProvider);
+      expect(accountTypes.filter((type) => type === registrationTestProvider).length).toBe(1);
+      // The alias stays registered for provider-keyed lookups.
+      expect(CloudProviderRegistry.listRegisteredProviders()).toContain(lookupTestProvider);
+    });
+  });
+
   describe('property lookup', function () {
     beforeEach(function () {
       testContext.config = {

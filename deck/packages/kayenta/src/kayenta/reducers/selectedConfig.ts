@@ -9,8 +9,6 @@ import { CanarySettings } from '../canary.settings';
 import type { ICanaryConfig, ICanaryJudgeConfig, ICanaryMetricConfig, IGroupWeights } from '../domain/ICanaryConfig';
 import { ALL } from '../edit/groupTabs';
 import { JudgeSelectRenderState } from '../edit/judgeSelect';
-import type { IEditingTemplateState } from './editingTemplate';
-import { editingTemplate } from './editingTemplate';
 import type { IGroupState } from './group';
 import { group } from './group';
 import { prometheusMetricConfigReducer } from './prometheusMetricConfig';
@@ -61,7 +59,6 @@ export interface ISelectedConfigState {
   json: IJsonState;
   changeMetricGroup: IChangeMetricGroupState;
   validationErrors: IConfigValidationError[];
-  editingTemplate: IEditingTemplateState;
   selectedStore: string;
 }
 
@@ -77,16 +74,6 @@ const config = handleActions(
       description: action.payload.description,
     }),
     [combineActions(Actions.DELETE_CONFIG_SUCCESS, Actions.CLEAR_SELECTED_CONFIG)]: () => null,
-    [Actions.DELETE_TEMPLATE]: (state: ICanaryConfig, action: Action & any) => {
-      if (!action.payload.name) {
-        return state;
-      }
-
-      return {
-        ...state,
-        templates: omit(state.templates, action.payload.name),
-      };
-    },
   },
   null,
 );
@@ -114,24 +101,9 @@ const metricList = handleActions(
       idMetrics(state.concat([action.payload.metric])),
     [Actions.REMOVE_METRIC]: (state: ICanaryMetricConfig[], action: Action & any) =>
       idMetrics(state.filter((metric) => metric.id !== action.payload.id)),
-    [Actions.DELETE_TEMPLATE]: (state: ICanaryMetricConfig[], action: Action & any) =>
-      state.map((m) => removeDeletedTemplateFromMetric(m, action.payload.name)),
   },
   [],
 );
-
-function removeDeletedTemplateFromMetric(metric: ICanaryMetricConfig, deletedTemplateName: string) {
-  if (get(metric, 'query.customFilterTemplate') === deletedTemplateName) {
-    return {
-      ...metric,
-      query: {
-        ...metric.query,
-        customFilterTemplate: null,
-      },
-    };
-  }
-  return metric;
-}
 
 const editingMetric = handleActions(
   {
@@ -199,10 +171,6 @@ const editingMetric = handleActions(
       ...state,
       query: { ...state.query, select: action.payload.select },
     }),
-    [Actions.SELECT_TEMPLATE]: (state: ICanaryMetricConfig, action: Action & any) => ({
-      ...state,
-      query: { ...state.query, customFilterTemplate: action.payload.name },
-    }),
     [Actions.UPDATE_METRIC_SCOPE_NAME]: (state: ICanaryMetricConfig, action: Action & any) => ({
       ...state,
       scopeName: action.payload.scopeName,
@@ -213,7 +181,7 @@ const editingMetric = handleActions(
     }),
     [Actions.EDIT_INLINE_TEMPLATE]: (state: ICanaryMetricConfig, action: Action & any) => ({
       ...state,
-      query: { ...state.query, customInlineTemplate: action.payload.value },
+      query: { ...state.query, template: action.payload.value },
     }),
   },
   null,
@@ -478,61 +446,6 @@ export function updateGroupWeightsReducer(state: ISelectedConfigState, action: A
   };
 }
 
-const editingTemplateConfirmReducer = (state: ISelectedConfigState, action: Action & any): ISelectedConfigState => {
-  if (action.type !== Actions.EDIT_TEMPLATE_CONFIRM) {
-    return state;
-  }
-
-  const { name, editedName, editedValue, isNew } = state.editingTemplate;
-  const templates = {
-    ...(name ? omit(state.config.templates, name) : state.config.templates),
-    [editedName]: editedValue,
-  };
-
-  const metricUpdater = (metric: ICanaryMetricConfig) => {
-    if (get(metric, 'query.customFilterTemplate') !== name) {
-      return metric;
-    }
-    return {
-      ...metric,
-      query: {
-        ...metric.query,
-        customFilterTemplate: editedName,
-      },
-    };
-  };
-
-  // Select new template for editingMetric
-  const editingMetricUpdater = (metric: ICanaryMetricConfig) => {
-    if (isNew) {
-      return {
-        ...metric,
-        query: {
-          ...metric.query,
-          customFilterTemplate: editedName,
-        },
-      };
-    }
-    return metricUpdater(metric);
-  };
-
-  return {
-    ...state,
-    editingTemplate: {
-      name: null,
-      editedName: null,
-      editedValue: null,
-      isNew: false,
-    },
-    config: {
-      ...state.config,
-      templates,
-    },
-    metricList: (state.metricList || []).map(metricUpdater),
-    editingMetric: editingMetricUpdater(state.editingMetric),
-  };
-};
-
 const combined = combineReducers<ISelectedConfigState>({
   config,
   load,
@@ -550,7 +463,6 @@ const combined = combineReducers<ISelectedConfigState>({
   changeMetricGroup,
   isInSyncWithServer,
   validationErrors: () => null,
-  editingTemplate,
   selectedStore: handleActions<string>({}, null),
 });
 
@@ -563,6 +475,5 @@ export const selectedConfig = (state: ISelectedConfigState, action: Action & any
     editGroupConfirmReducer,
     changeMetricGroupConfirmReducer,
     updateGroupWeightsReducer,
-    editingTemplateConfirmReducer,
   ].reduce((s, reducer) => reducer(s, action), state);
 };

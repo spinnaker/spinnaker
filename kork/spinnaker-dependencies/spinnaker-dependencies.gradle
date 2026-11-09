@@ -32,14 +32,14 @@ ext {
     // springdoc-openapi v3 is the Spring Boot 4 line (v2.x targets Boot 3
     // and references the removed autoconfigure.web.servlet.WebMvcProperties).
     springdocs          : "3.1.1",
-    springBoot       : "4.1.1",
+    springBoot       : "4.1.2",
     springCloud      : "2025.1.3", // CVE-2026-40982: spring-cloud-config-server 4.3.3+ required
     // springdoc-openapi v3 needs swagger-core with the jakarta artifacts;
     // keep ahead of transitive deps as before.
     swagger          : "2.2.49",
-    httpcore5        : "5.4.3",
+    httpcore5        : "5.4.4",
     logback          : "1.5.37",
-    tomcat           : "10.1.56",
+    tomcat           : "11.0.27",
     commonsCompress  : "1.27.1",
     // Testcontainers module for the MiniStack AWS emulator. The module is a thin
     // GenericContainer wrapper, so the emulator version comes from the image tag
@@ -68,22 +68,21 @@ dependencies {
   //kotlinVersion comes from gradle.properties since we have kotlin code in
   // this project and need to configure gradle plugins etc.
   api(platform(libs.kotlin.bom))
-  // log4j-bom and netty-bom are declared here, before spring-boot-dependencies (and every
+  // log4j-bom is declared here, before spring-boot-dependencies (and every
   // other BOM below), so that our pinned versions win when this platform is published as a
   // Maven POM and consumed by a downstream Maven-style build via an imported/enforced
   // platform. Gradle's own conflict resolution picks the highest version regardless of
   // declaration order, but Maven's <dependencyManagement> import resolution is strictly
   // "first import wins" - so if these came after spring-boot-dependencies in the generated
-  // POM, Maven consumers would silently fall back to spring's older, nested netty-bom/log4j-bom
+  // POM, Maven consumers would silently fall back to spring's older, nested log4j-bom
   // versions even though Gradle-based, build-from-source consumers would never see the problem.
   api(platform("org.apache.logging.log4j:log4j-bom:${versions.log4j}"))
-  api(platform("io.netty:netty-bom:4.1.136.Final"))// 3.5.16 of spring brings in 4.1.135 which has a new CVE.  https://nvd.nist.gov/vuln/detail/CVE-2026-55831.  Remove post upgrade to latest 4 with a fix
   // httpcore5-parent is the officially published Maven coordinate management POM for the
   // httpcore5/httpcore5-h2 artifact family (see the "Maven Coordinates" section of the
   // Apache HttpComponents Core release docs). It has a real <dependencyManagement> pinning
   // httpcore5/httpcore5-h2 to ${project.version}, so it's a safe drop-in for our former
   // constraints{} pin. Declared here, before spring-boot-dependencies, for the same
-  // import-order-safety reason as log4j-bom/netty-bom above.
+  // import-order-safety reason as log4j-bom above.
   api(platform("org.apache.httpcomponents.core5:httpcore5-parent:${versions.httpcore5}"))
   // Use BC's published artifact set (including PKIX, provider, TLS and MLS).
   // Import before Spring's BOMs so Maven consumers also receive these fixes.
@@ -111,7 +110,7 @@ dependencies {
     api("com.google.api-client:google-api-client:2.9.1")
     api("com.google.apis:google-api-services-admin-directory:directory_v1-rev20260531-2.0.0")
     api("com.google.apis:google-api-services-cloudbuild:v1-rev20260511-2.0.0")
-    api("com.google.apis:google-api-services-compute:v1-rev20260520-2.0.0")
+    api("com.google.apis:google-api-services-compute:v1-rev20261016-2.0.0")
     api("com.google.apis:google-api-services-iam:v1-rev20250516-2.0.0")
     api("com.google.apis:google-api-services-monitoring:v3-rev20250515-2.0.0")
     api("com.google.apis:google-api-services-storage:v1-rev20260524-2.0.0")
@@ -123,9 +122,6 @@ dependencies {
     api("com.hubspot.jinjava:jinjava:2.8.3") // fixes CVE-2026-25526
     api("com.github.mwiede:jsch:${versions.jsch}")
     api("org.elasticsearch:elasticsearch:${versions.elasticsearch}")
-    // CVE-2026-84939: Boot 4.1.1 still manages 2.3.34. This patch stays on 2.3.x.
-    // TODO: Remove the override when the Spring Boot BOM manages 2.3.35 or later.
-    api("org.freemarker:freemarker:2.3.35")
     api("com.jcraft:jsch.agentproxy.connector-factory:${versions.jschAgentProxy}")
     api("com.jcraft:jsch.agentproxy.jsch:${versions.jschAgentProxy}")
 
@@ -180,19 +176,18 @@ dependencies {
     api("javax.xml.bind:jaxb-api:2.3.1")
     // Upgraded from the long-stale 4.11 pin. 9.0 needs a Java 17+ baseline (we run
     // Java 25), logback 1.5.x (we pin ${versions.logback}), and Jackson 3
-    // (tools.jackson:* 3.0.x). Spring Boot 4.1.1 manages tools.jackson via jackson-bom
-    // 3.1.5, and kork already consumes tools.jackson.core:jackson-databind (kork-web,
+    // (tools.jackson:* 3.0.x). Spring Boot 4.1.2 manages tools.jackson via jackson-bom
+    // 3.1.7, and kork already consumes tools.jackson.core:jackson-databind (kork-web,
     // kork-aws, kork-secrets-api) alongside the legacy com.fasterxml.jackson 2.x line
-    // (managed via jackson-2-bom 2.21.5), so the Jackson 3 dependency resolves cleanly.
+    // (managed via jackson-2-bom 2.21.7), so the Jackson 3 dependency resolves cleanly.
     api("net.logstash.logback:logstash-logback-encoder:9.0")
     // No official logback BOM exists (qos-ch/logback removed logback-bom in 2017; the
     // internal logback-parent reactor POM is not documented/published for external
     // consumers to import as a platform), so we keep pinning these two explicitly.
     api("ch.qos.logback:logback-core:${versions.logback}")
     api("ch.qos.logback:logback-classic:${versions.logback}")
-    // No official Tomcat BOM exists (no tomcat-embed-bom is published); Tomcat expects
-    // consumers to pin org.apache.tomcat.embed:* artifacts individually, or via Spring
-    // Boot's BOM, so we keep pinning these explicitly with a shared version variable.
+    // Keep Tomcat on Boot 4's supported 11.x line, with an explicit version so
+    // security fixes can be applied before Spring Boot updates its BOM.
     api("org.apache.tomcat.embed:tomcat-embed-core:${versions.tomcat}")
     api("org.apache.tomcat.embed:tomcat-embed-el:${versions.tomcat}")
     api("org.apache.tomcat.embed:tomcat-embed-websocket:${versions.tomcat}")
@@ -268,7 +263,7 @@ tasks.register("verifySpringBootBaseline") {
       .findAll { it.moduleVersion != null }
       .collect { "${it.moduleVersion.group}:${it.moduleVersion.name}:${it.moduleVersion.version}" } as Set
     def expectedCoordinates = [
-      "org.springframework.boot:spring-boot-dependencies:4.1.1",
+      "org.springframework.boot:spring-boot-dependencies:${versions.springBoot}".toString(),
       "org.springframework.cloud:spring-cloud-dependencies:2025.1.3",
       "org.jetbrains.kotlin:kotlin-bom:2.3.21",
     ] as Set

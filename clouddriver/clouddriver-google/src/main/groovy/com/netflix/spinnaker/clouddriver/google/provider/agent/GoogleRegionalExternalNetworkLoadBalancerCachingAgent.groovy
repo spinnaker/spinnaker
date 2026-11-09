@@ -22,7 +22,6 @@ import com.google.api.services.compute.model.ForwardingRule
 import com.google.api.services.compute.model.HealthCheck
 import com.netflix.spectator.api.Registry
 import com.netflix.spinnaker.clouddriver.google.deploy.GCEUtil
-import com.netflix.spinnaker.clouddriver.google.model.GoogleHealthCheck
 import com.netflix.spinnaker.clouddriver.google.model.callbacks.Utils
 import com.netflix.spinnaker.clouddriver.google.model.loadbalancing.GoogleBackendService
 import com.netflix.spinnaker.clouddriver.google.model.loadbalancing.GoogleLoadBalancingScheme
@@ -110,43 +109,9 @@ class GoogleRegionalExternalNetworkLoadBalancerCachingAgent
   }
 
   private static void handleHealthCheck(HealthCheck healthCheck, GoogleBackendService service) {
-    if (!healthCheck) {
-      return
-    }
-
-    def port = null
-    def hcType = null
-    def requestPath = null
-    if (healthCheck.tcpHealthCheck) {
-      port = healthCheck.tcpHealthCheck.port
-      hcType = GoogleHealthCheck.HealthCheckType.TCP
-    } else if (healthCheck.sslHealthCheck) {
-      port = healthCheck.sslHealthCheck.port
-      hcType = GoogleHealthCheck.HealthCheckType.SSL
-    } else if (healthCheck.httpHealthCheck) {
-      port = healthCheck.httpHealthCheck.port
-      requestPath = healthCheck.httpHealthCheck.requestPath
-      hcType = GoogleHealthCheck.HealthCheckType.HTTP
-    } else if (healthCheck.httpsHealthCheck) {
-      port = healthCheck.httpsHealthCheck.port
-      requestPath = healthCheck.httpsHealthCheck.requestPath
-      hcType = GoogleHealthCheck.HealthCheckType.HTTPS
-    } else if (healthCheck.udpHealthCheck) {
-      port = healthCheck.udpHealthCheck.port
-      hcType = GoogleHealthCheck.HealthCheckType.UDP
-    }
-
-    if (port && hcType) {
-      service.healthCheck = new GoogleHealthCheck(
-        name: healthCheck.name,
-        healthCheckType: hcType,
-        port: port,
-        requestPath: requestPath ?: "",
-        checkIntervalSec: healthCheck.checkIntervalSec,
-        timeoutSec: healthCheck.timeoutSec,
-        unhealthyThreshold: healthCheck.unhealthyThreshold,
-        healthyThreshold: healthCheck.healthyThreshold,
-      )
+    def googleHealthCheck = GoogleLoadBalancerHealthCheckSupport.fromHealthCheckWithEmptyDefaults(healthCheck)
+    if (googleHealthCheck) {
+      service.healthCheck = googleHealthCheck
     }
   }
 }

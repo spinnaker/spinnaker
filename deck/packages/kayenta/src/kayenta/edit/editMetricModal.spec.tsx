@@ -25,8 +25,6 @@ describe('EditMetricModal', () => {
       },
     },
     groups: ['Group 1', 'Group 2'],
-    isTemplateValid: true,
-    useInlineTemplateEditor: false,
     disableEdit: false,
     validationErrors: {},
     rename: vi.fn(),
@@ -61,10 +59,10 @@ describe('EditMetricModal', () => {
         name: 'Test Metric',
         query: {
           serviceType: 'prometheus',
+          template: 'up',
         },
         groups: ['Group 1'],
       },
-      editingTemplate: {},
       group: {
         list: ['Group 1', 'Group 2'],
       },

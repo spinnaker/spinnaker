@@ -6,13 +6,7 @@ import { FormikStageConfig } from '@spinnaker/core';
 
 import { ScaleManifestStageForm } from './ScaleManifestStageForm';
 
-export function ScaleManifestStageConfig({
-  application,
-  pipeline,
-  stage,
-  updateStage,
-  stageFieldUpdated,
-}: IStageConfigProps) {
+export function ScaleManifestStageConfig({ application, pipeline, stage, updateStage }: IStageConfigProps) {
   useEffect(() => {
     defaults(stage, {
       app: application.name,
@@ -30,9 +24,7 @@ export function ScaleManifestStageConfig({
       pipeline={pipeline}
       stage={stage}
       onChange={updateStage}
-      render={(props: IFormikStageConfigInjectedProps) => (
-        <ScaleManifestStageForm {...props} stageFieldUpdated={stageFieldUpdated} />
-      )}
+      render={(props: IFormikStageConfigInjectedProps) => <ScaleManifestStageForm {...props} />}
     />
   );
 }

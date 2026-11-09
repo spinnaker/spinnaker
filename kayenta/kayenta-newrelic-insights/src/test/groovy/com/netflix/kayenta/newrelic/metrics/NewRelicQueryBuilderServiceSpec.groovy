@@ -148,7 +148,7 @@ class NewRelicQueryBuilderServiceSpec extends Specification {
         .select(select as String)
         .q(q as String)
         .customFilterTemplate(customFilterTemplate as String)
-        .customInlineTemplate(customInlineTemplate as String)
+        .template(customInlineTemplate as String)
         .build()
     CanaryMetricConfig canaryMetricConfig =
       CanaryMetricConfig.builder()
@@ -225,4 +225,24 @@ class NewRelicQueryBuilderServiceSpec extends Specification {
 
   }
 
+  void "Deck starter example expands, including epoch variables"() {
+    given:
+    // Must match the example in deck/packages/kayenta/src/kayenta/edit/templateProviderVariables.ts
+    String example = 'SELECT count(*) FROM Transaction TIMESERIES 60 seconds SINCE ${startEpochSeconds} UNTIL ${endEpochSeconds} WHERE autoScalingGroupName LIKE \'${scope}\' AND region LIKE \'${location}\''
+    NewRelicCanaryMetricSetQueryConfig queryConfig = NewRelicCanaryMetricSetQueryConfig.builder().template(example).build()
+    NewRelicCanaryScope scope = new NewRelicCanaryScope()
+    scope.setScope('myservice-prod-v01')
+    scope.setLocation('us-west-2')
+    scope.setStep(60L)
+    scope.setStart(start)
+    scope.setEnd(end)
+    scope.setExtendedScopeParams([:])
+    NewRelicScopeConfiguration scopeConfiguration = NewRelicScopeConfiguration.builder()
+      .defaultScopeKey('asg_name').defaultLocationKey('region').build()
+
+    expect:
+    queryBuilder.buildQuery(CanaryConfig.builder().build(), scope, queryConfig, scopeConfiguration) ==
+      "SELECT count(*) FROM Transaction TIMESERIES 60 seconds SINCE ${start.epochSecond} UNTIL ${end.epochSecond} " +
+        "WHERE autoScalingGroupName LIKE 'myservice-prod-v01' AND region LIKE 'us-west-2'"
+  }
 }

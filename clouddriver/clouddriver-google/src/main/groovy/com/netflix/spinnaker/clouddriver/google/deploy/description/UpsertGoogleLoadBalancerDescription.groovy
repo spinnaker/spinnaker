@@ -73,8 +73,10 @@ class UpsertGoogleLoadBalancerDescription extends AbstractGoogleCredentialsDescr
     Integer healthyThreshold
     Integer unhealthyThreshold
     Integer port
+    String portSpecification
     Integer timeoutSec
     String requestPath
+    String grpcServiceName
   }
 
   @Override

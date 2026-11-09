@@ -1,8 +1,6 @@
 FROM alpine:3.24
 LABEL maintainer="sig-platform@spinnaker.io"
 
-# DEPRECATED: kustomize v3 is end-of-life upstream; removal planned for the 2026.4.x releases
-ENV KUSTOMIZE_VERSION=3.9.4
 ENV KUSTOMIZE4_VERSION=4.5.7
 ENV KUSTOMIZE5_VERSION=5.8.1
 ENV PACKER_VERSION=1.15.4
@@ -14,10 +12,15 @@ ARG PACKER_PLUGINS="amazon azure googlecompute"
 
 WORKDIR /packer
 
-RUN apk --no-cache add --update bash wget curl openssl openjdk25-jre git openssh-client && \
+RUN apk --no-cache add --update bash wget curl openssl 'openjdk25-jre>=25.0.5.0.3_p1-r0' git openssh-client && \
   wget https://releases.hashicorp.com/packer/${PACKER_VERSION}/packer_${PACKER_VERSION}_linux_${TARGETARCH}.zip && \
   unzip packer_${PACKER_VERSION}_linux_${TARGETARCH}.zip && \
   rm packer_${PACKER_VERSION}_linux_${TARGETARCH}.zip
+# Refresh the CA bundle, remove G1, and reject images trusting compromised roots.
+RUN apk --no-cache upgrade && \
+    sed -i 's@^mozilla/emSign_Root_CA_-_G1.crt$@!mozilla/emSign_Root_CA_-_G1.crt@' /etc/ca-certificates.conf && \
+    update-ca-certificates && \
+    ! keytool -list -cacerts -storepass changeit | grep -qiE 'emsign.*root.*g[123]|comodo.*aaa|aaa.*certificate.*services'
 
 ENV PATH "/packer:$PATH"
 
@@ -33,13 +36,6 @@ RUN wget https://raw.githubusercontent.com/kubernetes/helm/master/scripts/get &&
   chmod +x get && \
   ./get --version v2.17.0 && \
   rm get
-
-# DEPRECATED: kustomize v3 is end-of-life upstream; removal planned for the 2026.4.x releases
-RUN mkdir kustomize && \
-  curl -s -L https://github.com/kubernetes-sigs/kustomize/releases/download/kustomize/v${KUSTOMIZE_VERSION}/kustomize_v${KUSTOMIZE_VERSION}_linux_${TARGETARCH}.tar.gz|\
-  tar xvz -C kustomize/ && \
-  mv ./kustomize/kustomize /usr/local/bin/kustomize && \
-  rm -rf ./kustomize
 
 RUN mkdir kustomize && \
   curl -s -L https://github.com/kubernetes-sigs/kustomize/releases/download/kustomize/v${KUSTOMIZE4_VERSION}/kustomize_v${KUSTOMIZE4_VERSION}_linux_${TARGETARCH}.tar.gz|\

@@ -15,7 +15,7 @@
     list-style-type: none;
     height: auto;
     position: relative;
-    background-color: var(--color-white);
+    background-color: var(--color-surface);
     z-index: 5;
 
     .clearfix();
@@ -58,7 +58,7 @@
       &.default {
         pointer-events: auto;
         a:before {
-          background-color: var(--color-dovegray);
+          background-color: var(--color-fill-dovegray);
         }
       }
       &.current,
@@ -100,7 +100,7 @@
       h4 {
         padding: 10px;
         margin-bottom: 0;
-        color: var(--color-primary);
+        color: var(--color-text-primary);
         background-color: var(--color-accent-g2);
         @media (max-width: 992px) {
           padding-left: 0;
@@ -110,7 +110,7 @@
             width: @indicator-size;
             height: @indicator-size;
             border-radius: 100%;
-            background-color: var(--color-dovegray);
+            background-color: var(--color-fill-dovegray);
             content: '';
             transition: 0.25s;
             font-size: 15px;

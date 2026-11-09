@@ -34,7 +34,6 @@ describe('<Triggers />', () => {
       application: ApplicationModelBuilder.createApplicationForTests('products'),
       fieldUpdated: vi.fn(),
       updatePipelineConfig: vi.fn(),
-      revertCount: 0,
     };
   });
 

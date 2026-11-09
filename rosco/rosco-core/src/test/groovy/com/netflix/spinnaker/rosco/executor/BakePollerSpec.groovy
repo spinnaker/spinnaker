@@ -28,9 +28,13 @@ import com.netflix.spinnaker.rosco.providers.CloudProviderBakeHandler
 import com.netflix.spinnaker.rosco.providers.registry.CloudProviderBakeHandlerRegistry
 import com.netflix.spinnaker.rosco.jobs.JobExecutor
 import com.netflix.spinnaker.rosco.providers.util.TestDefaults
+import io.reactivex.rxjava3.plugins.RxJavaPlugins
+import io.reactivex.rxjava3.schedulers.TestScheduler
 import spock.lang.Specification
 import spock.lang.Subject
 import spock.lang.Unroll
+
+import java.util.concurrent.TimeUnit
 
 class BakePollerSpec extends Specification implements TestDefaults {
 
@@ -38,6 +42,31 @@ class BakePollerSpec extends Specification implements TestDefaults {
   private static final String AMI_ID = "ami-3cf4a854"
   private static final String IMAGE_NAME = "some-image"
   private static final String LOGS_CONTENT = "Some logs content..."
+
+  void 'keeps polling after a poll throws an error'() {
+    setup:
+      def testScheduler = new TestScheduler()
+      RxJavaPlugins.setIoSchedulerHandler({ testScheduler })
+      def bakeStoreMock = Mock(RedisBackedBakeStore)
+
+      @Subject
+      def bakePoller = new BakePoller(bakeStore: bakeStoreMock,
+                                      pollingIntervalSeconds: 1,
+                                      orphanedJobPollingIntervalSeconds: 1,
+                                      registry: new DefaultRegistry())
+
+    when:
+      bakePoller.onApplicationEvent(null)
+      testScheduler.advanceTimeBy(1, TimeUnit.SECONDS)
+
+    then:
+      2 * bakeStoreMock.getThisInstanceIncompleteBakeIds() >> { throw new OutOfMemoryError("Java heap space") } >> []
+      2 * bakeStoreMock.getAllIncompleteBakeIds() >> { throw new OutOfMemoryError("Java heap space") } >> [:]
+      noExceptionThrown()
+
+    cleanup:
+      RxJavaPlugins.reset()
+  }
 
   @Unroll
   void 'scheduled update queries job executor and stores status and logs when incomplete'() {
