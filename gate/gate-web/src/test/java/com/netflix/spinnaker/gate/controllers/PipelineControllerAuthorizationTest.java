@@ -95,4 +95,33 @@ class PipelineControllerAuthorizationTest extends GateBootAuthIntegrationTest {
     verify(pipelineService).trigger(eq("my-app"), eq("my-pipeline"), trigger.capture());
     assertThat(trigger.getValue()).containsEntry("user", "testuser");
   }
+
+  @Test
+  void invokePipelineConfigViaEchoIsRejectedWithoutExecute() throws Exception {
+    when(fiatPermissionEvaluator.hasPermission(
+            any(Authentication.class), eq("my-app"), eq("APPLICATION"), eq("READ")))
+        .thenReturn(true);
+    when(fiatPermissionEvaluator.hasPermission(
+            any(Authentication.class), eq("my-app"), eq("APPLICATION"), eq("EXECUTE")))
+        .thenReturn(false);
+
+    HttpResponse<String> response = callGateWithPath("/pipelines/v2/my-app/my-pipeline", "POST");
+
+    assertThat(response.statusCode()).isEqualTo(403);
+    verify(pipelineService, never()).triggerViaEcho(any(), any(), any());
+  }
+
+  @Test
+  void invokePipelineConfigViaEchoIsAllowedWithExecute() throws Exception {
+    when(fiatPermissionEvaluator.hasPermission(
+            any(Authentication.class), eq("my-app"), eq("APPLICATION"), eq("EXECUTE")))
+        .thenReturn(true);
+    when(pipelineService.triggerViaEcho(eq("my-app"), eq("my-pipeline"), any()))
+        .thenReturn(Map.of("ref", "/pipelines/01ABC"));
+
+    HttpResponse<String> response = callGateWithPath("/pipelines/v2/my-app/my-pipeline", "POST");
+
+    assertThat(response.statusCode()).isEqualTo(202);
+    assertThat(response.body()).contains("/pipelines/01ABC");
+  }
 }
