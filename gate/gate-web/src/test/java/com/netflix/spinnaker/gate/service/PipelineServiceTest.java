@@ -18,6 +18,7 @@ package com.netflix.spinnaker.gate.service;
 
 import static com.github.tomakehurst.wiremock.client.WireMock.aResponse;
 import static com.github.tomakehurst.wiremock.client.WireMock.urlEqualTo;
+import static com.github.tomakehurst.wiremock.client.WireMock.urlPathEqualTo;
 import static com.github.tomakehurst.wiremock.core.WireMockConfiguration.wireMockConfig;
 import static com.netflix.spinnaker.kork.common.Header.ACCOUNTS;
 import static com.netflix.spinnaker.kork.common.Header.USER;
@@ -38,6 +39,7 @@ import com.netflix.spinnaker.gate.services.DefaultProviderLookupService;
 import com.netflix.spinnaker.gate.services.internal.ClouddriverService;
 import com.netflix.spinnaker.gate.services.internal.ClouddriverServiceSelector;
 import java.util.Collections;
+import java.util.List;
 import java.util.Map;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -47,11 +49,13 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.web.servlet.FilterRegistrationBean;
+import org.springframework.http.MediaType;
 import org.springframework.test.context.DynamicPropertyRegistry;
 import org.springframework.test.context.DynamicPropertySource;
 import org.springframework.test.context.TestPropertySource;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
+import org.springframework.test.web.servlet.RequestBuilder;
 import org.springframework.web.context.WebApplicationContext;
 import retrofit2.mock.Calls;
 
@@ -71,6 +75,10 @@ public class PipelineServiceTest {
 
   @RegisterExtension
   static WireMockExtension wmEcho =
+      WireMockExtension.newInstance().options(wireMockConfig().dynamicPort()).build();
+
+  @RegisterExtension
+  static WireMockExtension wmFront50 =
       WireMockExtension.newInstance().options(wireMockConfig().dynamicPort()).build();
 
   @Autowired private WebApplicationContext webApplicationContext;
@@ -109,6 +117,7 @@ public class PipelineServiceTest {
     registry.add("services.orca.base-url", wmOrca::baseUrl);
     System.out.println("wiremock echo url: " + wmEcho.baseUrl());
     registry.add("services.echo.base-url", wmEcho::baseUrl);
+    registry.add("services.front50.base-url", wmFront50::baseUrl);
   }
 
   @BeforeEach
@@ -154,20 +163,59 @@ public class PipelineServiceTest {
         .andExpect(status().is2xxSuccessful());
   }
 
+  /** Simulate front50's response to ApplicationService.getPipelineConfigForApplication */
+  private void stubPipelineConfig(Map<String, Object> pipelineConfig) throws Exception {
+    wmFront50.stubFor(
+        WireMock.get(urlPathEqualTo("/pipelines/" + APPLICATION_NAME + "/name/" + PIPELINE_NAME))
+            .willReturn(
+                aResponse()
+                    .withStatus(200)
+                    .withHeader("Content-Type", "application/json")
+                    .withBody(objectMapper.writeValueAsString(pipelineConfig))));
+  }
+
+  private RequestBuilder triggerViaEchoRequest(Map<String, Object> trigger) throws Exception {
+    return post("/pipelines/v2/" + APPLICATION_NAME + "/" + PIPELINE_NAME)
+        .contentType(MediaType.APPLICATION_JSON_VALUE)
+        .content(objectMapper.writeValueAsString(trigger))
+        .header(USER.getHeader(), USERNAME) // to silence warning when X-SPINNAKER-USER is missing
+        .header(
+            ACCOUNTS.getHeader(),
+            ACCOUNT); // to silence warning when X-SPINNAKER-ACCOUNTS is missing
+  }
+
   @Test
   void invokePipelineConfigViaEcho() throws Exception {
+    stubPipelineConfig(
+        Map.of(
+            "name",
+            PIPELINE_NAME,
+            "parameterConfig",
+            List.of(Map.of("name", "param1", "required", true))));
     wmEcho.stubFor(WireMock.post(urlEqualTo("/")).willReturn(aResponse().withStatus(200)));
 
     webAppMockMvc
-        .perform(
-            post("/pipelines/v2/" + APPLICATION_NAME + "/" + PIPELINE_NAME)
-                .header(
-                    USER.getHeader(),
-                    USERNAME) // to silence warning when X-SPINNAKER-USER is missing
-                .header(
-                    ACCOUNTS.getHeader(),
-                    ACCOUNT)) // to silence warning when X-SPINNAKER-ACCOUNTS is missing
+        .perform(triggerViaEchoRequest(Map.of("parameters", Map.of("param1", "a"))))
         .andDo(print())
-        .andExpect(status().is2xxSuccessful());
+        .andExpect(status().isAccepted());
+  }
+
+  @Test
+  void invokePipelineConfigViaEchoMissingRequiredParameter() throws Exception {
+    stubPipelineConfig(
+        Map.of(
+            "name",
+            PIPELINE_NAME,
+            "parameterConfig",
+            List.of(Map.of("name", "param1", "required", true))));
+    wmEcho.stubFor(WireMock.post(urlEqualTo("/")).willReturn(aResponse().withStatus(200)));
+    wmEcho.resetRequests();
+
+    webAppMockMvc
+        .perform(triggerViaEchoRequest(Map.of()))
+        .andDo(print())
+        .andExpect(status().isBadRequest());
+
+    wmEcho.verify(0, WireMock.postRequestedFor(urlEqualTo("/")));
   }
 }
