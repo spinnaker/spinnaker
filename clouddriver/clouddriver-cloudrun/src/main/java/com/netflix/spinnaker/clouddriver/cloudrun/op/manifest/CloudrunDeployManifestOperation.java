@@ -18,14 +18,15 @@
 package com.netflix.spinnaker.clouddriver.cloudrun.op.manifest;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.DeserializationFeature;
+import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.dataformat.yaml.YAMLFactory;
 import com.netflix.spinnaker.clouddriver.cloudrun.CloudrunJobExecutor;
 import com.netflix.spinnaker.clouddriver.cloudrun.deploy.CloudrunServerGroupNameResolver;
 import com.netflix.spinnaker.clouddriver.cloudrun.deploy.exception.CloudrunOperationException;
 import com.netflix.spinnaker.clouddriver.cloudrun.description.manifest.CloudrunDeployManifestDescription;
-import com.netflix.spinnaker.clouddriver.cloudrun.model.*;
+import com.netflix.spinnaker.clouddriver.cloudrun.model.CloudrunLoadBalancer;
+import com.netflix.spinnaker.clouddriver.cloudrun.model.CloudrunService;
 import com.netflix.spinnaker.clouddriver.cloudrun.op.CloudrunManifestOperationResult;
 import com.netflix.spinnaker.clouddriver.cloudrun.provider.view.CloudrunLoadBalancerProvider;
 import com.netflix.spinnaker.clouddriver.data.task.Task;
@@ -66,8 +67,6 @@ public class CloudrunDeployManifestOperation implements AtomicOperation<Deployme
   private final ObjectMapper yamlMapper =
       new ObjectMapper(YAMLFactory.builder().loaderOptions(YamlHelper.getLoaderOptions()).build());
 
-  private CloudrunYmlData ymlData = new CloudrunYmlData();
-
   public CloudrunDeployManifestOperation(CloudrunDeployManifestDescription description) {
     this.description = description;
   }
@@ -75,31 +74,26 @@ public class CloudrunDeployManifestOperation implements AtomicOperation<Deployme
   public String deploy(String repositoryPath) {
     String project = description.getCredentials().getProject();
     String applicationDirectoryRoot = null;
-    List<CloudrunService> configFiles = description.getManifests();
     Map<String, Artifact> allArtifacts = initializeArtifacts();
-    try {
-      populateCloudrunYmlData(configFiles);
-    } catch (Exception e) {
-      throw new CloudrunOperationException(
-          "Failed to deploy manifest to Cloud Run with command " + e.getMessage());
+    // Work on copies of the manifests as free-form maps so that every field the user supplied
+    // reaches gcloud; Spinnaker only overwrites the handful of fields it owns.
+    List<Map<String, Object>> manifests = copyManifests(description.getManifests());
+    CloudrunManifestEditor.requireExactlyOne(manifests);
+    if (!allArtifacts.isEmpty()) {
+      manifests.forEach(manifest -> bindArtifacts(manifest, allArtifacts.values()));
     }
-    List<String> modConfigFiles = null;
-    if (allArtifacts != null && !allArtifacts.values().isEmpty()) {
-      modConfigFiles = bindArtifacts(configFiles, allArtifacts.values());
-    }
+    CloudrunManifestEditor.locationLabel(manifests.get(0)).ifPresent(description::setRegion);
     CloudrunServerGroupNameResolver serverGroupNameResolver =
         new CloudrunServerGroupNameResolver(
             project, description.getRegion(), description.getCredentials());
-    populateRegionFromManifest(configFiles);
-    serverGroupNameResolver.setRegion(description.getRegion());
     String clusterName =
         serverGroupNameResolver.getClusterName(
             description.getApplication(), description.getStack(), description.getDetails());
     String versionName =
         serverGroupNameResolver.resolveNextServerGroupName(
             description.getApplication(), description.getStack(), description.getDetails(), false);
-    modConfigFiles =
-        insertSpinnakerAppNameServiceNameVersionName(configFiles, clusterName, versionName);
+    List<String> modConfigFiles =
+        insertSpinnakerAppNameServiceNameVersionName(manifests, clusterName, versionName);
     List<String> writtenFullConfigFilePaths =
         writeConfigFiles(modConfigFiles, repositoryPath, applicationDirectoryRoot);
     String region = description.getRegion();
@@ -172,46 +166,39 @@ public class CloudrunDeployManifestOperation implements AtomicOperation<Deployme
     return result;
   }
 
+  private List<Map<String, Object>> copyManifests(List<CloudrunService> services) {
+    List<Map<String, Object>> manifests = new ArrayList<>();
+    for (CloudrunService service : services) {
+      if (service == null || service.getMetadata() == null || service.getSpec() == null) {
+        continue;
+      }
+      Map<String, Object> manifest = new LinkedHashMap<>();
+      manifest.put("apiVersion", service.getApiVersion());
+      manifest.put("kind", service.getKind());
+      // status is output only, so it is intentionally not carried over
+      manifest.put("metadata", deepCopy(service.getMetadata()));
+      manifest.put("spec", deepCopy(service.getSpec()));
+      manifests.add(manifest);
+    }
+    return manifests;
+  }
+
+  private Map<String, Object> deepCopy(Map<String, Object> source) {
+    return objectMapper.convertValue(source, new TypeReference<LinkedHashMap<String, Object>>() {});
+  }
+
   private List<String> insertSpinnakerAppNameServiceNameVersionName(
-      List<CloudrunService> configFiles, String clusterName, String versionName) {
+      List<Map<String, Object>> manifests, String clusterName, String versionName) {
 
-    return configFiles.stream()
+    return manifests.stream()
         .map(
-            (configFile) -> {
+            manifest -> {
+              CloudrunLoadBalancer loadBalancer =
+                  provider.getLoadBalancer(description.getAccountName(), clusterName);
+              CloudrunManifestEditor.applySpinnakerFields(
+                  manifest, description.getApplication(), clusterName, versionName, loadBalancer);
               try {
-                CloudrunService yamlObj = configFile;
-                if (yamlObj != null) {
-                  if (yamlObj.getMetadata() != null) {
-                    CloudrunMetaData metadata = ymlData.getMetadata();
-                    CloudrunSpec spec = ymlData.getSpec();
-                    if (metadata != null && spec != null) {
-                      if (spec.getTemplate() != null && spec.getTemplate().getMetadata() != null) {
-                        CloudrunSpecTemplateMetadata specMetadata =
-                            spec.getTemplate().getMetadata();
-                        specMetadata.setName(versionName);
-                        metadata.setName(clusterName);
-                        CloudrunLoadBalancer loadBalancer =
-                            provider.getLoadBalancer(description.getAccountName(), clusterName);
-                        if (loadBalancer != null) {
-                          insertTrafficPercent(spec, loadBalancer);
-                        }
-                      }
-                    }
-                    CloudrunMetadataAnnotations annotations = metadata.getAnnotations();
-                    CloudrunMetadataLabels labels = metadata.getLabels();
-                    if (annotations == null) {
-                      CloudrunMetadataAnnotations metadataAnnotations =
-                          new CloudrunMetadataAnnotations();
-                      metadataAnnotations.setSpinnakerApplication(description.getApplication());
-                      metadata.setAnnotations(metadataAnnotations);
-                      description.setRegion(labels.getCloudGoogleapisComLocation());
-                    } else if (annotations != null && labels != null) {
-                      annotations.setSpinnakerApplication(description.getApplication());
-                      description.setRegion(labels.getCloudGoogleapisComLocation());
-                    }
-                  }
-                }
-                return yamlMapper.writeValueAsString(ymlData);
+                return yamlMapper.writeValueAsString(manifest);
               } catch (JsonProcessingException e) {
                 throw new RuntimeException(e);
               }
@@ -219,143 +206,43 @@ public class CloudrunDeployManifestOperation implements AtomicOperation<Deployme
         .collect(Collectors.toList());
   }
 
-  private List<String> bindArtifacts(
-      List<CloudrunService> configFiles, Collection<Artifact> artifacts) {
-
-    return configFiles.stream()
-        .map(
-            (configFile) -> {
-              try {
-                CloudrunService yamlObj = configFile;
-                if (yamlObj != null && yamlObj.getMetadata() != null) {
-                  CloudrunMetaData metadata = ymlData.getMetadata();
-                  CloudrunSpec spec = ymlData.getSpec();
-                  if (metadata != null && metadata != null) {
-                    if (metadata.getAnnotations() != null && spec.getTemplate().getSpec() != null) {
-                      CloudrunTemplateSpec specSpec = spec.getTemplate().getSpec();
-                      CloudrunMetadataAnnotations annotations = metadata.getAnnotations();
-                      bindTheRequiredArtifact(annotations, specSpec, artifacts);
-                    }
-                  }
-                }
-                return yamlMapper.writeValueAsString(yamlObj);
-              } catch (JsonProcessingException e) {
-                throw new RuntimeException(e);
-              }
-            })
-        .collect(Collectors.toList());
-  }
-
-  private void bindTheRequiredArtifact(
-      CloudrunMetadataAnnotations annotations,
-      CloudrunTemplateSpec specSpec,
-      Collection<Artifact> artifacts) {
-
-    if (specSpec.getContainers() != null) {
-      CloudrunSpecContainer[] containerArray = specSpec.getContainers();
-      if (containerArray != null && !(containerArray.length == 0)) {
-        CloudrunSpecContainer container = containerArray[0];
-        for (Artifact artifact : artifacts) {
-          if (artifact.getType().equals("docker/image")) {
-            String cloudrunImage = (String) annotations.getClientKnativeDevUserImage();
-            if (cloudrunImage != null) {
-              String[] imageArray = cloudrunImage.split(":");
-              String image = imageArray[0];
-              if (image != null && artifact.getName() != null) {
-                String[] imageArr = image.split("/");
-                String[] artifactArr = artifact.getName().split("/");
-                if (imageArr != null
-                    && artifactArr != null
-                    && imageArr.length > 0
-                    && artifactArr.length > 0) {
-                  String appImage = imageArr[imageArr.length - 1];
-                  String artifactImage = artifactArr[artifactArr.length - 1];
-                  if (appImage != null && artifactImage != null && appImage.equals(artifactImage)) {
-                    annotations.setClientKnativeDevUserImage(artifact.getReference());
-                    container.setImage(artifact.getReference());
-                  } else {
-                    throw new IllegalArgumentException(
-                        String.format(
-                            "The following required artifacts could not be bound: '%s'. "
-                                + "Check that the Docker image name above matches the name used in the image field of your manifest. "
-                                + "Failing the stage as this is likely a configuration error.",
-                            ArtifactKey.fromArtifact(artifact)));
-                  }
-                }
-              } else {
-                throw new IllegalArgumentException(
-                    String.format(
-                        "The following required artifacts could not be bound: '%s'. "
-                            + "Check that the Docker image name above matches the name used in the image field of your manifest. "
-                            + "Failing the stage as this is likely a configuration error.",
-                        ArtifactKey.fromArtifact(artifact)));
-              }
-            }
-          } else {
-            throw new IllegalArgumentException(
-                String.format(
-                    "The following required artifacts could not be bound: '%s'. "
-                        + "Check that the Docker image name above matches the name used in the image field of your manifest. "
-                        + "Failing the stage as this is likely a configuration error.",
-                    ArtifactKey.fromArtifact(artifact)));
+  private void bindArtifacts(Map<String, Object> manifest, Collection<Artifact> artifacts) {
+    List<Map<String, Object>> containers = CloudrunManifestEditor.containers(manifest);
+    for (Artifact artifact : artifacts) {
+      boolean bound = false;
+      if ("docker/image".equals(artifact.getType()) && artifact.getName() != null) {
+        for (Map<String, Object> container : containers) {
+          Object image = container.get("image");
+          if (image instanceof String
+              && lastPathSegment(imageWithoutTagOrDigest((String) image))
+                  .equals(lastPathSegment(artifact.getName()))) {
+            container.put("image", artifact.getReference());
+            bound = true;
           }
         }
       }
-    }
-  }
-
-  private void populateCloudrunYmlData(List<CloudrunService> configFiles)
-      throws JsonProcessingException {
-
-    for (CloudrunService configFile : configFiles) {
-      CloudrunService yamlObj = configFile;
-      if (yamlObj != null && yamlObj.getMetadata() != null && yamlObj.getSpec() != null) {
-        ymlData.setKind(yamlObj.getKind());
-        ymlData.setApiVersion(yamlObj.getApiVersion());
-        objectMapper.configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
-        String metaDataJson = objectMapper.writeValueAsString(yamlObj.getMetadata());
-        CloudrunMetaData cloudrunMetaData =
-            objectMapper.readValue(metaDataJson, CloudrunMetaData.class);
-        ymlData.setMetadata(cloudrunMetaData);
-        String specJson = objectMapper.writeValueAsString(yamlObj.getSpec());
-        CloudrunSpec spec = objectMapper.readValue(specJson, CloudrunSpec.class);
-        ymlData.setSpec(spec);
+      if (!bound) {
+        throw new IllegalArgumentException(
+            String.format(
+                "The following required artifacts could not be bound: '%s'. "
+                    + "Check that the Docker image name above matches the name used in the image field of your manifest. "
+                    + "Failing the stage as this is likely a configuration error.",
+                ArtifactKey.fromArtifact(artifact)));
       }
     }
   }
 
-  private void populateRegionFromManifest(List<CloudrunService> configFiles) {
-
-    for (CloudrunService configFile : configFiles) {
-      CloudrunService yamlObj = configFile;
-      if (yamlObj != null) {
-        if (yamlObj.getMetadata() != null) {
-          CloudrunMetaData metadata = ymlData.getMetadata();
-          CloudrunMetadataLabels labels = metadata.getLabels();
-          if (labels != null) {
-            description.setRegion(labels.getCloudGoogleapisComLocation());
-          }
-        }
-      }
-    }
+  private static String imageWithoutTagOrDigest(String image) {
+    String withoutDigest = image.split("@", 2)[0];
+    int lastColon = withoutDigest.lastIndexOf(':');
+    // a colon before the last slash is a registry port, not a tag
+    return lastColon > withoutDigest.lastIndexOf('/')
+        ? withoutDigest.substring(0, lastColon)
+        : withoutDigest;
   }
 
-  private void insertTrafficPercent(CloudrunSpec spec, CloudrunLoadBalancer loadBalancer) {
-
-    List<CloudrunSpecTraffic> trafficTargets = new ArrayList<>();
-    if (loadBalancer.getSplit() != null && loadBalancer.getSplit().getTrafficTargets() != null) {
-      loadBalancer
-          .getSplit()
-          .getTrafficTargets()
-          .forEach(
-              trafficTarget -> {
-                CloudrunSpecTraffic existingTrafficMap = new CloudrunSpecTraffic();
-                existingTrafficMap.setPercent(trafficTarget.getPercent());
-                existingTrafficMap.setRevisionName(trafficTarget.getRevisionName());
-                trafficTargets.add(existingTrafficMap);
-              });
-      spec.setTraffic(trafficTargets.toArray(new CloudrunSpecTraffic[0]));
-    }
+  private static String lastPathSegment(String name) {
+    return name.substring(name.lastIndexOf('/') + 1);
   }
 
   public static void deleteFiles(List<String> paths) {
