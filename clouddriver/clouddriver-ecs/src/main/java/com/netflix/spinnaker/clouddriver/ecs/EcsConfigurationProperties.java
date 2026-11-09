@@ -30,7 +30,8 @@ public class EcsConfigurationProperties {
      * Look services up through the cache's application index ({@code Cache.getAllByApplication})
      * instead of scanning by service name. Services only carry the indexed application once their
      * caching agent has re-cached them, so enable this after the agents have completed a cycle with
-     * the application attribute.
+     * the application attribute. Once enabled the index is trusted: an application with no indexed
+     * services is treated as having none, rather than probing every account and region by name.
      */
     private boolean queryByApplication = false;
   }
