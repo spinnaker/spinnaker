@@ -28,6 +28,19 @@ type Config struct {
 	Scopes       []string      `json:"scopes" yaml:"scopes"`
 	Provider     string        `json:"provider" yaml:"provider"`
 	CachedToken  *oauth2.Token `json:"cachedToken,omitempty" yaml:"cachedToken,omitempty"`
+
+	// ForceConsent sends prompt=consent with the authorization request, so the
+	// provider shows its consent screen on every login. It defaults to true when
+	// unset. Set it to false for providers such as Microsoft Entra ID, where
+	// prompt=consent asks users to consent again even after an admin granted
+	// consent for the whole tenant.
+	ForceConsent *bool `json:"forceConsent,omitempty" yaml:"forceConsent,omitempty"`
+}
+
+// ShouldForceConsent reports whether the authorization request must carry
+// prompt=consent. It is true unless ForceConsent is explicitly set to false.
+func (x *Config) ShouldForceConsent() bool {
+	return x.ForceConsent == nil || *x.ForceConsent
 }
 
 func (x *Config) IsValid() bool {
