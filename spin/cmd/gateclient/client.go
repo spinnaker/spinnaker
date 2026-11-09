@@ -24,10 +24,10 @@ import (
 	"crypto/x509"
 	"encoding/base64"
 	"fmt"
+	"io"
 	"io/ioutil"
 	"net/http"
 	"net/http/cookiejar"
-	_ "net/http/pprof"
 	"net/url"
 	"os"
 	"path/filepath"
@@ -507,7 +507,7 @@ func authenticateOAuth2(output func(string), httpClient *http.Client, endpoint s
 		config := &oauth2.Config{
 			ClientID:     OAuth2.ClientId,
 			ClientSecret: OAuth2.ClientSecret,
-			RedirectURL:  "http://localhost:8085",
+			RedirectURL:  oauth2RedirectURL,
 			Scopes:       OAuth2.Scopes,
 			Endpoint: oauth2.Endpoint{
 				AuthURL:  OAuth2.AuthUrl,
@@ -526,27 +526,17 @@ func authenticateOAuth2(output func(string), httpClient *http.Client, endpoint s
 			}
 		} else {
 			// Do roundtrip.
-			http.Handle("/", http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-				code := r.FormValue("code")
-				fmt.Fprintln(w, code)
-			}))
-			go http.ListenAndServe(":8085", nil)
-			// Note: leaving server connection open for scope of request, will be reaped on exit.
-
-			verifier, verifierCode, err := generateCodeVerifier()
+			listeners, err := listenForOAuth2Callback(oauth2CallbackAddrs)
 			if err != nil {
 				return false, err
 			}
-
-			codeVerifier := oauth2.SetAuthURLParam("code_verifier", verifier)
-			codeChallenge := oauth2.SetAuthURLParam("code_challenge", verifierCode)
-			challengeMethod := oauth2.SetAuthURLParam("code_challenge_method", "S256")
-
-			authURL := config.AuthCodeURL("state-token", oauth2.AccessTypeOffline, oauth2.ApprovalForce, challengeMethod, codeChallenge)
-			output(fmt.Sprintf("Navigate to %s and authenticate", authURL))
-			code := prompt(output, "Paste authorization code:")
-
-			newToken, err = config.Exchange(context.Background(), code, codeVerifier)
+			// Offer the manual paste only on a terminal: a piped stdin may carry
+			// input for the command itself.
+			var paste io.Reader
+			if terminal.IsTerminal(int(syscall.Stdin)) {
+				paste = os.Stdin
+			}
+			newToken, err = runAuthorizationCodeFlow(output, config, OAuth2.ShouldForceConsent(), listeners, paste)
 			if err != nil {
 				return false, err
 			}
