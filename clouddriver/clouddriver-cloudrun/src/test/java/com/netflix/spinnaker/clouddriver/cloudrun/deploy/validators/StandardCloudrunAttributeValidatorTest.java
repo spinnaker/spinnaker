@@ -5,7 +5,6 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.Mockito.mock;
 
 import com.google.api.services.run.v1.CloudRun;
-import com.netflix.spinnaker.clouddriver.cloudrun.CloudrunJobExecutor;
 import com.netflix.spinnaker.clouddriver.cloudrun.security.CloudrunCredentials;
 import com.netflix.spinnaker.clouddriver.cloudrun.security.CloudrunNamedAccountCredentials;
 import com.netflix.spinnaker.clouddriver.deploy.ValidationErrors;
@@ -40,7 +39,7 @@ public class StandardCloudrunAttributeValidatorTest {
             .setLocalRepositoryDirectory("/localdirectory")
             .setJsonPath("/jsonpath")
             .setProject(" my project")
-            .build(mock(CloudrunJobExecutor.class));
+            .build();
 
     credrepo =
         new MapBackedCredentialsRepository(

@@ -18,7 +18,7 @@ package com.netflix.spinnaker.clouddriver.cloudrun.op.manifest;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
-import static org.mockito.ArgumentMatchers.anyList;
+import static org.mockito.ArgumentMatchers.anyMap;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.RETURNS_DEEP_STUBS;
 import static org.mockito.Mockito.doAnswer;
@@ -29,7 +29,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.dataformat.yaml.YAMLFactory;
 import com.google.api.services.run.v1.CloudRun;
 import com.google.api.services.run.v1.model.ListRevisionsResponse;
-import com.netflix.spinnaker.clouddriver.cloudrun.CloudrunJobExecutor;
+import com.netflix.spinnaker.clouddriver.cloudrun.deploy.CloudrunServiceClient;
 import com.netflix.spinnaker.clouddriver.cloudrun.deploy.exception.CloudrunOperationException;
 import com.netflix.spinnaker.clouddriver.cloudrun.description.manifest.CloudrunDeployManifestDescription;
 import com.netflix.spinnaker.clouddriver.cloudrun.model.CloudrunService;
@@ -40,16 +40,12 @@ import com.netflix.spinnaker.clouddriver.data.task.Task;
 import com.netflix.spinnaker.clouddriver.data.task.TaskRepository;
 import com.netflix.spinnaker.kork.artifacts.model.Artifact;
 import java.io.IOException;
-import java.nio.charset.StandardCharsets;
-import java.nio.file.Files;
-import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.io.TempDir;
 
 /**
  * Exercises {@link CloudrunDeployManifestOperation} end to end up to the {@code gcloud} call and
@@ -99,18 +95,15 @@ class CloudrunDeployManifestOperationTest {
           "      timeoutSeconds: 30",
           "");
 
-  @TempDir Path localRepository;
-
   private CloudrunDeployManifestDescription description;
   private CloudrunDeployManifestOperation operation;
-  private CloudrunJobExecutor jobExecutor;
   private CloudrunLoadBalancerProvider loadBalancerProvider;
 
-  /** Contents of the temp file passed to gcloud, captured before the operation deletes it. */
-  private final List<String> deployedYaml = new ArrayList<>();
+  /** Manifests handed to the Cloud Run client. */
+  private final List<Map<String, Object>> deployedManifests = new ArrayList<>();
 
-  /** Arguments of every gcloud invocation. */
-  private final List<List<String>> commands = new ArrayList<>();
+  /** Regions of every deploy call. */
+  private final List<String> regions = new ArrayList<>();
 
   @BeforeEach
   void setUp() throws IOException {
@@ -134,10 +127,10 @@ class CloudrunDeployManifestOperationTest {
             .setEnvironment("test")
             .setJsonKey("jsonkey")
             .setLiveLookupsEnabled(false)
-            .setLocalRepositoryDirectory(localRepository.toString())
+            .setLocalRepositoryDirectory("/localdirectory")
             .setJsonPath("/jsonpath")
             .setProject("my-project")
-            .build(mock(CloudrunJobExecutor.class));
+            .build();
 
     description = new CloudrunDeployManifestDescription();
     description.setAccountName("cloudrunaccount");
@@ -145,21 +138,19 @@ class CloudrunDeployManifestOperationTest {
     description.setApplication("myapp");
     description.setCredentials(credentials);
 
-    jobExecutor = mock(CloudrunJobExecutor.class);
+    CloudrunServiceClient serviceClient = mock(CloudrunServiceClient.class);
     doAnswer(
             invocation -> {
-              List<String> command = invocation.getArgument(0);
-              commands.add(command);
-              // the operation deletes the file in a finally block, so read it while gcloud "runs"
-              deployedYaml.add(Files.readString(Path.of(command.get(4)), StandardCharsets.UTF_8));
+              regions.add(invocation.getArgument(0));
+              deployedManifests.add(invocation.getArgument(1));
               return null;
             })
-        .when(jobExecutor)
-        .runCommand(anyList());
+        .when(serviceClient)
+        .deployService(anyString(), anyMap());
 
     loadBalancerProvider = mock(CloudrunLoadBalancerProvider.class);
     operation = new CloudrunDeployManifestOperation(description);
-    operation.jobExecutor = jobExecutor;
+    operation.serviceClient = serviceClient;
     operation.provider = loadBalancerProvider;
   }
 
@@ -185,10 +176,7 @@ class CloudrunDeployManifestOperationTest {
 
     operation.operate(new ArrayList<>());
 
-    assertThat(commands).hasSize(1);
-    assertThat(commands.get(0))
-        .contains("--region=europe-west2", "--project=my-project")
-        .startsWith("gcloud", "run", "services", "replace");
+    assertThat(regions).containsExactly("europe-west2");
   }
 
   // --- #8361: fields the typed model does not know about are silently dropped -----------------
@@ -274,7 +262,7 @@ class CloudrunDeployManifestOperationTest {
 
     operation.operate(new ArrayList<>());
 
-    assertThat(commands.get(0)).contains("--region=us-central1");
+    assertThat(regions).containsExactly("us-central1");
     assertThat(path(singleDeployedManifest(), "metadata", "annotations", "spinnaker/application"))
         .isEqualTo("myapp");
   }
@@ -312,7 +300,7 @@ class CloudrunDeployManifestOperationTest {
     assertThatThrownBy(() -> operation.operate(new ArrayList<>()))
         .isInstanceOf(IllegalArgumentException.class)
         .hasMessageContaining("could not be bound");
-    assertThat(commands).isEmpty();
+    assertThat(deployedManifests).isEmpty();
   }
 
   @Test
@@ -344,7 +332,7 @@ class CloudrunDeployManifestOperationTest {
     assertThatThrownBy(() -> operation.operate(new ArrayList<>()))
         .isInstanceOf(CloudrunOperationException.class)
         .hasMessageContaining("exactly one");
-    assertThat(commands).isEmpty();
+    assertThat(deployedManifests).isEmpty();
   }
 
   // --- helpers --------------------------------------------------------------------------------
@@ -359,8 +347,8 @@ class CloudrunDeployManifestOperationTest {
   }
 
   private Map<String, Object> singleDeployedManifest() throws IOException {
-    assertThat(deployedYaml).hasSize(1);
-    return YAML.readValue(deployedYaml.get(0), Map.class);
+    assertThat(deployedManifests).hasSize(1);
+    return deployedManifests.get(0);
   }
 
   private static List<Map<String, Object>> containers(Map<String, Object> manifest) {
