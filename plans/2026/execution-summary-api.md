@@ -138,7 +138,18 @@ Delta semantics: the client sends the previous `serverTime` minus ~5s overlap; a
 
 `GET /pipelines/{id}/trigger?fields=parameters,artifacts,expectedArtifacts,evaluations` (default: none; the caller asks for what the open popup needs).
 
-- `parameters`: `[{ "name", "valueSize", "value", "valueTruncated" }]`, sorted by name, pageable (`offset`/`limit`, default 100) so a trigger with thousands of parameters does not arrive at once. Values over a cap (default 2 KB) are returned truncated with `valueTruncated: true`; the full value is fetched by `GET /pipelines/{id}/trigger/parameters/{name}` only when the user opens that parameter. This is the "3-4 parameters holding a whole manifest" case: the popup lists the names and sizes, and the manifest is fetched when the user expands it.
+- `parameters`: always metadata, never values, by one rule for every parameter regardless of size (the same shape of idea as the entity store: name, type, size, a handle, content on request). Pageable (`offset`/`limit`, default 100) and sortable by name or size, so a trigger with thousands of parameters does not arrive at once and the large ones are easy to find.
+
+  | Field | Meaning |
+  |---|---|
+  | `name` | parameter name |
+  | `valueSize` | size of the value in bytes |
+  | `preview` | the first N characters (default 128, configurable), flattened to one line |
+  | `previewComplete` | true when the value fits in the preview, so the preview is the whole value and no fetch is needed |
+  | `valueType` | source JSON type: string, number, boolean, object, array, null (non-strings are serialized to text) |
+  | `hints` (optional) | cheap prefix checks only (starts with `{` or `[`, contains `${`); no parsing |
+
+  The full value is fetched by `GET /pipelines/{id}/trigger/parameters/{name}` only when the user opens a parameter whose `previewComplete` is false. This covers both thousands of small parameters and the few parameters whose values are entire manifests. There is no size threshold that changes behavior; the only limit is an operational safety limit on response size, not a UX rule. Candidate extra metadata, not in the first cut: a `sha256` to recognize identical values across executions without loading them.
 - `artifacts` and `expectedArtifacts`: references only, same shape as section 3.3 (name, type, reference or `ref://` URI, `sizeBytes?`). Contents use the existing artifact fetch.
 - `evaluations`: for each expected artifact, whether and what it matched or resolved to (`resolvedExpectedArtifacts`/`boundArtifacts`), as references, not contents.
 - Same Fiat application-read authorization as `GET /pipelines/{id}`; an execution without these fields returns empty lists, not 404.
@@ -192,12 +203,12 @@ Behind `SETTINGS.feature.executionSummary`, falling back to the legacy path on 4
 ## 7. Phases
 
 - **0 Baseline:** fixtures (50 executions x ~20 stages; 10 in-flight with 1MB+ bodies; k8s manifest-heavy); Orca/Gate/Deck metrics; acceptance table (e.g. 5s poll < 50KB for 30 running executions). Additions:
-  - **Large-scale fixture:** 50+ pipelines, 50-stage executions, manifest-heavy stages, triggers with thousands of parameters, triggers with a few parameters whose values are entire manifests, large artifact lists with embedded manifests, and artifact evaluations (`resolvedExpectedArtifacts`/`boundArtifacts`). Measure the 5s running poll and the 30s list, per `expand` value and summary vs legacy, on the wire (gzip) and decoded, plus Orca time/DB rows and Deck main-thread time (parse, `stringVal`, transform, render).
+  - **Large-scale fixture:** 50+ pipelines, 50-stage executions, manifest-heavy stages, triggers with thousands of parameters, triggers with a few parameters whose values are entire manifests, parameters in mixed formats (JSON, YAML, raw strings, escaped or double-encoded JSON, values containing SpEL), large artifact lists with embedded manifests, and artifact evaluations (`resolvedExpectedArtifacts`/`boundArtifacts`). Measure the 5s running poll and the 30s list, per `expand` value and summary vs legacy, on the wire (gzip) and decoded, plus Orca time/DB rows and Deck main-thread time (parse, `stringVal`, transform, render).
   - **Entity store on vs off:** run every fixture with `artifact-store` enabled and disabled to quantify its effect on stored size, Orca load/parse time and response size, and to confirm references are not re-expanded when stages are served (section 4.1).
   - **Preliminary data (one small instance, 2026-11-09, `demo` app, entity store on):** 13 executions / 96 stages, `limit=30&expand=true` = 567 KB decoded vs 48 KB with `expand=false` for 12 executions (about 10x, gzip about 8x on both); stage `context` 62%, `tasks` 21.5%, `outputs` 6.6%, with 166 `remote/map/base64` references already in the payload. The largest remaining item was Clouddriver `kato.tasks` (118 KB for `deployManifest`, about 79 KB of it `history`). Latency differed by only 10-15 ms at this size, so the cost here is client CPU and bytes, not Orca time; this does not yet reproduce the slowness seen on large installs, which is what the large-scale fixture is for.
 - **1 Cheap wins:** Deck running poll -> `expand=false` with a non-clobbering merge; `expand=false` on `/executions`; remove the N+1; `expand` on `GET /pipelines/{id}`; verify compression Orca->Gate->client; MCP `expand` default false; Redis stage-field skipping; benchmark `optimizeExecutionRetrieval`.
 - **2-3** Orca model + API, **4** Deck, **5** MCP, as above.
-- **Tests:** SQL (MySQL/Postgres testcontainers) + Redis contract suite (summary == projection of full, `since`, cursor stability, NULL-summary fallback, compressed tables, hint caps, hints identical with the entity store on and off, summary size independent of trigger parameter/artifact volume, trigger detail paging and truncation); Gate authz (403, 304, headers); Deck merge/Profiler tests; payload-size regression tests with large fixtures; end-to-end flag on/off comparison against Phase 0.
+- **Tests:** SQL (MySQL/Postgres testcontainers) + Redis contract suite (summary == projection of full, `since`, cursor stability, NULL-summary fallback, compressed tables, hint caps, hints identical with the entity store on and off, summary size independent of trigger parameter/artifact volume, trigger detail paging, preview/previewComplete behavior and on-demand value fetch); Gate authz (403, 304, headers); Deck merge/Profiler tests; payload-size regression tests with large fixtures; end-to-end flag on/off comparison against Phase 0.
 - **Risks:** hint drift for plugin stages (SPI + lazy fallback); write amplification; online DDL on big stage tables; clock skew for `since` (DB-assigned time + overlap); authz regressions on new endpoints; Deck/Gate/Orca version skew (flag + 404 fallback).
 
 ## 8. Pipelines UI - for broad discussion (no decision)
@@ -293,7 +304,12 @@ Proposed next step: prototype A+B+C against the summary API with the flag on, co
 - Delta polling in the first cut, or ETag only?
 - Staging environment for the Phase 0 baseline, or synthetic fixtures?
 - Is server-side search needed at all? Search today only covers loaded executions, which is mostly a symptom of loading heavy payloads. With summaries small enough to load far more of them (cursor paging plus server-side status/pipeline filters), client-side search over loaded summaries may cover most needs. Decide from Phase 0 numbers and Phase 4 usage rather than building it up front. If it is needed later: parameterized, index-scoped queries only, no load-then-filter, and no free-text search over `context`/`outputs`.
-- What should the trigger popup do for parameter values that are themselves manifests (render as YAML, download, copy)? Does it share the lazy JSON/YAML viewer used for stage detail?
+- Parameter viewer (Deck). Parameters can be in almost any text format, so the API returns raw text and the viewer does best-effort detection on the client, as a view option only:
+  - Detect JSON, then YAML (with a Kubernetes manifest check on `apiVersion`/`kind`), else plain text; the result only selects the syntax mode.
+  - A Raw toggle is always available and is the default when detection is uncertain. Output is rendered as text, never HTML, since parameters come from users and webhooks.
+  - Detection and unwrapping run only on a value the user opened (no size gate), off the main thread. Very large values should load progressively or offer download/copy; the exact approach is a Phase 4 design detail to settle with real data.
+  - Nice-to-have: unwrap escaped or double-encoded payloads (for example JSON escaped for embedding in pipeline context, `"{\"a\":1}"`) in layers to a small depth, show the chain ("JSON string -> JSON"), and fall back to the last layer that parsed, or raw. Values containing SpEL (`${...}`) usually do not parse; show them raw and never evaluate or strip SpEL client-side.
+  - It should reuse the lazy JSON/YAML viewer built for stage detail (Ace is already shipped in Deck) with modes for JSON, YAML and plain text. How often detection helps rather than misleads is unknown; the Phase 0 mixed-format fixture is meant to answer it.
 
 ## 10. Related work
 
