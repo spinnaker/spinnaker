@@ -21,6 +21,7 @@ import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
@@ -33,6 +34,7 @@ import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.ArgumentCaptor;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.core.ParameterizedTypeReference;
@@ -40,11 +42,13 @@ import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpMethod;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContext;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.oauth2.client.registration.ClientRegistration;
 import org.springframework.security.oauth2.client.registration.ClientRegistrationRepository;
 import org.springframework.security.oauth2.core.AuthorizationGrantType;
 import org.springframework.security.oauth2.core.user.OAuth2User;
+import org.springframework.security.web.context.RequestAttributeSecurityContextRepository;
 import org.springframework.web.client.RestClientException;
 import org.springframework.web.client.RestTemplate;
 
@@ -161,6 +165,15 @@ class ExternalAuthTokenFilterTest {
     verify(filterChain).doFilter(request, response);
     assertThat(SecurityContextHolder.getContext().getAuthentication()).isNotNull();
     assertThat(SecurityContextHolder.getContext().getAuthentication().isAuthenticated()).isTrue();
+
+    // Saved on the request, so async and error dispatches (which skip this filter) still see it
+    ArgumentCaptor<SecurityContext> savedContext = ArgumentCaptor.forClass(SecurityContext.class);
+    verify(request)
+        .setAttribute(
+            eq(RequestAttributeSecurityContextRepository.DEFAULT_REQUEST_ATTR_NAME),
+            savedContext.capture());
+    assertThat(savedContext.getValue().getAuthentication())
+        .isSameAs(SecurityContextHolder.getContext().getAuthentication());
   }
 
   @Test
@@ -178,6 +191,9 @@ class ExternalAuthTokenFilterTest {
 
     verify(filterChain).doFilter(request, response);
     assertThat(SecurityContextHolder.getContext().getAuthentication()).isNull();
+    verify(request, never())
+        .setAttribute(
+            eq(RequestAttributeSecurityContextRepository.DEFAULT_REQUEST_ATTR_NAME), any());
   }
 
   @Test
