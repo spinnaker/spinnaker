@@ -17,7 +17,7 @@
 package com.netflix.spinnaker.gate.mcp.tools;
 
 import com.netflix.spinnaker.gate.mcp.support.OrchestrationJobs;
-import com.netflix.spinnaker.gate.mcp.support.PipelineConfigs;
+import com.netflix.spinnaker.gate.services.PipelineConfigResolver;
 import com.netflix.spinnaker.gate.services.internal.Front50Service;
 import com.netflix.spinnaker.kork.retrofit.Retrofit2SyncCall;
 import com.netflix.spinnaker.kork.web.exceptions.NotFoundException;
@@ -69,7 +69,7 @@ public class PipelineConfigTools {
       @McpToolParam(description = "Application name", required = true) String application,
       @McpToolParam(description = "Pipeline name or config id", required = true)
           String pipelineNameOrId) {
-    return PipelineConfigs.resolve(front50Service, application, pipelineNameOrId);
+    return PipelineConfigResolver.resolve(front50Service, application, pipelineNameOrId);
   }
 
   @McpTool(
