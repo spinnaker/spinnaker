@@ -93,4 +93,21 @@ class OptionalStageSupportSpec extends Specification {
     [type: "expression", expression: "parameters.p1 == 'v1'"] || false
     [type: "expression", expression: "parameters.p1 == 'v2'"] || true
   }
+
+  def "does not inherit stageEnabled from an ancestor's outputs"() {
+    given:
+    def pipeline = pipeline {
+      stage {
+        refId = "policy"
+        outputs.stageEnabled = [type: "expression", expression: "false"]
+      }
+      stage {
+        refId = "downstream"
+        requisiteStageRefIds = ["policy"]
+      }
+    }
+
+    expect:
+    !OptionalStageSupport.isOptional(pipeline.stageByRef("downstream"), contextParameterProcessor)
+  }
 }
