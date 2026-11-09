@@ -18,6 +18,7 @@ package com.netflix.spinnaker.gate.services
 
 import com.netflix.spinnaker.gate.services.internal.OrcaService
 import com.netflix.spinnaker.gate.services.internal.OrcaServiceSelector
+import com.netflix.spinnaker.kork.web.exceptions.InvalidRequestException
 import retrofit2.mock.Calls
 import spock.lang.Specification
 import spock.lang.Unroll
@@ -113,5 +114,41 @@ class PipelineServiceSpec extends Specification {
     [parameters: [param1: false]] || false
     [parameters: [param1: 0]]     || false
     [parameters: [param1: 'a']]   || false
+  }
+
+  @Unroll
+  void 'validateRequiredParameters should reject a trigger missing required parameters (#trigger)'() {
+    given:
+    def service = new PipelineService(
+      applicationService: Mock(ApplicationService) {
+        1 * getPipelineConfigForApplication('app', 'p-id') >> [
+          parameterConfig: [
+            [name: 'param1', required: true],
+            [name: 'param2', required: true, default: 'x'],
+            [name: 'param3', required: false],
+            [name: 'param4', required: true]
+          ]
+        ]
+      }
+    )
+
+    when:
+    String message = null
+    try {
+      service.validateRequiredParameters('app', 'p-id', trigger)
+    } catch (InvalidRequestException e) {
+      message = e.message
+    }
+
+    then:
+    missing ? message.contains(missing) : message == null
+
+    where:
+    trigger                                            || missing
+    [:]                                                || 'param1, param4'
+    [parameters: null]                                 || 'param1, param4'
+    [parameters: [param1: 'a']]                        || 'param4'
+    [parameters: [param1: false, param4: 0]]           || null
+    [parameters: [param1: 'a', param4: 'b']]           || null
   }
 }
