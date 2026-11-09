@@ -25,7 +25,6 @@ import static java.util.stream.Collectors.toSet;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.annotations.VisibleForTesting;
 import com.netflix.frigga.Names;
-import com.netflix.spectator.api.DefaultRegistry;
 import com.netflix.spectator.api.Registry;
 import com.netflix.spinnaker.cats.agent.AccountAware;
 import com.netflix.spinnaker.cats.agent.AgentDataType;
@@ -84,7 +83,8 @@ public class LambdaCachingAgent implements CachingAgent, AccountAware, OnDemandA
       NetflixAmazonCredentials account,
       String region,
       LambdaServiceConfig lambdaServiceConfig,
-      ServiceLimitConfiguration serviceLimitConfiguration) {
+      ServiceLimitConfiguration serviceLimitConfiguration,
+      Registry registry) {
     this(
         objectMapper,
         amazonClientProvider,
@@ -92,6 +92,7 @@ public class LambdaCachingAgent implements CachingAgent, AccountAware, OnDemandA
         region,
         lambdaServiceConfig,
         serviceLimitConfiguration,
+        registry,
         new LambdaTagNamer());
   }
 
@@ -103,10 +104,11 @@ public class LambdaCachingAgent implements CachingAgent, AccountAware, OnDemandA
       String region,
       LambdaServiceConfig lambdaServiceConfig,
       ServiceLimitConfiguration serviceLimitConfiguration,
+      Registry registry,
       Namer<LambdaResource> naming) {
     this.account = account;
     this.region = region;
-    this.registry = new DefaultRegistry();
+    this.registry = registry;
     this.metricsSupport =
         new OnDemandMetricsSupport(
             registry,
