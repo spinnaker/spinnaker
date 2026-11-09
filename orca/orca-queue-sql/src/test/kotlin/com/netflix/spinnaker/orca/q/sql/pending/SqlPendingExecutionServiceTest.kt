@@ -2,7 +2,7 @@ package com.netflix.spinnaker.orca.q.sql.pending
 
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.fasterxml.jackson.module.kotlin.KotlinModule
-import com.netflix.spectator.api.NoopRegistry
+import com.netflix.spectator.micrometer.MicrometerRegistry
 import com.netflix.spinnaker.kork.sql.config.RetryProperties
 import com.netflix.spinnaker.kork.sql.test.SqlTestUtil
 import com.netflix.spinnaker.orca.api.test.pipeline
@@ -14,6 +14,9 @@ import com.netflix.spinnaker.orca.q.StartExecution
 import com.netflix.spinnaker.q.Message
 import com.netflix.spinnaker.q.Queue
 import com.netflix.spinnaker.time.fixedClock
+import io.micrometer.core.instrument.Tags
+import io.micrometer.core.instrument.Timer
+import io.micrometer.core.instrument.simple.SimpleMeterRegistry
 import org.mockito.kotlin.any
 import org.mockito.kotlin.mock
 import org.mockito.kotlin.spy
@@ -38,7 +41,8 @@ internal object SqlPendingExecutionServiceTest : SubjectSpek<SqlPendingExecution
   val queue = mock<Queue>()
   val repository = mock<ExecutionRepository>()
   val clock = fixedClock()
-  val registry = NoopRegistry()
+  val meters = SimpleMeterRegistry()
+  val registry = MicrometerRegistry(meters)
   val retryProperties = RetryProperties()
 
   val maxDepth = 4
@@ -113,6 +117,42 @@ internal object SqlPendingExecutionServiceTest : SubjectSpek<SqlPendingExecution
       }
 
       afterGroup { subject.purge(id, callback) }
+    }
+  }
+
+  describe("metrics") {
+    val metricsPipelineId = UUID.randomUUID().toString()
+    fun timer(name: String, vararg tags: String): Timer {
+      val expected = Tags.of(*tags)
+      return meters.find(name).timers().single { Tags.of(it.id.tags) == expected }
+    }
+    fun countOrZero(name: String, vararg tags: String) =
+      meters.find(name).timers().singleOrNull { Tags.of(it.id.tags) == Tags.of(*tags) }?.count() ?: 0L
+
+    var enqueuedBefore = 0L
+    var poppedOldestBefore = 0L
+    var poppedNewestBefore = 0L
+
+    on("enqueuing two messages and popping the oldest and the newest") {
+      enqueuedBefore = countOrZero("queue.pending.enqueue")
+      poppedOldestBefore = countOrZero("queue.pending.pop", "purge", "false")
+      poppedNewestBefore = countOrZero("queue.pending.pop", "purge", "true")
+
+      subject.enqueue(metricsPipelineId, startMessage)
+      subject.enqueue(metricsPipelineId, startMessage)
+      subject.popOldest(metricsPipelineId)
+      subject.popNewest(metricsPipelineId)
+    }
+
+    it("times each enqueue without tags") {
+      Assertions.assertThat(timer("queue.pending.enqueue").count()).isEqualTo(enqueuedBefore + 2)
+    }
+
+    it("times popping the oldest as purge=false and the newest as purge=true") {
+      Assertions.assertThat(timer("queue.pending.pop", "purge", "false").count())
+        .isEqualTo(poppedOldestBefore + 1)
+      Assertions.assertThat(timer("queue.pending.pop", "purge", "true").count())
+        .isEqualTo(poppedNewestBefore + 1)
     }
   }
 

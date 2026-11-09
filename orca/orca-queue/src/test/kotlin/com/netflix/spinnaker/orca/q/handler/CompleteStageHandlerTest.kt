@@ -17,7 +17,8 @@
 package com.netflix.spinnaker.orca.q.handler
 
 import com.netflix.spectator.api.Id
-import com.netflix.spectator.api.DefaultRegistry
+import com.netflix.spectator.micrometer.MicrometerRegistry
+import io.micrometer.core.instrument.simple.SimpleMeterRegistry
 import com.netflix.spinnaker.orca.DefaultStageResolver
 import com.netflix.spinnaker.orca.NoOpTaskImplementationResolver
 import com.netflix.spinnaker.orca.api.pipeline.SyntheticStageOwner.STAGE_AFTER
@@ -106,7 +107,8 @@ object CompleteStageHandlerTest : SubjectSpek<CompleteStageHandler>({
   val publisher: ApplicationEventPublisher = mock()
   val exceptionHandler: ExceptionHandler = DefaultExceptionHandler()
   val clock = fixedClock()
-  val registry = spy(DefaultRegistry())
+  val meters = SimpleMeterRegistry()
+  val registry = spy(MicrometerRegistry(meters))
   val contextParameterProcessor: ContextParameterProcessor = mock()
 
   val emptyStage = object : StageDefinitionBuilder {
@@ -548,6 +550,18 @@ object CompleteStageHandlerTest : SubjectSpek<CompleteStageHandler>({
               assertThat(metricId.tags().any{ t -> t.key() == "tag1" && t.value() == "value1" }).isTrue
               assertThat(metricId.tags().any{ t -> t.key() == "tag2" && t.value() == "value2" }).isTrue
             }
+          }
+
+          it("records the stage duration with exactly the stage tags") {
+            val timers = meters.find("stage.invocations.duration")
+              .tags("stageType", singleTaskStage.type, "tag1", "value1", "tag2", "value2")
+              .timers()
+            assertThat(timers).isNotEmpty
+            timers.forEach { timer ->
+              assertThat(timer.id.tags.map { it.key }.toSet())
+                .isEqualTo(setOf("status", "stageType", "tag1", "tag2"))
+            }
+            assertThat(timers.sumOf { it.count() }).isGreaterThanOrEqualTo(1)
           }
         }
       }
