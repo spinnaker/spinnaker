@@ -22,6 +22,7 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.ArgumentMatchers.isNull;
 import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.when;
 
 import com.netflix.spinnaker.gate.mcp.config.McpServerProperties;
@@ -124,5 +125,31 @@ class PipelineToolsTest {
     assertThatThrownBy(
             () -> pipelineTools.evaluatePipelineExpression("${foo}", null, null, "myapp", null))
         .isInstanceOf(NotFoundException.class);
+  }
+
+  @Test
+  void triggerPipelineRejectsPipelineIdBelongingToAnotherApplication() {
+    when(front50Service.getPipelineConfigByApplicationAndName("myapp", "other-id", true))
+        .thenReturn(Calls.response(Map.of("name", "something-else")));
+    when(front50Service.getPipelineConfigById("other-id"))
+        .thenReturn(Calls.response(Map.of("id", "other-id", "application", "otherapp")));
+
+    assertThatThrownBy(() -> pipelineTools.triggerPipeline("myapp", "other-id", null))
+        .isInstanceOf(NotFoundException.class);
+    verifyNoInteractions(orcaService);
+  }
+
+  @Test
+  void triggerPipelineAcceptsPipelineIdInTheRequestedApplication() {
+    when(front50Service.getPipelineConfigByApplicationAndName("myapp", "p-id", true))
+        .thenReturn(Calls.response(Map.of("name", "something-else")));
+    when(front50Service.getPipelineConfigById("p-id"))
+        .thenReturn(
+            Calls.response(new java.util.HashMap<>(Map.of("id", "p-id", "application", "MyApp"))));
+    when(orcaService.startPipeline(any(), any()))
+        .thenReturn(Calls.response(Map.of("ref", "/pipelines/01")));
+
+    assertThat(pipelineTools.triggerPipeline("myapp", "p-id", null))
+        .containsEntry("ref", "/pipelines/01");
   }
 }
