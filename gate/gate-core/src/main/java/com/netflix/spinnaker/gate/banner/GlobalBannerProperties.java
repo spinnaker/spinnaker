@@ -24,7 +24,7 @@ import org.springframework.boot.context.properties.ConfigurationProperties;
  *
  * <pre>
  * global-banner:
- *   enabled: false
+ *   enabled: true
  *   redis-key-prefix: global-banner
  *   refresh-interval-ms: 60000
  *   max-message-length: 2000
@@ -34,7 +34,12 @@ import org.springframework.boot.context.properties.ConfigurationProperties;
 @ConfigurationProperties("global-banner")
 public class GlobalBannerProperties {
 
-  /** Master switch — no beans are registered unless this is {@code true}. */
+  /**
+   * Master switch — no beans are registered unless this is {@code true}. The bean conditions read
+   * the {@code global-banner.enabled} property directly, so the shipped default of {@code true}
+   * lives in {@code gate.yml}; this field default only applies when the properties bean is bound
+   * without it.
+   */
   private boolean enabled = false;
 
   /**
