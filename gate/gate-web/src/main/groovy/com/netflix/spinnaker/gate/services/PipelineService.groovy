@@ -24,6 +24,7 @@ import com.netflix.spinnaker.gate.services.internal.Front50Service
 import com.netflix.spinnaker.gate.services.internal.OrcaServiceSelector
 import com.netflix.spinnaker.kork.core.RetrySupport
 import com.netflix.spinnaker.kork.retrofit.Retrofit2SyncCall
+import com.netflix.spinnaker.kork.web.exceptions.InvalidRequestException
 import com.netflix.spinnaker.security.AuthenticatedRequest
 import de.huxhorn.sulky.ulid.ULID
 import groovy.util.logging.Slf4j
@@ -101,18 +102,34 @@ class PipelineService {
         pipelineConfig.notifications = trigger.notifications
       }
     }
-    if (pipelineConfig.parameterConfig) {
-      Map triggerParams = (Map) trigger.parameters ?: [:]
-      pipelineConfig.parameterConfig.each { Map paramConfig ->
-        String paramName = paramConfig.name
-        if (paramConfig.required && paramConfig.default == null) {
-          if (triggerParams[paramName] == null) {
-            throw new IllegalArgumentException("Required parameter ${paramName} is missing")
-          }
-        }
-      }
+    List<String> missing = findMissingRequiredParameters(pipelineConfig, trigger)
+    if (missing) {
+      throw new IllegalArgumentException("Required parameter ${missing.first()} is missing")
     }
     Retrofit2SyncCall.execute(orcaServiceSelector.select().startPipeline(pipelineConfig, trigger.user?.toString()))
+  }
+
+  /**
+   * Names of the parameters that the pipeline marks required, without a default, that the trigger
+   * doesn't supply.
+   */
+  static List<String> findMissingRequiredParameters(Map pipelineConfig, Map trigger) {
+    Map triggerParams = (Map) trigger?.parameters ?: [:]
+    ((List<Map>) pipelineConfig.parameterConfig ?: [])
+      .findAll { Map paramConfig -> paramConfig.required && paramConfig.default == null && triggerParams[paramConfig.name] == null }
+      .collect { Map paramConfig -> (String) paramConfig.name }
+  }
+
+  /**
+   * Looks up the pipeline config and fails if the trigger omits a required parameter. Used by the
+   * echo based trigger, which would otherwise start the pipeline with the parameter unset.
+   */
+  void validateRequiredParameters(String application, String pipelineNameOrId, Map trigger) {
+    List<String> missing = findMissingRequiredParameters(
+      applicationService.getPipelineConfigForApplication(application, pipelineNameOrId), trigger)
+    if (missing) {
+      throw new InvalidRequestException("Required parameter(s) missing: ${missing.join(', ')}")
+    }
   }
 
   Map triggerViaEcho(String application, String pipelineNameOrId, Map parameters) {
