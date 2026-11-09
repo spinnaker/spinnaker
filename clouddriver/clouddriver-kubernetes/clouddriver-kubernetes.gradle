@@ -122,6 +122,9 @@ dependencies {
   integrationImplementation 'org.springframework.security:spring-security-test'
 
   integrationImplementation project(":clouddriver-web")
+  integrationImplementation sourceSets.main.output
+  integrationImplementation project(":clouddriver-saga")
+  integrationImplementation "io.spinnaker.kork:kork-web"
   integrationImplementation "org.springframework.boot:spring-boot-starter-test"
   integrationImplementation "org.testcontainers:testcontainers"
   integrationImplementation "org.testcontainers:testcontainers-mysql"
