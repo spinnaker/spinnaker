@@ -1,11 +1,11 @@
 package com.netflix.spinnaker.clouddriver.cloudrun.deploy.ops;
 
 import static org.junit.jupiter.api.Assertions.assertTrue;
-import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.*;
 
 import com.google.api.services.run.v1.CloudRun;
-import com.netflix.spinnaker.clouddriver.cloudrun.CloudrunJobExecutor;
+import com.google.api.services.run.v1.model.TrafficTarget;
+import com.netflix.spinnaker.clouddriver.cloudrun.deploy.CloudrunServiceClient;
 import com.netflix.spinnaker.clouddriver.cloudrun.deploy.description.CloudrunAllocationDescription;
 import com.netflix.spinnaker.clouddriver.cloudrun.deploy.description.CloudrunTrafficSplitDescription;
 import com.netflix.spinnaker.clouddriver.cloudrun.deploy.description.UpsertCloudrunLoadBalancerDescription;
@@ -13,6 +13,7 @@ import com.netflix.spinnaker.clouddriver.cloudrun.security.CloudrunCredentials;
 import com.netflix.spinnaker.clouddriver.cloudrun.security.CloudrunNamedAccountCredentials;
 import com.netflix.spinnaker.clouddriver.data.task.Task;
 import com.netflix.spinnaker.clouddriver.data.task.TaskRepository;
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
@@ -26,7 +27,7 @@ public class UpsertCloudrunLoadBalancerAtomicOperationTest {
   UpsertCloudrunLoadBalancerDescription description;
   CloudrunNamedAccountCredentials mockcredentials;
   Task task;
-  CloudrunJobExecutor jobExecutor;
+  CloudrunServiceClient serviceClient;
   CloudrunTrafficSplitDescription splitDescription;
 
   CloudrunAllocationDescription allocationDescription;
@@ -48,11 +49,11 @@ public class UpsertCloudrunLoadBalancerAtomicOperationTest {
             .setLocalRepositoryDirectory("/localdirectory")
             .setJsonPath("/jsonpath")
             .setProject(" my project")
-            .build(mock(CloudrunJobExecutor.class));
+            .build();
     taskRepository = mock(TaskRepository.class);
     task = mock(Task.class);
     taskRepository.threadLocalTask.set(task);
-    jobExecutor = mock(CloudrunJobExecutor.class);
+    serviceClient = mock(CloudrunServiceClient.class);
     description = new UpsertCloudrunLoadBalancerDescription();
     description.setAccountName("cloudrunaccount");
     description.setLoadBalancerName("LoadBalancer");
@@ -67,14 +68,18 @@ public class UpsertCloudrunLoadBalancerAtomicOperationTest {
     description.setSplitDescription(splitDescription);
     upsertCloudrunLoadBalancerAtomicOperation =
         new UpsertCloudrunLoadBalancerAtomicOperation(description);
-    upsertCloudrunLoadBalancerAtomicOperation.jobExecutor = jobExecutor;
+    upsertCloudrunLoadBalancerAtomicOperation.serviceClient = serviceClient;
   }
 
   @Test
-  public void UpsertCloudrunLoadBalancerOperateTest() {
+  public void UpsertCloudrunLoadBalancerOperateTest() throws IOException {
     Map<String, Map<String, Map<String, String>>> s =
         Map.of("loadBalancers", Map.of("us-central", Map.of("name", "LoadBalancer")));
     assertTrue(upsertCloudrunLoadBalancerAtomicOperation.operate(new ArrayList<>()).equals(s));
-    verify(jobExecutor, times(1)).runCommand(any());
+    verify(serviceClient)
+        .updateTraffic(
+            "us-central",
+            "LoadBalancer",
+            List.of(new TrafficTarget().setRevisionName("revision-1").setPercent(90)));
   }
 }

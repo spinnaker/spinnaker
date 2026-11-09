@@ -19,7 +19,6 @@ package com.netflix.spinnaker.clouddriver.cloudrun.security;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.google.api.services.run.v1.CloudRun;
 import com.netflix.spinnaker.clouddriver.cloudrun.CloudrunCloudProvider;
-import com.netflix.spinnaker.clouddriver.cloudrun.CloudrunJobExecutor;
 import com.netflix.spinnaker.clouddriver.security.AbstractAccountCredentials;
 import com.netflix.spinnaker.fiat.model.resources.Permissions;
 import java.util.ArrayList;
@@ -156,7 +155,7 @@ public class CloudrunNamedAccountCredentials
       return this;
     }
 
-    public CloudrunNamedAccountCredentials build(CloudrunJobExecutor jobExecutor) {
+    public CloudrunNamedAccountCredentials build() {
 
       if (credentials != null) {
         credentials = credentials;
