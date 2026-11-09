@@ -1,0 +1,26 @@
+apiVersion: kustomize.config.k8s.io/v1alpha1
+kind: Component
+
+## Enables Gate API rate limiting (requires components/redis). Mounted at
+## /opt/spinnaker/config/rate-limit/gate.yml.
+patches:
+- patch: |-
+    - op: add
+      path: /spec/template/spec/volumes/0/projected/sources/-
+      value:
+        configMap:
+          items:
+          - key: gate.yml
+            path: rate-limit/gate.yml
+          name: gate-rate-limit
+  target:
+    group: apps
+    version: v1
+    kind: Deployment
+    name: gate
+
+configMapGenerator:
+- behavior: create
+  name: gate-rate-limit
+  files:
+  - files/gate.yml
