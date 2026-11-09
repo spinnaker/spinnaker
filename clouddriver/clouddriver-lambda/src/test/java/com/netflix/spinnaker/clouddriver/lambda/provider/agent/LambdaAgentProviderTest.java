@@ -20,6 +20,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.mock;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.netflix.spectator.api.NoopRegistry;
 import com.netflix.spinnaker.clouddriver.aws.security.AmazonClientProvider;
 import com.netflix.spinnaker.clouddriver.core.limits.ServiceLimitConfiguration;
 import com.netflix.spinnaker.config.LambdaServiceConfig;
@@ -42,7 +43,8 @@ class LambdaAgentProviderTest {
         new LambdaAgentProvider(
             mock(AmazonClientProvider.class),
             mock(LambdaServiceConfig.class),
-            mock(ServiceLimitConfiguration.class));
+            mock(ServiceLimitConfiguration.class),
+            new NoopRegistry());
 
     ObjectMapper objectMapper =
         (ObjectMapper) ReflectionTestUtils.getField(provider, "objectMapper");
