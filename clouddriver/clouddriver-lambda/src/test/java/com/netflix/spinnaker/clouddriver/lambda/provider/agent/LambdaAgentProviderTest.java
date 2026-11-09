@@ -19,6 +19,7 @@ package com.netflix.spinnaker.clouddriver.lambda.provider.agent;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.mock;
 
+import com.netflix.spectator.api.NoopRegistry;
 import com.netflix.spinnaker.clouddriver.aws.jackson.AwsSdkV2Module;
 import com.netflix.spinnaker.clouddriver.aws.security.AmazonClientProvider;
 import com.netflix.spinnaker.clouddriver.core.limits.ServiceLimitConfiguration;
@@ -46,6 +47,7 @@ class LambdaAgentProviderTest {
             mock(AmazonClientProvider.class),
             mock(LambdaServiceConfig.class),
             mock(ServiceLimitConfiguration.class),
+            new NoopRegistry(),
             objectMapper);
 
     ObjectMapper configuredMapper =

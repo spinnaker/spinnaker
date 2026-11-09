@@ -56,6 +56,8 @@ dependencies {
   runtimeOnly "io.spinnaker.kork:kork-runtime"
   runtimeOnly "org.springframework.boot:spring-boot-properties-migrator"
 
+  testImplementation platform("org.springframework.ai:spring-ai-bom:1.1.8")
+  testImplementation "org.springframework.ai:spring-ai-starter-mcp-server-webmvc"
   testImplementation project(":gate-ldap") // TODO: Move system tests to own module
   testImplementation project(":gate-basic")
   testImplementation project(":gate-header")

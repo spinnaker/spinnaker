@@ -16,6 +16,7 @@
 
 package com.netflix.spinnaker.clouddriver.lambda.provider.agent;
 
+import com.netflix.spectator.api.Registry;
 import com.netflix.spinnaker.cats.agent.Agent;
 import com.netflix.spinnaker.cats.agent.AgentProvider;
 import com.netflix.spinnaker.clouddriver.aws.provider.AwsProvider;
@@ -39,17 +40,20 @@ public class LambdaAgentProvider implements AgentProvider {
   private final AmazonClientProvider amazonClientProvider;
   private final LambdaServiceConfig lambdaServiceConfig;
   private final ServiceLimitConfiguration serviceLimitConfiguration;
+  private final Registry registry;
 
   @Autowired
   public LambdaAgentProvider(
       AmazonClientProvider amazonClientProvider,
       LambdaServiceConfig lambdaServiceConfig,
       ServiceLimitConfiguration serviceLimitConfiguration,
+      Registry registry,
       @Qualifier("amazonObjectMapper") ObjectMapper objectMapper) {
     this.objectMapper = objectMapper;
     this.amazonClientProvider = amazonClientProvider;
     this.lambdaServiceConfig = lambdaServiceConfig;
     this.serviceLimitConfiguration = serviceLimitConfiguration;
+    this.registry = registry;
   }
 
   @Override
@@ -73,7 +77,8 @@ public class LambdaAgentProvider implements AgentProvider {
                 netflixAmazonCredentials,
                 region.getName(),
                 lambdaServiceConfig,
-                serviceLimitConfiguration));
+                serviceLimitConfiguration,
+                registry));
       }
     }
     return agents;

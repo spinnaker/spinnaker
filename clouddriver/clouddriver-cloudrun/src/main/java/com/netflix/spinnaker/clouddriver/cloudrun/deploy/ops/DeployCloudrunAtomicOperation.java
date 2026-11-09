@@ -16,31 +16,25 @@
 
 package com.netflix.spinnaker.clouddriver.cloudrun.deploy.ops;
 
-import com.netflix.spinnaker.clouddriver.cloudrun.CloudrunJobExecutor;
+import com.netflix.spinnaker.clouddriver.cloudrun.config.CloudrunConfigurationProperties;
 import com.netflix.spinnaker.clouddriver.cloudrun.deploy.CloudrunServerGroupNameResolver;
+import com.netflix.spinnaker.clouddriver.cloudrun.deploy.CloudrunServiceClient;
 import com.netflix.spinnaker.clouddriver.cloudrun.deploy.description.DeployCloudrunDescription;
 import com.netflix.spinnaker.clouddriver.cloudrun.deploy.exception.CloudrunOperationException;
-import com.netflix.spinnaker.clouddriver.cloudrun.model.*;
+import com.netflix.spinnaker.clouddriver.cloudrun.op.manifest.CloudrunManifestEditor;
 import com.netflix.spinnaker.clouddriver.cloudrun.provider.view.CloudrunLoadBalancerProvider;
 import com.netflix.spinnaker.clouddriver.data.task.Task;
 import com.netflix.spinnaker.clouddriver.data.task.TaskRepository;
 import com.netflix.spinnaker.clouddriver.deploy.DeploymentResult;
 import com.netflix.spinnaker.clouddriver.orchestration.AtomicOperation;
 import com.netflix.spinnaker.kork.yaml.YamlHelper;
-import java.io.File;
-import java.nio.charset.StandardCharsets;
-import java.nio.file.Path;
-import java.nio.file.Paths;
 import java.util.*;
-import java.util.stream.Collectors;
-import org.apache.commons.io.FileUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import tools.jackson.core.JacksonException;
-import tools.jackson.databind.DeserializationFeature;
+import tools.jackson.core.type.TypeReference;
 import tools.jackson.databind.ObjectMapper;
-import tools.jackson.databind.json.JsonMapper;
 import tools.jackson.dataformat.yaml.YAMLMapper;
 
 public class DeployCloudrunAtomicOperation implements AtomicOperation<DeploymentResult> {
@@ -53,26 +47,34 @@ public class DeployCloudrunAtomicOperation implements AtomicOperation<Deployment
     return TaskRepository.threadLocalTask.get();
   }
 
-  @Autowired CloudrunJobExecutor jobExecutor;
+  CloudrunServiceClient serviceClient;
+
+  @Autowired(required = false)
+  CloudrunConfigurationProperties configurationProperties;
 
   @Autowired CloudrunLoadBalancerProvider provider;
 
   DeployCloudrunDescription description;
 
-  private final ObjectMapper objectMapper =
-      JsonMapper.builder().disable(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES).build();
-
   private final ObjectMapper yamlReader = YAMLMapper.builder(YamlHelper.newYamlFactory()).build();
-
-  private CloudrunYmlData ymlData = new CloudrunYmlData();
 
   public DeployCloudrunAtomicOperation(DeployCloudrunDescription description) {
     this.description = description;
   }
 
-  public String deploy(String repositoryPath) {
+  public String deploy() {
     String project = description.getCredentials().getProject();
-    String applicationDirectoryRoot = description.getApplicationDirectoryRoot();
+    List<Map<String, Object>> manifests;
+    try {
+      manifests = parseManifests(description.getConfigFiles());
+    } catch (Exception e) {
+      log.error("Failed to parse the cloudrun config files ", e);
+      throw new CloudrunOperationException(
+          "Failed to parse the cloudrun config files " + e.getMessage());
+    }
+    CloudrunManifestEditor.requireExactlyOne(manifests);
+    Map<String, Object> manifest = manifests.get(0);
+    CloudrunManifestEditor.locationLabel(manifest).ifPresent(description::setRegion);
     CloudrunServerGroupNameResolver serverGroupNameResolver =
         new CloudrunServerGroupNameResolver(
             project, description.getRegion(), description.getCredentials());
@@ -85,140 +87,52 @@ public class DeployCloudrunAtomicOperation implements AtomicOperation<Deployment
             description.getStack(),
             description.getFreeFormDetails(),
             description.getSuppressVersionString());
-    List<String> configFiles = description.getConfigFiles();
-    try {
-      populateCloudrunYmlData(configFiles);
-    } catch (Exception e) {
-      log.error("Failed to populate the cloudrun yml data ", e);
-      throw new CloudrunOperationException(
-          "Failed to populate the cloudrun yml data " + e.getMessage());
-    }
-    List<String> modConfigFiles =
-        insertSpinnakerAppNameServiceNameVersionName(configFiles, clusterName, versionName);
-    List<String> writtenFullConfigFilePaths =
-        writeConfigFiles(modConfigFiles, repositoryPath, applicationDirectoryRoot);
-    String region = description.getRegion();
+    CloudrunManifestEditor.applySpinnakerFields(
+        manifest,
+        description.getApplication(),
+        clusterName,
+        versionName,
+        provider.getLoadBalancer(description.getAccountName(), clusterName));
 
-    List<String> deployCommand = new ArrayList<>();
-    deployCommand.add("gcloud");
-    deployCommand.add("run");
-    deployCommand.add("services");
-    deployCommand.add("replace");
-    deployCommand.add(writtenFullConfigFilePaths.stream().collect(Collectors.joining("")));
-    deployCommand.add("--region=" + region);
-    deployCommand.add("--project=" + project);
-
-    String success = "false";
     getTask().updateStatus(BASE_PHASE, "Deploying version " + versionName + "...");
     try {
-      jobExecutor.runCommand(deployCommand);
-      success = "true";
+      serviceClient().deployService(description.getRegion(), manifest);
     } catch (Exception e) {
-      throw new CloudrunOperationException(
-          "Failed to deploy to Cloud Run with command "
-              + deployCommand
-              + "exception "
-              + e.getMessage());
-    } finally {
-      deleteFiles(writtenFullConfigFilePaths);
+      throw new CloudrunOperationException("Failed to deploy to Cloud Run: " + e.getMessage(), e);
     }
     getTask().updateStatus(BASE_PHASE, "Done deploying version " + versionName + "...");
     return versionName;
   }
 
-  private void populateCloudrunYmlData(List<String> configFiles) throws JacksonException {
+  private CloudrunServiceClient serviceClient() {
+    if (serviceClient == null) {
+      serviceClient =
+          CloudrunServiceClient.forAccount(description.getCredentials(), configurationProperties);
+    }
+    return serviceClient;
+  }
 
-    for (String configFile : configFiles) {
-      CloudrunService yamlObj = yamlReader.readValue(configFile, CloudrunService.class);
-      if (yamlObj != null && yamlObj.getMetadata() != null && yamlObj.getSpec() != null) {
-        ymlData.setKind(yamlObj.getKind());
-        ymlData.setApiVersion(yamlObj.getApiVersion());
-
-        String metaDataJson = objectMapper.writeValueAsString(yamlObj.getMetadata());
-        CloudrunMetaData cloudrunMetaData =
-            objectMapper.readValue(metaDataJson, CloudrunMetaData.class);
-        ymlData.setMetadata(cloudrunMetaData);
-
-        String specJson = objectMapper.writeValueAsString(yamlObj.getSpec());
-        CloudrunSpec spec = objectMapper.readValue(specJson, CloudrunSpec.class);
-        ymlData.setSpec(spec);
+  private List<Map<String, Object>> parseManifests(List<String> configFiles)
+      throws JacksonException {
+    List<Map<String, Object>> manifests = new ArrayList<>();
+    for (String configFile : configFiles == null ? List.<String>of() : configFiles) {
+      Map<String, Object> manifest =
+          yamlReader.readValue(configFile, new TypeReference<LinkedHashMap<String, Object>>() {});
+      if (manifest != null && manifest.get("metadata") != null && manifest.get("spec") != null) {
+        // status is output only, so it is intentionally not carried over
+        manifest.remove("status");
+        manifests.add(manifest);
       }
     }
-  }
-
-  private List<String> insertSpinnakerAppNameServiceNameVersionName(
-      List<String> configFiles, String clusterName, String versionName) {
-
-    return configFiles.stream()
-        .map(
-            (configFile) -> {
-              try {
-                CloudrunService yamlObj = yamlReader.readValue(configFile, CloudrunService.class);
-                if (yamlObj != null && yamlObj.getMetadata() != null) {
-                  CloudrunMetaData metadata = ymlData.getMetadata();
-                  CloudrunSpec spec = ymlData.getSpec();
-                  if (metadata != null && spec != null) {
-                    if (spec.getTemplate() != null && spec.getTemplate().getMetadata() != null) {
-                      CloudrunSpecTemplateMetadata specMetadata = spec.getTemplate().getMetadata();
-                      specMetadata.setName(versionName);
-                      metadata.setName(clusterName);
-                      CloudrunLoadBalancer loadBalancer =
-                          provider.getLoadBalancer(description.getAccountName(), clusterName);
-                      if (loadBalancer != null) {
-                        insertTrafficPercent(spec, loadBalancer);
-                      }
-                    }
-                  }
-                  CloudrunMetadataAnnotations annotations = metadata.getAnnotations();
-                  CloudrunMetadataLabels labels = metadata.getLabels();
-                  if (annotations == null) {
-                    CloudrunMetadataAnnotations metadataAnnotations =
-                        new CloudrunMetadataAnnotations();
-                    metadataAnnotations.setSpinnakerApplication(description.getApplication());
-                    metadata.setAnnotations(metadataAnnotations);
-                    description.setRegion(labels.getCloudGoogleapisComLocation());
-                  } else if (annotations != null && labels != null) {
-                    annotations.setSpinnakerApplication(description.getApplication());
-                    description.setRegion(labels.getCloudGoogleapisComLocation());
-                  }
-                }
-                return yamlReader.writeValueAsString(ymlData);
-              } catch (JacksonException e) {
-                throw new RuntimeException(e);
-              }
-            })
-        .collect(Collectors.toList());
-  }
-
-  private void insertTrafficPercent(CloudrunSpec spec, CloudrunLoadBalancer loadBalancer) {
-
-    List<CloudrunSpecTraffic> trafficTargets = new ArrayList<>();
-    if (loadBalancer.getSplit() != null && loadBalancer.getSplit().getTrafficTargets() != null) {
-      loadBalancer
-          .getSplit()
-          .getTrafficTargets()
-          .forEach(
-              trafficTarget -> {
-                CloudrunSpecTraffic existingTrafficMap = new CloudrunSpecTraffic();
-                existingTrafficMap.setPercent(trafficTarget.getPercent());
-                existingTrafficMap.setRevisionName(trafficTarget.getRevisionName());
-                trafficTargets.add(existingTrafficMap);
-              });
-      spec.setTraffic(trafficTargets.toArray(new CloudrunSpecTraffic[0]));
-    }
+    return manifests;
   }
 
   @Override
   public DeploymentResult operate(List priorOutputs) {
 
-    String baseDir = description.getCredentials().getLocalRepositoryDirectory();
-    String directoryPath = getFullDirectoryPath(baseDir);
-    String serviceAccount = description.getCredentials().getServiceAccountEmail();
-    String deployPath = directoryPath;
     String newVersionName;
-    String success = "false";
     getTask().updateStatus(BASE_PHASE, "Initializing creation of version...");
-    newVersionName = deploy(deployPath);
+    newVersionName = deploy();
     String region = description.getRegion();
     DeploymentResult result = new DeploymentResult();
     StringBuffer sb = new StringBuffer();
@@ -229,53 +143,6 @@ public class DeployCloudrunAtomicOperation implements AtomicOperation<Deployment
     result.setServerGroupNameByRegion(namesByRegion);
     log.info(" region in deploy operation : " + region);
     log.info(" new version name in deploy operation : " + newVersionName);
-    success = "true";
     return result;
-  }
-
-  public static void deleteFiles(List<String> paths) {
-    paths.forEach(
-        path -> {
-          try {
-            new File(path).delete();
-          } catch (Exception e) {
-            throw new CloudrunOperationException("Could not delete config file: ${e.getMessage()}");
-          }
-        });
-  }
-
-  public static List<String> writeConfigFiles(
-      List<String> configFiles, String repositoryPath, String applicationDirectoryRoot) {
-    if (configFiles == null) {
-      return Collections.<String>emptyList();
-    } else {
-      return configFiles.stream()
-          .map(
-              (configFile) -> {
-                Path path =
-                    generateRandomRepositoryFilePath(repositoryPath, applicationDirectoryRoot);
-                try {
-                  File targetFile = new File(path.toString());
-                  FileUtils.writeStringToFile(targetFile, configFile, StandardCharsets.UTF_8);
-                } catch (Exception e) {
-                  throw new CloudrunOperationException(
-                      "Could not write config file: ${e.getMessage()}");
-                }
-                return path.toString();
-              })
-          .collect(Collectors.toList());
-    }
-  }
-
-  public static Path generateRandomRepositoryFilePath(
-      String repositoryPath, String applicationDirectoryRoot) {
-    String name = UUID.randomUUID().toString();
-    String filePath = applicationDirectoryRoot != null ? applicationDirectoryRoot : ".";
-    StringBuilder sb = new StringBuilder(name).append(".yaml");
-    return Paths.get(repositoryPath, filePath, sb.toString());
-  }
-
-  public static String getFullDirectoryPath(String localRepositoryDirectory) {
-    return Paths.get(localRepositoryDirectory).toString();
   }
 }

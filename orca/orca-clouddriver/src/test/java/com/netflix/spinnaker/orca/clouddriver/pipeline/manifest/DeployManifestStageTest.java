@@ -22,12 +22,14 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.anyBoolean;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.when;
 
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 import com.netflix.spinnaker.kork.dynamicconfig.DynamicConfigService;
 import com.netflix.spinnaker.orca.api.pipeline.Task;
+import com.netflix.spinnaker.orca.api.pipeline.models.ExecutionStatus;
 import com.netflix.spinnaker.orca.api.pipeline.models.ExecutionType;
 import com.netflix.spinnaker.orca.api.pipeline.models.StageExecution;
 import com.netflix.spinnaker.orca.clouddriver.OortService;
@@ -49,6 +51,7 @@ import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.EnumSource;
 import org.junit.jupiter.params.provider.ValueSource;
 import org.mockito.junit.jupiter.MockitoExtension;
 import retrofit2.mock.Calls;
@@ -122,6 +125,37 @@ final class DeployManifestStageTest {
     stage.setContext(getContext(DeployManifestContext.builder().build()));
     stage.getContext().remove("trafficManagement");
     assertThat(getAfterStages(stage)).isEmpty();
+  }
+
+  @ParameterizedTest
+  @EnumSource(
+      value = ManifestStrategyType.class,
+      names = {"RED_BLACK", "BLUE_GREEN", "HIGHLANDER"})
+  void failedResolutionDoesNotScheduleOldManifestActions(ManifestStrategyType strategy) {
+    Map<String, Object> context =
+        getContext(
+            DeployManifestContext.builder()
+                .trafficManagement(
+                    DeployManifestContext.TrafficManagement.builder()
+                        .enabled(true)
+                        .options(
+                            DeployManifestContext.TrafficManagement.Options.builder()
+                                .strategy(strategy)
+                                .build())
+                        .build())
+                .build());
+    context.remove("outputs.manifests");
+    context.remove("moniker");
+    context.put("continuePipeline", true);
+    StageExecutionImpl stage =
+        new StageExecutionImpl(
+            new PipelineExecutionImpl(ExecutionType.PIPELINE, APPLICATION),
+            DeployManifestStage.PIPELINE_CONFIG_TYPE,
+            context);
+    stage.setStatus(ExecutionStatus.FAILED_CONTINUE);
+
+    assertThat(getAfterStages(stage)).isEmpty();
+    verifyNoInteractions(oortService);
   }
 
   @Test
