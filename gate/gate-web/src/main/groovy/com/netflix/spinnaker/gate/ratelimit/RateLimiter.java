@@ -17,5 +17,12 @@ package com.netflix.spinnaker.gate.ratelimit;
 
 public interface RateLimiter {
 
+  /** Counts a request against the principal's default bucket. */
   Rate incrementAndGetRate(RateLimitPrincipal principal);
+
+  /**
+   * Counts a request against the bucket of a rule from {@code rate-limit.rules} for the given
+   * principal. The principal's capacity and rateSeconds are the rule's values.
+   */
+  Rate incrementAndGetRate(String ruleName, RateLimitPrincipal principal);
 }
