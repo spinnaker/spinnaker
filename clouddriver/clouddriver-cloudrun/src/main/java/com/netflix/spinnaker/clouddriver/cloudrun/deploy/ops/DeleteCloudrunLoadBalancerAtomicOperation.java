@@ -16,7 +16,8 @@
 
 package com.netflix.spinnaker.clouddriver.cloudrun.deploy.ops;
 
-import com.netflix.spinnaker.clouddriver.cloudrun.CloudrunJobExecutor;
+import com.netflix.spinnaker.clouddriver.cloudrun.config.CloudrunConfigurationProperties;
+import com.netflix.spinnaker.clouddriver.cloudrun.deploy.CloudrunServiceClient;
 import com.netflix.spinnaker.clouddriver.cloudrun.deploy.description.DeleteCloudrunLoadBalancerDescription;
 import com.netflix.spinnaker.clouddriver.cloudrun.deploy.exception.CloudrunOperationException;
 import com.netflix.spinnaker.clouddriver.cloudrun.model.CloudrunLoadBalancer;
@@ -24,7 +25,6 @@ import com.netflix.spinnaker.clouddriver.cloudrun.provider.view.CloudrunLoadBala
 import com.netflix.spinnaker.clouddriver.data.task.Task;
 import com.netflix.spinnaker.clouddriver.data.task.TaskRepository;
 import com.netflix.spinnaker.clouddriver.orchestration.AtomicOperation;
-import java.util.ArrayList;
 import java.util.List;
 import org.springframework.beans.factory.annotation.Autowired;
 
@@ -36,7 +36,10 @@ public class DeleteCloudrunLoadBalancerAtomicOperation implements AtomicOperatio
   }
 
   private final DeleteCloudrunLoadBalancerDescription description;
-  @Autowired CloudrunJobExecutor jobExecutor;
+  CloudrunServiceClient serviceClient;
+
+  @Autowired(required = false)
+  CloudrunConfigurationProperties configurationProperties;
 
   @Autowired CloudrunLoadBalancerProvider provider;
 
@@ -52,7 +55,6 @@ public class DeleteCloudrunLoadBalancerAtomicOperation implements AtomicOperatio
             BASE_PHASE,
             "Initializing deletion of load balancer " + description.getLoadBalancerName() + "...");
 
-    String project = description.getCredentials().getProject();
     String loadBalancerName = description.getLoadBalancerName();
     CloudrunLoadBalancer loadBalancer =
         provider.getLoadBalancer(description.getAccountName(), loadBalancerName);
@@ -64,26 +66,16 @@ public class DeleteCloudrunLoadBalancerAtomicOperation implements AtomicOperatio
               + loadBalancerName);
     } else {
       String region = loadBalancer.getRegion();
-      List<String> deployCommand = new ArrayList<>();
-      deployCommand.add("gcloud");
-      deployCommand.add("run");
-      deployCommand.add("services");
-      deployCommand.add("delete");
-      deployCommand.add(loadBalancerName);
-      deployCommand.add("--quiet");
-      deployCommand.add("--region=" + region);
-      deployCommand.add("--project=" + project);
-
-      String success = "false";
       try {
-        jobExecutor.runCommand(deployCommand);
-        success = "true";
+        if (serviceClient == null) {
+          serviceClient =
+              CloudrunServiceClient.forAccount(
+                  description.getCredentials(), configurationProperties);
+        }
+        serviceClient.deleteService(region, loadBalancerName);
       } catch (Exception e) {
         throw new CloudrunOperationException(
-            "Failed to delete load balancer with command "
-                + deployCommand
-                + "exception "
-                + e.getMessage());
+            "Failed to delete load balancer " + loadBalancerName + ": " + e.getMessage(), e);
       }
       getTask()
           .updateStatus(BASE_PHASE, "Successfully deleted load balancer " + loadBalancerName + ".");
