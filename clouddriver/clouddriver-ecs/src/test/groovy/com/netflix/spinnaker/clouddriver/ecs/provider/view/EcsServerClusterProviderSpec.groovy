@@ -200,7 +200,7 @@ class EcsServerClusterProviderSpec extends Specification {
     credentialsRepository.getOne(creds.getName()) >> creds2
     ecsLoadbalancerCacheClient.find(_, _) >> [loadbalancer]
     containerInformationService.getTaskPrivateAddress(_, _, _) >> "${ip}:1337"
-    containerInformationService.getHealthStatus(_, _, _, _) >> [healthStatus]
+    containerInformationService.getHealthStatus(_, _, _, _, _, _) >> [healthStatus]
     containerInformationService.getEc2Instance(_, _, _) >> ec2Instance
     containerInformationService.getTaskZone(_, _, _) >> 'us-west-1a'
     taskDefinitionCacheClient.get(_) >> cachedTaskDefinition
@@ -220,6 +220,15 @@ class EcsServerClusterProviderSpec extends Specification {
 
     then:
     retrievedCluster == expectedCluster
+  }
+
+  def 'should not look the service up again for each task'() {
+    when:
+    provider.getCluster("myapp", CREDS_NAME, FAMILY_NAME)
+
+    then:
+    0 * containerInformationService.getService(*_)
+    0 * containerInformationService.taskHasHealthCheck(*_)
   }
 
   def 'should produce an ecs cluster with VPC network configuration'() {
@@ -562,22 +571,29 @@ class EcsServerClusterProviderSpec extends Specification {
       .setNamer(EcsResource, NamerRegistry.getDefaultNamer())
   }
 
-  def 'falls back to scanning when the application index has no services yet'() {
+  def 'queries the application index once and does not scan every account when it has no services (#naming naming)'() {
     given:
     NamerRegistry.lookup().withProvider(EcsCloudProvider.ID).withAccount(CREDS_NAME)
-      .setNamer(EcsResource, new EcsTagNamer())
+      .setNamer(EcsResource, namer)
 
     when:
-    indexedProvider().getClusterDetails('myapp')
+    def clusters = indexedProvider().getClusterDetails('myapp')
 
-    then: 'services not yet re-cached with the indexed application are found by the scan'
+    then: 'one index query for the whole request, however many accounts and regions there are'
     cacheView.supportsGetAllByApplication() >> true
-    (1.._) * cacheView.getAllByApplication(Keys.Namespace.SERVICES.ns, 'myapp') >> [(Keys.Namespace.SERVICES.ns): []]
-    (1.._) * cacheView.filterIdentifiers(Keys.Namespace.SERVICES.ns, { it.startsWith("ecs;services;${CREDS_NAME};") && it.endsWith(';*') }) >> []
+    1 * cacheView.getAllByApplication(Keys.Namespace.SERVICES.ns, 'myapp') >> [(Keys.Namespace.SERVICES.ns): []]
+    0 * cacheView.filterIdentifiers(Keys.Namespace.SERVICES.ns, _)
+    0 * cacheView.get(Keys.Namespace.SERVICES.ns, _)
+    clusters.isEmpty()
 
     cleanup:
     NamerRegistry.lookup().withProvider(EcsCloudProvider.ID).withAccount(CREDS_NAME)
       .setNamer(EcsResource, NamerRegistry.getDefaultNamer())
+
+    where:
+    naming | namer
+    'tag'  | new EcsTagNamer()
+    'name' | NamerRegistry.getDefaultNamer()
   }
 
   private EcsServerClusterProvider indexedProvider() {
