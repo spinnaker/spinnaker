@@ -38,6 +38,7 @@ import org.springframework.security.oauth2.client.registration.ClientRegistratio
 import org.springframework.security.oauth2.client.registration.InMemoryClientRegistrationRepository;
 import org.springframework.security.oauth2.client.web.OAuth2AuthorizationRequestRedirectFilter;
 import org.springframework.security.oauth2.client.web.OAuth2LoginAuthenticationFilter;
+import org.springframework.security.oauth2.jwt.JwtDecoder;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.savedrequest.HttpSessionRequestCache;
 import org.springframework.stereotype.Component;
@@ -101,9 +102,26 @@ public class OAuth2SsoConfig {
             });
     if (registrationId != null) {
       RestTemplate restTemplate = createRestTemplateWithTimeouts();
+      ExternalAuthTokenFilterConfigurationProperties.Jwt jwt =
+          externalAuthTokenFilterProperties.getJwt();
+      JwtDecoder jwtDecoder = null;
+      if (jwt.isEnabled()) {
+        jwtDecoder = ExternalJwtDecoderFactory.create(jwt);
+        log.info(
+            "ExternalAuthTokenFilter validates JWT bearer tokens from issuer {} for audiences {} "
+                + "(user-info fallback: {})",
+            jwt.getIssuerUri(),
+            jwt.getAudiences(),
+            jwt.isUserInfoFallback());
+      }
       ExternalAuthTokenFilter externalAuthTokenFilter =
           new ExternalAuthTokenFilter(
-              clientRegistrationRepository, userInfoServiceHelper, registrationId, restTemplate);
+              clientRegistrationRepository,
+              userInfoServiceHelper,
+              registrationId,
+              restTemplate,
+              jwtDecoder,
+              jwt.isUserInfoFallback());
       httpSecurity.addFilterBefore(externalAuthTokenFilter, OAuth2LoginAuthenticationFilter.class);
     }
 

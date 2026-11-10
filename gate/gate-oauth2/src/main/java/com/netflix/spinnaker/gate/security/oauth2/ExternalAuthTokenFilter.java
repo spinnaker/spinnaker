@@ -38,6 +38,9 @@ import org.springframework.security.oauth2.client.registration.ClientRegistratio
 import org.springframework.security.oauth2.client.registration.ClientRegistrationRepository;
 import org.springframework.security.oauth2.core.OAuth2AccessToken;
 import org.springframework.security.oauth2.core.user.OAuth2User;
+import org.springframework.security.oauth2.jwt.Jwt;
+import org.springframework.security.oauth2.jwt.JwtDecoder;
+import org.springframework.security.oauth2.jwt.JwtException;
 import org.springframework.web.client.RestClientException;
 import org.springframework.web.client.RestTemplate;
 import org.springframework.web.filter.OncePerRequestFilter;
@@ -49,6 +52,11 @@ import org.springframework.web.filter.OncePerRequestFilter;
  * <p>In Spring Security 6, this filter extracts the bearer token from the Authorization header,
  * calls the configured user-info endpoint to retrieve user details, and establishes an
  * authenticated security context.
+ *
+ * <p>With a {@link JwtDecoder} (security.oauth2.external-auth-token-filter.jwt.*), the token is
+ * first validated locally as a JWT issued for this Gate, and its claims are used as the user
+ * details. A token that fails that validation goes to the user-info endpoint only if the user-info
+ * fallback is on.
  */
 @Slf4j
 public class ExternalAuthTokenFilter extends OncePerRequestFilter {
@@ -61,9 +69,12 @@ public class ExternalAuthTokenFilter extends OncePerRequestFilter {
   private final RestTemplate restTemplate;
   private final String registrationId;
   private final String userInfoUri;
+  private final JwtDecoder jwtDecoder;
+  private final boolean userInfoFallback;
 
   /**
-   * Constructs a new ExternalAuthTokenFilter.
+   * Constructs a new ExternalAuthTokenFilter that validates bearer tokens at the user-info endpoint
+   * only.
    *
    * @param clientRegistrationRepository repository for looking up OAuth2 client registrations
    * @param userInfoServiceHelper helper service for converting OAuth2 user info to Spinnaker users
@@ -75,9 +86,39 @@ public class ExternalAuthTokenFilter extends OncePerRequestFilter {
       OAuthUserInfoServiceHelper userInfoServiceHelper,
       String registrationId,
       RestTemplate restTemplate) {
+    this(
+        clientRegistrationRepository,
+        userInfoServiceHelper,
+        registrationId,
+        restTemplate,
+        null,
+        true);
+  }
+
+  /**
+   * Constructs a new ExternalAuthTokenFilter.
+   *
+   * @param clientRegistrationRepository repository for looking up OAuth2 client registrations
+   * @param userInfoServiceHelper helper service for converting OAuth2 user info to Spinnaker users
+   * @param registrationId the OAuth2 client registration ID to use for authentication
+   * @param restTemplate the RestTemplate to use for making HTTP requests to the user-info endpoint
+   * @param jwtDecoder validates bearer tokens locally as JWTs first, or {@code null} to only use
+   *     the user-info endpoint
+   * @param userInfoFallback whether a token that fails JWT validation is still sent to the
+   *     user-info endpoint; ignored without a {@code jwtDecoder}
+   */
+  public ExternalAuthTokenFilter(
+      ClientRegistrationRepository clientRegistrationRepository,
+      OAuthUserInfoServiceHelper userInfoServiceHelper,
+      String registrationId,
+      RestTemplate restTemplate,
+      JwtDecoder jwtDecoder,
+      boolean userInfoFallback) {
     this.userInfoServiceHelper = userInfoServiceHelper;
     this.registrationId = registrationId;
     this.restTemplate = restTemplate;
+    this.jwtDecoder = jwtDecoder;
+    this.userInfoFallback = jwtDecoder == null || userInfoFallback;
 
     // It's safe to resolve the client registration once at construction time because
     // OAuth2SsoConfig.securityFilterChain only adds this filter when the
@@ -164,21 +205,48 @@ public class ExternalAuthTokenFilter extends OncePerRequestFilter {
   /**
    * Authenticates a user using the provided OAuth2 access token.
    *
-   * <p>This method fetches user information from the configured user-info endpoint and creates an
-   * authenticated OAuth2AuthenticationToken.
+   * <p>With a {@link JwtDecoder}, the token is first validated as a JWT and its claims become the
+   * user details. Otherwise, or if that fails and the user-info fallback is on, this method fetches
+   * user information from the configured user-info endpoint. Either way it creates an authenticated
+   * OAuth2AuthenticationToken.
    *
    * @param accessToken the OAuth2 access token to authenticate with
    * @return an OAuth2AuthenticationToken if authentication succeeds, or {@code null} if
    *     authentication fails
    */
   private OAuth2AuthenticationToken authenticateWithToken(String accessToken) {
-    Map<String, Object> userAttributes = fetchUserInfo(userInfoUri, accessToken);
+    Map<String, Object> userAttributes = null;
+    Instant issuedAt = Instant.now();
+    Instant expiresAt = null;
+
+    if (jwtDecoder != null) {
+      try {
+        Jwt jwt = jwtDecoder.decode(accessToken);
+        userAttributes = jwt.getClaims();
+        if (jwt.getIssuedAt() != null) {
+          issuedAt = jwt.getIssuedAt();
+        }
+        expiresAt = jwt.getExpiresAt();
+      } catch (JwtException e) {
+        if (!userInfoFallback) {
+          log.debug("Bearer token is not a valid JWT for this Gate: {}", e.getMessage());
+          return null;
+        }
+        log.debug(
+            "Bearer token is not a valid JWT for this Gate, trying the user-info endpoint: {}",
+            e.getMessage());
+      }
+    }
+
+    if (userAttributes == null) {
+      userAttributes = fetchUserInfo(userInfoUri, accessToken);
+    }
     if (userAttributes == null || userAttributes.isEmpty()) {
       return null;
     }
 
     OAuth2AccessToken oAuth2AccessToken =
-        new OAuth2AccessToken(OAuth2AccessToken.TokenType.BEARER, accessToken, Instant.now(), null);
+        new OAuth2AccessToken(OAuth2AccessToken.TokenType.BEARER, accessToken, issuedAt, expiresAt);
 
     ExternalOAuth2UserRequest userRequest =
         new ExternalOAuth2UserRequest(clientRegistration, oAuth2AccessToken);
