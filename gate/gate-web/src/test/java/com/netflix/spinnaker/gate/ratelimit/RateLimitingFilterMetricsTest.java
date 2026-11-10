@@ -56,13 +56,13 @@ class RateLimitingFilterMetricsTest {
     when(rateLimiter.incrementAndGetRate(any())).thenReturn(throttledRate());
 
     RateLimiterConfiguration config = new RateLimiterConfiguration();
-    config.setLearning(false);
     filter =
         new RateLimitingFilter(
             rateLimiter,
             new MicrometerRegistry(meters),
-            new StaticRateLimitPrincipalProvider(config),
-            List.of(identityExtractor));
+            (name, sourceApp) -> new RateLimitPrincipal(name, 10, 1, false),
+            new DefaultRateLimitPrincipalResolver(List.of(identityExtractor)),
+            new RateLimitRuleMatcher(config.getRules(), config.getExcludePathPatterns()));
   }
 
   @AfterEach
