@@ -36,6 +36,7 @@ import com.netflix.spinnaker.orca.api.pipeline.models.ExecutionStatus.SUCCEEDED
 import com.netflix.spinnaker.orca.api.pipeline.models.ExecutionStatus.TERMINAL
 import com.netflix.spinnaker.orca.api.pipeline.models.ExecutionType.PIPELINE
 import com.netflix.spinnaker.orca.api.pipeline.models.StageExecution
+import com.netflix.spinnaker.orca.api.pipeline.models.TaskExecution
 import com.netflix.spinnaker.orca.api.test.pipeline
 import com.netflix.spinnaker.orca.api.test.stage
 import com.netflix.spinnaker.orca.api.test.task
@@ -189,6 +190,48 @@ object CompleteStageHandlerTest : SubjectSpek<CompleteStageHandler>({
   fun resetMocks() = reset(queue, repository, publisher, registry)
 
   describe("completing top level stages") {
+    given("a continued failure leaves dependent tasks unstarted") {
+      val pipeline = pipeline {
+        stage {
+          refId = "1"
+          type = multiTaskStage.type
+          multiTaskStage.plan(this)
+          tasks.first().status = FAILED_CONTINUE
+          context["continuePipeline"] = true
+          status = RUNNING
+        }
+        stage {
+          refId = "2"
+          requisiteStageRefIds = setOf("1")
+          type = singleTaskStage.type
+        }
+      }
+      val message = CompleteStage(pipeline.stageByRef("1"))
+
+      beforeGroup {
+        whenever(repository.retrieve(PIPELINE, message.executionId)) doReturn pipeline
+      }
+
+      afterGroup(::resetMocks)
+
+      action("the handler receives a message") {
+        subject.handle(message)
+      }
+
+      it("completes the failed stage without running its remaining tasks") {
+        verify(repository).storeStage(
+          check {
+            assertThat(it.status).isEqualTo(FAILED_CONTINUE)
+            assertThat(it.tasks.drop(1).map(TaskExecution::getStatus)).containsOnly(NOT_STARTED)
+          }
+        )
+      }
+
+      it("continues to the downstream stage") {
+        verify(queue).push(StartStage(pipeline.stageByRef("2")))
+      }
+    }
+
     setOf(SUCCEEDED, FAILED_CONTINUE).forEach { taskStatus ->
       describe("when a stage's tasks complete with $taskStatus status") {
         and("it is already complete") {
