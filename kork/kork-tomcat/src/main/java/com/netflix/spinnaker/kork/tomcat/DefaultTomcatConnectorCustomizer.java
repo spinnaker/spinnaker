@@ -51,6 +51,7 @@ class DefaultTomcatConnectorCustomizer implements TomcatConnectorCustomizer {
   public void customize(Connector connector) {
     this.applySSLSettings(connector);
     this.applyRelaxedURIProperties(connector);
+    this.applyLocaleSettings(connector);
   }
 
   Ssl copySslConfigurationWithClientAuth(TomcatServletWebServerFactory tomcat) {
@@ -80,6 +81,13 @@ class DefaultTomcatConnectorCustomizer implements TomcatConnectorCustomizer {
       sslHostConfig.setProtocols(String.join(",", tomcatConfigurationProperties.getTlsVersions()));
       sslHostConfig.setCertificateRevocationListFile(
           sslExtensionConfigurationProperties.getCrlFile());
+    }
+  }
+
+  void applyLocaleSettings(Connector connector) {
+    Integer maxLocaleCount = tomcatConfigurationProperties.getMaxLocaleCount();
+    if (maxLocaleCount != null) {
+      connector.setMaxLocaleCount(maxLocaleCount);
     }
   }
 
