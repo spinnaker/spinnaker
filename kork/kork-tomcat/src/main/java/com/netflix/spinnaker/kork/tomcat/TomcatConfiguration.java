@@ -83,6 +83,8 @@ class TomcatConfiguration {
           httpConnector.setPort(tomcatConfigurationProperties.getLegacyServerPort());
 
           applyCompressionSettings(httpConnector, tomcat);
+          // Additional connectors do not receive Spring Boot's connector customizers.
+          defaultTomcatConnectorCustomizer.applyLocaleSettings(httpConnector);
           tomcat.addAdditionalConnectors(httpConnector);
         }
 
