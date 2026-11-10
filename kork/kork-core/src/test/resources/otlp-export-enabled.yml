@@ -1,0 +1,5 @@
+management:
+  otlp:
+    metrics:
+      export:
+        enabled: true

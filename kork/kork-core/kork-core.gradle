@@ -24,7 +24,12 @@ dependencies {
   implementation "com.netflix.spectator:spectator-ext-jvm"
   implementation "com.netflix.spectator:spectator-reg-micrometer"
 
+  runtimeOnly "io.micrometer:micrometer-registry-otlp"
+  runtimeOnly "org.springframework.boot:spring-boot-opentelemetry"
+
   testImplementation project(":kork-test")
+  testImplementation "io.micrometer:micrometer-registry-otlp"
+  testImplementation "io.opentelemetry:opentelemetry-api"
   testImplementation "org.springframework.boot:spring-boot-starter-test"
   // Provides the Jackson 2 ObjectMapper auto-configuration for @AutoConfigureJson slices.
   testImplementation "org.springframework.boot:spring-boot-jackson2"
