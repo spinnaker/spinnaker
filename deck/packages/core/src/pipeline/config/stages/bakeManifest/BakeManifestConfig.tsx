@@ -35,6 +35,7 @@ export function BakeManifestConfig({ application, pipeline, stage, updateStage }
       onChange={updateStage}
       pipeline={pipeline}
       stage={stageWithDefaults}
+      liveStage={stage}
       validate={validateBakeManifestStage}
       render={(props) => <BakeManifestStageForm {...props} />}
     />
