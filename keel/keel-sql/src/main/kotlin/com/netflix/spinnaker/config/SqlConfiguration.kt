@@ -29,6 +29,7 @@ import com.netflix.spinnaker.keel.sql.SqlWorkQueueRepository
 import com.netflix.spinnaker.kork.sql.config.DefaultSqlConfiguration
 import com.netflix.spinnaker.kork.sql.config.SqlProperties
 import com.netflix.spinnaker.kork.sql.config.SqlRetryProperties
+import io.micrometer.core.instrument.MeterRegistry
 import org.jooq.DSLContext
 import org.jooq.impl.DefaultConfiguration
 import org.springframework.beans.factory.annotation.Autowired
@@ -219,8 +220,8 @@ class SqlConfiguration
   fun environmentLeaseRepository(
     jooq: DSLContext,
     clock: Clock,
-    registry: Registry
-  ) = SqlEnvironmentLeaseRepository(jooq, clock, registry, environmentExclusionConfig.leaseDuration)
+    meterRegistry: MeterRegistry
+  ) = SqlEnvironmentLeaseRepository(jooq, clock, meterRegistry, environmentExclusionConfig.leaseDuration)
 
   @Bean
   fun dismissibleNotificationRepository(

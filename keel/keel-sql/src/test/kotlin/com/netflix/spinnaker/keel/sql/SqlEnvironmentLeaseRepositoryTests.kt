@@ -1,6 +1,5 @@
 package com.netflix.spinnaker.keel.sql
 
-import com.netflix.spectator.micrometer.MicrometerRegistry
 import com.netflix.spinnaker.keel.artifacts.DockerArtifactSupplier
 import com.netflix.spinnaker.keel.jackson.registerKeelApiModule
 import com.netflix.spinnaker.keel.persistence.EnvironmentLeaseRepositoryTests
@@ -18,6 +17,7 @@ import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import strikt.api.expectCatching
 import strikt.api.expectThat
+import strikt.assertions.isEmpty
 import strikt.assertions.isEqualTo
 import strikt.assertions.isFailure
 import java.time.Duration
@@ -46,7 +46,7 @@ internal class SqlEnvironmentLeaseRepositoryTests :
     SqlEnvironmentLeaseRepository(
       jooq = jooq,
       clock = clock,
-      spectator = MicrometerRegistry(meters),
+      meterRegistry = meters,
       leaseDuration = leaseDuration
     )
 
@@ -73,6 +73,32 @@ internal class SqlEnvironmentLeaseRepositoryTests :
 
     expectThat(leaseTimerCount("granted")).isEqualTo(1L)
     expectThat(leaseTimerCount("denied")).isEqualTo(1L)
+    expectThat(meters.find("lease.env.duration").counters()).isEmpty()
+  }
+
+  @Test
+  fun `counts granted and denied lease attempts`() {
+    val environment = deliveryConfig.environments.first { it.name == "test" }
+
+    subject.tryAcquireLease(deliveryConfig, environment, "test-action")
+    expectCatching { subject.tryAcquireLease(deliveryConfig, environment, "test-action") }
+      .isFailure()
+
+    expectThat(leaseCount("granted", "free", environment.name)).isEqualTo(1.0)
+    expectThat(leaseCount("denied", "active", environment.name)).isEqualTo(1.0)
+  }
+
+  private fun leaseCount(outcome: String, status: String, environment: String): Double {
+    val expected = Tags.of(
+      "outcome", outcome,
+      "status", status,
+      "action", "test-action",
+      "application", deliveryConfig.application,
+      "environment", environment
+    )
+    return meters.find("lease.env.count").counters()
+      .single { Tags.of(it.id.tags) == expected }
+      .count()
   }
 
   private fun leaseTimerCount(outcome: String): Long {

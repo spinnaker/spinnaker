@@ -42,7 +42,6 @@ dependencies {
   runtimeOnly("com.mysql:mysql-connector-j")
 
   testImplementation("io.spinnaker.kork:kork-sql-test")
-  testImplementation("com.netflix.spectator:spectator-reg-micrometer")
   testImplementation("io.micrometer:micrometer-core")
   testImplementation("io.strikt:strikt-core")
   testImplementation(project(":keel-spring-test-support"))

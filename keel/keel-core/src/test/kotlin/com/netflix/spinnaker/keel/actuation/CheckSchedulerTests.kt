@@ -1,6 +1,5 @@
 package com.netflix.spinnaker.keel.actuation
 
-import com.netflix.spectator.micrometer.MicrometerRegistry
 import com.netflix.spinnaker.config.ArtifactCheckConfig
 import com.netflix.spinnaker.config.EnvironmentCheckConfig
 import com.netflix.spinnaker.config.EnvironmentDeletionConfig
@@ -35,6 +34,7 @@ import io.mockk.runs
 import org.springframework.context.ApplicationEventPublisher
 import strikt.api.expectThat
 import strikt.assertions.containsExactly
+import strikt.assertions.isEmpty
 import strikt.assertions.isGreaterThanOrEqualTo
 import org.springframework.core.env.Environment as SpringEnvironment
 import java.time.Duration
@@ -48,7 +48,6 @@ internal class CheckSchedulerTests : JUnit5Minutests {
   private val artifactHandler = mockk<ArtifactHandler>(relaxUnitFun = true)
   private val publisher = mockk<ApplicationEventPublisher>(relaxUnitFun = true)
   private val meters = SimpleMeterRegistry()
-  private val registry = MicrometerRegistry(meters)
   private val checkMinAge = Duration.ofMinutes(5)
   private val resourceCheckConfig = ResourceCheckConfig().also {
     it.minAgeDuration = checkMinAge
@@ -157,7 +156,7 @@ internal class CheckSchedulerTests : JUnit5Minutests {
         verificationRunner = verificationRunner,
         clock = MutableClock(),
         springEnv = springEnv,
-        spectator = registry
+        meterRegistry = meters
       )
     }
 
@@ -215,6 +214,7 @@ internal class CheckSchedulerTests : JUnit5Minutests {
             timers.forEach { expectThat(it.id.tags.map { tag -> tag.key }).containsExactly("type") }
             val resourceTimer = timers.single { it.id.getTag("type") == "resource" }
             expectThat(resourceTimer.count()).isGreaterThanOrEqualTo(1L)
+            expectThat(meters.find("keel.scheduled.method.duration").counters()).isEmpty()
           }
         }
 
