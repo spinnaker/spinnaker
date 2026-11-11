@@ -26,11 +26,13 @@ import java.sql.SQLTransientConnectionException
 import java.sql.SQLTransientException
 import java.time.Duration
 import org.jooq.DSLContext
+import org.jooq.SQLDialect
 import org.jooq.impl.DSL
 import org.jooq.impl.DSL.field
 import org.jooq.impl.DSL.table
 
 internal val tasksTable = table("tasks")
+internal val clouddriverInstancesTable = table("clouddriver_instances")
 internal val taskStatesTable = table("task_states")
 internal val taskResultsTable = table("task_results")
 internal val taskOutputsTable = table("task_outputs")
@@ -39,6 +41,23 @@ internal val tasksFields = listOf("id", "request_id", "owner_id", "created_at").
 internal val taskStatesFields = listOf("id", "task_id", "created_at", "state", "phase", "status").map { field(it) }
 internal val taskResultsFields = listOf("id", "task_id", "body").map { field(it) }
 internal val taskOutputsFields = listOf("id", "task_id", "created_at", "manifest", "phase", "std_out", "std_error").map { field(it) }
+
+/**
+ * The database's own clock, in epoch millis. Lease expiry is judged against this, not the
+ * pods' clocks: the whole point of the lease is to survive a pod whose clock is wrong, and
+ * on MySQL and Postgres alike `now` comes from the writer the cluster agrees on.
+ */
+internal fun dbNowMillis(ctx: DSLContext): Long =
+  when (ctx.dialect().family()) {
+    SQLDialect.MYSQL ->
+      ctx.select(field("CAST(UNIX_TIMESTAMP(NOW(3)) * 1000 AS SIGNED)"))
+        .fetchSingle(0, Long::class.javaObjectType)!!
+    else ->
+      // Postgres: extract(epoch from clock_timestamp()) * 1000. clock_timestamp() (not now())
+      // so the value advances within a transaction that already ran for a while.
+      ctx.select(field("(extract(epoch from clock_timestamp()) * 1000)::bigint"))
+        .fetchSingle(0, Long::class.javaObjectType)!!
+  }
 
 /**
  * Retry behaviour for clouddriver-sql repositories, configured by `sql.retries` ([SqlRetryProperties]) like

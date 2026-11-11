@@ -1,0 +1,95 @@
+# Per-instance execution leases for the SQL task repository
+# (spinnaker/spinnaker#8109, plan: plans/2026/clouddriver-task-repository.md section 5a).
+#
+# Each clouddriver pod registers one row in `clouddriver_instances` and heartbeats it
+# (default TTL 2 min, every 20 s) — about 2 writes/s fleet-wide regardless of how many
+# tasks run, versus ~200 writes/s if every task heartbeated. Tasks record which
+# instance (and which registration epoch) owns them; a reaper declares instances whose
+# lease expired DEAD — the conditional UPDATE lets exactly one pod win — and then
+# resolves that instance's still-STARTED tasks: FAILED_RETRYABLE when a saga can be
+# resumed, FAILED otherwise (a non-idempotent cloud operation is never re-run blindly).
+#
+# Everything here is instant on large tables: the new table starts empty, and the two
+# nullable ADD COLUMNs on `tasks` are metadata-only on MySQL 8 and Postgres 11+.
+databaseChangeLog:
+  - changeSet:
+      id: clouddriver-instances-table
+      author: NUAAwqy
+      changes:
+        - createTable:
+            tableName: clouddriver_instances
+            columns:
+              - column:
+                  name: instance_id
+                  type: varchar(255)
+                  constraints:
+                    primaryKey: true
+                    nullable: false
+              # Bumped on every (re-)registration; in-flight tasks remember the epoch they
+              # were created under, so writes from a superseded registration are rejected.
+              - column:
+                  name: epoch
+                  type: bigint
+                  constraints:
+                    nullable: false
+              # ACTIVE (heartbeating), DRAINING (shutting down gracefully), DEAD (reaped).
+              - column:
+                  name: state
+                  type: varchar(20)
+                  constraints:
+                    nullable: false
+              - column:
+                  name: lease_expires_at
+                  type: bigint
+                  constraints:
+                    nullable: false
+              - column:
+                  name: updated_at
+                  type: bigint
+                  constraints:
+                    nullable: false
+      rollback:
+        - dropTable:
+            tableName: clouddriver_instances
+
+  - changeSet:
+      id: task-lease-columns
+      author: NUAAwqy
+      changes:
+        - addColumn:
+            tableName: tasks
+            columns:
+              # Instance (and registration epoch) that owns the task; NULL for tasks
+              # created before this change, which are never fenced.
+              - column:
+                  name: lease_owner
+                  type: varchar(255)
+              - column:
+                  name: lease_epoch
+                  type: bigint
+      rollback:
+        - dropColumn:
+            tableName: tasks
+            columnName: lease_epoch
+        - dropColumn:
+            tableName: tasks
+            columnName: lease_owner
+
+  # The reaper looks for expired leases; without this index it would scan the small
+  # instances table on every pass, which is cheap but pointless.
+  - changeSet:
+      id: clouddriver-instances-lease-expiry-index
+      author: NUAAwqy
+      changes:
+        - createIndex:
+            indexName: clouddriver_instances_lease_expires_at_idx
+            tableName: clouddriver_instances
+            columns:
+              - column:
+                  name: state
+              - column:
+                  name: lease_expires_at
+      rollback:
+        - dropIndex:
+            indexName: clouddriver_instances_lease_expires_at_idx
+            tableName: clouddriver_instances
