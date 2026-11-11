@@ -47,7 +47,6 @@ dependencies {
   testImplementation(project(":orca-webhook"))
   testImplementation("org.apache.groovy:groovy")
   testImplementation("org.assertj:assertj-core")
-  testImplementation("com.netflix.spectator:spectator-reg-micrometer")
   testImplementation("io.micrometer:micrometer-core")
   testImplementation("com.squareup.retrofit2:converter-jackson")
 }

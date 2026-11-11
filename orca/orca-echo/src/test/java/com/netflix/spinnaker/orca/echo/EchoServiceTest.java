@@ -39,6 +39,7 @@ import com.netflix.spinnaker.orca.echo.config.EchoConfiguration;
 import com.netflix.spinnaker.orca.front50.Front50Service;
 import com.netflix.spinnaker.orca.pipeline.persistence.InMemoryExecutionRepository;
 import com.netflix.spinnaker.orca.pipeline.util.ContextParameterProcessor;
+import io.micrometer.core.instrument.simple.SimpleMeterRegistry;
 import java.util.Collections;
 import java.util.Map;
 import okhttp3.OkHttpClient;
@@ -67,6 +68,7 @@ import org.springframework.test.context.bean.override.mockito.MockitoBean;
       ObjectMapper.class,
       FiatStatus.class,
       NoopRegistry.class,
+      SimpleMeterRegistry.class,
       DynamicConfigService.NoopDynamicConfig.class,
       FiatClientConfigurationProperties.class,
       InMemoryExecutionRepository.class,

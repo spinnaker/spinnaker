@@ -2,7 +2,6 @@ package com.netflix.spinnaker.orca.q.sql.pending
 
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.fasterxml.jackson.module.kotlin.KotlinModule
-import com.netflix.spectator.micrometer.MicrometerRegistry
 import com.netflix.spinnaker.kork.sql.config.RetryProperties
 import com.netflix.spinnaker.kork.sql.test.SqlTestUtil
 import com.netflix.spinnaker.orca.api.test.pipeline
@@ -42,7 +41,6 @@ internal object SqlPendingExecutionServiceTest : SubjectSpek<SqlPendingExecution
   val repository = mock<ExecutionRepository>()
   val clock = fixedClock()
   val meters = SimpleMeterRegistry()
-  val registry = MicrometerRegistry(meters)
   val retryProperties = RetryProperties()
 
   val maxDepth = 4
@@ -60,7 +58,7 @@ internal object SqlPendingExecutionServiceTest : SubjectSpek<SqlPendingExecution
       repository,
       mapper,
       clock,
-      registry,
+      meters,
       retryProperties,
       maxDepth
     )
@@ -153,6 +151,11 @@ internal object SqlPendingExecutionServiceTest : SubjectSpek<SqlPendingExecution
         .isEqualTo(poppedOldestBefore + 1)
       Assertions.assertThat(timer("queue.pending.pop", "purge", "true").count())
         .isEqualTo(poppedNewestBefore + 1)
+    }
+
+    it("records plain timers without percentile counters") {
+      Assertions.assertThat(meters.find("queue.pending.enqueue").counters()).isEmpty()
+      Assertions.assertThat(meters.find("queue.pending.pop").counters()).isEmpty()
     }
   }
 

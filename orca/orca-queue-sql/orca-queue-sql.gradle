@@ -17,7 +17,6 @@ dependencies {
   implementation("org.jooq:jooq")
 
   testImplementation("io.spinnaker.kork:kork-sql-test")
-  testImplementation("com.netflix.spectator:spectator-reg-micrometer")
   testImplementation("io.micrometer:micrometer-core")
   testImplementation(project(":orca-redis"))
   testImplementation(project(":orca-test-redis"))

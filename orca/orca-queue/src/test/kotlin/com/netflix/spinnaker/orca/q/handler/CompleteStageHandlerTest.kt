@@ -16,8 +16,6 @@
 
 package com.netflix.spinnaker.orca.q.handler
 
-import com.netflix.spectator.api.Id
-import com.netflix.spectator.micrometer.MicrometerRegistry
 import io.micrometer.core.instrument.simple.SimpleMeterRegistry
 import com.netflix.spinnaker.orca.DefaultStageResolver
 import com.netflix.spinnaker.orca.NoOpTaskImplementationResolver
@@ -74,7 +72,6 @@ import com.netflix.spinnaker.spek.but
 import com.netflix.spinnaker.time.fixedClock
 import org.mockito.kotlin.any
 import org.mockito.kotlin.argumentCaptor
-import org.mockito.kotlin.atLeastOnce
 import org.mockito.kotlin.check
 import org.mockito.kotlin.doReturn
 import org.mockito.kotlin.doThrow
@@ -82,7 +79,6 @@ import org.mockito.kotlin.isA
 import org.mockito.kotlin.mock
 import org.mockito.kotlin.never
 import org.mockito.kotlin.reset
-import org.mockito.kotlin.spy
 import org.mockito.kotlin.times
 import org.mockito.kotlin.verify
 import org.mockito.kotlin.verifyNoMoreInteractions
@@ -109,7 +105,6 @@ object CompleteStageHandlerTest : SubjectSpek<CompleteStageHandler>({
   val exceptionHandler: ExceptionHandler = DefaultExceptionHandler()
   val clock = fixedClock()
   val meters = SimpleMeterRegistry()
-  val registry = spy(MicrometerRegistry(meters))
   val contextParameterProcessor: ContextParameterProcessor = mock()
 
   val emptyStage = object : StageDefinitionBuilder {
@@ -164,7 +159,7 @@ object CompleteStageHandlerTest : SubjectSpek<CompleteStageHandler>({
       clock,
       listOf(exceptionHandler),
       contextParameterProcessor,
-      registry,
+      meters,
       DefaultStageDefinitionBuilderFactory(
         DefaultStageResolver(
           StageDefinitionBuildersProvider(
@@ -187,7 +182,10 @@ object CompleteStageHandlerTest : SubjectSpek<CompleteStageHandler>({
     )
   }
 
-  fun resetMocks() = reset(queue, repository, publisher, registry)
+  fun resetMocks() {
+    reset(queue, repository, publisher)
+    meters.clear()
+  }
 
   describe("completing top level stages") {
     given("a continued failure leaves dependent tasks unstarted") {
@@ -585,14 +583,8 @@ object CompleteStageHandlerTest : SubjectSpek<CompleteStageHandler>({
             subject.handle(message)
           }
 
-          it("tracks result with stage tags") {
-            argumentCaptor<Id>().let {
-              verify(registry, atLeastOnce()).timer(it.capture())
-              val metricId = it.firstValue
-              assertThat(metricId.name()).isEqualTo("stage.invocations.duration")
-              assertThat(metricId.tags().any{ t -> t.key() == "tag1" && t.value() == "value1" }).isTrue
-              assertThat(metricId.tags().any{ t -> t.key() == "tag2" && t.value() == "value2" }).isTrue
-            }
+          it("records the stage duration as a plain timer") {
+            assertThat(meters.find("stage.invocations.duration").counters()).isEmpty()
           }
 
           it("records the stage duration with exactly the stage tags") {

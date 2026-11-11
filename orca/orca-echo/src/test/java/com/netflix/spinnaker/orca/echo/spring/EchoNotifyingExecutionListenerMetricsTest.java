@@ -22,7 +22,6 @@ import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.netflix.spectator.micrometer.MicrometerRegistry;
 import com.netflix.spinnaker.orca.api.pipeline.models.ExecutionStatus;
 import com.netflix.spinnaker.orca.echo.EchoService;
 import com.netflix.spinnaker.orca.front50.Front50Service;
@@ -46,7 +45,7 @@ class EchoNotifyingExecutionListenerMetricsTest {
           mock(Front50Service.class),
           new ObjectMapper(),
           new ContextParameterProcessor(),
-          new MicrometerRegistry(meters));
+          meters);
   private final PipelineExecutionImpl execution =
       PipelineExecutionImpl.newOrchestration("test-app");
 
@@ -78,15 +77,24 @@ class EchoNotifyingExecutionListenerMetricsTest {
     assertThat(meters.find("echo.events.duration").timers()).isEmpty();
   }
 
-  /**
-   * The counters come from Spectator's {@code IntervalCounter}, which tags them {@code
-   * statistic=count}.
-   */
+  @Test
+  void eventMetricsArePlainMetersWithoutAgeGaugesOrPercentileCounters() {
+    when(echoService.recordEvent(anyMap()))
+        .thenAnswer(invocation -> Calls.response((Void) null))
+        .thenThrow(new IllegalStateException("boom"));
+
+    listener.beforeExecution(null, execution);
+    listener.afterExecution(null, execution, ExecutionStatus.SUCCEEDED, true);
+
+    assertThat(meters.find("echo.events.count").gauges()).isEmpty();
+    assertThat(meters.find("echo.events.error").gauges()).isEmpty();
+    assertThat(meters.find("echo.events.duration").counters()).isEmpty();
+  }
+
   private Counter eventCounter(String name, String phase) {
     Counter counter = meters.find(name).tags("execution", phase).counter();
     assertThat(counter).isNotNull();
-    assertThat(Tags.of(counter.getId().getTags()))
-        .isEqualTo(Tags.of("execution", phase, "statistic", "count"));
+    assertThat(Tags.of(counter.getId().getTags())).isEqualTo(Tags.of("execution", phase));
     return counter;
   }
 }
