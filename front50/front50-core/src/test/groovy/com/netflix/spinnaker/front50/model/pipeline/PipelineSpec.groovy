@@ -80,6 +80,18 @@ class PipelineSpec extends Specification {
     ]
   }
 
+  def 'getSchema defaults to "1" when the schema is missing or empty'() {
+    expect:
+    objectMapper.readValue(pipelineJSON, Pipeline.class).getSchema() == expected
+
+    where:
+    pipelineJSON                                                        || expected
+    '{"id":"1","name":"sky","application":"almond"}'                    || "1"
+    '{"id":"1","name":"sky","application":"almond","schema":null}'      || "1"
+    '{"id":"1","name":"sky","application":"almond","schema":""}'        || "1"
+    '{"id":"1","name":"sky","application":"almond","schema":"v2"}'      || "v2"
+  }
+
   def 'should grab triggers after deserializing JSON into Pipeline'() {
     given:
     String pipelineJSON = '{"triggers": [{"type": "cron", "id": "a"}, {"type": "cron", "id": "b"}]}'
