@@ -19,10 +19,12 @@ export type IContextualValidator = (
 export interface IFormikStageConfigProps {
   application: Application;
   stage: IStage;
+  // The stage being edited, for configs whose `stage` is a copy with defaults applied
+  liveStage?: IStage;
   pipeline: IPipeline;
   validate?: IContextualValidator;
   render: (props: IFormikStageConfigInjectedProps) => React.ReactNode;
-  onChange?: (values: IStage) => void;
+  onChange?: (changes: Partial<IStage>) => void;
 }
 
 export type IStageValidator = (values: IStage) => void | object | Promise<FormikErrors<IStage>>;
@@ -32,18 +34,43 @@ const decorate = (validate: IContextualValidator, props: IFormikStageConfigProps
   return (values: IStage) => validate(values, { application, pipeline });
 };
 
-// Applies only the fields the form changed, so stage edits made outside the form are kept
-const applyChangedValues = (stage: IStage, values: IStage, prevValues: IStage): IStage => {
+// Reports only the fields the form changed. Stage edits made outside the form are kept, and
+// a stage copy that went stale (e.g. one with defaults applied) can't overwrite newer values.
+const getChangedValues = (values: IStage, prevValues: IStage): Partial<IStage> => {
   const changes: Partial<IStage> = {};
   new Set([...Object.keys(prevValues), ...Object.keys(values)]).forEach((key) => {
     if (values[key] !== prevValues[key]) {
       changes[key] = values[key];
     }
   });
-  return { ...stage, ...changes };
+  return changes;
+};
+
+// Defaults the live stage doesn't have yet, so they are saved along with the first edit
+const getMissingDefaults = (stage: IStage, liveStage: IStage): Partial<IStage> => {
+  const defaults: Partial<IStage> = {};
+  Object.keys(stage).forEach((key) => {
+    if (stage[key] !== undefined && liveStage[key] === undefined) {
+      defaults[key] = stage[key];
+    }
+  });
+  return defaults;
 };
 
 export class FormikStageConfig extends React.Component<IFormikStageConfigProps> {
+  private defaultsSaved = false;
+
+  private onValuesChanged = (values: IStage, prevValues: IStage) => {
+    const { onChange, stage, liveStage } = this.props;
+    const changes = getChangedValues(values, prevValues);
+    if (!this.defaultsSaved) {
+      this.defaultsSaved = true;
+      const defaults = liveStage && liveStage !== stage ? getMissingDefaults(stage, liveStage) : {};
+      return onChange({ ...defaults, ...changes });
+    }
+    onChange(changes);
+  };
+
   public render() {
     const { render, onChange, stage, validate, application, pipeline } = this.props;
     return (
@@ -53,13 +80,7 @@ export class FormikStageConfig extends React.Component<IFormikStageConfigProps> 
         onSubmit={() => {}}
         render={(formik) => (
           <LayoutProvider value={ResponsiveFieldLayout}>
-            <WatchValue
-              onChange={
-                onChange &&
-                ((values: IStage, prevValues: IStage) => onChange(applyChangedValues(stage, values, prevValues)))
-              }
-              value={formik.values}
-            />
+            <WatchValue onChange={onChange && this.onValuesChanged} value={formik.values} />
             {render({ application, pipeline, formik })}
           </LayoutProvider>
         )}
