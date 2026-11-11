@@ -34,6 +34,9 @@ import org.springframework.stereotype.Component;
 @ConditionalOnProperty("rest.enabled")
 public class RestEventService {
 
+  // Fallback base backoff, used when an endpoint's retryBackoff is explicitly null
+  private static final Duration DEFAULT_RETRY_BACKOFF = Duration.ofMillis(200);
+
   private final RetrySupport retrySupport;
   private final CircuitBreakerRegistry circuitBreakerRegistry;
 
@@ -55,13 +58,14 @@ public class RestEventService {
    * @param service The REST service to which the event should be sent.
    */
   public void sendEvent(Map<String, Object> event, RestUrls.Service service) {
+    Duration retryBackoff = service.getConfig().getRetryBackoff();
     retrySupport.retry(
         () ->
             Retrofit2SyncCall.execute(
                 service.getClient().recordEvent(service.getConfig().getUrl(), event)),
         service.getConfig().getRetryCount(),
-        Duration.ofMillis(200),
-        false);
+        retryBackoff != null ? retryBackoff : DEFAULT_RETRY_BACKOFF,
+        Boolean.TRUE.equals(service.getConfig().getExponentialBackoff()));
   }
 
   /**
