@@ -108,12 +108,15 @@ public class HelmOciDockerArtifactCredentials
       try {
         return getInputStream(artifact, outputFile);
       } finally {
-        if (!HelmOciFileSystem.canRetainClone()) {
-          log.debug(
-              "Deleting helm chart for {} (version {})", helmArtifactName, helmArtifactVersion);
-          FileUtils.deleteDirectory(outputFile.getParent().toFile());
+        try {
+          if (!HelmOciFileSystem.canRetainClone()) {
+            log.debug(
+                "Deleting helm chart for {} (version {})", helmArtifactName, helmArtifactVersion);
+            FileUtils.deleteDirectory(outputFile.getParent().toFile());
+          }
+        } finally {
+          HelmOciFileSystem.unlock(helmArtifactName, helmArtifactVersion);
         }
-        HelmOciFileSystem.unlock(helmArtifactName, helmArtifactVersion);
       }
 
     } else {

@@ -27,7 +27,9 @@ import com.netflix.spinnaker.kork.retrofit.ErrorHandlingExecutorCallAdapterFacto
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
+import java.io.UncheckedIOException;
 import java.nio.file.Files;
+import java.nio.file.NoSuchFileException;
 import java.nio.file.Path;
 import java.util.List;
 import okhttp3.OkHttpClient;
@@ -253,6 +255,25 @@ public class HelmOciDockerArtifactCredentialsTest {
 
     // Verify file system operations
     verify(helmOciFileSystem).tryTimedLock(artifactName, version);
+    verify(helmOciFileSystem).unlock(artifactName, version);
+  }
+
+  @Test
+  void testDownloadReleasesLockWhenRetentionCheckFails() throws IOException, InterruptedException {
+    String artifactName = "test-repo";
+    String version = "1.0.0";
+    Artifact artifact = Artifact.builder().name(artifactName).version(version).build();
+
+    Path stagingPath = tempDir.resolve("test-repo-hash");
+    Files.createDirectories(stagingPath);
+    Files.createFile(stagingPath.resolve("1.0.0.tar.gz"));
+
+    when(helmOciFileSystem.getLocalClonePath(artifactName, version)).thenReturn(stagingPath);
+    when(helmOciFileSystem.tryTimedLock(artifactName, version)).thenReturn(true);
+    when(helmOciFileSystem.canRetainClone())
+        .thenThrow(new UncheckedIOException(new NoSuchFileException("vanished-chart")));
+
+    assertThrows(UncheckedIOException.class, () -> credentials.download(artifact));
     verify(helmOciFileSystem).unlock(artifactName, version);
   }
 
