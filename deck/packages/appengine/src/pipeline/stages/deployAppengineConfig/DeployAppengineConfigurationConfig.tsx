@@ -20,6 +20,7 @@ export function DeployAppengineConfigurationConfig({ application, pipeline, stag
       onChange={updateStage}
       pipeline={pipeline}
       stage={stageWithDefaults}
+      liveStage={stage}
       validate={validateDeployAppengineConfigurationStage}
       render={(props) => <DeployAppengineConfigForm {...props} />}
     />
