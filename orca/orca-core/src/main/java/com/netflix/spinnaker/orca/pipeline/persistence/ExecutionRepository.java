@@ -77,7 +77,7 @@ public interface ExecutionRepository {
    * to perform both atomically.
    *
    * <p>TODO: make the default implementation atomic for repositories that don't override it (e.g.
-   * Redis). There is no tracking issue for this yet.
+   * Redis). Tracked in https://github.com/spinnaker/spinnaker/issues/8207.
    *
    * @return {@code true} if the status was stored, {@code false} if the stored status was not
    *     {@code expectedStatus} and nothing was changed

@@ -71,7 +71,18 @@ jobs:
           path: ./deck
           format: cyclonedx-json
           output-file: deck-app-sbom.cdx.json
-          artifact-name: sbom-deck
+          # Upload below instead: anchore's own upload names the file after the artifact (`sbom-deck`),
+          # but the release workflow expects `deck-app-sbom.cdx.json` like every other service.
+          upload-artifact: false
+
+      - name: Upload SBOM artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: sbom-deck
+          path: deck-app-sbom.cdx.json
+          if-no-files-found: error
+          # Re-running the job (e.g. publishing retries) must not fail on the existing artifact
+          overwrite: true
 
       - name: Summarize SBOM
         shell: bash
@@ -90,7 +101,8 @@ jobs:
           publish: ${{ github.event_name != 'pull_request' }}
           publish-containers: ${{ github.event_name == 'push' || inputs.publish-containers == true }}
           publish-debs: ${{ inputs.publish-debs == true }}
-          publish-npm: ${{ github.event_name == 'push' || inputs.publish-npm == true }}
+          # npm packages are only published for full releases, which always pass an explicit version
+          publish-npm: ${{ inputs.publish-npm == true && inputs.version-override != '' }}
           version-override: ${{ inputs.version-override }}
           integration-test: false
           github-token: ${{ secrets.GITHUB_TOKEN }}

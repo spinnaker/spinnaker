@@ -34,7 +34,7 @@ dependencies {
 
   implementation "commons-io:commons-io"
   implementation "org.apache.groovy:groovy-templates"
-  implementation "org.springframework.session:spring-session-data-redis"
+  implementation "org.springframework.boot:spring-boot-starter-session-data-redis"
   implementation "de.huxhorn.sulky:de.huxhorn.sulky.ulid"
   implementation "org.apache.commons:commons-lang3"
 
@@ -55,6 +55,8 @@ dependencies {
   runtimeOnly "io.spinnaker.kork:kork-runtime"
   runtimeOnly "org.springframework.boot:spring-boot-properties-migrator"
 
+  testImplementation platform("org.springframework.ai:spring-ai-bom:1.1.8")
+  testImplementation "org.springframework.ai:spring-ai-starter-mcp-server-webmvc"
   testImplementation project(":gate-ldap") // TODO: Move system tests to own module
   testImplementation project(":gate-basic")
   testImplementation project(":gate-header")

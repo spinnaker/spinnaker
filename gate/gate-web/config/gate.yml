@@ -101,6 +101,11 @@ swagger:
     - .*managed.*
     - .*plugins.*
 
+# Admin-managed banners shown across Deck (stored in Redis). Reads need only a logged-in user;
+# changes require Fiat admin. With no banners defined nothing is displayed.
+global-banner:
+  enabled: true
+
 integrations:
   gremlin:
     enabled: false

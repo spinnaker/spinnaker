@@ -44,11 +44,18 @@ import dev.minutest.junit.JUnit5Minutests
 import dev.minutest.rootContext
 import org.assertj.core.api.Assertions.assertThat
 import org.assertj.core.api.Assertions.assertThatThrownBy
+import org.jooq.ConnectionProvider
 import org.jooq.DSLContext
+import org.jooq.impl.DSL
 import org.jooq.impl.DSL.field
 import org.junit.jupiter.api.Assumptions.assumeTrue
 import org.testcontainers.DockerClientFactory
 import java.lang.System.currentTimeMillis
+import java.sql.Connection
+import java.util.concurrent.CountDownLatch
+import java.util.concurrent.Executors
+import java.util.concurrent.TimeUnit.SECONDS
+import java.util.concurrent.TimeoutException
 import org.springframework.jdbc.datasource.lookup.AbstractRoutingDataSource
 import javax.sql.DataSource
 import io.reactivex.rxjava3.core.Observable
@@ -330,6 +337,54 @@ class SqlExecutionRepositoryTest : JUnit5Minutests {
 
         assertThat(sqlExecutionRepositoryNoCompression.retrieve(testType, pipelineExecution.id).status)
           .isEqualTo(SUCCEEDED)
+      }
+
+      test("waits for a concurrent writer and compares against the status it committed") {
+        val pipelineExecution = PipelineExecutionImpl(testType, "test-application").apply {
+          stage {}
+        }
+        sqlExecutionRepositoryNoCompression.store(pipelineExecution)
+        val staleCopy = sqlExecutionRepositoryNoCompression.retrieve(testType, pipelineExecution.id)
+        val statusField = field("status", String::class.java)
+        val idField = field("id", String::class.java)
+
+        val lockHeld = CountDownLatch(1)
+        val commit = CountDownLatch(1)
+        val executor = Executors.newFixedThreadPool(2)
+        try {
+          // another writer holds the row lock and moves the execution on
+          val writer = executor.submit {
+            database.context.transaction { config ->
+              val ctx = DSL.using(config)
+              ctx.select(statusField).from(testType.tableName)
+                .where(idField.eq(pipelineExecution.id)).forUpdate().fetch()
+              lockHeld.countDown()
+              commit.await(30, SECONDS)
+              ctx.update(testType.tableName).set(statusField, SUCCEEDED.toString())
+                .where(idField.eq(pipelineExecution.id)).execute()
+            }
+          }
+          assertThat(lockHeld.await(30, SECONDS)).isTrue()
+
+          staleCopy.updateStatus(RUNNING)
+          val conditionalUpdate = executor.submit<Boolean> {
+            sqlExecutionRepositoryNoCompression.updateStatusIfExpected(staleCopy, NOT_STARTED)
+          }
+
+          // the conditional update must wait for the lock instead of reading a stale status
+          assertThatThrownBy { conditionalUpdate.get(1, SECONDS) }.isInstanceOf(TimeoutException::class.java)
+
+          commit.countDown()
+          writer.get(30, SECONDS)
+          assertThat(conditionalUpdate.get(30, SECONDS)).isFalse()
+          assertThat(
+            database.context.select(statusField).from(testType.tableName)
+              .where(idField.eq(pipelineExecution.id)).fetchOne(statusField)
+          ).isEqualTo(SUCCEEDED.toString())
+        } finally {
+          commit.countDown()
+          executor.shutdownNow()
+        }
       }
 
       test("updates the execution when the stored status matches") {
@@ -681,6 +736,40 @@ class SqlExecutionRepositoryTest : JUnit5Minutests {
       }
 
     }
+
+    context("connections held by a write") {
+      test("cancel loads stages using the transaction connection") {
+        val pipeline = PipelineExecutionImpl(ExecutionType.PIPELINE, "app").apply {
+          status = RUNNING
+          stage { status = RUNNING }
+        }
+        sqlExecutionRepositoryNoCompression.store(pipeline)
+
+        assertThat(
+          connections.maxHeldDuring {
+            sqlExecutionRepositoryCountingConnections.cancel(ExecutionType.PIPELINE, pipeline.id)
+          }
+        ).isEqualTo(1)
+        assertThat(sqlExecutionRepositoryNoCompression.retrieve(ExecutionType.PIPELINE, pipeline.id).isCanceled)
+          .isTrue()
+      }
+
+      test("updateStatus holds one connection") {
+        val pipeline = PipelineExecutionImpl(ExecutionType.PIPELINE, "app").apply {
+          status = RUNNING
+          stage { status = RUNNING }
+        }
+        sqlExecutionRepositoryNoCompression.store(pipeline)
+
+        assertThat(
+          connections.maxHeldDuring {
+            sqlExecutionRepositoryCountingConnections.updateStatus(ExecutionType.PIPELINE, pipeline.id, SUCCEEDED)
+          }
+        ).isEqualTo(1)
+        assertThat(sqlExecutionRepositoryNoCompression.retrieve(ExecutionType.PIPELINE, pipeline.id).status)
+          .isEqualTo(SUCCEEDED)
+      }
+    }
   }
 
   private inner class Fixture {
@@ -801,6 +890,25 @@ class SqlExecutionRepositoryTest : JUnit5Minutests {
         mockDataSource
       )
 
+    val connections = ConnectionCounter(database.context.configuration().connectionProvider())
+
+    val sqlExecutionRepositoryCountingConnections =
+      SqlExecutionRepository(
+        "test",
+        DSL.using(database.context.configuration().derive(connections)),
+        orcaObjectMapper,
+        testRetryProprties,
+        10,
+        100,
+        "poolName",
+        "myReadPoolName",
+        null,
+        emptyList(),
+        executionCompressionPropertiesDisabled,
+        false,
+        mockDataSource
+      )
+
     fun addCustomDeserializerWithFeatureFlagEnabled() {
       TriggerDeserializer.customTriggerSuppliers.clear()
       TriggerDeserializer.customTriggerSuppliers.add(deserializerEnabled)
@@ -828,4 +936,26 @@ private fun PipelineExecution.stage(init: StageExecution.() -> Unit): StageExecu
   stages.add(stage)
   stage.init()
   return stage
+}
+
+/**
+ * Records the most connections jOOQ holds at once.
+ */
+private class ConnectionCounter(private val delegate: ConnectionProvider) : ConnectionProvider {
+  private var held = 0
+  private var maxHeld = 0
+
+  override fun acquire(): Connection? =
+    delegate.acquire().also { maxHeld = maxOf(maxHeld, ++held) }
+
+  override fun release(connection: Connection) {
+    held--
+    delegate.release(connection)
+  }
+
+  fun maxHeldDuring(block: () -> Unit): Int {
+    maxHeld = held
+    block()
+    return maxHeld
+  }
 }

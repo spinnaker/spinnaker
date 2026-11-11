@@ -700,8 +700,45 @@ object StartExecutionHandlerTest : SubjectSpek<StartExecutionHandler>({
         assertThat(thrownException).isInstanceOf(JedisConnectionException::class.java)
       }
 
-      it("restores execution status to NOT_STARTED") {
+      it("restores execution status to NOT_STARTED only if it is still RUNNING") {
         assertThat(pipeline.status).isEqualTo(NOT_STARTED)
+        verify(repository).updateStatusIfExpected(pipeline, RUNNING)
+        verify(repository, never()).updateStatus(any<PipelineExecution>())
+      }
+    }
+
+    given("the execution is canceled before the status is restored") {
+      val pipeline = pipeline {
+        stage {
+          type = singleTaskStage.type
+        }
+      }
+      val message = StartExecution(pipeline)
+
+      beforeGroup {
+        whenever(repository.retrieve(message.executionType, message.executionId)) doReturn pipeline
+        whenever(repository.updateStatusIfExpected(pipeline, RUNNING)) doReturn false
+        whenever(queue.push(isA<StartStage>())) doThrow JedisConnectionException("Read timed out")
+      }
+
+      afterGroup(::resetMocks)
+
+      var thrownException: Exception? = null
+
+      on("receiving a message") {
+        try {
+          subject.handle(message)
+        } catch (e: Exception) {
+          thrownException = e
+        }
+      }
+
+      it("still rethrows the exception") {
+        assertThat(thrownException).isInstanceOf(JedisConnectionException::class.java)
+      }
+
+      it("does not overwrite the stored execution") {
+        verify(repository, never()).updateStatus(any<PipelineExecution>())
       }
     }
   }

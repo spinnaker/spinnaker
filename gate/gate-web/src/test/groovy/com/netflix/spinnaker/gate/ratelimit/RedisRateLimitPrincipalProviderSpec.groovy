@@ -17,6 +17,7 @@ package com.netflix.spinnaker.gate.ratelimit
 
 import com.netflix.spinnaker.gate.config.RateLimiterConfiguration
 import com.netflix.spinnaker.gate.config.RateLimiterConfiguration.PrincipalOverride
+import com.netflix.spinnaker.gate.config.RateLimiterConfiguration.RoleOverride
 import com.netflix.spinnaker.gate.config.RateLimiterConfiguration.SourceAppOverride
 import com.netflix.spinnaker.kork.jedis.EmbeddedRedis
 import redis.clients.jedis.Jedis
@@ -81,7 +82,7 @@ class RedisRateLimitPrincipalProviderSpec extends Specification {
 
     where:
     principalName           | sourceApp  || expectedCapacity | expectedRateSeconds | expectedLearning
-    'anonymous-10.10.10.10' | null       || 5                | 5                   | true
+    'anonymous'             | null       || 5                | 5                   | true
     'redis-enforced'        | null       || 60               | 10                  | false
     'redis-ignored'         | null       || 60               | 10                  | true
     'redis-conflict'        | null       || 60               | 10                  | false
@@ -90,5 +91,36 @@ class RedisRateLimitPrincipalProviderSpec extends Specification {
     'source-app-user'       | 'non-deck' || 60               | 10                  | true
     'source-app-user'       | 'gate'     || 25               | 10                  | true
     'source-app-user'       | 'deck'     || 7                | 10                  | false
+  }
+
+  @Unroll("roles #roles for #principalName should have capacity=#expectedCapacity")
+  def 'should select capacity by role'() {
+    given:
+    RedisRateLimitPrincipalProvider subject = new RedisRateLimitPrincipalProvider(
+      (JedisPool) embeddedRedis.pool,
+      new RateLimiterConfiguration(
+        capacity: 60,
+        capacityByPrincipal: [new PrincipalOverride(principal: 'pinned-admin', override: 5000)],
+        capacityByRole: [
+          new RoleOverride(role: 'SPINNAKER_ADMIN', override: 1000),
+          new RoleOverride(role: 'ci-bots', override: 300)
+        ],
+        capacityBySourceApp: [new SourceAppOverride(sourceApp: 'deck', override: 7)]
+      )
+    )
+
+    expect:
+    subject.getPrincipal(principalName, sourceApp, { roles } as java.util.function.Supplier).capacity == expectedCapacity
+
+    where:
+    principalName | sourceApp | roles                              || expectedCapacity
+    'user'        | null      | []                                 || 60
+    'user'        | null      | ['unrelated']                      || 60
+    'user'        | null      | ['ci-bots']                        || 300
+    'user'        | null      | ['ci-bots', 'SPINNAKER_ADMIN']     || 1000
+    'user'        | 'deck'    | ['ci-bots']                        || 300
+    'user'        | 'deck'    | []                                 || 7
+    'pinned-admin'| null      | ['SPINNAKER_ADMIN']                || 5000
+    'anonymous'   | null      | ['SPINNAKER_ADMIN']                || 600
   }
 }
