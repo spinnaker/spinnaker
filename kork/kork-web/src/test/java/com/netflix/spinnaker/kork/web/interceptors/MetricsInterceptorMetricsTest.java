@@ -18,7 +18,8 @@ package com.netflix.spinnaker.kork.web.interceptors;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
-import com.netflix.spectator.micrometer.MicrometerRegistry;
+import com.netflix.spectator.api.DefaultRegistry;
+import com.netflix.spectator.api.Id;
 import io.micrometer.core.instrument.DistributionSummary;
 import io.micrometer.core.instrument.Tags;
 import io.micrometer.core.instrument.Timer;
@@ -32,10 +33,7 @@ import org.springframework.mock.web.MockHttpServletResponse;
 import org.springframework.web.method.HandlerMethod;
 import org.springframework.web.servlet.HandlerMapping;
 
-/**
- * Pins the metrics {@link MetricsInterceptor} publishes: names, exact tags, counts and amounts.
- * Assertions are made on the Micrometer registry the Spectator bridge writes to.
- */
+/** Pins the metrics {@link MetricsInterceptor} publishes: names, exact tags, counts and amounts. */
 class MetricsInterceptorMetricsTest {
 
   private static final String METRIC = "controller.invocations";
@@ -45,11 +43,7 @@ class MetricsInterceptorMetricsTest {
   private final SimpleMeterRegistry meters = new SimpleMeterRegistry();
   private final MetricsInterceptor interceptor =
       new MetricsInterceptor(
-          new MicrometerRegistry(meters),
-          METRIC,
-          List.of("account"),
-          List.of("app"),
-          List.of("ExcludedController")) {
+          meters, METRIC, List.of("account"), List.of("app"), List.of("ExcludedController")) {
         private boolean started;
 
         @Override
@@ -145,6 +139,61 @@ class MetricsInterceptorMetricsTest {
     call(request(Map.of()), 200, handler(new TestController(), "get"), null);
 
     assertThat(onlyContentLengthSummary().count()).isZero();
+  }
+
+  @Test
+  void publishesOnlyOneTimerAndOneSummaryWithoutPercentileCounters() throws Exception {
+    call(request(Map.of()), 200, handler(new TestController(), "get"), null);
+    call(request(Map.of()), 500, handler(new TestController(), "get"), new RuntimeException());
+
+    assertThat(meters.getMeters())
+        .allSatisfy(
+            meter -> {
+              assertThat(meter).isInstanceOfAny(Timer.class, DistributionSummary.class);
+              assertThat(meter.getId().getTag("statistic")).isNull();
+            });
+    assertThat(meters.find(METRIC).counters()).isEmpty();
+    assertThat(meters.find(METRIC + ".contentLength").counters()).isEmpty();
+  }
+
+  @Test
+  void deprecatedSpectatorConstructorRecordsTheSameMetrics() throws Exception {
+    DefaultRegistry spectator = new DefaultRegistry();
+    @SuppressWarnings("removal")
+    MetricsInterceptor deprecated =
+        new MetricsInterceptor(
+            spectator, METRIC, List.of("account"), List.of("app"), List.of("ExcludedController"));
+    MockHttpServletRequest request = request(Map.of("account", "test-account"));
+    request.setParameter("app", "test-app");
+    request.setContent(new byte[] {1, 2, 3});
+    MockHttpServletResponse response = new MockHttpServletResponse();
+    HandlerMethod handler = handler(new TestController(), "get");
+
+    deprecated.preHandle(request, response, handler);
+    deprecated.afterCompletion(request, response, handler, null);
+
+    Id expected =
+        spectator
+            .createId(METRIC)
+            .withTags(
+                "controller", "TestController",
+                "method", "get",
+                "status", "2xx",
+                "statusCode", "200",
+                "criticality", "unknown",
+                "account", "test-account",
+                "app", "test-app",
+                "success", "true",
+                "cause", "None");
+    assertThat(spectator.timer(expected).count()).isEqualTo(1);
+    assertThat(
+            spectator
+                .distributionSummary(
+                    spectator.createId(METRIC + ".contentLength").withTags(expected.tags()))
+                .totalAmount())
+        .isEqualTo(3);
+    assertThat(spectator.stream())
+        .noneMatch(meter -> meter.id().tags().toString().contains("percentile"));
   }
 
   @Test

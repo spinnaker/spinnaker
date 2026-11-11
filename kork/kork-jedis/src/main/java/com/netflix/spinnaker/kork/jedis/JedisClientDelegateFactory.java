@@ -20,18 +20,36 @@ import static com.netflix.spinnaker.kork.jedis.RedisClientConfiguration.Driver.R
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.netflix.spectator.api.Registry;
 import com.netflix.spinnaker.kork.jedis.RedisClientConfiguration.Driver;
+import io.micrometer.core.instrument.MeterRegistry;
 import java.util.Map;
 import org.apache.commons.pool2.impl.GenericObjectPoolConfig;
 
 public class JedisClientDelegateFactory implements RedisClientDelegateFactory<JedisClientDelegate> {
 
-  private Registry registry;
+  private final JedisPoolFactory poolFactory;
   private ObjectMapper objectMapper;
   private GenericObjectPoolConfig objectPoolConfig;
 
   public JedisClientDelegateFactory(
+      MeterRegistry registry, ObjectMapper objectMapper, GenericObjectPoolConfig objectPoolConfig) {
+    this(new JedisPoolFactory(registry), objectMapper, objectPoolConfig);
+  }
+
+  /**
+   * @deprecated Spectator is deprecated. Use {@link #JedisClientDelegateFactory(MeterRegistry,
+   *     ObjectMapper, GenericObjectPoolConfig)}.
+   */
+  @Deprecated(forRemoval = true)
+  public JedisClientDelegateFactory(
       Registry registry, ObjectMapper objectMapper, GenericObjectPoolConfig objectPoolConfig) {
-    this.registry = registry;
+    this(new JedisPoolFactory(registry), objectMapper, objectPoolConfig);
+  }
+
+  private JedisClientDelegateFactory(
+      JedisPoolFactory poolFactory,
+      ObjectMapper objectMapper,
+      GenericObjectPoolConfig objectPoolConfig) {
+    this.poolFactory = poolFactory;
     this.objectMapper = objectMapper;
     this.objectPoolConfig = objectPoolConfig;
   }
@@ -45,7 +63,6 @@ public class JedisClientDelegateFactory implements RedisClientDelegateFactory<Je
   public JedisClientDelegate build(String name, Map<String, Object> properties) {
     JedisDriverProperties props =
         objectMapper.convertValue(properties, JedisDriverProperties.class);
-    return new JedisClientDelegate(
-        name, new JedisPoolFactory(registry).build(name, props, objectPoolConfig));
+    return new JedisClientDelegate(name, poolFactory.build(name, props, objectPoolConfig));
   }
 }

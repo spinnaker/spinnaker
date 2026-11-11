@@ -18,8 +18,7 @@ package com.netflix.spinnaker.kork.jedis.telemetry;
 import static com.netflix.spinnaker.kork.jedis.telemetry.TelemetryHelper.*;
 
 import com.netflix.spectator.api.Registry;
-import com.netflix.spectator.api.histogram.PercentileDistributionSummary;
-import com.netflix.spectator.api.histogram.PercentileTimer;
+import io.micrometer.core.instrument.MeterRegistry;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -50,16 +49,37 @@ import redis.clients.jedis.util.KeyValue;
  */
 public class InstrumentedJedis extends Jedis {
 
-  private final Registry registry;
+  private final JedisTelemetry telemetry;
   private final Jedis delegated;
   private final String poolName;
 
+  public InstrumentedJedis(MeterRegistry registry, Jedis delegated) {
+    this(registry, delegated, "unnamed");
+  }
+
+  public InstrumentedJedis(MeterRegistry registry, Jedis delegated, String poolName) {
+    this(JedisTelemetry.micrometer(registry), delegated, poolName);
+  }
+
+  /**
+   * @deprecated Spectator is deprecated. Use {@link #InstrumentedJedis(MeterRegistry, Jedis)}.
+   */
+  @Deprecated(forRemoval = true)
   public InstrumentedJedis(Registry registry, Jedis delegated) {
     this(registry, delegated, "unnamed");
   }
 
+  /**
+   * @deprecated Spectator is deprecated. Use {@link #InstrumentedJedis(MeterRegistry, Jedis,
+   *     String)}.
+   */
+  @Deprecated(forRemoval = true)
   public InstrumentedJedis(Registry registry, Jedis delegated, String poolName) {
-    this.registry = registry;
+    this(JedisTelemetry.spectator(registry), delegated, poolName);
+  }
+
+  InstrumentedJedis(JedisTelemetry telemetry, Jedis delegated, String poolName) {
+    this.telemetry = telemetry;
     this.delegated = delegated;
     this.poolName = poolName;
   }
@@ -78,23 +98,19 @@ public class InstrumentedJedis extends Jedis {
 
   private <T> T internalInstrumented(
       String command, Optional<Long> payloadSize, Callable<T> action) {
-    payloadSize.ifPresent(
-        size ->
-            PercentileDistributionSummary.get(
-                    registry, payloadSizeId(registry, poolName, command, false))
-                .record(size));
+    payloadSize.ifPresent(size -> telemetry.recordPayloadSize(poolName, command, false, size));
     try {
-      return PercentileTimer.get(registry, timerId(registry, poolName, command, false))
-          .record(
-              () -> {
-                T result = action.call();
-                registry
-                    .counter(invocationId(registry, poolName, command, false, true))
-                    .increment();
-                return result;
-              });
+      return telemetry.time(
+          poolName,
+          command,
+          false,
+          () -> {
+            T result = action.call();
+            telemetry.countInvocation(poolName, command, false, true);
+            return result;
+          });
     } catch (Exception e) {
-      registry.counter(invocationId(registry, poolName, command, false, false)).increment();
+      telemetry.countInvocation(poolName, command, false, false);
       throw new InstrumentedJedisException("could not execute delegate function", e);
     }
   }
@@ -108,22 +124,18 @@ public class InstrumentedJedis extends Jedis {
   }
 
   private void internalInstrumented(String command, Optional<Long> payloadSize, Runnable action) {
-    payloadSize.ifPresent(
-        size ->
-            PercentileDistributionSummary.get(
-                    registry, payloadSizeId(registry, poolName, command, false))
-                .record(size));
+    payloadSize.ifPresent(size -> telemetry.recordPayloadSize(poolName, command, false, size));
     try {
-      PercentileTimer.get(registry, timerId(registry, poolName, command, false))
-          .record(
-              () -> {
-                action.run();
-                registry
-                    .counter(invocationId(registry, poolName, command, false, true))
-                    .increment();
-              });
+      telemetry.time(
+          poolName,
+          command,
+          false,
+          () -> {
+            action.run();
+            telemetry.countInvocation(poolName, command, false, true);
+          });
     } catch (Exception e) {
-      registry.counter(invocationId(registry, poolName, command, false, false)).increment();
+      telemetry.countInvocation(poolName, command, false, false);
       throw new InstrumentedJedisException("could not execute delegate function", e);
     }
   }
@@ -2128,7 +2140,7 @@ public class InstrumentedJedis extends Jedis {
   @Override
   public Pipeline pipelined() {
     String command = "pipelined";
-    return instrumented(command, () -> new InstrumentedPipeline(registry, delegated, poolName));
+    return instrumented(command, () -> new InstrumentedPipeline(telemetry, delegated, poolName));
   }
 
   @Override

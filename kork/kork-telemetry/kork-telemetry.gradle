@@ -6,11 +6,10 @@ dependencies {
   api project(":kork-annotations")
 
   api "com.netflix.spectator:spectator-api"
+  api "io.micrometer:micrometer-core"
   api "com.github.ben-manes.caffeine:guava"
 
   testImplementation "com.hubspot.jinjava:jinjava"
-  testImplementation "com.netflix.spectator:spectator-reg-micrometer"
-  testImplementation "io.micrometer:micrometer-core"
   testImplementation "org.assertj:assertj-core"
   testImplementation "org.junit.jupiter:junit-jupiter-api"
   testImplementation "org.spockframework:spock-core"

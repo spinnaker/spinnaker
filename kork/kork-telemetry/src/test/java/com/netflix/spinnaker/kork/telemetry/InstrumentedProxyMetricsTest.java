@@ -19,7 +19,7 @@ package com.netflix.spinnaker.kork.telemetry;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
-import com.netflix.spectator.micrometer.MicrometerRegistry;
+import com.netflix.spectator.api.DefaultRegistry;
 import com.netflix.spinnaker.kork.annotations.Metered;
 import io.micrometer.core.instrument.Counter;
 import io.micrometer.core.instrument.Tags;
@@ -33,8 +33,7 @@ class InstrumentedProxyMetricsTest {
 
   private final SimpleMeterRegistry meters = new SimpleMeterRegistry();
   private final Contract proxy =
-      InstrumentedProxy.proxy(
-          new MicrometerRegistry(meters), new ContractImpl(), "test", Map.of("env", "test"));
+      InstrumentedProxy.proxy(meters, new ContractImpl(), "test", Map.of("env", "test"));
 
   @Test
   void successfulCallCountsAndTimesWithResultTag() {
@@ -79,6 +78,34 @@ class InstrumentedProxyMetricsTest {
     proxy.ignored();
 
     assertThat(meters.getMeters()).isEmpty();
+  }
+
+  @Test
+  void timingHasNoPercentileCounters() {
+    proxy.doStuff();
+    assertThatThrownBy(proxy::fail).isInstanceOf(IllegalStateException.class);
+
+    assertThat(meters.getMeters())
+        .allSatisfy(meter -> assertThat(meter.getId().getTag("statistic")).isNull());
+    assertThat(meters.find("test.doStuff.timing").counters()).isEmpty();
+  }
+
+  @Test
+  @SuppressWarnings("removal")
+  void deprecatedSpectatorOverloadRecordsTheSameMetrics() {
+    DefaultRegistry spectator = new DefaultRegistry();
+    Contract deprecated =
+        InstrumentedProxy.proxy(spectator, new ContractImpl(), "test", Map.of("env", "test"));
+
+    deprecated.doStuff();
+
+    Map<String, String> expected = Map.of("env", "test", "result", "SUCCESS");
+    assertThat(spectator.counter(spectator.createId("test.doStuff.invocations", expected)).count())
+        .isEqualTo(1);
+    assertThat(spectator.timer(spectator.createId("test.doStuff.timing", expected)).count())
+        .isEqualTo(1);
+    assertThat(spectator.stream())
+        .noneMatch(meter -> meter.id().tags().toString().contains("percentile"));
   }
 
   private Counter onlyCounter(String name, Tags expectedTags) {

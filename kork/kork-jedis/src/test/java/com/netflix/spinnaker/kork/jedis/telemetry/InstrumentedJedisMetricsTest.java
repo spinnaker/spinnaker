@@ -21,9 +21,10 @@ import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
-import com.netflix.spectator.micrometer.MicrometerRegistry;
+import com.netflix.spectator.api.DefaultRegistry;
 import io.micrometer.core.instrument.Counter;
 import io.micrometer.core.instrument.DistributionSummary;
+import io.micrometer.core.instrument.MeterRegistry;
 import io.micrometer.core.instrument.Tags;
 import io.micrometer.core.instrument.Timer;
 import io.micrometer.core.instrument.simple.SimpleMeterRegistry;
@@ -41,7 +42,7 @@ class InstrumentedJedisMetricsTest {
   private static final String POOL = "test-pool";
 
   private final SimpleMeterRegistry meters = new SimpleMeterRegistry();
-  private final MicrometerRegistry registry = new MicrometerRegistry(meters);
+  private final MeterRegistry registry = meters;
   private final Jedis delegate = mock(Jedis.class);
 
   @Test
@@ -119,6 +120,71 @@ class InstrumentedJedisMetricsTest {
     assertThat(onlySummary("redis.command.payloadSize.set", pool).totalAmount()).isEqualTo(5);
     assertThat(onlyCounter("redis.command.invocation.set", pool.and("success", "true")).count())
         .isEqualTo(1);
+  }
+
+  @Test
+  @SuppressWarnings("unchecked")
+  void pipelineFromTheClientRecordsIntoTheSameRegistry() {
+    Pipeline delegatePipeline = mock(Pipeline.class);
+    when(delegate.getConnection()).thenReturn(mock(Connection.class));
+    when(delegate.pipelined()).thenReturn(delegatePipeline);
+    when(delegatePipeline.set("test-key", "value")).thenReturn(mock(Response.class));
+
+    new InstrumentedJedis(registry, delegate, POOL).pipelined().set("test-key", "value");
+
+    assertThat(
+            onlyTimer(
+                    "redis.command.latency.pipelined",
+                    Tags.of("poolName", POOL, "pipelined", "false"))
+                .count())
+        .isEqualTo(1);
+    assertThat(
+            onlyTimer("redis.command.latency.set", Tags.of("poolName", POOL, "pipelined", "true"))
+                .count())
+        .isEqualTo(1);
+  }
+
+  @Test
+  void recordsNoPercentileCounters() {
+    when(delegate.set("test-key", "value")).thenReturn("OK");
+
+    new InstrumentedJedis(registry, delegate, POOL).set("test-key", "value");
+
+    assertThat(meters.getMeters())
+        .allSatisfy(meter -> assertThat(meter.getId().getTag("statistic")).isNull());
+    assertThat(meters.find("redis.command.latency.set").counters()).isEmpty();
+    assertThat(meters.find("redis.command.payloadSize.set").counters()).isEmpty();
+  }
+
+  @Test
+  @SuppressWarnings("removal")
+  void deprecatedSpectatorConstructorRecordsTheSameMetrics() {
+    DefaultRegistry spectator = new DefaultRegistry();
+    when(delegate.set("test-key", "value")).thenReturn("OK");
+
+    new InstrumentedJedis(spectator, delegate, POOL).set("test-key", "value");
+
+    String[] pool = {"poolName", POOL, "pipelined", "false"};
+    assertThat(
+            spectator.timer(spectator.createId("redis.command.latency.set").withTags(pool)).count())
+        .isEqualTo(1);
+    assertThat(
+            spectator
+                .distributionSummary(
+                    spectator.createId("redis.command.payloadSize.set").withTags(pool))
+                .totalAmount())
+        .isEqualTo(5);
+    assertThat(
+            spectator
+                .counter(
+                    spectator
+                        .createId("redis.command.invocation.set")
+                        .withTags(pool)
+                        .withTag("success", "true"))
+                .count())
+        .isEqualTo(1);
+    assertThat(spectator.stream())
+        .noneMatch(meter -> meter.id().tags().toString().contains("percentile"));
   }
 
   private Timer onlyTimer(String name, Tags expectedTags) {
