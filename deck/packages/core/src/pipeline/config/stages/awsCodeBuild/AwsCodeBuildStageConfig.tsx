@@ -22,6 +22,7 @@ export function AwsCodeBuildStageConfig({ application, pipeline, stage, updateSt
       onChange={updateStage}
       pipeline={pipeline}
       stage={stageWithDefaults}
+      liveStage={stage}
       validate={validate}
       render={(props: IFormikStageConfigInjectedProps) => <AwsCodeBuildStageForm {...props} />}
     />
