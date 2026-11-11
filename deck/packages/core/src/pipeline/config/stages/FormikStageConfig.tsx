@@ -22,7 +22,7 @@ export interface IFormikStageConfigProps {
   pipeline: IPipeline;
   validate?: IContextualValidator;
   render: (props: IFormikStageConfigInjectedProps) => React.ReactNode;
-  onChange?: (values: IStage) => void;
+  onChange?: (changes: Partial<IStage>) => void;
 }
 
 export type IStageValidator = (values: IStage) => void | object | Promise<FormikErrors<IStage>>;
@@ -32,15 +32,16 @@ const decorate = (validate: IContextualValidator, props: IFormikStageConfigProps
   return (values: IStage) => validate(values, { application, pipeline });
 };
 
-// Applies only the fields the form changed, so stage edits made outside the form are kept
-const applyChangedValues = (stage: IStage, values: IStage, prevValues: IStage): IStage => {
+// Reports only the fields the form changed. Stage edits made outside the form are kept, and
+// a stage copy that went stale (e.g. one with defaults applied) can't overwrite newer values.
+const getChangedValues = (values: IStage, prevValues: IStage): Partial<IStage> => {
   const changes: Partial<IStage> = {};
   new Set([...Object.keys(prevValues), ...Object.keys(values)]).forEach((key) => {
     if (values[key] !== prevValues[key]) {
       changes[key] = values[key];
     }
   });
-  return { ...stage, ...changes };
+  return changes;
 };
 
 export class FormikStageConfig extends React.Component<IFormikStageConfigProps> {
@@ -55,8 +56,7 @@ export class FormikStageConfig extends React.Component<IFormikStageConfigProps> 
           <LayoutProvider value={ResponsiveFieldLayout}>
             <WatchValue
               onChange={
-                onChange &&
-                ((values: IStage, prevValues: IStage) => onChange(applyChangedValues(stage, values, prevValues)))
+                onChange && ((values: IStage, prevValues: IStage) => onChange(getChangedValues(values, prevValues)))
               }
               value={formik.values}
             />
