@@ -47,7 +47,10 @@ const applyChangedValues = (stage: IStage, values: IStage, prevValues: IStage): 
 };
 
 export class FormikStageConfig extends React.Component<IFormikStageConfigProps> {
-  private initialValues: IStage = { ...this.props.defaults, ...this.props.stage };
+  // Without defaults, Formik starts from the stage itself, since some forms edit their values in place
+  private initialValues: IStage = this.props.defaults
+    ? { ...this.props.defaults, ...this.props.stage }
+    : this.props.stage;
 
   private onValuesChanged = (values: IStage, prevValues: IStage) => {
     const { defaults, stage } = this.props;
