@@ -1,5 +1,4 @@
 import type { FormikErrors } from 'formik';
-import { cloneDeep } from 'lodash';
 import React from 'react';
 
 import { BakeManifestStageForm, validateProducedArtifacts } from './BakeManifestStageForm';
@@ -21,20 +20,16 @@ const safeCliArgumentValidator: IValidator = (val: string, label: string) =>
   errorMessage(`${label} may only contain letters, numbers, '.', '_', and '-'`);
 
 export function BakeManifestConfig({ application, pipeline, stage, updateStage }: IStageConfigProps) {
-  const stageWithDefaults = React.useMemo(() => {
-    return {
-      inputArtifacts: [],
-      overrides: {},
-      ...cloneDeep(stage),
-    };
-  }, []);
-
   return (
     <FormikStageConfig
       application={application}
       onChange={updateStage}
       pipeline={pipeline}
-      stage={stageWithDefaults}
+      stage={stage}
+      defaults={{
+        inputArtifacts: [],
+        overrides: {},
+      }}
       validate={validateBakeManifestStage}
       render={(props) => <BakeManifestStageForm {...props} />}
     />

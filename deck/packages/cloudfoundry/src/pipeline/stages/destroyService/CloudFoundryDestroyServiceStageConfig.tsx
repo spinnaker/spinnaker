@@ -1,5 +1,4 @@
 import type { FormikErrors } from 'formik';
-import { cloneDeep } from 'lodash';
 import React from 'react';
 
 import type { IStage, IStageConfigProps } from '@spinnaker/core';
@@ -13,21 +12,17 @@ export function CloudFoundryDestroyServiceStageConfig({
   stage,
   updateStage,
 }: IStageConfigProps) {
-  const stageWithDefaults = React.useMemo(() => {
-    return {
-      credentials: '',
-      serviceInstanceName: '',
-      removeBindings: false,
-      ...cloneDeep(stage),
-    };
-  }, []);
-
   return (
     <FormikStageConfig
       application={application}
       onChange={updateStage}
       pipeline={pipeline}
-      stage={stageWithDefaults}
+      stage={stage}
+      defaults={{
+        credentials: '',
+        serviceInstanceName: '',
+        removeBindings: false,
+      }}
       validate={validateCloudFoundryDestroyServiceStage}
       render={(props) => <CloudFoundryDestroyServiceStageConfigForm {...props} />}
     />

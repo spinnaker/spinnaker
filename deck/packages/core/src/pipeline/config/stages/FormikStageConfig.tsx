@@ -18,7 +18,10 @@ export type IContextualValidator = (
 
 export interface IFormikStageConfigProps {
   application: Application;
+  // The stage being edited. Pass the stage itself, not a copy, so edits made outside the form are kept.
   stage: IStage;
+  // Values to show for fields the stage doesn't have yet. They are saved with the first edit.
+  defaults?: Partial<IStage>;
   pipeline: IPipeline;
   validate?: IContextualValidator;
   render: (props: IFormikStageConfigInjectedProps) => React.ReactNode;
@@ -44,22 +47,23 @@ const applyChangedValues = (stage: IStage, values: IStage, prevValues: IStage): 
 };
 
 export class FormikStageConfig extends React.Component<IFormikStageConfigProps> {
+  private initialValues: IStage = { ...this.props.defaults, ...this.props.stage };
+
+  private onValuesChanged = (values: IStage, prevValues: IStage) => {
+    const { defaults, stage } = this.props;
+    this.props.onChange(applyChangedValues({ ...defaults, ...stage }, values, prevValues));
+  };
+
   public render() {
-    const { render, onChange, stage, validate, application, pipeline } = this.props;
+    const { render, onChange, validate, application, pipeline } = this.props;
     return (
       <SpinFormik<IStage>
         validate={validate && decorate(validate, this.props)}
-        initialValues={stage}
+        initialValues={this.initialValues}
         onSubmit={() => {}}
         render={(formik) => (
           <LayoutProvider value={ResponsiveFieldLayout}>
-            <WatchValue
-              onChange={
-                onChange &&
-                ((values: IStage, prevValues: IStage) => onChange(applyChangedValues(stage, values, prevValues)))
-              }
-              value={formik.values}
-            />
+            <WatchValue onChange={onChange && this.onValuesChanged} value={formik.values} />
             {render({ application, pipeline, formik })}
           </LayoutProvider>
         )}

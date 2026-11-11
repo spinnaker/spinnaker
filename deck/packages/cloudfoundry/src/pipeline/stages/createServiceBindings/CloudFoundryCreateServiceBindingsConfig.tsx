@@ -1,5 +1,4 @@
 import type { FormikErrors } from 'formik';
-import { cloneDeep } from 'lodash';
 import React from 'react';
 
 import type { IStage, IStageConfigProps } from '@spinnaker/core';
@@ -17,23 +16,19 @@ export function CloudFoundryCreateServiceBindingsConfig({
   stage,
   updateStage,
 }: IStageConfigProps) {
-  const stageWithDefaults = React.useMemo(() => {
-    return {
-      serviceBindingRequests: [],
-      restageRequired: true,
-      restartRequired: false,
-      credentials: '',
-      region: '',
-      ...cloneDeep(stage),
-    };
-  }, []);
-
   return (
     <FormikStageConfig
       application={application}
       onChange={updateStage}
       pipeline={pipeline}
-      stage={stageWithDefaults}
+      stage={stage}
+      defaults={{
+        serviceBindingRequests: [],
+        restageRequired: true,
+        restartRequired: false,
+        credentials: '',
+        region: '',
+      }}
       validate={validateCloudFoundryCreateServiceBindingsStage}
       render={(props) => <CloudFoundryCreateServiceBindingsStageConfigForm {...props} />}
     />

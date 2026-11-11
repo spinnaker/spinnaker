@@ -93,4 +93,28 @@ describe('FormikStageConfig', () => {
 
     await waitFor(() => expect(stage.command).toBeUndefined());
   });
+
+  it('shows defaults and saves them with the first edit without overwriting the stage', async () => {
+    const user = setupUser();
+    const stage: IStage = { refId: '1', name: 'Script', type: 'script', requisiteStageRefIds: [], mode: 'trigger' };
+    const onChange = vi.fn((values: IStage) => Object.assign(stage, values));
+    render(
+      <FormikStageConfig
+        application={{} as any}
+        pipeline={{} as any}
+        stage={stage}
+        defaults={{ mode: 'text', retries: 3 }}
+        onChange={onChange}
+        render={() => <FormikFormField name="command" input={(inputProps) => <TextInput {...inputProps} />} />}
+      />,
+    );
+
+    await user.type(screen.getByRole('textbox'), 'b');
+    stage.mode = 'artifact';
+    await user.type(screen.getByRole('textbox'), 'c');
+
+    await waitFor(() => expect(stage.command).toBe('bc'));
+    expect(stage.retries).toBe(3);
+    expect(stage.mode).toBe('artifact');
+  });
 });

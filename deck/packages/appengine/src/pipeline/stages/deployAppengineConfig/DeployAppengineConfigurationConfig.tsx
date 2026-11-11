@@ -1,5 +1,4 @@
 import type { FormikErrors } from 'formik';
-import { cloneDeep } from 'lodash';
 import React from 'react';
 
 import type { IStage, IStageConfigProps } from '@spinnaker/core';
@@ -8,18 +7,12 @@ import { FormikStageConfig, FormValidator } from '@spinnaker/core';
 import { DeployAppengineConfigForm } from './DeployAppengineConfigForm';
 
 export function DeployAppengineConfigurationConfig({ application, pipeline, stage, updateStage }: IStageConfigProps) {
-  const stageWithDefaults = React.useMemo(() => {
-    return {
-      ...cloneDeep(stage),
-    };
-  }, []);
-
   return (
     <FormikStageConfig
       application={application}
       onChange={updateStage}
       pipeline={pipeline}
-      stage={stageWithDefaults}
+      stage={stage}
       validate={validateDeployAppengineConfigurationStage}
       render={(props) => <DeployAppengineConfigForm {...props} />}
     />

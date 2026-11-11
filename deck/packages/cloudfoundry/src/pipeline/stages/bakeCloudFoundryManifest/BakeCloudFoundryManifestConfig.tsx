@@ -1,5 +1,4 @@
 import type { FormikErrors } from 'formik';
-import { cloneDeep } from 'lodash';
 import React from 'react';
 
 import type { IArtifact, IExpectedArtifact, IStage, IStageConfigProps } from '@spinnaker/core';
@@ -8,19 +7,15 @@ import { FormikStageConfig, FormValidator } from '@spinnaker/core';
 import { BakeCloudFoundryManifestConfigForm } from './BakeCloudFoundryManifestConfigForm';
 
 export function BakeCloudFoundryManifestConfig({ application, pipeline, stage, updateStage }: IStageConfigProps) {
-  const stageWithDefaults = React.useMemo(() => {
-    return {
-      inputArtifacts: [],
-      ...cloneDeep(stage),
-    };
-  }, []);
-
   return (
     <FormikStageConfig
       application={application}
       onChange={updateStage}
       pipeline={pipeline}
-      stage={stageWithDefaults}
+      stage={stage}
+      defaults={{
+        inputArtifacts: [],
+      }}
       validate={validateBakeCloudFoundryManifestStage}
       render={(props) => <BakeCloudFoundryManifestConfigForm {...props} />}
     />
