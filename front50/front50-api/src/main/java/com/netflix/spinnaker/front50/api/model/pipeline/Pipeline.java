@@ -118,7 +118,7 @@ public class Pipeline implements Timestamped, Cloneable {
    */
   public String getSchema() {
     final String get = this.schema;
-    if (get == null || get == "") {
+    if (get == null || get.isEmpty()) {
       return "1";
     }
     return get;
