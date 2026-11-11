@@ -24,6 +24,7 @@ export function GoogleCloudBuildStageConfig({ application, pipeline, stage, upda
       onChange={updateStage}
       pipeline={pipeline}
       stage={stageWithDefaults}
+      liveStage={stage}
       validate={validate}
       render={(props: IFormikStageConfigInjectedProps) => <GoogleCloudBuildStageForm {...props} />}
     />
