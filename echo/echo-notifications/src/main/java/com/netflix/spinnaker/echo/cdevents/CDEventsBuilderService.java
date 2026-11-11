@@ -59,7 +59,7 @@ public class CDEventsBuilderService {
             "%s/#/applications/%s/%s/%s",
             spinnakerUrl,
             application,
-            configType == "stage" ? "executions/details" : configLink,
+            "stage".equals(configType) ? "executions/details" : configLink,
             executionId);
 
     String executionName =
