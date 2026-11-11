@@ -1,11 +1,58 @@
-import { get, last, round } from 'lodash';
+import { get, last, round, uniq } from 'lodash';
 
 import type { Application, IExecution, IExecutionStage, ITransformer } from '@spinnaker/core';
 import { OrchestratedItemTransformer } from '@spinnaker/core';
 
-import { CREATE_SERVER_GROUP, DEPLOY_CANARY_SERVER_GROUPS, KAYENTA_CANARY, RUN_CANARY, WAIT } from './stageTypes';
+import {
+  CREATE_SERVER_GROUP,
+  DEPLOY_CANARY_SERVER_GROUPS,
+  KAYENTA_CANARY,
+  RUN_CANARY,
+  RUN_CANARY_INTERVALS,
+  WAIT,
+} from './stageTypes';
 
 const stageTypesToAlwaysShow = [KAYENTA_CANARY, CREATE_SERVER_GROUP];
+
+// The stage editor saves score thresholds as strings, so convert before comparing. Missing or blank values become NaN.
+const toScore = (value: unknown): number =>
+  value === null || value === undefined || value === '' ? NaN : Number(value);
+
+// Orca's KayentaCanaryContext defaults scoreThresholds to these values when the whole object is omitted from the
+// canary config. Individual null/blank fields inside a present object are not defaulted.
+const DEFAULT_SCORE_THRESHOLDS = { pass: 75, marginal: 50 };
+
+interface IScoreThresholds {
+  marginal: number;
+  pass: number;
+}
+
+const readThresholds = (thresholds: any): IScoreThresholds => ({
+  marginal: toScore(get(thresholds, 'marginal', null)),
+  pass: toScore(get(thresholds, 'pass', null)),
+});
+
+// Mirrors how Orca decides a score has failed: at or below marginal, or below pass.
+const scoreFailed = (score: number, { marginal, pass }: IScoreThresholds): boolean =>
+  Number.isFinite(score) &&
+  ((Number.isFinite(marginal) && score <= marginal) || (Number.isFinite(pass) && score < pass));
+
+// The score shown to the user is rounded to 2 decimals, but Orca compares the raw double against the thresholds, so
+// 74.996 fails a pass threshold of 75 even though it displays as 75. The transformer writes the rounded value back into
+// the stage context (and re-runs on the same stage objects), so remember the raw value alongside what we rounded it to.
+// If the context value no longer matches what we rounded to, the data was replaced and the current value is the raw one.
+const rawScores = new WeakMap<object, { raw: number; rounded: number }>();
+
+const roundScore = (stage: object, raw: number): number => {
+  const rounded = round(raw, 2);
+  rawScores.set(stage, { raw, rounded });
+  return rounded;
+};
+
+const rawScoreOf = (stage: object, current: number): number => {
+  const remembered = rawScores.get(stage);
+  return remembered && remembered.rounded === current ? remembered.raw : current;
+};
 
 export class KayentaStageTransformer implements ITransformer {
   public transform(_application: Application, execution: IExecution): void {
@@ -30,13 +77,26 @@ export class KayentaStageTransformer implements ITransformer {
 
         stagesToRenderAsTasks = stagesToRenderAsTasks.concat(syntheticCanaryStages);
 
+        // The interval stage is only a container for the runCanary/wait stages, so it is always folded into
+        // the kayentaCanary stage (not just when it succeeds); its own exception, if any, is collected below.
+        const intervalStage = intervalStageId
+          ? execution.stages.find(({ id, type }) => id === intervalStageId && type === RUN_CANARY_INTERVALS)
+          : undefined;
+        if (intervalStage) {
+          OrchestratedItemTransformer.defineProperties(intervalStage);
+          stagesToRenderAsTasks.push(intervalStage);
+        }
+
         const runCanaryStages = syntheticCanaryStages.filter((s) => s.type === RUN_CANARY);
         syntheticCanaryStages.forEach((syntheticStage) => OrchestratedItemTransformer.defineProperties(syntheticStage));
         this.calculateRunCanaryResults(runCanaryStages);
         this.calculateKayentaCanaryResults(stage, syntheticCanaryStages);
 
         stage.exceptions = [];
-        this.addExceptions([stage, ...syntheticCanaryStages], stage.exceptions);
+        this.addExceptions(
+          [stage, ...(intervalStage ? [intervalStage] : []), ...syntheticCanaryStages],
+          stage.exceptions,
+        );
 
         // For now, a 'kayentaCanary' stage should only have an 'aggregateCanaryResults' task, which should definitely go last.
         stage.tasks = [...syntheticCanaryStages, ...stage.tasks];
@@ -89,15 +149,17 @@ export class KayentaStageTransformer implements ITransformer {
   private calculateRunCanaryResults(runCanaryStages: IExecutionStage[]): void {
     runCanaryStages.forEach((run) => {
       if (typeof run.getValueFor('canaryScore') === 'number') {
+        // Compare the raw score; on a re-transform the context already holds the rounded one.
+        const rawScore = rawScoreOf(run, run.context.canaryScore);
         if (run.status === 'SUCCEEDED') {
-          if (run.context.canaryScore >= run.context.scoreThresholds.pass) {
+          if (rawScore >= run.context.scoreThresholds.pass) {
             run.result = 'success';
           }
         } else {
           run.health = 'unhealthy';
         }
 
-        run.context.canaryScore = round(run.context.canaryScore, 2);
+        run.context.canaryScore = roundScore(run, rawScore);
       }
     });
   }
@@ -113,7 +175,7 @@ export class KayentaStageTransformer implements ITransformer {
       } else {
         kayentaStage.context.overallScore = this.getLastCanaryRunScore(runCanaryStages);
       }
-      kayentaStage.context.overallScore = round(kayentaStage.context.overallScore, 2);
+      kayentaStage.context.overallScore = roundScore(kayentaStage, kayentaStage.context.overallScore);
 
       // Sometimes when the very first runCanary stage fails due to a low score
       // it never adds its canaryScoreMessage to the kayenta stage.
@@ -122,9 +184,12 @@ export class KayentaStageTransformer implements ITransformer {
       }
 
       if (!kayentaStage.isCanceled) {
-        const overallScore = get(kayentaStage, 'context.overallScore', null);
-        const scoreThreshold = get(kayentaStage, 'context.canaryConfig.scoreThresholds.marginal', null);
-        if (kayentaStage.status === 'SUCCEEDED' || (overallScore && overallScore > scoreThreshold)) {
+        // A stage that did not succeed only gets a passing badge when it has a score that did not fail, using the same
+        // rule that decides whether the score message is shown. Otherwise the badge and the message would disagree.
+        const overallScore = rawScoreOf(kayentaStage, toScore(get(kayentaStage, 'context.overallScore', null)));
+        const scorePassed =
+          Number.isFinite(overallScore) && !scoreFailed(overallScore, this.getEffectiveThresholds(kayentaStage));
+        if (kayentaStage.status === 'SUCCEEDED' || scorePassed) {
           kayentaStage.context.overallResult = 'success';
         } else {
           kayentaStage.context.overallHealth = 'unhealthy';
@@ -136,7 +201,7 @@ export class KayentaStageTransformer implements ITransformer {
   private getLastCanaryRunScore(runCanaryStages: IExecutionStage[] = []): number {
     const canaryRunScores = runCanaryStages
       .filter((s) => typeof s.getValueFor('canaryScore') === 'number')
-      .map((s) => s.getValueFor('canaryScore'));
+      .map((s) => rawScoreOf(s, s.getValueFor('canaryScore')));
     return last(canaryRunScores);
   }
 
@@ -148,17 +213,52 @@ export class KayentaStageTransformer implements ITransformer {
   }
 
   private addExceptions(stages: IExecutionStage[], exceptions: string[]): void {
+    const collected: string[] = [];
+    let kayentaContributed = false;
     stages.forEach((stage) => {
-      if (this.getException(stage)) {
-        exceptions.push(this.getException(stage));
+      const exception = this.getException(stage);
+      if (exception) {
+        collected.push(exception);
       }
-      const overallScore = get(stage, 'context.overallScore', null);
-      const scoreThreshold = get(stage, 'context.canaryConfig.scoreThresholds.marginal', null);
-      const message = get(stage, 'context.canaryScoreMessage', null);
-      if (overallScore && message && overallScore <= scoreThreshold) {
-        exceptions.push(message);
+      // Only the kayentaCanary stage's own message is shown, and only when its score actually failed. A stage can
+      // have a failed status with a passing score (e.g. a cleanup child failed), and Orca also writes neutral
+      // messages (e.g. no thresholds specified), so the stage status is not a reliable signal.
+      if (stage.type === KAYENTA_CANARY) {
+        const message = get(stage, 'context.canaryScoreMessage', null);
+        const overallScore = rawScoreOf(stage, toScore(get(stage, 'context.overallScore', null)));
+        if (message && scoreFailed(overallScore, this.getEffectiveThresholds(stage))) {
+          collected.push(message);
+          kayentaContributed = true;
+        }
       }
     });
+
+    // While Orca runs failure cleanup the kayentaCanary stage stays RUNNING, so its overallScore and final message
+    // do not exist yet. Until they do, explain the failure with the failed runs' own score messages.
+    if (!kayentaContributed) {
+      const kayentaStage = stages.find(({ type }) => type === KAYENTA_CANARY);
+      const fallbackThresholds = kayentaStage ? this.getEffectiveThresholds(kayentaStage) : readThresholds(null);
+      stages
+        .filter((stage) => stage.type === RUN_CANARY && stage.isFailed)
+        .forEach((run) => {
+          const message = get(run, 'context.canaryScoreMessage', null);
+          const runThresholds = get(run, 'context.scoreThresholds', null);
+          const thresholds = runThresholds ? readThresholds(runThresholds) : fallbackThresholds;
+          const score = rawScoreOf(run, toScore(get(run, 'context.canaryScore', null)));
+          if (message && scoreFailed(score, thresholds)) {
+            collected.push(message);
+          }
+        });
+    }
+
+    const unique = uniq(collected);
+    exceptions.splice(0, exceptions.length, ...unique);
+  }
+
+  // Orca defaults the thresholds only when the whole object is absent.
+  private getEffectiveThresholds(stage: IExecutionStage): IScoreThresholds {
+    const thresholds = get(stage, 'context.canaryConfig.scoreThresholds', null);
+    return readThresholds(thresholds === null || thresholds === undefined ? DEFAULT_SCORE_THRESHOLDS : thresholds);
   }
 
   private getException(stage: IExecutionStage): string {
