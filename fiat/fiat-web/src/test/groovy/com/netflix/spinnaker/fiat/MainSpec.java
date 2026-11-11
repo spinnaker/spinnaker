@@ -1,8 +1,11 @@
 package com.netflix.spinnaker.fiat;
 
+import com.netflix.spinnaker.kork.metrics.MeterRegistryAssertions;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.context.ApplicationContext;
 import org.springframework.test.context.TestPropertySource;
 import org.springframework.test.context.junit.jupiter.SpringExtension;
 
@@ -13,4 +16,11 @@ public class MainSpec {
 
   @Test
   public void startupTest() {}
+
+  @Autowired ApplicationContext context;
+
+  @Test
+  public void metricsAreExportableByDefault() {
+    MeterRegistryAssertions.assertExportableByDefault(context);
+  }
 }

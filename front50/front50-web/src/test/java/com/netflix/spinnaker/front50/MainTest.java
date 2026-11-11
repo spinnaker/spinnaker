@@ -20,9 +20,11 @@ import static org.assertj.core.api.Assertions.assertThat;
 
 import com.netflix.spinnaker.front50.model.SqlStorageService;
 import com.netflix.spinnaker.front50.model.StorageService;
+import com.netflix.spinnaker.kork.metrics.MeterRegistryAssertions;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.context.ApplicationContext;
 
 /** Starts the whole Front50 application, backed by in-memory SQL storage. */
 @SpringBootTest(
@@ -44,5 +46,12 @@ class MainTest {
   @Test
   void startsWithSqlStorage() {
     assertThat(storageService).isInstanceOf(SqlStorageService.class);
+  }
+
+  @Autowired ApplicationContext context;
+
+  @Test
+  void metricsAreExportableByDefault() {
+    MeterRegistryAssertions.assertExportableByDefault(context);
   }
 }

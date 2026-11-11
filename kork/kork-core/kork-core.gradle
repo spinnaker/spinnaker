@@ -1,4 +1,5 @@
 apply plugin: "groovy"
+apply plugin: "java-test-fixtures"
 apply from: "$rootDir/gradle/lombok.gradle"
 
 dependencies {
@@ -24,6 +25,10 @@ dependencies {
 
   runtimeOnly "io.micrometer:micrometer-registry-otlp"
   runtimeOnly "org.springframework.boot:spring-boot-opentelemetry"
+
+  testFixturesApi "io.micrometer:micrometer-core"
+  testFixturesApi "org.springframework:spring-context"
+  testFixturesImplementation "io.micrometer:micrometer-registry-otlp"
 
   testImplementation project(":kork-test")
   testImplementation "io.micrometer:micrometer-registry-otlp"

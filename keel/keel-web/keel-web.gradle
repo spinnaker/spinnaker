@@ -59,6 +59,7 @@ dependencies {
 
   runtimeOnly("io.spinnaker.kork:kork-runtime")
 
+  testImplementation(testFixtures("io.spinnaker.kork:kork-core"))
   testImplementation(project(":keel-test"))
   testImplementation(project(":keel-core-test"))
   testImplementation(project(":keel-spring-test-support"))

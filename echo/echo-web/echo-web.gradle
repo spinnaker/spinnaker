@@ -56,6 +56,7 @@ dependencies {
 
     runtimeOnly "io.spinnaker.kork:kork-runtime"
 
+    testImplementation testFixtures("io.spinnaker.kork:kork-core")
     testImplementation "org.springframework.boot:spring-boot-starter-test"
     testImplementation "org.spockframework:spock-spring"
     testImplementation "org.junit.jupiter:junit-jupiter-api"

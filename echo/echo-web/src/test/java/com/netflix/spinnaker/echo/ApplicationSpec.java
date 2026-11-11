@@ -19,9 +19,12 @@ package com.netflix.spinnaker.echo;
 import com.netflix.spinnaker.echo.pipelinetriggers.orca.OrcaService;
 import com.netflix.spinnaker.echo.services.Front50Service;
 import com.netflix.spinnaker.fiat.shared.FiatService;
+import com.netflix.spinnaker.kork.metrics.MeterRegistryAssertions;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.context.ApplicationContext;
 import org.springframework.test.context.TestPropertySource;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.context.junit.jupiter.SpringExtension;
@@ -38,4 +41,11 @@ public class ApplicationSpec {
 
   @Test
   public void startupTest() {}
+
+  @Autowired ApplicationContext context;
+
+  @Test
+  public void metricsAreExportableByDefault() {
+    MeterRegistryAssertions.assertExportableByDefault(context);
+  }
 }

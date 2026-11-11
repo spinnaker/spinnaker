@@ -9,9 +9,12 @@ import com.netflix.spinnaker.gate.services.internal.ClouddriverService;
 import com.netflix.spinnaker.gate.services.internal.ExtendedFiatService;
 import com.netflix.spinnaker.gate.services.internal.Front50Service;
 import com.netflix.spinnaker.kork.client.ServiceClientProvider;
+import com.netflix.spinnaker.kork.metrics.MeterRegistryAssertions;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.context.ApplicationContext;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.TestPropertySource;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
@@ -39,5 +42,12 @@ public class MainSpec {
   @Test
   public void startupTest() {
     assertThat(serviceClientProvider).isNotNull();
+  }
+
+  @Autowired ApplicationContext context;
+
+  @Test
+  public void metricsAreExportableByDefault() {
+    MeterRegistryAssertions.assertExportableByDefault(context);
   }
 }

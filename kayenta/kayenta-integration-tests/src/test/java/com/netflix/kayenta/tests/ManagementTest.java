@@ -19,14 +19,24 @@ import static com.netflix.kayenta.utils.AwaitilityUtils.awaitThirtySecondsUntil;
 import static io.restassured.RestAssured.given;
 import static org.hamcrest.CoreMatchers.is;
 
+import com.netflix.spinnaker.kork.metrics.MeterRegistryAssertions;
 import org.junit.jupiter.api.Test;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.context.ApplicationContext;
 import org.springframework.http.HttpStatus;
 
 public class ManagementTest extends BaseIntegrationTest {
 
   @Value("${embedded.prometheus.port}")
   int prometheusPort;
+
+  @Autowired ApplicationContext context;
+
+  @Test
+  public void metricsAreExportableByDefault() {
+    MeterRegistryAssertions.assertExportableByDefault(context);
+  }
 
   @Test
   public void prometheusTargetsAreAllReportingUp() {
