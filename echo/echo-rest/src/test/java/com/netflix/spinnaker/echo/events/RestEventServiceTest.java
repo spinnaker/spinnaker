@@ -60,7 +60,9 @@ public class RestEventServiceTest {
 
   static WireMockServer wireMockServer;
   static int port;
-  static String baseUrl = "http://localhost:PORT/api";
+  // 127.0.0.1 rather than localhost: localhost can resolve to both ::1 and 127.0.0.1, and OkHttp
+  // retries a failed request on the other address, which doubles the requests WireMock sees
+  static String baseUrl = "http://127.0.0.1:PORT/api";
 
   @BeforeAll
   static void setup() {
