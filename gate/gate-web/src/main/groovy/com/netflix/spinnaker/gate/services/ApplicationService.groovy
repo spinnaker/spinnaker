@@ -166,52 +166,7 @@ class ApplicationService {
    * @return the pipeline configuration, or throws an exception if not found
    */
   Map getPipelineConfigForApplication(String app, String pipelineNameOrId) {
-    // Since the argument can be a pipeline name or id, handle both cases.
-    // Query by name first since that's more likely.
-    try {
-      Map pipelineConfig = Retrofit2SyncCall.execute(front50Service.getPipelineConfigByApplicationAndName(app, pipelineNameOrId, true))
-      if (pipelineConfig.name == pipelineNameOrId) {
-        log.debug("front50 returned a pipeline with name ${pipelineNameOrId} in application ${app}")
-        return pipelineConfig
-      }
-      log.error("front50 query for a pipeline with name ${pipelineNameOrId} in application ${app} returned a pipeline named ${pipelineConfig.name}")
-      // Tempting to return null here, but querying by id might work, so give it a shot.
-    } catch (SpinnakerHttpException e) {
-      if (e.getResponseCode() == HttpStatus.NOT_FOUND.value()) {
-        log.info("front50 returned no pipeline with name ${pipelineNameOrId} in application ${app}")
-        // fall through to try querying by id
-      } else {
-        throw e;
-      }
-    }
-
-    // query by id
-    try {
-      Map pipelineConfig = Retrofit2SyncCall.execute(front50Service.getPipelineConfigById(pipelineNameOrId))
-      if (pipelineConfig.id == pipelineNameOrId) {
-        // Pipeline ids are global in front50, but the caller asked for a pipeline in a particular
-        // application.  Without this check, an id that happens to equal a name in the requested
-        // application (e.g. a pipeline someone saved with the id "dev") would match a pipeline from
-        // a different application.
-        if (!app.equalsIgnoreCase(pipelineConfig.application as String)) {
-          log.warn("front50 returned a pipeline with id ${pipelineNameOrId} in application ${pipelineConfig.application}, not the requested application ${app}")
-          throw new NotFoundException("Pipeline configuration not found (nameOrId: ${pipelineNameOrId} in application ${app})")
-        }
-        log.debug("front50 returned a pipeline with id ${pipelineNameOrId}")
-        return pipelineConfig
-      }
-      log.error("front50 query for a pipeline with id ${pipelineNameOrId} returned a pipeline with id ${pipelineConfig.id}")
-    } catch (SpinnakerHttpException e) {
-      if (e.getResponseCode() == HttpStatus.NOT_FOUND.value()) {
-        log.info("front50 returned no pipeline with id ${pipelineNameOrId}")
-        throw e.newInstance("Pipeline configuration not found (nameOrId: ${pipelineNameOrId} in application ${app}): " + e.getMessage())
-      }
-      throw e
-    }
-
-    // If we get here, the query by id returned a pipeline whose id didn't match
-    // what we asked for.
-    throw new NotFoundException("Pipeline configuration not found (nameOrId: ${pipelineNameOrId} in application ${app})")
+    return PipelineConfigResolver.resolve(front50Service, app, pipelineNameOrId)
   }
 
   List<Map<String, Object>> getStrategyConfigsForApplication(String app) {
