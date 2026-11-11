@@ -20,8 +20,6 @@ dependencies {
   implementation "org.apache.logging.log4j:log4j-api"
   implementation "com.fasterxml.jackson.core:jackson-annotations"
   implementation "com.fasterxml.jackson.core:jackson-databind"
-  implementation "com.netflix.spectator:spectator-ext-gc"
-  implementation "com.netflix.spectator:spectator-ext-jvm"
   implementation "com.netflix.spectator:spectator-reg-micrometer"
 
   runtimeOnly "io.micrometer:micrometer-registry-otlp"
