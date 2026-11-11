@@ -22,7 +22,6 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
-import com.netflix.spectator.micrometer.MicrometerRegistry;
 import com.netflix.spinnaker.gate.config.RateLimiterConfiguration;
 import com.netflix.spinnaker.gate.security.RequestIdentityExtractor;
 import io.micrometer.core.instrument.Tags;
@@ -59,7 +58,7 @@ class RateLimitingFilterMetricsTest {
     filter =
         new RateLimitingFilter(
             rateLimiter,
-            new MicrometerRegistry(meters),
+            meters,
             (name, sourceApp) -> new RateLimitPrincipal(name, 10, 1, false),
             new DefaultRateLimitPrincipalResolver(List.of(identityExtractor)),
             new RateLimitRuleMatcher(config.getRules(), config.getExcludePathPatterns()));
@@ -82,6 +81,7 @@ class RateLimitingFilterMetricsTest {
 
     Timer timer = meters.find("controller.invocations").timer();
     assertThat(meters.find("controller.invocations").timers()).hasSize(1);
+    assertThat(meters.find("controller.invocations").counters()).isEmpty();
     assertThat(Tags.of(timer.getId().getTags()))
         .isEqualTo(
             Tags.of(

@@ -22,10 +22,8 @@ import static org.mockito.ArgumentMatchers.anyMap;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
-import com.netflix.spectator.micrometer.MicrometerRegistry;
 import com.netflix.spinnaker.gate.services.internal.EchoService;
 import io.micrometer.core.instrument.Counter;
-import io.micrometer.core.instrument.Tags;
 import io.micrometer.core.instrument.Timer;
 import io.micrometer.core.instrument.simple.SimpleMeterRegistry;
 import java.util.HashMap;
@@ -43,7 +41,7 @@ class PipelineServiceEchoMetricsTest {
   @BeforeEach
   void setUp() {
     pipelineService.setEchoService(echoService);
-    pipelineService.setRegistry(new MicrometerRegistry(meters));
+    pipelineService.setRegistry(meters);
     pipelineService.postConstruct();
   }
 
@@ -74,14 +72,18 @@ class PipelineServiceEchoMetricsTest {
     assertThat(meters.find("echo.events.duration").timer().count()).isZero();
   }
 
-  /**
-   * The counters come from Spectator's {@code IntervalCounter}, which tags them {@code
-   * statistic=count}.
-   */
+  @Test
+  void eventCountsArePlainCountersWithoutAgeGauges() {
+    assertThat(meters.find("echo.events.count").meters()).hasSize(1);
+    assertThat(meters.find("echo.events.error").meters()).hasSize(1);
+    assertThat(meters.find("echo.events.count").gauges()).isEmpty();
+    assertThat(meters.find("echo.events.error").gauges()).isEmpty();
+  }
+
   private Counter eventCounter(String name) {
     assertThat(meters.find(name).counters()).hasSize(1);
     Counter counter = meters.find(name).counter();
-    assertThat(Tags.of(counter.getId().getTags())).isEqualTo(Tags.of("statistic", "count"));
+    assertThat(counter.getId().getTags()).isEmpty();
     return counter;
   }
 }

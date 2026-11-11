@@ -25,7 +25,6 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
-import com.netflix.spectator.micrometer.MicrometerRegistry;
 import com.netflix.spinnaker.kork.dynamicconfig.DynamicConfigService;
 import io.micrometer.core.instrument.Tags;
 import io.micrometer.core.instrument.Timer;
@@ -50,7 +49,7 @@ class RequestSheddingFilterMetricsTest {
     when(configService.isEnabled(ENABLED_KEY, false)).thenReturn(true);
     when(configService.getConfig(String.class, PATHS_KEY, "")).thenReturn("/applications");
     when(configService.getConfig(Integer.class, CHANCE_KEY, 100)).thenReturn(100);
-    filter = new RequestSheddingFilter(configService, new MicrometerRegistry(meters), null);
+    filter = new RequestSheddingFilter(configService, meters, null);
     filter.compilePatterns();
   }
 
@@ -67,6 +66,7 @@ class RequestSheddingFilterMetricsTest {
 
     Timer timer = meters.find("controller.invocations").timer();
     assertThat(meters.find("controller.invocations").timers()).hasSize(1);
+    assertThat(meters.find("controller.invocations").counters()).isEmpty();
     assertThat(Tags.of(timer.getId().getTags()))
         .isEqualTo(
             Tags.of(
