@@ -38,7 +38,6 @@ import com.netflix.spinnaker.orca.pipeline.persistence.ExecutionRepository
 import com.netflix.spinnaker.orca.pipeline.util.ContextParameterProcessor
 import com.netflix.spinnaker.orca.q.CompleteStage
 import com.netflix.spinnaker.orca.q.CompleteTask
-import com.netflix.spinnaker.orca.q.RunTask
 import com.netflix.spinnaker.orca.q.SkipStage
 import com.netflix.spinnaker.orca.q.StageDefinitionBuildersProvider
 import com.netflix.spinnaker.orca.q.StartTask
@@ -81,7 +80,7 @@ object CompleteTaskHandlerTest : SubjectSpek<CompleteTaskHandler>({
 
   fun resetMocks() = reset(queue, repository, publisher)
 
-  setOf(SUCCEEDED, SKIPPED).forEach { successfulStatus ->
+  setOf(SUCCEEDED, SKIPPED, FAILED_CONTINUE).forEach { successfulStatus ->
     describe("when a task completes with $successfulStatus status") {
       given("the stage contains further tasks") {
         val pipeline = pipeline {
@@ -258,8 +257,13 @@ object CompleteTaskHandlerTest : SubjectSpek<CompleteTaskHandler>({
     }
   }
 
-  setOf(TERMINAL, CANCELED, STOPPED).forEach { status ->
-    describe("when a task completes with $status status") {
+  setOf(
+    TERMINAL to TERMINAL,
+    CANCELED to CANCELED,
+    STOPPED to STOPPED,
+    FAILED_CONTINUE to TERMINAL
+  ).forEach { (status, originalStatus) ->
+    describe("when a task completes with $status status from $originalStatus") {
       val pipeline = pipeline {
         stage {
           type = multiTaskStage.type
@@ -273,7 +277,7 @@ object CompleteTaskHandlerTest : SubjectSpek<CompleteTaskHandler>({
         pipeline.stages.first().id,
         "1",
         status,
-        status
+        originalStatus
       )
 
       beforeGroup {
@@ -290,7 +294,7 @@ object CompleteTaskHandlerTest : SubjectSpek<CompleteTaskHandler>({
         verify(repository).storeStage(
           check {
             it.tasks.first().apply {
-              assertThat(status).isEqualTo(status)
+              assertThat(this.status).isEqualTo(message.status)
               assertThat(endTime).isEqualTo(clock.millis())
             }
           }
@@ -309,7 +313,7 @@ object CompleteTaskHandlerTest : SubjectSpek<CompleteTaskHandler>({
       }
 
       it("does not run the next task") {
-        verify(queue, never()).push(any<RunTask>())
+        verify(queue, never()).push(any<StartTask>())
       }
 
       it("publishes an event") {
@@ -334,14 +338,19 @@ object CompleteTaskHandlerTest : SubjectSpek<CompleteTaskHandler>({
     }
 
     it("is last task in stage") {
-      subject.shouldCompleteStage(task(true), SUCCEEDED, SUCCEEDED) == true
-      subject.shouldCompleteStage(task(false), SUCCEEDED, SUCCEEDED) == false
+      assertThat(subject.shouldCompleteStage(task(true), SUCCEEDED, SUCCEEDED)).isTrue()
+      assertThat(subject.shouldCompleteStage(task(false), SUCCEEDED, SUCCEEDED)).isFalse()
     }
 
     it("did not originally complete with FAILED_CONTINUE") {
-      subject.shouldCompleteStage(task(false), TERMINAL, TERMINAL) == true
-      subject.shouldCompleteStage(task(false), FAILED_CONTINUE, TERMINAL) == true
-      subject.shouldCompleteStage(task(false), FAILED_CONTINUE, FAILED_CONTINUE) == false
+      assertThat(subject.shouldCompleteStage(task(false), TERMINAL, TERMINAL)).isTrue()
+      assertThat(subject.shouldCompleteStage(task(false), FAILED_CONTINUE, TERMINAL)).isTrue()
+      assertThat(subject.shouldCompleteStage(task(false), FAILED_CONTINUE, FAILED_CONTINUE)).isFalse()
+    }
+
+    it("uses the mapped status for older messages without an original status") {
+      assertThat(subject.shouldCompleteStage(task(false), TERMINAL, null)).isTrue()
+      assertThat(subject.shouldCompleteStage(task(false), FAILED_CONTINUE, null)).isFalse()
     }
   }
 

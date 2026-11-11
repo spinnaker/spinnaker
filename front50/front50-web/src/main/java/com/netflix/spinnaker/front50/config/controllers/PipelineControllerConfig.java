@@ -33,11 +33,11 @@ public class PipelineControllerConfig {
     boolean refreshCacheOnDuplicatesCheck = true;
 
     /**
-     * Controls whether the {@code staleCheck} optimistic-concurrency check is actually enforced on
-     * pipeline save. Defaults to false to preserve current behavior: the check has been a silent
-     * no-op since 2022 due to a separate bug, so flipping it on by default here would be a behavior
-     * change for every existing client that already passes {@code staleCheck=true} (e.g. Deck).
+     * Controls whether the {@code staleCheck} optimistic-concurrency check is enforced on pipeline
+     * save. Clients such as Deck pass {@code staleCheck=true}, so a save based on an out-of-date
+     * copy of the pipeline is rejected instead of silently overwriting a newer one. Set to false to
+     * restore the previous behavior, where the check was a no-op.
      */
-    boolean staleCheckEnabled = false;
+    boolean staleCheckEnabled = true;
   }
 }

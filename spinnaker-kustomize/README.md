@@ -132,6 +132,15 @@ Separating configuration across files and ConfigMap's can make development
 and troubleshooting difficult so try to put configuration directly into a
 single file where possible, such as `clouddriver-local.yml`.
 
+### Gate API rate limiting
+
+`components/rate-limit` is an opt-in demo of Gate's Redis-backed API rate limiting (it requires
+the Redis component). Uncomment `components/rate-limit` in the root `kustomization.yml` to enable it.
+It starts in learning mode (over-limit calls are logged, not rejected) and shows the default
+bucket, `anonymous-capacity`, exclusions, higher limits by role/group (`capacity-by-role`),
+per-user overrides (`capacity-by-principal`) and per-endpoint `rules`. Edit
+`components/rate-limit/files/gate.yml` for your groups and users, and set `learning: false` to enforce.
+
 ### Kustomize limitations
 
 Kustomize supports appending files to a single `ConfigMap`. Kustomize cannot
