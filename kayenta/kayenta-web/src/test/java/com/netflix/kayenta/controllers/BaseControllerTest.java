@@ -19,6 +19,8 @@ import com.netflix.kayenta.storage.StorageServiceRepository;
 import com.netflix.spectator.api.Registry;
 import com.netflix.spinnaker.orca.pipeline.ExecutionLauncher;
 import com.netflix.spinnaker.orca.pipeline.persistence.ExecutionRepository;
+import io.micrometer.core.instrument.MeterRegistry;
+import io.micrometer.core.instrument.simple.SimpleMeterRegistry;
 import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
@@ -76,6 +78,11 @@ public abstract class BaseControllerTest {
   @Import(WebConfiguration.class)
   @Configuration
   public static class TestControllersConfiguration {
+
+    @Bean
+    MeterRegistry meterRegistry() {
+      return new SimpleMeterRegistry();
+    }
 
     @Bean
     StorageServiceRepository storageServiceRepository(List<StorageService> storageServices) {

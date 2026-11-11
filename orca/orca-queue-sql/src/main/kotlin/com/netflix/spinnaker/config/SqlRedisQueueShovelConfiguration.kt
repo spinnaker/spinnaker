@@ -21,6 +21,7 @@ import com.netflix.spectator.api.Registry
 import com.netflix.spinnaker.kork.dynamicconfig.DynamicConfigService
 import com.netflix.spinnaker.kork.jedis.JedisDriverProperties
 import com.netflix.spinnaker.kork.jedis.JedisPoolFactory
+import io.micrometer.core.instrument.MeterRegistry
 import com.netflix.spinnaker.orca.q.QueueShovel
 import com.netflix.spinnaker.q.Activator
 import com.netflix.spinnaker.q.metrics.EventPublisher
@@ -60,10 +61,11 @@ class SqlRedisQueueShovelConfiguration {
     serializationMigrator: Optional<SerializationMigrator>,
     redisQueueProperties: RedisQueueProperties,
     registry: Registry,
+    meterRegistry: MeterRegistry,
     discoveryActivator: Activator,
     dynamicConfigService: DynamicConfigService
   ): QueueShovel {
-    val jedisPool = JedisPoolFactory(registry).build(
+    val jedisPool = JedisPoolFactory(meterRegistry).build(
       "previousQueue",
       JedisDriverProperties().apply {
         connection = mainConnection
