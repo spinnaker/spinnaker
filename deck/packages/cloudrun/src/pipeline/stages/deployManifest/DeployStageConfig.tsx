@@ -65,6 +65,7 @@ export class DeployStageConfig extends React.Component<IStageConfigProps, IDeplo
       <FormikStageConfig
         {...this.props}
         stage={this.stage}
+        liveStage={this.props.stage}
         onChange={this.props.updateStage}
         render={(props) => <DeployStageForm {...props} accounts={this.state.accounts} />}
       />
