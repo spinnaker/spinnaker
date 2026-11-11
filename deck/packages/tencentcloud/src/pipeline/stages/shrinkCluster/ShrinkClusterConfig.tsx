@@ -21,6 +21,7 @@ export function ShrinkClusterConfig({ application, pipeline, stage, updateStage 
       onChange={updateStage}
       pipeline={pipeline}
       stage={stageWithDefaults}
+      liveStage={stage}
       render={(props) => <ShrinkClusterStageForm {...props} />}
     />
   );
