@@ -71,6 +71,31 @@ describe('FormikStageConfig', () => {
     expect(liveStage.mode).toBe('trigger');
   });
 
+  it('saves defaults the live stage lacks with the first edit only', async () => {
+    const user = setupUser();
+    const liveStage: IStage = { refId: '1', name: 'Script', type: 'script', requisiteStageRefIds: [], mode: 'trigger' };
+    const stageWithDefaults = { ...liveStage, mode: 'text', retries: 3 };
+    const onChange = vi.fn((values: Partial<IStage>) => Object.assign(liveStage, values));
+    render(
+      <FormikStageConfig
+        application={{} as any}
+        pipeline={{} as any}
+        stage={stageWithDefaults}
+        liveStage={liveStage}
+        onChange={onChange}
+        render={() => <FormikFormField name="command" input={(inputProps) => <TextInput {...inputProps} />} />}
+      />,
+    );
+
+    await user.type(screen.getByRole('textbox'), 'b');
+    await user.type(screen.getByRole('textbox'), 'c');
+
+    await waitFor(() => expect(liveStage.command).toBe('bc'));
+    expect(onChange).toHaveBeenNthCalledWith(1, { retries: 3, command: 'b' });
+    expect(onChange).toHaveBeenNthCalledWith(2, { command: 'bc' });
+    expect(liveStage.mode).toBe('trigger');
+  });
+
   it('passes only the changed fields to onChange', async () => {
     const user = setupUser();
     const stage: IStage = {
