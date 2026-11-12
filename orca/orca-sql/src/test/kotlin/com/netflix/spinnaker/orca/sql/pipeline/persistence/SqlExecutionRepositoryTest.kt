@@ -74,6 +74,7 @@ class SqlExecutionRepositoryTest : JUnit5Minutests {
 
     after {
       SqlTestUtil.cleanupDb(database.context)
+      database.close()
     }
 
     context("retrieving pipelines by application and name") {
