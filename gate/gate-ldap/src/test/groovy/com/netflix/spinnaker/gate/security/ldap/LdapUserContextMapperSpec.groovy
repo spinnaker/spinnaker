@@ -2,7 +2,12 @@ package com.netflix.spinnaker.gate.security.ldap
 
 import com.netflix.spinnaker.gate.security.AllowedAccountsSupport
 import com.netflix.spinnaker.gate.services.PermissionService
-import com.netflix.spinnaker.security.User
+import com.netflix.spinnaker.security.AllowedAccountsAuthorities
+import com.netflix.spinnaker.security.SpinnakerAuthorities
+import org.springframework.security.authentication.UsernamePasswordAuthenticationToken
+import org.springframework.security.core.Authentication
+import org.springframework.security.core.userdetails.User
+import org.springframework.security.core.userdetails.UserDetails
 import org.springframework.ldap.core.DirContextAdapter
 import org.springframework.ldap.core.DirContextOperations
 import org.springframework.security.core.authority.SimpleGrantedAuthority
@@ -40,13 +45,9 @@ class LdapUserContextMapperSpec extends Specification {
 
     and:
     details instanceof User
-    def user = details as User
-    user.username == "joe"
-    user.email == "joe.dohn@test.com"
-    user.firstName == "Joe"
-    user.lastName == "Dohn"
-    (user.roles as Set) == (["admin", "dev", "viewer"] as Set)
-    user.allowedAccounts == (["acc1", "acc2"] as Set)
+    details.username == "joe"
+    (SpinnakerAuthorities.getRoleNames(auth(details)) as Set) == (["admin", "dev", "viewer"] as Set)
+    AllowedAccountsAuthorities.getAllowedAccountNames(auth(details)) == ["acc1", "acc2"]
   }
 
   def "sanitizeRoles should remove ROLE_ prefix and lower-case; empty string is preserved"() {
@@ -68,8 +69,11 @@ class LdapUserContextMapperSpec extends Specification {
 
     then:
     1 * permissionService.loginWithRoles("joe", ["", "admin"] as Set)
-    def user = details as User
-    (user.roles as Set) == (["", "admin"] as Set)
+    (details.authorities*.authority as Set) == (["admin"] as Set)
+  }
+
+  private static Authentication auth(UserDetails details) {
+    new UsernamePasswordAuthenticationToken(details, "", details.authorities)
   }
 
   def "mapUserToContext should throw UnsupportedOperationException"() {

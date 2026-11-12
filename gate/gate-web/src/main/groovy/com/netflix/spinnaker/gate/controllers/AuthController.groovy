@@ -16,13 +16,12 @@
 
 package com.netflix.spinnaker.gate.controllers
 
-import com.netflix.spinnaker.gate.security.SpinnakerUser
 import com.netflix.spinnaker.gate.security.apitoken.ApiTokenProperties
 import com.netflix.spinnaker.gate.security.apitoken.ApiTokenService
 import com.netflix.spinnaker.gate.services.PermissionService
 import com.netflix.spinnaker.gate.services.SessionService
 import com.netflix.spinnaker.security.AuthenticatedRequest
-import com.netflix.spinnaker.security.User
+import com.netflix.spinnaker.security.SpinnakerAuthorities
 import groovy.util.logging.Slf4j
 import io.swagger.v3.oas.annotations.Operation
 import io.swagger.v3.oas.annotations.Parameter;
@@ -30,6 +29,8 @@ import org.apache.commons.lang3.exception.ExceptionUtils
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.beans.factory.annotation.Value
 import org.springframework.security.access.prepost.PreAuthorize
+import org.springframework.security.core.Authentication
+import org.springframework.security.core.annotation.CurrentSecurityContext
 import org.springframework.web.bind.annotation.RequestMapping
 import org.springframework.web.bind.annotation.RequestMethod
 import org.springframework.web.bind.annotation.RequestParam
@@ -83,45 +84,33 @@ class AuthController {
 
   @Operation(summary = "Get user")
   @RequestMapping(value = "/user", method = RequestMethod.GET)
-  AuthUserResponse user(@Parameter(hidden = true) @SpinnakerUser User user) {
-    if (!user) {
+  AuthUserResponse user(@Parameter(hidden = true) @CurrentSecurityContext(expression = "authentication") Authentication authentication) {
+    if (!SpinnakerAuthorities.hasIdentity(authentication)) {
       return null
     }
 
-    def fiatRoles = permissionService.getRoles(user.username)?.collect{ it.name }
-    if (fiatRoles) {
-      user.roles = fiatRoles
-    }
+    String username = authentication.name
+    def fiatRoles = permissionService.getRoles(username)?.collect{ it.name }
+    Collection<String> roles = fiatRoles ?: SpinnakerAuthorities.getRoleNames(authentication)
 
-    boolean isAdmin = permissionService.isAdmin(user.username)
-    boolean canMintApiTokens = apiTokenService?.canMintApiTokens(user.username) ?: false
+    boolean isAdmin = permissionService.isAdmin(username)
+    boolean canMintApiTokens = apiTokenService?.canMintApiTokens(username) ?: false
 
     Integer maxUserTokenLifetimeDays = apiTokenProperties?.enabled ? apiTokenProperties.maxUserTokenLifetimeDays : null
     Integer maxServiceAccountTokenLifetimeDays = apiTokenProperties?.enabled ? apiTokenProperties.maxServiceAccountTokenLifetimeDays : null
 
     return AuthUserResponse.from(
-        user,
+        authentication,
+        roles,
         isAdmin,
         canMintApiTokens,
         maxUserTokenLifetimeDays,
         maxServiceAccountTokenLifetimeDays)
   }
 
-  @Operation(summary = "Get raw user")
-  @RequestMapping(value = "/rawUser", method = RequestMethod.GET)
-  User rawUser(@Parameter(hidden = true) @SpinnakerUser User user) {
-    if (!user) {
-      log.info("GET /auth/rawUser: null user")
-      return user
-    }
-
-    log.info("GET /auth/rawUser: username: '${user.getUsername()}' email: '${user.getEmail()}' roles: '${user.getRoles()}'")
-    return user
-  }
-
   @Operation(summary = "Get service accounts", hidden=true)
   @RequestMapping(value = "/user/serviceAccounts", method = RequestMethod.GET)
-  List<String> getServiceAccounts(@Parameter(hidden = true) @SpinnakerUser User user,
+  List<String> getServiceAccounts(@Parameter(hidden = true) @CurrentSecurityContext(expression = "authentication") Authentication authentication,
                                   @RequestParam(name = "application", required = false) String application) {
 
     String appName = Optional.ofNullable(application)
@@ -131,10 +120,10 @@ class AuthController {
 
 
     if (appName == null) {
-      return permissionService.getServiceAccounts(user)
+      return permissionService.getServiceAccounts(authentication?.name)
     }
 
-    return permissionService.getServiceAccountsForApplication(user, appName)
+    return permissionService.getServiceAccountsForApplication(authentication?.name, appName)
   }
 
   @Operation(summary = "Get logged out message")

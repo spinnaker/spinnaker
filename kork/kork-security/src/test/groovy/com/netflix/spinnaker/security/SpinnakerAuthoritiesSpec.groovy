@@ -53,6 +53,16 @@ class SpinnakerAuthoritiesSpec extends Specification {
     u(SpinnakerAuthorities.forRoleName('c')) || ['c']
   }
 
+  void "getRoleNames returns bare and prefixed roles but not markers"() {
+    expect:
+    SpinnakerAuthorities.getRoleNames(authentication) == expectedRoles
+    where:
+    authentication                                                       || expectedRoles
+    null                                                                 || []
+    u('dev', 'ROLE_ops', 'ALLOWED_ACCOUNT_prod', 'SPINNAKER_ADMIN')      || ['dev', 'ops']
+    u('dev', 'ROLE_dev')                                                 || ['dev']
+  }
+
   private static Authentication u(String... authorities) {
     new TestingAuthenticationToken(null, null, authorities)
   }

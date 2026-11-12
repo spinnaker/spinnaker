@@ -24,7 +24,6 @@ import com.netflix.spinnaker.fiat.shared.FiatPermissionEvaluator;
 import com.netflix.spinnaker.fiat.shared.FiatService;
 import com.netflix.spinnaker.fiat.shared.FiatStatus;
 import com.netflix.spinnaker.gate.retrofit.UpstreamBadRequest;
-import com.netflix.spinnaker.gate.security.SpinnakerUser;
 import com.netflix.spinnaker.gate.services.internal.ExtendedFiatService;
 import com.netflix.spinnaker.kork.core.RetrySupport;
 import com.netflix.spinnaker.kork.exceptions.SpinnakerException;
@@ -33,7 +32,6 @@ import com.netflix.spinnaker.kork.retrofit.Retrofit2SyncCall;
 import com.netflix.spinnaker.kork.retrofit.exceptions.SpinnakerHttpException;
 import com.netflix.spinnaker.kork.retrofit.exceptions.SpinnakerServerException;
 import com.netflix.spinnaker.security.AuthenticatedRequest;
-import com.netflix.spinnaker.security.User;
 import java.time.Duration;
 import java.util.Collection;
 import java.util.Collections;
@@ -41,6 +39,7 @@ import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
 import javax.annotation.Nonnull;
+import javax.annotation.Nullable;
 import lombok.RequiredArgsConstructor;
 import lombok.Setter;
 import lombok.extern.log4j.Log4j2;
@@ -174,24 +173,23 @@ public class PermissionService {
   }
 
   public List<String> getServiceAccountsForApplication(
-      @SpinnakerUser final User user, @Nonnull final String application) {
+      @Nullable final String username, @Nonnull final String application) {
     var matchAuthorizations = serviceAccountFilterConfigProps.getMatchAuthorizations();
     boolean requiresFiltering =
         fiatStatus.isEnabled()
             && serviceAccountFilterConfigProps.isEnabled()
-            && user != null
+            && username != null
             && StringUtils.hasLength(application)
             && !CollectionUtils.isEmpty(matchAuthorizations);
     if (!requiresFiltering) {
-      return getServiceAccounts(user);
+      return getServiceAccounts(username);
     }
 
     List<String> filteredServiceAccounts;
     RetrySupport retry = new RetrySupport();
     try {
       var serviceAccounts =
-          retry.retry(
-              () -> lookupServiceAccounts(user.getUsername()), 3, Duration.ofMillis(50), false);
+          retry.retry(() -> lookupServiceAccounts(username), 3, Duration.ofMillis(50), false);
       filteredServiceAccounts =
           serviceAccounts.stream()
               .filter(
@@ -207,20 +205,22 @@ public class PermissionService {
     } catch (SpinnakerException se) {
       log.error(
           "failed to lookup user {} service accounts for application {}, falling back to all user service accounts",
-          user,
+          username,
           application,
           se);
-      return getServiceAccounts(user);
+      return getServiceAccounts(username);
     }
 
     // if there are no service accounts for the requested application, fall back to the full list of
     // service accounts for the user to avoid a chicken and egg problem of trying to enable security
     // for the first time on an application
-    return !filteredServiceAccounts.isEmpty() ? filteredServiceAccounts : getServiceAccounts(user);
+    return !filteredServiceAccounts.isEmpty()
+        ? filteredServiceAccounts
+        : getServiceAccounts(username);
   }
 
-  public List<String> getServiceAccounts(@SpinnakerUser User user) {
-    if (user == null) {
+  public List<String> getServiceAccounts(@Nullable String username) {
+    if (username == null) {
       log.debug("getServiceAccounts: Spinnaker user is null.");
       return List.of();
     }
@@ -231,7 +231,7 @@ public class PermissionService {
     }
 
     try {
-      var permission = permissionEvaluator.getPermission(user.getUsername());
+      var permission = permissionEvaluator.getPermission(username);
       if (permission == null) {
         return List.of();
       }

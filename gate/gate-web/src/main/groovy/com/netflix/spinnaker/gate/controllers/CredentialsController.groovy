@@ -19,16 +19,17 @@ package com.netflix.spinnaker.gate.controllers
 import com.fasterxml.jackson.core.type.TypeReference
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.netflix.spinnaker.gate.security.AllowedAccountsSupport
-import com.netflix.spinnaker.gate.security.SpinnakerUser
 import com.netflix.spinnaker.gate.services.AccountLookupService
 import com.netflix.spinnaker.gate.services.internal.ClouddriverService
 import com.netflix.spinnaker.gate.services.internal.ClouddriverService.Account
 import com.netflix.spinnaker.gate.services.internal.ClouddriverService.AccountDetails
 import com.netflix.spinnaker.kork.retrofit.Retrofit2SyncCall
-import com.netflix.spinnaker.security.User
+import com.netflix.spinnaker.security.SpinnakerAuthorities
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import org.springframework.beans.factory.annotation.Autowired
+import org.springframework.security.core.Authentication
+import org.springframework.security.core.annotation.CurrentSecurityContext
 import org.springframework.web.bind.annotation.DeleteMapping
 import org.springframework.web.bind.annotation.GetMapping
 import org.springframework.web.bind.annotation.PathVariable
@@ -63,19 +64,19 @@ class CredentialsController {
 
   @Operation(summary = "Retrieve a list of accounts")
   @RequestMapping(method = RequestMethod.GET)
-  List<Account> getAccounts(@Parameter(hidden = true) @SpinnakerUser User user, @RequestParam(value = "expand", required = false) boolean expand) {
-    List<AccountDetails> allAccounts = getAccountDetailsWithAuthorizedFlag(user)
+  List<Account> getAccounts(@Parameter(hidden = true) @CurrentSecurityContext(expression = "authentication") Authentication authentication, @RequestParam(value = "expand", required = false) boolean expand) {
+    List<AccountDetails> allAccounts = getAccountDetailsWithAuthorizedFlag(authentication)
     if (expand) {
       return allAccounts
     }
     return objectMapper.convertValue(allAccounts, new TypeReference<List<CredentialsController.AccountWithAuthorization>>() {})
   }
 
-  private List<AccountDetails> getAccountDetailsWithAuthorizedFlag(User user) {
+  private List<AccountDetails> getAccountDetailsWithAuthorizedFlag(Authentication authentication) {
     List<AccountDetails> allAccounts = accountLookupService.getAccounts()
-    Collection<String> allowedAccounts = user == null ?
+    Collection<String> allowedAccounts = !SpinnakerAuthorities.hasIdentity(authentication) ?
       Collections.emptySet() :
-      allowedAccountsSupport.filterAllowedAccounts(user.username, user.roles)
+      allowedAccountsSupport.filterAllowedAccounts(authentication.name, SpinnakerAuthorities.getRoleNames(authentication))
 
     for (AccountDetails account : allAccounts) {
       account.set('authorized', allowedAccounts.contains(account.name) ? Boolean.TRUE : Boolean.FALSE)
@@ -85,9 +86,9 @@ class CredentialsController {
 
   @Operation(summary = "Retrieve an account's details")
   @RequestMapping(value = '/{account:.+}', method = RequestMethod.GET)
-  AccountDetails getAccount(@Parameter(hidden = true) @SpinnakerUser User user, @PathVariable("account") String account,
+  AccountDetails getAccount(@Parameter(hidden = true) @CurrentSecurityContext(expression = "authentication") Authentication authentication, @PathVariable("account") String account,
                             @RequestHeader(value = "X-RateLimit-App", required = false) String sourceApp) {
-    return getAccountDetailsWithAuthorizedFlag(user).find { it.name == account }
+    return getAccountDetailsWithAuthorizedFlag(authentication).find { it.name == account }
   }
 
   @GetMapping('/type/{accountType}')

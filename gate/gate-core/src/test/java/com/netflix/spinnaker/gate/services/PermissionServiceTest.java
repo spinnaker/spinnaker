@@ -44,7 +44,6 @@ import com.netflix.spinnaker.kork.retrofit.exceptions.SpinnakerConversionExcepti
 import com.netflix.spinnaker.kork.retrofit.exceptions.SpinnakerHttpException;
 import com.netflix.spinnaker.kork.retrofit.exceptions.SpinnakerNetworkException;
 import com.netflix.spinnaker.kork.retrofit.exceptions.SpinnakerServerException;
-import com.netflix.spinnaker.security.User;
 import java.io.IOException;
 import java.util.Collection;
 import java.util.Collections;
@@ -253,10 +252,6 @@ public class PermissionServiceTest {
 
     ServiceAccountFilterConfigProps cfgProps =
         new ServiceAccountFilterConfigProps(params.enabled, params.auths);
-    User user = params.username == null ? null : mock(User.class);
-    if (user != null) {
-      when(user.getUsername()).thenReturn(params.username);
-    }
     when(fiatStatus.isEnabled()).thenReturn(params.fiatEnabled);
 
     when(extendedFiatService.getUserServiceAccounts(params.username))
@@ -270,7 +265,7 @@ public class PermissionServiceTest {
         new PermissionService(null, extendedFiatService, cfgProps, permissionEvaluator, fiatStatus);
 
     // When: Call the method under test
-    permissionService.getServiceAccountsForApplication(user, params.application);
+    permissionService.getServiceAccountsForApplication(params.username, params.application);
 
     // Then: Verify the expected interactions
     if (params.expectLookup) {

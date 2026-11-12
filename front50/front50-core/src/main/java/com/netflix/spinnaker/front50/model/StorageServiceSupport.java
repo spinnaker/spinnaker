@@ -27,7 +27,6 @@ import com.netflix.spinnaker.front50.api.model.pipeline.Pipeline;
 import com.netflix.spinnaker.front50.config.StorageServiceConfigurationProperties;
 import com.netflix.spinnaker.kork.web.exceptions.NotFoundException;
 import com.netflix.spinnaker.security.AuthenticatedRequest;
-import com.netflix.spinnaker.security.User;
 import io.github.resilience4j.circuitbreaker.CircuitBreaker;
 import io.github.resilience4j.circuitbreaker.CircuitBreakerConfig;
 import io.github.resilience4j.circuitbreaker.CircuitBreakerRegistry;
@@ -315,11 +314,9 @@ public abstract class StorageServiceSupport<T extends Timestamped> {
   }
 
   public void bulkImport(Collection<T> items) {
-    User authenticatedUser = new User();
-    authenticatedUser.setUsername(AuthenticatedRequest.getSpinnakerUser().orElse("anonymous"));
+    String lastModifiedBy = AuthenticatedRequest.getSpinnakerUser().orElse("anonymous");
 
     if (service instanceof BulkStorageService) {
-      String lastModifiedBy = AuthenticatedRequest.getSpinnakerUser().orElse("anonymous");
       Long lastModified = System.currentTimeMillis();
 
       items.forEach(
@@ -346,7 +343,7 @@ public abstract class StorageServiceSupport<T extends Timestamped> {
                                       return Observable.just(item);
                                     },
                                     true,
-                                    authenticatedUser)
+                                    lastModifiedBy)
                                 .call();
                           } catch (Exception e) {
                             throw new RuntimeException(e);

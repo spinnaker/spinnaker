@@ -19,12 +19,11 @@ package com.netflix.spinnaker.filters
 import com.netflix.spinnaker.kork.common.Header
 import com.netflix.spinnaker.security.AllowedAccountsAuthorities
 import com.netflix.spinnaker.security.AuthenticatedRequest
+import com.netflix.spinnaker.security.SpinnakerAuthorities
 import groovy.util.logging.Slf4j
-import org.springframework.security.authentication.AnonymousAuthenticationToken
 import org.springframework.security.core.Authentication
 import org.springframework.security.core.context.SecurityContext
 import org.springframework.security.core.context.SecurityContextHolder
-import org.springframework.security.core.userdetails.UserDetails
 
 import jakarta.servlet.Filter
 import jakarta.servlet.FilterChain
@@ -84,7 +83,7 @@ class AuthenticatedRequestFilter implements Filter {
       }
 
       Authentication authentication = securityContext?.authentication
-      if (hasIdentity(authentication)) {
+      if (SpinnakerAuthorities.hasIdentity(authentication)) {
         spinnakerUser = authentication.name
         spinnakerAccounts = AllowedAccountsAuthorities.getAllowedAccountNames(authentication).join(",")
       }
@@ -152,18 +151,6 @@ class AuthenticatedRequestFilter implements Filter {
         AuthenticatedRequest.clear()
       }
     }
-  }
-
-  /**
-   * An anonymous token only carries an identity when its principal is a real user (as Gate's
-   * anonymous mode provides); the default String principal ("anonymousUser") must not become a
-   * user header.
-   */
-  private static boolean hasIdentity(Authentication authentication) {
-    if (authentication == null || !authentication.authenticated || !authentication.name) {
-      return false
-    }
-    return !(authentication instanceof AnonymousAuthenticationToken) || authentication.principal instanceof UserDetails
   }
 
   @Override

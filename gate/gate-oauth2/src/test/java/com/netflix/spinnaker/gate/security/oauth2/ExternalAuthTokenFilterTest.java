@@ -153,7 +153,7 @@ class ExternalAuthTokenFilterTest {
 
     OAuth2User spinnakerUser = mock(OAuth2User.class);
     when(spinnakerUser.getAuthorities()).thenReturn(List.of());
-    when(userInfoServiceHelper.getSpinnakerOAuth2User(any(OAuth2User.class), any()))
+    when(userInfoServiceHelper.toOAuth2User(any(OAuth2User.class), any()))
         .thenReturn(spinnakerUser);
 
     filter.doFilterInternal(request, response, filterChain);

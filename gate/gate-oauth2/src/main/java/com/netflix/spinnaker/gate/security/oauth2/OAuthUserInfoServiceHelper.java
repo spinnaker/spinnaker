@@ -30,23 +30,29 @@ import com.netflix.spinnaker.kork.annotations.VisibleForTesting;
 import com.netflix.spinnaker.kork.core.RetrySupport;
 import com.netflix.spinnaker.kork.retrofit.Retrofit2SyncCall;
 import com.netflix.spinnaker.kork.retrofit.exceptions.SpinnakerServerException;
+import com.netflix.spinnaker.security.SpinnakerAuthorities;
 import java.time.Duration;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
+import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
+import java.util.Set;
 import java.util.regex.Pattern;
 import java.util.regex.PatternSyntaxException;
 import java.util.stream.Collectors;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.authentication.BadCredentialsException;
+import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.oauth2.client.userinfo.OAuth2UserRequest;
+import org.springframework.security.oauth2.core.oidc.user.DefaultOidcUser;
 import org.springframework.security.oauth2.core.oidc.user.OidcUser;
+import org.springframework.security.oauth2.core.user.DefaultOAuth2User;
 import org.springframework.security.oauth2.core.user.OAuth2User;
 import org.springframework.stereotype.Component;
 
@@ -97,73 +103,62 @@ public class OAuthUserInfoServiceHelper {
   }
 
   /**
-   * Builds a {@link SpinnakerOAuth2User} from the given {@link OAuth2User} and its {@link
-   * OAuth2UserRequest}.
+   * Builds the {@link OAuth2User} that backs the authentication from the given provider {@link
+   * OAuth2User} and its {@link OAuth2UserRequest}.
    *
-   * <p>This method extracts user identity information (email, first name, last name, username,
-   * roles) from the provider's user attributes according to the configured {@link
-   * OAuth2SsoConfig.UserInfoMapping}. It also applies account filtering through {@link
-   * AllowedAccountsSupport}, validates user info requirements, and triggers a login in Fiat to
+   * <p>The username is read from the attribute configured in {@link
+   * OAuth2SsoConfig.UserInfoMapping}. Roles and the accounts those roles allow are granted as
+   * authorities. The method also validates user info requirements and triggers a login in Fiat to
    * establish authorization context.
    *
    * @param oAuth2User the raw user object returned by the OAuth2 provider
    * @param userRequest the associated user request, including access token and client registration
-   * @return a {@link SpinnakerOAuth2User} containing normalized user identity, roles, and allowed
-   *     accounts
+   * @return an {@link OAuth2User} named after the username attribute, with roles and allowed
+   *     accounts as authorities
    * @throws org.springframework.security.authentication.BadCredentialsException if the user's
    *     attributes do not meet required constraints
    */
-  OAuth2User getSpinnakerOAuth2User(OAuth2User oAuth2User, OAuth2UserRequest userRequest) {
+  OAuth2User toOAuth2User(OAuth2User oAuth2User, OAuth2UserRequest userRequest) {
     Map<String, Object> details = oAuth2User.getAttributes();
 
     ResolvedUserInfo userInfo = getUserInfo(details, userRequest);
 
-    return new SpinnakerOAuth2User(
-        Objects.toString(details.get(userInfoMapping.getEmail()), null),
-        Objects.toString(details.get(userInfoMapping.getFirstName()), null),
-        Objects.toString(details.get(userInfoMapping.getLastName()), null),
-        allowedAccountsSupport.filterAllowedAccounts(userInfo.username(), userInfo.roles()),
-        userInfo.roles(),
-        userInfo.username(),
-        details,
-        oAuth2User.getAuthorities());
+    return new DefaultOAuth2User(
+        authorities(oAuth2User.getAuthorities(), userInfo), details, userInfoMapping.getUsername());
   }
 
   /**
-   * Builds a {@link SpinnakerOIDCUser} from the given {@link OidcUser} and its {@link
-   * OAuth2UserRequest}.
-   *
-   * <p>This method extracts identity information (email, first name, last name, username, roles)
-   * from the OIDC claims and user attributes, applies account filtering through {@link
-   * AllowedAccountsSupport}, and triggers a Fiat login to establish authorization context. Unlike
-   * {@link #getSpinnakerOAuth2User}, this method also preserves the OIDC-specific {@link
-   * org.springframework.security.oauth2.core.oidc.OidcIdToken} and {@link
+   * Builds the {@link OidcUser} that backs the authentication from the given provider {@link
+   * OidcUser} and its {@link OAuth2UserRequest}. Unlike {@link #toOAuth2User}, this preserves the
+   * OIDC-specific {@link org.springframework.security.oauth2.core.oidc.OidcIdToken} and {@link
    * org.springframework.security.oauth2.core.oidc.OidcUserInfo}.
    *
    * @param oidcUser the raw user object returned by the OIDC provider, including ID token and user
    *     info claims
    * @param userRequest the associated user request, including access token and client registration
-   * @return a {@link SpinnakerOIDCUser} containing normalized user identity, roles, allowed
-   *     accounts, ID token, and OIDC user info
+   * @return an {@link OidcUser} named after the username claim, with roles and allowed accounts as
+   *     authorities
    * @throws org.springframework.security.authentication.BadCredentialsException if the user's
    *     claims do not meet required constraints
    */
-  OidcUser getSpinnakerOIDCUser(OidcUser oidcUser, OAuth2UserRequest userRequest) {
-    Map<String, Object> details = oidcUser.getAttributes();
+  OidcUser toOidcUser(OidcUser oidcUser, OAuth2UserRequest userRequest) {
+    ResolvedUserInfo userInfo = getUserInfo(oidcUser.getAttributes(), userRequest);
 
-    ResolvedUserInfo userInfo = getUserInfo(details, userRequest);
-
-    return new SpinnakerOIDCUser(
-        Objects.toString(details.get(userInfoMapping.getEmail()), null),
-        Objects.toString(details.get(userInfoMapping.getFirstName()), null),
-        Objects.toString(details.get(userInfoMapping.getLastName()), null),
-        allowedAccountsSupport.filterAllowedAccounts(userInfo.username(), userInfo.roles()),
-        userInfo.roles(),
-        userInfo.username(),
+    return new DefaultOidcUser(
+        authorities(oidcUser.getAuthorities(), userInfo),
         oidcUser.getIdToken(),
         oidcUser.getUserInfo(),
-        details,
-        oidcUser.getAuthorities());
+        userInfoMapping.getUsername());
+  }
+
+  private Collection<GrantedAuthority> authorities(
+      Collection<? extends GrantedAuthority> providerAuthorities, ResolvedUserInfo userInfo) {
+    Set<GrantedAuthority> authorities = new LinkedHashSet<>(providerAuthorities);
+    authorities.addAll(
+        SpinnakerAuthorities.forRolesAndAccounts(
+            userInfo.roles(),
+            allowedAccountsSupport.filterAllowedAccounts(userInfo.username(), userInfo.roles())));
+    return authorities;
   }
 
   /** Handles validation, login, and metric tracking for a given OAuth2/OIDC user. */
@@ -188,6 +183,12 @@ public class OAuthUserInfoServiceHelper {
     }
 
     final String username = Objects.toString(details.get(userInfoMapping.getUsername()), null);
+    if (username == null || username.isBlank()) {
+      throw new BadCredentialsException(
+          "User's info does not have a value for the username attribute '"
+              + userInfoMapping.getUsername()
+              + "'.");
+    }
     List<String> roles = Optional.ofNullable(getRoles(details)).orElse(Collections.emptyList());
     // Service accounts are already logged in.
     if (!isServiceAccount) {

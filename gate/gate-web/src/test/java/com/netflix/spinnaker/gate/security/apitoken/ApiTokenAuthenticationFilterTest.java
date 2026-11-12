@@ -27,7 +27,6 @@ import com.netflix.spinnaker.gate.filters.AuthRequestAttributes;
 import com.netflix.spinnaker.gate.filters.AuthTypeResolver;
 import com.netflix.spinnaker.gate.security.AllowedAccountsSupport;
 import com.netflix.spinnaker.gate.services.PermissionService;
-import com.netflix.spinnaker.security.User;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.http.HttpServletRequest;
 import java.time.Instant;
@@ -51,6 +50,7 @@ import org.springframework.mock.web.MockHttpServletResponse;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.authority.AuthorityUtils;
 import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.security.core.userdetails.User;
 import org.springframework.security.web.authentication.preauth.PreAuthenticatedAuthenticationToken;
 
 @ExtendWith(MockitoExtension.class)
@@ -246,7 +246,7 @@ class ApiTokenAuthenticationFilterTest {
     Authentication auth = SecurityContextHolder.getContext().getAuthentication();
     assertThat(auth).isInstanceOf(PreAuthenticatedAuthenticationToken.class);
     assertThat(auth.getPrincipal()).isInstanceOf(User.class);
-    assertThat(((User) auth.getPrincipal()).getUsername()).isEqualTo(PRINCIPAL);
+    assertThat(auth.getName()).isEqualTo(PRINCIPAL);
     assertThat(auth.getCredentials()).isEqualTo("N/A");
     assertThat(auth.isAuthenticated()).isTrue();
 
@@ -262,10 +262,10 @@ class ApiTokenAuthenticationFilterTest {
 
   @Test
   @DisplayName(
-      "valid token (Fiat enabled) — principal is a fully-populated User with username, roles, and"
+      "valid token (Fiat enabled) — authentication carries the username, roles, and"
           + " allowedAccounts derived from AllowedAccountsSupport (so /auth/user returns a real"
-          + " body and @SpinnakerUser resolves correctly)")
-  void principalIsAFullyPopulatedUser() throws Exception {
+          + " body and identity is derived from the Authentication)")
+  void authenticationCarriesRolesAndAccounts() throws Exception {
     when(apiTokenService.resolveByHash(EXPECTED_HASH))
         .thenReturn(Optional.of(record(TOKEN_ID, PRINCIPAL, "USER", FUTURE_EXPIRY)));
     when(permissionService.isEnabled()).thenReturn(true);
@@ -279,12 +279,11 @@ class ApiTokenAuthenticationFilterTest {
 
     Authentication auth = SecurityContextHolder.getContext().getAuthentication();
     assertThat(auth.getPrincipal()).isInstanceOf(User.class);
-    User user = (User) auth.getPrincipal();
-    assertThat(user.getUsername()).isEqualTo(PRINCIPAL);
-    assertThat(user.getEmail()).isEqualTo(PRINCIPAL);
-    assertThat(user.getRoles()).containsExactlyInAnyOrder("deploy-team", "ops");
-    assertThat(user.getAllowedAccounts())
-        .containsExactlyInAnyOrder("prod-account", "stage-account");
+    assertThat(auth.getName()).isEqualTo(PRINCIPAL);
+    assertThat(AuthorityUtils.authorityListToSet(auth.getAuthorities()))
+        .contains("deploy-team", "ops");
+    assertThat(AuthorityUtils.authorityListToSet(auth.getAuthorities()))
+        .contains("ALLOWED_ACCOUNT_prod-account", "ALLOWED_ACCOUNT_stage-account");
 
     // Role names (not Role.View) are passed through, matching header/OAuth2 auth convention.
     ArgumentCaptor<java.util.Collection<String>> rolesCaptor =
@@ -339,12 +338,9 @@ class ApiTokenAuthenticationFilterTest {
     assertThat(auth).isNotNull().isInstanceOf(PreAuthenticatedAuthenticationToken.class);
     assertThat(auth.isAuthenticated()).isTrue();
 
-    // Principal must be a User (not a raw String) so @SpinnakerUser resolves correctly. With Fiat
-    // disabled the User carries no roles/accounts.
+    // With Fiat disabled the principal carries no roles/accounts.
     assertThat(auth.getPrincipal()).isInstanceOf(User.class);
-    User user = (User) auth.getPrincipal();
-    assertThat(user.getUsername()).isEqualTo(PRINCIPAL);
-    assertThat(user.getRoles()).isEmpty();
+    assertThat(auth.getName()).isEqualTo(PRINCIPAL);
 
     assertThat(auth.getAuthorities()).isEmpty();
     verify(permissionEvaluator, never()).getPermission(any());
