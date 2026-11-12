@@ -37,11 +37,11 @@ import org.springframework.core.env.Environment;
  * sql.migration}, a datasource that is separate from the pool used to persist executions.
  *
  * <p>Kayenta does not depend on {@code orca-sql-migration}, so Orca's changelog is not on the
- * classpath. {@code db/healthcheck.yml} still is, and the healthcheck table is no longer read at
- * runtime. When Kayenta stores executions in the Orca database and stores canary data elsewhere
- * ({@code kayenta.sql.enabled} is not set), there is nothing for Kayenta to migrate, but kork's
- * bean still runs and can fail with {@code Table 'healthcheck' already exists} on that shared
- * database.
+ * classpath. {@code db/healthcheck.yml} still is. When Kayenta stores executions in the Orca
+ * database and stores canary data elsewhere ({@code kayenta.sql.enabled} is not set), there is
+ * nothing for Kayenta to migrate: Orca has already created its tables, including the healthcheck
+ * table that {@code SqlHealthcheckActivator} writes to. kork's bean still runs and can fail with
+ * {@code Table 'healthcheck' already exists} on that shared database.
  *
  * <p>kork's bean has no off switch, so this replaces it before initialization:
  *
