@@ -67,6 +67,8 @@ public class CloudrunCredentialsConfiguration {
                         .setApplicationName(clouddriverUserAgentApplicationName)
                         .setJsonPath(a.getJsonPath())
                         .setServiceAccountEmail(a.getServiceAccountEmail())
+                        .setServiceAccountId(a.getServiceAccountId())
+                        .setServiceAccountProject(a.getServiceAccountProject())
                         .setLocalRepositoryDirectory(a.getLocalRepositoryDirectory())
                         .setRequiredGroupMembership(a.getRequiredGroupMembership())
                         .setPermissions(a.getPermissions().build())
