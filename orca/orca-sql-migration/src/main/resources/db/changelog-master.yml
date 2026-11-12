@@ -65,3 +65,6 @@ databaseChangeLog:
 - include:
     file: changelog/20230309-shedlock.yml
     relativeToChangelogFile: true
+- include:
+    file: changelog/20251125-add-execution-name-column.yml
+    relativeToChangelogFile: true

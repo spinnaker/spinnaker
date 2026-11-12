@@ -11,6 +11,7 @@ dependencies {
   api("io.spinnaker.kork:kork-jedis")
   api(project(":keiko-sql"))
   implementation(project(":orca-sql"))
+  // Migrations belong to the application (orca-web), not this library.
   implementation(project(":keiko-redis-spring"))
   implementation("com.fasterxml.jackson.module:jackson-module-kotlin")
 
@@ -21,6 +22,7 @@ dependencies {
   testImplementation(project(":orca-test-redis"))
   testImplementation(project(":orca-queue-tck"))
   testImplementation(project(":orca-sql"))
+  testImplementation(project(":orca-sql-migration"))
   testImplementation(project(":orca-interlink"))
   testImplementation("org.testcontainers:testcontainers-mysql")
   testImplementation("org.springframework:spring-test")

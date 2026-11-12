@@ -289,6 +289,18 @@ class InMemoryExecutionRepository : ExecutionRepository {
     )
   }
 
+  override fun retrievePipelinesForApplicationAndName(
+    application: String,
+    pipelineName: String,
+    criteria: ExecutionCriteria
+  ): Observable<PipelineExecution> {
+    return Observable.fromIterable(
+      pipelines.values
+        .filter { it.application == application && it.name == pipelineName }
+        .applyCriteria(criteria)
+    )
+  }
+
   override fun retrievePipelineConfigIdsForApplication(application: String): List<String> {
     return pipelines.values
       .filter { it.application == application }

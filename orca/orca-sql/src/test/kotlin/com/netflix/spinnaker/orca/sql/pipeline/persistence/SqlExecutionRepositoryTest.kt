@@ -35,6 +35,7 @@ import com.netflix.spinnaker.orca.pipeline.model.PipelineTrigger
 import com.netflix.spinnaker.orca.pipeline.model.StageExecutionImpl
 import com.netflix.spinnaker.orca.pipeline.model.support.TriggerDeserializer
 import com.netflix.spinnaker.orca.pipeline.persistence.ExecutionNotFoundException
+import com.netflix.spinnaker.orca.pipeline.persistence.ExecutionRepository.ExecutionCriteria
 import com.netflix.spinnaker.orca.sql.PipelineRefTriggerDeserializerSupplier
 import org.mockito.kotlin.atLeastOnce
 import org.mockito.kotlin.doReturn
@@ -73,6 +74,146 @@ class SqlExecutionRepositoryTest : JUnit5Minutests {
 
     after {
       SqlTestUtil.cleanupDb(database.context)
+    }
+
+    context("retrieving pipelines by application and name") {
+      test("retrieves pipelines matching application and name") {
+        val app = "test-app"
+        val pipelineName = "My Pipeline"
+
+        val pipeline1 = PipelineExecutionImpl(ExecutionType.PIPELINE, app).apply {
+          id = "pipeline-1"
+          name = pipelineName
+          pipelineConfigId = "config-1"
+        }
+        val pipeline2 = PipelineExecutionImpl(ExecutionType.PIPELINE, app).apply {
+          id = "pipeline-2"
+          name = "Different Pipeline"
+          pipelineConfigId = "config-2"
+        }
+        val pipeline3 = PipelineExecutionImpl(ExecutionType.PIPELINE, "other-app").apply {
+          id = "pipeline-3"
+          name = pipelineName
+          pipelineConfigId = "config-3"
+        }
+
+        sqlExecutionRepository.store(pipeline1)
+        sqlExecutionRepository.store(pipeline2)
+        sqlExecutionRepository.store(pipeline3)
+
+        val results = sqlExecutionRepository
+          .retrievePipelinesForApplicationAndName(app, pipelineName, ExecutionCriteria().setPageSize(10))
+          .toList()
+          .blockingGet()
+
+        assertThat(results).hasSize(1)
+        assertThat(results[0].id).isEqualTo("pipeline-1")
+        assertThat(results[0].name).isEqualTo(pipelineName)
+        assertThat(results[0].application).isEqualTo(app)
+      }
+
+      test("returns empty list when no pipelines match") {
+        val app = "test-app"
+        val pipeline = PipelineExecutionImpl(ExecutionType.PIPELINE, app).apply {
+          id = "pipeline-1"
+          name = "Different Pipeline"
+          pipelineConfigId = "config-1"
+        }
+        sqlExecutionRepository.store(pipeline)
+
+        val results = sqlExecutionRepository
+          .retrievePipelinesForApplicationAndName(app, "Nonexistent Pipeline", ExecutionCriteria().setPageSize(10))
+          .toList()
+          .blockingGet()
+
+        assertThat(results).isEmpty()
+      }
+
+      test("filters by status when criteria includes statuses") {
+        val app = "test-app"
+        val pipelineName = "My Pipeline"
+
+        val pipeline1 = PipelineExecutionImpl(ExecutionType.PIPELINE, app).apply {
+          id = "pipeline-1"
+          name = pipelineName
+          pipelineConfigId = "config-1"
+          status = SUCCEEDED
+        }
+        val pipeline2 = PipelineExecutionImpl(ExecutionType.PIPELINE, app).apply {
+          id = "pipeline-2"
+          name = pipelineName
+          pipelineConfigId = "config-2"
+          status = RUNNING
+        }
+
+        sqlExecutionRepository.store(pipeline1)
+        sqlExecutionRepository.store(pipeline2)
+
+        val results = sqlExecutionRepository
+          .retrievePipelinesForApplicationAndName(
+            app,
+            pipelineName,
+            ExecutionCriteria().setPageSize(10).setStatuses(SUCCEEDED)
+          )
+          .toList()
+          .blockingGet()
+
+        assertThat(results).hasSize(1)
+        assertThat(results[0].id).isEqualTo("pipeline-1")
+        assertThat(results[0].status).isEqualTo(SUCCEEDED)
+      }
+
+      test("respects page size limit") {
+        val app = "test-app"
+        val pipelineName = "My Pipeline"
+
+        repeat(5) { i ->
+          val pipeline = PipelineExecutionImpl(ExecutionType.PIPELINE, app).apply {
+            id = "pipeline-$i"
+            name = pipelineName
+            pipelineConfigId = "config-$i"
+            startTime = currentTimeMillis() + i
+          }
+          sqlExecutionRepository.store(pipeline)
+        }
+
+        val results = sqlExecutionRepository
+          .retrievePipelinesForApplicationAndName(app, pipelineName, ExecutionCriteria().setPageSize(2))
+          .toList()
+          .blockingGet()
+
+        assertThat(results).hasSize(2)
+      }
+
+      test("does not return executions whose name column is null") {
+        val app = "test-app"
+        val pipelineName = "My Pipeline"
+
+        val pipelineWithName = PipelineExecutionImpl(ExecutionType.PIPELINE, app).apply {
+          id = "pipeline-with-name"
+          name = pipelineName
+          pipelineConfigId = "config-1"
+        }
+        val pipelineWithoutName = PipelineExecutionImpl(ExecutionType.PIPELINE, app).apply {
+          id = "pipeline-null-name"
+          name = pipelineName
+          pipelineConfigId = "config-2"
+        }
+
+        sqlExecutionRepository.store(pipelineWithName)
+        sqlExecutionRepository.store(pipelineWithoutName)
+        database.context.update(ExecutionType.PIPELINE.tableName)
+          .set(field("name"), null as String?)
+          .where(field("legacy_id").eq("pipeline-null-name"))
+          .execute()
+
+        val results = sqlExecutionRepository
+          .retrievePipelinesForApplicationAndName(app, pipelineName, ExecutionCriteria().setPageSize(10))
+          .toList()
+          .blockingGet()
+
+        assertThat(results.map { it.id }).containsExactly("pipeline-with-name")
+      }
     }
 
     context("execution body compression") {

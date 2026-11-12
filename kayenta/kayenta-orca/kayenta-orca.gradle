@@ -3,11 +3,22 @@ dependencies {
   api "io.spinnaker.orca:orca-queue"
   api "io.spinnaker.orca:orca-queue-redis"
   api "io.spinnaker.orca:orca-redis"
+  // Persistence only. Do not depend on orca-sql-migration: that would run Orca's
+  // changelog beside Kayenta's own changelog-master.yml.
+  api "io.spinnaker.orca:orca-sql"
+  api "io.spinnaker.orca:orca-sql-mysql"
+  api "io.spinnaker.orca:orca-sql-postgres"
   api "org.springframework.boot:spring-boot-starter-actuator"
   api "org.springframework.cloud:spring-cloud-commons"
   api "io.swagger.core.v3:swagger-annotations"
 
+  // KayentaLiquibaseConfiguration references SpringLiquibase. kork-sql exposes
+  // liquibase-core as an api dependency, but orca-sql depends on kork-sql via
+  // implementation, so it is not on Kayenta's compile classpath.
+  implementation "org.liquibase:liquibase-core"
+
   // TODO(duftler): Move these to spinnaker-dependencies.
   testImplementation "io.spinnaker.orca:orca-test"
+  testImplementation "org.springframework.boot:spring-boot-starter-test"
 
 }
