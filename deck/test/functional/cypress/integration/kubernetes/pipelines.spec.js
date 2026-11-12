@@ -91,11 +91,19 @@ describe('kubernetes: Pipelines', () => {
 
     cy.get('ul.nav.nav-pills li').first().contains('Delete Manifest').should('contain.text', 'Delete Manifest');
 
-    cy.get('.step-section-details dl').within(() => {
-      cy.contains('dt', 'Account').next('dd').should('contain.text', 'k8s-local');
-      cy.contains('dt', 'Manifest').next('dd').should('contain.text', 'service dev-p01-nginx');
-      cy.contains('dt', 'Namespace').next('dd').should('contain.text', 'spinnaker-dev');
-    });
+    cy.get('.step-section-details dl')
+      .first()
+      .within(() => {
+        cy.contains('dt', 'Account').next('dd').should('contain.text', 'k8s-local');
+        cy.contains('dt', 'Manifest').next('dd').should('contain.text', 'service dev-p01-nginx');
+        cy.contains('dt', 'Namespace').next('dd').should('contain.text', 'spinnaker-dev');
+      });
+
+    cy.get('.step-section-details dl')
+      .eq(1)
+      .within(() => {
+        cy.contains('dt', 'Deleted').next('dd').should('contain.text', 'service dev-p01-nginx');
+      });
   });
 
   it('displays step-section-details tab content for Bake (Manifest)', () => {
