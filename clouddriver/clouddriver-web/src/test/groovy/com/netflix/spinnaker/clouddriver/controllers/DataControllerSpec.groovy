@@ -65,6 +65,24 @@ class DataControllerSpec extends Specification {
     notThrown(AccessDeniedException)
   }
 
+  def "should compare account names case-insensitively"() {
+    given:
+    contextProvider.get().setAccounts("my-account")
+
+    when:
+    dataController.getStaticData("My-Account", [:])
+
+    then:
+    notThrown(AccessDeniedException)
+
+    when:
+    contextProvider.get().setAccounts("My-Account,other")
+    dataController.getStaticData("my-account", [:])
+
+    then:
+    notThrown(AccessDeniedException)
+  }
+
   def "should deny when fetching adhoc data with no accounts"() {
     given:
     def httpServletRequest = Mock(HttpServletRequest)
