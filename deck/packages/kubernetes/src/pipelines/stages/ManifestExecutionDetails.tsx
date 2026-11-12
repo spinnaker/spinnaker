@@ -1,6 +1,6 @@
 import React from 'react';
 
-import type { IExecutionDetailsSectionProps } from '@spinnaker/core';
+import type { IExecutionDetailsSectionProps, IExecutionStage } from '@spinnaker/core';
 import { ExecutionDetailsSection, StageFailureMessage } from '@spinnaker/core';
 
 import type { ILabelSelectors, IManifestNamesByNamespace } from './ManifestCoordinates';
@@ -18,7 +18,11 @@ interface IManifestExecutionDetailsProps extends IExecutionDetailsSectionProps {
   };
 }
 
-export const manifestExecutionDetails = (stageName: string) => {
+// extraSections lets a specific stage append content below the coordinates list without changing what other manifest stages show.
+export const manifestExecutionDetails = (
+  stageName: string,
+  extraSections?: (stage: IExecutionStage) => React.ReactNode,
+) => {
   return class ManifestExecutionDetails extends React.Component<IManifestExecutionDetailsProps> {
     public static title = stageName;
 
@@ -48,6 +52,7 @@ export const manifestExecutionDetails = (stageName: string) => {
                   manifestNamesByNamespace={manifestNamesByNamespace}
                 />
               </dl>
+              {extraSections && extraSections(stage)}
             </div>
           </div>
           <StageFailureMessage stage={stage} message={stage.failureMessage} />
