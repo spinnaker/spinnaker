@@ -66,7 +66,9 @@ public class DeployCloudrunDescriptionValidatorTest {
     deployCloudrunDescriptionValidator.validate(
         List.of(description), description, validationErrors);
     verify(validationErrors, never())
-        .rejectValue("${context}.account", "${context}.account.notFound");
+        .rejectValue(
+            "deployCloudrunAtomicOperationDescription.account",
+            "deployCloudrunAtomicOperationDescription.account.notFound");
   }
 
   @Test
@@ -82,6 +84,8 @@ public class DeployCloudrunDescriptionValidatorTest {
         List.of(description), description, validationErrors);
 
     verify(validationErrors, times(1))
-        .rejectValue("${context}.account", "${context}.account.notFound");
+        .rejectValue(
+            "deployCloudrunAtomicOperationDescription.account",
+            "deployCloudrunAtomicOperationDescription.account.notFound");
   }
 }
