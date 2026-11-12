@@ -4,3 +4,12 @@
     margin-top: 5px;
   }
 }
+
+// .canary-summary is a flex row whose child divs default to `flex: 4 0 20px`, which squeezes the
+// link into the narrow col-md-2 and wraps it word by word. Size it to its text and let it extend
+// into the empty space to the right of the score instead.
+.canary-details .canary-summary > .latest-report-link {
+  flex: 0 0 auto;
+  white-space: nowrap;
+  margin-right: 0;
+}
