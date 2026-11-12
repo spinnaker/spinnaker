@@ -57,6 +57,7 @@ public class OAuth2SsoConfig {
   @Autowired private SpinnakerOIDCUserInfoService oidcUserInfoService;
   @Autowired private ClientRegistrationRepository clientRegistrationRepository;
   @Autowired private OAuthUserInfoServiceHelper userInfoServiceHelper;
+  @Autowired private UserInfoMapping userInfoMapping;
 
   @Autowired
   private OAuth2AccessTokenResponseClient<OAuth2AuthorizationCodeGrantRequest> tokenResponseClient;
@@ -105,14 +106,19 @@ public class OAuth2SsoConfig {
       ExternalAuthTokenFilterConfigurationProperties.Jwt jwt =
           externalAuthTokenFilterProperties.getJwt();
       JwtDecoder jwtDecoder = null;
+      String jwtUsernameClaim = null;
       if (jwt.isEnabled()) {
         jwtDecoder = ExternalJwtDecoderFactory.create(jwt);
+        // A validated JWT must carry this claim to identify the user; otherwise the filter rejects
+        // it instead of attempting a Fiat login with a null username.
+        jwtUsernameClaim = userInfoMapping.getUsername();
         log.info(
             "ExternalAuthTokenFilter validates JWT bearer tokens from issuer {} for audiences {} "
-                + "(user-info fallback: {})",
+                + "(user-info fallback: {}, username claim: {})",
             jwt.getIssuerUri(),
             jwt.getAudiences(),
-            jwt.isUserInfoFallback());
+            jwt.isUserInfoFallback(),
+            jwtUsernameClaim);
       }
       ExternalAuthTokenFilter externalAuthTokenFilter =
           new ExternalAuthTokenFilter(
@@ -121,7 +127,8 @@ public class OAuth2SsoConfig {
               registrationId,
               restTemplate,
               jwtDecoder,
-              jwt.isUserInfoFallback());
+              jwt.isUserInfoFallback(),
+              jwtUsernameClaim);
       httpSecurity.addFilterBefore(externalAuthTokenFilter, OAuth2LoginAuthenticationFilter.class);
     }
 

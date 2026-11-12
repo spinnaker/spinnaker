@@ -53,6 +53,7 @@ import org.springframework.security.oauth2.core.user.OAuth2User;
 import org.springframework.security.oauth2.jwt.BadJwtException;
 import org.springframework.security.oauth2.jwt.Jwt;
 import org.springframework.security.oauth2.jwt.JwtDecoder;
+import org.springframework.security.oauth2.jwt.JwtDecoderInitializationException;
 import org.springframework.web.client.RestClientException;
 import org.springframework.web.client.RestTemplate;
 
@@ -288,6 +289,152 @@ class ExternalAuthTokenFilterTest {
     verify(userInfoServiceHelper, never()).getSpinnakerOAuth2User(any(), any());
   }
 
+  @Test
+  void shouldFallBackToUserInfoWhenJwtDecoderInitializationFailsAndFallbackIsOn() throws Exception {
+    // Reproduces the issuer-discovery failure: a SupplierJwtDecoder built with issuer-uri only
+    // fetches the issuer metadata on the first token, and a failure there surfaces as a
+    // JwtDecoderInitializationException (a RuntimeException, not a JwtException). The fallback must
+    // still run so opaque tokens keep working while discovery is down.
+    JwtDecoder jwtDecoder = mock(JwtDecoder.class);
+    ExternalAuthTokenFilter jwtFilter = jwtFilter(jwtDecoder, true);
+    when(request.getHeader("Authorization")).thenReturn("Bearer opaque-token");
+    when(jwtDecoder.decode("opaque-token"))
+        .thenThrow(
+            new JwtDecoderInitializationException(
+                "issuer discovery failed", new RuntimeException("Connection refused")));
+    when(restTemplate.exchange(
+            eq("https://api.github.com/user"),
+            eq(HttpMethod.GET),
+            any(HttpEntity.class),
+            any(ParameterizedTypeReference.class)))
+        .thenReturn(ResponseEntity.ok(Map.<String, Object>of("login", "testuser")));
+    OAuth2User spinnakerUser = mock(OAuth2User.class);
+    when(spinnakerUser.getAuthorities()).thenReturn(List.of());
+    when(userInfoServiceHelper.getSpinnakerOAuth2User(any(OAuth2User.class), any()))
+        .thenReturn(spinnakerUser);
+
+    jwtFilter.doFilterInternal(request, response, filterChain);
+
+    verify(filterChain).doFilter(request, response);
+    assertThat(SecurityContextHolder.getContext().getAuthentication().isAuthenticated()).isTrue();
+  }
+
+  @Test
+  void shouldNotAuthenticateWhenJwtDecoderInitializationFailsAndFallbackIsOff() throws Exception {
+    JwtDecoder jwtDecoder = mock(JwtDecoder.class);
+    ExternalAuthTokenFilter jwtFilter = jwtFilter(jwtDecoder, false);
+    when(request.getHeader("Authorization")).thenReturn("Bearer header.payload.signature");
+    when(jwtDecoder.decode("header.payload.signature"))
+        .thenThrow(
+            new JwtDecoderInitializationException(
+                "issuer discovery failed", new RuntimeException("Connection refused")));
+
+    jwtFilter.doFilterInternal(request, response, filterChain);
+
+    verify(filterChain).doFilter(request, response);
+    assertThat(SecurityContextHolder.getContext().getAuthentication()).isNull();
+    verify(restTemplate, never())
+        .exchange(
+            anyString(),
+            any(HttpMethod.class),
+            any(HttpEntity.class),
+            any(ParameterizedTypeReference.class));
+    verify(userInfoServiceHelper, never()).getSpinnakerOAuth2User(any(), any());
+  }
+
+  @Test
+  void shouldNotAuthenticateWhenJwtMissingUsernameClaimAndFallbackIsOff() throws Exception {
+    // Reproduces the Entra case: the token validates but carries preferred_username instead of the
+    // email claim that user-info-mapping.username defaults to. The filter must reject it right away
+    // rather than calling Fiat with a null username and stalling through the retry budget.
+    JwtDecoder jwtDecoder = mock(JwtDecoder.class);
+    ExternalAuthTokenFilter jwtFilter = jwtFilter(jwtDecoder, false, "email");
+    when(request.getHeader("Authorization")).thenReturn("Bearer header.payload.signature");
+    Instant issuedAt = Instant.now().minusSeconds(60);
+    Jwt jwt =
+        Jwt.withTokenValue("header.payload.signature")
+            .header("alg", "RS256")
+            .claim("preferred_username", "user@example.com")
+            .issuedAt(issuedAt)
+            .expiresAt(issuedAt.plusSeconds(3600))
+            .build();
+    when(jwtDecoder.decode("header.payload.signature")).thenReturn(jwt);
+
+    jwtFilter.doFilterInternal(request, response, filterChain);
+
+    verify(filterChain).doFilter(request, response);
+    assertThat(SecurityContextHolder.getContext().getAuthentication()).isNull();
+    verify(restTemplate, never())
+        .exchange(
+            anyString(),
+            any(HttpMethod.class),
+            any(HttpEntity.class),
+            any(ParameterizedTypeReference.class));
+    verify(userInfoServiceHelper, never()).getSpinnakerOAuth2User(any(), any());
+  }
+
+  @Test
+  void shouldFallBackToUserInfoWhenJwtMissingUsernameClaimAndFallbackIsOn() throws Exception {
+    JwtDecoder jwtDecoder = mock(JwtDecoder.class);
+    ExternalAuthTokenFilter jwtFilter = jwtFilter(jwtDecoder, true, "email");
+    when(request.getHeader("Authorization")).thenReturn("Bearer header.payload.signature");
+    Instant issuedAt = Instant.now().minusSeconds(60);
+    Jwt jwt =
+        Jwt.withTokenValue("header.payload.signature")
+            .header("alg", "RS256")
+            .claim("preferred_username", "user@example.com")
+            .issuedAt(issuedAt)
+            .expiresAt(issuedAt.plusSeconds(3600))
+            .build();
+    when(jwtDecoder.decode("header.payload.signature")).thenReturn(jwt);
+    when(restTemplate.exchange(
+            eq("https://api.github.com/user"),
+            eq(HttpMethod.GET),
+            any(HttpEntity.class),
+            any(ParameterizedTypeReference.class)))
+        .thenReturn(ResponseEntity.ok(Map.<String, Object>of("login", "testuser")));
+    OAuth2User spinnakerUser = mock(OAuth2User.class);
+    when(spinnakerUser.getAuthorities()).thenReturn(List.of());
+    when(userInfoServiceHelper.getSpinnakerOAuth2User(any(OAuth2User.class), any()))
+        .thenReturn(spinnakerUser);
+
+    jwtFilter.doFilterInternal(request, response, filterChain);
+
+    verify(filterChain).doFilter(request, response);
+    assertThat(SecurityContextHolder.getContext().getAuthentication().isAuthenticated()).isTrue();
+  }
+
+  @Test
+  void shouldAuthenticateFromJwtWhenUsernameClaimIsPresent() throws Exception {
+    JwtDecoder jwtDecoder = mock(JwtDecoder.class);
+    ExternalAuthTokenFilter jwtFilter = jwtFilter(jwtDecoder, false, "email");
+    when(request.getHeader("Authorization")).thenReturn("Bearer header.payload.signature");
+    Instant issuedAt = Instant.now().minusSeconds(60);
+    Jwt jwt =
+        Jwt.withTokenValue("header.payload.signature")
+            .header("alg", "RS256")
+            .claim("email", "user@example.com")
+            .issuedAt(issuedAt)
+            .expiresAt(issuedAt.plusSeconds(3600))
+            .build();
+    when(jwtDecoder.decode("header.payload.signature")).thenReturn(jwt);
+    OAuth2User spinnakerUser = mock(OAuth2User.class);
+    when(spinnakerUser.getAuthorities()).thenReturn(List.of());
+    when(userInfoServiceHelper.getSpinnakerOAuth2User(any(OAuth2User.class), any()))
+        .thenReturn(spinnakerUser);
+
+    jwtFilter.doFilterInternal(request, response, filterChain);
+
+    verify(filterChain).doFilter(request, response);
+    assertThat(SecurityContextHolder.getContext().getAuthentication().isAuthenticated()).isTrue();
+    verify(restTemplate, never())
+        .exchange(
+            anyString(),
+            any(HttpMethod.class),
+            any(HttpEntity.class),
+            any(ParameterizedTypeReference.class));
+  }
+
   private ExternalAuthTokenFilter jwtFilter(JwtDecoder jwtDecoder, boolean userInfoFallback) {
     return new ExternalAuthTokenFilter(
         clientRegistrationRepository,
@@ -296,6 +443,18 @@ class ExternalAuthTokenFilterTest {
         restTemplate,
         jwtDecoder,
         userInfoFallback);
+  }
+
+  private ExternalAuthTokenFilter jwtFilter(
+      JwtDecoder jwtDecoder, boolean userInfoFallback, String usernameClaim) {
+    return new ExternalAuthTokenFilter(
+        clientRegistrationRepository,
+        userInfoServiceHelper,
+        REGISTRATION_ID,
+        restTemplate,
+        jwtDecoder,
+        userInfoFallback,
+        usernameClaim);
   }
 
   private ClientRegistration createClientRegistrationWithoutUserInfoUri() {
