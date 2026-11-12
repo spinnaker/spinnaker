@@ -38,6 +38,7 @@ import org.springframework.security.oauth2.client.registration.ClientRegistratio
 import org.springframework.security.oauth2.client.registration.InMemoryClientRegistrationRepository;
 import org.springframework.security.oauth2.client.web.OAuth2AuthorizationRequestRedirectFilter;
 import org.springframework.security.oauth2.client.web.OAuth2LoginAuthenticationFilter;
+import org.springframework.security.oauth2.jwt.JwtDecoder;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.savedrequest.HttpSessionRequestCache;
 import org.springframework.stereotype.Component;
@@ -56,6 +57,7 @@ public class OAuth2SsoConfig {
   @Autowired private SpinnakerOIDCUserInfoService oidcUserInfoService;
   @Autowired private ClientRegistrationRepository clientRegistrationRepository;
   @Autowired private OAuthUserInfoServiceHelper userInfoServiceHelper;
+  @Autowired private UserInfoMapping userInfoMapping;
 
   @Autowired
   private OAuth2AccessTokenResponseClient<OAuth2AuthorizationCodeGrantRequest> tokenResponseClient;
@@ -101,9 +103,32 @@ public class OAuth2SsoConfig {
             });
     if (registrationId != null) {
       RestTemplate restTemplate = createRestTemplateWithTimeouts();
+      ExternalAuthTokenFilterConfigurationProperties.Jwt jwt =
+          externalAuthTokenFilterProperties.getJwt();
+      JwtDecoder jwtDecoder = null;
+      String jwtUsernameClaim = null;
+      if (jwt.isEnabled()) {
+        jwtDecoder = ExternalJwtDecoderFactory.create(jwt);
+        // A validated JWT must carry this claim to identify the user; otherwise the filter rejects
+        // it instead of attempting a Fiat login with a null username.
+        jwtUsernameClaim = userInfoMapping.getUsername();
+        log.info(
+            "ExternalAuthTokenFilter validates JWT bearer tokens from issuer {} for audiences {} "
+                + "(user-info fallback: {}, username claim: {})",
+            jwt.getIssuerUri(),
+            jwt.getAudiences(),
+            jwt.isUserInfoFallback(),
+            jwtUsernameClaim);
+      }
       ExternalAuthTokenFilter externalAuthTokenFilter =
           new ExternalAuthTokenFilter(
-              clientRegistrationRepository, userInfoServiceHelper, registrationId, restTemplate);
+              clientRegistrationRepository,
+              userInfoServiceHelper,
+              registrationId,
+              restTemplate,
+              jwtDecoder,
+              jwt.isUserInfoFallback(),
+              jwtUsernameClaim);
       httpSecurity.addFilterBefore(externalAuthTokenFilter, OAuth2LoginAuthenticationFilter.class);
     }
 
