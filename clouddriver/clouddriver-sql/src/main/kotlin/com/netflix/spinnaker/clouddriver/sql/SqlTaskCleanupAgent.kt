@@ -16,8 +16,7 @@
 package com.netflix.spinnaker.clouddriver.sql
 
 import com.netflix.spectator.api.Registry
-import com.netflix.spinnaker.cats.agent.RunnableAgent
-import com.netflix.spinnaker.clouddriver.cache.CustomScheduledAgent
+import com.netflix.spinnaker.clouddriver.cache.MaintenanceAgent
 import com.netflix.spinnaker.clouddriver.core.provider.CoreProvider
 import com.netflix.spinnaker.clouddriver.data.task.TaskState.COMPLETED
 import com.netflix.spinnaker.clouddriver.data.task.TaskState.FAILED
@@ -42,7 +41,7 @@ class SqlTaskCleanupAgent @JvmOverloads constructor(
   private val registry: Registry,
   private val properties: SqlTaskCleanupAgentProperties,
   private val retries: SqlRetries = SqlRetries()
-) : RunnableAgent, CustomScheduledAgent {
+) : MaintenanceAgent {
 
   private val log = LoggerFactory.getLogger(javaClass)
 
