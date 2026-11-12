@@ -5,6 +5,7 @@ import React from 'react';
 import type { IExecutionDetailsSectionProps, IExecutionStage } from '@spinnaker/core';
 import { ExecutionDetailsSection, robotToHuman, StageFailureMessage, timestamp } from '@spinnaker/core';
 
+import { findLatestReport } from './canaryReport';
 import CanaryRunSummaries from './canaryRunSummaries';
 import { CanaryScore } from '../../components/canaryScore';
 import { KayentaAnalysisType } from '../../domain';
@@ -15,11 +16,13 @@ import './kayentaStageExecutionDetails.less';
 const wordWrap = { wordWrap: 'break-word' } as React.CSSProperties;
 
 export function KayentaStageExecutionDetails(props: IExecutionDetailsSectionProps) {
+  const { stateService } = useRouter();
   const { current, name, stage } = props;
   const canaryConfig = stage.context.canaryConfig || {};
   const firstScope = get(canaryConfig, 'scopes[0]', {});
   const firstScopeName = firstScope.scopeName;
   const runCanaryTasks = ((stage.tasks || []) as IExecutionStage[]).filter((task) => task.type === RUN_CANARY);
+  const latestReport = findLatestReport(runCanaryTasks);
 
   return (
     <div className="canary-details">
@@ -34,6 +37,13 @@ export function KayentaStageExecutionDetails(props: IExecutionDetailsSectionProp
                 inverse={false}
               />
             </div>
+            {latestReport && (
+              <div className="small latest-report-link">
+                <a href={stateService.href('home.applications.application.canary.report.reportDetail', latestReport)}>
+                  View latest report
+                </a>
+              </div>
+            )}
           </div>
         </div>
 
