@@ -17,6 +17,7 @@
 package com.netflix.spinnaker.security
 
 import org.hamcrest.Matchers
+import org.springframework.security.authentication.TestingAuthenticationToken
 import org.springframework.security.core.GrantedAuthority
 import org.springframework.security.core.authority.SimpleGrantedAuthority
 import spock.lang.Specification
@@ -33,6 +34,18 @@ class AllowedAccountsAuthoritiesSpec extends Specification {
     null                      || []
     u("foo")                  || []
     u("foo", ["a", "c", "b"]) || ["a", "b", "c"]
+  }
+
+  def "extracts allowed accounts from an authentication regardless of principal type"() {
+    expect:
+    AllowedAccountsAuthorities.getAllowedAccountNames(authentication) == expected
+
+    where:
+    authentication                                                     || expected
+    null                                                               || []
+    new TestingAuthenticationToken("foo", "", [])                      || []
+    new TestingAuthenticationToken("foo", "", [a(PREFIX + "b"), a(PREFIX + "a"), a(PREFIX + "b"), a("ROLE_x")]) || ["a", "b"]
+    new TestingAuthenticationToken(u("foo", ["b", "a"]), "")           || ["a", "b"]
   }
 
   def "builds normalized granted authorities"() {

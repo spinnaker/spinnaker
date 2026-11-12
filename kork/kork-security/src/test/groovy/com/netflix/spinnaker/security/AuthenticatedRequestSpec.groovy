@@ -18,6 +18,9 @@ package com.netflix.spinnaker.security
 
 import com.netflix.spinnaker.kork.common.Header
 import org.slf4j.MDC
+import org.springframework.security.authentication.TestingAuthenticationToken
+import org.springframework.security.core.context.SecurityContextHolder
+import org.springframework.security.core.AuthenticatedPrincipal
 import spock.lang.Specification
 
 class AuthenticatedRequestSpec extends Specification {
@@ -45,6 +48,21 @@ class AuthenticatedRequestSpec extends Specification {
         "username",
         "",
         AllowedAccountsAuthorities.buildAllowedAccounts(["account3", "account4"]))).get() == "account3,account4"
+  }
+
+  void "should derive user and accounts from an Authentication whose principal is not UserDetails"() {
+    given:
+    MDC.clear()
+    def principal = { "oauth-user" } as AuthenticatedPrincipal
+    def authorities = AllowedAccountsAuthorities.buildAllowedAccounts(["account2", "account1"])
+    SecurityContextHolder.context.authentication = new TestingAuthenticationToken(principal, "", authorities as List)
+
+    expect:
+    AuthenticatedRequest.getSpinnakerUser().get() == "oauth-user"
+    AuthenticatedRequest.getSpinnakerAccounts().get() == "account1,account2"
+
+    cleanup:
+    SecurityContextHolder.clearContext()
   }
 
   void "should have no user/allowed account details if no MDC or Principal available"() {

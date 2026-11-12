@@ -20,8 +20,10 @@ import com.netflix.spinnaker.kork.common.Header
 import com.netflix.spinnaker.security.AllowedAccountsAuthorities
 import com.netflix.spinnaker.security.AuthenticatedRequest
 import groovy.util.logging.Slf4j
+import org.springframework.security.authentication.AnonymousAuthenticationToken
+import org.springframework.security.core.Authentication
+import org.springframework.security.core.context.SecurityContext
 import org.springframework.security.core.context.SecurityContextHolder
-import org.springframework.security.core.context.SecurityContextImpl
 import org.springframework.security.core.userdetails.UserDetails
 
 import jakarta.servlet.Filter
@@ -76,15 +78,15 @@ class AuthenticatedRequestFilter implements Filter {
 
     try {
       def session = ((HttpServletRequest) request).getSession(false)
-      def securityContext = (SecurityContextImpl) session?.getAttribute("SPRING_SECURITY_CONTEXT")
-      if (!securityContext) {
+      def securityContext = session?.getAttribute("SPRING_SECURITY_CONTEXT")
+      if (!(securityContext instanceof SecurityContext)) {
         securityContext = SecurityContextHolder.getContext()
       }
 
-      def principal = securityContext?.authentication?.principal
-      if (principal && principal instanceof UserDetails) {
-        spinnakerUser = principal.username
-        spinnakerAccounts = AllowedAccountsAuthorities.getAllowedAccounts(principal).join(",")
+      Authentication authentication = securityContext?.authentication
+      if (hasIdentity(authentication)) {
+        spinnakerUser = authentication.name
+        spinnakerAccounts = AllowedAccountsAuthorities.getAllowedAccountNames(authentication).join(",")
       }
     } catch (Exception e) {
       log.error("Unable to extract spinnaker user and account information", e)
@@ -150,6 +152,18 @@ class AuthenticatedRequestFilter implements Filter {
         AuthenticatedRequest.clear()
       }
     }
+  }
+
+  /**
+   * An anonymous token only carries an identity when its principal is a real user (as Gate's
+   * anonymous mode provides); the default String principal ("anonymousUser") must not become a
+   * user header.
+   */
+  private static boolean hasIdentity(Authentication authentication) {
+    if (authentication == null || !authentication.authenticated || !authentication.name) {
+      return false
+    }
+    return !(authentication instanceof AnonymousAuthenticationToken) || authentication.principal instanceof UserDetails
   }
 
   @Override
