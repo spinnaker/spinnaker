@@ -32,8 +32,8 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.DisposableBean;
 import org.springframework.beans.factory.ObjectProvider;
 import org.springframework.beans.factory.SmartInitializingSingleton;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
+import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
@@ -46,6 +46,7 @@ import org.springframework.context.annotation.Configuration;
  */
 @Configuration
 @ConditionalOnProperty(value = "maintenance-agents.enabled", matchIfMissing = true)
+@EnableConfigurationProperties(MaintenanceAgentProperties.class)
 public class MaintenanceAgentConfiguration {
   private static final long FALLBACK_INTERVAL_MILLIS = 60_000;
   private static final long FALLBACK_ERROR_INTERVAL_MILLIS = 60_000;
@@ -57,8 +58,7 @@ public class MaintenanceAgentConfiguration {
       ObjectProvider<MaintenanceLock> lock,
       DynamicConfigService dynamicConfigService,
       ObjectProvider<List<ExecutionInstrumentation>> instrumentations,
-      @Value("${maintenance-agents.lock-poll-interval-ms:30000}") long lockPollIntervalMillis,
-      @Value("${maintenance-agents.max-threads:4}") int maxThreads) {
+      MaintenanceAgentProperties properties) {
     List<MaintenanceAgent> agentList = agents.getIfAvailable(List::of);
     List<ExecutionInstrumentation> instrumentationList = instrumentations.getIfAvailable(List::of);
     MaintenanceLock maintenanceLock = lock.getIfAvailable();
@@ -79,8 +79,8 @@ public class MaintenanceAgentConfiguration {
         instrumentationList.isEmpty()
             ? new NoopExecutionInstrumentation()
             : new CompositeExecutionInstrumentation(instrumentationList),
-        lockPollIntervalMillis,
-        maxThreads);
+        properties.getLockPollIntervalMs(),
+        properties.getMaxThreads());
   }
 
   /**

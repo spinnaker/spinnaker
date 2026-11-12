@@ -118,6 +118,29 @@ class MaintenanceAgentConfigurationTest {
   }
 
   @Test
+  void bindsPropertiesWithDefaults() {
+    runner.run(
+        ctx -> {
+          MaintenanceAgentProperties properties = ctx.getBean(MaintenanceAgentProperties.class);
+          assertThat(properties.getLockPollIntervalMs()).isEqualTo(30_000);
+          assertThat(properties.getMaxThreads()).isEqualTo(4);
+        });
+  }
+
+  @Test
+  void bindsOverriddenProperties() {
+    runner
+        .withPropertyValues(
+            "maintenance-agents.lock-poll-interval-ms=5000", "maintenance-agents.max-threads=2")
+        .run(
+            ctx -> {
+              MaintenanceAgentProperties properties = ctx.getBean(MaintenanceAgentProperties.class);
+              assertThat(properties.getLockPollIntervalMs()).isEqualTo(5_000);
+              assertThat(properties.getMaxThreads()).isEqualTo(2);
+            });
+  }
+
+  @Test
   void noAgentsMeansNothingScheduled() {
     runner.run(
         ctx ->
