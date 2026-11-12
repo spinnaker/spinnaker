@@ -22,6 +22,9 @@ import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.netflix.spectator.api.Counter;
+import com.netflix.spectator.api.DefaultRegistry;
+import com.netflix.spectator.api.Registry;
 import com.netflix.spinnaker.cats.agent.CacheResult;
 import com.netflix.spinnaker.cats.cache.CacheData;
 import com.netflix.spinnaker.cats.mem.InMemoryCache;
@@ -29,6 +32,7 @@ import com.netflix.spinnaker.cats.provider.DefaultProviderCache;
 import com.netflix.spinnaker.cats.provider.ProviderCache;
 import com.netflix.spinnaker.clouddriver.aws.security.AmazonClientProvider;
 import com.netflix.spinnaker.clouddriver.aws.security.NetflixAmazonCredentials;
+import com.netflix.spinnaker.clouddriver.cache.OnDemandMetricsSupportable;
 import com.netflix.spinnaker.clouddriver.core.limits.ServiceLimitConfiguration;
 import com.netflix.spinnaker.clouddriver.lambda.cache.Keys;
 import com.netflix.spinnaker.clouddriver.lambda.service.LambdaService;
@@ -52,6 +56,7 @@ public class LambdaCachingAgentTest {
       mock(ServiceLimitConfiguration.class);
   private LambdaCachingAgent lambdaCachingAgent;
   private final ProviderCache cache = mock(ProviderCache.class);
+  private final Registry registry = new DefaultRegistry();
 
   @BeforeEach
   public void setup() {
@@ -65,7 +70,21 @@ public class LambdaCachingAgentTest {
             netflixAmazonCredentials,
             REGION,
             config,
-            serviceLimitConfiguration);
+            serviceLimitConfiguration,
+            registry);
+  }
+
+  @Test
+  void onDemandMetricsAreRecordedInTheSuppliedRegistry() {
+    lambdaCachingAgent.getMetricsSupport().countOnDemand();
+
+    assertThat(
+            registry
+                .counters()
+                .filter(c -> c.id().name().equals(OnDemandMetricsSupportable.ON_DEMAND_COUNT))
+                .mapToLong(Counter::count)
+                .sum())
+        .isEqualTo(1);
   }
 
   @Test

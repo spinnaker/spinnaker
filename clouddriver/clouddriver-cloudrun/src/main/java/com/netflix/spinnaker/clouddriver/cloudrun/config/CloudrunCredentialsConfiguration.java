@@ -16,7 +16,6 @@
 
 package com.netflix.spinnaker.clouddriver.cloudrun.config;
 
-import com.netflix.spinnaker.clouddriver.cloudrun.CloudrunJobExecutor;
 import com.netflix.spinnaker.clouddriver.cloudrun.security.CloudrunNamedAccountCredentials;
 import com.netflix.spinnaker.credentials.CredentialsTypeBaseConfiguration;
 import com.netflix.spinnaker.credentials.CredentialsTypeProperties;
@@ -38,7 +37,6 @@ public class CloudrunCredentialsConfiguration {
       cloudrunCredentialsProperties(
           ApplicationContext applicationContext,
           CloudrunConfigurationProperties configurationProperties,
-          CloudrunJobExecutor jobExecutor,
           ConfigFileService configFileService,
           String clouddriverUserAgentApplicationName) {
     return new CredentialsTypeBaseConfiguration(
@@ -52,11 +50,7 @@ public class CloudrunCredentialsConfiguration {
             .credentialsParser(
                 a -> {
                   try {
-                    String gcloudPath = configurationProperties.getGcloudPath();
-                    if (StringUtils.isEmpty(gcloudPath)) {
-                      gcloudPath = "gcloud";
-                    }
-                    a.initialize(jobExecutor, gcloudPath);
+                    a.initialize();
                     String jsonKey = configFileService.getContents(a.getJsonPath());
                     return new CloudrunNamedAccountCredentials.Builder()
                         .setName(a.getName())
@@ -76,7 +70,7 @@ public class CloudrunCredentialsConfiguration {
                         .setLocalRepositoryDirectory(a.getLocalRepositoryDirectory())
                         .setRequiredGroupMembership(a.getRequiredGroupMembership())
                         .setPermissions(a.getPermissions().build())
-                        .build(jobExecutor);
+                        .build();
                   } catch (Exception e) {
                     log.info(
                         String.format("Could not load account %s for Cloud Run", a.getName()), e);
