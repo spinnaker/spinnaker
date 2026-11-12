@@ -19,13 +19,20 @@ package com.netflix.spinnaker.clouddriver.artifacts.utilities;
 import com.google.common.hash.Hashing;
 import java.io.File;
 import java.io.IOException;
+import java.io.UncheckedIOException;
 import java.nio.charset.Charset;
+import java.nio.file.FileVisitResult;
+import java.nio.file.Files;
+import java.nio.file.NoSuchFileException;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.nio.file.SimpleFileVisitor;
+import java.nio.file.attribute.BasicFileAttributes;
 import java.util.Map;
 import java.util.Optional;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicLong;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
 import lombok.extern.slf4j.Slf4j;
@@ -177,9 +184,44 @@ public abstract class AbstractArtifactCachedFileSystem {
   protected boolean hasFreeDisk() {
     long currentSize = 0;
     if (clonesHome.toFile().exists()) {
-      currentSize = FileUtils.sizeOfDirectory(clonesHome.toFile());
+      currentSize = sizeOfClonesHome();
     }
     return currentSize >= 0 && currentSize < getCloneRetentionMaxBytes();
+  }
+
+  /** Other threads create and delete clones during the walk, so vanished entries are skipped. */
+  private long sizeOfClonesHome() {
+    AtomicLong size = new AtomicLong();
+    try {
+      Files.walkFileTree(
+          clonesHome,
+          new SimpleFileVisitor<>() {
+            @Override
+            public FileVisitResult visitFile(Path file, BasicFileAttributes attrs) {
+              size.addAndGet(attrs.size());
+              return FileVisitResult.CONTINUE;
+            }
+
+            @Override
+            public FileVisitResult visitFileFailed(Path file, IOException e) throws IOException {
+              if (e instanceof NoSuchFileException) {
+                return FileVisitResult.CONTINUE;
+              }
+              throw e;
+            }
+
+            @Override
+            public FileVisitResult postVisitDirectory(Path dir, IOException e) throws IOException {
+              if (e == null || e instanceof NoSuchFileException) {
+                return FileVisitResult.CONTINUE;
+              }
+              throw e;
+            }
+          });
+    } catch (IOException e) {
+      throw new UncheckedIOException(e);
+    }
+    return size.get();
   }
 
   /**

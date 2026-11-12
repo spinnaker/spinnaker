@@ -26,9 +26,11 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.io.File;
 import java.io.IOException;
+import java.io.UncheckedIOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicBoolean;
 import org.apache.commons.io.FileUtils;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
@@ -307,6 +309,40 @@ class AbstractArtifactCachedFileSystemTest {
     assertFalse(
         smallLimitFileSystem.hasFreeDiskForTest(),
         "Should not have free disk space when over limit");
+  }
+
+  @Test
+  void testHasFreeDiskWhileClonesAreDeleted() throws Exception {
+    Path clonesHome = fileSystem.getClonesHome();
+    AtomicBoolean stop = new AtomicBoolean();
+    Thread churn =
+        new Thread(
+            () -> {
+              int i = 0;
+              while (!stop.get()) {
+                Path clone = clonesHome.resolve("clone-" + (i++ % 4));
+                try {
+                  Files.createDirectories(clone);
+                  for (int f = 0; f < 50; f++) {
+                    Files.write(clone.resolve("file-" + f), new byte[16]);
+                  }
+                  FileUtils.deleteDirectory(clone.toFile());
+                } catch (IOException e) {
+                  throw new UncheckedIOException(e);
+                }
+              }
+            });
+    churn.start();
+
+    try {
+      long deadline = System.nanoTime() + TimeUnit.SECONDS.toNanos(3);
+      while (System.nanoTime() < deadline) {
+        assertTrue(fileSystem.hasFreeDiskForTest());
+      }
+    } finally {
+      stop.set(true);
+      churn.join();
+    }
   }
 
   @Test

@@ -20,11 +20,15 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 import com.netflix.spinnaker.kork.artifacts.model.Artifact;
 import java.io.IOException;
+import java.io.UncheckedIOException;
 import java.nio.file.Files;
+import java.nio.file.NoSuchFileException;
+import java.nio.file.Path;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
@@ -381,6 +385,25 @@ class GitRepoArtifactCredentialsTest {
         assertThrows(IllegalArgumentException.class, () -> credentials.download(artifact));
 
     assertThat(exception.getMessage()).containsIgnoringCase("host");
+  }
+
+  @Test
+  @DisplayName("Should release the lock when checking clone retention fails")
+  void shouldReleaseLockWhenRetentionCheckFails() throws Exception {
+    String repoUrl = "https://github.com/spinnaker/clouddriver.git";
+    Path stagingPath = Files.createTempDirectory("gitrepoartifacttests");
+    Files.createFile(stagingPath.resolve("clouddriver.tgz"));
+    when(mockFileSystem.getLocalClonePath(repoUrl, "main")).thenReturn(stagingPath);
+    when(mockFileSystem.tryTimedLock(repoUrl, "main")).thenReturn(true);
+    when(mockFileSystem.canRetainClone())
+        .thenThrow(new UncheckedIOException(new NoSuchFileException("vanished-clone")));
+
+    GitRepoArtifactCredentials credentials =
+        new GitRepoArtifactCredentials(mockExecutor, mockFileSystem, null);
+    Artifact artifact = Artifact.builder().reference(repoUrl).version("main").build();
+
+    assertThrows(UncheckedIOException.class, () -> credentials.download(artifact));
+    verify(mockFileSystem).unlock(repoUrl, "main");
   }
 
   /*
