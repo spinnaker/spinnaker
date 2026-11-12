@@ -1,14 +1,16 @@
 import { useRouter } from '@uirouter/react';
-import { get, has } from 'lodash';
+import { get } from 'lodash';
 import * as React from 'react';
 
 import type { IStage } from '@spinnaker/core';
 import { CopyToClipboard, HoverablePopover, timestamp } from '@spinnaker/core';
 
+import { hasViewableReport } from './canaryReport';
 import { CanaryScore } from '../../components/canaryScore';
 import Styleguide from '../../layout/styleguide';
 import type { ITableColumn } from '../../layout/table';
 import { NativeTable } from '../../layout/table';
+
 import './canaryRunSummaries.less';
 
 export interface ICanarySummariesProps {
@@ -23,7 +25,7 @@ export interface ICanaryRunColumn {
 }
 
 interface IReportHrefService {
-  go(state: string, params: { configId: string; runId: string }): unknown;
+  href(state: string, params: { configId: string; runId: string }): string;
 }
 
 export default function CanaryRunSummaries({ canaryRuns, firstScopeName }: ICanarySummariesProps) {
@@ -115,22 +117,21 @@ function CanaryRunTimestamps({ canaryRun, firstScopeName }: { canaryRun: IStage;
   );
 }
 
-function ReportLink({ canaryRun, stateService }: { canaryRun: IStage; stateService: IReportHrefService }) {
-  if (
-    !has(canaryRun, 'context.canaryConfigId') ||
-    !has(canaryRun, 'context.canaryPipelineExecutionId') ||
-    canaryRun.status === 'RUNNING'
-  ) {
+export function ReportLink({ canaryRun, stateService }: { canaryRun: IStage; stateService: IReportHrefService }) {
+  if (!hasViewableReport(canaryRun)) {
     return null;
   }
 
-  const onClick = () =>
-    stateService.go('home.applications.application.canary.report.reportDetail', {
-      configId: canaryRun.context.canaryConfigId,
-      runId: canaryRun.context.canaryPipelineExecutionId,
-    });
+  const href = stateService.href('home.applications.application.canary.report.reportDetail', {
+    configId: canaryRun.context.canaryConfigId,
+    runId: canaryRun.context.canaryPipelineExecutionId,
+  });
 
-  return <i className="fa fa-chart-bar clickable" onClick={onClick} />;
+  return (
+    <a href={href} title="View canary report" aria-label="View canary report">
+      <i className="fa fa-chart-bar" />
+    </a>
+  );
 }
 
 function CanaryRunWarningMessages({ messages }: { messages: string[] }) {
