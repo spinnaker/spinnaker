@@ -25,8 +25,10 @@ import jakarta.annotation.Nullable;
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.nio.file.StandardCopyOption;
 import java.util.List;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -186,7 +188,19 @@ public class GitRepoArtifactCredentials implements ArtifactCredentials {
       throws IOException {
     executor.cloneOrPull(repoUrl, branch, stagingPath, repoBasename);
     log.info("Creating archive for git/repo {}", repoUrl);
-    executor.archive(Paths.get(stagingPath.toString(), repoBasename), branch, subPath, outputFile);
+    // Earlier downloads keep reading outputFile after the lock is released, so it must be replaced
+    // rather than rewritten in place.
+    Path tempFile = Files.createTempFile(stagingPath, repoBasename, ".tgz");
+    try {
+      executor.archive(Paths.get(stagingPath.toString(), repoBasename), branch, subPath, tempFile);
+      Files.move(
+          tempFile,
+          outputFile,
+          StandardCopyOption.ATOMIC_MOVE,
+          StandardCopyOption.REPLACE_EXISTING);
+    } finally {
+      Files.deleteIfExists(tempFile);
+    }
     return new FileInputStream(outputFile.toFile());
   }
 
