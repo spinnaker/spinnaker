@@ -9,17 +9,6 @@ spring:
     converters:
       preferred-json-mapper: jackson2
 
-management:
-  health:
-    redis:
-      enabled: ${spinnaker.redis.enabled}
-
-spinnaker:
-  redis:
-    enabled: false
-    host: localhost
-    port: 6379
-
 swagger:
   enabled: true
   title: Spinnaker Front50 API

@@ -10,23 +10,16 @@ All metadata is durably stored and served out of an in-memory cache.
 
 ### Persistence
 
-The following storage backends are supported:
-
-- [SQL](https://github.com/spinnaker/spinnaker/blob/main/front50/front50-sql/src/main/kotlin/com/netflix/spinnaker/front50/model/SqlStorageService.kt) — **recommended** (required after Spinnaker 2027.0.0)
-- Amazon S3 — **deprecated** (removal after Spinnaker 2027.0.0)
-- Google Cloud Storage — **deprecated** (removal after Spinnaker 2027.0.0)
-- Redis — **deprecated** (removal after Spinnaker 2027.0.0)
-- Azure Blob / Oracle Object Storage / OpenStack Swift — **deprecated** (removal after Spinnaker 2027.0.0)
-
-Front50 is moving to **SQL-only** metadata persistence. Non-SQL backends still work so
-operators can migrate, but enabling them logs a startup warning. Prefer SQL now:
+Front50 persists metadata in [SQL](https://github.com/spinnaker/spinnaker/blob/main/front50/front50-sql/src/main/kotlin/com/netflix/spinnaker/front50/model/SqlStorageService.kt), the only supported
+storage backend. The Amazon S3, Google Cloud Storage, Redis, Azure Blob, Oracle Object Storage and
+OpenStack Swift metadata backends have been removed. See the migration guide:
 
 https://spinnaker.io/docs/setup/productionize/persistence/front50-sql/
 
 `SQL` is a cloud agnostic storage backend that offers strong read-after-write consistency and metadata versioning.
 
 > **Note:** S3 *plugin-binary* storage (`spinnaker.s3.plugin-storage`) is separate from
-> Front50 metadata storage and is not covered by this deprecation. Orca's artifact store
+> Front50 metadata storage and is still supported. Orca's artifact store
 > also continues to support S3.
 
 ### Metadata
@@ -74,33 +67,3 @@ the debugger to be attached before starting Front50; the relevant JVM arguments 
 modified as needed in `build.gradle`.
 
 [0]:http://projects.spring.io/spring-boot/
-
-### Modular builds
-
-By default, Front50 is built with all storage providers included. To build only a subset of
-providers, use the `includeProviders` flag (run from the monorepo root):
-
-```
-./gradlew :front50:clean :front50:build -PincludeProviders=s3,gcs
-```
-
-You can view the list of all providers in `gradle.properties`.
-
-### Working Locally
-
-The tests are setup to only run if needed services are available.
-
-#### S3
-S3 TCK only run if there is a s3 proxy available at 127.0.0.1:9999
-
-This can be provided with the following command:
-```bash
-docker run -d -p9999:80 \
-  --env S3PROXY_AUTHORIZATION="none" \
-  --env JCLOUDS_PROVIDER="filesystem" \
-  --env JCLOUDS_IDENTITY="remote-identity" \
-  --env JCLOUDS_CREDENTIAL="remote-credential" \
-  andrewgaul/s3proxy
-```
-
-When running the S3 TCK via an IDE make sure to have env `AWS_ACCESS_KEY_ID` and `AWS_SECRET_KEY` set to `null` otherwise the tests will timeout, the gradle test task is already configured this way.

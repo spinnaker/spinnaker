@@ -28,7 +28,6 @@ dependencies {
   implementation project(":front50-migrations")
   implementation "org.springframework.boot:spring-boot-starter-webmvc"
   implementation "org.springframework.boot:spring-boot-starter-actuator"
-  compileOnly "org.springframework.boot:spring-boot-starter-data-redis"
   compileOnly "org.springframework.boot:spring-boot-starter-jdbc"
   implementation "io.spinnaker.fiat:fiat-api"
   implementation "io.spinnaker.fiat:fiat-core"
