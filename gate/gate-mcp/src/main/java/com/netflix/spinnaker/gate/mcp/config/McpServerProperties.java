@@ -56,4 +56,29 @@ public class McpServerProperties {
    * top of {@link #readOnly}, which still blocks any allowlisted mutating tool.
    */
   private List<String> allowedTools;
+
+  /**
+   * Public base URL at which MCP clients reach this Gate ({@code scheme://host[:port][/path]}, no
+   * trailing slash). It is the OAuth 2.0 protected-resource identifier advertised in the {@code
+   * WWW-Authenticate} challenge and the RFC 9728 metadata document. When unset, the URL is derived
+   * from each incoming request - which behind a TLS-terminating proxy is only correct once Gate
+   * honours {@code X-Forwarded-*} headers (e.g. {@code server.forward-headers-strategy:
+   * framework}).
+   */
+  private String externalUrl;
+
+  /**
+   * Issuer URLs of the OAuth 2.0 authorization server(s) whose access tokens Gate accepts as bearer
+   * tokens (e.g. {@code https://login.example.com/oauth2/default}), published as {@code
+   * authorization_servers} in the RFC 9728 protected-resource metadata so an MCP client can
+   * discover where to obtain a token. Optional; when empty the field is omitted from the document.
+   */
+  private List<String> authorizationServers = List.of();
+
+  /**
+   * Scopes an MCP client should request from the authorization server, published as {@code
+   * scopes_supported} in the RFC 9728 protected-resource metadata. Optional; when empty the field
+   * is omitted from the document.
+   */
+  private List<String> scopesSupported = List.of();
 }
