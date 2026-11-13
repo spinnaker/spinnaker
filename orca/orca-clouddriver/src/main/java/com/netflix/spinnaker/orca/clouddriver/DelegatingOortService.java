@@ -67,6 +67,12 @@ public class DelegatingOortService extends DelegatingClouddriverService<OortServ
   }
 
   @Override
+  public Call<List<Manifest>> getManifestsByKindsAndLabels(
+      String account, String location, String kinds, Map<String, String> labels) {
+    return getService().getManifestsByKindsAndLabels(account, location, kinds, labels);
+  }
+
+  @Override
   public Call<ResponseBody> getServerGroupFromCluster(
       String app,
       String account,
