@@ -1,5 +1,6 @@
 dependencies {
 
+    testImplementation testFixtures("io.spinnaker.kork:kork-core")
     testImplementation project(":kayenta-web")
     testImplementation "io.rest-assured:rest-assured"
     testImplementation "org.awaitility:awaitility:4.0.3"

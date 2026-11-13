@@ -49,6 +49,7 @@ import com.netflix.spinnaker.q.metrics.EventPublisher
 import com.netflix.spinnaker.q.metrics.MonitorableQueue
 import com.netflix.spinnaker.q.sql.SqlQueue
 import de.huxhorn.sulky.ulid.ULID
+import io.micrometer.core.instrument.MeterRegistry
 import java.time.Clock
 import java.time.Duration
 import java.util.Optional
@@ -145,7 +146,7 @@ class SqlTestConfig {
     repository: ExecutionRepository,
     mapper: ObjectMapper,
     clock: Clock,
-    registry: Registry
+    registry: MeterRegistry
   ) =
     SqlPendingExecutionService(
       "test",

@@ -1,7 +1,5 @@
 package com.netflix.spinnaker.keel.actuation
 
-import com.netflix.spectator.api.BasicTag
-import com.netflix.spectator.api.Registry
 import com.netflix.spinnaker.config.ArtifactCheckConfig
 import com.netflix.spinnaker.config.EnvironmentCheckConfig
 import com.netflix.spinnaker.config.EnvironmentDeletionConfig
@@ -27,8 +25,8 @@ import com.netflix.spinnaker.keel.telemetry.ResourceCheckTimedOut
 import com.netflix.spinnaker.keel.telemetry.ResourceLoadFailed
 import com.netflix.spinnaker.keel.telemetry.VerificationCheckComplete
 import com.netflix.spinnaker.keel.telemetry.VerificationTimedOut
-import com.netflix.spinnaker.keel.telemetry.recordDurationPercentile
 import com.netflix.spinnaker.keel.verification.VerificationRunner
+import io.micrometer.core.instrument.MeterRegistry
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.TimeoutCancellationException
@@ -78,7 +76,7 @@ class CheckScheduler(
   private val agentLockRepository: AgentLockRepository,
   private val clock: Clock,
   private val springEnv: Environment,
-  private val spectator: Registry
+  private val meterRegistry: MeterRegistry
   ) : CoroutineScope {
   override val coroutineContext: CoroutineContext = Dispatchers.IO
 
@@ -334,7 +332,8 @@ class CheckScheduler(
   }
 
   private fun recordDuration(startTime : Instant, type: String) =
-    spectator.recordDurationPercentile("keel.scheduled.method.duration", clock, startTime, setOf(BasicTag("type", type)))
+    meterRegistry.timer("keel.scheduled.method.duration", "type", type)
+      .record(Duration.between(startTime, clock.instant()))
 
   private val log by lazy { LoggerFactory.getLogger(javaClass) }
 }

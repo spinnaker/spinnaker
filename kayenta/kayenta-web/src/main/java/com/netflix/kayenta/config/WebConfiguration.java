@@ -18,8 +18,8 @@ package com.netflix.kayenta.config;
 
 import com.google.common.collect.ImmutableList;
 import com.netflix.kayenta.filters.KayentaCorsFilter;
-import com.netflix.spectator.api.Registry;
 import com.netflix.spinnaker.kork.web.interceptors.MetricsInterceptor;
+import io.micrometer.core.instrument.MeterRegistry;
 import java.util.Collections;
 import java.util.List;
 import lombok.extern.slf4j.Slf4j;
@@ -37,7 +37,7 @@ import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
 @ComponentScan({"com.netflix.kayenta.controllers"})
 public class WebConfiguration implements WebMvcConfigurer {
 
-  @Autowired Registry registry;
+  @Autowired MeterRegistry registry;
 
   @Override
   public void addInterceptors(InterceptorRegistry registry) {

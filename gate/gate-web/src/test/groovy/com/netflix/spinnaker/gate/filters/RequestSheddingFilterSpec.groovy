@@ -15,7 +15,7 @@
  */
 package com.netflix.spinnaker.gate.filters
 
-import com.netflix.spectator.api.NoopRegistry
+import io.micrometer.core.instrument.simple.SimpleMeterRegistry
 import com.netflix.spinnaker.gate.filters.RequestSheddingFilter
 import com.netflix.spinnaker.kork.dynamicconfig.DynamicConfigService
 import spock.lang.Specification
@@ -33,7 +33,7 @@ class RequestSheddingFilterSpec extends Specification {
   DynamicConfigService configService = Mock()
 
   @Subject
-  RequestSheddingFilter subject = new RequestSheddingFilter(configService, new NoopRegistry(), null)
+  RequestSheddingFilter subject = new RequestSheddingFilter(configService, new SimpleMeterRegistry(), null)
 
   HttpServletRequest request = Mock()
   HttpServletResponse response = Mock()

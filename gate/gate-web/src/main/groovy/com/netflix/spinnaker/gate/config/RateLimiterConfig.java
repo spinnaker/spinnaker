@@ -15,7 +15,6 @@
  */
 package com.netflix.spinnaker.gate.config;
 
-import com.netflix.spectator.api.Registry;
 import com.netflix.spinnaker.gate.ratelimit.DefaultRateLimitPrincipalResolver;
 import com.netflix.spinnaker.gate.ratelimit.RateLimitPrincipalProvider;
 import com.netflix.spinnaker.gate.ratelimit.RateLimitPrincipalResolver;
@@ -26,6 +25,7 @@ import com.netflix.spinnaker.gate.ratelimit.RedisRateLimitPrincipalProvider;
 import com.netflix.spinnaker.gate.ratelimit.RedisRateLimiter;
 import com.netflix.spinnaker.gate.security.RequestIdentityExtractor;
 import com.netflix.spinnaker.gate.services.PermissionService;
+import io.micrometer.core.instrument.MeterRegistry;
 import java.util.List;
 import java.util.Optional;
 import lombok.extern.slf4j.Slf4j;
@@ -108,7 +108,7 @@ public class RateLimiterConfig {
   @ConditionalOnMissingBean(name = "rateLimitingFilter")
   FilterRegistrationBean<RateLimitingFilter> rateLimitingFilter(
       RateLimiter rateLimiter,
-      Registry registry,
+      MeterRegistry registry,
       RateLimitPrincipalProvider rateLimitPrincipalProvider,
       RateLimitPrincipalResolver rateLimitPrincipalResolver,
       RateLimitRuleMatcher rateLimitRuleMatcher,

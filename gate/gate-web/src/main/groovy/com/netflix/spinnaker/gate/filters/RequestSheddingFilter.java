@@ -21,10 +21,10 @@ import static org.springframework.http.HttpStatus.SERVICE_UNAVAILABLE;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.base.Splitter;
 import com.google.common.base.Strings;
-import com.netflix.spectator.api.Id;
-import com.netflix.spectator.api.Registry;
-import com.netflix.spectator.api.histogram.PercentileTimer;
 import com.netflix.spinnaker.kork.dynamicconfig.DynamicConfigService;
+import io.micrometer.core.instrument.Counter;
+import io.micrometer.core.instrument.MeterRegistry;
+import io.micrometer.core.instrument.Timer;
 import jakarta.annotation.PreDestroy;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
@@ -81,27 +81,24 @@ public class RequestSheddingFilter extends HttpFilter {
   private static final Random random = new Random();
 
   private final DynamicConfigService configService;
-  private final Registry registry;
+  private final MeterRegistry registry;
   private final ScheduledExecutorService executorService;
 
-  private final Id requestsId;
-  private final Id controllerInvocationsId;
+  private final Timer.Builder controllerInvocations;
 
   private final CopyOnWriteArrayList<Pattern> pathPatterns = new CopyOnWriteArrayList<>();
 
-  public RequestSheddingFilter(DynamicConfigService configService, Registry registry) {
+  public RequestSheddingFilter(DynamicConfigService configService, MeterRegistry registry) {
     this(configService, registry, Executors.newScheduledThreadPool(1));
   }
 
   @VisibleForTesting
   RequestSheddingFilter(
       DynamicConfigService configService,
-      Registry registry,
+      MeterRegistry registry,
       ScheduledExecutorService executorService) {
     this.configService = configService;
     this.registry = registry;
-
-    this.requestsId = registry.createId("requestShedding.requests");
 
     if (executorService != null) {
       this.executorService = executorService;
@@ -110,15 +107,22 @@ public class RequestSheddingFilter extends HttpFilter {
       this.executorService = null;
     }
 
-    this.controllerInvocationsId =
-        registry
-            .createId("controller.invocations")
-            .withTag("controller", "unknown")
-            .withTag("method", "unknown")
-            .withTag("status", "5xx")
-            .withTag("statusCode", "503")
-            .withTag("success", "false")
-            .withTag("cause", "RequestSheddingFilter");
+    this.controllerInvocations =
+        Timer.builder("controller.invocations")
+            .tags(
+                "controller", "unknown",
+                "method", "unknown",
+                "status", "5xx",
+                "statusCode", "503",
+                "success", "false",
+                "cause", "RequestSheddingFilter");
+  }
+
+  private void countRequest(String action) {
+    Counter.builder("requestShedding.requests")
+        .tag("action", action)
+        .register(registry)
+        .increment();
   }
 
   @PreDestroy
@@ -135,7 +139,7 @@ public class RequestSheddingFilter extends HttpFilter {
     if (configService.isEnabled(ENABLED_KEY, false) && isDroppable(request)) {
       if (shouldDropRequestWithChance()) {
         log.warn("Dropping low priority request: {}", request.getRequestURI());
-        registry.counter(requestsId.withTag("action", "dropped")).increment();
+        countRequest("dropped");
 
         response.setDateHeader(
             "Retry-After", Instant.now().plus(Duration.ofMinutes(1)).toEpochMilli());
@@ -154,7 +158,8 @@ public class RequestSheddingFilter extends HttpFilter {
         Optional.ofNullable(MDC.get(REQUEST_START_TIME))
             .ifPresent(
                 startTime -> {
-                  PercentileTimer.get(registry, controllerInvocationsId)
+                  controllerInvocations
+                      .register(registry)
                       .record(
                           System.currentTimeMillis() - Long.parseLong(startTime),
                           TimeUnit.MILLISECONDS);
@@ -163,7 +168,7 @@ public class RequestSheddingFilter extends HttpFilter {
         return;
       }
       log.debug("Dice roll prevented low priority request shedding: {}", request.getRequestURI());
-      registry.counter(requestsId.withTag("action", "allowed")).increment();
+      countRequest("allowed");
     }
 
     chain.doFilter(request, response);

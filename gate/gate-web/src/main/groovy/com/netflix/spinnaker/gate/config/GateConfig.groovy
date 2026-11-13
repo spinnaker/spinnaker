@@ -20,6 +20,7 @@ import com.fasterxml.jackson.databind.ObjectMapper
 import com.fasterxml.jackson.databind.SerializationFeature
 import com.fasterxml.jackson.dataformat.yaml.YAMLFactory
 import com.netflix.spectator.api.Registry
+import io.micrometer.core.instrument.MeterRegistry
 import com.netflix.spinnaker.config.DefaultServiceEndpoint
 import com.netflix.spinnaker.config.PluginsAutoConfiguration
 import com.netflix.spinnaker.fiat.shared.FiatClientConfigurationProperties
@@ -368,8 +369,9 @@ class GateConfig {
   }
 
   @Bean
-  FilterRegistrationBean<RequestSheddingFilter> requestSheddingFilter(DynamicConfigService dynamicConfigService) {
-    def frb = new FilterRegistrationBean<>(new RequestSheddingFilter(dynamicConfigService, registry))
+  FilterRegistrationBean<RequestSheddingFilter> requestSheddingFilter(DynamicConfigService dynamicConfigService,
+                                                                      MeterRegistry meterRegistry) {
+    def frb = new FilterRegistrationBean<>(new RequestSheddingFilter(dynamicConfigService, meterRegistry))
 
     /*
      * This filter should:

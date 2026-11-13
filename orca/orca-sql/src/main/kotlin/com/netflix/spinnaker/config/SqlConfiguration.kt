@@ -21,6 +21,7 @@ import com.netflix.spinnaker.kork.dynamicconfig.DynamicConfigService
 import com.netflix.spinnaker.kork.sql.config.DefaultSqlConfiguration
 import com.netflix.spinnaker.kork.sql.config.SqlProperties
 import com.netflix.spinnaker.kork.telemetry.InstrumentedProxy
+import io.micrometer.core.instrument.MeterRegistry
 import com.netflix.spinnaker.orca.api.pipeline.persistence.ExecutionRepositoryListener
 import com.netflix.spinnaker.orca.interlink.Interlink
 import com.netflix.spinnaker.orca.jackson.OrcaObjectMapper
@@ -76,7 +77,7 @@ class SqlConfiguration {
   fun sqlExecutionRepository(
     dsl: DSLContext,
     mapper: ObjectMapper,
-    registry: Registry,
+    registry: MeterRegistry,
     properties: SqlProperties,
     orcaSqlProperties: OrcaSqlProperties,
     interlink: Optional<Interlink>,
@@ -107,7 +108,7 @@ class SqlConfiguration {
   fun secondarySqlExecutionRepository(
     dsl: DSLContext,
     mapper: ObjectMapper,
-    registry: Registry,
+    registry: MeterRegistry,
     properties: SqlProperties,
     orcaSqlProperties: OrcaSqlProperties,
     @Value("\${execution-repository.sql.secondary.pool-name}") poolName: String,

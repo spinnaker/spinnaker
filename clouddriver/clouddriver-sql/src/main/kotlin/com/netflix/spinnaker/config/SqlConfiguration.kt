@@ -36,6 +36,7 @@ import com.netflix.spinnaker.kork.jackson.ObjectMapperSubtypeConfigurer.SubtypeL
 import com.netflix.spinnaker.kork.sql.config.DefaultSqlConfiguration
 import com.netflix.spinnaker.kork.sql.config.SqlProperties
 import com.netflix.spinnaker.kork.telemetry.InstrumentedProxy
+import io.micrometer.core.instrument.MeterRegistry
 import com.netflix.spinnaker.kork.version.ServiceVersion
 import org.jooq.DSLContext
 import org.springframework.beans.factory.annotation.Value
@@ -99,6 +100,7 @@ class SqlConfiguration {
     objectMapper: ObjectMapper,
     applicationEventPublisher: ApplicationEventPublisher,
     registry: Registry,
+    meterRegistry: MeterRegistry,
     subtypeLocators: List<SubtypeLocator>,
     sqlRetries: SqlRetries
   ): EventRepository {
@@ -112,7 +114,7 @@ class SqlConfiguration {
       registry,
       sqlRetries
     ).let {
-      InstrumentedProxy.proxy(registry, it, "eventRepository", mapOf("backend" to "sql"))
+      InstrumentedProxy.proxy(meterRegistry, it, "eventRepository", mapOf("backend" to "sql"))
     }
   }
 
