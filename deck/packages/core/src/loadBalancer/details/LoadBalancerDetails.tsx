@@ -1,5 +1,5 @@
 import { useRouter } from '@uirouter/react';
-import React, { useEffect, useState } from 'react';
+import React, { useCallback, useEffect, useState } from 'react';
 
 import type { ILoadBalancerDetailsProps } from './LoadBalancerDetailsWrapper';
 import { CloudProviderLogo } from '../../cloudProvider';
@@ -18,16 +18,16 @@ export function LoadBalancerDetailsContent({
   const {
     stateService: { go },
   } = useRouter();
-  const autoClose = () => {
+  const autoClose = useCallback(() => {
     go('^', { allowModalToStayOpen: true }, { location: 'replace' });
-  };
+  }, [go]);
   const { data: loadBalancer, error, loading } = useDetails({ app, loadBalancerParams: params, autoClose });
 
   useEffect(() => {
     if (loadBalancer) {
       setInitialized(true);
     }
-  }, [loading]);
+  }, [loadBalancer, loading]);
 
   if (error) {
     return (
