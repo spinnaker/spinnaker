@@ -16,15 +16,15 @@
 
 package com.netflix.spinnaker.orca.igor
 
-import com.fasterxml.jackson.databind.ObjectMapper
 import com.github.tomakehurst.wiremock.WireMockServer
 import com.netflix.spinnaker.kork.artifacts.model.Artifact
+import com.netflix.spinnaker.kork.retrofit.util.CustomConverterFactory
 import okhttp3.OkHttpClient
 import retrofit2.Response
-import retrofit2.converter.jackson.JacksonConverterFactory
 import retrofit2.Retrofit
 import spock.lang.Specification
 import spock.lang.Subject
+import tools.jackson.databind.ObjectMapper
 
 import static com.github.tomakehurst.wiremock.client.WireMock.configureFor
 import static com.github.tomakehurst.wiremock.client.WireMock.stubFor
@@ -33,6 +33,7 @@ import static com.github.tomakehurst.wiremock.client.WireMock.urlEqualTo
 import static com.github.tomakehurst.wiremock.client.WireMock.aResponse
 import static com.github.tomakehurst.wiremock.client.WireMock.get
 import static com.github.tomakehurst.wiremock.client.WireMock.put
+import tools.jackson.databind.json.JsonMapper
 
 
 class BuildServiceSpecMock extends Specification{
@@ -52,13 +53,13 @@ class BuildServiceSpecMock extends Specification{
     wireMockServer.start()
     configureFor(wireMockServer.port())
   }
-  def mapper = new ObjectMapper()
+  def mapper = JsonMapper.builder().build()
   IgorService igorService
   def setup() {
     igorService = new Retrofit.Builder()
         .baseUrl(wireMockServer.baseUrl())
         .client(new OkHttpClient())
-        .addConverterFactory(JacksonConverterFactory.create(mapper))
+        .addConverterFactory(CustomConverterFactory.create(mapper))
         .build()
         .create(IgorService)
     buildService = new BuildService(igorService, new IgorFeatureFlagProperties(jobNameAsQueryParameter: false))

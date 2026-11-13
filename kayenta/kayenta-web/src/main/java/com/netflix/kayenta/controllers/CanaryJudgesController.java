@@ -16,7 +16,6 @@
 
 package com.netflix.kayenta.controllers;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
 import com.google.common.collect.ImmutableMap;
 import com.netflix.kayenta.canary.CanaryClassifierThresholdsConfig;
 import com.netflix.kayenta.canary.CanaryConfig;
@@ -49,6 +48,7 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
+import tools.jackson.core.JacksonException;
 
 @RestController
 @RequestMapping("/judges")
@@ -160,7 +160,7 @@ public class CanaryJudgesController {
       @RequestParam final String metricSetPairListId,
       @RequestParam final Double passThreshold,
       @RequestParam final Double marginalThreshold)
-      throws JsonProcessingException {
+      throws JacksonException {
     String resolvedStorageAccountName =
         accountCredentialsRepository
             .getRequiredOneBy(storageAccountName, AccountCredentials.Type.OBJECT_STORE)

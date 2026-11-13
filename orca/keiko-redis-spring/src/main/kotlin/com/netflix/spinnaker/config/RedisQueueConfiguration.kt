@@ -16,9 +16,6 @@
 
 package com.netflix.spinnaker.config
 
-import com.fasterxml.jackson.databind.DeserializationFeature
-import com.fasterxml.jackson.databind.ObjectMapper
-import com.fasterxml.jackson.module.kotlin.KotlinModule
 import com.netflix.spinnaker.q.metrics.EventPublisher
 import com.netflix.spinnaker.q.migration.SerializationMigrator
 import com.netflix.spinnaker.q.redis.RedisClusterDeadMessageHandler
@@ -44,6 +41,10 @@ import redis.clients.jedis.JedisCluster
 import redis.clients.jedis.JedisPool
 import redis.clients.jedis.Protocol
 import redis.clients.jedis.util.Pool
+import tools.jackson.databind.DeserializationFeature
+import tools.jackson.databind.ObjectMapper
+import tools.jackson.databind.json.JsonMapper
+import tools.jackson.module.kotlin.KotlinModule
 
 @Configuration
 @EnableConfigurationProperties(RedisQueueProperties::class)
@@ -196,12 +197,13 @@ class RedisQueueConfiguration {
   @Bean
   @ConditionalOnMissingBean
   fun redisQueueObjectMapper(properties: Optional<ObjectMapperSubtypeProperties>): ObjectMapper =
-    ObjectMapper().apply {
-      registerModule(KotlinModule.Builder().build())
-      disable(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES)
-
-      SpringObjectMapperConfigurer(
-        properties.orElse(ObjectMapperSubtypeProperties())
-      ).registerSubtypes(this)
-    }
+    JsonMapper.builder()
+      .addModule(KotlinModule.Builder().build())
+      .disable(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES)
+      .build()
+      .let {
+        SpringObjectMapperConfigurer(
+          properties.orElse(ObjectMapperSubtypeProperties())
+        ).registerSubtypes(it)
+      }
 }

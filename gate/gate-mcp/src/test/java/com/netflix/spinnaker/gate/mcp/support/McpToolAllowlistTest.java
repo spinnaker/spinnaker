@@ -19,7 +19,6 @@ package com.netflix.spinnaker.gate.mcp.support;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.mock;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
 import com.netflix.spinnaker.gate.mcp.config.McpServerAutoConfiguration;
 import com.netflix.spinnaker.gate.services.TaskService;
 import com.netflix.spinnaker.gate.services.internal.ClouddriverServiceSelector;
@@ -37,6 +36,8 @@ import org.springframework.context.ApplicationContext;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.core.ResolvableType;
+import tools.jackson.databind.ObjectMapper;
+import tools.jackson.databind.json.JsonMapper;
 
 /**
  * Runs the real Spring AI annotation scanner and specification factory over gate-mcp's tool beans,
@@ -145,7 +146,7 @@ class McpToolAllowlistTest {
 
     @Bean
     ObjectMapper objectMapper() {
-      return new ObjectMapper();
+      return JsonMapper.builder().build();
     }
   }
 }

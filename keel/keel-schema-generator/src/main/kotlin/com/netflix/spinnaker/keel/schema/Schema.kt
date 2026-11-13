@@ -1,5 +1,6 @@
 package com.netflix.spinnaker.keel.schema
 
+import com.fasterxml.jackson.annotation.JsonProperty
 import com.fasterxml.jackson.annotation.JsonValue
 import java.util.SortedMap
 import java.util.SortedSet
@@ -13,16 +14,17 @@ sealed class TypedProperty(
 ) : Schema
 
 data class RootSchema(
-  val `$id`: String,
+  @get:JsonProperty("\$id") val `$id`: String,
   val title: String?,
   val description: String?,
   val properties: Map<String, Schema>,
   val required: SortedSet<String>,
   val allOf: List<ConditionalSubschema>? = null,
   val additionalProperties: Boolean? = null,
-  val `$defs`: SortedMap<String, Schema>
+  @get:JsonProperty("\$defs") val `$defs`: SortedMap<String, Schema>
 ) {
   @Suppress("unused", "PropertyName")
+  @JsonProperty("\$schema")
   val `$schema`: String = "https://json-schema.org/draft/2019-09/schema"
   val type: String = "object"
 }
@@ -88,7 +90,7 @@ data class ConstSchema(
 ) : Schema
 
 data class Reference(
-  val `$ref`: String
+  @get:JsonProperty("\$ref") val `$ref`: String
 ) : Schema {
   override val description: String? = null
 }

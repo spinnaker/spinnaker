@@ -1,15 +1,13 @@
 package com.netflix.spinnaker.keel.orca
 
 import com.fasterxml.jackson.annotation.JsonAlias
-import com.fasterxml.jackson.core.type.TypeReference
-import com.fasterxml.jackson.databind.DeserializationContext
-import com.fasterxml.jackson.databind.JsonNode
-import com.fasterxml.jackson.databind.annotation.JsonDeserialize
-import com.fasterxml.jackson.databind.deser.std.StdNodeBasedDeserializer
-import com.fasterxml.jackson.module.kotlin.convertValue
+import tools.jackson.core.type.TypeReference
+import tools.jackson.databind.DeserializationContext
+import tools.jackson.databind.JsonNode
+import tools.jackson.databind.annotation.JsonDeserialize
+import tools.jackson.databind.deser.std.StdNodeBasedDeserializer
 import com.netflix.spinnaker.keel.api.TaskExecution
 import com.netflix.spinnaker.keel.api.TaskStatus
-import com.netflix.spinnaker.keel.serialization.mapper
 import java.time.Instant
 import java.util.LinkedHashMap
 
@@ -112,7 +110,7 @@ class OrcaExecutionStagesDeserializer : StdNodeBasedDeserializer<OrcaExecutionSt
     val stages: List<OrcaExecutionStage>? = if (stagesNode.isMissingNode || stagesNode.isNull) {
       emptyList()
     } else {
-      ctxt.mapper.readValue(ctxt.mapper.treeAsTokens(stagesNode), stageListType)
+      ctxt.readTreeAsValue(stagesNode, ctxt.typeFactory.constructType(stageListType))
     }
 
     return OrcaExecutionStages(stages)
@@ -121,7 +119,6 @@ class OrcaExecutionStagesDeserializer : StdNodeBasedDeserializer<OrcaExecutionSt
 
 class ExecutionDetailResponseDeserializer : StdNodeBasedDeserializer<ExecutionDetailResponse>(ExecutionDetailResponse::class.java) {
   private val stageListType = object : TypeReference<List<Map<String, Any>>>() {}
-  private val keyValueListType = object : TypeReference<List<KeyValuePair>>() {}
 
   override fun convert(root: JsonNode, ctxt: DeserializationContext): ExecutionDetailResponse {
     // Parse execution node
@@ -130,7 +127,7 @@ class ExecutionDetailResponseDeserializer : StdNodeBasedDeserializer<ExecutionDe
       OrcaExecutionStages(emptyList())
     } else {
       try {
-        ctxt.mapper.treeToValue(executionNode, OrcaExecutionStages::class.java) ?: OrcaExecutionStages(emptyList())
+        ctxt.readTreeAsValue(executionNode, OrcaExecutionStages::class.java) ?: OrcaExecutionStages(emptyList())
       } catch (e: Exception) {
         OrcaExecutionStages(emptyList())
       }
@@ -142,7 +139,7 @@ class ExecutionDetailResponseDeserializer : StdNodeBasedDeserializer<ExecutionDe
       emptyList()
     } else {
       try {
-        ctxt.mapper.readValue(ctxt.mapper.treeAsTokens(stagesNode), stageListType) ?: emptyList()
+        ctxt.readTreeAsValue(stagesNode, ctxt.typeFactory.constructType(stageListType)) ?: emptyList()
       } catch (e: Exception) {
         emptyList()
       }
@@ -150,15 +147,23 @@ class ExecutionDetailResponseDeserializer : StdNodeBasedDeserializer<ExecutionDe
 
     // Parse variables node
     val variablesNode = root.path("variables")
-    val variables = if (variablesNode.isMissingNode || variablesNode.isNull) {
-      null
-    } else {
-      try {
-        ctxt.mapper.readValue(ctxt.mapper.treeAsTokens(variablesNode), keyValueListType)
-      } catch (e: Exception) {
-        null
-      }
-    }
+    val variables: List<KeyValuePair>? =
+        if (variablesNode.isMissingNode || variablesNode.isNull) {
+          null
+        } else {
+          try {
+            if (!variablesNode.isArray) error("variables is not an array")
+            buildList {
+              for (child in variablesNode) {
+                add(
+                    ctxt.readTreeAsValue<KeyValuePair>(child, KeyValuePair::class.java)
+                        ?: error("null variable"))
+              }
+            }
+          } catch (e: Exception) {
+            null
+          }
+        }
 
     // Parse required string fields with null safety
     val idNode = root.path("id")
@@ -184,7 +189,7 @@ class ExecutionDetailResponseDeserializer : StdNodeBasedDeserializer<ExecutionDe
       buildTime = Instant.ofEpochMilli(buildTimeNode.longValue()),
       startTime = if (startTimeNode.isNull || startTimeNode.isMissingNode) null else Instant.ofEpochMilli(startTimeNode.longValue()),
       endTime = if (endTimeNode.isNull || endTimeNode.isMissingNode) null else Instant.ofEpochMilli(endTimeNode.longValue()),
-      status = ctxt.mapper.convertValue(statusNode),
+      status = ctxt.readTreeAsValue(statusNode, TaskStatus::class.java),
       execution = execution,
       stages = stages,
       variables = variables

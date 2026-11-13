@@ -18,16 +18,16 @@ package com.netflix.kayenta.index;
 
 import static com.netflix.kayenta.index.CanaryConfigIndexingAgent.*;
 
-import com.fasterxml.jackson.core.type.TypeReference;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import com.netflix.kayenta.index.config.CanaryConfigIndexAction;
 import com.netflix.kayenta.security.AccountCredentials;
-import java.io.IOException;
 import java.util.*;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import redis.clients.jedis.Jedis;
 import redis.clients.jedis.JedisPool;
+import tools.jackson.core.JacksonException;
+import tools.jackson.core.type.TypeReference;
+import tools.jackson.databind.ObjectMapper;
 
 @Slf4j
 public class CanaryConfigIndex {
@@ -109,7 +109,7 @@ public class CanaryConfigIndex {
             canaryConfigSummarySet.add(canaryConfigSummary);
           }
         }
-      } catch (IOException e) {
+      } catch (JacksonException e) {
         throw new IllegalArgumentException(
             "Unable to parse index '" + mapByApplicationKey + "': " + e.getMessage(), e);
       }
@@ -172,7 +172,7 @@ public class CanaryConfigIndex {
                 }
               }
             }
-          } catch (IOException e) {
+          } catch (JacksonException e) {
             log.error(
                 "Problem deserializing pendingUpdateCanaryConfigSummaryJson -> {}: {}",
                 pendingUpdateCanaryConfigSummaryJson,

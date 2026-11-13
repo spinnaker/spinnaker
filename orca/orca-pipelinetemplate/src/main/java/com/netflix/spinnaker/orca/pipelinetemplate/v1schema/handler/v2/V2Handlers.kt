@@ -16,7 +16,7 @@
 
 package com.netflix.spinnaker.orca.pipelinetemplate.v1schema.handler.v2
 
-import com.fasterxml.jackson.databind.ObjectMapper
+import tools.jackson.databind.ObjectMapper
 import com.netflix.spinnaker.orca.pipeline.util.ArtifactUtils
 import com.netflix.spinnaker.orca.pipeline.util.ContextParameterProcessor
 import com.netflix.spinnaker.orca.pipelinetemplate.handler.Handler

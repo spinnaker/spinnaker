@@ -16,7 +16,7 @@
 
 package com.netflix.spinnaker.orca.clouddriver.pipeline.job
 
-import com.fasterxml.jackson.databind.ObjectMapper
+import tools.jackson.databind.ObjectMapper
 import com.netflix.spinnaker.orca.api.pipeline.graph.TaskNode
 import com.netflix.spinnaker.orca.api.pipeline.models.StageExecution
 import com.netflix.spinnaker.orca.api.preconfigured.jobs.PreconfiguredJobStageProperties
@@ -28,6 +28,7 @@ import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Component
 
 import javax.annotation.Nonnull
+import tools.jackson.databind.json.JsonMapper
 
 @Component
 class PreconfiguredJobStage extends RunJobStage {
@@ -40,7 +41,7 @@ class PreconfiguredJobStage extends RunJobStage {
   PreconfiguredJobStage(DestroyJobTask destroyJobTask, List<RunJobStageDecorator> runJobStageDecorators, Optional<JobService> optionalJobService) {
     super(destroyJobTask, runJobStageDecorators)
     this.jobService = optionalJobService.orElse(null)
-    this.objectMapper = new ObjectMapper()
+    this.objectMapper = JsonMapper.builder().build()
     this.json = new JSON()
   }
 

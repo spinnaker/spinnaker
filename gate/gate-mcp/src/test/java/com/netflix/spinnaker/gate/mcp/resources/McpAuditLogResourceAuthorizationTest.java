@@ -19,7 +19,6 @@ package com.netflix.spinnaker.gate.mcp.resources;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
 import com.netflix.spinnaker.gate.mcp.support.McpAuditLog;
 import org.junit.jupiter.api.Test;
 import org.springframework.context.annotation.AnnotationConfigApplicationContext;
@@ -30,6 +29,7 @@ import org.springframework.security.authentication.TestingAuthenticationToken;
 import org.springframework.security.config.annotation.method.configuration.EnableMethodSecurity;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
+import tools.jackson.databind.json.JsonMapper;
 
 /**
  * Verifies the audit-log resources' {@code @PreAuthorize("@fiatPermissionEvaluator.isAdmin()")} is
@@ -62,7 +62,7 @@ class McpAuditLogResourceAuthorizationTest {
     McpAuditLogResource mcpAuditLogResource() {
       McpAuditLog auditLog = new McpAuditLog(10);
       auditLog.record("create_application", "app-a");
-      return new McpAuditLogResource(auditLog, new ObjectMapper());
+      return new McpAuditLogResource(auditLog, JsonMapper.builder().build());
     }
   }
 

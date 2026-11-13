@@ -36,7 +36,7 @@ import com.aliyuncs.slb.model.v20140515.SetLoadBalancerHTTPSListenerAttributeReq
 import com.aliyuncs.slb.model.v20140515.SetLoadBalancerStatusRequest;
 import com.aliyuncs.slb.model.v20140515.SetLoadBalancerTCPListenerAttributeRequest;
 import com.aliyuncs.slb.model.v20140515.SetLoadBalancerUDPListenerAttributeRequest;
-import com.fasterxml.jackson.databind.ObjectMapper;
+import tools.jackson.databind.ObjectMapper;
 import com.netflix.spinnaker.clouddriver.alicloud.common.ClientFactory;
 import com.netflix.spinnaker.clouddriver.alicloud.deploy.description.UpsertAliCloudLoadBalancerDescription;
 import com.netflix.spinnaker.clouddriver.alicloud.exception.AliCloudException;

@@ -15,7 +15,6 @@
  */
 package com.netflix.spinnaker.orca.pipelinetemplate
 
-import com.fasterxml.jackson.databind.ObjectMapper
 import com.netflix.spectator.api.BasicTag
 import com.netflix.spectator.api.Registry
 import com.netflix.spinnaker.orca.api.pipeline.ExecutionPreprocessor
@@ -32,6 +31,7 @@ import org.slf4j.LoggerFactory
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.core.annotation.Order
 import org.springframework.stereotype.Component
+import tools.jackson.databind.ObjectMapper
 
 @Component("pipelineTemplatePreprocessor")
 @Order(2)

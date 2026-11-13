@@ -25,8 +25,6 @@ import static org.mockito.Mockito.doAnswer;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.dataformat.yaml.YAMLFactory;
 import com.google.api.services.run.v1.CloudRun;
 import com.google.api.services.run.v1.model.ListRevisionsResponse;
 import com.netflix.spinnaker.clouddriver.cloudrun.deploy.CloudrunServiceClient;
@@ -47,6 +45,8 @@ import java.util.List;
 import java.util.Map;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import tools.jackson.databind.ObjectMapper;
+import tools.jackson.dataformat.yaml.YAMLMapper;
 
 /**
  * Exercises {@link CloudrunDeployManifestOperation} end to end up to the {@code gcloud} call and
@@ -54,7 +54,7 @@ import org.junit.jupiter.api.Test;
  */
 class CloudrunDeployManifestOperationTest {
 
-  private static final ObjectMapper YAML = new ObjectMapper(new YAMLFactory());
+  private static final ObjectMapper YAML = YAMLMapper.builder().build();
 
   /** Mirrors the manifest from spinnaker/spinnaker#8361. */
   private static final String MANIFEST_WITH_ENV_AND_PROBE =

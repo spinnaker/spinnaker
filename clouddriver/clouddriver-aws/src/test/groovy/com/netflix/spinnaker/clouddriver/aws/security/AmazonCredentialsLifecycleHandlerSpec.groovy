@@ -17,7 +17,6 @@
 
 package com.netflix.spinnaker.clouddriver.aws.security
 
-import com.fasterxml.jackson.databind.ObjectMapper
 import com.netflix.spectator.api.DefaultRegistry
 import com.netflix.spinnaker.cats.agent.AgentProvider
 import com.netflix.spinnaker.clouddriver.aws.AmazonCloudProvider
@@ -31,6 +30,7 @@ import com.netflix.spinnaker.clouddriver.aws.provider.agent.ReservationReportCac
 import com.netflix.spinnaker.config.AwsConfiguration
 import com.netflix.spinnaker.credentials.CredentialsRepository
 import com.netflix.spinnaker.kork.dynamicconfig.DynamicConfigService
+import tools.jackson.databind.json.JsonMapper
 import spock.lang.Specification
 
 import java.util.concurrent.ExecutorService
@@ -47,7 +47,7 @@ class AmazonCredentialsLifecycleHandlerSpec extends Specification {
     isEnabled("aws.features.cloud-formation", false) >> false
     isEnabled("aws.features.launch-templates", false) >> false
   }
-  def objectMapper = new ObjectMapper()
+  def objectMapper = JsonMapper.builder().build()
   def credOne = TestCredential.named('one')
   def credTwo = TestCredential.named('two')
   def credThree = TestCredential.named('three')

@@ -17,11 +17,11 @@
 
 package com.netflix.spinnaker.kork.client;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
 import com.netflix.spinnaker.config.ServiceEndpoint;
 import java.util.List;
 import okhttp3.Interceptor;
 import retrofit2.Converter;
+import tools.jackson.databind.ObjectMapper;
 
 /** Factory to build a client for a service. */
 public interface ServiceClientFactory {

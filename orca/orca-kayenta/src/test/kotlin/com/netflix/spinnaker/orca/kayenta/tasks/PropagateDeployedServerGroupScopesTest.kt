@@ -16,7 +16,7 @@
 
 package com.netflix.spinnaker.orca.kayenta.tasks
 
-import com.fasterxml.jackson.module.kotlin.convertValue
+import tools.jackson.module.kotlin.convertValue
 import com.netflix.spinnaker.orca.api.test.pipeline
 import com.netflix.spinnaker.orca.api.test.stage
 import com.netflix.spinnaker.orca.clouddriver.MortService

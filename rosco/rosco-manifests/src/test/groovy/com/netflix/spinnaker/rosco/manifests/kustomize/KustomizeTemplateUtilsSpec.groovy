@@ -1,6 +1,7 @@
 package com.netflix.spinnaker.rosco.manifests.kustomize
 
-import com.fasterxml.jackson.databind.ObjectMapper
+import tools.jackson.databind.exc.InvalidFormatException
+import tools.jackson.databind.json.JsonMapper
 import com.netflix.spinnaker.kork.artifacts.model.Artifact
 import com.netflix.spinnaker.rosco.jobs.BakeRecipe
 import com.netflix.spinnaker.rosco.manifests.ArtifactDownloader
@@ -280,10 +281,10 @@ class KustomizeTemplateUtilsSpec extends Specification {
 
     def "the removed KUSTOMIZE renderer is rejected when deserializing a bake request"() {
         when:
-        new ObjectMapper().convertValue([templateRenderer: "KUSTOMIZE"], KustomizeBakeManifestRequest)
+        JsonMapper.builder().build().convertValue([templateRenderer: "KUSTOMIZE"], KustomizeBakeManifestRequest)
 
         then:
-        def e = thrown(IllegalArgumentException)
+        def e = thrown(InvalidFormatException)
         e.message.contains("KUSTOMIZE")
     }
 }

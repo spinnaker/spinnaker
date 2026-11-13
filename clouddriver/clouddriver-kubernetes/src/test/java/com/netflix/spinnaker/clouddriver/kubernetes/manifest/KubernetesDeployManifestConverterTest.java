@@ -19,8 +19,6 @@ package com.netflix.spinnaker.clouddriver.kubernetes.manifest;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.databind.type.MapType;
 import com.google.common.io.CharStreams;
 import com.netflix.spinnaker.clouddriver.kubernetes.converter.manifest.KubernetesDeployManifestConverter;
 import com.netflix.spinnaker.clouddriver.kubernetes.description.KubernetesCoordinates;
@@ -37,6 +35,8 @@ import java.util.*;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 import org.mockito.Mockito;
+import tools.jackson.databind.ObjectMapper;
+import tools.jackson.databind.type.MapType;
 
 public class KubernetesDeployManifestConverterTest {
   private static KubernetesDeployManifestConverter converter;

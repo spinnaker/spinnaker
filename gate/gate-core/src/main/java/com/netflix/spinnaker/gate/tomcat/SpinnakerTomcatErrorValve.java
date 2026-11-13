@@ -16,8 +16,6 @@
 
 package com.netflix.spinnaker.gate.tomcat;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import java.io.IOException;
 import java.io.Writer;
 import java.nio.charset.StandardCharsets;
@@ -31,6 +29,9 @@ import org.apache.catalina.connector.Response;
 import org.apache.catalina.valves.ErrorReportValve;
 import org.apache.coyote.ActionCode;
 import org.springframework.http.MediaType;
+import tools.jackson.core.JacksonException;
+import tools.jackson.databind.ObjectMapper;
+import tools.jackson.databind.json.JsonMapper;
 
 /**
  * Inspired by https://github.com/spring-projects/spring-boot/issues/21257#issuecomment-745565376
@@ -50,7 +51,7 @@ public class SpinnakerTomcatErrorValve extends ErrorReportValve {
   // so, construct our own ObjectMapper.
   public SpinnakerTomcatErrorValve() {
     super();
-    this.objectMapper = new ObjectMapper();
+    this.objectMapper = JsonMapper.builder().build();
   }
 
   @Override
@@ -95,7 +96,7 @@ public class SpinnakerTomcatErrorValve extends ErrorReportValve {
     String responseBody;
     try {
       responseBody = objectMapper.writeValueAsString(errorAttributes);
-    } catch (JsonProcessingException e) {
+    } catch (JacksonException e) {
       log.error("error building response body for {}", errorAttributes, e);
       return;
     }

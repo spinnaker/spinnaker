@@ -16,7 +16,6 @@
 
 package com.netflix.kayenta.retrofit.config;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
 import com.netflix.kayenta.atlas.config.KayentaSerializationConfigurationProperties;
 import com.netflix.kayenta.config.KayentaConfiguration;
 import com.netflix.spinnaker.config.OkHttp3ClientConfiguration;
@@ -27,6 +26,8 @@ import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean
 import org.springframework.context.annotation.*;
 import org.springframework.core.Ordered;
 import org.springframework.core.annotation.Order;
+import tools.jackson.databind.ObjectMapper;
+import tools.jackson.databind.json.JsonMapper;
 
 @Configuration
 public class RetrofitClientConfiguration {
@@ -46,7 +47,7 @@ public class RetrofitClientConfiguration {
   @Bean
   @ConditionalOnMissingBean(ObjectMapper.class)
   ObjectMapper retrofitObjectMapper() {
-    ObjectMapper objectMapper = new ObjectMapper();
+    ObjectMapper objectMapper = JsonMapper.builder().build();
     KayentaSerializationConfigurationProperties kayentaSerializationConfigurationProperties =
         new KayentaSerializationConfigurationProperties();
     KayentaConfiguration.configureObjectMapperFeatures(

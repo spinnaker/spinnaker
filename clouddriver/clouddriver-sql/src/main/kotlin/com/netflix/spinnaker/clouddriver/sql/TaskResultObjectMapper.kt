@@ -15,10 +15,10 @@
  */
 package com.netflix.spinnaker.clouddriver.sql
 
-import com.fasterxml.jackson.databind.ObjectMapper
-import java.io.IOException
 import java.lang.String.format
 import java.sql.ResultSet
+import tools.jackson.core.JacksonException
+import tools.jackson.databind.ObjectMapper
 
 class TaskResultObjectMapper(
   private val mapper: ObjectMapper
@@ -30,7 +30,7 @@ class TaskResultObjectMapper(
     while (rs.next()) {
       try {
         results.add(mapper.readValue(rs.getString("body"), Map::class.java))
-      } catch (e: IOException) {
+      } catch (e: JacksonException) {
         val id = rs.getString("id")
         val taskId = rs.getString("task_id")
         throw RuntimeException(

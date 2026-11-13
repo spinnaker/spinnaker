@@ -16,7 +16,6 @@
 
 package com.netflix.spinnaker.echo.pubsub.google;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
 import com.netflix.spinnaker.echo.api.Notification;
 import com.netflix.spinnaker.echo.api.events.Event;
 import com.netflix.spinnaker.echo.config.GooglePubsubProperties.Content;
@@ -34,6 +33,7 @@ import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnExpression;
 import org.springframework.stereotype.Service;
+import tools.jackson.core.JacksonException;
 
 @Service
 @Slf4j
@@ -70,7 +70,7 @@ public class GooglePubsubNotificationEventListener extends AbstractEventNotifica
         log.debug(
             "Notification received: "
                 + mapper.writerWithDefaultPrettyPrinter().writeValueAsString(notification));
-      } catch (JsonProcessingException jpe) {
+      } catch (JacksonException jpe) {
         log.warn("Error parsing notification", jpe);
       }
     }

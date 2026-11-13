@@ -17,12 +17,12 @@
 package com.netflix.spinnaker.clouddriver.jackson.mixins;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
-import com.fasterxml.jackson.databind.annotation.JsonSerialize;
 import com.netflix.spinnaker.clouddriver.model.LoadBalancer;
 import com.netflix.spinnaker.clouddriver.model.NullCollectionSerializer;
 import com.netflix.spinnaker.clouddriver.model.ServerGroup;
 import java.util.Map;
 import java.util.Set;
+import tools.jackson.databind.annotation.JsonSerialize;
 
 public interface ClusterMixin {
 

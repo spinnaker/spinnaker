@@ -17,11 +17,11 @@ package com.netflix.spinnaker.kork.jedis;
 
 import static com.netflix.spinnaker.kork.jedis.RedisClientConfiguration.Driver.REDIS;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
 import com.netflix.spectator.api.Registry;
 import com.netflix.spinnaker.kork.jedis.RedisClientConfiguration.Driver;
 import java.util.Map;
 import org.apache.commons.pool2.impl.GenericObjectPoolConfig;
+import tools.jackson.databind.ObjectMapper;
 
 public class JedisClientDelegateFactory implements RedisClientDelegateFactory<JedisClientDelegate> {
 

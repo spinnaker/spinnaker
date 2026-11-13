@@ -15,14 +15,15 @@
  */
 package com.netflix.spinnaker.q.redis
 
-import com.fasterxml.jackson.databind.ObjectMapper
-import com.fasterxml.jackson.module.kotlin.KotlinModule
 import com.netflix.spinnaker.q.DeadMessageCallback
 import com.netflix.spinnaker.q.Message
 import com.netflix.spinnaker.q.Queue
 import java.time.Clock
 import redis.clients.jedis.Jedis
 import redis.clients.jedis.util.Pool
+import tools.jackson.databind.ObjectMapper
+import tools.jackson.databind.json.JsonMapper
+import tools.jackson.module.kotlin.KotlinModule
 
 /**
  * A dead message handler that writes messages to a sorted set with a score
@@ -36,7 +37,9 @@ class RedisDeadMessageHandler(
 
   private val dlqKey = "$deadLetterQueueName.messages"
 
-  private val mapper = ObjectMapper().registerModule(KotlinModule.Builder().build())
+  private val mapper = JsonMapper.builder()
+    .addModule(KotlinModule.Builder().build())
+    .build()
 
   override fun invoke(queue: Queue, message: Message) {
     pool.resource.use { redis ->

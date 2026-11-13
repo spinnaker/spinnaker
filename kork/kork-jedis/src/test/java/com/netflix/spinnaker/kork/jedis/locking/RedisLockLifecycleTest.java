@@ -17,7 +17,6 @@ package com.netflix.spinnaker.kork.jedis.locking;
 
 import static org.junit.jupiter.api.Assertions.*;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.util.concurrent.Uninterruptibles;
 import com.netflix.spectator.api.NoopRegistry;
 import com.netflix.spinnaker.kork.jedis.EmbeddedRedis;
@@ -60,6 +59,7 @@ import redis.clients.jedis.JedisPool;
 import redis.clients.jedis.JedisPoolConfig;
 import redis.clients.jedis.commands.JedisCommands;
 import redis.clients.jedis.exceptions.JedisConnectionException;
+import tools.jackson.databind.json.JsonMapper;
 
 class RedisLockLifecycleTest {
   private static final long HEARTBEAT_MILLIS = 25L;
@@ -312,7 +312,7 @@ class RedisLockLifecycleTest {
               "owner",
               Clock.systemUTC(),
               new NoopRegistry(),
-              new ObjectMapper(),
+              JsonMapper.builder().build(),
               new JedisClientDelegate(pool),
               Optional.of(HEARTBEAT_MILLIS),
               Optional.of(LEASE_MILLIS));
@@ -664,7 +664,8 @@ class RedisLockLifecycleTest {
 
   private long readLockVersion(String name) throws Exception {
     try (Jedis client = redis.getJedis()) {
-      return new ObjectMapper()
+      return JsonMapper.builder()
+          .build()
           .readTree(client.get("{korkLock:" + name + "}"))
           .get("version")
           .asLong();
@@ -718,7 +719,7 @@ class RedisLockLifecycleTest {
           owner,
           Clock.systemUTC(),
           new NoopRegistry(),
-          new ObjectMapper(),
+          JsonMapper.builder().build(),
           redisClientDelegate,
           Optional.of(HEARTBEAT_MILLIS),
           Optional.of(LEASE_MILLIS));

@@ -20,6 +20,7 @@ import com.netflix.spinnaker.config.OkHttp3ClientConfiguration
 import com.netflix.spinnaker.echo.jackson.EchoObjectMapper
 import com.netflix.spinnaker.echo.twilio.TwilioService
 import com.netflix.spinnaker.kork.retrofit.ErrorHandlingExecutorCallAdapterFactory
+import com.netflix.spinnaker.kork.retrofit.util.CustomConverterFactory
 import com.netflix.spinnaker.kork.retrofit.util.RetrofitUtils
 import groovy.transform.CompileStatic
 import groovy.util.logging.Slf4j
@@ -32,7 +33,6 @@ import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
 import retrofit2.Retrofit
-import retrofit2.converter.jackson.JacksonConverterFactory
 
 @Configuration
 @ConditionalOnProperty('twilio.enabled')
@@ -56,7 +56,7 @@ class TwilioConfig {
                 .baseUrl(RetrofitUtils.getBaseUrl(twilioBaseUrl))
                 .client(okHttpClientConfig.createForRetrofit2().addInterceptor(interceptor).build())
                 .addCallAdapterFactory(ErrorHandlingExecutorCallAdapterFactory.getInstance())
-                .addConverterFactory(JacksonConverterFactory.create(EchoObjectMapper.getInstance()))
+                .addConverterFactory(CustomConverterFactory.create(EchoObjectMapper.getInstance()))
                 .build()
                 .create(TwilioService.class);
     }

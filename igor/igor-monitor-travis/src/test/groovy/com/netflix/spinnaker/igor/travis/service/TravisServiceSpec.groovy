@@ -38,13 +38,13 @@ import com.netflix.spinnaker.igor.travis.client.model.v3.V3Jobs
 import com.netflix.spinnaker.igor.travis.client.model.v3.V3Log
 import com.netflix.spinnaker.igor.travis.client.model.v3.V3Repository
 import com.netflix.spinnaker.kork.retrofit.exceptions.SpinnakerHttpException
+import com.netflix.spinnaker.kork.retrofit.util.CustomConverterFactory
 import com.netflix.spinnaker.kork.retrofit.util.RetrofitUtils
 import io.github.resilience4j.circuitbreaker.CircuitBreakerRegistry
 import okhttp3.MediaType
 import okhttp3.ResponseBody
 import org.assertj.core.util.Lists
 import retrofit2.Response
-import retrofit2.converter.jackson.JacksonConverterFactory
 import retrofit2.Retrofit
 import retrofit2.mock.Calls
 import spock.lang.Shared
@@ -413,7 +413,7 @@ class TravisServiceSpec extends Specification {
     Retrofit retrofit =
       new Retrofit.Builder()
         .baseUrl(RetrofitUtils.getBaseUrl(url))
-        .addConverterFactory(JacksonConverterFactory.create())
+        .addConverterFactory(CustomConverterFactory.create())
         .build();
 
     new SpinnakerHttpException(retrofit2Response, retrofit);

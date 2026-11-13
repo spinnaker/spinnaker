@@ -16,15 +16,16 @@
 package com.netflix.spinnaker.clouddriver.sql.event
 
 import com.fasterxml.jackson.annotation.JsonTypeName
-import com.fasterxml.jackson.databind.ObjectMapper
-import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule
-import com.fasterxml.jackson.module.kotlin.KotlinModule
-import com.fasterxml.jackson.module.kotlin.registerKotlinModule
 import com.netflix.spectator.api.NoopRegistry
 import com.netflix.spinnaker.clouddriver.event.AbstractSpinnakerEvent
+import com.netflix.spinnaker.clouddriver.event.SpinnakerEvent
 import com.netflix.spinnaker.clouddriver.event.exceptions.AggregateChangeRejectedException
 import com.netflix.spinnaker.clouddriver.event.persistence.EventRepository.ListAggregatesCriteria
 import com.netflix.spinnaker.clouddriver.event.persistence.EventRepository.ListAggregatesResult
+import com.netflix.spinnaker.clouddriver.sql.SqlRetries
+import com.netflix.spinnaker.config.SqlConfiguration
+import com.netflix.spinnaker.kork.jackson.ObjectMapperSubtypeConfigurer.ClassSubtypeLocator
+import com.netflix.spinnaker.kork.sql.config.SqlProperties
 import com.netflix.spinnaker.kork.sql.test.SqlTestUtil
 import com.netflix.spinnaker.kork.version.ServiceVersion
 import dev.minutest.junit.JUnit5Minutests
@@ -44,6 +45,8 @@ import strikt.assertions.isEqualTo
 import strikt.assertions.isNotEmpty
 import strikt.assertions.isNotNull
 import strikt.assertions.isNull
+import tools.jackson.databind.json.JsonMapper
+import tools.jackson.module.kotlin.KotlinModule
 
 class SqlEventRepositoryTest : JUnit5Minutests {
 
@@ -207,15 +210,17 @@ class SqlEventRepositoryTest : JUnit5Minutests {
     val serviceVersion: ServiceVersion = mockk(relaxed = true)
     val applicationEventPublisher: ApplicationEventPublisher = mockk(relaxed = true)
 
-    val subject = SqlEventRepository(
+    val subject = SqlConfiguration().sqlEventRepository(
       jooq = database.context,
+      sqlProperties = SqlProperties(),
       serviceVersion = serviceVersion,
-      objectMapper = ObjectMapper().registerKotlinModule().apply {
-        registerModules(JavaTimeModule())
-        registerSubtypes(MyEvent::class.java)
-      },
+      objectMapper = JsonMapper.builder()
+        .addModule(KotlinModule.Builder().build())
+        .build(),
       applicationEventPublisher = applicationEventPublisher,
-      registry = NoopRegistry()
+      registry = NoopRegistry(),
+      subtypeLocators = listOf(ClassSubtypeLocator(SpinnakerEvent::class.java, listOf(MyEvent::class.java.packageName))),
+      sqlRetries = SqlRetries()
     )
 
     init {

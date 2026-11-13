@@ -18,13 +18,14 @@ package com.netflix.spinnaker.echo.microsoftteams;
 
 import static org.junit.jupiter.api.Assertions.*;
 
-import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.UUID;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import tools.jackson.databind.JsonNode;
+import tools.jackson.databind.ObjectMapper;
+import tools.jackson.databind.json.JsonMapper;
 
 public class MicrosoftTeamsTemplateEngineTest {
 
@@ -33,7 +34,7 @@ public class MicrosoftTeamsTemplateEngineTest {
 
   @BeforeEach
   void setUp() {
-    objectMapper = new ObjectMapper();
+    objectMapper = JsonMapper.builder().build();
     templateEngine = new MicrosoftTeamsTemplateEngine(objectMapper, null);
   }
 

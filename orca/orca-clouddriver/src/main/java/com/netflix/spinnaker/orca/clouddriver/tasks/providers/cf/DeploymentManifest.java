@@ -18,7 +18,6 @@ package com.netflix.spinnaker.orca.clouddriver.tasks.providers.cf;
 
 import com.fasterxml.jackson.annotation.JsonAlias;
 import com.fasterxml.jackson.annotation.JsonProperty;
-import com.fasterxml.jackson.core.JsonProcessingException;
 import com.google.common.collect.ImmutableMap;
 import com.netflix.spinnaker.kork.artifacts.ArtifactTypes;
 import com.netflix.spinnaker.kork.artifacts.model.Artifact;
@@ -33,6 +32,7 @@ import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import lombok.Setter;
 import lombok.extern.slf4j.Slf4j;
+import tools.jackson.core.JacksonException;
 
 @Slf4j
 @Setter
@@ -102,7 +102,7 @@ public class DeploymentManifest {
                 .put("applications", Collections.singletonList(this))
                 .build();
         return manifestMapper.writeValueAsString(apps);
-      } catch (JsonProcessingException e) {
+      } catch (JacksonException e) {
         throw new IllegalArgumentException("Unable to generate Cloud Foundry Manifest", e);
       }
     }

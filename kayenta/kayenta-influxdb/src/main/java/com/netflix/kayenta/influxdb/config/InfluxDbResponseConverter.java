@@ -16,7 +16,6 @@
 
 package com.netflix.kayenta.influxdb.config;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
 import com.netflix.kayenta.influxdb.model.InfluxDbResult;
 import com.netflix.kayenta.metrics.ConversionException;
 import java.io.BufferedReader;
@@ -35,6 +34,8 @@ import org.springframework.stereotype.Component;
 import org.springframework.util.CollectionUtils;
 import retrofit2.Converter;
 import retrofit2.Retrofit;
+import tools.jackson.core.JacksonException;
+import tools.jackson.databind.ObjectMapper;
 
 @Component
 @Slf4j
@@ -121,7 +122,7 @@ public class InfluxDbResponseConverter extends Converter.Factory {
 
         log.debug("Converted response: {}", influxDbResultsList);
         return influxDbResultsList;
-      } catch (IOException e) {
+      } catch (IOException | JacksonException e) {
         e.printStackTrace();
       }
       return null;

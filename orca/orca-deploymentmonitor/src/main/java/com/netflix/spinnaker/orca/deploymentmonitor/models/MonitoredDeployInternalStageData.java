@@ -16,9 +16,9 @@
 
 package com.netflix.spinnaker.orca.deploymentmonitor.models;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
 import java.util.Map;
 import lombok.Data;
+import tools.jackson.databind.json.JsonMapper;
 
 // Stuff used in intermediate stages
 @Data
@@ -34,6 +34,6 @@ public class MonitoredDeployInternalStageData {
   private int deployMonitorHttpRetryCount;
 
   public Map toContextMap() {
-    return new ObjectMapper().convertValue(this, Map.class);
+    return JsonMapper.builder().build().convertValue(this, Map.class);
   }
 }

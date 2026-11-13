@@ -15,7 +15,6 @@
  */
 package com.netflix.spinnaker.config
 
-import com.fasterxml.jackson.databind.ObjectMapper
 import com.netflix.spectator.api.Registry
 import com.netflix.spinnaker.cats.cluster.DefaultNodeIdentity
 import com.netflix.spinnaker.clouddriver.cache.MaintenanceLock
@@ -47,6 +46,7 @@ import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
 import org.springframework.context.annotation.Import
 import java.time.Clock
+import tools.jackson.databind.ObjectMapper
 
 @Configuration
 @ConditionalOnProperty("sql.enabled")
@@ -103,11 +103,11 @@ class SqlConfiguration {
     sqlRetries: SqlRetries
   ): EventRepository {
     // TODO(rz): ObjectMapperSubtypeConfigurer should become a standard kork feature. This is pretty gross.
-    ObjectMapperSubtypeConfigurer(true).registerSubtypes(objectMapper, subtypeLocators)
+    val eventMapper = ObjectMapperSubtypeConfigurer(true).registerSubtypes(objectMapper, subtypeLocators)
     return SqlEventRepository(
       jooq,
       serviceVersion,
-      objectMapper,
+      eventMapper,
       applicationEventPublisher,
       registry,
       sqlRetries

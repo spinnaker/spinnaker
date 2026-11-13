@@ -21,8 +21,6 @@ import static com.netflix.spinnaker.cats.agent.AgentDataType.Authority.AUTHORITA
 import static com.netflix.spinnaker.clouddriver.huaweicloud.HuaweiCloudProvider.ID;
 import static com.netflix.spinnaker.clouddriver.huaweicloud.cache.Keys.Namespace.SECURITY_GROUPS;
 
-import com.fasterxml.jackson.core.type.TypeReference;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import com.huawei.openstack4j.openstack.vpc.v1.domain.SecurityGroup;
 import com.huawei.openstack4j.openstack.vpc.v1.domain.SecurityGroupRule;
 import com.netflix.spectator.api.Registry;
@@ -46,6 +44,8 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.stream.Collectors;
 import org.slf4j.Logger;
+import tools.jackson.core.type.TypeReference;
+import tools.jackson.databind.ObjectMapper;
 
 public class HuaweiCloudSecurityGroupCachingAgent extends AbstractOnDemandCachingAgent {
 

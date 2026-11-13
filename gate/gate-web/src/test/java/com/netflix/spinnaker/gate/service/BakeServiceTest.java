@@ -21,9 +21,6 @@ import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.core.type.TypeReference;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import com.netflix.spinnaker.gate.services.BakeService;
 import com.netflix.spinnaker.gate.services.internal.RoscoService;
 import com.netflix.spinnaker.gate.services.internal.RoscoServiceSelector;
@@ -34,10 +31,14 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.TestInfo;
 import retrofit2.mock.Calls;
+import tools.jackson.core.JacksonException;
+import tools.jackson.core.type.TypeReference;
+import tools.jackson.databind.ObjectMapper;
+import tools.jackson.databind.json.JsonMapper;
 
 class BakeServiceTest {
 
-  private ObjectMapper objectMapper = new ObjectMapper();
+  private ObjectMapper objectMapper = JsonMapper.builder().build();
 
   private RoscoServiceSelector roscoServiceSelector = mock(RoscoServiceSelector.class);
 
@@ -52,7 +53,7 @@ class BakeServiceTest {
   private List<BakeService.BakeOptions> bakeOptions;
 
   @BeforeEach
-  void init(TestInfo testInfo) throws JsonProcessingException {
+  void init(TestInfo testInfo) throws JacksonException {
     System.out.println("--------------- Test " + testInfo.getDisplayName());
 
     when(roscoServiceSelector.withLocation(any())).thenReturn(roscoService);

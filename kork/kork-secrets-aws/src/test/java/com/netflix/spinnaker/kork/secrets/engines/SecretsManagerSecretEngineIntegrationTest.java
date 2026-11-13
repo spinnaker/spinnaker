@@ -19,7 +19,6 @@ package com.netflix.spinnaker.kork.secrets.engines;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assumptions.assumeTrue;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
 import com.netflix.spinnaker.kork.secrets.SecretConfiguration;
 import com.netflix.spinnaker.kork.secrets.user.OpaqueUserSecretData;
 import com.netflix.spinnaker.kork.secrets.user.UserSecret;
@@ -49,6 +48,8 @@ import software.amazon.awssdk.regions.Region;
 import software.amazon.awssdk.services.secretsmanager.SecretsManagerClient;
 import software.amazon.awssdk.services.secretsmanager.model.CreateSecretRequest;
 import software.amazon.awssdk.services.secretsmanager.model.Tag;
+import tools.jackson.databind.ObjectMapper;
+import tools.jackson.databind.json.JsonMapper;
 
 @SpringBootTest(classes = SecretConfiguration.class)
 public class SecretsManagerSecretEngineIntegrationTest {
@@ -146,7 +147,7 @@ public class SecretsManagerSecretEngineIntegrationTest {
 
     @Bean
     public ObjectMapper mapper() {
-      return new ObjectMapper();
+      return JsonMapper.builder().build();
     }
   }
 }

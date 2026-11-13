@@ -17,8 +17,6 @@
 
 package com.netflix.spinnaker.clouddriver.config;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import com.github.wnameless.json.flattener.JsonFlattener;
 import com.netflix.spinnaker.kork.configserver.CloudConfigResourceService;
 import com.netflix.spinnaker.kork.secrets.EncryptedSecret;
@@ -39,6 +37,9 @@ import org.springframework.cloud.bootstrap.config.BootstrapPropertySource;
 import org.springframework.context.ConfigurableApplicationContext;
 import org.springframework.core.env.ConfigurableEnvironment;
 import org.springframework.core.env.PropertySource;
+import tools.jackson.core.JacksonException;
+import tools.jackson.databind.ObjectMapper;
+import tools.jackson.databind.json.JsonMapper;
 
 public abstract class AbstractBootstrapCredentialsConfigurationProvider<T>
     implements ConfigurationProvider<T> {
@@ -46,7 +47,7 @@ public abstract class AbstractBootstrapCredentialsConfigurationProvider<T>
   private CloudConfigResourceService configResourceService;
   private SecretSession secretSession;
   private Map<String, String> configServerCache;
-  private final ObjectMapper objectMapper = new ObjectMapper();
+  private final ObjectMapper objectMapper = JsonMapper.builder().build();
 
   public AbstractBootstrapCredentialsConfigurationProvider(
       ConfigurableApplicationContext applicationContext,
@@ -117,7 +118,7 @@ public abstract class AbstractBootstrapCredentialsConfigurationProvider<T>
   public Map<String, Object> getFlatMap(Map<String, Object> unflatMap) {
     try {
       return JsonFlattener.flattenAsMap(objectMapper.writeValueAsString(unflatMap));
-    } catch (JsonProcessingException e) {
+    } catch (JacksonException e) {
       throw new RuntimeException("Error occurred while building object: " + e.getMessage());
     }
   }

@@ -22,9 +22,7 @@ import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.Mockito.when;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
 import com.netflix.spinnaker.cats.cache.DefaultCacheData;
-import com.netflix.spinnaker.clouddriver.aws.jackson.AwsSdkV2Module;
 import com.netflix.spinnaker.clouddriver.ecs.EcsConfigurationProperties;
 import com.netflix.spinnaker.clouddriver.ecs.EcsNativeServiceTag;
 import com.netflix.spinnaker.clouddriver.ecs.TestCredential;
@@ -32,6 +30,7 @@ import com.netflix.spinnaker.clouddriver.ecs.cache.client.ServiceCacheClient;
 import com.netflix.spinnaker.clouddriver.ecs.cache.model.Service;
 import com.netflix.spinnaker.clouddriver.ecs.provider.agent.ServiceCachingAgent;
 import com.netflix.spinnaker.clouddriver.ecs.provider.agent.TestServiceCachingAgentFactory;
+import com.netflix.spinnaker.kork.aws.jackson.AwsSdkV2Module;
 import java.time.Instant;
 import java.util.Collection;
 import java.util.Collections;
@@ -43,9 +42,11 @@ import software.amazon.awssdk.services.ecs.model.DeploymentConfiguration;
 import software.amazon.awssdk.services.ecs.model.LoadBalancer;
 import software.amazon.awssdk.services.ecs.model.NetworkConfiguration;
 import spock.lang.Subject;
+import tools.jackson.databind.ObjectMapper;
+import tools.jackson.databind.json.JsonMapper;
 
 public class ServiceCacheClientTest extends CommonCacheClient {
-  private final ObjectMapper mapper = new ObjectMapper().registerModule(new AwsSdkV2Module());
+  private final ObjectMapper mapper = JsonMapper.builder().addModule(new AwsSdkV2Module()).build();
 
   @Subject private final ServiceCacheClient client = new ServiceCacheClient(cacheView, mapper);
 

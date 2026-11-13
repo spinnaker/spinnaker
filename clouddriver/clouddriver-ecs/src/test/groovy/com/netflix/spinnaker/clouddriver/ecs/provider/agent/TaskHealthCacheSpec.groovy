@@ -17,7 +17,7 @@
 package com.netflix.spinnaker.clouddriver.ecs.provider.agent
 
 import software.amazon.awssdk.services.ecs.EcsClient
-import com.netflix.spinnaker.clouddriver.aws.jackson.AwsSdkV2Module
+import com.netflix.spinnaker.kork.aws.jackson.AwsSdkV2Module
 import software.amazon.awssdk.services.ecs.model.Container
 import software.amazon.awssdk.services.ecs.model.ContainerDefinition
 import software.amazon.awssdk.services.ecs.model.LoadBalancer
@@ -29,7 +29,8 @@ import software.amazon.awssdk.services.elasticloadbalancingv2.model.TargetDescri
 import software.amazon.awssdk.services.elasticloadbalancingv2.model.TargetHealth
 import software.amazon.awssdk.services.elasticloadbalancingv2.model.TargetHealthDescription
 import software.amazon.awssdk.services.elasticloadbalancingv2.model.TargetHealthStateEnum
-import com.fasterxml.jackson.databind.ObjectMapper
+import tools.jackson.databind.ObjectMapper
+import tools.jackson.databind.json.JsonMapper
 import com.netflix.spinnaker.cats.cache.DefaultCacheData
 import com.netflix.spinnaker.cats.provider.ProviderCache
 import com.netflix.spinnaker.clouddriver.aws.security.AmazonClientProvider
@@ -47,7 +48,7 @@ class TaskHealthCacheSpec extends Specification {
   def ecs = Mock(EcsClient)
   def clientProvider = Mock(AmazonClientProvider)
   def providerCache = Mock(ProviderCache)
-  ObjectMapper mapper = new ObjectMapper().registerModule(new AwsSdkV2Module())
+  ObjectMapper mapper = JsonMapper.builder().addModule(new AwsSdkV2Module()).build()
 
   @Subject
   TaskHealthCachingAgent agent = new TaskHealthCachingAgent(CommonCachingAgent.netflixAmazonCredentials, CommonCachingAgent.REGION, clientProvider, mapper)
@@ -67,7 +68,7 @@ class TaskHealthCacheSpec extends Specification {
     def containerInstanceKey = Keys.getContainerInstanceKey(CommonCachingAgent.ACCOUNT, CommonCachingAgent.REGION, CommonCachingAgent.CONTAINER_INSTANCE_ARN_1)
     def targetHealthKey = Keys.getTargetHealthKey(CommonCachingAgent.ACCOUNT, CommonCachingAgent.REGION, targetGroupArn)
 
-    ObjectMapper mapper = new ObjectMapper().registerModule(new AwsSdkV2Module())
+    ObjectMapper mapper = JsonMapper.builder().addModule(new AwsSdkV2Module()).build()
     Map<String, Object> containerMap = mapper.convertValue(Container.builder().networkBindings(NetworkBinding.builder().containerPort(1338).hostPort(1338).build()).build(), Map.class)
     Map<String, Object> loadbalancerMap = mapper.convertValue(LoadBalancer.builder().targetGroupArn(targetGroupArn).containerPort(1338).build(), Map.class)
     Map<String, Object> targetHealthMap = mapper.convertValue(

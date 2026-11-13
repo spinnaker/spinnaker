@@ -31,8 +31,6 @@ import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 import com.netflix.spinnaker.kork.jedis.EmbeddedRedis;
 import java.time.Instant;
 import java.time.temporal.ChronoUnit;
@@ -56,6 +54,8 @@ import org.mockito.InOrder;
 import redis.clients.jedis.Jedis;
 import redis.clients.jedis.JedisPool;
 import redis.clients.jedis.Transaction;
+import tools.jackson.databind.ObjectMapper;
+import tools.jackson.databind.json.JsonMapper;
 
 class RedisApiTokenRepositoryTest {
 
@@ -80,7 +80,7 @@ class RedisApiTokenRepositoryTest {
     try (Jedis jedis = jedisPool.getResource()) {
       jedis.flushAll();
     }
-    ObjectMapper mapper = new ObjectMapper().registerModule(new JavaTimeModule());
+    ObjectMapper mapper = JsonMapper.builder().build();
     repo = new RedisApiTokenRepository(jedisPool, mapper, "api-token");
   }
 
@@ -262,7 +262,7 @@ class RedisApiTokenRepositoryTest {
    */
   @Test
   void delete_throws_whenExecReturnsNull() {
-    ObjectMapper mapper = new ObjectMapper().registerModule(new JavaTimeModule());
+    ObjectMapper mapper = JsonMapper.builder().build();
     JedisPool spyPool = mock(JedisPool.class);
     Jedis realJedis = jedisPool.getResource();
     Jedis spyJedis = spy(realJedis);
@@ -418,7 +418,7 @@ class RedisApiTokenRepositoryTest {
   void updateTokenWithOptimisticLock_throwsAfterRetriesExhausted_onPersistentWatchConflict() {
     repo.save(buildRecord("opt-lock-tok", "USER", "tara", null), "h-opt-lock");
 
-    ObjectMapper mapper = new ObjectMapper().registerModule(new JavaTimeModule());
+    ObjectMapper mapper = JsonMapper.builder().build();
     JedisPool spyPool = mock(JedisPool.class);
     Jedis realJedis = jedisPool.getResource();
     Jedis spyJedis = spy(realJedis);
@@ -453,7 +453,7 @@ class RedisApiTokenRepositoryTest {
   void updateTokenWithOptimisticLock_throwsAfterRetriesExhausted_onEmptyExecResult() {
     repo.save(buildRecord("empty-exec-tok", "USER", "ulysses", null), "h-empty-exec");
 
-    ObjectMapper mapper = new ObjectMapper().registerModule(new JavaTimeModule());
+    ObjectMapper mapper = JsonMapper.builder().build();
     JedisPool spyPool = mock(JedisPool.class);
     Jedis realJedis = jedisPool.getResource();
     Jedis spyJedis = spy(realJedis);
@@ -632,7 +632,7 @@ class RedisApiTokenRepositoryTest {
   void save_throwsAndWritesNothing_whenExecReturnsNull() {
     // Real Jedis (so SET NX really reserves the name), but multi() returns a Transaction whose
     // exec() returns null.
-    ObjectMapper mapper = new ObjectMapper().registerModule(new JavaTimeModule());
+    ObjectMapper mapper = JsonMapper.builder().build();
     JedisPool spyPool = mock(JedisPool.class);
     Jedis realJedis = jedisPool.getResource();
     Jedis spyJedis = spy(realJedis);
@@ -677,7 +677,7 @@ class RedisApiTokenRepositoryTest {
    */
   @Test
   void save_orphanNameKeyAutoExpires_whenBothExecAndCleanupFail() {
-    ObjectMapper mapper = new ObjectMapper().registerModule(new JavaTimeModule());
+    ObjectMapper mapper = JsonMapper.builder().build();
     JedisPool spyPool = mock(JedisPool.class);
     Jedis realJedis = jedisPool.getResource();
     Jedis spyJedis = spy(realJedis);
@@ -777,7 +777,7 @@ class RedisApiTokenRepositoryTest {
    */
   @Test
   void save_queuesPersistOnNameKeyInsideMultiExec_forNonExpiringToken() {
-    ObjectMapper mapper = new ObjectMapper().registerModule(new JavaTimeModule());
+    ObjectMapper mapper = JsonMapper.builder().build();
     JedisPool spyPool = mock(JedisPool.class);
     Jedis realJedis = jedisPool.getResource();
     Jedis spyJedis = spy(realJedis);
@@ -818,7 +818,7 @@ class RedisApiTokenRepositoryTest {
     long expirySeconds = Instant.now().getEpochSecond() + 3600;
     String expiresAt = Instant.ofEpochSecond(expirySeconds).toString();
 
-    ObjectMapper mapper = new ObjectMapper().registerModule(new JavaTimeModule());
+    ObjectMapper mapper = JsonMapper.builder().build();
     JedisPool spyPool = mock(JedisPool.class);
     Jedis realJedis = jedisPool.getResource();
     Jedis spyJedis = spy(realJedis);

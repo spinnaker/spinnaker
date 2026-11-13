@@ -18,8 +18,6 @@
 package com.netflix.spinnaker.clouddriver.kubernetes.description.manifest;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
-import com.fasterxml.jackson.core.type.TypeReference;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.base.Strings;
 import com.google.common.collect.ImmutableList;
 import com.netflix.spinnaker.clouddriver.kubernetes.description.KubernetesCoordinates;
@@ -36,6 +34,9 @@ import org.apache.commons.lang3.tuple.ImmutablePair;
 import org.apache.commons.lang3.tuple.Pair;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import tools.jackson.core.type.TypeReference;
+import tools.jackson.databind.ObjectMapper;
+import tools.jackson.databind.json.JsonMapper;
 
 /**
  * Because this class maps the received Kubernetes manifest to an untyped map, it has no choice but
@@ -46,7 +47,7 @@ import org.slf4j.LoggerFactory;
  */
 public class KubernetesManifest extends HashMap<String, Object> {
   private static final Logger log = LoggerFactory.getLogger(KubernetesManifest.class);
-  private static final ObjectMapper mapper = new ObjectMapper();
+  private static final ObjectMapper mapper = JsonMapper.builder().build();
 
   @Nullable private transient KubernetesKind computedKind;
 

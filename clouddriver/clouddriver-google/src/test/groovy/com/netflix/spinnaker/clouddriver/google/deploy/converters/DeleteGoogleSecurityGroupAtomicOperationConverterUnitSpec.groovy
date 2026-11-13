@@ -16,7 +16,7 @@
 
 package com.netflix.spinnaker.clouddriver.google.deploy.converters
 
-import com.fasterxml.jackson.databind.ObjectMapper
+import tools.jackson.databind.ObjectMapper
 import com.netflix.spinnaker.clouddriver.google.deploy.description.DeleteGoogleSecurityGroupDescription
 import com.netflix.spinnaker.clouddriver.google.deploy.ops.DeleteGoogleSecurityGroupAtomicOperation
 import com.netflix.spinnaker.clouddriver.google.security.GoogleNamedAccountCredentials
@@ -24,13 +24,14 @@ import com.netflix.spinnaker.clouddriver.security.AccountCredentialsProvider
 import com.netflix.spinnaker.credentials.CredentialsRepository
 import spock.lang.Shared
 import spock.lang.Specification
+import tools.jackson.databind.json.JsonMapper
 
 class DeleteGoogleSecurityGroupAtomicOperationConverterUnitSpec extends Specification {
   private static final SECURITY_GROUP_NAME = "spinnaker-test-sg"
   private static final ACCOUNT_NAME = "some-account-name"
 
   @Shared
-  ObjectMapper mapper = new ObjectMapper()
+  ObjectMapper mapper = JsonMapper.builder().build()
 
   @Shared
   DeleteGoogleSecurityGroupAtomicOperationConverter converter

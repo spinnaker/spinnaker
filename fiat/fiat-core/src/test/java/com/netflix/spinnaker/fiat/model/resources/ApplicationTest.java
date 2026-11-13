@@ -19,8 +19,9 @@ package com.netflix.spinnaker.fiat.model.resources;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
 import org.junit.jupiter.api.Test;
+import tools.jackson.databind.ObjectMapper;
+import tools.jackson.databind.json.JsonMapper;
 
 public class ApplicationTest {
 
@@ -28,7 +29,7 @@ public class ApplicationTest {
   public void shouldHandleNullRequiredGroupMembership() throws Exception {
     // Setup
     String serialized = "{\"name\":\"myapp\",\"requiredGroupMembership\":null}";
-    ObjectMapper mapper = new ObjectMapper();
+    ObjectMapper mapper = JsonMapper.builder().build();
 
     // When
     Application result = mapper.readValue(serialized, Application.class);

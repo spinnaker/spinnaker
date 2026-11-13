@@ -15,7 +15,6 @@
  */
 package com.netflix.spinnaker.echo.pipelinetriggers.eventhandlers;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
 import com.netflix.spectator.api.Registry;
 import com.netflix.spinnaker.echo.model.Trigger;
 import com.netflix.spinnaker.echo.model.trigger.PluginEvent;
@@ -28,6 +27,7 @@ import java.util.Optional;
 import java.util.function.Function;
 import java.util.function.Predicate;
 import org.springframework.stereotype.Component;
+import tools.jackson.databind.ObjectMapper;
 
 @Component
 public class PluginEventHandler extends BaseTriggerEventHandler<PluginEvent> {

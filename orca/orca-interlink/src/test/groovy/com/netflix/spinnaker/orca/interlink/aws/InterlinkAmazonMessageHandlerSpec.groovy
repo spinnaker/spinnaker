@@ -16,7 +16,7 @@
 
 package com.netflix.spinnaker.orca.interlink.aws
 
-import com.fasterxml.jackson.databind.ObjectMapper
+import tools.jackson.databind.ObjectMapper
 import com.netflix.spinnaker.orca.api.pipeline.models.ExecutionType
 import com.netflix.spinnaker.orca.interlink.events.DeleteInterlinkEvent
 import com.netflix.spinnaker.orca.pipeline.CompoundExecutionOperator

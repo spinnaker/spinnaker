@@ -2,10 +2,11 @@ package com.netflix.spinnaker.keel.rest
 
 import com.fasterxml.jackson.annotation.JsonIgnore
 import com.fasterxml.jackson.annotation.JsonValue
-import com.fasterxml.jackson.databind.JsonMappingException
-import com.fasterxml.jackson.databind.exc.InvalidFormatException
-import com.fasterxml.jackson.databind.exc.InvalidTypeIdException
-import com.fasterxml.jackson.databind.exc.MismatchedInputException
+import tools.jackson.core.JacksonException
+import tools.jackson.databind.DatabindException
+import tools.jackson.databind.exc.InvalidFormatException
+import tools.jackson.databind.exc.InvalidTypeIdException
+import tools.jackson.databind.exc.MismatchedInputException
 import com.netflix.spinnaker.fiat.model.resources.ResourceType.SERVICE_ACCOUNT
 import com.netflix.spinnaker.fiat.shared.FiatPermissionEvaluator
 import com.netflix.spinnaker.fiat.shared.FiatPermissionEvaluator.AuthorizationFailure
@@ -50,17 +51,17 @@ class ExceptionHandler(
   @ExceptionHandler(
     HttpMessageConversionException::class,
     HttpMessageNotReadableException::class,
-    JsonMappingException::class,
+    DatabindException::class,
     UnparseableResponseException::class
   )
   @ResponseStatus(BAD_REQUEST)
   fun onParseFailure(e: Exception): ApiError {
     log.error(e.message)
     return when {
-      e is JsonMappingException ->
+      e is DatabindException ->
         ApiError(BAD_REQUEST, e, e.toDetails())
-      e.cause is JsonMappingException ->
-        ApiError(BAD_REQUEST, e, (e.cause as JsonMappingException).toDetails())
+      e.cause is DatabindException ->
+        ApiError(BAD_REQUEST, e, (e.cause as DatabindException).toDetails())
       else ->
         ApiError(BAD_REQUEST, e)
     }
@@ -129,7 +130,7 @@ class ExceptionHandler(
     return ApiError(FORBIDDEN, message)
   }
 
-  private fun JsonMappingException.toDetails(): ParsingErrorDetails {
+  private fun DatabindException.toDetails(): ParsingErrorDetails {
     val (rootCause, problemPath) = findRootCause()
 
     return ParsingErrorDetails(
@@ -156,10 +157,10 @@ class ExceptionHandler(
         "column" to (location?.columnNr ?: -1)
       ),
       path = problemPath.map { ref ->
-        val type = if (ref.from is Class<*>) {
-          ref.from as Class<*>
+          val type = if (ref.from() is Class<*>) {
+          ref.from() as Class<*>
         } else {
-          ref.from.javaClass
+          ref.from().javaClass
         }
         mapOf(
           "type" to if (Set::class.java.isAssignableFrom(type)) {
@@ -173,7 +174,7 @@ class ExceptionHandler(
           } else {
             type.name
           },
-          "field" to ref.fieldName,
+          "field" to ref.propertyName,
           "index" to if (ref.index == -1) {
             null
           } else {
@@ -184,15 +185,15 @@ class ExceptionHandler(
     )
   }
 
-  private fun JsonMappingException.findRootCause(): Pair<Throwable, List<JsonMappingException.Reference>> {
+  private fun DatabindException.findRootCause(): Pair<Throwable, List<JacksonException.Reference>> {
     if (this.cause == null) {
       return Pair(this, this.path)
     }
     var exception: Throwable = this
-    val paths: MutableList<JsonMappingException.Reference> = this.path.toMutableList()
+    val paths: MutableList<JacksonException.Reference> = this.path.toMutableList()
     while (exception.cause != null && exception.cause != exception) {
       exception = exception.cause!!
-      if (exception is JsonMappingException) {
+      if (exception is DatabindException) {
         paths.addAll(exception.path)
       }
     }

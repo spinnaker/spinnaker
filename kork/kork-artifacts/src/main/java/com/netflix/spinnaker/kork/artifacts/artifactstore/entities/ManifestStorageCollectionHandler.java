@@ -15,8 +15,6 @@
  */
 package com.netflix.spinnaker.kork.artifacts.artifactstore.entities;
 
-import com.fasterxml.jackson.databind.BeanProperty;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import com.netflix.spinnaker.kork.artifacts.ArtifactTypeDecorator;
 import com.netflix.spinnaker.kork.artifacts.ArtifactTypes;
 import com.netflix.spinnaker.kork.artifacts.artifactstore.ArtifactStore;
@@ -30,6 +28,8 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import tools.jackson.databind.BeanProperty;
+import tools.jackson.databind.SerializationContext;
 
 /**
  * Handles the storage of manifest collections (specifically Sets) as artifacts.
@@ -142,7 +142,7 @@ public class ManifestStorageCollectionHandler implements ArtifactStorageProperty
    */
   @Override
   public <T> T handleProperty(
-      ArtifactStore store, BeanProperty property, T v, ObjectMapper objectMapper) {
+      ArtifactStore store, BeanProperty property, T v, SerializationContext context) {
     // We can cast this directly given that canHandleProperty was called which ensures that this is
     // a set.
     Set<?> arr = (Set<?>) v;

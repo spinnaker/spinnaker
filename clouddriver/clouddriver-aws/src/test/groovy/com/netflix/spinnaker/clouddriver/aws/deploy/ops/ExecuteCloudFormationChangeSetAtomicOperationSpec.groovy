@@ -16,7 +16,6 @@
 
 package com.netflix.spinnaker.clouddriver.aws.deploy.ops
 
-import com.fasterxml.jackson.databind.ObjectMapper
 import com.netflix.spinnaker.clouddriver.aws.TestCredential
 import com.netflix.spinnaker.clouddriver.aws.deploy.description.ExecuteCloudFormationChangeSetDescription
 import com.netflix.spinnaker.clouddriver.aws.security.AmazonClientProvider
@@ -30,6 +29,7 @@ import software.amazon.awssdk.services.cloudformation.model.DescribeStacksRespon
 import software.amazon.awssdk.services.cloudformation.model.ExecuteChangeSetRequest
 import software.amazon.awssdk.services.cloudformation.model.ExecuteChangeSetResponse
 import software.amazon.awssdk.services.cloudformation.model.Stack
+import tools.jackson.databind.json.JsonMapper
 import spock.lang.Specification
 
 class ExecuteCloudFormationChangeSetAtomicOperationSpec extends Specification {
@@ -53,7 +53,7 @@ class ExecuteCloudFormationChangeSetAtomicOperationSpec extends Specification {
       )
     )
     op.amazonClientProvider = amazonClientProvider
-    op.objectMapper = new ObjectMapper()
+    op.objectMapper = JsonMapper.builder().build()
 
     when:
     op.operate([])
@@ -85,7 +85,7 @@ class ExecuteCloudFormationChangeSetAtomicOperationSpec extends Specification {
       )
     )
     op.amazonClientProvider = amazonClientProvider
-    op.objectMapper = new ObjectMapper()
+    op.objectMapper = JsonMapper.builder().build()
 
     when:
     op.operate([])

@@ -17,7 +17,6 @@ package com.netflix.spinnaker.orca.lock;
 
 import static org.junit.jupiter.api.Assertions.*;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
 import com.netflix.spectator.api.NoopRegistry;
 import com.netflix.spinnaker.kork.core.RetrySupport;
 import com.netflix.spinnaker.kork.jedis.EmbeddedRedis;
@@ -44,6 +43,7 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.context.annotation.AnnotationConfigApplicationContext;
 import redis.clients.jedis.Jedis;
+import tools.jackson.databind.json.JsonMapper;
 
 class RedisStageLockTest {
   private static EmbeddedRedis redis;
@@ -155,7 +155,7 @@ class RedisStageLockTest {
             owner,
             Clock.systemUTC(),
             new NoopRegistry(),
-            new ObjectMapper(),
+            JsonMapper.builder().build(),
             new JedisClientDelegate(redis.getPool()),
             Optional.of(25L),
             Optional.of(1000L));

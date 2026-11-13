@@ -16,7 +16,7 @@
 
 package com.netflix.spinnaker.orca.clouddriver.tasks.servergroup
 
-import com.fasterxml.jackson.databind.ObjectMapper
+import tools.jackson.databind.ObjectMapper
 import com.netflix.spinnaker.orca.api.operations.OperationsContext
 import com.netflix.spinnaker.orca.api.operations.OperationsInput
 import com.netflix.spinnaker.orca.api.operations.OperationsRunner

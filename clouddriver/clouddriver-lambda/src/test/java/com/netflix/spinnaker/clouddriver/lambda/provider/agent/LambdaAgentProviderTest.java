@@ -19,8 +19,8 @@ package com.netflix.spinnaker.clouddriver.lambda.provider.agent;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.mock;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
 import com.netflix.spectator.api.NoopRegistry;
+import com.netflix.spinnaker.clouddriver.aws.jackson.AwsSdkV2Module;
 import com.netflix.spinnaker.clouddriver.aws.security.AmazonClientProvider;
 import com.netflix.spinnaker.clouddriver.core.limits.ServiceLimitConfiguration;
 import com.netflix.spinnaker.config.LambdaServiceConfig;
@@ -28,6 +28,8 @@ import java.util.Map;
 import org.junit.jupiter.api.Test;
 import org.springframework.test.util.ReflectionTestUtils;
 import software.amazon.awssdk.services.lambda.model.FunctionConfiguration;
+import tools.jackson.databind.ObjectMapper;
+import tools.jackson.databind.json.JsonMapper;
 
 class LambdaAgentProviderTest {
 
@@ -39,14 +41,16 @@ class LambdaAgentProviderTest {
    */
   @Test
   void objectMapperSerializesSdkPojoFields() {
+    ObjectMapper objectMapper = JsonMapper.builder().addModule(new AwsSdkV2Module()).build();
     LambdaAgentProvider provider =
         new LambdaAgentProvider(
             mock(AmazonClientProvider.class),
             mock(LambdaServiceConfig.class),
             mock(ServiceLimitConfiguration.class),
-            new NoopRegistry());
+            new NoopRegistry(),
+            objectMapper);
 
-    ObjectMapper objectMapper =
+    ObjectMapper configuredMapper =
         (ObjectMapper) ReflectionTestUtils.getField(provider, "objectMapper");
 
     FunctionConfiguration config =
@@ -57,7 +61,7 @@ class LambdaAgentProviderTest {
             .build();
 
     @SuppressWarnings("unchecked")
-    Map<String, Object> serialized = objectMapper.convertValue(config, Map.class);
+    Map<String, Object> serialized = configuredMapper.convertValue(config, Map.class);
 
     assertThat(serialized).containsEntry("functionName", "testFunction");
     assertThat(serialized).containsEntry("runtime", "java17");

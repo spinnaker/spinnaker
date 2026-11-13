@@ -19,7 +19,6 @@ package com.netflix.spinnaker.gate.mcp.config;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.mock;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
 import com.netflix.spinnaker.gate.mcp.prompts.SpinnakerPrompts;
 import com.netflix.spinnaker.gate.mcp.resources.SpinnakerResources;
 import com.netflix.spinnaker.gate.mcp.tools.ApplicationTools;
@@ -42,6 +41,8 @@ import org.junit.jupiter.api.Test;
 import org.springframework.boot.test.context.runner.ApplicationContextRunner;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import tools.jackson.databind.ObjectMapper;
+import tools.jackson.databind.json.JsonMapper;
 
 /**
  * Verifies the MCP server's tool/resource/prompt beans only exist when {@code
@@ -176,7 +177,7 @@ class McpServerAutoConfigurationTest {
 
     @Bean
     ObjectMapper objectMapper() {
-      return new ObjectMapper();
+      return JsonMapper.builder().build();
     }
   }
 

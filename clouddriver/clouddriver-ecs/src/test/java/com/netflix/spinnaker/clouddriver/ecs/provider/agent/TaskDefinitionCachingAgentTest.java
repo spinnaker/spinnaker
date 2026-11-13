@@ -30,14 +30,13 @@ import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
 import com.netflix.spectator.api.NoopRegistry;
 import com.netflix.spinnaker.cats.cache.CacheData;
 import com.netflix.spinnaker.cats.cache.DefaultCacheData;
-import com.netflix.spinnaker.clouddriver.aws.jackson.AwsSdkV2Module;
 import com.netflix.spinnaker.clouddriver.aws.security.AmazonClientProvider;
 import com.netflix.spinnaker.clouddriver.cache.OnDemandAgent;
 import com.netflix.spinnaker.clouddriver.ecs.cache.Keys;
+import com.netflix.spinnaker.kork.aws.jackson.AwsSdkV2Module;
 import java.util.*;
 import java.util.stream.Collectors;
 import org.junit.jupiter.api.Test;
@@ -57,6 +56,8 @@ import software.amazon.awssdk.services.ecs.model.PortMapping;
 import software.amazon.awssdk.services.ecs.model.ServerException;
 import software.amazon.awssdk.services.ecs.model.TaskDefinition;
 import spock.lang.Subject;
+import tools.jackson.databind.ObjectMapper;
+import tools.jackson.databind.json.JsonMapper;
 
 public class TaskDefinitionCachingAgentTest extends CommonCachingAgent {
   // a described task definition is distinguishable from a cached one, so that reusing the cache can
@@ -65,7 +66,7 @@ public class TaskDefinitionCachingAgentTest extends CommonCachingAgent {
   private static final String DESCRIBED_IMAGE = "described-image";
   private static final int LOAD_BALANCED_CONTAINER_PORT = 7007;
 
-  ObjectMapper mapper = new ObjectMapper().registerModule(new AwsSdkV2Module());
+  ObjectMapper mapper = JsonMapper.builder().addModule(new AwsSdkV2Module()).build();
 
   @Subject
   private final TaskDefinitionCachingAgent agent =

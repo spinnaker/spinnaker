@@ -16,7 +16,7 @@
 
 package com.netflix.spinnaker.gate.controllers
 
-import com.fasterxml.jackson.databind.ObjectMapper
+import tools.jackson.databind.ObjectMapper
 import com.netflix.spinnaker.gate.services.StrategyService
 import org.springframework.http.MediaType
 import org.springframework.test.web.servlet.MockMvc
@@ -24,6 +24,7 @@ import org.springframework.test.web.servlet.setup.MockMvcBuilders
 import spock.lang.Specification
 
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.put
+import tools.jackson.databind.json.JsonMapper
 
 class StrategyControllerSpec extends Specification {
 
@@ -47,7 +48,7 @@ class StrategyControllerSpec extends Specification {
     when:
     def response = mockMvc.perform(
       put("/strategies/${strategy.id}").contentType(MediaType.APPLICATION_JSON)
-        .content(new ObjectMapper().writeValueAsString(strategy))
+        .content(JsonMapper.builder().build().writeValueAsString(strategy))
     ).andReturn().response
 
     then:

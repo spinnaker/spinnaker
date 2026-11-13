@@ -5,6 +5,7 @@ import com.netflix.spinnaker.gate.security.GateSystemTest
 import com.netflix.spinnaker.gate.security.YamlFileApplicationContextInitializer
 import com.netflix.spinnaker.gate.services.internal.IgorService
 import groovy.util.logging.Slf4j
+import groovy.json.JsonSlurper
 import org.apache.commons.io.FileUtils
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.test.context.bean.override.mockito.MockitoBean
@@ -57,5 +58,19 @@ class GenerateSwaggerSpec extends Specification {
 
     then:
     written
+
+    and: 'plugin schemas retain their public required fields'
+    def spec = new JsonSlurper().parseText(new File('swagger.json').text)
+    spec.openapi.startsWith('3.')
+    spec.components.schemas.SpinnakerPluginInfo.required.contains('releases')
+    spec.components.schemas.SpinnakerPluginRelease.required.containsAll(['preferred', 'remoteExtensions'])
+    spec.components.schemas.SpinnakerPluginDescriptor.required.contains('unsafe')
+    spec.components.schemas.RemoteExtensionConfig.required.containsAll(['id', 'transport', 'type'])
+    spec.components.schemas.RemoteExtensionTransportConfig.required.contains('http')
+    spec.components.schemas.Http.required.containsAll(['config', 'headers', 'queryParams', 'url'])
+    spec.components.schemas.Headers.required.containsAll(['invokeHeaders', 'readHeaders', 'writeHeaders'])
+    spec.components.schemas.SimpleProxyConfig.required.containsAll(['id', 'uri'])
+    spec.components.schemas.DeckPluginVersion.required.containsAll(['id', 'version'])
+
   }
 }

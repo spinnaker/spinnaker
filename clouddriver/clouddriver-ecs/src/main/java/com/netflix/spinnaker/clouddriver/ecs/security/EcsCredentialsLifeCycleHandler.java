@@ -15,7 +15,6 @@
 
 package com.netflix.spinnaker.clouddriver.ecs.security;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
 import com.netflix.spectator.api.Registry;
 import com.netflix.spinnaker.cats.agent.Agent;
 import com.netflix.spinnaker.cats.module.CatsModule;
@@ -46,8 +45,10 @@ import java.util.Set;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.jetbrains.annotations.NotNull;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Component;
+import tools.jackson.databind.ObjectMapper;
 
 @Slf4j
 @RequiredArgsConstructor
@@ -59,7 +60,7 @@ public class EcsCredentialsLifeCycleHandler
   protected final AmazonClientProvider amazonClientProvider;
   protected final Registry registry;
   protected final IamPolicyReader iamPolicyReader;
-  protected final ObjectMapper objectMapper;
+  protected final @Qualifier("amazonObjectMapper") ObjectMapper objectMapper;
   protected final CatsModule catsModule;
   protected final EcsAccountMapper ecsAccountMapper;
 

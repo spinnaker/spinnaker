@@ -15,7 +15,7 @@
  */
 package com.netflix.spinnaker.kork.plugins
 
-import com.fasterxml.jackson.core.type.TypeReference
+import tools.jackson.core.type.TypeReference
 import com.netflix.spinnaker.kork.plugins.config.ConfigCoordinates
 import com.netflix.spinnaker.kork.plugins.config.ConfigResolver
 import dev.minutest.junit.JUnit5Minutests

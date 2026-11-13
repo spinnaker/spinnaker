@@ -16,8 +16,6 @@
 
 package com.netflix.spinnaker.clouddriver.appengine.config;
 
-import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import com.netflix.spinnaker.clouddriver.appengine.AppengineJobExecutor;
 import com.netflix.spinnaker.clouddriver.googlecommon.config.GoogleCommonManagedAccount;
 import com.netflix.spinnaker.config.DefaultServiceEndpoint;
@@ -33,6 +31,9 @@ import org.springframework.util.StringUtils;
 import retrofit2.Call;
 import retrofit2.http.GET;
 import retrofit2.http.Headers;
+import tools.jackson.databind.JsonNode;
+import tools.jackson.databind.ObjectMapper;
+import tools.jackson.databind.json.JsonMapper;
 
 @Data
 public class AppengineConfigurationProperties {
@@ -68,7 +69,7 @@ public class AppengineConfigurationProperties {
       if (!StringUtils.isEmpty(getJsonPath())) {
         jobExecutor.runCommand(
             List.of(gcloudPath, "auth", "activate-service-account", "--key-file", getJsonPath()));
-        ObjectMapper mapper = new ObjectMapper();
+        ObjectMapper mapper = JsonMapper.builder().build();
         try {
           JsonNode node = mapper.readTree(new File(getJsonPath()));
           if (StringUtils.isEmpty(getProject())) {

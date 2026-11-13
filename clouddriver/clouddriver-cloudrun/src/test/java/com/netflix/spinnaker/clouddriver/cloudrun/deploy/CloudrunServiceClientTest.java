@@ -26,7 +26,6 @@ import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.api.client.googleapis.json.GoogleJsonResponseException;
 import com.google.api.client.http.HttpHeaders;
 import com.google.api.client.http.HttpResponseException;
@@ -46,13 +45,16 @@ import java.util.Map;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.ArgumentCaptor;
+import tools.jackson.core.JacksonException;
+import tools.jackson.databind.ObjectMapper;
+import tools.jackson.databind.json.JsonMapper;
 
 class CloudrunServiceClientTest {
 
   private static final String PARENT = "projects/my-project/locations/europe-west2";
   private static final String SERVICE = PARENT + "/services/myapp";
 
-  private static final ObjectMapper JSON = new ObjectMapper();
+  private static final ObjectMapper JSON = JsonMapper.builder().build();
 
   private CloudRun cloudRun;
   private CloudRun.Projects.Locations.Services services;
@@ -240,7 +242,7 @@ class CloudrunServiceClientTest {
   private static Map<String, Object> parse(String json) {
     try {
       return JSON.readValue(json, Map.class);
-    } catch (IOException e) {
+    } catch (JacksonException e) {
       throw new IllegalStateException(e);
     }
   }

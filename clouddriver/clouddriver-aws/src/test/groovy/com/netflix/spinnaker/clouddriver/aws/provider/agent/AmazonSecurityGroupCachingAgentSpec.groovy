@@ -19,7 +19,7 @@ package com.netflix.spinnaker.clouddriver.aws.provider.agent
 import software.amazon.awssdk.services.ec2.Ec2Client
 import software.amazon.awssdk.services.ec2.model.DescribeSecurityGroupsResponse
 import software.amazon.awssdk.services.ec2.model.SecurityGroup
-import com.fasterxml.jackson.databind.ObjectMapper
+import tools.jackson.databind.ObjectMapper
 import com.netflix.spinnaker.clouddriver.aws.jackson.AwsObjectMapperFactory
 import com.netflix.spinnaker.clouddriver.aws.jackson.AwsSdkV2Module
 import com.netflix.spectator.api.Spectator
@@ -44,7 +44,7 @@ class AmazonSecurityGroupCachingAgentSpec extends Specification {
     getAmazonEC2V2(_, _) >> ec2
   }
   ProviderCache providerCache = Mock(ProviderCache)
-  ObjectMapper mapper = AwsObjectMapperFactory.createConfigured().registerModule(new AwsSdkV2Module())
+  ObjectMapper mapper = AwsObjectMapperFactory.createConfigured().rebuild().addModule(new AwsSdkV2Module()).build()
 
   @Subject AmazonSecurityGroupCachingAgent agent = new AmazonSecurityGroupCachingAgent(
     amazonClientProvider, creds, region, mapper, Spectator.registry())

@@ -24,7 +24,6 @@ import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
 import com.netflix.spinnaker.gate.mcp.config.McpServerProperties;
 import com.netflix.spinnaker.gate.mcp.support.McpAccessGuard;
 import com.netflix.spinnaker.gate.mcp.support.McpReadOnlyModeException;
@@ -41,6 +40,7 @@ import org.mockito.ArgumentCaptor;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import retrofit2.mock.Calls;
+import tools.jackson.databind.json.JsonMapper;
 
 @ExtendWith(MockitoExtension.class)
 class KeelToolsTest {
@@ -54,7 +54,8 @@ class KeelToolsTest {
   void setUp() {
     properties = new McpServerProperties();
     properties.setReadOnly(false);
-    keelTools = new KeelTools(keelService, new ObjectMapper(), new McpAccessGuard(properties));
+    keelTools =
+        new KeelTools(keelService, JsonMapper.builder().build(), new McpAccessGuard(properties));
   }
 
   @Test

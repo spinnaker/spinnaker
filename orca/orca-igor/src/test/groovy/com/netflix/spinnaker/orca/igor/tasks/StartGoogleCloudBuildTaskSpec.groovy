@@ -16,7 +16,7 @@
 
 package com.netflix.spinnaker.orca.igor.tasks
 
-import com.fasterxml.jackson.databind.ObjectMapper
+import tools.jackson.databind.ObjectMapper
 import com.netflix.spinnaker.kork.artifacts.model.Artifact
 import com.netflix.spinnaker.orca.api.pipeline.TaskResult
 import com.netflix.spinnaker.orca.clouddriver.OortService
@@ -31,6 +31,7 @@ import okhttp3.ResponseBody
 import retrofit2.mock.Calls
 import spock.lang.Specification
 import spock.lang.Subject
+import tools.jackson.databind.json.JsonMapper
 
 class StartGoogleCloudBuildTaskSpec extends Specification {
   def ACCOUNT = "my-account"
@@ -56,7 +57,7 @@ class StartGoogleCloudBuildTaskSpec extends Specification {
       ]
     ]
   ]
-  def objectMapper = new ObjectMapper()
+  def objectMapper = JsonMapper.builder().build()
 
   PipelineExecutionImpl execution = Mock(PipelineExecutionImpl)
   IgorService igorService = Mock(IgorService)

@@ -16,8 +16,6 @@
 
 package com.netflix.spinnaker.clouddriver.google.test;
 
-import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.api.client.http.HttpTransport;
 import com.google.api.client.http.LowLevelHttpRequest;
 import com.google.api.client.testing.http.MockLowLevelHttpRequest;
@@ -29,6 +27,9 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.regex.Pattern;
+import tools.jackson.databind.JsonNode;
+import tools.jackson.databind.ObjectMapper;
+import tools.jackson.databind.json.JsonMapper;
 
 /**
  * Captures outbound Compute HTTP requests (method, URL, JSON body) for API-boundary contract tests.
@@ -44,7 +45,7 @@ public final class CapturingComputeTransport extends HttpTransport {
   private final List<CapturedRequest> requests = new ArrayList<>();
   private final String operationResponseJson;
   private final Map<String, String> getResponsesByPathSubstring = new HashMap<>();
-  private final ObjectMapper objectMapper = new ObjectMapper();
+  private final ObjectMapper objectMapper = JsonMapper.builder().build();
 
   public CapturingComputeTransport() {
     this(

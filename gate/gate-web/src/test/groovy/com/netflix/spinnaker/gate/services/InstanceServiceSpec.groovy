@@ -17,18 +17,19 @@
 
 package com.netflix.spinnaker.gate.services
 
-import com.fasterxml.jackson.databind.ObjectMapper
+import tools.jackson.databind.ObjectMapper
 import com.netflix.spinnaker.gate.config.InsightConfiguration
 import com.netflix.spinnaker.gate.services.internal.ClouddriverService
 import com.netflix.spinnaker.gate.services.internal.ClouddriverServiceSelector
 import retrofit2.mock.Calls
 import spock.lang.Specification
+import tools.jackson.databind.json.JsonMapper
 
 class InstanceServiceSpec extends Specification {
   void "should include relevant insight actions for instance"() {
     given:
     def service = new InstanceService(
-        objectMapper: new ObjectMapper(),
+        objectMapper: JsonMapper.builder().build(),
         clouddriverServiceSelector: Mock(ClouddriverServiceSelector) {
           1 * select() >> {
             Mock(ClouddriverService) {

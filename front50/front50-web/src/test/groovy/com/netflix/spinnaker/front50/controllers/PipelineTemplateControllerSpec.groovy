@@ -16,7 +16,7 @@
 
 package com.netflix.spinnaker.front50.controllers
 
-import com.fasterxml.jackson.databind.ObjectMapper
+import tools.jackson.databind.ObjectMapper
 import com.netflix.spinnaker.front50.exceptions.InvalidRequestException
 
 import com.netflix.spinnaker.front50.api.model.pipeline.Pipeline;
@@ -28,6 +28,7 @@ import spock.lang.Subject
 
 import static com.netflix.spinnaker.front50.api.model.pipeline.Pipeline.TYPE_TEMPLATED
 import static com.netflix.spinnaker.front50.model.pipeline.TemplateConfiguration.TemplateSource.SPINNAKER_PREFIX
+import tools.jackson.databind.json.JsonMapper
 
 class PipelineTemplateControllerSpec extends Specification {
   def pipelineDAO = Mock(PipelineDAO)
@@ -37,7 +38,7 @@ class PipelineTemplateControllerSpec extends Specification {
   def controller = new PipelineTemplateController(
     pipelineDAO: pipelineDAO,
     pipelineTemplateDAO: pipelineTemplateDAO,
-    objectMapper: new ObjectMapper(),
+    objectMapper: JsonMapper.builder().build(),
   )
 
   def "should reject delete request if template has dependent configs"() {

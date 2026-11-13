@@ -35,6 +35,7 @@ import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import retrofit2.Call;
 import retrofit2.Response;
+import tools.jackson.databind.ObjectMapper;
 
 @SpringBootTest(
     classes = {
@@ -45,7 +46,7 @@ import retrofit2.Response;
       okhttp3.OkHttpClient.class,
       com.netflix.spinnaker.config.DefaultServiceClientProvider.class,
       com.netflix.spinnaker.config.okhttp3.DefaultOkHttpClientBuilderProvider.class,
-      com.fasterxml.jackson.databind.ObjectMapper.class
+      ObjectMapper.class
     },
     webEnvironment = SpringBootTest.WebEnvironment.NONE)
 public class DockerBearerTokenServiceTest {

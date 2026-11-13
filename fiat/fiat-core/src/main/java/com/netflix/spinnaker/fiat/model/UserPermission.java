@@ -17,7 +17,6 @@
 package com.netflix.spinnaker.fiat.model;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
-import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 import com.netflix.spinnaker.fiat.model.resources.*;
 import java.util.*;
 import java.util.function.Function;
@@ -27,6 +26,7 @@ import lombok.EqualsAndHashCode;
 import lombok.NoArgsConstructor;
 import lombok.val;
 import org.springframework.security.core.GrantedAuthority;
+import tools.jackson.databind.annotation.JsonDeserialize;
 
 @Data
 public class UserPermission {

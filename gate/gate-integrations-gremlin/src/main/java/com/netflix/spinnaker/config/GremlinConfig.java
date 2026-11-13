@@ -16,8 +16,6 @@
 
 package com.netflix.spinnaker.config;
 
-import com.fasterxml.jackson.databind.DeserializationFeature;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import com.netflix.spinnaker.gate.config.Service;
 import com.netflix.spinnaker.gate.config.ServiceConfiguration;
 import com.netflix.spinnaker.gate.services.gremlin.GremlinService;
@@ -29,6 +27,9 @@ import java.util.List;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import tools.jackson.databind.DeserializationFeature;
+import tools.jackson.databind.cfg.EnumFeature;
+import tools.jackson.databind.json.JsonMapper;
 
 @Slf4j
 @CompileStatic
@@ -51,10 +52,11 @@ class GremlinConfig {
       return null;
     }
 
-    ObjectMapper objectMapper =
-        new ObjectMapper()
-            .enable(DeserializationFeature.READ_UNKNOWN_ENUM_VALUES_AS_NULL)
-            .disable(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES);
+    JsonMapper objectMapper =
+        JsonMapper.builder()
+            .enable(EnumFeature.READ_UNKNOWN_ENUM_VALUES_AS_NULL)
+            .disable(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES)
+            .build();
 
     return serviceClientProvider.getService(
         GremlinService.class,

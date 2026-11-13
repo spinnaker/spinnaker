@@ -20,8 +20,6 @@ import com.fasterxml.jackson.annotation.JsonAnyGetter;
 import com.fasterxml.jackson.annotation.JsonAnySetter;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashMap;
@@ -32,6 +30,8 @@ import lombok.AccessLevel;
 import lombok.Data;
 import lombok.Getter;
 import lombok.Setter;
+import tools.jackson.core.JacksonException;
+import tools.jackson.databind.ObjectMapper;
 
 @Data
 @JsonIgnoreProperties(ignoreUnknown = true)
@@ -177,7 +177,7 @@ public class EntityTags {
         case object:
           try {
             return objectMapper.writeValueAsString(value);
-          } catch (JsonProcessingException e) {
+          } catch (JacksonException e) {
             throw new RuntimeException(e);
           }
         default:

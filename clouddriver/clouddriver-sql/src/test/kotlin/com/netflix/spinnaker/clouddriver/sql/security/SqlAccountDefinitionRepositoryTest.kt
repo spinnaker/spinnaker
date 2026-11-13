@@ -18,8 +18,6 @@
 package com.netflix.spinnaker.clouddriver.sql.security
 
 import com.fasterxml.jackson.annotation.JsonTypeName
-import com.fasterxml.jackson.databind.json.JsonMapper
-import com.fasterxml.jackson.module.kotlin.jacksonMapperBuilder
 import com.netflix.spinnaker.clouddriver.jackson.mixins.CredentialsDefinitionMixin
 import com.netflix.spinnaker.clouddriver.security.AccessControlledAccountDefinition
 import com.netflix.spinnaker.clouddriver.security.AccountDefinitionMapper
@@ -34,6 +32,8 @@ import dev.minutest.junit.JUnit5Minutests
 import dev.minutest.rootContext
 import org.assertj.core.api.Assertions.assertThat
 import java.time.Clock
+import tools.jackson.databind.json.JsonMapper
+import tools.jackson.module.kotlin.jacksonMapperBuilder
 
 class SqlAccountDefinitionRepositoryTest : JUnit5Minutests {
   fun tests() = rootContext<Fixture> {

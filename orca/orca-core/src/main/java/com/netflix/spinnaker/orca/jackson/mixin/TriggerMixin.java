@@ -18,9 +18,9 @@ package com.netflix.spinnaker.orca.jackson.mixin;
 import com.fasterxml.jackson.annotation.JsonAnyGetter;
 import com.fasterxml.jackson.annotation.JsonAnySetter;
 import com.fasterxml.jackson.annotation.JsonProperty;
-import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 import com.netflix.spinnaker.orca.pipeline.model.support.TriggerDeserializer;
 import java.util.Map;
+import tools.jackson.databind.annotation.JsonDeserialize;
 
 @JsonDeserialize(using = TriggerDeserializer.class)
 public interface TriggerMixin {

@@ -16,7 +16,7 @@
 
 package com.netflix.spinnaker.clouddriver.ecs.deploy.converters
 
-import com.fasterxml.jackson.databind.ObjectMapper
+import tools.jackson.databind.json.JsonMapper
 import com.netflix.spinnaker.clouddriver.ecs.TestCredential
 import com.netflix.spinnaker.clouddriver.ecs.deploy.description.ResizeServiceDescription
 import com.netflix.spinnaker.clouddriver.ecs.deploy.ops.ResizeServiceAtomicOperation
@@ -28,7 +28,7 @@ class ResizeServiceAtomicOperationConverterSpec extends Specification {
 
   def 'should convert'() {
     given:
-    def converter = new ResizeServiceAtomicOperationConverter(objectMapper: new ObjectMapper())
+    def converter = new ResizeServiceAtomicOperationConverter(objectMapper: JsonMapper.builder().build())
     converter.accountCredentialsProvider = accountCredentialsProvider
 
     def input = [

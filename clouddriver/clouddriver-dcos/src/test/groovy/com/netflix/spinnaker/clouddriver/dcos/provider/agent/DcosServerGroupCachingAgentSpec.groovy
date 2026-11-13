@@ -16,7 +16,7 @@
 
 package com.netflix.spinnaker.clouddriver.dcos.provider.agent
 
-import com.fasterxml.jackson.databind.ObjectMapper
+import tools.jackson.databind.ObjectMapper
 import com.google.common.collect.ImmutableList
 import com.netflix.spectator.api.Registry
 import com.netflix.spinnaker.cats.agent.DefaultCacheResult
@@ -41,6 +41,7 @@ import mesosphere.marathon.client.model.v2.GetAppResponse
 import mesosphere.marathon.client.model.v2.Task
 import mesosphere.marathon.client.model.v2.VersionedApp
 import spock.lang.Specification
+import tools.jackson.databind.json.JsonMapper
 
 class DcosServerGroupCachingAgentSpec extends BaseSpecification {
   static final private String ACCOUNT = "testaccount"
@@ -85,7 +86,7 @@ class DcosServerGroupCachingAgentSpec extends BaseSpecification {
     container = Mock(Container)
     dcosClient = Mock(DCOS)
     providerCache = Mock(ProviderCache)
-    objectMapper = new ObjectMapper()
+    objectMapper = JsonMapper.builder().build()
 
     clientProvider = Mock(DcosClientProvider) {
       getDcosClient(credentials, REGION) >> dcosClient
@@ -377,7 +378,7 @@ class DcosServerGroupCachingAgentSpec extends BaseSpecification {
     def result = new DefaultCacheResult([
       (Keys.Namespace.SERVER_GROUPS.ns): cacheData.values()
     ], [:])
-    new ObjectMapper().writeValueAsString(result.cacheResults)
+    JsonMapper.builder().build().writeValueAsString(result.cacheResults)
   }
 
 }

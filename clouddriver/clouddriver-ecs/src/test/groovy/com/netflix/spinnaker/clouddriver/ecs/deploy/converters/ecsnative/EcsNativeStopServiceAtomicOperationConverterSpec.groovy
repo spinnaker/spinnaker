@@ -16,7 +16,8 @@
 
 package com.netflix.spinnaker.clouddriver.ecs.deploy.converters.ecsnative
 
-import com.fasterxml.jackson.databind.ObjectMapper
+import tools.jackson.databind.ObjectMapper
+import tools.jackson.databind.json.JsonMapper
 import com.netflix.spinnaker.clouddriver.ecs.TestCredential
 import com.netflix.spinnaker.clouddriver.ecs.deploy.description.StopServiceDescription
 import com.netflix.spinnaker.clouddriver.ecs.deploy.ops.StopServiceAtomicOperation
@@ -26,7 +27,7 @@ class EcsNativeStopServiceAtomicOperationConverterSpec
     extends EcsNativeCredentialsOnlyAtomicOperationConverterSpec<StopServiceDescription, StopServiceAtomicOperation> {
   @Override
   AbstractAtomicOperationsCredentialsSupport getConverter() {
-    new EcsNativeStopServiceAtomicOperationConverter(objectMapper: new ObjectMapper())
+    new EcsNativeStopServiceAtomicOperationConverter(objectMapper: JsonMapper.builder().build())
   }
 
   @Override

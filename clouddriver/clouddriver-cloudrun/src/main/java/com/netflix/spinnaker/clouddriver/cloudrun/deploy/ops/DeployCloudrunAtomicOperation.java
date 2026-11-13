@@ -16,10 +16,6 @@
 
 package com.netflix.spinnaker.clouddriver.cloudrun.deploy.ops;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.core.type.TypeReference;
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.dataformat.yaml.YAMLFactory;
 import com.netflix.spinnaker.clouddriver.cloudrun.config.CloudrunConfigurationProperties;
 import com.netflix.spinnaker.clouddriver.cloudrun.deploy.CloudrunServerGroupNameResolver;
 import com.netflix.spinnaker.clouddriver.cloudrun.deploy.CloudrunServiceClient;
@@ -36,6 +32,10 @@ import java.util.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import tools.jackson.core.JacksonException;
+import tools.jackson.core.type.TypeReference;
+import tools.jackson.databind.ObjectMapper;
+import tools.jackson.dataformat.yaml.YAMLMapper;
 
 public class DeployCloudrunAtomicOperation implements AtomicOperation<DeploymentResult> {
 
@@ -56,8 +56,7 @@ public class DeployCloudrunAtomicOperation implements AtomicOperation<Deployment
 
   DeployCloudrunDescription description;
 
-  private final ObjectMapper yamlReader =
-      new ObjectMapper(YAMLFactory.builder().loaderOptions(YamlHelper.getLoaderOptions()).build());
+  private final ObjectMapper yamlReader = YAMLMapper.builder(YamlHelper.newYamlFactory()).build();
 
   public DeployCloudrunAtomicOperation(DeployCloudrunDescription description) {
     this.description = description;
@@ -114,7 +113,7 @@ public class DeployCloudrunAtomicOperation implements AtomicOperation<Deployment
   }
 
   private List<Map<String, Object>> parseManifests(List<String> configFiles)
-      throws JsonProcessingException {
+      throws JacksonException {
     List<Map<String, Object>> manifests = new ArrayList<>();
     for (String configFile : configFiles == null ? List.<String>of() : configFiles) {
       Map<String, Object> manifest =

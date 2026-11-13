@@ -16,7 +16,7 @@
 
 package com.netflix.spinnaker.clouddriver.appengine.deploy.converters
 
-import com.fasterxml.jackson.databind.DeserializationFeature
+import tools.jackson.databind.DeserializationFeature
 import com.netflix.spinnaker.clouddriver.appengine.deploy.description.AbstractAppengineCredentialsDescription
 import com.netflix.spinnaker.clouddriver.appengine.security.AppengineNamedAccountCredentials
 import com.netflix.spinnaker.clouddriver.security.AbstractAtomicOperationsCredentialsConverter
@@ -37,8 +37,9 @@ class AppengineAtomicOperationConverterHelper {
     def credentials = input.remove("credentials")
 
     def converted = credentialsSupport.objectMapper
-      .copy()
+      .rebuild()
       .configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false)
+      .build()
       .convertValue(input, targetDescriptionType)
 
     converted.credentials = credentials as AppengineNamedAccountCredentials

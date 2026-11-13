@@ -16,7 +16,6 @@
 
 package com.netflix.spinnaker.igor.codebuild;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
 import com.netflix.spinnaker.kork.artifacts.model.Artifact;
 import java.util.List;
 import java.util.Map;
@@ -26,6 +25,8 @@ import org.springframework.http.MediaType;
 import org.springframework.web.bind.annotation.*;
 import software.amazon.awssdk.services.codebuild.model.Build;
 import software.amazon.awssdk.services.codebuild.model.StartBuildRequest;
+import tools.jackson.databind.ObjectMapper;
+import tools.jackson.databind.json.JsonMapper;
 
 @ConditionalOnProperty("codebuild.enabled")
 @RestController
@@ -33,7 +34,7 @@ import software.amazon.awssdk.services.codebuild.model.StartBuildRequest;
 @RequestMapping(value = "/codebuild")
 public class AwsCodeBuildController {
   private final AwsCodeBuildAccountRepository awsCodeBuildAccountRepository;
-  private final ObjectMapper objectMapper = new ObjectMapper();
+  private final ObjectMapper objectMapper = JsonMapper.builder().build();
 
   @RequestMapping(value = "/accounts", method = RequestMethod.GET)
   List<String> getAccounts() {

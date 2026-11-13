@@ -17,8 +17,6 @@
 
 package com.netflix.spinnaker.clouddriver.cloudrun.op.manifest;
 
-import com.fasterxml.jackson.core.type.TypeReference;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import com.netflix.spinnaker.clouddriver.cloudrun.config.CloudrunConfigurationProperties;
 import com.netflix.spinnaker.clouddriver.cloudrun.deploy.CloudrunServerGroupNameResolver;
 import com.netflix.spinnaker.clouddriver.cloudrun.deploy.CloudrunServiceClient;
@@ -36,6 +34,9 @@ import java.util.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import tools.jackson.core.type.TypeReference;
+import tools.jackson.databind.ObjectMapper;
+import tools.jackson.databind.json.JsonMapper;
 
 public class CloudrunDeployManifestOperation implements AtomicOperation<DeploymentResult> {
 
@@ -56,7 +57,7 @@ public class CloudrunDeployManifestOperation implements AtomicOperation<Deployme
 
   CloudrunDeployManifestDescription description;
 
-  private final ObjectMapper objectMapper = new ObjectMapper();
+  private final ObjectMapper objectMapper = JsonMapper.builder().build();
 
   public CloudrunDeployManifestOperation(CloudrunDeployManifestDescription description) {
     this.description = description;

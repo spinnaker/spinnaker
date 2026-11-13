@@ -16,7 +16,6 @@
 
 package com.netflix.spinnaker.kork.retrofit;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
 import com.netflix.spinnaker.kork.retrofit.exceptions.SpinnakerConversionException;
 import com.netflix.spinnaker.kork.retrofit.exceptions.SpinnakerHttpException;
 import com.netflix.spinnaker.kork.retrofit.exceptions.SpinnakerNetworkException;
@@ -35,6 +34,7 @@ import retrofit2.CallAdapter;
 import retrofit2.Callback;
 import retrofit2.Response;
 import retrofit2.Retrofit;
+import tools.jackson.core.JacksonException;
 
 /**
  * A Retrofit {@link CallAdapter.Factory} that wraps calls to provide enhanced error handling.
@@ -165,10 +165,14 @@ public class ErrorHandlingExecutorCallAdapterFactory extends CallAdapter.Factory
         if (syncResp.isSuccessful()) {
           return syncResp;
         }
-      } catch (JsonProcessingException jpe) {
+      } catch (JacksonException jpe) {
         throw new SpinnakerConversionException(
             "Failed to process response body: " + jpe.getMessage(), jpe, delegate.request());
       } catch (IOException e) {
+        if (e.getCause() instanceof JacksonException jpe) {
+          throw new SpinnakerConversionException(
+              "Failed to process response body: " + jpe.getMessage(), jpe, delegate.request());
+        }
         throw new SpinnakerNetworkException(e, delegate.request());
       } catch (Exception e) {
         throw new SpinnakerServerException(e, delegate.request());
@@ -264,7 +268,15 @@ public class ErrorHandlingExecutorCallAdapterFactory extends CallAdapter.Factory
     public void onFailure(Call<T> call, final Throwable t) {
 
       SpinnakerServerException exception;
-      if (t instanceof IOException) {
+      if (t instanceof IOException && t.getCause() instanceof JacksonException jpe) {
+        exception =
+            new SpinnakerConversionException(
+                "Failed to process response body: " + jpe.getMessage(), jpe, call.request());
+      } else if (t instanceof JacksonException jpe) {
+        exception =
+            new SpinnakerConversionException(
+                "Failed to process response body: " + jpe.getMessage(), jpe, call.request());
+      } else if (t instanceof IOException) {
         exception = new SpinnakerNetworkException(t, call.request());
       } else if (t instanceof SpinnakerHttpException) {
         exception = (SpinnakerHttpException) t;

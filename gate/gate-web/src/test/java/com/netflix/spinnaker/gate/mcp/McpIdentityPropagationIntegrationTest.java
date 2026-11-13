@@ -19,8 +19,6 @@ package com.netflix.spinnaker.gate.mcp;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.when;
 
-import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import com.netflix.spinnaker.fiat.shared.FiatPermissionEvaluator;
 import com.netflix.spinnaker.gate.Main;
 import com.netflix.spinnaker.gate.health.DownstreamServicesHealthIndicator;
@@ -44,6 +42,9 @@ import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.test.context.TestPropertySource;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import redis.clients.jedis.JedisPool;
+import tools.jackson.databind.JsonNode;
+import tools.jackson.databind.ObjectMapper;
+import tools.jackson.databind.json.JsonMapper;
 
 /**
  * Drives a real {@code /mcp} streamable-HTTP request and records what a tool handler sees: whether
@@ -68,7 +69,7 @@ import redis.clients.jedis.JedisPool;
     })
 class McpIdentityPropagationIntegrationTest {
 
-  private static final ObjectMapper MAPPER = new ObjectMapper();
+  private static final ObjectMapper MAPPER = JsonMapper.builder().build();
 
   @Autowired TestRestTemplate restTemplate;
 

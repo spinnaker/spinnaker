@@ -16,8 +16,6 @@
 
 package com.netflix.spinnaker.orca;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import java.time.Duration;
 import java.util.Map;
 import org.junit.jupiter.api.AfterAll;
@@ -31,6 +29,9 @@ import org.testcontainers.containers.output.Slf4jLogConsumer;
 import org.testcontainers.containers.wait.strategy.Wait;
 import org.testcontainers.junit.jupiter.Testcontainers;
 import org.testcontainers.utility.DockerImageName;
+import tools.jackson.core.JacksonException;
+import tools.jackson.databind.ObjectMapper;
+import tools.jackson.databind.json.JsonMapper;
 
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
 @Testcontainers
@@ -63,12 +64,12 @@ public class RedisContainerTest extends BaseContainerTest {
     orcaContainer.followOutput(logConsumer);
   }
 
-  private String getSpringApplicationJson() throws JsonProcessingException {
+  private String getSpringApplicationJson() throws JacksonException {
     String redisUrl = "redis://" + REDIS_NETWORK_ALIAS + ":" + REDIS_PORT;
     logger.info("-------------- redisUrl: '{}'", redisUrl);
     Map<String, String> properties =
         Map.of("redis.connection", redisUrl, "services.fiat.baseUrl", "http://nowhere");
-    ObjectMapper mapper = new ObjectMapper();
+    ObjectMapper mapper = JsonMapper.builder().build();
     return mapper.writeValueAsString(properties);
   }
 

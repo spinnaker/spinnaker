@@ -1,7 +1,5 @@
 package com.netflix.spinnaker.rosco.manifests.helm;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.dataformat.yaml.YAMLFactory;
 import com.netflix.spinnaker.kork.artifacts.artifactstore.ArtifactStore;
 import com.netflix.spinnaker.kork.artifacts.artifactstore.ArtifactStoreConfigurationProperties;
 import com.netflix.spinnaker.kork.artifacts.model.Artifact;
@@ -28,6 +26,9 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.boot.context.properties.ConfigurationPropertiesScan;
 import org.springframework.stereotype.Component;
 import org.springframework.util.StringUtils;
+import tools.jackson.core.JacksonException;
+import tools.jackson.databind.ObjectMapper;
+import tools.jackson.dataformat.yaml.YAMLMapper;
 
 @Component
 @Slf4j
@@ -53,8 +54,7 @@ public class HelmTemplateUtils extends HelmBakeTemplateUtils<HelmBakeManifestReq
       YamlHelper yamlHelper) {
     super(artifactDownloader, artifactStore, artifactStoreProperties.getHelm());
     this.helmConfigurationProperties = helmConfigurationProperties;
-    this.yamlObjectMapper =
-        new ObjectMapper(YAMLFactory.builder().loaderOptions(yamlHelper.loaderOptions()).build());
+    this.yamlObjectMapper = YAMLMapper.builder(yamlHelper.yamlFactory()).build();
   }
 
   public BakeRecipe buildBakeRecipe(BakeManifestEnvironment env, HelmBakeManifestRequest request)
@@ -271,7 +271,7 @@ public class HelmTemplateUtils extends HelmBakeTemplateUtils<HelmBakeManifestReq
             filePath.toString(),
             System.lineSeparator(),
             new String(Files.readAllBytes(filePath)));
-    } catch (IOException ioException) {
+    } catch (IOException | JacksonException ioException) {
       throw new IllegalStateException(
           String.format("failed to write override yaml file %s.", filePath.toString())
               + ioException.getMessage(),

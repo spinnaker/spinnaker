@@ -16,7 +16,7 @@
 
 package com.netflix.spinnaker.orca.q.redis
 
-import com.fasterxml.jackson.databind.ObjectMapper
+import tools.jackson.databind.ObjectMapper
 import com.netflix.spinnaker.config.RedisOrcaQueueConfiguration
 import com.netflix.spinnaker.kork.dynamicconfig.DynamicConfigService
 import com.netflix.spinnaker.kork.jedis.RedisClientDelegate

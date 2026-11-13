@@ -16,7 +16,7 @@
 
 package com.netflix.spinnaker.echo.controllers
 
-import com.fasterxml.jackson.databind.ObjectMapper
+import tools.jackson.databind.ObjectMapper
 import com.netflix.spinnaker.echo.api.events.Event
 import com.netflix.spinnaker.echo.api.events.Metadata
 import com.netflix.spinnaker.echo.artifacts.ArtifactExtractor

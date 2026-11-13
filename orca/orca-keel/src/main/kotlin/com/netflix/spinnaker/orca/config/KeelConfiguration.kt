@@ -16,9 +16,6 @@
 
 package com.netflix.spinnaker.orca.config
 
-import com.fasterxml.jackson.databind.DeserializationFeature
-import com.fasterxml.jackson.databind.ObjectMapper
-import com.fasterxml.jackson.module.kotlin.KotlinModule
 import com.netflix.spinnaker.config.DefaultServiceEndpoint
 import com.netflix.spinnaker.kork.client.ServiceClientProvider
 import com.netflix.spinnaker.kork.retrofit.util.RetrofitUtils
@@ -29,6 +26,7 @@ import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.ComponentScan
 import org.springframework.context.annotation.Configuration
+import tools.jackson.databind.ObjectMapper
 
 @Configuration
 @ConditionalOnProperty("services.keel.enabled")
@@ -53,6 +51,4 @@ class KeelConfiguration {
 
   @Bean fun keelObjectMapper() =
     OrcaObjectMapper.newInstance()
-      .registerModule(KotlinModule.Builder().build())
-      .disable(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES)
 }

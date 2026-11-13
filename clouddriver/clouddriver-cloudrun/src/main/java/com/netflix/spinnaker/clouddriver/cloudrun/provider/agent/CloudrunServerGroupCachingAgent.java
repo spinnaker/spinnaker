@@ -3,9 +3,6 @@ package com.netflix.spinnaker.clouddriver.cloudrun.provider.agent;
 import static com.netflix.spinnaker.cats.agent.AgentDataType.Authority.AUTHORITATIVE;
 import static com.netflix.spinnaker.clouddriver.cloudrun.cache.Keys.Namespace.*;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.core.type.TypeReference;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.api.client.googleapis.batch.BatchRequest;
 import com.google.api.client.googleapis.batch.json.JsonBatchCallback;
 import com.google.api.client.googleapis.json.GoogleJsonError;
@@ -39,6 +36,10 @@ import java.io.IOException;
 import java.util.*;
 import java.util.stream.Collectors;
 import lombok.Getter;
+import tools.jackson.core.JacksonException;
+import tools.jackson.core.type.TypeReference;
+import tools.jackson.databind.ObjectMapper;
+import tools.jackson.databind.json.JsonMapper;
 
 @Getter
 @Slf4j
@@ -145,7 +146,7 @@ public class CloudrunServerGroupCachingAgent extends AbstractCloudrunCachingAgen
       Map<String, Collection<String>> evictions = Map.of();
       logger.info("On demand cache refresh (data: {}) succeeded.", data);
       return new OnDemandResult(getOnDemandAgentType(), result, evictions);
-    } catch (JsonProcessingException e) {
+    } catch (JacksonException e) {
       throw new RuntimeException("On demand cache refresh failed. Error message : " + e);
     }
   }
@@ -244,7 +245,7 @@ public class CloudrunServerGroupCachingAgent extends AbstractCloudrunCachingAgen
                               .readValue(
                                   onDemandData.getAttributes().get("cacheResults").toString(),
                                   new TypeReference<>() {});
-                    } catch (JsonProcessingException e) {
+                    } catch (JacksonException e) {
                       throw new RuntimeException(e);
                     }
                     cache(cacheResults, APPLICATIONS.getNs(), cachedApplications);
@@ -444,7 +445,7 @@ public class CloudrunServerGroupCachingAgent extends AbstractCloudrunCachingAgen
           @Override
           public void onFailure(GoogleJsonError e, HttpHeaders responseHeaders) throws IOException {
             String errorJson =
-                new ObjectMapper().writerWithDefaultPrettyPrinter().writeValueAsString(e);
+                JsonMapper.builder().build().writerWithDefaultPrettyPrinter().writeValueAsString(e);
             logger.error(errorJson);
           }
 

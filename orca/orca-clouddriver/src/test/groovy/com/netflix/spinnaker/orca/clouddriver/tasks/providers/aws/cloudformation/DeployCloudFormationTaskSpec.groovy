@@ -15,7 +15,7 @@
  */
 package com.netflix.spinnaker.orca.clouddriver.tasks.providers.aws.cloudformation
 
-import com.fasterxml.jackson.databind.ObjectMapper
+import tools.jackson.databind.ObjectMapper
 import com.netflix.spinnaker.kork.artifacts.model.Artifact
 import com.netflix.spinnaker.orca.clouddriver.KatoService
 import com.netflix.spinnaker.orca.clouddriver.OortService
@@ -29,12 +29,13 @@ import okhttp3.ResponseBody
 import spock.lang.Specification
 import spock.lang.Subject
 import spock.lang.Unroll
+import tools.jackson.databind.json.JsonMapper
 
 class DeployCloudFormationTaskSpec extends Specification {
 
   def katoService = Mock(KatoService)
   def oortService = Mock(OortService)
-  def objectMapper = new ObjectMapper()
+  def objectMapper = JsonMapper.builder().build()
   def artifactUtils = Mock(ArtifactUtils)
 
   @Subject

@@ -19,7 +19,6 @@ package com.netflix.spinnaker.clouddriver.cloudrun.provider.agent;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.mock;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.api.services.run.v1.model.GoogleCloudRunV1Condition;
 import com.google.api.services.run.v1.model.ObjectMeta;
 import com.google.api.services.run.v1.model.Revision;
@@ -40,6 +39,7 @@ import java.util.List;
 import java.util.Map;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import tools.jackson.databind.json.JsonMapper;
 
 class CloudrunServerGroupCachingAgentTest {
   private static final String ACCOUNT = "my-account";
@@ -52,7 +52,7 @@ class CloudrunServerGroupCachingAgentTest {
         new CloudrunServerGroupCachingAgent(
             ACCOUNT,
             mock(CloudrunNamedAccountCredentials.class),
-            new ObjectMapper(),
+            JsonMapper.builder().build(),
             new NoopRegistry());
   }
 

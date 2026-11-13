@@ -19,8 +19,6 @@ package com.netflix.spinnaker.orca.interlink.events;
 import static com.netflix.spinnaker.orca.interlink.events.InterlinkEvent.EventType.PATCH;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.base.Preconditions;
 import com.netflix.spinnaker.orca.api.pipeline.models.ExecutionType;
 import com.netflix.spinnaker.orca.api.pipeline.models.StageExecution;
@@ -32,6 +30,8 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 import lombok.NonNull;
 import lombok.extern.slf4j.Slf4j;
+import tools.jackson.core.JacksonException;
+import tools.jackson.databind.ObjectMapper;
 
 /**
  * This event is published on the interlink as a result of a user "patching" a stage on an orca
@@ -85,7 +85,7 @@ public class PatchStageInterlinkEvent implements InterlinkEvent {
               stageFromRepo.setLastModified(stageFromMessage.getLastModified());
             }
           });
-    } catch (JsonProcessingException e) {
+    } catch (JacksonException e) {
       log.error("failed to parse stageBody {}", stageBody, e);
     }
   }

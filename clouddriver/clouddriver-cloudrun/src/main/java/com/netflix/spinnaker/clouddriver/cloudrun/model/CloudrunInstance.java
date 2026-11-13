@@ -15,7 +15,6 @@
  */
 package com.netflix.spinnaker.clouddriver.cloudrun.model;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.api.services.run.v1.model.Revision;
 import com.google.api.services.run.v1.model.Service;
 import com.netflix.spinnaker.clouddriver.cloudrun.CloudrunCloudProvider;
@@ -25,6 +24,7 @@ import java.io.Serializable;
 import java.util.*;
 import lombok.Data;
 import lombok.NoArgsConstructor;
+import tools.jackson.databind.json.JsonMapper;
 
 @Data
 @NoArgsConstructor
@@ -56,7 +56,9 @@ public class CloudrunInstance implements Instance, Serializable {
   }
 
   public HealthState getHealthState() {
-    return new ObjectMapper().convertValue(this.health.get(0).get("state"), HealthState.class);
+    return JsonMapper.builder()
+        .build()
+        .convertValue(this.health.get(0).get("state"), HealthState.class);
   }
 
   public static enum CloudrunInstanceStatus {

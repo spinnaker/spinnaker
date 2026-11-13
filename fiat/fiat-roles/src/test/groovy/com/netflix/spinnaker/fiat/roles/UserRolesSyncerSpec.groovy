@@ -17,7 +17,6 @@
 package com.netflix.spinnaker.fiat.roles
 
 import com.fasterxml.jackson.annotation.JsonInclude
-import com.fasterxml.jackson.databind.ObjectMapper
 import com.netflix.spectator.api.NoopRegistry
 import com.netflix.spectator.api.Registry
 import com.netflix.spinnaker.fiat.config.ResourceProvidersHealthIndicator
@@ -51,6 +50,8 @@ import spock.lang.Shared
 import spock.lang.Specification
 import spock.lang.Subject
 import spock.lang.Unroll
+import tools.jackson.databind.ObjectMapper
+import tools.jackson.databind.json.JsonMapper
 
 import java.time.Clock
 import java.util.concurrent.Callable
@@ -71,7 +72,9 @@ class UserRolesSyncerSpec extends Specification {
   GenericContainer embeddedRedis
 
   @Shared
-  ObjectMapper objectMapper = new ObjectMapper().setSerializationInclusion(JsonInclude.Include.NON_NULL)
+  ObjectMapper objectMapper = JsonMapper.builder()
+      .changeDefaultPropertyInclusion { value -> value.withValueInclusion(JsonInclude.Include.NON_NULL) }
+      .build()
 
   @Shared
   JedisPool jedisPool

@@ -16,7 +16,7 @@
 
 package com.netflix.spinnaker.clouddriver.dcos.deploy.converters.job
 
-import com.fasterxml.jackson.databind.ObjectMapper
+import tools.jackson.databind.ObjectMapper
 import com.netflix.spinnaker.clouddriver.dcos.DcosClientProvider
 import com.netflix.spinnaker.clouddriver.dcos.security.DcosAccountCredentials
 import com.netflix.spinnaker.clouddriver.dcos.deploy.BaseSpecification
@@ -26,6 +26,7 @@ import com.netflix.spinnaker.clouddriver.security.AbstractAtomicOperationsCreden
 import com.netflix.spinnaker.clouddriver.security.AccountCredentialsProvider
 import mesosphere.dcos.client.DCOS
 import spock.lang.Subject
+import tools.jackson.databind.json.JsonMapper
 
 class RunDcosJobAtomicOperationConverterSpec extends BaseSpecification {
 
@@ -47,7 +48,7 @@ class RunDcosJobAtomicOperationConverterSpec extends BaseSpecification {
     void 'convertDescription should return a valid RunDcosJobDescription'() {
         given:
         atomicOperationConverter.accountCredentialsProvider = accountCredentialsProvider
-        atomicOperationConverter.objectMapper = new ObjectMapper()
+        atomicOperationConverter.objectMapper = JsonMapper.builder().build()
         def input = [
                 account: "test",
                 cluster: "us-test-1",
@@ -66,7 +67,7 @@ class RunDcosJobAtomicOperationConverterSpec extends BaseSpecification {
     void 'convertOperation should return a RunDcosJobAtomicOperation with a RunDcosJobDescription'() {
         given:
         atomicOperationConverter.accountCredentialsProvider = accountCredentialsProvider
-        atomicOperationConverter.objectMapper = new ObjectMapper()
+        atomicOperationConverter.objectMapper = JsonMapper.builder().build()
         def input = [
                 account: "test",
                 cluster: "us-test-1",

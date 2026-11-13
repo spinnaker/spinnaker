@@ -18,12 +18,12 @@ package com.netflix.spinnaker.clouddriver.ecs.cache.client;
 
 import static com.netflix.spinnaker.clouddriver.ecs.cache.Keys.Namespace.SCALABLE_TARGETS;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
 import com.netflix.spinnaker.cats.cache.Cache;
 import com.netflix.spinnaker.cats.cache.CacheData;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 import software.amazon.awssdk.services.applicationautoscaling.model.ScalableTarget;
+import tools.jackson.databind.ObjectMapper;
 
 @Component
 public class ScalableTargetCacheClient extends AbstractCacheClient<ScalableTarget> {

@@ -18,6 +18,7 @@ package com.netflix.spinnaker.orca.bakery.tasks
 
 import com.netflix.spinnaker.kork.artifacts.model.Artifact
 import com.netflix.spinnaker.kork.retrofit.exceptions.SpinnakerHttpException
+import com.netflix.spinnaker.kork.retrofit.util.CustomConverterFactory
 import com.netflix.spinnaker.kork.web.selector.v2.SelectableService
 import com.netflix.spinnaker.orca.api.pipeline.models.ExecutionStatus
 import com.netflix.spinnaker.orca.bakery.BakerySelector
@@ -29,7 +30,6 @@ import com.netflix.spinnaker.orca.pipeline.model.StageExecutionImpl
 import okhttp3.MediaType
 import okhttp3.ResponseBody
 import retrofit2.Retrofit
-import retrofit2.converter.jackson.JacksonConverterFactory
 import retrofit2.mock.Calls
 import spock.lang.Shared
 import spock.lang.Specification
@@ -124,7 +124,7 @@ class CompletedBakeTaskSpec extends Specification {
     Retrofit retrofit =
         new Retrofit.Builder()
             .baseUrl(url)
-            .addConverterFactory(JacksonConverterFactory.create())
+        .addConverterFactory(CustomConverterFactory.create())
             .build()
 
     return new SpinnakerHttpException(retrofit2Response, retrofit)}

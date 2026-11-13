@@ -248,7 +248,7 @@ class CreateServerGroupStage extends AbstractDeployStrategyStage implements Forc
     }
 
     String getServerGroup() {
-      return deployedServerGroups.values().flatten().getAt(0)
+      return deployedServerGroups?.values()?.flatten()?.getAt(0)
     }
 
     String getCluster() {

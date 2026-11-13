@@ -35,8 +35,6 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 import static org.springframework.test.web.servlet.setup.MockMvcBuilders.webAppContextSetup;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import com.github.tomakehurst.wiremock.client.ResponseDefinitionBuilder;
 import com.github.tomakehurst.wiremock.client.WireMock;
 import com.github.tomakehurst.wiremock.http.Fault;
@@ -68,6 +66,8 @@ import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.RequestBuilder;
 import org.springframework.web.context.WebApplicationContext;
 import retrofit2.mock.Calls;
+import tools.jackson.core.JacksonException;
+import tools.jackson.databind.ObjectMapper;
 
 /**
  * This is a bit of an end-to-end test. It demonstrates the behavior of
@@ -147,7 +147,7 @@ class InvokePipelineConfigTest {
   }
 
   @BeforeEach
-  void init(TestInfo testInfo) throws JsonProcessingException {
+  void init(TestInfo testInfo) throws JacksonException {
     System.out.println("--------------- Test " + testInfo.getDisplayName());
 
     webAppMockMvc =
@@ -359,7 +359,7 @@ class InvokePipelineConfigTest {
             status()
                 .reason(
                     "Unable to trigger pipeline (application: my-application, pipelineNameOrId: my-pipeline-name). Error: Failed to process response body: Unrecognized token 'this': was expecting (JSON String, Number, Array, Object or token 'null', 'true' or 'false')\n"
-                        + " at [Source: REDACTED (`StreamReadFeature.INCLUDE_SOURCE_IN_LOCATION` disabled); line: 1, column: 1]"))
+                        + " at [Source: REDACTED (`StreamReadFeature.INCLUDE_SOURCE_IN_LOCATION` disabled); byte offset: #UNKNOWN]"))
         .andExpect(header().string(REQUEST_ID.getHeader(), SUBMITTED_REQUEST_ID));
 
     verifyFront50PipelinesRequest();
@@ -459,7 +459,7 @@ class InvokePipelineConfigTest {
    * PipelineService.trigger to get far enough to call orca, which means we need a configuration for
    * the pipeline we're triggering.
    */
-  private void simulateFront50Success() throws JsonProcessingException {
+  private void simulateFront50Success() throws JacksonException {
     Map<String, Object> pipelineConfig = Map.of("id", PIPELINE_ID, "name", PIPELINE_NAME);
     String pipelineConfigJson = objectMapper.writeValueAsString(pipelineConfig);
     simulateFront50HttpResponse(HttpStatus.OK, pipelineConfigJson);
@@ -468,7 +468,7 @@ class InvokePipelineConfigTest {
   /**
    * Simulate a response from front50 that doesn't contain a pipeline configuration for the test id
    */
-  private void simulateFront50ResponseWithoutPipelineConfig() throws JsonProcessingException {
+  private void simulateFront50ResponseWithoutPipelineConfig() throws JacksonException {
     // Currently front50 responds with a 404 when it doesn't contain a pipeline
     // configuration for the given application + nameOrId as well as a query by
     // pipeline id.
@@ -524,13 +524,13 @@ class InvokePipelineConfigTest {
   }
 
   /** An arbitrary successful response from orca */
-  private String orcaSuccessResponse() throws JsonProcessingException {
+  private String orcaSuccessResponse() throws JacksonException {
     Map<String, Object> orcaResponse = Collections.emptyMap();
     return objectMapper.writeValueAsString(orcaResponse);
   }
 
   /** Simulate a successful response from orca */
-  private void simulateOrcaSuccess() throws JsonProcessingException {
+  private void simulateOrcaSuccess() throws JacksonException {
     simulateOrcaResponse(HttpStatus.OK, orcaSuccessResponse());
   }
 
@@ -549,7 +549,7 @@ class InvokePipelineConfigTest {
   }
 
   /** Generate a request to the endpoint that PipelineController.invokePipelineConfig serves */
-  private RequestBuilder invokePipelineConfigRequest() throws JsonProcessingException {
+  private RequestBuilder invokePipelineConfigRequest() throws JacksonException {
     return post("/pipelines/" + APPLICATION + "/" + PIPELINE_NAME)
         .contentType(MediaType.APPLICATION_JSON_VALUE)
         .characterEncoding(StandardCharsets.UTF_8.toString())

@@ -16,7 +16,7 @@
 
 package com.netflix.spinnaker.gate.controllers
 
-import com.fasterxml.jackson.databind.ObjectMapper
+import tools.jackson.databind.ObjectMapper
 import com.netflix.spinnaker.gate.config.controllers.PipelineControllerConfigProperties
 import com.netflix.spinnaker.gate.services.PipelineService
 import com.netflix.spinnaker.gate.services.TaskService
@@ -27,7 +27,7 @@ import okhttp3.ResponseBody
 import org.springframework.http.MediaType
 import org.springframework.test.web.servlet.setup.MockMvcBuilders
 import retrofit2.Retrofit
-import retrofit2.converter.jackson.JacksonConverterFactory
+import com.netflix.spinnaker.kork.retrofit.util.CustomConverterFactory
 import retrofit2.mock.Calls;
 import spock.lang.Specification
 
@@ -36,6 +36,7 @@ import java.nio.charset.StandardCharsets
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.put
+import tools.jackson.databind.json.JsonMapper
 
 class PipelineControllerSpec extends Specification {
 
@@ -51,7 +52,7 @@ class PipelineControllerSpec extends Specification {
     .standaloneSetup(new PipelineController(pipelineService,
                                             taskSerivce,
                                             front50Service,
-                                            new ObjectMapper(),
+                                            JsonMapper.builder().build(),
                                             pipelineControllerConfig))
     .build()
 
@@ -71,7 +72,7 @@ class PipelineControllerSpec extends Specification {
     when:
     def response = mockMvc.perform(
       put("/pipelines/${pipeline.id}").contentType(MediaType.APPLICATION_JSON)
-        .content(new ObjectMapper().writeValueAsString(pipeline))
+        .content(JsonMapper.builder().build().writeValueAsString(pipeline))
     ).andReturn().response
 
     then:
@@ -82,7 +83,7 @@ class PipelineControllerSpec extends Specification {
       job: [
         [
           type: 'updatePipeline',
-          pipeline: Base64.encoder.encodeToString(new ObjectMapper().writeValueAsString([
+          pipeline: Base64.encoder.encodeToString(JsonMapper.builder().build().writeValueAsString([
             id: 'id',
             name: 'test pipeline',
             stages: [],
@@ -138,7 +139,7 @@ class PipelineControllerSpec extends Specification {
     when:
     mockMvc.perform(
       post("/start").contentType(MediaType.APPLICATION_JSON)
-        .content(new ObjectMapper().writeValueAsString(pipeline))
+        .content(JsonMapper.builder().build().writeValueAsString(pipeline))
     ).andDo({
       // thanks groovy
       throw makeSpinnakerHttpException(400, mockedHttpException)
@@ -188,7 +189,7 @@ class PipelineControllerSpec extends Specification {
       .perform(
         post("/pipelines/bulksave")
           .contentType(MediaType.APPLICATION_JSON)
-          .content(new ObjectMapper().writeValueAsString(pipelines)))
+          .content(JsonMapper.builder().build().writeValueAsString(pipelines)))
       .andReturn()
       .response
 
@@ -202,7 +203,7 @@ class PipelineControllerSpec extends Specification {
           [
             type                        : 'savePipeline',
             pipelines                   : Base64.encoder
-              .encodeToString(new ObjectMapper().writeValueAsString(pipelines).getBytes(StandardCharsets.UTF_8)),
+              .encodeToString(JsonMapper.builder().build().writeValueAsString(pipelines).getBytes(StandardCharsets.UTF_8)),
             user                        : 'anonymous',
             isBulkSavingPipelines       : true
           ]
@@ -224,7 +225,7 @@ class PipelineControllerSpec extends Specification {
         post("/pipelines/bulksave")
           .param("application", "my_test_app")
           .contentType(MediaType.APPLICATION_JSON)
-          .content(new ObjectMapper().writeValueAsString(pipelines)))
+          .content(JsonMapper.builder().build().writeValueAsString(pipelines)))
       .andReturn()
       .response
 
@@ -238,7 +239,7 @@ class PipelineControllerSpec extends Specification {
           [
             type                        : 'savePipeline',
             pipelines                   : Base64.encoder
-              .encodeToString(new ObjectMapper().writeValueAsString(pipelines).getBytes(StandardCharsets.UTF_8)),
+              .encodeToString(JsonMapper.builder().build().writeValueAsString(pipelines).getBytes(StandardCharsets.UTF_8)),
             user                        : 'anonymous',
             isBulkSavingPipelines       : true
           ]
@@ -257,7 +258,7 @@ class PipelineControllerSpec extends Specification {
         post("/pipelines/bulksave")
           .param("application", "my_test_app")
           .contentType(MediaType.APPLICATION_JSON)
-          .content(new ObjectMapper().writeValueAsString(pipelines)))
+          .content(JsonMapper.builder().build().writeValueAsString(pipelines)))
       .andReturn()
       .response
 
@@ -271,7 +272,7 @@ class PipelineControllerSpec extends Specification {
           [
             type                        : 'savePipeline',
             pipelines                   : Base64.encoder
-              .encodeToString(new ObjectMapper().writeValueAsString(pipelines).getBytes(StandardCharsets.UTF_8)),
+              .encodeToString(JsonMapper.builder().build().writeValueAsString(pipelines).getBytes(StandardCharsets.UTF_8)),
             user                        : 'anonymous',
             isBulkSavingPipelines       : true
           ]
@@ -297,7 +298,7 @@ class PipelineControllerSpec extends Specification {
       .perform(
         post("/pipelines/bulksave")
           .contentType(MediaType.APPLICATION_JSON)
-          .content(new ObjectMapper().writeValueAsString(pipelines)))
+          .content(JsonMapper.builder().build().writeValueAsString(pipelines)))
       .andReturn()
       .response
 
@@ -310,7 +311,7 @@ class PipelineControllerSpec extends Specification {
           [
             type                        : 'savePipeline',
             pipelines                   : Base64.encoder
-              .encodeToString(new ObjectMapper().writeValueAsString(pipelines).getBytes(StandardCharsets.UTF_8)),
+              .encodeToString(JsonMapper.builder().build().writeValueAsString(pipelines).getBytes(StandardCharsets.UTF_8)),
             user                        : 'anonymous',
             isBulkSavingPipelines       : true
           ]
@@ -344,12 +345,12 @@ class PipelineControllerSpec extends Specification {
       retrofit2.Response.error(
         status,
         ResponseBody.create(
-          okhttp3.MediaType.parse("application/json"), new ObjectMapper().writeValueAsString(body)));
+          okhttp3.MediaType.parse("application/json"), JsonMapper.builder().build().writeValueAsString(body)));
 
     Retrofit retrofit =
       new Retrofit.Builder()
         .baseUrl(url)
-        .addConverterFactory(JacksonConverterFactory.create())
+        .addConverterFactory(CustomConverterFactory.create())
         .build();
 
     return new SpinnakerHttpException(retrofit2Response, retrofit);

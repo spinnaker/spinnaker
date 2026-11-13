@@ -18,7 +18,6 @@ package com.netflix.spinnaker.igor.gcb;
 
 import static com.google.common.collect.ImmutableList.toImmutableList;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.api.services.cloudbuild.v1.model.Build;
 import com.google.api.services.cloudbuild.v1.model.BuiltImage;
 import com.google.api.services.cloudbuild.v1.model.Results;
@@ -33,11 +32,13 @@ import java.util.List;
 import javax.annotation.Nullable;
 import lombok.AccessLevel;
 import lombok.RequiredArgsConstructor;
+import tools.jackson.databind.ObjectMapper;
+import tools.jackson.databind.json.JsonMapper;
 
 @RequiredArgsConstructor(access = AccessLevel.PACKAGE)
 final class GoogleCloudBuildArtifactFetcher {
   private final GoogleCloudBuildClient client;
-  private final ObjectMapper objectMapper = new ObjectMapper();
+  private final ObjectMapper objectMapper = JsonMapper.builder().build();
 
   ImmutableList<Artifact> getArtifacts(Build build) {
     return ImmutableList.<Artifact>builder()

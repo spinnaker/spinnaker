@@ -16,7 +16,7 @@
 
 package com.netflix.spinnaker.clouddriver.google.deploy.converters
 
-import com.fasterxml.jackson.databind.ObjectMapper
+import tools.jackson.databind.ObjectMapper
 import com.netflix.spinnaker.clouddriver.google.deploy.description.UpsertGoogleAutoscalingPolicyDescription
 import com.netflix.spinnaker.clouddriver.google.deploy.ops.UpsertGoogleAutoscalingPolicyAtomicOperation
 import com.netflix.spinnaker.clouddriver.google.model.GoogleAutoscalingPolicy
@@ -24,6 +24,7 @@ import com.netflix.spinnaker.clouddriver.google.security.GoogleNamedAccountCrede
 import com.netflix.spinnaker.credentials.CredentialsRepository
 import spock.lang.Shared
 import spock.lang.Specification
+import tools.jackson.databind.json.JsonMapper
 
 class UpsertGoogleAutoscalingPolicyAtomicOperationConverterUnitSpec extends Specification {
   private static final ACCOUNT_NAME = "auto"
@@ -32,7 +33,7 @@ class UpsertGoogleAutoscalingPolicyAtomicOperationConverterUnitSpec extends Spec
   private static final GOOGLE_SCALING_POLICY = new GoogleAutoscalingPolicy()
 
   @Shared
-  ObjectMapper mapper = new ObjectMapper()
+  ObjectMapper mapper = JsonMapper.builder().build()
 
   @Shared
   UpsertGoogleAutoscalingPolicyAtomicOperationConverter converter

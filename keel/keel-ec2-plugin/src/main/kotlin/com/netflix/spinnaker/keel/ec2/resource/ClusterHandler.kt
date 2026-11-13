@@ -1,6 +1,6 @@
 package com.netflix.spinnaker.keel.ec2.resource
 
-import com.fasterxml.jackson.module.kotlin.convertValue
+import tools.jackson.module.kotlin.convertValue
 import com.netflix.rocket.api.artifact.internal.debian.DebianArtifactParser
 import com.netflix.spinnaker.keel.actuation.RolloutLocation
 import com.netflix.spinnaker.keel.actuation.RolloutTarget

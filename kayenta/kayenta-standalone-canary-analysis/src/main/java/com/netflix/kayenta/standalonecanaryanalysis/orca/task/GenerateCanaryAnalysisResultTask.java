@@ -20,8 +20,6 @@ import static com.netflix.kayenta.standalonecanaryanalysis.orca.task.MonitorCana
 import static com.netflix.kayenta.standalonecanaryanalysis.service.CanaryAnalysisService.CANARY_ANALYSIS_CONFIG_CONTEXT_KEY;
 import static com.netflix.spinnaker.orca.api.pipeline.models.ExecutionStatus.SUCCEEDED;
 
-import com.fasterxml.jackson.core.type.TypeReference;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import com.netflix.kayenta.canary.CanaryExecutionStatusResponse;
 import com.netflix.kayenta.standalonecanaryanalysis.CanaryAnalysisConfig;
 import com.netflix.kayenta.standalonecanaryanalysis.domain.CanaryAnalysisExecutionRequest;
@@ -44,7 +42,10 @@ import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.jetbrains.annotations.NotNull;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Component;
+import tools.jackson.core.type.TypeReference;
+import tools.jackson.databind.ObjectMapper;
 
 /** Task that generates the final results for the canary analysis execution. */
 @Component
@@ -55,7 +56,8 @@ public class GenerateCanaryAnalysisResultTask implements Task {
   private final ObjectMapper kayentaObjectMapper;
 
   @Autowired
-  public GenerateCanaryAnalysisResultTask(ObjectMapper kayentaObjectMapper) {
+  public GenerateCanaryAnalysisResultTask(
+      @Qualifier("kayentaObjectMapper") ObjectMapper kayentaObjectMapper) {
     this.kayentaObjectMapper = kayentaObjectMapper;
   }
 

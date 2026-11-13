@@ -1,13 +1,13 @@
 package com.netflix.spinnaker.clouddriver.cloudrun.model;
 
-import com.fasterxml.jackson.core.type.TypeReference;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.api.services.run.v1.model.Revision;
 import com.google.api.services.run.v1.model.Service;
 import com.netflix.spinnaker.clouddriver.model.Health;
 import com.netflix.spinnaker.clouddriver.model.HealthState;
 import java.util.Map;
 import lombok.Data;
+import tools.jackson.core.type.TypeReference;
+import tools.jackson.databind.json.JsonMapper;
 
 @Data
 public class CloudrunHealth implements Health {
@@ -23,6 +23,8 @@ public class CloudrunHealth implements Health {
   }
 
   public Map<String, Object> toMap() {
-    return new ObjectMapper().convertValue(this, new TypeReference<Map<String, Object>>() {});
+    return JsonMapper.builder()
+        .build()
+        .convertValue(this, new TypeReference<Map<String, Object>>() {});
   }
 }

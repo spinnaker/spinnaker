@@ -3,10 +3,10 @@ package com.netflix.kayenta.atlas.config;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
 import com.netflix.kayenta.atlas.model.AtlasResults;
 import com.netflix.kayenta.metrics.FatalQueryException;
 import com.netflix.kayenta.metrics.RetryableQueryException;
+import com.netflix.spinnaker.kork.retrofit.util.CustomConverterFactory;
 import java.io.IOException;
 import java.lang.annotation.Annotation;
 import java.lang.reflect.ParameterizedType;
@@ -17,7 +17,8 @@ import okhttp3.ResponseBody;
 import org.junit.jupiter.api.Test;
 import retrofit2.Converter;
 import retrofit2.Retrofit;
-import retrofit2.converter.jackson.JacksonConverterFactory;
+import tools.jackson.databind.DeserializationFeature;
+import tools.jackson.databind.json.JsonMapper;
 
 public class AtlasSSEConverterTest {
 
@@ -30,11 +31,17 @@ public class AtlasSSEConverterTest {
       "data: {\"type\":\"error\",\"message\":\"something went wrong\"}\n";
 
   private List<AtlasResults> atlasResultsFromSSE(String sse) throws IOException {
-    AtlasSSEConverter atlasSSEConverter = new AtlasSSEConverter(new ObjectMapper());
+    // Jackson 3 enables FAIL_ON_NULL_FOR_PRIMITIVES by default (Jackson 2 had it disabled);
+    // Atlas messages routinely omit primitives (e.g. close messages carry only "type").
+    AtlasSSEConverter atlasSSEConverter =
+        new AtlasSSEConverter(
+            JsonMapper.builder()
+                .disable(DeserializationFeature.FAIL_ON_NULL_FOR_PRIMITIVES)
+                .build());
     Retrofit retrofit =
         new Retrofit.Builder()
             .baseUrl("http://atlas")
-            .addConverterFactory(JacksonConverterFactory.create())
+            .addConverterFactory(CustomConverterFactory.create())
             .build();
     Converter<ResponseBody, List<AtlasResults>> converter =
         atlasSSEConverter.responseBodyConverter(

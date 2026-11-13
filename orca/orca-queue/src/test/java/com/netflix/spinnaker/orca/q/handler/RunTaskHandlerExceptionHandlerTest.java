@@ -42,6 +42,7 @@ import com.netflix.spinnaker.kork.lock.LockManager.LockOptions;
 import com.netflix.spinnaker.kork.lock.LockManager.LockStatus;
 import com.netflix.spinnaker.kork.retrofit.exceptions.SpinnakerHttpException;
 import com.netflix.spinnaker.kork.retrofit.exceptions.SpinnakerServerException;
+import com.netflix.spinnaker.kork.retrofit.util.CustomConverterFactory;
 import com.netflix.spinnaker.kork.test.time.MutableClock;
 import com.netflix.spinnaker.orca.TaskResolver;
 import com.netflix.spinnaker.orca.api.pipeline.Task;
@@ -97,7 +98,6 @@ import org.junit.jupiter.params.provider.MethodSource;
 import org.springframework.beans.BeansException;
 import org.springframework.beans.factory.ObjectProvider;
 import retrofit2.Retrofit;
-import retrofit2.converter.jackson.JacksonConverterFactory;
 
 /**
  * It's potentially a better test to use spring to configure all available ExceptionHandlers. To be
@@ -486,7 +486,7 @@ class RunTaskHandlerExceptionHandlerTest {
     Retrofit retrofit =
         new Retrofit.Builder()
             .baseUrl(url)
-            .addConverterFactory(JacksonConverterFactory.create())
+            .addConverterFactory(CustomConverterFactory.create())
             .build();
 
     return new SpinnakerHttpException(response, retrofit);

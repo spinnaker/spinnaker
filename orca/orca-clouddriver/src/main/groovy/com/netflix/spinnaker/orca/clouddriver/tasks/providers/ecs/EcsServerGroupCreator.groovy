@@ -16,7 +16,7 @@
 
 package com.netflix.spinnaker.orca.clouddriver.tasks.providers.ecs
 
-import com.fasterxml.jackson.databind.ObjectMapper
+import tools.jackson.databind.ObjectMapper
 import com.netflix.spinnaker.kork.artifacts.model.Artifact
 import com.netflix.spinnaker.kork.exceptions.ConfigurationException
 import com.netflix.spinnaker.kork.retrofit.Retrofit2SyncCall
@@ -34,7 +34,7 @@ import org.springframework.beans.factory.annotation.Autowired
 
 import javax.annotation.Nullable
 import org.springframework.stereotype.Component
-import com.fasterxml.jackson.core.type.TypeReference
+import tools.jackson.core.type.TypeReference
 import com.google.common.collect.ImmutableMap
 import com.netflix.spinnaker.orca.pipeline.expressions.PipelineExpressionEvaluator
 import com.netflix.spinnaker.orca.pipeline.util.ContextParameterProcessor
@@ -46,6 +46,7 @@ import java.util.function.Supplier
 import java.util.stream.StreamSupport
 import com.netflix.spinnaker.kork.core.RetrySupport
 import com.netflix.spinnaker.orca.jackson.OrcaObjectMapper
+import tools.jackson.databind.json.JsonMapper
 
 @Slf4j
 @Component
@@ -60,7 +61,7 @@ class EcsServerGroupCreator implements ServerGroupCreator, DeploymentDetailsAwar
 
   final Optional<String> healthProviderName = Optional.of("ecs")
 
-  final ObjectMapper mapper = new ObjectMapper()
+  final ObjectMapper mapper = JsonMapper.builder().build()
   final ArtifactUtils artifactUtils
   private static final ObjectMapper objectMapper = OrcaObjectMapper.getInstance()
   private final RetrySupport retrySupport

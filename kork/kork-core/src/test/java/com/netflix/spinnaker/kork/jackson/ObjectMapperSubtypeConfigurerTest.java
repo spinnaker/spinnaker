@@ -22,14 +22,15 @@ import com.fasterxml.jackson.annotation.JsonTypeInfo;
 import com.fasterxml.jackson.annotation.JsonTypeInfo.As;
 import com.fasterxml.jackson.annotation.JsonTypeInfo.Id;
 import com.fasterxml.jackson.annotation.JsonTypeName;
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import com.netflix.spinnaker.kork.jackson.ObjectMapperSubtypeConfigurer.ClassSubtypeLocator;
 import com.netflix.spinnaker.kork.jackson.ObjectMapperSubtypeConfigurer.StringSubtypeLocator;
 import java.util.ArrayList;
 import java.util.List;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import tools.jackson.core.JacksonException;
+import tools.jackson.databind.ObjectMapper;
+import tools.jackson.databind.json.JsonMapper;
 
 public class ObjectMapperSubtypeConfigurerTest {
 
@@ -37,24 +38,26 @@ public class ObjectMapperSubtypeConfigurerTest {
 
   @BeforeEach
   public void setup() {
-    mapper = new ObjectMapper();
+    mapper = JsonMapper.builder().build();
   }
 
   @Test
-  public void shouldRegisterSubtypesByClass() throws JsonProcessingException {
-    new ObjectMapperSubtypeConfigurer(true)
-        .registerSubtype(mapper, new ClassSubtypeLocator(RootType.class, searchPackages()));
+  public void shouldRegisterSubtypesByClass() throws JacksonException {
+    mapper =
+        new ObjectMapperSubtypeConfigurer(true)
+            .registerSubtype(mapper, new ClassSubtypeLocator(RootType.class, searchPackages()));
 
     assertEquals("{\"kind\":\"child\"}", mapper.writeValueAsString(new ChildType()));
   }
 
   @Test
-  public void shouldRegisterSubtypesByName() throws JsonProcessingException {
-    new ObjectMapperSubtypeConfigurer(true)
-        .registerSubtype(
-            mapper,
-            new StringSubtypeLocator(
-                "com.netflix.spinnaker.kork.jackson.RootType", searchPackages()));
+  public void shouldRegisterSubtypesByName() throws JacksonException {
+    mapper =
+        new ObjectMapperSubtypeConfigurer(true)
+            .registerSubtype(
+                mapper,
+                new StringSubtypeLocator(
+                    "com.netflix.spinnaker.kork.jackson.RootType", searchPackages()));
 
     assertEquals("{\"kind\":\"child\"}", mapper.writeValueAsString(new ChildType()));
   }

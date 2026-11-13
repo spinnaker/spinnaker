@@ -16,7 +16,6 @@
 
 package com.netflix.spinnaker.clouddriver.cloudrun.deploy;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.api.client.googleapis.json.GoogleJsonResponseException;
 import com.google.api.client.json.gson.GsonFactory;
 import com.google.api.services.run.v1.CloudRun;
@@ -35,6 +34,8 @@ import java.util.List;
 import java.util.Map;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import tools.jackson.databind.ObjectMapper;
+import tools.jackson.databind.json.JsonMapper;
 
 /**
  * Applies changes to Cloud Run services through the Cloud Run Admin API, using the credentials of
@@ -57,7 +58,7 @@ public class CloudrunServiceClient {
     void sleep(Duration duration) throws InterruptedException;
   }
 
-  private final ObjectMapper objectMapper = new ObjectMapper();
+  private final ObjectMapper objectMapper = JsonMapper.builder().build();
 
   private final CloudRun cloudRun;
   private final String project;

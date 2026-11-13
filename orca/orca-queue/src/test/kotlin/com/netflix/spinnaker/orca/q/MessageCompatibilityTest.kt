@@ -16,7 +16,7 @@
 
 package com.netflix.spinnaker.orca.q
 
-import com.fasterxml.jackson.module.kotlin.convertValue
+import tools.jackson.module.kotlin.convertValue
 import com.netflix.spinnaker.orca.api.pipeline.SyntheticStageOwner.STAGE_AFTER
 import com.netflix.spinnaker.orca.api.pipeline.SyntheticStageOwner.STAGE_BEFORE
 import com.netflix.spinnaker.orca.jackson.OrcaObjectMapper
@@ -28,13 +28,15 @@ import org.jetbrains.spek.api.dsl.describe
 import org.jetbrains.spek.api.dsl.given
 import org.jetbrains.spek.api.dsl.it
 import org.jetbrains.spek.api.dsl.on
+import tools.jackson.databind.json.JsonMapper
 
 internal object MessageCompatibilityTest : Spek({
 
   describe("deserializing ContinueParentStage") {
-    val mapper = OrcaObjectMapper.newInstance().apply {
-      registerSubtypes(ContinueParentStage::class.java)
-    }
+    val mapper = OrcaObjectMapper.newInstance()
+      .rebuild<JsonMapper, JsonMapper.Builder>()
+      .registerSubtypes(ContinueParentStage::class.java)
+      .build()
 
     val json = mapOf(
       "kind" to "continueParentStage",

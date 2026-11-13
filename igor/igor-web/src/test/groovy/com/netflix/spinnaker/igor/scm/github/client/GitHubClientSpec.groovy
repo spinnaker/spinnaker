@@ -16,7 +16,6 @@
 
 package com.netflix.spinnaker.igor.scm.github.client
 
-import com.fasterxml.jackson.databind.ObjectMapper
 import com.netflix.spinnaker.igor.config.GitHubConfig
 import com.netflix.spinnaker.igor.helpers.TestUtils
 import com.netflix.spinnaker.igor.scm.github.client.model.CompareCommitsResponse
@@ -27,6 +26,7 @@ import okhttp3.mockwebserver.MockWebServer
 import retrofit2.mock.Calls
 import spock.lang.Shared
 import spock.lang.Specification
+import tools.jackson.databind.ObjectMapper
 
 import java.time.Instant
 

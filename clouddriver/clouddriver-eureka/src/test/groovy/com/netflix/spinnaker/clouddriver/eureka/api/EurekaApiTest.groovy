@@ -16,18 +16,19 @@
 
 package com.netflix.spinnaker.clouddriver.eureka.api
 
-import com.fasterxml.jackson.databind.DeserializationFeature
-import com.fasterxml.jackson.databind.MapperFeature
-import com.fasterxml.jackson.databind.ObjectMapper
+import tools.jackson.databind.DeserializationFeature
+import tools.jackson.databind.MapperFeature
+import tools.jackson.databind.ObjectMapper
 import com.netflix.spinnaker.clouddriver.eureka.model.EurekaApplications
 import okhttp3.mockwebserver.MockResponse
 import okhttp3.mockwebserver.MockWebServer
 import okhttp3.mockwebserver.RecordedRequest
 import retrofit2.Retrofit
-import retrofit2.converter.jackson.JacksonConverterFactory
+import com.netflix.spinnaker.kork.retrofit.util.CustomConverterFactory
 import spock.lang.AutoCleanup
 import spock.lang.Shared
 import spock.lang.Specification
+import tools.jackson.databind.json.JsonMapper
 
 class EurekaApiTest extends Specification {
 
@@ -42,15 +43,19 @@ class EurekaApiTest extends Specification {
     mockWebServer = new MockWebServer()
     mockWebServer.start()
 
-    def objectMapper = new ObjectMapper()
+    def objectMapper = JsonMapper.builder()
       .disable(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES)
+      .disable(DeserializationFeature.FAIL_ON_NULL_FOR_PRIMITIVES)
       .enable(DeserializationFeature.ACCEPT_SINGLE_VALUE_AS_ARRAY)
       .enable(DeserializationFeature.UNWRAP_ROOT_VALUE)
-      .enable(MapperFeature.AUTO_DETECT_CREATORS)
+      .changeDefaultVisibility {
+        it.withCreatorVisibility(com.fasterxml.jackson.annotation.JsonAutoDetect.Visibility.ANY)
+      }
+      .build()
 
     eurekaApi = new Retrofit.Builder()
       .baseUrl(mockWebServer.url("/"))
-      .addConverterFactory(JacksonConverterFactory.create(objectMapper))
+      .addConverterFactory(CustomConverterFactory.create(objectMapper))
       .build()
       .create(EurekaApi)
   }
@@ -264,15 +269,16 @@ class EurekaApiTest extends Specification {
       .setBodyDelay(3, java.util.concurrent.TimeUnit.SECONDS))
 
     when: "calling loadEurekaApplications with short timeout"
-    def objectMapper = new ObjectMapper()
+    def objectMapper = JsonMapper.builder()
       .disable(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES)
+      .disable(DeserializationFeature.FAIL_ON_NULL_FOR_PRIMITIVES)
       .enable(DeserializationFeature.ACCEPT_SINGLE_VALUE_AS_ARRAY)
       .enable(DeserializationFeature.UNWRAP_ROOT_VALUE)
-      .enable(MapperFeature.AUTO_DETECT_CREATORS)
+      .build()
 
     def shortTimeoutRetrofit = new Retrofit.Builder()
       .baseUrl(tempMockWebServer.url("/"))
-      .addConverterFactory(JacksonConverterFactory.create(objectMapper))
+      .addConverterFactory(CustomConverterFactory.create(objectMapper))
       .client(new okhttp3.OkHttpClient.Builder()
         .readTimeout(100, java.util.concurrent.TimeUnit.MILLISECONDS)
         .build())

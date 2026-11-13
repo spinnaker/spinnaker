@@ -93,7 +93,7 @@ class ImageCachingAgentSpec extends Specification {
     def acp = Stub(AmazonClientProvider) {
       getAmazonEC2V2(creds, region) >> ec2
     }
-    new ImageCachingAgent(acp, creds, region, AwsObjectMapperFactory.createConfigured().registerModule(new AwsSdkV2Module()), Spectator.globalRegistry(), publicImages, dcs)
+    new ImageCachingAgent(acp, creds, region, AwsObjectMapperFactory.createConfigured().rebuild().addModule(new AwsSdkV2Module()).build(), Spectator.globalRegistry(), publicImages, dcs)
   }
 
   void "two images with the same name result in one named image"() {

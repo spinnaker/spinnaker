@@ -21,14 +21,13 @@ import static com.github.tomakehurst.wiremock.client.WireMock.urlPathEqualTo;
 import static com.github.tomakehurst.wiremock.core.WireMockConfiguration.wireMockConfig;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import com.github.tomakehurst.wiremock.client.WireMock;
 import com.github.tomakehurst.wiremock.http.HttpHeaders;
 import com.github.tomakehurst.wiremock.junit5.WireMockExtension;
 import com.netflix.spinnaker.kork.core.RetrySupport;
 import com.netflix.spinnaker.kork.retrofit.ErrorHandlingExecutorCallAdapterFactory;
 import com.netflix.spinnaker.kork.retrofit.exceptions.SpinnakerHttpException;
+import com.netflix.spinnaker.kork.retrofit.util.CustomConverterFactory;
 import com.netflix.spinnaker.orca.clouddriver.CloudDriverService;
 import com.netflix.spinnaker.orca.clouddriver.OortService;
 import com.netflix.spinnaker.orca.clouddriver.model.Cluster;
@@ -50,7 +49,8 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.RegisterExtension;
 import org.springframework.http.HttpStatus;
 import retrofit2.Retrofit;
-import retrofit2.converter.jackson.JacksonConverterFactory;
+import tools.jackson.databind.ObjectMapper;
+import tools.jackson.databind.json.JsonMapper;
 
 public class DetermineSourceServerGroupTaskTest {
 
@@ -58,7 +58,7 @@ public class DetermineSourceServerGroupTaskTest {
   private SourceResolver sourceResolver;
   private TargetServerGroupResolver resolver;
 
-  private static ObjectMapper objectMapper = new ObjectMapper();
+  private static ObjectMapper objectMapper = JsonMapper.builder().build();
 
   private static OortService oortService;
 
@@ -86,7 +86,7 @@ public class DetermineSourceServerGroupTaskTest {
             .baseUrl(wireMock.baseUrl())
             .client(new OkHttpClient())
             .addCallAdapterFactory(ErrorHandlingExecutorCallAdapterFactory.getInstance())
-            .addConverterFactory(JacksonConverterFactory.create(objectMapper))
+            .addConverterFactory(CustomConverterFactory.create())
             .build()
             .create(OortService.class);
   }
@@ -99,7 +99,7 @@ public class DetermineSourceServerGroupTaskTest {
     resolver.setOortService(oortService);
     resolver.setRetrySupport(new RetrySupport());
 
-    cloudDriverService = new CloudDriverService(oortService, new ObjectMapper());
+    cloudDriverService = new CloudDriverService(oortService, JsonMapper.builder().build());
     sourceResolver = new SourceResolver();
     sourceResolver.setMapper(objectMapper);
     sourceResolver.setResolver(resolver);
@@ -110,7 +110,7 @@ public class DetermineSourceServerGroupTaskTest {
   }
 
   @Test
-  public void testForbiddenError() throws JsonProcessingException {
+  public void testForbiddenError() {
 
     StageExecutionImpl stage = createStage();
 

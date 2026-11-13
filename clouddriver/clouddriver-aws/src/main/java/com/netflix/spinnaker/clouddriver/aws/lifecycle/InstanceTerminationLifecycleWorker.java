@@ -15,7 +15,6 @@
  */
 package com.netflix.spinnaker.clouddriver.aws.lifecycle;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
 import com.netflix.frigga.Names;
 import com.netflix.spectator.api.Id;
 import com.netflix.spectator.api.Registry;
@@ -31,7 +30,6 @@ import com.netflix.spinnaker.kork.retrofit.exceptions.SpinnakerHttpException;
 import com.netflix.spinnaker.kork.retrofit.exceptions.SpinnakerNetworkException;
 import com.netflix.spinnaker.kork.retrofit.exceptions.SpinnakerServerException;
 import jakarta.inject.Provider;
-import java.io.IOException;
 import java.time.Duration;
 import java.util.Arrays;
 import java.util.Date;
@@ -65,6 +63,8 @@ import software.amazon.awssdk.services.sqs.model.ReceiptHandleIsInvalidException
 import software.amazon.awssdk.services.sqs.model.ReceiveMessageRequest;
 import software.amazon.awssdk.services.sqs.model.ReceiveMessageResponse;
 import software.amazon.awssdk.services.sqs.model.SetQueueAttributesRequest;
+import tools.jackson.core.JacksonException;
+import tools.jackson.databind.ObjectMapper;
 
 public class InstanceTerminationLifecycleWorker implements Runnable {
 
@@ -190,7 +190,7 @@ public class InstanceTerminationLifecycleWorker implements Runnable {
       if (wrapper != null && wrapper.message != null) {
         body = wrapper.message;
       }
-    } catch (IOException e) {
+    } catch (JacksonException e) {
       // Try to unwrap a notification message; if that doesn't work,
       // assume that we're dealing with a message directly from SQS.
       log.debug(
@@ -202,7 +202,7 @@ public class InstanceTerminationLifecycleWorker implements Runnable {
     LifecycleMessage lifecycleMessage = null;
     try {
       lifecycleMessage = objectMapper.readValue(body, LifecycleMessage.class);
-    } catch (IOException e) {
+    } catch (JacksonException e) {
       log.error("Unable to unmarshal LifecycleMessage (body: {})", body, e);
     }
 

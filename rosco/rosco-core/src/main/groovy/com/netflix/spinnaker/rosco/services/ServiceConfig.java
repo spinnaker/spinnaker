@@ -16,17 +16,19 @@
 
 package com.netflix.spinnaker.rosco.services;
 
-import com.fasterxml.jackson.databind.DeserializationFeature;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import com.netflix.spinnaker.config.OkHttp3ClientConfiguration;
 import com.netflix.spinnaker.kork.core.RetrySupport;
 import com.netflix.spinnaker.kork.retrofit.ErrorHandlingExecutorCallAdapterFactory;
+import com.netflix.spinnaker.kork.retrofit.util.CustomConverterFactory;
 import com.netflix.spinnaker.kork.retrofit.util.RetrofitUtils;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import retrofit2.Retrofit;
-import retrofit2.converter.jackson.JacksonConverterFactory;
+import tools.jackson.databind.DeserializationFeature;
+import tools.jackson.databind.ObjectMapper;
+import tools.jackson.databind.cfg.EnumFeature;
+import tools.jackson.databind.json.JsonMapper;
 
 @Configuration
 public class ServiceConfig {
@@ -43,9 +45,10 @@ public class ServiceConfig {
   ClouddriverService clouddriverService(OkHttp3ClientConfiguration okHttpClientConfig) {
 
     ObjectMapper objectMapper =
-        new ObjectMapper()
-            .enable(DeserializationFeature.READ_UNKNOWN_ENUM_VALUES_AS_NULL)
-            .disable(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES);
+        JsonMapper.builder()
+            .enable(EnumFeature.READ_UNKNOWN_ENUM_VALUES_AS_NULL)
+            .disable(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES)
+            .build();
 
     /*
      * ErrorHandlingExecutorCallAdapterFactory handles exceptions globally in retrofit2
@@ -54,7 +57,7 @@ public class ServiceConfig {
         .baseUrl(RetrofitUtils.getBaseUrl(clouddriverBaseUrl))
         .client(okHttpClientConfig.createForRetrofit2().build())
         .addCallAdapterFactory(ErrorHandlingExecutorCallAdapterFactory.getInstance())
-        .addConverterFactory(JacksonConverterFactory.create(objectMapper))
+        .addConverterFactory(CustomConverterFactory.create(objectMapper))
         .build()
         .create(ClouddriverService.class);
   }

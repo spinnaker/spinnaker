@@ -16,7 +16,6 @@
 
 package com.netflix.spinnaker.orca.q.handler
 
-import com.fasterxml.jackson.databind.ObjectMapper
 import com.netflix.spectator.api.Registry
 import com.netflix.spinnaker.orca.TaskImplementationResolver
 import com.netflix.spinnaker.orca.api.pipeline.models.ExecutionStatus
@@ -57,6 +56,7 @@ import org.springframework.beans.factory.annotation.Qualifier
 import org.springframework.beans.factory.annotation.Value
 import org.springframework.context.ApplicationEventPublisher
 import org.springframework.stereotype.Component
+import tools.jackson.databind.ObjectMapper
 
 @Component
 class StartStageHandler(

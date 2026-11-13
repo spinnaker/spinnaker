@@ -23,6 +23,7 @@ import static org.mockito.Mockito.when;
 import ch.qos.logback.classic.Level;
 import com.netflix.spinnaker.config.ErrorConfiguration;
 import com.netflix.spinnaker.config.RetrofitErrorConfiguration;
+import com.netflix.spinnaker.kork.retrofit.util.CustomConverterFactory;
 import com.netflix.spinnaker.kork.test.log.MemoryAppender;
 import java.net.URI;
 import okhttp3.MediaType;
@@ -52,7 +53,6 @@ import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
 import org.springframework.web.util.UriComponentsBuilder;
 import retrofit2.Retrofit;
-import retrofit2.converter.jackson.JacksonConverterFactory;
 
 @AutoConfigureTestRestTemplate
 @SpringBootTest(
@@ -212,7 +212,7 @@ class SpinnakerRetrofitExceptionHandlersTest {
       Retrofit retrofit =
           new Retrofit.Builder()
               .baseUrl(url)
-              .addConverterFactory(JacksonConverterFactory.create())
+              .addConverterFactory(CustomConverterFactory.create())
               .build();
 
       return new SpinnakerHttpException(retrofit2Response, retrofit);

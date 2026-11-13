@@ -26,7 +26,6 @@ import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
 import com.netflix.spinnaker.gate.config.controllers.PipelineControllerConfigProperties;
 import com.netflix.spinnaker.gate.services.PipelineService;
 import com.netflix.spinnaker.gate.services.TaskService;
@@ -36,6 +35,7 @@ import java.util.Map;
 import org.junit.jupiter.api.Test;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import tools.jackson.databind.json.JsonMapper;
 
 /**
  * The echo based trigger returns before Echo or Orca could report a missing required parameter, so
@@ -52,7 +52,7 @@ class PipelineControllerRequiredParametersTest {
           pipelineService,
           mock(TaskService.class),
           mock(Front50Service.class),
-          new ObjectMapper(),
+          JsonMapper.builder().build(),
           properties);
 
   @Test

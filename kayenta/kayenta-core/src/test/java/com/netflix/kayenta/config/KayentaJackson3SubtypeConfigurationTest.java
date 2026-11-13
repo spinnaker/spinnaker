@@ -20,10 +20,19 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import com.fasterxml.jackson.annotation.JsonTypeName;
+import com.netflix.kayenta.atlas.config.KayentaSerializationConfigurationProperties;
 import com.netflix.kayenta.canary.CanaryMetricSetQueryConfig;
 import com.netflix.spinnaker.kork.jackson.ObjectMapperSubtypeConfigurer;
+import java.nio.charset.StandardCharsets;
+import java.time.Instant;
+import java.util.ArrayList;
 import java.util.List;
 import org.junit.jupiter.api.Test;
+import org.springframework.http.MediaType;
+import org.springframework.http.converter.HttpMessageConverter;
+import org.springframework.mock.http.MockHttpInputMessage;
+import org.springframework.mock.http.MockHttpOutputMessage;
+import tools.jackson.databind.ObjectMapper;
 import tools.jackson.databind.json.JsonMapper;
 
 class KayentaJackson3SubtypeConfigurationTest {
@@ -54,5 +63,36 @@ class KayentaJackson3SubtypeConfigurationTest {
 
     assertTrue(result instanceof FakeQueryConfig);
     assertEquals("fake", ((CanaryMetricSetQueryConfig) result).getServiceType());
+  }
+
+  @Test
+  void httpConverterUsesKayentaSubtypeAndDateSettings() throws Exception {
+    ObjectMapperSubtypeConfigurer.ClassSubtypeLocator locator =
+        new ObjectMapperSubtypeConfigurer.ClassSubtypeLocator(
+            CanaryMetricSetQueryConfig.class, List.of("com.netflix.kayenta.config"));
+    KayentaSerializationConfigurationProperties properties =
+        new KayentaSerializationConfigurationProperties();
+    properties.setWriteDatesAsTimestamps(false);
+    ObjectMapper mapper =
+        new KayentaConfiguration()
+            .kayentaObjectMapper(
+                JsonMapper.builder().build(),
+                new ObjectMapperSubtypeConfigurer(true),
+                List.of(locator),
+                properties);
+    List<HttpMessageConverter<?>> converters = new ArrayList<>();
+    new KayentaJacksonMessageConverterConfiguration(mapper).extendMessageConverters(converters);
+    @SuppressWarnings("unchecked")
+    HttpMessageConverter<Object> converter = (HttpMessageConverter<Object>) converters.getFirst();
+
+    MockHttpInputMessage input =
+        new MockHttpInputMessage("{\"type\":\"fake-query\"}".getBytes(StandardCharsets.UTF_8));
+    input.getHeaders().setContentType(MediaType.APPLICATION_JSON);
+    assertTrue(converter.canRead(CanaryMetricSetQueryConfig.class, MediaType.APPLICATION_JSON));
+    assertTrue(converter.read(CanaryMetricSetQueryConfig.class, input) instanceof FakeQueryConfig);
+
+    MockHttpOutputMessage output = new MockHttpOutputMessage();
+    converter.write(Instant.EPOCH, MediaType.APPLICATION_JSON, output);
+    assertEquals("\"1970-01-01T00:00:00Z\"", output.getBodyAsString());
   }
 }

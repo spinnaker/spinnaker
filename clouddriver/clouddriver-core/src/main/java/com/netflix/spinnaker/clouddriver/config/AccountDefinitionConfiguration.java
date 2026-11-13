@@ -17,8 +17,6 @@
 package com.netflix.spinnaker.clouddriver.config;
 
 import com.fasterxml.jackson.annotation.JsonTypeName;
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.databind.jsontype.NamedType;
 import com.netflix.spinnaker.clouddriver.jackson.AccountDefinitionModule;
 import com.netflix.spinnaker.clouddriver.security.AccountCredentialsProvider;
 import com.netflix.spinnaker.clouddriver.security.AccountDefinitionMapper;
@@ -59,6 +57,9 @@ import org.springframework.context.annotation.Configuration;
 import org.springframework.core.io.ResourceLoader;
 import org.springframework.core.type.filter.AssignableTypeFilter;
 import org.springframework.util.ClassUtils;
+import tools.jackson.databind.MapperFeature;
+import tools.jackson.databind.ObjectMapper;
+import tools.jackson.databind.jsontype.NamedType;
 
 /**
  * Provides configuration settings related to managing account credential definitions at runtime.
@@ -104,8 +105,12 @@ public class AccountDefinitionConfiguration {
       ObjectMapper mapper,
       AccountDefinitionSecretManager accountDefinitionSecretManager,
       SecretManager secretManager) {
+    // Permissions.Builder is populated through its getter. Jackson 2 did that by default;
+    // Jackson 3 requires USE_GETTERS_AS_SETTERS.
     return new AccountDefinitionMapper(
-        mapper, accountDefinitionSecretManager, new SecretSession(secretManager));
+        mapper.rebuild().enable(MapperFeature.USE_GETTERS_AS_SETTERS).build(),
+        accountDefinitionSecretManager,
+        new SecretSession(secretManager));
   }
 
   @Bean

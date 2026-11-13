@@ -22,7 +22,6 @@ import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
 import com.netflix.spinnaker.clouddriver.aws.provider.view.AmazonS3StaticDataProviderConfiguration.StaticRecord;
 import com.netflix.spinnaker.clouddriver.aws.provider.view.AmazonS3StaticDataProviderConfiguration.StaticRecordType;
 import com.netflix.spinnaker.clouddriver.aws.security.AmazonClientProvider;
@@ -49,6 +48,8 @@ import software.amazon.awssdk.services.s3.S3Configuration;
 import software.amazon.awssdk.services.s3.model.CreateBucketRequest;
 import software.amazon.awssdk.services.s3.model.GetObjectResponse;
 import software.amazon.awssdk.services.s3.model.PutObjectRequest;
+import tools.jackson.databind.DeserializationFeature;
+import tools.jackson.databind.json.JsonMapper;
 
 /**
  * Validates that {@link AmazonS3DataProvider}'s AWS SDK v2 {@code fetchObject()} call (added by the
@@ -99,8 +100,12 @@ class AmazonS3DataProviderMiniStackTest {
     putString("object-key", "{\"foo\":\"bar\"}");
     putString("list-key", "[{\"name\":\"a\"},{\"name\":\"b\"}]");
 
+    // Jackson 3 enables FAIL_ON_NULL_FOR_PRIMITIVES by default (Jackson 2 had it disabled);
+    // the sparse credential map omits primitives.
     NetflixAmazonCredentials credentials =
-        new ObjectMapper()
+        JsonMapper.builder()
+            .disable(DeserializationFeature.FAIL_ON_NULL_FOR_PRIMITIVES)
+            .build()
             .convertValue(
                 Map.of(
                     "name", ACCOUNT_NAME,
@@ -128,7 +133,12 @@ class AmazonS3DataProviderMiniStackTest {
 
     dataProvider =
         new AmazonS3DataProvider(
-            new ObjectMapper(), mockAmazonClientProvider, mockCredentialsRepository, configuration);
+            JsonMapper.builder()
+                .disable(DeserializationFeature.FAIL_ON_NULL_FOR_PRIMITIVES)
+                .build(),
+            mockAmazonClientProvider,
+            mockCredentialsRepository,
+            configuration);
   }
 
   private static void putString(String key, String contents) {

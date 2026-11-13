@@ -1,7 +1,7 @@
 package com.netflix.spinnaker.keel.sql
 
-import com.fasterxml.jackson.databind.ObjectMapper
-import com.fasterxml.jackson.module.kotlin.convertValue
+import tools.jackson.databind.ObjectMapper
+import tools.jackson.module.kotlin.convertValue
 import com.netflix.spinnaker.keel.artifacts.BakedImage
 import com.netflix.spinnaker.keel.artifacts.DebianArtifact
 import com.netflix.spinnaker.keel.persistence.BakedImageRepository

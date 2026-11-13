@@ -16,7 +16,8 @@
 
 package com.netflix.spinnaker.orca.clouddriver.tasks.loadbalancer
 
-import com.fasterxml.jackson.databind.ObjectMapper
+import tools.jackson.databind.ObjectMapper
+import tools.jackson.databind.json.JsonMapper
 import com.netflix.spinnaker.kork.retrofit.exceptions.SpinnakerHttpException
 import com.netflix.spinnaker.orca.api.pipeline.models.ExecutionStatus
 import com.netflix.spinnaker.orca.clouddriver.CloudDriverCacheService
@@ -27,7 +28,7 @@ import okhttp3.ResponseBody
 import retrofit2.Call
 import retrofit2.Response
 import retrofit2.Retrofit
-import retrofit2.converter.jackson.JacksonConverterFactory
+import com.netflix.spinnaker.kork.retrofit.util.CustomConverterFactory
 import retrofit2.mock.Calls
 import spock.lang.Specification
 import spock.lang.Subject
@@ -60,7 +61,7 @@ class DeleteLoadBalancerForceRefreshTaskSpec extends Specification {
   def setup() {
     stage.context.putAll(config)
     task.cacheService = Mock(CloudDriverCacheService)
-    task.mapper = new ObjectMapper()
+    task.mapper = JsonMapper.builder().build()
   }
 
   static ResponseBody pendingBody(List<String> identifiers) {
@@ -77,7 +78,7 @@ class DeleteLoadBalancerForceRefreshTaskSpec extends Specification {
     )
     def retrofit = new Retrofit.Builder()
       .baseUrl("http://clouddriver/")
-      .addConverterFactory(JacksonConverterFactory.create())
+      .addConverterFactory(CustomConverterFactory.createWithJsonStringResponses())
       .build()
     new SpinnakerHttpException(response, retrofit)
   }

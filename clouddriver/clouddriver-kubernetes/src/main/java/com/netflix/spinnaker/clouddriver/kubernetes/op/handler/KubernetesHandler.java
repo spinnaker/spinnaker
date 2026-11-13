@@ -17,8 +17,6 @@
 
 package com.netflix.spinnaker.clouddriver.kubernetes.op.handler;
 
-import com.fasterxml.jackson.core.type.TypeReference;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
 import com.netflix.spectator.api.Registry;
@@ -44,9 +42,12 @@ import javax.annotation.Nonnull;
 import lombok.Getter;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.lang.Nullable;
+import tools.jackson.core.type.TypeReference;
+import tools.jackson.databind.ObjectMapper;
+import tools.jackson.databind.json.JsonMapper;
 
 public abstract class KubernetesHandler implements CanDeploy, CanDelete, CanPatch {
-  protected static final ObjectMapper objectMapper = new ObjectMapper();
+  protected static final ObjectMapper objectMapper = JsonMapper.builder().build();
 
   private final ArtifactReplacer artifactReplacer;
 

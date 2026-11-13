@@ -23,7 +23,6 @@ import static org.mockito.Mockito.*;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
 import com.netflix.spinnaker.fiat.model.resources.Role.View;
 import com.netflix.spinnaker.gate.security.apitoken.ApiTokenProperties;
 import com.netflix.spinnaker.gate.security.apitoken.ApiTokenService;
@@ -60,6 +59,8 @@ import org.springframework.web.bind.annotation.ControllerAdvice;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.ResponseStatus;
 import retrofit2.mock.Calls;
+import tools.jackson.databind.ObjectMapper;
+import tools.jackson.databind.json.JsonMapper;
 
 @ExtendWith(MockitoExtension.class)
 class ApiTokenControllerTest {
@@ -71,7 +72,7 @@ class ApiTokenControllerTest {
   ApiTokenProperties properties;
   ApiTokenController controller;
   MockMvc mockMvc;
-  ObjectMapper objectMapper = new ObjectMapper();
+  ObjectMapper objectMapper = JsonMapper.builder().build();
 
   private static final String USER_EMAIL = "alice@doordash.com";
   private static final String ADMIN_EMAIL = "admin@doordash.com";

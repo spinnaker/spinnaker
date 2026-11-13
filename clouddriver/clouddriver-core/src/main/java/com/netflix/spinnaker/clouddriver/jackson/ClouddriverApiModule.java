@@ -16,13 +16,13 @@
 
 package com.netflix.spinnaker.clouddriver.jackson;
 
-import com.fasterxml.jackson.databind.module.SimpleModule;
 import com.netflix.spinnaker.clouddriver.jackson.mixins.*;
 import com.netflix.spinnaker.clouddriver.model.Cluster;
 import com.netflix.spinnaker.clouddriver.model.LoadBalancerProvider;
 import com.netflix.spinnaker.clouddriver.model.SecurityGroup;
 import com.netflix.spinnaker.clouddriver.model.ServerGroup;
 import com.netflix.spinnaker.clouddriver.model.securitygroups.Rule;
+import tools.jackson.databind.module.SimpleModule;
 
 public class ClouddriverApiModule extends SimpleModule {
 
@@ -33,17 +33,15 @@ public class ClouddriverApiModule extends SimpleModule {
   @Override
   public void setupModule(SetupContext context) {
     super.setupModule(context);
-    context.setMixInAnnotations(SecurityGroup.class, SecurityGroupMixin.class);
-    context.setMixInAnnotations(Rule.class, RuleMixin.class);
-    context.setMixInAnnotations(Cluster.class, ClusterMixin.class);
-    context.setMixInAnnotations(ServerGroup.class, ServerGroupMixin.class);
-    context.setMixInAnnotations(ServerGroup.ImageSummary.class, ImageSummaryMixin.class);
-    context.setMixInAnnotations(ServerGroup.ImagesSummary.class, ImagesSummaryMixin.class);
-    context.setMixInAnnotations(
-        LoadBalancerProvider.Item.class, LoadBalancerProviderItemMixin.class);
-    context.setMixInAnnotations(
+    context.setMixIn(SecurityGroup.class, SecurityGroupMixin.class);
+    context.setMixIn(Rule.class, RuleMixin.class);
+    context.setMixIn(Cluster.class, ClusterMixin.class);
+    context.setMixIn(ServerGroup.class, ServerGroupMixin.class);
+    context.setMixIn(ServerGroup.ImageSummary.class, ImageSummaryMixin.class);
+    context.setMixIn(ServerGroup.ImagesSummary.class, ImagesSummaryMixin.class);
+    context.setMixIn(LoadBalancerProvider.Item.class, LoadBalancerProviderItemMixin.class);
+    context.setMixIn(
         LoadBalancerProvider.ByAccount.class, LoadBalancerProviderByAccountMixin.class);
-    context.setMixInAnnotations(
-        LoadBalancerProvider.ByRegion.class, LoadBalancerProviderByRegionMixin.class);
+    context.setMixIn(LoadBalancerProvider.ByRegion.class, LoadBalancerProviderByRegionMixin.class);
   }
 }

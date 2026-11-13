@@ -25,8 +25,6 @@ import static org.mockito.Mockito.doAnswer;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.dataformat.yaml.YAMLFactory;
 import com.google.api.services.run.v1.CloudRun;
 import com.google.api.services.run.v1.model.ListRevisionsResponse;
 import com.netflix.spinnaker.clouddriver.cloudrun.deploy.CloudrunServiceClient;
@@ -43,11 +41,13 @@ import java.util.List;
 import java.util.Map;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import tools.jackson.databind.ObjectMapper;
+import tools.jackson.dataformat.yaml.YAMLMapper;
 
 /** Inspects the manifest that the legacy server group deploy hands to Cloud Run. */
 class DeployCloudrunAtomicOperationTest {
 
-  private static final ObjectMapper YAML = new ObjectMapper(new YAMLFactory());
+  private static final ObjectMapper YAML = YAMLMapper.builder().build();
 
   private static final String CONFIG_FILE =
       String.join(

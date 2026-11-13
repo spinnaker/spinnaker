@@ -16,7 +16,8 @@
 
 package com.netflix.spinnaker.clouddriver.ecs.deploy.converters.ecsnative
 
-import com.fasterxml.jackson.databind.ObjectMapper
+import tools.jackson.databind.ObjectMapper
+import tools.jackson.databind.json.JsonMapper
 import com.netflix.spinnaker.clouddriver.ecs.deploy.description.CloneServiceDescription
 import com.netflix.spinnaker.clouddriver.security.AbstractAtomicOperationsCredentialsSupport
 import com.netflix.spinnaker.clouddriver.security.AccountCredentialsProvider
@@ -26,7 +27,7 @@ import spock.lang.Specification
 class EcsNativeCloneServiceAtomicOperationConverterSpec extends Specification {
   def accountCredentialsProvider = Mock(AccountCredentialsProvider)
   def converter = new EcsNativeCloneServiceAtomicOperationConverter(
-    objectMapper: new ObjectMapper(),
+    objectMapper: JsonMapper.builder().build(),
     accountCredentialsProvider: accountCredentialsProvider
   )
 

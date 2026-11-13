@@ -16,7 +16,7 @@
 
 package com.netflix.spinnaker.gate.controllers
 
-import com.fasterxml.jackson.databind.ObjectMapper
+import tools.jackson.databind.ObjectMapper
 import com.netflix.spinnaker.gate.services.internal.IgorService
 import okhttp3.mockwebserver.MockWebServer
 import org.springframework.http.MediaType
@@ -28,6 +28,7 @@ import spock.lang.Shared
 import spock.lang.Specification
 
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get
+import tools.jackson.databind.json.JsonMapper
 
 class AwsCodeBuildControllerSpec extends Specification {
 
@@ -36,7 +37,7 @@ class AwsCodeBuildControllerSpec extends Specification {
 
   def server = new MockWebServer()
 
-  @Shared def objectMapper = new ObjectMapper()
+  @Shared def objectMapper = JsonMapper.builder().build()
   @Shared def ACCOUNT = 'myAccount'
 
   void cleanup() {

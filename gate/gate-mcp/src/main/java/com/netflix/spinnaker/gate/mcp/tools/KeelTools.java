@@ -16,7 +16,6 @@
 
 package com.netflix.spinnaker.gate.mcp.tools;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
 import com.netflix.spinnaker.gate.mcp.support.McpAccessGuard;
 import com.netflix.spinnaker.gate.model.manageddelivery.ConstraintState;
 import com.netflix.spinnaker.gate.model.manageddelivery.ConstraintStatus;
@@ -33,6 +32,7 @@ import java.util.List;
 import java.util.Map;
 import org.springaicommunity.mcp.annotation.McpTool;
 import org.springaicommunity.mcp.annotation.McpToolParam;
+import tools.jackson.databind.ObjectMapper;
 
 /**
  * MCP tools for Managed Delivery (Keel): declarative delivery config manifests, environment/

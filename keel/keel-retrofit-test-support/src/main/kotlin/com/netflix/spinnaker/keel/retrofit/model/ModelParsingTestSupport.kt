@@ -1,11 +1,11 @@
 package com.netflix.spinnaker.keel.retrofit.model
 
-import com.fasterxml.jackson.databind.DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES
-import com.fasterxml.jackson.databind.DeserializationFeature.READ_DATE_TIMESTAMPS_AS_NANOSECONDS
-import com.fasterxml.jackson.databind.ObjectMapper
-import com.fasterxml.jackson.databind.SerializationFeature.INDENT_OUTPUT
-import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule
-import com.fasterxml.jackson.module.kotlin.KotlinModule
+import tools.jackson.databind.DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES
+import tools.jackson.databind.cfg.DateTimeFeature.READ_DATE_TIMESTAMPS_AS_NANOSECONDS
+import tools.jackson.databind.SerializationFeature.INDENT_OUTPUT
+import com.netflix.spinnaker.keel.retrofit.InstrumentedJacksonConverter
+import tools.jackson.databind.json.JsonMapper
+import tools.jackson.module.kotlin.KotlinModule
 import kotlinx.coroutines.runBlocking
 import okhttp3.mockwebserver.MockResponse
 import okhttp3.mockwebserver.MockWebServer
@@ -13,24 +13,23 @@ import org.junit.After
 import org.junit.Before
 import org.junit.jupiter.api.Test
 import retrofit2.Retrofit
-import retrofit2.converter.jackson.JacksonConverterFactory
 import strikt.api.expectThat
 import strikt.assertions.isNotNull
 import strikt.java.propertiesAreEqualTo
 
 abstract class ModelParsingTestSupport<in S : Any, out E : Any>(serviceType: Class<S>) {
 
-  private val mapper = ObjectMapper()
-    .registerModule(KotlinModule.Builder().build())
-    .registerModule(JavaTimeModule())
+  private val mapper = JsonMapper.builder()
+    .addModule(KotlinModule.Builder().build())
     .enable(INDENT_OUTPUT)
     .disable(FAIL_ON_UNKNOWN_PROPERTIES)
     .disable(READ_DATE_TIMESTAMPS_AS_NANOSECONDS)
+    .build()
 
   private val server = MockWebServer()
   private val service = Retrofit.Builder()
     .baseUrl(server.url("/"))
-    .addConverterFactory(JacksonConverterFactory.create(mapper))
+    .addConverterFactory(InstrumentedJacksonConverter.Factory(serviceType.simpleName, mapper))
     .build()
     .create(serviceType)
 

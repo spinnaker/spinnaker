@@ -1,0 +1,6 @@
+users:
+- username: 0644
+  roles:
+  - name: 012
+  - name: "yes"
+  - name: !!str off

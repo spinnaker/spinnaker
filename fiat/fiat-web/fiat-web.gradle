@@ -8,7 +8,7 @@ configurations.all {
 }
 
 dependencies {
-  implementation "com.squareup.retrofit2:converter-jackson"
+  implementation "tools.jackson.core:jackson-databind"
   implementation "com.google.guava:guava"
 
   implementation "org.springframework.boot:spring-boot-starter-actuator"

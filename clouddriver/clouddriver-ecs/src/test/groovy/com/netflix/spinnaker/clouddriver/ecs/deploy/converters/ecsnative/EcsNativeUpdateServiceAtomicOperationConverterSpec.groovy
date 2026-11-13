@@ -16,7 +16,8 @@
 
 package com.netflix.spinnaker.clouddriver.ecs.deploy.converters.ecsnative
 
-import com.fasterxml.jackson.databind.ObjectMapper
+import tools.jackson.databind.ObjectMapper
+import tools.jackson.databind.json.JsonMapper
 import com.netflix.spinnaker.clouddriver.ecs.TestCredential
 import com.netflix.spinnaker.clouddriver.ecs.deploy.description.EcsNativeUpdateServiceDescription
 import com.netflix.spinnaker.clouddriver.ecs.deploy.ops.EcsNativeUpdateServiceAtomicOperation
@@ -28,7 +29,7 @@ class EcsNativeUpdateServiceAtomicOperationConverterSpec extends Specification {
 
   def 'should convert to the ecs-native update-service description and operation'() {
     given:
-    def converter = new EcsNativeUpdateServiceAtomicOperationConverter(objectMapper: new ObjectMapper())
+    def converter = new EcsNativeUpdateServiceAtomicOperationConverter(objectMapper: JsonMapper.builder().build())
     converter.accountCredentialsProvider = accountCredentialsProvider
 
     def input = [

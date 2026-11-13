@@ -24,7 +24,6 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.*;
 import static org.mockito.Mockito.*;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 import com.netflix.spinnaker.kork.core.RetrySupport;
@@ -61,6 +60,8 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.ValueSource;
 import retrofit2.mock.Calls;
+import tools.jackson.databind.ObjectMapper;
+import tools.jackson.databind.json.JsonMapper;
 
 public final class WaitOnJobCompletionTest {
   private ObjectMapper objectMapper;
@@ -72,7 +73,7 @@ public final class WaitOnJobCompletionTest {
 
   @BeforeEach
   public void setup() {
-    objectMapper = new ObjectMapper();
+    objectMapper = JsonMapper.builder().build();
     RetrySupport retrySupport = new RetrySupport();
     mockKatoRestService = mock(KatoRestService.class);
     JobUtils mockJobUtils = mock(JobUtils.class);

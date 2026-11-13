@@ -16,7 +16,6 @@
 
 package com.netflix.spinnaker.orca.clouddriver.tasks.monitoreddeploy;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
 import com.netflix.spectator.api.Registry;
 import com.netflix.spinnaker.config.DeploymentMonitorDefinition;
 import com.netflix.spinnaker.kork.retrofit.exceptions.SpinnakerHttpException;
@@ -40,6 +39,8 @@ import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import tools.jackson.databind.ObjectMapper;
+import tools.jackson.databind.json.JsonMapper;
 
 public class MonitoredDeployBaseTask implements RetryableTask {
   static final int MAX_RETRY_COUNT = 3;
@@ -48,7 +49,7 @@ public class MonitoredDeployBaseTask implements RetryableTask {
   private DeploymentMonitorServiceProvider deploymentMonitorServiceProvider;
   private final Map<EvaluateHealthResponse.NextStepDirective, String> summaryMapping =
       new HashMap<>();
-  ObjectMapper objectMapper = new ObjectMapper();
+  ObjectMapper objectMapper = JsonMapper.builder().build();
 
   MonitoredDeployBaseTask(
       DeploymentMonitorServiceProvider deploymentMonitorServiceProvider, Registry registry) {

@@ -16,9 +16,9 @@
 
 package com.netflix.spinnaker.kork.jackson;
 
-import com.fasterxml.jackson.core.StreamReadConstraints;
-import org.springframework.boot.jackson2.autoconfigure.Jackson2ObjectMapperBuilderCustomizer;
-import org.springframework.http.converter.json.Jackson2ObjectMapperBuilder;
+import org.springframework.boot.jackson.autoconfigure.JsonFactoryBuilderCustomizer;
+import tools.jackson.core.StreamReadConstraints;
+import tools.jackson.core.json.JsonFactoryBuilder;
 
 /**
  * Customizes every Spring Boot {@code ObjectMapper} with relaxed {@link StreamReadConstraints} to
@@ -29,8 +29,7 @@ import org.springframework.http.converter.json.Jackson2ObjectMapperBuilder;
  * Spring Boot auto-configures {@code MappingJackson2XmlHttpMessageConverter} (which requires an
  * {@code XmlFactory}) in services that have {@code jackson-dataformat-xml} on the classpath.
  */
-public class JacksonStreamReadConstraintsCustomizer
-    implements Jackson2ObjectMapperBuilderCustomizer {
+public class JacksonStreamReadConstraintsCustomizer implements JsonFactoryBuilderCustomizer {
 
   private static final int DEFAULT_MAX_NAME_LENGTH = 200_000;
   private static final int DEFAULT_MAX_STRING_LENGTH = 50_000_000;
@@ -38,21 +37,21 @@ public class JacksonStreamReadConstraintsCustomizer
   private static final int DEFAULT_MAX_NUMBER_LENGTH = 5_000;
   private static final long DEFAULT_MAX_DOCUMENT_LENGTH = -1;
 
-  static {
-    StreamReadConstraints constraints =
-        StreamReadConstraints.builder()
-            .maxNameLength(DEFAULT_MAX_NAME_LENGTH)
-            .maxStringLength(DEFAULT_MAX_STRING_LENGTH)
-            .maxNestingDepth(DEFAULT_MAX_NESTING_DEPTH)
-            .maxNumberLength(DEFAULT_MAX_NUMBER_LENGTH)
-            .maxDocumentLength(DEFAULT_MAX_DOCUMENT_LENGTH)
-            .build();
+  private static final StreamReadConstraints RELAXED_CONSTRAINTS =
+      StreamReadConstraints.builder()
+          .maxNameLength(DEFAULT_MAX_NAME_LENGTH)
+          .maxStringLength(DEFAULT_MAX_STRING_LENGTH)
+          .maxNestingDepth(DEFAULT_MAX_NESTING_DEPTH)
+          .maxNumberLength(DEFAULT_MAX_NUMBER_LENGTH)
+          .maxDocumentLength(DEFAULT_MAX_DOCUMENT_LENGTH)
+          .build();
 
-    StreamReadConstraints.overrideDefaultStreamReadConstraints(constraints);
+  static {
+    StreamReadConstraints.overrideDefaultStreamReadConstraints(RELAXED_CONSTRAINTS);
   }
 
   @Override
-  public void customize(Jackson2ObjectMapperBuilder builder) {
-    // No per-builder customization needed; global defaults are applied via the static initializer.
+  public void customize(JsonFactoryBuilder builder) {
+    builder.streamReadConstraints(RELAXED_CONSTRAINTS);
   }
 }

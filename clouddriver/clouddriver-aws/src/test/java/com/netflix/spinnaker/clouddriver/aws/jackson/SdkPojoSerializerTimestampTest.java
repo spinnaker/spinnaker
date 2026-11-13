@@ -18,16 +18,15 @@ package com.netflix.spinnaker.clouddriver.aws.jackson;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
-import com.fasterxml.jackson.core.type.TypeReference;
-import com.fasterxml.jackson.databind.DeserializationFeature;
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.databind.SerializationFeature;
-import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 import java.time.Instant;
 import java.util.Map;
 import org.junit.jupiter.api.Test;
 import software.amazon.awssdk.services.autoscaling.model.AutoScalingGroup;
 import software.amazon.awssdk.services.ec2.model.Instance;
+import tools.jackson.core.type.TypeReference;
+import tools.jackson.databind.ObjectMapper;
+import tools.jackson.databind.cfg.DateTimeFeature;
+import tools.jackson.databind.json.JsonMapper;
 
 /**
  * {@link SdkPojoSerializer} hands each field to the mapper's own serializer, so AWS SDK v2 shapes
@@ -40,12 +39,12 @@ final class SdkPojoSerializerTimestampTest {
 
   /** Mirrors the shared mapper the caching agents receive; see CloudDriverConfigTest. */
   private final ObjectMapper objectMapper =
-      new ObjectMapper()
-          .registerModule(new JavaTimeModule())
-          .registerModule(new AwsSdkV2Module())
-          .enable(SerializationFeature.WRITE_DATES_AS_TIMESTAMPS)
-          .disable(SerializationFeature.WRITE_DATE_TIMESTAMPS_AS_NANOSECONDS)
-          .disable(DeserializationFeature.READ_DATE_TIMESTAMPS_AS_NANOSECONDS);
+      JsonMapper.builder()
+          .addModule(new AwsSdkV2Module())
+          .enable(DateTimeFeature.WRITE_DATES_AS_TIMESTAMPS)
+          .disable(DateTimeFeature.WRITE_DATE_TIMESTAMPS_AS_NANOSECONDS)
+          .disable(DateTimeFeature.READ_DATE_TIMESTAMPS_AS_NANOSECONDS)
+          .build();
 
   @Test
   void cachesServerGroupCreatedTimeAsEpochMillis() {

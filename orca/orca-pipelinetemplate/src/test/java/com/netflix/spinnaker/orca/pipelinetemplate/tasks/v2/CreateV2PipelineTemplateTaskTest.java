@@ -26,9 +26,9 @@ import static com.github.tomakehurst.wiremock.core.WireMockConfiguration.wireMoc
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
 import com.github.tomakehurst.wiremock.junit5.WireMockExtension;
 import com.netflix.spinnaker.kork.retrofit.ErrorHandlingExecutorCallAdapterFactory;
+import com.netflix.spinnaker.kork.retrofit.util.CustomConverterFactory;
 import com.netflix.spinnaker.orca.api.pipeline.models.ExecutionStatus;
 import com.netflix.spinnaker.orca.api.pipeline.models.StageExecution;
 import com.netflix.spinnaker.orca.front50.Front50Service;
@@ -44,7 +44,8 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.RegisterExtension;
 import retrofit2.Retrofit;
-import retrofit2.converter.jackson.JacksonConverterFactory;
+import tools.jackson.databind.ObjectMapper;
+import tools.jackson.databind.json.JsonMapper;
 
 public class CreateV2PipelineTemplateTaskTest {
 
@@ -54,7 +55,7 @@ public class CreateV2PipelineTemplateTaskTest {
 
   private static Front50Service front50Service;
   private CreateV2PipelineTemplateTask task;
-  private final ObjectMapper objectMapper = new ObjectMapper();
+  private final ObjectMapper objectMapper = JsonMapper.builder().build();
 
   @BeforeEach
   void setup() throws Exception {
@@ -64,7 +65,7 @@ public class CreateV2PipelineTemplateTaskTest {
               .baseUrl(front50Server.baseUrl())
               .client(new OkHttpClient())
               .addCallAdapterFactory(ErrorHandlingExecutorCallAdapterFactory.getInstance())
-              .addConverterFactory(JacksonConverterFactory.create(objectMapper))
+              .addConverterFactory(CustomConverterFactory.create(objectMapper))
               .build()
               .create(Front50Service.class);
     }

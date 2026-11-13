@@ -16,7 +16,6 @@
 
 package com.netflix.spinnaker.clouddriver.google.provider.agent;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.api.services.compute.model.Autoscaler;
 import com.google.api.services.compute.model.Instance;
 import com.google.api.services.compute.model.InstanceGroupManager;
@@ -35,6 +34,7 @@ import java.util.Map;
 import java.util.Optional;
 import javax.annotation.ParametersAreNonnullByDefault;
 import lombok.extern.slf4j.Slf4j;
+import tools.jackson.databind.ObjectMapper;
 
 @Slf4j
 @ParametersAreNonnullByDefault

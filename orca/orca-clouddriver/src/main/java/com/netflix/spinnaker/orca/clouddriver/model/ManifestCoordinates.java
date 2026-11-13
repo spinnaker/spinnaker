@@ -18,8 +18,6 @@
 package com.netflix.spinnaker.orca.clouddriver.model;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
-import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
-import com.fasterxml.jackson.databind.annotation.JsonPOJOBuilder;
 import com.google.common.base.Strings;
 import com.netflix.spinnaker.kork.annotations.NonnullByDefault;
 import java.util.Objects;
@@ -27,6 +25,8 @@ import javax.annotation.Nonnull;
 import javax.annotation.ParametersAreNullableByDefault;
 import lombok.Builder;
 import lombok.Value;
+import tools.jackson.databind.annotation.JsonDeserialize;
+import tools.jackson.databind.annotation.JsonPOJOBuilder;
 
 @JsonDeserialize(builder = ManifestCoordinates.ManifestCoordinatesBuilder.class)
 @NonnullByDefault

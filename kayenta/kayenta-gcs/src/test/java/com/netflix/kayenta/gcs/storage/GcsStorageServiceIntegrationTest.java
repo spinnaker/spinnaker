@@ -19,7 +19,6 @@ package com.netflix.kayenta.gcs.storage;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.mock;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
 import com.github.dockerjava.api.model.ExposedPort;
 import com.github.dockerjava.api.model.PortBinding;
 import com.github.dockerjava.api.model.Ports;
@@ -45,6 +44,7 @@ import org.testcontainers.containers.GenericContainer;
 import org.testcontainers.junit.jupiter.Container;
 import org.testcontainers.junit.jupiter.Testcontainers;
 import org.testcontainers.utility.DockerImageName;
+import tools.jackson.databind.json.JsonMapper;
 
 /**
  * Runs {@link GcsStorageService} against fake-gcs-server, which implements the GCS JSON API that
@@ -128,7 +128,7 @@ class GcsStorageServiceIntegrationTest {
     // inject dependencies via reflection since @Builder + @Autowired don't mix in tests
     inject("accountCredentialsRepository", credentialsRepository);
     inject("canaryConfigIndex", mock(CanaryConfigIndex.class));
-    inject("kayentaObjectMapper", new ObjectMapper());
+    inject("kayentaObjectMapper", JsonMapper.builder().build());
   }
 
   private void inject(String field, Object value) throws ReflectiveOperationException {

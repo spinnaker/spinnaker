@@ -16,7 +16,6 @@
 
 package com.netflix.kayenta.graphite.config;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
 import com.netflix.kayenta.graphite.metrics.GraphiteMetricsService;
 import com.netflix.kayenta.graphite.security.GraphiteCredentials;
 import com.netflix.kayenta.graphite.security.GraphiteNamedAccountCredentials;
@@ -25,6 +24,7 @@ import com.netflix.kayenta.metrics.MetricsService;
 import com.netflix.kayenta.retrofit.config.RetrofitClientFactory;
 import com.netflix.kayenta.security.AccountCredentials;
 import com.netflix.kayenta.security.AccountCredentialsRepository;
+import com.netflix.spinnaker.kork.retrofit.util.CustomConverterFactory;
 import java.util.List;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
@@ -33,7 +33,7 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.ComponentScan;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.util.CollectionUtils;
-import retrofit2.converter.jackson.JacksonConverterFactory;
+import tools.jackson.databind.ObjectMapper;
 
 @Configuration
 @ConditionalOnProperty("kayenta.graphite.enabled")
@@ -79,7 +79,7 @@ public class GraphiteConfiguration {
           accountCredentialsBuilder.graphiteRemoteService(
               retrofitClientFactory.createClient(
                   GraphiteRemoteService.class,
-                  JacksonConverterFactory.create(objectMapper),
+                  CustomConverterFactory.create(objectMapper),
                   account.getEndpoint()));
         }
 

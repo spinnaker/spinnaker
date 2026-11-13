@@ -16,12 +16,12 @@
 
 package com.netflix.spinnaker.clouddriver.artifacts.ivy.settings;
 
-import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlElementWrapper;
 import java.util.ArrayList;
 import java.util.List;
 import javax.annotation.Nullable;
 import lombok.Data;
 import org.apache.ivy.plugins.resolver.DependencyResolver;
+import tools.jackson.dataformat.xml.annotation.JacksonXmlElementWrapper;
 
 @Data
 final class Resolvers {

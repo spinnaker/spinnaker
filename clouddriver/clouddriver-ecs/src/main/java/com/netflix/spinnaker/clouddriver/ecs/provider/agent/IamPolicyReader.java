@@ -16,15 +16,15 @@
 
 package com.netflix.spinnaker.clouddriver.ecs.provider.agent;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.collect.Sets;
-import java.io.IOException;
 import java.net.URLDecoder;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import tools.jackson.core.JacksonException;
+import tools.jackson.databind.ObjectMapper;
 
 public class IamPolicyReader {
   private static final Logger logger = LoggerFactory.getLogger(IamPolicyReader.class);
@@ -65,7 +65,7 @@ public class IamPolicyReader {
           }
         }
       }
-    } catch (IOException e) {
+    } catch (JacksonException e) {
       logger.error(
           "Unable to extract trusted entities (policyDocument: {})", urlEncodedPolicyDocument, e);
     }

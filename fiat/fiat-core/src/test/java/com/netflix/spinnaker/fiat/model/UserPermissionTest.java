@@ -18,8 +18,6 @@ package com.netflix.spinnaker.fiat.model;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
-import com.fasterxml.jackson.databind.DeserializationFeature;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import com.netflix.spinnaker.fiat.model.resources.ArtifactAccount;
 import com.netflix.spinnaker.fiat.model.resources.Authorizable;
 import com.netflix.spinnaker.fiat.model.resources.Permissions;
@@ -29,6 +27,9 @@ import java.util.Set;
 import org.junit.jupiter.api.Test;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.AuthorityUtils;
+import tools.jackson.databind.DeserializationFeature;
+import tools.jackson.databind.ObjectMapper;
+import tools.jackson.databind.json.JsonMapper;
 
 class UserPermissionTest {
   @Test
@@ -71,7 +72,7 @@ class UserPermissionTest {
 
     // Same settings as the mapper behind FiatService.
     ObjectMapper mapper =
-        new ObjectMapper().disable(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES);
+        JsonMapper.builder().disable(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES).build();
     String json = mapper.writeValueAsString(userPermission.getView());
     UserPermission.View view = mapper.readValue(json, UserPermission.View.class);
 

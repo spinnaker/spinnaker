@@ -26,7 +26,6 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.when;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
 import com.netflix.spinnaker.kork.core.RetrySupport;
 import com.netflix.spinnaker.kork.web.exceptions.NotFoundException;
 import com.netflix.spinnaker.orca.api.pipeline.TaskResult;
@@ -51,6 +50,8 @@ import org.springframework.http.HttpStatus;
 import org.springframework.lang.Nullable;
 import retrofit2.Response;
 import retrofit2.mock.Calls;
+import tools.jackson.databind.ObjectMapper;
+import tools.jackson.databind.json.JsonMapper;
 
 public class CheckIfApplicationExistsForServerGroupTaskTest {
   private @Nullable Front50Service front50Service;
@@ -66,7 +67,7 @@ public class CheckIfApplicationExistsForServerGroupTaskTest {
   public void setup() {
     front50Service = mock(Front50Service.class);
     oortService = mock(OortService.class);
-    objectMapper = new ObjectMapper();
+    objectMapper = JsonMapper.builder().build();
     retrySupport = new RetrySupport();
     configurationProperties = new TaskConfigurationProperties();
 

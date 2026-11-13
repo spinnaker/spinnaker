@@ -16,7 +16,8 @@
 
 package com.netflix.spinnaker.clouddriver.google.provider.view
 
-import com.fasterxml.jackson.databind.ObjectMapper
+import tools.jackson.databind.json.JsonMapper
+import tools.jackson.databind.jsontype.BasicPolymorphicTypeValidator
 import com.netflix.spinnaker.cats.cache.CacheData
 import com.netflix.spinnaker.clouddriver.google.cache.Keys
 import com.netflix.spinnaker.clouddriver.google.deploy.GCEUtil
@@ -30,6 +31,16 @@ import spock.lang.Subject
 import static com.netflix.spinnaker.clouddriver.google.cache.Keys.Namespace.LOAD_BALANCERS
 
 class GoogleClusterProviderSpec extends Specification {
+  private final objectMapper = JsonMapper.builder()
+        .polymorphicTypeValidator(BasicPolymorphicTypeValidator.builder()
+          .allowIfSubType("com.google.api.services.compute.model.")
+          .allowIfSubType("com.netflix.spinnaker.")
+          .allowIfSubType(Map)
+          .allowIfSubType(Collection)
+          .allowIfSubType("java.lang.")
+          .build())
+        .build()
+
   private static final ACCOUNT = "auto"
   private static final REGION = "us-central1"
   private static final SERVER_GROUP = "app-v001"
@@ -57,7 +68,7 @@ class GoogleClusterProviderSpec extends Specification {
         ]
       ]
       serverGroupCacheData.getRelationships() >> [(LOAD_BALANCERS.ns): [loadBalancerKey]]
-      @Subject def provider = new GoogleClusterProvider(objectMapper: new ObjectMapper())
+      @Subject def provider = new GoogleClusterProvider(objectMapper: objectMapper)
 
     when:
       def serverGroup = provider.serverGroupFromCacheData(
@@ -91,7 +102,7 @@ class GoogleClusterProviderSpec extends Specification {
         ]
       ]
       serverGroupCacheData.getRelationships() >> [(LOAD_BALANCERS.ns): [loadBalancerKey]]
-      @Subject def provider = new GoogleClusterProvider(objectMapper: new ObjectMapper())
+      @Subject def provider = new GoogleClusterProvider(objectMapper: objectMapper)
 
     when:
       def serverGroup = provider.serverGroupFromCacheData(
@@ -126,7 +137,7 @@ class GoogleClusterProviderSpec extends Specification {
         ]
       ]
       serverGroupCacheData.getRelationships() >> [(LOAD_BALANCERS.ns): [loadBalancerKey]]
-      @Subject def provider = new GoogleClusterProvider(objectMapper: new ObjectMapper())
+      @Subject def provider = new GoogleClusterProvider(objectMapper: objectMapper)
 
     when:
       def serverGroup = provider.serverGroupFromCacheData(

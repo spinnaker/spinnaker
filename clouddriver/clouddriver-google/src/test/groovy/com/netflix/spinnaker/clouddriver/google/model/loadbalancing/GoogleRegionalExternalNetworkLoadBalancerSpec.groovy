@@ -16,7 +16,8 @@
 
 package com.netflix.spinnaker.clouddriver.google.model.loadbalancing
 
-import com.fasterxml.jackson.databind.ObjectMapper
+import tools.jackson.databind.ObjectMapper
+import tools.jackson.databind.json.JsonMapper
 import spock.lang.Specification
 
 class GoogleRegionalExternalNetworkLoadBalancerSpec extends Specification {
@@ -56,7 +57,7 @@ class GoogleRegionalExternalNetworkLoadBalancerSpec extends Specification {
 
   void "cached attributes rehydrate into the regional external network model"() {
     given:
-    def objectMapper = new ObjectMapper()
+    def objectMapper = JsonMapper.builder().build()
     def attributes = [
       type               : "REGIONAL_EXTERNAL_NETWORK",
       loadBalancingScheme: "EXTERNAL",

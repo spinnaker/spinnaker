@@ -18,15 +18,16 @@ package com.netflix.spinnaker.clouddriver.cloudfoundry.client.model.v3;
 
 import static org.assertj.core.api.AssertionsForClassTypes.assertThat;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
 import java.util.Map;
 import org.junit.jupiter.api.Test;
+import tools.jackson.databind.ObjectMapper;
+import tools.jackson.databind.json.JsonMapper;
 
 public class ProcessTest {
 
   @Test
   void buildObjectTest0() {
-    ObjectMapper mapper = new ObjectMapper();
+    ObjectMapper mapper = JsonMapper.builder().build();
 
     Process.HealthCheck healthCheck =
         new Process.HealthCheck.HealthCheckBuilder().type(null).data(null).build();
@@ -41,7 +42,7 @@ public class ProcessTest {
 
   @Test
   void buildObjectTest1() {
-    ObjectMapper mapper = new ObjectMapper();
+    ObjectMapper mapper = JsonMapper.builder().build();
 
     Process.HealthCheck healthCheck =
         new Process.HealthCheck.HealthCheckBuilder().type(null).data(null).build();
@@ -53,7 +54,7 @@ public class ProcessTest {
 
   @Test
   void buildObjectTest2() {
-    ObjectMapper mapper = new ObjectMapper();
+    ObjectMapper mapper = JsonMapper.builder().build();
 
     Process.HealthCheck healthCheck =
         new Process.HealthCheck.HealthCheckBuilder()

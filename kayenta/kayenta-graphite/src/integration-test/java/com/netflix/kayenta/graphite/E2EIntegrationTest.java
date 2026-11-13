@@ -24,7 +24,6 @@ import static io.restassured.RestAssured.when;
 import static java.time.temporal.ChronoUnit.MINUTES;
 import static org.hamcrest.core.Is.is;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.collect.ImmutableMap;
 import com.netflix.kayenta.Main;
 import com.netflix.kayenta.canary.CanaryAdhocExecutionRequest;
@@ -44,6 +43,8 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.web.server.LocalServerPort;
 import org.springframework.test.context.junit.jupiter.SpringExtension;
+import tools.jackson.databind.ObjectMapper;
+import tools.jackson.databind.json.JsonMapper;
 
 @ExtendWith(SpringExtension.class)
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT, classes = Main.class)
@@ -51,7 +52,7 @@ public class E2EIntegrationTest {
 
   public static final int CANARY_WINDOW_IN_MINUTES = 1;
 
-  @Autowired private ObjectMapper objectMapper = new ObjectMapper();
+  @Autowired private ObjectMapper objectMapper = JsonMapper.builder().build();
 
   @Autowired private Instant metricsReportingStartTime;
 

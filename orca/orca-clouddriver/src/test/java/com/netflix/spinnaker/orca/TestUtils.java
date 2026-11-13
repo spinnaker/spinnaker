@@ -16,12 +16,12 @@
 
 package com.netflix.spinnaker.orca;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.io.Resources;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.UncheckedIOException;
 import java.nio.charset.StandardCharsets;
+import tools.jackson.databind.ObjectMapper;
 
 public class TestUtils {
 
@@ -34,11 +34,7 @@ public class TestUtils {
   }
 
   public static <T> T getResource(ObjectMapper objectMapper, String name, Class<T> valueType) {
-    try {
-      return objectMapper.readValue(TestUtils.class.getResourceAsStream(name), valueType);
-    } catch (IOException e) {
-      throw new UncheckedIOException(e);
-    }
+    return objectMapper.readValue(TestUtils.class.getResourceAsStream(name), valueType);
   }
 
   public static InputStream getResourceAsStream(String name) {

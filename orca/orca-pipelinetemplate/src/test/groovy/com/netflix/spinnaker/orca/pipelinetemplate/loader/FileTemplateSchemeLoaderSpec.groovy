@@ -16,15 +16,16 @@
 
 package com.netflix.spinnaker.orca.pipelinetemplate.loader
 
-import com.fasterxml.jackson.databind.ObjectMapper
+import tools.jackson.databind.ObjectMapper
 import com.netflix.spinnaker.kork.yaml.YamlHelper
 import com.netflix.spinnaker.kork.yaml.YamlParserProperties
 import com.netflix.spinnaker.orca.pipelinetemplate.exceptions.TemplateLoaderException
 import spock.lang.Specification
 import spock.lang.Unroll;
+import tools.jackson.databind.json.JsonMapper
 
 class FileTemplateSchemeLoaderSpec extends Specification {
-  def schemeLoader = new FileTemplateSchemeLoader(new ObjectMapper(), new YamlHelper(new YamlParserProperties()))
+  def schemeLoader = new FileTemplateSchemeLoader(JsonMapper.builder().build(), new YamlHelper(new YamlParserProperties()))
 
   @Unroll
   void "should support json/yaml/yml extensions"() {

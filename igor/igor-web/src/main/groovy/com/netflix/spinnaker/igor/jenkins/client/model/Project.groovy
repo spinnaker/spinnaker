@@ -17,10 +17,10 @@
 package com.netflix.spinnaker.igor.jenkins.client.model
 
 
-import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlElementWrapper
+import tools.jackson.dataformat.xml.annotation.JacksonXmlElementWrapper
 import groovy.transform.CompileStatic
 
-import javax.xml.bind.annotation.XmlElement
+import jakarta.xml.bind.annotation.XmlElement
 
 /**
  * Represents a Project returned by the Jenkins service in the project list

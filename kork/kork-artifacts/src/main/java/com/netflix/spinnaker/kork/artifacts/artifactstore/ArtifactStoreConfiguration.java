@@ -15,7 +15,6 @@
  */
 package com.netflix.spinnaker.kork.artifacts.artifactstore;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
 import com.netflix.spinnaker.kork.artifacts.artifactstore.filters.ApplicationStorageFilter;
 import com.netflix.spinnaker.kork.artifacts.artifactstore.filters.RegexApplicationStorageFilter;
 import com.netflix.spinnaker.kork.artifacts.artifactstore.s3.S3ArtifactStoreConfiguration;
@@ -29,6 +28,9 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.ComponentScan;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Import;
+import tools.jackson.databind.DeserializationFeature;
+import tools.jackson.databind.ObjectMapper;
+import tools.jackson.databind.json.JsonMapper;
 
 @Configuration
 @ComponentScan
@@ -42,7 +44,9 @@ public class ArtifactStoreConfiguration {
    */
   @Bean(name = "artifactObjectMapper")
   public ObjectMapper artifactObjectMapper() {
-    return new ObjectMapper();
+    // ArtifactDeserializer reads single values mid-stream from a shared parser; Jackson 3 rejects
+    // trailing tokens by default (Jackson 2 was lenient), so restore leniency here.
+    return JsonMapper.builder().disable(DeserializationFeature.FAIL_ON_TRAILING_TOKENS).build();
   }
 
   @Bean

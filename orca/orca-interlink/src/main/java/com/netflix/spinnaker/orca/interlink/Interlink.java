@@ -16,8 +16,6 @@
 
 package com.netflix.spinnaker.orca.interlink;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import com.netflix.spectator.api.Counter;
 import com.netflix.spectator.api.Registry;
 import com.netflix.spinnaker.kork.exceptions.ConfigurationException;
@@ -26,6 +24,8 @@ import com.netflix.spinnaker.kork.pubsub.model.PubsubPublisher;
 import com.netflix.spinnaker.orca.interlink.events.InterlinkEvent;
 import java.util.stream.Collectors;
 import lombok.extern.slf4j.Slf4j;
+import tools.jackson.core.JacksonException;
+import tools.jackson.databind.ObjectMapper;
 
 @Slf4j
 public class Interlink {
@@ -76,7 +76,7 @@ public class Interlink {
 
     try {
       publisher.publish(objectMapper.writeValueAsString(event));
-    } catch (JsonProcessingException e) {
+    } catch (JacksonException e) {
       log.error("Failed to serialize event {}", event, e);
     }
   }

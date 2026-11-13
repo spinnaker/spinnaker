@@ -19,9 +19,10 @@ package com.netflix.spinnaker.clouddriver.ecs.model;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
 import java.util.Map;
 import org.junit.jupiter.api.Test;
+import tools.jackson.databind.ObjectMapper;
+import tools.jackson.databind.json.JsonMapper;
 
 /**
  * Verifies that the ecs-native rollout/revision fields are serialized as flattened top-level JSON
@@ -33,7 +34,7 @@ import org.junit.jupiter.api.Test;
  */
 public class EcsServerGroupSerializationTest {
 
-  private final ObjectMapper objectMapper = new ObjectMapper();
+  private final ObjectMapper objectMapper = JsonMapper.builder().build();
 
   @Test
   public void emitsRolloutAndRevisionFieldsAtTopLevelExactlyOnce() {

@@ -20,7 +20,6 @@ import static com.netflix.spinnaker.clouddriver.ecs.cache.Keys.Namespace.TASKS;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.Mockito.when;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
 import com.netflix.spinnaker.cats.cache.DefaultCacheData;
 import com.netflix.spinnaker.clouddriver.ecs.cache.client.TaskCacheClient;
 import com.netflix.spinnaker.clouddriver.ecs.provider.agent.TaskCachingAgent;
@@ -30,9 +29,11 @@ import java.util.Map;
 import org.junit.jupiter.api.Test;
 import software.amazon.awssdk.services.ecs.model.Task;
 import spock.lang.Subject;
+import tools.jackson.databind.ObjectMapper;
+import tools.jackson.databind.json.JsonMapper;
 
 public class TaskCacheClientTest extends CommonCacheClient {
-  private final ObjectMapper mapper = new ObjectMapper();
+  private final ObjectMapper mapper = JsonMapper.builder().build();
   @Subject private final TaskCacheClient client = new TaskCacheClient(cacheView, mapper);
 
   @Test
