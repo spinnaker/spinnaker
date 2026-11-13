@@ -116,9 +116,7 @@ public class TriggerInOrder implements Runnable {
   private PipelineExecution.AuthenticationDetails getUser(PipelineExecution parentPipeline) {
     Optional<String> korkUsername = AuthenticatedRequest.getSpinnakerUser();
     if (korkUsername.isPresent()) {
-      String korkAccounts = AuthenticatedRequest.getSpinnakerAccounts().orElse("");
-      return new PipelineExecution.AuthenticationDetails(
-          korkUsername.get(), korkAccounts.split(","));
+      return new PipelineExecution.AuthenticationDetails(korkUsername.get());
     }
 
     if (parentPipeline.getAuthentication().getUser() != null) {

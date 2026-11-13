@@ -19,20 +19,22 @@ package com.netflix.spinnaker.orca.pipeline.model;
 import com.google.common.base.Strings;
 import com.netflix.spinnaker.orca.api.pipeline.models.PipelineExecution;
 import com.netflix.spinnaker.orca.api.pipeline.models.Trigger;
+import java.util.Collection;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 @Deprecated
 public class PipelineBuilder {
-  private boolean includeAllowedAccounts;
+  private Collection<String> allowedAccounts = Set.of();
 
   public PipelineBuilder(String application) {
     pipeline = PipelineExecutionImpl.newPipeline(application);
   }
 
-  public PipelineBuilder withIncludeAllowedAccounts(boolean includeAllowedAccounts) {
-    this.includeAllowedAccounts = includeAllowedAccounts;
+  public PipelineBuilder withAllowedAccounts(Collection<String> allowedAccounts) {
+    this.allowedAccounts = allowedAccounts;
     return this;
   }
 
@@ -129,15 +131,9 @@ public class PipelineBuilder {
 
   public PipelineExecution build() {
     pipeline.setBuildTime(System.currentTimeMillis());
-    if (this.includeAllowedAccounts) {
-      pipeline.setAuthentication(
-          PipelineExecutionImpl.AuthenticationHelper.build()
-              .orElse(new PipelineExecution.AuthenticationDetails()));
-    } else {
-      pipeline.setAuthentication(
-          PipelineExecutionImpl.AuthenticationHelper.buildWithoutAccounts()
-              .orElse(new PipelineExecution.AuthenticationDetails()));
-    }
+    pipeline.setAuthentication(
+        PipelineExecutionImpl.AuthenticationHelper.build(allowedAccounts)
+            .orElse(new PipelineExecution.AuthenticationDetails()));
 
     return pipeline;
   }

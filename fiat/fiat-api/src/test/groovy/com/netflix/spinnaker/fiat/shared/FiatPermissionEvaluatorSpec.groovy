@@ -178,15 +178,14 @@ class FiatPermissionEvaluatorSpec extends FiatSharedSpecification {
     view == null
   }
 
-  @Unroll
-  def "should support legacy fallback when fiat is unavailable"() {
+  def "should deny access when fiat is unavailable, ignoring any accounts supplied on the request"() {
     given:
-    MDC.put(Header.USER.header, "fallback")
-    MDC.put(Header.ACCOUNTS.header, "account1,account2")
+    MDC.put(Header.USER.header, "testUser")
+    MDC.put("X-SPINNAKER-ACCOUNTS", "account1,account2")
 
     when:
     FiatService fiatService = Mock(FiatService) {
-      getUserPermission("testUser") >>  {
+      getUserPermission("testUser") >> {
         throw new IllegalStateException("something something something")
       }
     }
@@ -196,16 +195,8 @@ class FiatPermissionEvaluatorSpec extends FiatSharedSpecification {
     def hasPermission = evaluator.hasPermission(authentication, "my_application", "APPLICATION", "READ")
 
     then:
-    2 * fiatStatus.isLegacyFallbackEnabled() >> { return legacyFallbackEnabled }
-
-    hasPermission == expectedToHavePermission
-    permission?.name == expectedName
-    permission?.accounts*.name?.sort() == expectedAccounts?.sort()
-
-    where:
-    legacyFallbackEnabled || expectedToHavePermission || expectedName || expectedAccounts
-    true                  || true                     || "fallback"   || ["account1", "account2"]
-    false                 || false                    || null         || null
+    permission == null
+    !hasPermission
   }
 
   @Unroll

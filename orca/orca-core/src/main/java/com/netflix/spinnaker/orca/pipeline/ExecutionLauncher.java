@@ -43,6 +43,8 @@ import com.netflix.spinnaker.orca.pipeline.model.PipelineExecutionImpl;
 import com.netflix.spinnaker.orca.pipeline.model.StageExecutionImpl;
 import com.netflix.spinnaker.orca.pipeline.persistence.ExecutionNotFoundException;
 import com.netflix.spinnaker.orca.pipeline.persistence.ExecutionRepository;
+import com.netflix.spinnaker.orca.security.AllowedAccountsResolver;
+import com.netflix.spinnaker.security.AuthenticatedRequest;
 import io.micrometer.core.instrument.util.StringUtils;
 import java.time.Clock;
 import java.util.Collections;
@@ -75,6 +77,7 @@ public class ExecutionLauncher {
   private final ExecutionConfigurationProperties executionConfigurationProperties;
   private final ProvidedIdRequestFilterConfigurationProperties
       providedIdRequestFilterConfigurationProperties;
+  private final AllowedAccountsResolver allowedAccountsResolver;
   private final Id executionTriggerSystemErrorsId;
 
   @Autowired
@@ -87,8 +90,8 @@ public class ExecutionLauncher {
       Optional<PipelineValidator> pipelineValidator,
       Registry registry,
       ExecutionConfigurationProperties executionConfigurationProperties,
-      ProvidedIdRequestFilterConfigurationProperties
-          providedIdRequestFilterConfigurationProperties) {
+      ProvidedIdRequestFilterConfigurationProperties providedIdRequestFilterConfigurationProperties,
+      AllowedAccountsResolver allowedAccountsResolver) {
     this.objectMapper = objectMapper;
     this.executionRepository = executionRepository;
     this.executionRunner = executionRunner;
@@ -99,6 +102,7 @@ public class ExecutionLauncher {
     this.executionConfigurationProperties = executionConfigurationProperties;
     this.providedIdRequestFilterConfigurationProperties =
         providedIdRequestFilterConfigurationProperties;
+    this.allowedAccountsResolver = allowedAccountsResolver;
     this.executionTriggerSystemErrorsId = registry.createId("execution.trigger.system.errors");
   }
 
@@ -272,8 +276,9 @@ public class ExecutionLauncher {
                         config.get("source"), PipelineExecution.PipelineSource.class))
             .withSpelEvaluator(getString(config, "spelEvaluator"))
             .withTemplateVariables(getMap(config, "templateVariables"))
-            .withIncludeAllowedAccounts(
-                executionConfigurationProperties.isIncludeAllowedAccounts());
+            .withAllowedAccounts(
+                allowedAccountsResolver.resolve(
+                    AuthenticatedRequest.getSpinnakerUser().orElse(null)));
 
     if (providedIdRequestFilterConfigurationProperties.isEnabled()) {
       // Putting info from the MDC into the execution context is one step along
@@ -326,13 +331,11 @@ public class ExecutionLauncher {
     PipelineExecution.AuthenticationDetails auth = new PipelineExecution.AuthenticationDetails();
     auth.setUser(getString(config, "user"));
 
-    if (executionConfigurationProperties.isIncludeAllowedAccounts()) {
-      orchestration.setAuthentication(
-          PipelineExecutionImpl.AuthenticationHelper.build().orElse(auth));
-    } else {
-      orchestration.setAuthentication(
-          PipelineExecutionImpl.AuthenticationHelper.buildWithoutAccounts().orElse(auth));
-    }
+    orchestration.setAuthentication(
+        PipelineExecutionImpl.AuthenticationHelper.build(
+                allowedAccountsResolver.resolve(
+                    AuthenticatedRequest.getSpinnakerUser().orElse(null)))
+            .orElse(auth));
 
     orchestration.setOrigin((String) config.getOrDefault("origin", "unknown"));
     orchestration.setStartTimeExpiry((Long) config.get("startTimeExpiry"));

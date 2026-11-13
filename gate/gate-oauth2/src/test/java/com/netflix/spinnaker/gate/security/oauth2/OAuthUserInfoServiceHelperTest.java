@@ -68,7 +68,6 @@ public class OAuthUserInfoServiceHelperTest {
             front50Service,
             null,
             null,
-            null,
             Optional.empty());
   }
 
@@ -194,7 +193,6 @@ public class OAuthUserInfoServiceHelperTest {
                 permissionService,
                 front50Service,
                 allowedAccountsSupport,
-                null,
                 null,
                 Optional.empty()));
     String userName = "userName";

@@ -33,6 +33,7 @@ import com.netflix.spinnaker.orca.pipeline.model.*
 import com.netflix.spinnaker.orca.pipeline.persistence.ExecutionNotFoundException
 import com.netflix.spinnaker.orca.pipeline.persistence.ExecutionRepository
 import com.netflix.spinnaker.orca.pipeline.util.ContextParameterProcessor
+import com.netflix.spinnaker.orca.security.AllowedAccountsResolver
 import com.netflix.spinnaker.orca.util.ExpressionUtils
 import groovy.json.JsonSlurper
 import jakarta.servlet.ServletException
@@ -89,7 +90,8 @@ class TaskControllerSpec extends Specification {
         mapper,
         registry,
         Mock(StageDefinitionBuilderFactory),
-        taskControllerConfigurationProperties
+        taskControllerConfigurationProperties,
+        Mock(AllowedAccountsResolver)
       )
     ).build()
   }

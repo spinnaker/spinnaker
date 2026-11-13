@@ -73,7 +73,6 @@ class KubernetesDeployManifestValidationIntegrationTest {
             registry,
             List.of(authorizer),
             Optional.empty(),
-            Optional.empty(),
             mock(AccountCredentialsRepository.class),
             Optional.empty(),
             new NoopRegistry(),

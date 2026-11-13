@@ -103,7 +103,6 @@ class EcsNativeDescriptionPreProcessingTest {
         new OperationsService(
             registry,
             List.of(),
-            Optional.empty(),
             Optional.of(List.of(preProcessor)),
             mock(AccountCredentialsRepository.class),
             Optional.empty(),

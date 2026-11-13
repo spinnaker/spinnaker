@@ -15,7 +15,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
-/** Returns list of WRITE enabled accounts to populate X-SPINNAKER-ACCOUNTS header. */
+/** Returns list of WRITE enabled accounts a user may write to. */
 @Component
 public class AllowedAccountsSupport {
   private final Logger log = LoggerFactory.getLogger(getClass());
@@ -43,20 +43,6 @@ public class AllowedAccountsSupport {
               () -> fiatPermissionEvaluator.getPermission(username));
       if (permission == null) {
         return new ArrayList<>();
-      }
-
-      if (permission.isLegacyFallback()) {
-        // fetch allowed accounts as if fiat were not enabled (ie. check available roles against
-        // clouddriver directly)
-        Collection<String> allowedAccounts = credentialsService.getAccountNames(roles, true);
-
-        log.warn(
-            "Unable to fetch fiat permissions, will fallback to legacy account permissions (user: {}, roles: {}, allowedAccounts: {})",
-            username,
-            roles,
-            allowedAccounts);
-
-        return allowedAccounts;
       }
 
       return permission.getAccounts().stream()

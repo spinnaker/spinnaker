@@ -166,7 +166,6 @@ class DefaultOrchestrationProcessorSpec extends Specification {
     given:
     def context = contextProvider.get()
     MDC.put("myKey", "myValue")
-    context.setAccounts("myAccounts")
     context.setUser( "myUser")
 
     when:
@@ -174,7 +173,6 @@ class DefaultOrchestrationProcessorSpec extends Specification {
 
     then:
     MDC.get("myKey") == "myValue"
-    !context.getAccounts().isPresent()
     !context.getUser().isPresent()
   }
 

@@ -132,8 +132,7 @@ class StartPipelineTask implements Task {
   PipelineExecution.AuthenticationDetails getUser(PipelineExecution parentPipeline) {
     def korkUsername = AuthenticatedRequest.getSpinnakerUser()
     if (korkUsername.isPresent()) {
-      def korkAccounts = AuthenticatedRequest.getSpinnakerAccounts().orElse("")
-      return new PipelineExecution.AuthenticationDetails(korkUsername.get(), korkAccounts.split(","))
+      return new PipelineExecution.AuthenticationDetails(korkUsername.get())
     }
 
     if (parentPipeline.authentication?.user) {

@@ -86,6 +86,7 @@ import org.springframework.scheduling.concurrent.ThreadPoolTaskScheduler;
   "com.netflix.spinnaker.orca.deprecation",
   "com.netflix.spinnaker.orca.pipeline.util",
   "com.netflix.spinnaker.orca.preprocessors",
+  "com.netflix.spinnaker.orca.security",
   "com.netflix.spinnaker.orca.telemetry",
   "com.netflix.spinnaker.orca.notifications.scheduling",
   "com.netflix.spinnaker.orca.lock",

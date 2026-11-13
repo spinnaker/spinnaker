@@ -18,9 +18,10 @@ package com.netflix.spinnaker.clouddriver.controllers
 
 import com.netflix.spinnaker.clouddriver.model.DataProvider
 import com.netflix.spinnaker.kork.web.exceptions.NotFoundException
-import com.netflix.spinnaker.security.AuthenticatedRequest
+import com.netflix.spinnaker.fiat.shared.FiatPermissionEvaluator
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.security.access.AccessDeniedException
+import org.springframework.security.core.context.SecurityContextHolder
 import org.springframework.util.AntPathMatcher
 import org.springframework.web.bind.annotation.PathVariable
 import org.springframework.web.bind.annotation.RequestMapping
@@ -37,9 +38,11 @@ import jakarta.servlet.http.HttpServletRequest
 class DataController {
 
   List<DataProvider> dataProviders
+  FiatPermissionEvaluator permissionEvaluator
 
   @Autowired
-  DataController(Optional<List<DataProvider>> dataProviders) {
+  DataController(Optional<List<DataProvider>> dataProviders, FiatPermissionEvaluator permissionEvaluator) {
+    this.permissionEvaluator = permissionEvaluator
     if (dataProviders.present) {
       this.dataProviders = dataProviders.get()
     } else {
@@ -83,9 +86,9 @@ class DataController {
     };
   }
 
-  private static void verifyAccessToAccount(String account) {
-    def allowedAccounts = (AuthenticatedRequest.getSpinnakerAccounts().orElse(null)?.split(",") ?: []) as Set<String>
-    if (!allowedAccounts.contains(account)) {
+  private void verifyAccessToAccount(String account) {
+    def auth = SecurityContextHolder.context.authentication
+    if (!permissionEvaluator.hasPermission(auth, account, 'ACCOUNT', 'READ')) {
       throw new AccessDeniedException("Access denied (account: ${account})")
     }
   }

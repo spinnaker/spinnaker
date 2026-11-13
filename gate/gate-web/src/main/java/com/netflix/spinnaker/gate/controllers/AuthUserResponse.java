@@ -34,7 +34,6 @@ public record AuthUserResponse(
     String firstName,
     String lastName,
     Collection<String> roles,
-    Collection<String> allowedAccounts,
     List<Authority> authorities,
     boolean accountNonExpired,
     boolean accountNonLocked,
@@ -63,7 +62,6 @@ public record AuthUserResponse(
         user.getFirstName(),
         user.getLastName(),
         user.getRoles(),
-        user.getAllowedAccounts(),
         user.getAuthorities().stream()
             .map(GrantedAuthority::getAuthority)
             .map(Authority::new)

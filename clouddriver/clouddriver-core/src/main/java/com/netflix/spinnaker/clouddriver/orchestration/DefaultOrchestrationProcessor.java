@@ -420,7 +420,6 @@ public class DefaultOrchestrationProcessor implements OrchestrationProcessor {
     try {
       var context = contextProvider.get();
       context.setUser(null);
-      context.setAccounts((String) null);
       context.setExecutionId(null);
     } catch (Exception e) {
       log.error("Unable to clear request context", e);

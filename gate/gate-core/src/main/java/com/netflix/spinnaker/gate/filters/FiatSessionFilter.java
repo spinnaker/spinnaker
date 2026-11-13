@@ -87,13 +87,6 @@ public class FiatSessionFilter extends OncePerRequestFilter {
           fiatStatus.isEnabled());
     }
 
-    try {
-      chain.doFilter(request, response);
-    } finally {
-      if (fiatPermission != null && fiatPermission.isLegacyFallback()) {
-        log.info("Invalidating fallback permissions for {}", fiatPermission.getName());
-        permissionEvaluator.invalidatePermission(fiatPermission.getName());
-      }
-    }
+    chain.doFilter(request, response);
   }
 }

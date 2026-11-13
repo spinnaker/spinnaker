@@ -26,6 +26,11 @@ import com.netflix.spectator.api.Counter;
 import com.netflix.spectator.api.Id;
 import com.netflix.spectator.api.NoopRegistry;
 import com.netflix.spectator.api.Registry;
+import com.netflix.spinnaker.fiat.model.Authorization;
+import com.netflix.spinnaker.fiat.model.UserPermission;
+import com.netflix.spinnaker.fiat.model.resources.Account;
+import com.netflix.spinnaker.fiat.shared.FiatPermissionEvaluator;
+import com.netflix.spinnaker.fiat.shared.FiatStatus;
 import com.netflix.spinnaker.kork.common.Header;
 import com.netflix.spinnaker.kork.web.filters.ProvidedIdRequestFilterConfigurationProperties;
 import com.netflix.spinnaker.orca.api.pipeline.models.ExecutionType;
@@ -38,6 +43,7 @@ import com.netflix.spinnaker.orca.pipeline.PipelineValidator;
 import com.netflix.spinnaker.orca.pipeline.model.PipelineTrigger;
 import com.netflix.spinnaker.orca.pipeline.model.support.TriggerDeserializer;
 import com.netflix.spinnaker.orca.pipeline.persistence.ExecutionRepository;
+import com.netflix.spinnaker.orca.security.AllowedAccountsResolver;
 import com.netflix.spinnaker.orca.sql.PipelineRefTriggerDeserializerSupplier;
 import com.netflix.spinnaker.orca.sql.pipeline.persistence.PipelineRefTrigger;
 import com.netflix.spinnaker.orca.test.YamlFileApplicationContextInitializer;
@@ -89,6 +95,27 @@ public class ExecutionLauncherConfigurationTest extends YamlFileApplicationConte
     return "classpath:execution-launcher-properties.yml";
   }
 
+  /** A resolver backed by a Fiat that grants SpinnakerUser WRITE on Account1 and Account2. */
+  private AllowedAccountsResolver allowedAccountsResolver(
+      ExecutionConfigurationProperties properties) {
+    FiatStatus fiatStatus = mock(FiatStatus.class);
+    lenient().when(fiatStatus.isEnabled()).thenReturn(true);
+
+    UserPermission.View permission = new UserPermission.View();
+    permission.setAccounts(Set.of(account("Account1"), account("Account2")));
+    FiatPermissionEvaluator evaluator = mock(FiatPermissionEvaluator.class);
+    lenient().when(evaluator.getPermission("SpinnakerUser")).thenReturn(permission);
+
+    return new AllowedAccountsResolver(Optional.of(fiatStatus), Optional.of(evaluator), properties);
+  }
+
+  private static Account.View account(String name) {
+    Account.View account = new Account.View();
+    account.setName(name);
+    account.setAuthorizations(Set.of(Authorization.READ, Authorization.WRITE));
+    return account;
+  }
+
   @BeforeEach
   public void setup() {
     objectMapper = new ObjectMapper();
@@ -107,7 +134,8 @@ public class ExecutionLauncherConfigurationTest extends YamlFileApplicationConte
             pipelineValidator,
             registry,
             executionConfigurationProperties,
-            providedIdRequestFilterConfigurationProperties);
+            providedIdRequestFilterConfigurationProperties,
+            allowedAccountsResolver(executionConfigurationProperties));
   }
 
   @DisplayName(
@@ -151,7 +179,8 @@ public class ExecutionLauncherConfigurationTest extends YamlFileApplicationConte
             pipelineValidator,
             registry,
             executionConfigurationProperties,
-            providedIdRequestFilterConfigurationProperties);
+            providedIdRequestFilterConfigurationProperties,
+            allowedAccountsResolver(executionConfigurationProperties));
 
     // when
     // deployManifest orchestration type should now be able to run
@@ -243,7 +272,8 @@ public class ExecutionLauncherConfigurationTest extends YamlFileApplicationConte
             pipelineValidator,
             registry,
             executionConfigurationProperties,
-            providedIdRequestFilterConfigurationProperties);
+            providedIdRequestFilterConfigurationProperties,
+            allowedAccountsResolver(executionConfigurationProperties));
 
     PipelineExecution pipelineExecution =
         executionLauncher.start(
@@ -271,7 +301,8 @@ public class ExecutionLauncherConfigurationTest extends YamlFileApplicationConte
   public void testIncludeSpinnakerAccountsInOrchestration() throws Exception {
     // given
     MDC.put(Header.USER.getHeader(), "SpinnakerUser");
-    MDC.put(Header.ACCOUNTS.getHeader(), "Account1,Account2");
+    // accounts supplied on the request must never be trusted
+    MDC.put("X-SPINNAKER-ACCOUNTS", "HeaderAccount");
 
     // override properties to allow orchestration executions
     ExecutionConfigurationProperties executionConfigurationProperties =
@@ -287,7 +318,8 @@ public class ExecutionLauncherConfigurationTest extends YamlFileApplicationConte
             pipelineValidator,
             registry,
             executionConfigurationProperties,
-            providedIdRequestFilterConfigurationProperties);
+            providedIdRequestFilterConfigurationProperties,
+            allowedAccountsResolver(executionConfigurationProperties));
 
     // when
     PipelineExecution pipelineExecution =
@@ -308,7 +340,8 @@ public class ExecutionLauncherConfigurationTest extends YamlFileApplicationConte
   public void testExcludeSpinnakerAccountsFromOrchestration() throws Exception {
     // given
     MDC.put(Header.USER.getHeader(), "SpinnakerUser");
-    MDC.put(Header.ACCOUNTS.getHeader(), "Account1,Account2");
+    // accounts supplied on the request must never be trusted
+    MDC.put("X-SPINNAKER-ACCOUNTS", "HeaderAccount");
 
     // override properties to 1. allow orchestration executions and 2. set includeAllowedAccounts to
     // false
@@ -326,7 +359,8 @@ public class ExecutionLauncherConfigurationTest extends YamlFileApplicationConte
             pipelineValidator,
             registry,
             executionConfigurationProperties,
-            providedIdRequestFilterConfigurationProperties);
+            providedIdRequestFilterConfigurationProperties,
+            allowedAccountsResolver(executionConfigurationProperties));
 
     // when
     PipelineExecution pipelineExecution =
@@ -346,7 +380,8 @@ public class ExecutionLauncherConfigurationTest extends YamlFileApplicationConte
   public void testIncludeSpinnakerAccountsInPipeline() throws Exception {
     // given
     MDC.put(Header.USER.getHeader(), "SpinnakerUser");
-    MDC.put(Header.ACCOUNTS.getHeader(), "Account1,Account2");
+    // accounts supplied on the request must never be trusted
+    MDC.put("X-SPINNAKER-ACCOUNTS", "HeaderAccount");
 
     // when
     PipelineExecution pipelineExecution =
@@ -367,7 +402,8 @@ public class ExecutionLauncherConfigurationTest extends YamlFileApplicationConte
   public void testExcludeSpinnakerAccountsFromPipeline() throws Exception {
     // given
     MDC.put(Header.USER.getHeader(), "SpinnakerUser");
-    MDC.put(Header.ACCOUNTS.getHeader(), "Account1,Account2");
+    // accounts supplied on the request must never be trusted
+    MDC.put("X-SPINNAKER-ACCOUNTS", "HeaderAccount");
 
     // override properties to set includeAllowedAccounts to false
     ExecutionConfigurationProperties executionConfigurationProperties =
@@ -383,7 +419,8 @@ public class ExecutionLauncherConfigurationTest extends YamlFileApplicationConte
             pipelineValidator,
             registry,
             executionConfigurationProperties,
-            providedIdRequestFilterConfigurationProperties);
+            providedIdRequestFilterConfigurationProperties,
+            allowedAccountsResolver(executionConfigurationProperties));
 
     // when
     PipelineExecution pipelineExecution =
@@ -418,7 +455,8 @@ public class ExecutionLauncherConfigurationTest extends YamlFileApplicationConte
             pipelineValidator,
             registry,
             executionConfigurationProperties,
-            providedIdRequestFilterConfigurationProperties);
+            providedIdRequestFilterConfigurationProperties,
+            allowedAccountsResolver(executionConfigurationProperties));
 
     // when
     // childPipeline pipeline type should be able to run
@@ -457,7 +495,8 @@ public class ExecutionLauncherConfigurationTest extends YamlFileApplicationConte
             pipelineValidator,
             registry,
             executionConfigurationProperties,
-            providedIdRequestFilterConfigurationProperties);
+            providedIdRequestFilterConfigurationProperties,
+            allowedAccountsResolver(executionConfigurationProperties));
 
     // when
     // childPipeline pipeline type should be able to run
@@ -496,7 +535,8 @@ public class ExecutionLauncherConfigurationTest extends YamlFileApplicationConte
             pipelineValidator,
             registry,
             executionConfigurationProperties,
-            providedIdRequestFilterConfigurationProperties);
+            providedIdRequestFilterConfigurationProperties,
+            allowedAccountsResolver(executionConfigurationProperties));
 
     // when
     // childPipeline pipeline type should be able to run
