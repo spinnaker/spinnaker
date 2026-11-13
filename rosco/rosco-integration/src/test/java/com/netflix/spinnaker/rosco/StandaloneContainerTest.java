@@ -701,9 +701,6 @@ class StandaloneContainerTest {
             .header(
                 "X-SPINNAKER-USER",
                 "test-user") // to silence a warning when X-SPINNAKER-USER is missing
-            .header(
-                "X-SPINNAKER-ACCOUNTS",
-                "test-account") // to silence a warning when X-SPINNAKER-ACCOUNTS is missing
             .POST(
                 HttpRequest.BodyPublishers.ofString(mapper.writeValueAsString(bakeManifestRequest)))
             .build();

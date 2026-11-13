@@ -15,7 +15,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
-/** Returns list of WRITE enabled accounts to populate X-SPINNAKER-ACCOUNTS header. */
+/** Returns list of WRITE enabled accounts a user may write to. */
 @Component
 public class AllowedAccountsSupport {
   private final Logger log = LoggerFactory.getLogger(getClass());

@@ -47,7 +47,7 @@ class PipelineExecutionImplSpec extends Specification {
   def "should build AuthenticationDetails with the supplied accounts, ignoring the accounts header"() {
     given:
     MDC.put(Header.USER.header, "SpinnakerUser")
-    MDC.put(Header.ACCOUNTS.header, "HeaderAccount")
+    MDC.put("X-SPINNAKER-ACCOUNTS", "HeaderAccount")
 
     when:
     def authenticationDetails = PipelineExecutionImpl.AuthenticationHelper.build(["Account1", "Account2"]).get()
@@ -60,7 +60,7 @@ class PipelineExecutionImplSpec extends Specification {
   def "should build AuthenticationDetails without accounts"() {
     given:
     MDC.put(Header.USER.header, "SpinnakerUser")
-    MDC.put(Header.ACCOUNTS.header, "Account1,Account2")
+    MDC.put("X-SPINNAKER-ACCOUNTS", "Account1,Account2")
 
     when:
     def authenticationDetails = PipelineExecutionImpl.AuthenticationHelper.buildWithoutAccounts().get()

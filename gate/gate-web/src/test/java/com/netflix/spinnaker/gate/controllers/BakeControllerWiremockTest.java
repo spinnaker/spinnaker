@@ -19,7 +19,6 @@ import static com.github.tomakehurst.wiremock.client.WireMock.aResponse;
 import static com.github.tomakehurst.wiremock.client.WireMock.getRequestedFor;
 import static com.github.tomakehurst.wiremock.client.WireMock.urlPathEqualTo;
 import static com.github.tomakehurst.wiremock.core.WireMockConfiguration.wireMockConfig;
-import static com.netflix.spinnaker.kork.common.Header.ACCOUNTS;
 import static com.netflix.spinnaker.kork.common.Header.USER;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.print;
@@ -115,10 +114,7 @@ class BakeControllerWiremockTest {
                     .withBody("[{\"cloudProvider\":\"aws\",\"baseImages\":[]}]")));
 
     webAppMockMvc
-        .perform(
-            get("/bakery/options")
-                .header(USER.getHeader(), USERNAME)
-                .header(ACCOUNTS.getHeader(), ACCOUNT))
+        .perform(get("/bakery/options").header(USER.getHeader(), USERNAME))
         .andDo(print())
         .andExpect(status().isOk())
         .andExpect(jsonPath("$[0].cloudProvider").value("aws"))
@@ -138,10 +134,7 @@ class BakeControllerWiremockTest {
                     .withBody("{\"cloudProvider\":\"aws\",\"baseImages\":[]}")));
 
     webAppMockMvc
-        .perform(
-            get("/bakery/options/aws")
-                .header(USER.getHeader(), USERNAME)
-                .header(ACCOUNTS.getHeader(), ACCOUNT))
+        .perform(get("/bakery/options/aws").header(USER.getHeader(), USERNAME))
         .andDo(print())
         .andExpect(status().isOk())
         .andExpect(jsonPath("$.cloudProvider").value("aws"))
@@ -162,10 +155,7 @@ class BakeControllerWiremockTest {
 
     // BakeService.lookupLogs returns a plain (i.e. not json) String
     webAppMockMvc
-        .perform(
-            get("/bakery/logs/us-east-1/some-status-id")
-                .header(USER.getHeader(), USERNAME)
-                .header(ACCOUNTS.getHeader(), ACCOUNT))
+        .perform(get("/bakery/logs/us-east-1/some-status-id").header(USER.getHeader(), USERNAME))
         .andDo(print())
         .andExpect(status().isOk())
         .andExpect(content().string("\"<pre>some logs</pre>\""));
@@ -180,10 +170,7 @@ class BakeControllerWiremockTest {
             .willReturn(aResponse().withStatus(HttpStatus.INTERNAL_SERVER_ERROR.value())));
 
     webAppMockMvc
-        .perform(
-            get("/bakery/options")
-                .header(USER.getHeader(), USERNAME)
-                .header(ACCOUNTS.getHeader(), ACCOUNT))
+        .perform(get("/bakery/options").header(USER.getHeader(), USERNAME))
         .andDo(print())
         .andExpect(status().isInternalServerError())
         .andExpect(
@@ -203,10 +190,7 @@ class BakeControllerWiremockTest {
             .willReturn(aResponse().withStatus(HttpStatus.INTERNAL_SERVER_ERROR.value())));
 
     webAppMockMvc
-        .perform(
-            get("/bakery/logs/us-east-1/some-status-id")
-                .header(USER.getHeader(), USERNAME)
-                .header(ACCOUNTS.getHeader(), ACCOUNT))
+        .perform(get("/bakery/logs/us-east-1/some-status-id").header(USER.getHeader(), USERNAME))
         .andDo(print())
         .andExpect(status().isInternalServerError())
         .andExpect(
@@ -226,10 +210,7 @@ class BakeControllerWiremockTest {
             .willReturn(aResponse().withStatus(HttpStatus.NOT_FOUND.value())));
 
     webAppMockMvc
-        .perform(
-            get("/bakery/logs/us-east-1/some-status-id")
-                .header(USER.getHeader(), USERNAME)
-                .header(ACCOUNTS.getHeader(), ACCOUNT))
+        .perform(get("/bakery/logs/us-east-1/some-status-id").header(USER.getHeader(), USERNAME))
         .andDo(print())
         .andExpect(status().isNotFound())
         .andExpect(
@@ -254,10 +235,7 @@ class BakeControllerWiremockTest {
                     .withBody("{}")));
 
     webAppMockMvc
-        .perform(
-            get("/bakery/logs/us-east-1/some-status-id")
-                .header(USER.getHeader(), USERNAME)
-                .header(ACCOUNTS.getHeader(), ACCOUNT))
+        .perform(get("/bakery/logs/us-east-1/some-status-id").header(USER.getHeader(), USERNAME))
         .andDo(print())
         .andExpect(status().isNotFound())
         .andExpect(status().reason("Bake logs not found."));

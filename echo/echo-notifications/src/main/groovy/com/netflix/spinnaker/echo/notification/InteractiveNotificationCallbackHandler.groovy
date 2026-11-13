@@ -98,7 +98,6 @@ class InteractiveNotificationCallbackHandler {
 
     // TODO(lfp): error handling (retries?). I'd like to respond to the message in a thread, but
     //  have been unable to make that work. Troubleshooting with Slack support.
-    // TODO(lfp): need to retrieve user's accounts to pass in X-SPINNAKER-ACCOUNTS
     final ResponseBody response = Retrofit2SyncCall.execute(spinnakerService.notificationCallback(callback, callback.getUser()));
     log.debug("Received callback response from downstream Spinnaker service: " + response.string());
 

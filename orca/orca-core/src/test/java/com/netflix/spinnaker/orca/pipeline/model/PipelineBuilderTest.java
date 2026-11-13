@@ -56,7 +56,7 @@ class PipelineBuilderTest {
     // given
     MDC.put(Header.USER.getHeader(), "SpinnakerUser");
     // accounts supplied on the request must never be trusted
-    MDC.put(Header.ACCOUNTS.getHeader(), "HeaderAccount");
+    MDC.put("X-SPINNAKER-ACCOUNTS", "HeaderAccount");
 
     // when
     PipelineBuilder pipelineBuilder =
@@ -73,7 +73,7 @@ class PipelineBuilderTest {
     // given
     MDC.put(Header.USER.getHeader(), "SpinnakerUser");
     // accounts supplied on the request must never be trusted
-    MDC.put(Header.ACCOUNTS.getHeader(), "HeaderAccount");
+    MDC.put("X-SPINNAKER-ACCOUNTS", "HeaderAccount");
 
     // when
     PipelineBuilder pipelineBuilder = new PipelineBuilder("my-application");

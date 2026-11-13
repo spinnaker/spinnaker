@@ -97,7 +97,7 @@ class AuthenticatedRequestFilter implements Filter {
         String headerUpper = header.toUpperCase()
 
         // X-SPINNAKER-ACCOUNTS is no longer honored or propagated; permissions come from Fiat.
-        if (headerUpper.startsWith(Header.XSpinnakerPrefix) && headerUpper != Header.ACCOUNTS.getHeader()) {
+        if (headerUpper.startsWith(Header.XSpinnakerPrefix) && headerUpper != "X-SPINNAKER-ACCOUNTS") {
           otherSpinnakerHeaders.put(headerUpper, httpServletRequest.getHeader(header))
         }
       }

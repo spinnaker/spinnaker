@@ -302,7 +302,7 @@ public class ExecutionLauncherConfigurationTest extends YamlFileApplicationConte
     // given
     MDC.put(Header.USER.getHeader(), "SpinnakerUser");
     // accounts supplied on the request must never be trusted
-    MDC.put(Header.ACCOUNTS.getHeader(), "HeaderAccount");
+    MDC.put("X-SPINNAKER-ACCOUNTS", "HeaderAccount");
 
     // override properties to allow orchestration executions
     ExecutionConfigurationProperties executionConfigurationProperties =
@@ -341,7 +341,7 @@ public class ExecutionLauncherConfigurationTest extends YamlFileApplicationConte
     // given
     MDC.put(Header.USER.getHeader(), "SpinnakerUser");
     // accounts supplied on the request must never be trusted
-    MDC.put(Header.ACCOUNTS.getHeader(), "HeaderAccount");
+    MDC.put("X-SPINNAKER-ACCOUNTS", "HeaderAccount");
 
     // override properties to 1. allow orchestration executions and 2. set includeAllowedAccounts to
     // false
@@ -381,7 +381,7 @@ public class ExecutionLauncherConfigurationTest extends YamlFileApplicationConte
     // given
     MDC.put(Header.USER.getHeader(), "SpinnakerUser");
     // accounts supplied on the request must never be trusted
-    MDC.put(Header.ACCOUNTS.getHeader(), "HeaderAccount");
+    MDC.put("X-SPINNAKER-ACCOUNTS", "HeaderAccount");
 
     // when
     PipelineExecution pipelineExecution =
@@ -403,7 +403,7 @@ public class ExecutionLauncherConfigurationTest extends YamlFileApplicationConte
     // given
     MDC.put(Header.USER.getHeader(), "SpinnakerUser");
     // accounts supplied on the request must never be trusted
-    MDC.put(Header.ACCOUNTS.getHeader(), "HeaderAccount");
+    MDC.put("X-SPINNAKER-ACCOUNTS", "HeaderAccount");
 
     // override properties to set includeAllowedAccounts to false
     ExecutionConfigurationProperties executionConfigurationProperties =

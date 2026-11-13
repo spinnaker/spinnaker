@@ -62,7 +62,6 @@ class PipelineInitiatorTest {
   private DiscoveryStatusListener activator;
 
   private Optional<String> capturedSpinnakerUser;
-  private Optional<String> capturedSpinnakerAccounts;
 
   @BeforeEach
   void setUp() {
@@ -76,12 +75,10 @@ class PipelineInitiatorTest {
     activator = mock(DiscoveryStatusListener.class);
 
     capturedSpinnakerUser = Optional.empty();
-    capturedSpinnakerAccounts = Optional.empty();
   }
 
   private void captureAuthorizationContext() {
     capturedSpinnakerUser = contextProvider.get().getUser();
-    capturedSpinnakerAccounts = contextProvider.get().getAccounts();
   }
 
   private static Stream<Arguments> callsOrcaTimesParams() {
@@ -150,7 +147,6 @@ class PipelineInitiatorTest {
     verify(orca, times(expectedTriggerCalls)).trigger(pipeline);
 
     assertThat(capturedSpinnakerUser.orElse(null)).isEqualTo(expectedSpinnakerUser);
-    assertThat(capturedSpinnakerAccounts).isEmpty();
   }
 
   @Test
@@ -182,7 +178,6 @@ class PipelineInitiatorTest {
             .build();
 
     String user = "super-duper-user";
-    String account = "super-duper-account";
 
     when(activator.isEnabled()).thenReturn(true);
     when(fiatStatus.isEnabled()).thenReturn(true);
@@ -194,7 +189,6 @@ class PipelineInitiatorTest {
             });
 
     context.setUser(user);
-    context.setAccounts(account);
     pipelineInitiator.startPipeline(pipeline, PipelineInitiator.TriggerSource.CRON_SCHEDULER);
     context.clear();
 
@@ -204,23 +198,19 @@ class PipelineInitiatorTest {
 
     verify(orca, times(1)).trigger(pipeline);
     assertThat(capturedSpinnakerUser).contains(user);
-    assertThat(capturedSpinnakerAccounts).contains(account);
   }
 
   private static Stream<Arguments> planPipelineIfTemplatedParams() {
     return Stream.of(
-        Arguments.of("pipeline", 0, "anonymous", null),
-        Arguments.of("templatedPipeline", 1, "anonymous", null),
-        Arguments.of(null, 0, "anonymous", null));
+        Arguments.of("pipeline", 0, "anonymous"),
+        Arguments.of("templatedPipeline", 1, "anonymous"),
+        Arguments.of(null, 0, "anonymous"));
   }
 
   @ParameterizedTest(name = "calls orca {1} to plan pipeline if templated ({0})")
   @MethodSource("planPipelineIfTemplatedParams")
   void callsOrcaToPlanPipelineIfTemplated(
-      String type,
-      int expectedPlanCalls,
-      String expectedSpinnakerUser,
-      String expectedSpinnakerAccounts) {
+      String type, int expectedPlanCalls, String expectedSpinnakerUser) {
     PipelineInitiator pipelineInitiator =
         new PipelineInitiator(
             registry,
@@ -258,7 +248,6 @@ class PipelineInitiatorTest {
     verify(orca, times(1)).trigger(any());
 
     assertThat(capturedSpinnakerUser.orElse(null)).isEqualTo(expectedSpinnakerUser);
-    assertThat(capturedSpinnakerAccounts.orElse(null)).isEqualTo(expectedSpinnakerAccounts);
   }
 
   @SuppressWarnings("unchecked")

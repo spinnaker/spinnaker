@@ -181,7 +181,7 @@ class FiatPermissionEvaluatorSpec extends FiatSharedSpecification {
   def "should deny access when fiat is unavailable, ignoring any accounts supplied on the request"() {
     given:
     MDC.put(Header.USER.header, "testUser")
-    MDC.put(Header.ACCOUNTS.header, "account1,account2")
+    MDC.put("X-SPINNAKER-ACCOUNTS", "account1,account2")
 
     when:
     FiatService fiatService = Mock(FiatService) {

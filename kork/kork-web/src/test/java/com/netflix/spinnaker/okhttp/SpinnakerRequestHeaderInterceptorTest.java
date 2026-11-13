@@ -116,7 +116,7 @@ class SpinnakerRequestHeaderInterceptorTest {
 
     // Add some spinnaker headers to the MDC, including the (retired) accounts header
     TEST_SPINNAKER_HEADERS.forEach(AuthenticatedRequest::set);
-    AuthenticatedRequest.set(Header.ACCOUNTS, "some-accounts");
+    AuthenticatedRequest.set("X-SPINNAKER-ACCOUNTS", "some-accounts");
 
     // Make a request
     retrofitService.getRequest().execute();
@@ -126,7 +126,7 @@ class SpinnakerRequestHeaderInterceptorTest {
     TEST_SPINNAKER_HEADERS.forEach(
         (Header header, String value) ->
             requestPatternBuilder.withHeader(header.getHeader(), equalTo(value)));
-    requestPatternBuilder.withoutHeader(Header.ACCOUNTS.getHeader());
+    requestPatternBuilder.withoutHeader("X-SPINNAKER-ACCOUNTS");
     wireMock.verify(requestPatternBuilder);
   }
 

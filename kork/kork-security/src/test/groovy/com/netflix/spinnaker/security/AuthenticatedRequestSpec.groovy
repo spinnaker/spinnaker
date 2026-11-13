@@ -81,7 +81,7 @@ class AuthenticatedRequestSpec extends Specification {
     when:
     MDC.clear()
     MDC.put(Header.USER.header, "spinnaker-user")
-    MDC.put(Header.ACCOUNTS.header, "account1,account2")
+    MDC.put("X-SPINNAKER-ACCOUNTS", "account1,account2")
 
     then:
     AuthenticatedRequest.getAuthenticationHeaders() == ['X-SPINNAKER-USER': Optional.of("spinnaker-user")]

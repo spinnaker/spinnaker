@@ -43,6 +43,9 @@ public class AuthenticatedRequest {
 
   private static final Logger log = LoggerFactory.getLogger(AuthenticatedRequest.class);
 
+  /** No longer read or propagated; permissions come from Fiat. */
+  private static final String RETIRED_ACCOUNTS_HEADER = "X-SPINNAKER-ACCOUNTS";
+
   /**
    * Determines the current user principal and how to interpret that principal to extract user
    * identity.
@@ -252,7 +255,7 @@ public class AuthenticatedRequest {
         // X-SPINNAKER-ACCOUNTS is no longer propagated; permissions come from Fiat.
         boolean isSpinnakerAuthHeader =
             Header.USER.getHeader().equalsIgnoreCase(header)
-                || Header.ACCOUNTS.getHeader().equalsIgnoreCase(header);
+                || RETIRED_ACCOUNTS_HEADER.equalsIgnoreCase(header);
 
         if (isSpinnakerHeader && !isSpinnakerAuthHeader) {
           headers.put(header, Optional.ofNullable(mdcEntry.getValue()));
