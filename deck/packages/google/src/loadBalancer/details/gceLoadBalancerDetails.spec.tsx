@@ -1,9 +1,12 @@
-import { fireEvent, render, screen } from '@testing-library/react';
+import { act, fireEvent, render, screen, waitFor } from '@testing-library/react';
 import React from 'react';
+import { BehaviorSubject } from 'rxjs';
 
 import {
+  AccountService,
   CloudProviderRegistry,
   ConfirmationModalService,
+  DeckRuntimeContext,
   HelpContentsRegistry,
   HelpTextExpandedContext,
   InfrastructureCaches,
@@ -19,7 +22,142 @@ import {
   GceLoadBalancerInformationSection,
   GceLoadBalancerListenersSection,
   loadGceLoadBalancerDetails,
+  useGceLoadBalancerDetails,
 } from './gceLoadBalancerDetails';
+
+describe('useGceLoadBalancerDetails', () => {
+  let runtimeServices: any;
+
+  function Harness(props: { app: any; autoClose: () => void; loadBalancerParams: any; onRender?: (res: any) => void }) {
+    const result = useGceLoadBalancerDetails({
+      app: props.app,
+      autoClose: props.autoClose,
+      loadBalancerParams: props.loadBalancerParams,
+    });
+    props.onRender?.(result);
+    return null;
+  }
+
+  beforeEach(() => {
+    runtimeServices = {};
+  });
+
+  it('does not refetch details when an unrelated state update re-renders with a new autoClose callback', async () => {
+    const loadBalancer = {
+      account: 'waze-stg',
+      listeners: [{ name: 'victim-fr' }],
+      loadBalancerType: 'INTERNAL_MANAGED',
+      name: 'victim-stg-stg1-td',
+      provider: 'gce',
+      region: 'global',
+    } as any;
+    const status$ = new BehaviorSubject({
+      data: [loadBalancer],
+      lastRefresh: 1,
+      loaded: true,
+      status: 'FETCHED',
+    });
+    const app = {
+      getDataSource: vi.fn().mockReturnValue({
+        refresh: vi.fn(),
+        status$,
+      }),
+    } as any;
+    const getLoadBalancerDetails = vi
+      .fn()
+      .mockReturnValue(Promise.resolve([{ dnsname: '10.0.0.1', listenerDescriptions: [] }]));
+    runtimeServices.loadBalancerReader = { getLoadBalancerDetails };
+    vi.spyOn(AccountService, 'getAccountDetails').mockReturnValue(Promise.resolve({ project: 'waze-stg' }) as any);
+
+    let latestResult: any;
+    const params = {
+      accountId: 'waze-stg',
+      name: 'victim-stg-stg1-td',
+      provider: 'gce',
+      region: 'global',
+    };
+    const { rerender } = render(
+      <DeckRuntimeContext.Provider value={{ services: runtimeServices } as any}>
+        <Harness
+          app={app}
+          autoClose={() => undefined}
+          loadBalancerParams={params}
+          onRender={(r) => (latestResult = r)}
+        />
+      </DeckRuntimeContext.Provider>,
+    );
+    await waitFor(() => expect(getLoadBalancerDetails).toHaveBeenCalledTimes(1));
+    await waitFor(() => expect(latestResult?.loading).toBe(false));
+
+    rerender(
+      <DeckRuntimeContext.Provider value={{ services: runtimeServices } as any}>
+        <Harness
+          app={app}
+          autoClose={() => undefined}
+          loadBalancerParams={{ ...params }}
+          onRender={(r) => (latestResult = r)}
+        />
+      </DeckRuntimeContext.Provider>,
+    );
+
+    expect(getLoadBalancerDetails).toHaveBeenCalledTimes(1);
+  });
+
+  it('does not update state after unmount when details loading finishes', async () => {
+    const loadBalancer = {
+      account: 'waze-stg',
+      listeners: [{ name: 'victim-fr' }],
+      loadBalancerType: 'INTERNAL_MANAGED',
+      name: 'victim-stg-stg1-td',
+      provider: 'gce',
+      region: 'global',
+    } as any;
+    const status$ = new BehaviorSubject({
+      data: [loadBalancer],
+      lastRefresh: 1,
+      loaded: true,
+      status: 'FETCHED',
+    });
+    const app = {
+      getDataSource: vi.fn().mockReturnValue({
+        refresh: vi.fn(),
+        status$,
+      }),
+    } as any;
+    let resolveDetails: (details: any[]) => void = () => undefined;
+    const detailsRequest = new Promise<any[]>((resolve) => {
+      resolveDetails = resolve;
+    });
+    const getLoadBalancerDetails = vi.fn().mockReturnValue(detailsRequest);
+    const consoleError = vi.spyOn(console, 'error').mockReturnValue(undefined);
+    runtimeServices.loadBalancerReader = { getLoadBalancerDetails };
+    vi.spyOn(AccountService, 'getAccountDetails').mockReturnValue(Promise.resolve({ project: 'waze-stg' }) as any);
+
+    const { unmount } = render(
+      <DeckRuntimeContext.Provider value={{ services: runtimeServices } as any}>
+        <Harness
+          app={app}
+          autoClose={() => undefined}
+          loadBalancerParams={{
+            accountId: 'waze-stg',
+            name: 'victim-stg-stg1-td',
+            provider: 'gce',
+            region: 'global',
+          }}
+        />
+      </DeckRuntimeContext.Provider>,
+    );
+    await waitFor(() => expect(getLoadBalancerDetails).toHaveBeenCalledTimes(1));
+
+    unmount();
+    await act(async () => {
+      resolveDetails([{ dnsname: '10.0.0.1', listenerDescriptions: [] }]);
+      await detailsRequest;
+    });
+
+    expect(consoleError).not.toHaveBeenCalled();
+  });
+});
 
 describe('GceLoadBalancerActions', () => {
   const app = { name: 'fnord' } as any;
