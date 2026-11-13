@@ -60,10 +60,20 @@ public class AuthenticatedRequest {
     }
 
     /**
+     * @return the authentication in the current security scope, or the principal if there is none.
+     *     Identity (user and accounts) is derived from this so that it does not depend on the
+     *     concrete principal type.
+     */
+    default Object identity() {
+      Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+      return authentication != null ? authentication : principal();
+    }
+
+    /**
      * @return The comma separated list of accounts for the current principal.
      */
     default Optional<String> getSpinnakerAccounts() {
-      return getSpinnakerAccounts(principal());
+      return getSpinnakerAccounts(identity());
     }
 
     /**
@@ -71,7 +81,13 @@ public class AuthenticatedRequest {
      * @return the comma separated list of accounts for the provided principal.
      */
     default Optional<String> getSpinnakerAccounts(Object principal) {
-      if (principal instanceof UserDetails) {
+      if (principal instanceof Authentication) {
+        Collection<String> allowedAccounts =
+            AllowedAccountsAuthorities.getAllowedAccountNames((Authentication) principal);
+        if (!CollectionUtils.isEmpty(allowedAccounts)) {
+          return Optional.of(String.join(",", allowedAccounts));
+        }
+      } else if (principal instanceof UserDetails) {
         Collection<String> allowedAccounts =
             AllowedAccountsAuthorities.getAllowedAccounts((UserDetails) principal);
         if (!CollectionUtils.isEmpty(allowedAccounts)) {
@@ -236,7 +252,7 @@ public class AuthenticatedRequest {
    * @return an action that will run propagating the current users authentication context
    */
   public static <V> Callable<V> propagate(Callable<V> closure) {
-    return wrapCallableForPrincipal(closure, true, principal());
+    return wrapCallableForPrincipal(closure, true, identity());
   }
 
   /**
@@ -249,7 +265,7 @@ public class AuthenticatedRequest {
    * @return an action that will run propagating the current users authentication context
    */
   public static <V> Callable<V> propagate(Callable<V> closure, boolean restoreOriginalContext) {
-    return wrapCallableForPrincipal(closure, restoreOriginalContext, principal());
+    return wrapCallableForPrincipal(closure, restoreOriginalContext, identity());
   }
 
   /**
@@ -438,8 +454,8 @@ public class AuthenticatedRequest {
     }
   }
 
-  private static Object principal() {
-    return PRINCIPAL_EXTRACTOR.get().principal();
+  private static Object identity() {
+    return PRINCIPAL_EXTRACTOR.get().identity();
   }
 
   private static void setOrRemoveMdc(String key, String value) {

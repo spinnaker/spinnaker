@@ -20,6 +20,7 @@ import java.util.Collection;
 import java.util.Collections;
 import java.util.Objects;
 import java.util.stream.Collectors;
+import org.springframework.security.core.Authentication;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
@@ -39,13 +40,29 @@ public class AllowedAccountsAuthorities {
         .collect(Collectors.toSet());
   }
 
-  @SuppressWarnings("deprecation")
   public static Collection<String> getAllowedAccounts(UserDetails userDetails) {
-    if (userDetails instanceof User) {
-      return ((User) userDetails).getAllowedAccounts();
-    }
     return getAllowedAccountAuthorities(userDetails).stream()
         .map(a -> a.getAuthority().substring(PREFIX.length()))
+        .sorted()
+        .collect(Collectors.toList());
+  }
+
+  /**
+   * @return the accounts granted by the {@code ALLOWED_ACCOUNT_} authorities of the authentication,
+   *     sorted and without duplicates; empty if there are none.
+   */
+  public static Collection<String> getAllowedAccountNames(Authentication authentication) {
+    if (authentication == null || authentication.getAuthorities() == null) {
+      return Collections.emptyList();
+    }
+    if (authentication.getPrincipal() instanceof UserDetails) {
+      return getAllowedAccounts((UserDetails) authentication.getPrincipal());
+    }
+    return authentication.getAuthorities().stream()
+        .map(GrantedAuthority::getAuthority)
+        .filter(a -> a != null && a.startsWith(PREFIX))
+        .map(a -> a.substring(PREFIX.length()))
+        .distinct()
         .sorted()
         .collect(Collectors.toList());
   }

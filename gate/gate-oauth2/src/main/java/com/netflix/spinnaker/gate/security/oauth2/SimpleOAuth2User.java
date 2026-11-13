@@ -26,7 +26,7 @@ import org.springframework.security.oauth2.core.user.OAuth2User;
  * A simple {@link OAuth2User} implementation that wraps a map of user attributes.
  *
  * <p>This class is used as an intermediate representation when processing externally provided
- * access tokens before converting to a {@link SpinnakerOAuth2User}.
+ * access tokens before converting to the authenticated user.
  */
 public class SimpleOAuth2User implements OAuth2User {
 

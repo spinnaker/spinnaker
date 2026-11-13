@@ -21,9 +21,7 @@ import com.netflix.spectator.api.NoopRegistry;
 import com.netflix.spinnaker.gate.config.RateLimiterConfiguration;
 import com.netflix.spinnaker.gate.config.RateLimiterConfiguration.Rule;
 import com.netflix.spinnaker.gate.security.RequestIdentityExtractor;
-import com.netflix.spinnaker.gate.security.oauth2.SpinnakerOAuth2User;
 import com.netflix.spinnaker.kork.jedis.EmbeddedRedis;
-import com.netflix.spinnaker.security.User;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
@@ -52,6 +50,7 @@ import org.springframework.security.authentication.UsernamePasswordAuthenticatio
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.authority.AuthorityUtils;
 import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.security.core.userdetails.User;
 import org.springframework.security.oauth2.client.authentication.OAuth2AuthenticationToken;
 import org.springframework.security.oauth2.core.user.DefaultOAuth2User;
 import org.springframework.security.web.authentication.preauth.PreAuthenticatedAuthenticationToken;
@@ -133,15 +132,12 @@ class RateLimitingFilterTest {
     SecurityContextHolder.getContext().setAuthentication(authentication);
   }
 
-  static User korkUser(String username) {
-    User user = new User();
-    user.setUsername(username);
-    user.setEmail(username);
-    return user;
+  static User springUser(String username) {
+    return new User(username, "", List.of());
   }
 
   static Authentication preAuthenticated(String username) {
-    return new PreAuthenticatedAuthenticationToken(korkUser(username), "N/A", List.of());
+    return new PreAuthenticatedAuthenticationToken(springUser(username), "N/A", List.of());
   }
 
   long requestsCounted(String principal) {
@@ -322,10 +318,10 @@ class RateLimitingFilterTest {
   }
 
   @Test
-  void anonymousKorkUserSharesTheAnonymousBucket() throws Exception {
+  void anonymousUserPrincipalSharesTheAnonymousBucket() throws Exception {
     authenticateAs(
         new AnonymousAuthenticationToken(
-            "key", korkUser("anonymous"), AuthorityUtils.createAuthorityList("ROLE_ANONYMOUS")));
+            "key", springUser("anonymous"), AuthorityUtils.createAuthorityList("ROLE_ANONYMOUS")));
 
     call(filter(), "GET", "/applications");
 
@@ -337,27 +333,16 @@ class RateLimitingFilterTest {
     return Stream.of(
         // saml (ResponseAuthenticationConverter) and api tokens (ApiTokenAuthenticationFilter)
         Arguments.of(
-            "pre-authenticated kork user (saml, api token)",
+            "pre-authenticated user (saml, api token)",
             (Supplier<Authentication>) () -> preAuthenticated(name)),
         // basic, ldap
         Arguments.of(
-            "username/password kork user (basic, ldap)",
+            "username/password user (basic, ldap)",
             (Supplier<Authentication>)
-                () -> new UsernamePasswordAuthenticationToken(korkUser(name), "N/A", List.of())),
-        // oauth2 / oidc, via SpinnakerOAuth2UserInfoService
-        Arguments.of(
-            "oauth2 login with a spinnaker user",
-            (Supplier<Authentication>)
-                () -> {
-                  var user =
-                      new SpinnakerOAuth2User(
-                          name, "Alice", "Example", List.of(), List.of(), name, Map.of(),
-                          List.of());
-                  return new OAuth2AuthenticationToken(user, List.of(), "github");
-                }),
+                () -> new UsernamePasswordAuthenticationToken(springUser(name), "N/A", List.of())),
         // anything else spring security could hand us: fall back to Authentication#getName
         Arguments.of(
-            "oauth2 login with a plain oauth2 user",
+            "oauth2 login",
             (Supplier<Authentication>)
                 () -> {
                   var user =

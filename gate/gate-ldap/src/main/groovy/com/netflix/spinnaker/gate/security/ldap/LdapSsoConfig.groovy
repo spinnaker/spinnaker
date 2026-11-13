@@ -20,7 +20,7 @@ import com.netflix.spinnaker.gate.config.AuthConfig
 import com.netflix.spinnaker.gate.security.AllowedAccountsSupport
 import com.netflix.spinnaker.gate.security.SpinnakerAuthConfig
 import com.netflix.spinnaker.gate.services.PermissionService
-import com.netflix.spinnaker.security.User
+import com.netflix.spinnaker.security.SpinnakerAuthorities
 import org.apache.commons.lang3.StringUtils
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.autoconfigure.condition.ConditionalOnExpression
@@ -35,6 +35,7 @@ import org.springframework.security.config.annotation.authentication.configurati
 import org.springframework.security.config.annotation.web.builders.HttpSecurity
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity
 import org.springframework.security.core.GrantedAuthority
+import org.springframework.security.core.userdetails.User
 import org.springframework.security.core.userdetails.UserDetails
 import org.springframework.security.ldap.userdetails.UserDetailsContextMapper
 import org.springframework.security.web.SecurityFilterChain
@@ -122,12 +123,10 @@ class LdapSsoConfig {
       def roles = sanitizeRoles(authorities)
       permissionService.loginWithRoles(username, roles)
 
-      return new User(username: username,
-        email: ctx.getStringAttribute("mail"),
-        firstName: ctx.getStringAttribute("givenName"),
-        lastName: ctx.getStringAttribute("sn"),
-        roles: roles,
-        allowedAccounts: allowedAccountsSupport.filterAllowedAccounts(username, roles))
+      return new User(
+        username,
+        "",
+        SpinnakerAuthorities.forRolesAndAccounts(roles, allowedAccountsSupport.filterAllowedAccounts(username, roles)))
     }
 
     @Override

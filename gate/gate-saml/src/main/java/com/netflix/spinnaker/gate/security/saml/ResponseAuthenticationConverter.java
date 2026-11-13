@@ -19,9 +19,9 @@ package com.netflix.spinnaker.gate.security.saml;
 
 import com.netflix.spinnaker.gate.security.AllowedAccountsSupport;
 import com.netflix.spinnaker.gate.services.AuthenticationService;
-import com.netflix.spinnaker.security.User;
-import java.util.Collection;
+import com.netflix.spinnaker.security.SpinnakerAuthorities;
 import java.util.Collections;
+import java.util.LinkedHashSet;
 import java.util.Set;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.log4j.Log4j2;
@@ -29,6 +29,7 @@ import org.springframework.beans.factory.ObjectFactory;
 import org.springframework.core.convert.converter.Converter;
 import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.core.GrantedAuthority;
+import org.springframework.security.core.userdetails.User;
 import org.springframework.security.saml2.provider.service.authentication.OpenSaml5AuthenticationProvider;
 import org.springframework.security.saml2.provider.service.authentication.OpenSaml5AuthenticationProvider.ResponseToken;
 import org.springframework.security.saml2.provider.service.authentication.Saml2AuthenticatedPrincipal;
@@ -56,23 +57,17 @@ public class ResponseAuthenticationConverter
     log.debug("Decoding SAML response: {}", source.getToken());
 
     Saml2Authentication authentication = convertToken(source);
-    @SuppressWarnings("deprecation")
-    var user = new User();
     Saml2AuthenticatedPrincipal principal =
         (Saml2AuthenticatedPrincipal) authentication.getPrincipal();
     String principalName = principal.getName();
     var userAttributeMapping = properties.getUserAttributeMapping();
     String email = principal.getFirstAttribute(userAttributeMapping.getEmail());
-    user.setEmail(email != null ? email : principalName);
+    if (email == null) {
+      email = principalName;
+    }
     String userid = userIdentifierExtractor.fromPrincipal(principal);
-    user.setUsername(userid);
-    user.setFirstName(principal.getFirstAttribute(userAttributeMapping.getFirstName()));
-    user.setLastName(principal.getFirstAttribute(userAttributeMapping.getLastName()));
 
     Set<String> roles = userRolesExtractor.getRoles(principal);
-    user.setRoles(roles);
-
-    user.setAllowedAccounts(allowedAccountsSupport.filterAllowedAccounts(userid, roles));
 
     if (!CollectionUtils.isEmpty(properties.getRequiredRoles())) {
       var requiredRoles = Set.copyOf(properties.getRequiredRoles());
@@ -83,8 +78,13 @@ public class ResponseAuthenticationConverter
       }
     }
 
-    Collection<? extends GrantedAuthority> authorities = loginService.loginWithRoles(userid, roles);
-    return new PreAuthenticatedAuthenticationToken(user, principal, authorities);
+    Set<GrantedAuthority> authorities = new LinkedHashSet<>();
+    authorities.addAll(loginService.loginWithRoles(userid, roles));
+    authorities.addAll(
+        SpinnakerAuthorities.forRolesAndAccounts(
+            roles, allowedAccountsSupport.filterAllowedAccounts(userid, roles)));
+    return new PreAuthenticatedAuthenticationToken(
+        new User(userid, "", authorities), principal, authorities);
   }
 
   private static final Converter<ResponseToken, Saml2Authentication> DEFAULT_CONVERTER =

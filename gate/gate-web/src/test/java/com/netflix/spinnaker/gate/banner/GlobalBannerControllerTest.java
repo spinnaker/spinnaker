@@ -23,7 +23,6 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.netflix.spinnaker.gate.services.PermissionService;
-import com.netflix.spinnaker.security.User;
 import java.util.List;
 import java.util.Optional;
 import org.junit.jupiter.api.AfterEach;
@@ -40,7 +39,7 @@ import org.springframework.http.MediaType;
 import org.springframework.security.access.AccessDeniedException;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.context.SecurityContextHolder;
-import org.springframework.security.web.method.annotation.AuthenticationPrincipalArgumentResolver;
+import org.springframework.security.web.method.annotation.CurrentSecurityContextArgumentResolver;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.setup.MockMvcBuilders;
 import org.springframework.web.bind.annotation.ControllerAdvice;
@@ -80,7 +79,7 @@ class GlobalBannerControllerTest {
     mockMvc =
         MockMvcBuilders.standaloneSetup(controller)
             .setControllerAdvice(new ExceptionAdvice())
-            .setCustomArgumentResolvers(new AuthenticationPrincipalArgumentResolver())
+            .setCustomArgumentResolvers(new CurrentSecurityContextArgumentResolver())
             .build();
   }
 
@@ -101,12 +100,10 @@ class GlobalBannerControllerTest {
     return b;
   }
 
-  /** Sets a principal in the security context so @SpinnakerUser resolves a non-null User. */
+  /** Sets an authentication in the security context so the controller sees an identified user. */
   private void authenticateAs(String username) {
-    User principal = new User();
-    principal.setEmail(username);
     SecurityContextHolder.getContext()
-        .setAuthentication(new UsernamePasswordAuthenticationToken(principal, null, List.of()));
+        .setAuthentication(new UsernamePasswordAuthenticationToken(username, null, List.of()));
   }
 
   private void asAdmin(String username) {
