@@ -1264,6 +1264,39 @@ public class BasicGoogleDeployHandlerTest {
   }
 
   @Test
+  void testGetRegionBackendServicesToUpdateListsSharedInternalBackendServiceOnce()
+      throws IOException {
+    GoogleBackendService sharedBackendService = new GoogleBackendService();
+    sharedBackendService.setName("shared-backend");
+    GoogleInternalLoadBalancer internalLoadBalancer = new GoogleInternalLoadBalancer();
+    internalLoadBalancer.setName("internal-load-balancer");
+    internalLoadBalancer.setBackendService(sharedBackendService);
+    BasicGoogleDeployHandler.LoadBalancerInfo lbInfo =
+        new BasicGoogleDeployHandler.LoadBalancerInfo();
+    lbInfo.setInternalLoadBalancers(List.of(internalLoadBalancer.getView()));
+
+    mockDescription.setInstanceMetadata(
+        new HashMap<>(Map.of(GCEUtil.REGION_BACKEND_SERVICE_NAMES, "shared-backend")));
+    mockDescription.setCredentials(mockCredentials);
+    mockDescription.setZone("us-central1-a");
+    doReturn(new BackendService().setName("shared-backend"))
+        .when(basicGoogleDeployHandler)
+        .getRegionBackendServiceFromProvider(any(), any(), any());
+
+    List<BackendService> result =
+        basicGoogleDeployHandler.getRegionBackendServicesToUpdate(
+            mockDescription,
+            "server-group-name",
+            lbInfo,
+            new GoogleHttpLoadBalancingPolicy(),
+            "us-central1");
+
+    assertThat(result).extracting(BackendService::getName).containsExactly("shared-backend");
+    verify(basicGoogleDeployHandler, times(1))
+        .getRegionBackendServiceFromProvider(any(), eq("us-central1"), eq("shared-backend"));
+  }
+
+  @Test
   void testGetRegionBackendServicesToUpdateWithInternalHttpLoadBalancerWithoutExistingMetadata()
       throws IOException {
     GoogleInternalHttpLoadBalancer googleInternalHttpLB = new GoogleInternalHttpLoadBalancer();
