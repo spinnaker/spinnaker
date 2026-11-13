@@ -167,14 +167,14 @@ public class KubernetesManifestProvider {
    * @param location kubernetes namespace
    * @param kinds kubernetes kinds
    * @param labelSelectors label selectors, can be null
-   * @return a list of KubernetesManifestContainer objects
+   * @return a list of KubernetesManifestContainer objects, empty if the account can't be resolved
+   *     or no manifests match
    */
-  @Nullable
   public List<KubernetesManifestContainer> getManifestsByKindsAndLabels(
       String account, String location, List<String> kinds, Map<String, String> labelSelectors) {
     Optional<KubernetesCredentials> optionalCredentials = accountResolver.getCredentials(account);
     if (optionalCredentials.isEmpty()) {
-      return null;
+      return List.of();
     }
     KubernetesCredentials credentials = optionalCredentials.get();
 

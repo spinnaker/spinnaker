@@ -20,6 +20,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.when;
 
 import com.google.common.collect.ImmutableList;
@@ -30,6 +31,7 @@ import com.netflix.spinnaker.clouddriver.kubernetes.description.manifest.Kuberne
 import com.netflix.spinnaker.clouddriver.kubernetes.description.manifest.KubernetesKind;
 import com.netflix.spinnaker.clouddriver.kubernetes.description.manifest.KubernetesManifest;
 import com.netflix.spinnaker.clouddriver.kubernetes.op.handler.KubernetesDeploymentHandler;
+import com.netflix.spinnaker.clouddriver.kubernetes.op.handler.KubernetesServiceHandler;
 import com.netflix.spinnaker.clouddriver.kubernetes.security.KubernetesCredentials;
 import com.netflix.spinnaker.clouddriver.kubernetes.security.KubernetesSelectorList;
 import java.util.HashMap;
@@ -57,7 +59,7 @@ class KubernetesManifestProviderTest {
   }
 
   @Test
-  void getManifestsByLabelsShouldReturnManifests() {
+  void getManifestsByKindsAndLabelsShouldReturnManifests() {
     // given
     String account = "test-account";
     String location = "test-namespace";
@@ -100,6 +102,56 @@ class KubernetesManifestProviderTest {
             any(KubernetesSelectorList.class));
   }
 
+  @Test
+  void getManifestsByKindsAndLabelsShouldReturnManifestsOfEveryRequestedKind() {
+    // given
+    String account = "test-account";
+    String location = "test-namespace";
+    Map<String, String> labelSelectors = Map.of("app", "test-app");
+
+    KubernetesManifest deployment = deploymentManifest("my-deployment");
+    KubernetesManifest service = serviceManifest("my-service");
+
+    when(accountResolver.getCredentials(account)).thenReturn(Optional.of(credentials));
+    when(credentials.list(
+            eq(List.of(KubernetesKind.DEPLOYMENT, KubernetesKind.SERVICE)),
+            eq(location),
+            any(KubernetesSelectorList.class)))
+        .thenReturn(ImmutableList.of(deployment, service));
+    when(credentials.getResourcePropertyRegistry()).thenReturn(resourcePropertyRegistry);
+    when(resourcePropertyRegistry.get(KubernetesKind.DEPLOYMENT))
+        .thenReturn(new KubernetesResourceProperties(new KubernetesDeploymentHandler(), false));
+    when(resourcePropertyRegistry.get(KubernetesKind.SERVICE))
+        .thenReturn(new KubernetesResourceProperties(new KubernetesServiceHandler(), false));
+
+    // when
+    List<KubernetesManifestContainer> result =
+        manifestProvider.getManifestsByKindsAndLabels(
+            account, location, List.of("deployment", "service"), labelSelectors);
+
+    // then
+    assertThat(result)
+        .extracting(KubernetesManifestContainer::getName)
+        .containsExactly("deployment my-deployment", "service my-service");
+    assertThat(result)
+        .extracting(KubernetesManifestContainer::getManifest)
+        .containsExactly(deployment, service);
+    verify(resourcePropertyRegistry).get(KubernetesKind.DEPLOYMENT);
+    verify(resourcePropertyRegistry).get(KubernetesKind.SERVICE);
+  }
+
+  @Test
+  void getManifestsByKindsAndLabelsShouldReturnEmptyListWhenAccountCannotBeResolved() {
+    when(accountResolver.getCredentials("unknown-account")).thenReturn(Optional.empty());
+
+    List<KubernetesManifestContainer> result =
+        manifestProvider.getManifestsByKindsAndLabels(
+            "unknown-account", "test-namespace", List.of("deployment"), Map.of("app", "test-app"));
+
+    assertThat(result).isEmpty();
+    verifyNoInteractions(credentials);
+  }
+
   /** A test Deployment manifest */
   private static KubernetesManifest deploymentManifest(String deploymentName) {
     KubernetesManifest deployment = new KubernetesManifest();
@@ -109,5 +161,16 @@ class KubernetesManifestProviderTest {
     deployment.setApiVersion(KubernetesApiVersion.APPS_V1);
     deployment.setName(deploymentName);
     return deployment;
+  }
+
+  /** A test Service manifest */
+  private static KubernetesManifest serviceManifest(String serviceName) {
+    KubernetesManifest service = new KubernetesManifest();
+    service.put("metadata", new HashMap<>());
+    service.setNamespace("test-namespace");
+    service.setKind(KubernetesKind.SERVICE);
+    service.setApiVersion(KubernetesApiVersion.V1);
+    service.setName(serviceName);
+    return service;
   }
 }

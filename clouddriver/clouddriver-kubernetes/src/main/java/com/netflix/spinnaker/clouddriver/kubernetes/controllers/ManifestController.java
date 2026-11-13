@@ -24,6 +24,7 @@ import com.netflix.spinnaker.clouddriver.kubernetes.description.manifest.Kuberne
 import com.netflix.spinnaker.clouddriver.kubernetes.model.Manifest;
 import com.netflix.spinnaker.clouddriver.requestqueue.RequestQueue;
 import com.netflix.spinnaker.kork.exceptions.SpinnakerException;
+import com.netflix.spinnaker.kork.web.exceptions.InvalidRequestException;
 import com.netflix.spinnaker.kork.web.exceptions.NotFoundException;
 import java.util.Arrays;
 import java.util.List;
@@ -110,11 +111,15 @@ public class ManifestController {
       @PathVariable String kinds,
       @RequestParam Map<String, String> labels) {
 
-    // Split the comma separated kinds string into a list
-    List<String> kindsList = Arrays.asList(kinds.split(","));
+    // Split the comma separated kinds string into a list, ignoring blank entries
+    List<String> kindsList =
+        Arrays.stream(kinds.split(",")).map(String::trim).filter(k -> !k.isEmpty()).toList();
+    if (kindsList.isEmpty()) {
+      throw new InvalidRequestException("At least one non-blank kind is required");
+    }
     String request =
         String.format(
-            "(account: %s, kinds: %s location: %s, label selectors: %s)",
+            "(account: %s, kinds: %s, location: %s, label selectors: %s)",
             account, kindsList, location, labels);
     List<? extends Manifest> manifests;
     try {
