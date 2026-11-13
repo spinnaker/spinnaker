@@ -58,7 +58,6 @@ orca:
 services:
   fiat:
     enabled: false
-    legacyFallback: true
     refreshable: false
     baseUrl: ${services.fiat.baseUrl:http://localhost:7003}
 

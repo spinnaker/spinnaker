@@ -20,7 +20,6 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
@@ -32,27 +31,16 @@ import com.netflix.spinnaker.echo.jackson.EchoObjectMapper;
 import com.netflix.spinnaker.echo.model.Pipeline;
 import com.netflix.spinnaker.echo.model.Trigger;
 import com.netflix.spinnaker.echo.pipelinetriggers.QuietPeriodIndicator;
-import com.netflix.spinnaker.fiat.model.Authorization;
-import com.netflix.spinnaker.fiat.model.UserPermission;
-import com.netflix.spinnaker.fiat.model.resources.Account;
-import com.netflix.spinnaker.fiat.shared.FiatPermissionEvaluator;
 import com.netflix.spinnaker.fiat.shared.FiatStatus;
 import com.netflix.spinnaker.kork.discovery.DiscoveryStatusListener;
 import com.netflix.spinnaker.kork.dynamicconfig.DynamicConfigService;
 import com.netflix.spinnaker.kork.web.context.AuthenticatedRequestContextProvider;
 import com.netflix.spinnaker.kork.web.context.RequestContext;
-import java.util.Arrays;
-import java.util.Collection;
-import java.util.HashMap;
-import java.util.LinkedHashSet;
-import java.util.List;
 import java.util.Map;
 import java.util.Optional;
-import java.util.Set;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
-import java.util.stream.Collectors;
 import java.util.stream.Stream;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -67,7 +55,6 @@ class PipelineInitiatorTest {
   private NoopRegistry registry;
   private DynamicConfigService noopDynamicConfigService;
   private OrcaService orca;
-  private FiatPermissionEvaluator fiatPermissionEvaluator;
   private FiatStatus fiatStatus;
   private ObjectMapper objectMapper;
   private QuietPeriodIndicator quietPeriodIndicator;
@@ -77,14 +64,11 @@ class PipelineInitiatorTest {
   private Optional<String> capturedSpinnakerUser;
   private Optional<String> capturedSpinnakerAccounts;
 
-  private Map<String, UserPermission.View> userPermissions;
-
   @BeforeEach
   void setUp() {
     registry = new NoopRegistry();
     noopDynamicConfigService = new DynamicConfigService.NoopDynamicConfig();
     orca = mock(OrcaService.class);
-    fiatPermissionEvaluator = mock(FiatPermissionEvaluator.class);
     fiatStatus = mock(FiatStatus.class);
     objectMapper = mock(ObjectMapper.class);
     quietPeriodIndicator = mock(QuietPeriodIndicator.class);
@@ -93,34 +77,6 @@ class PipelineInitiatorTest {
 
     capturedSpinnakerUser = Optional.empty();
     capturedSpinnakerAccounts = Optional.empty();
-
-    userPermissions = new HashMap<>();
-    userPermissions.put(
-        "anonymous",
-        userPermissionView(
-            account("account1", List.of("READ")),
-            account("account2", List.of("READ", "WRITE")),
-            account("account3", List.of("READ", "WRITE"))));
-    userPermissions.put(
-        "not-anonymous",
-        userPermissionView(
-            account("account1", List.of("READ", "WRITE")),
-            account("account2", List.of("READ", "WRITE")),
-            account("account3", List.of("READ", "WRITE"))));
-  }
-
-  private static UserPermission.View userPermissionView(Account.View... accounts) {
-    UserPermission.View view = new UserPermission.View();
-    view.setAccounts(new LinkedHashSet<>(Arrays.asList(accounts)));
-    return view;
-  }
-
-  private static Account.View account(String name, Collection<String> authorizations) {
-    Account.View accountView = new Account.View();
-    accountView.setName(name);
-    accountView.setAuthorizations(
-        authorizations.stream().map(Authorization::valueOf).collect(Collectors.toSet()));
-    return accountView;
   }
 
   private void captureAuthorizationContext() {
@@ -128,74 +84,32 @@ class PipelineInitiatorTest {
     capturedSpinnakerAccounts = contextProvider.get().getAccounts();
   }
 
-  private static Set<String> splitToSet(String s) {
-    return s == null ? null : Set.of(s.split(","));
-  }
-
   private static Stream<Arguments> callsOrcaTimesParams() {
     return Stream.of(
-        // user, upInDiscovery, enabled, suppress, legacyFallbackEnabled, expectedTriggerCalls,
-        // expectedSpinnakerUser, expectedSpinnakerAccounts
-        Arguments.of("anonymous", false, true, false, false, 0, null, null), // down in discovery
-        Arguments.of("anonymous", true, false, false, false, 0, null, null), // orca not enabled
-        Arguments.of(
-            null, true, true, true, false, 0, null, null), // cron triggers enabled but suppressed
-        Arguments.of(
-            "anonymous",
-            true,
-            true,
-            false,
-            false,
-            1,
-            "anonymous",
-            null), // fallback disabled (no accounts)
-        Arguments.of(
-            "anonymous",
-            true,
-            true,
-            false,
-            true,
-            1,
-            "anonymous",
-            "account2,account3"), // fallback enabled (all WRITE accounts)
-        Arguments.of(
-            "not-anonymous",
-            true,
-            true,
-            false,
-            true,
-            1,
-            "not-anonymous",
-            "account1,account2,account3"), // fallback enabled (all WRITE accounts)
-        Arguments.of(
-            null,
-            true,
-            true,
-            false,
-            true,
-            1,
-            "anonymous",
-            "account2,account3") // null trigger user should default to 'anonymous'
+        // user, upInDiscovery, enabled, suppress, expectedTriggerCalls, expectedSpinnakerUser
+        Arguments.of("anonymous", false, true, false, 0, null), // down in discovery
+        Arguments.of("anonymous", true, false, false, 0, null), // orca not enabled
+        Arguments.of(null, true, true, true, 0, null), // cron triggers enabled but suppressed
+        Arguments.of("anonymous", true, true, false, 1, "anonymous"),
+        Arguments.of("not-anonymous", true, true, false, 1, "not-anonymous"),
+        Arguments.of(null, true, true, false, 1, "anonymous") // null trigger user defaults
         );
   }
 
-  @ParameterizedTest(name = "calls orca {5} times when enabled={2} and suppress={3}")
+  @ParameterizedTest(name = "calls orca {4} times when enabled={2} and suppress={3}")
   @MethodSource("callsOrcaTimesParams")
   void callsOrcaExpectedTimesWhenEnabledAndSuppress(
       String user,
       boolean upInDiscovery,
       boolean enabled,
       boolean suppress,
-      boolean legacyFallbackEnabled,
       int expectedTriggerCalls,
-      String expectedSpinnakerUser,
-      String expectedSpinnakerAccounts) {
+      String expectedSpinnakerUser) {
     DynamicConfigService dynamicConfigService = mock(DynamicConfigService.class);
     PipelineInitiator pipelineInitiator =
         new PipelineInitiator(
             registry,
             orca,
-            Optional.of(fiatPermissionEvaluator),
             fiatStatus,
             MoreExecutors.newDirectExecutorService(),
             objectMapper,
@@ -214,8 +128,6 @@ class PipelineInitiatorTest {
             .trigger(Trigger.builder().type("cron").runAsUser(user).build())
             .build();
 
-    String effectiveUser = (user == null) ? "anonymous" : user;
-
     Mockito.lenient().when(activator.isEnabled()).thenReturn(upInDiscovery);
     Mockito.lenient()
         .when(dynamicConfigService.isEnabled(eq("scheduler.triggers"), eq(true)))
@@ -224,10 +136,6 @@ class PipelineInitiatorTest {
         .when(dynamicConfigService.isEnabled(eq("orca"), eq(true)))
         .thenReturn(enabled);
     Mockito.lenient().when(fiatStatus.isEnabled()).thenReturn(enabled);
-    Mockito.lenient().when(fiatStatus.isLegacyFallbackEnabled()).thenReturn(legacyFallbackEnabled);
-    Mockito.lenient()
-        .when(fiatPermissionEvaluator.getPermission(effectiveUser))
-        .thenReturn(userPermissions.get(effectiveUser));
     Mockito.lenient()
         .when(orca.trigger(pipeline))
         .thenAnswer(
@@ -240,15 +148,9 @@ class PipelineInitiatorTest {
 
     verify(activator, times(1)).isEnabled();
     verify(orca, times(expectedTriggerCalls)).trigger(pipeline);
-    if (legacyFallbackEnabled) {
-      verify(fiatPermissionEvaluator, times(1)).getPermission(effectiveUser);
-    } else {
-      verify(fiatPermissionEvaluator, never()).getPermission(any());
-    }
 
     assertThat(capturedSpinnakerUser.orElse(null)).isEqualTo(expectedSpinnakerUser);
-    assertThat(splitToSet(capturedSpinnakerAccounts.orElse(null)))
-        .isEqualTo(splitToSet(expectedSpinnakerAccounts));
+    assertThat(capturedSpinnakerAccounts).isEmpty();
   }
 
   @Test
@@ -259,7 +161,6 @@ class PipelineInitiatorTest {
         new PipelineInitiator(
             registry,
             orca,
-            Optional.of(fiatPermissionEvaluator),
             fiatStatus,
             executor,
             objectMapper,
@@ -285,7 +186,6 @@ class PipelineInitiatorTest {
 
     when(activator.isEnabled()).thenReturn(true);
     when(fiatStatus.isEnabled()).thenReturn(true);
-    when(fiatStatus.isLegacyFallbackEnabled()).thenReturn(false);
     when(orca.trigger(pipeline))
         .thenAnswer(
             invocation -> {
@@ -325,7 +225,6 @@ class PipelineInitiatorTest {
         new PipelineInitiator(
             registry,
             orca,
-            Optional.empty(),
             fiatStatus,
             MoreExecutors.newDirectExecutorService(),
             objectMapper,

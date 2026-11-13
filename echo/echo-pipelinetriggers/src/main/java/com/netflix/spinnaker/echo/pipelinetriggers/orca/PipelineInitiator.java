@@ -22,10 +22,6 @@ import com.netflix.spectator.api.Registry;
 import com.netflix.spinnaker.echo.model.Pipeline;
 import com.netflix.spinnaker.echo.pipelinetriggers.QuietPeriodIndicator;
 import com.netflix.spinnaker.echo.pipelinetriggers.orca.OrcaService.TriggerResponse;
-import com.netflix.spinnaker.fiat.model.Authorization;
-import com.netflix.spinnaker.fiat.model.UserPermission;
-import com.netflix.spinnaker.fiat.model.resources.Account;
-import com.netflix.spinnaker.fiat.shared.FiatPermissionEvaluator;
 import com.netflix.spinnaker.fiat.shared.FiatStatus;
 import com.netflix.spinnaker.kork.discovery.DiscoveryStatusListener;
 import com.netflix.spinnaker.kork.dynamicconfig.DynamicConfigService;
@@ -34,15 +30,11 @@ import com.netflix.spinnaker.kork.retrofit.exceptions.SpinnakerHttpException;
 import com.netflix.spinnaker.kork.retrofit.exceptions.SpinnakerServerException;
 import com.netflix.spinnaker.security.AuthenticatedRequest;
 import jakarta.annotation.PostConstruct;
-import java.util.Collection;
 import java.util.Collections;
 import java.util.Map;
-import java.util.Optional;
-import java.util.Set;
 import java.util.concurrent.Callable;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.RejectedExecutionException;
-import java.util.stream.Collectors;
 import lombok.NonNull;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
@@ -58,7 +50,6 @@ public class PipelineInitiator {
   private final Registry registry;
   private final DynamicConfigService dynamicConfigService;
   private final OrcaService orca;
-  private final FiatPermissionEvaluator fiatPermissionEvaluator;
   private final FiatStatus fiatStatus;
 
   private final ObjectMapper objectMapper;
@@ -72,7 +63,6 @@ public class PipelineInitiator {
   public PipelineInitiator(
       @NonNull Registry registry,
       @NonNull OrcaService orca,
-      @NonNull Optional<FiatPermissionEvaluator> fiatPermissionEvaluator,
       @NonNull FiatStatus fiatStatus,
       @NonNull ExecutorService executorService,
       ObjectMapper objectMapper,
@@ -83,7 +73,6 @@ public class PipelineInitiator {
       @Value("${orca.pipeline-initiator-retry-delay-millis:5000}") long retryDelayMillis) {
     this.registry = registry;
     this.orca = orca;
-    this.fiatPermissionEvaluator = fiatPermissionEvaluator.orElse(null);
     this.fiatStatus = fiatStatus;
     this.objectMapper = objectMapper;
     this.quietPeriodIndicator = quietPeriodIndicator;
@@ -230,20 +219,15 @@ public class PipelineInitiator {
         // default to anonymous consistent with the existing pattern of
         // `AuthenticatedRequest.getSpinnakerUser().orElse("anonymous")`
         String runAsUser = "anonymous";
-        Collection<String> allowedAccounts = Collections.emptySet();
 
         if (fiatStatus.isEnabled()) {
           if (pipeline.getTrigger() != null
               && StringUtils.isNotBlank(pipeline.getTrigger().getRunAsUser())) {
             runAsUser = pipeline.getTrigger().getRunAsUser().trim();
           }
-          allowedAccounts = getAllowedAccountsForUser(runAsUser);
         }
 
-        response =
-            AuthenticatedRequest.runAs(
-                    runAsUser, allowedAccounts, () -> triggerWithRetries(pipeline))
-                .call();
+        response = AuthenticatedRequest.runAs(runAsUser, () -> triggerWithRetries(pipeline)).call();
       }
 
       log.info("Successfully triggered {}: execution id: {}", pipeline, response.getRef());
@@ -306,37 +290,6 @@ public class PipelineInitiator {
       } catch (InterruptedException ignored) {
       }
     }
-  }
-
-  /**
-   * The set of accounts that a user has WRITE access to.
-   *
-   * <p>Similar filtering can be found in `gate` (see AllowedAccountsSupport.java).
-   *
-   * @param user A service account name (or 'anonymous' if not specified)
-   * @return the allowed accounts for {@param user} as determined by fiat
-   */
-  private Set<String> getAllowedAccountsForUser(String user) {
-    if (fiatPermissionEvaluator == null || !fiatStatus.isLegacyFallbackEnabled()) {
-      return Collections.emptySet();
-    }
-
-    UserPermission.View userPermission = null;
-    try {
-      userPermission =
-          AuthenticatedRequest.allowAnonymous(() -> fiatPermissionEvaluator.getPermission(user));
-    } catch (Exception e) {
-      log.error("Unable to fetch permission for {}", user, e);
-    }
-
-    if (userPermission == null) {
-      return Collections.emptySet();
-    }
-
-    return userPermission.getAccounts().stream()
-        .filter(v -> v.getAuthorizations().contains(Authorization.WRITE))
-        .map(Account.View::getName)
-        .collect(Collectors.toSet());
   }
 
   private void logOrcaErrorMetric(String exceptionName, String triggerSource, String triggerType) {

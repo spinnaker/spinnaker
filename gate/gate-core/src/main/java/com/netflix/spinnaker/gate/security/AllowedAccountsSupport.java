@@ -45,20 +45,6 @@ public class AllowedAccountsSupport {
         return new ArrayList<>();
       }
 
-      if (permission.isLegacyFallback()) {
-        // fetch allowed accounts as if fiat were not enabled (ie. check available roles against
-        // clouddriver directly)
-        Collection<String> allowedAccounts = credentialsService.getAccountNames(roles, true);
-
-        log.warn(
-            "Unable to fetch fiat permissions, will fallback to legacy account permissions (user: {}, roles: {}, allowedAccounts: {})",
-            username,
-            roles,
-            allowedAccounts);
-
-        return allowedAccounts;
-      }
-
       return permission.getAccounts().stream()
           .filter(v -> v.getAuthorizations().contains(Authorization.WRITE))
           .map(Account.View::getName)

@@ -31,8 +31,6 @@ public class FiatClientConfigurationProperties {
 
   private String baseUrl;
 
-  private boolean legacyFallback = false;
-
   private boolean refreshable = true;
 
   private Integer connectTimeoutMs;
