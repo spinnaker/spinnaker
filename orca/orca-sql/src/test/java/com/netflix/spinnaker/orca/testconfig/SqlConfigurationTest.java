@@ -19,6 +19,7 @@ package com.netflix.spinnaker.orca.testconfig;
 import static org.assertj.core.api.Assertions.assertThat;
 
 import com.netflix.spinnaker.config.SqlConfiguration;
+import com.netflix.spinnaker.config.SqlMigrationConfiguration;
 import com.netflix.spinnaker.kork.sql.test.SqlTestUtil;
 import com.netflix.spinnaker.orca.test.Retrofit2TestConfig;
 import javax.sql.DataSource;
@@ -37,12 +38,12 @@ class SqlConfigurationTest {
   //
   // org.springframework.beans.factory.support.BeanDefinitionOverrideException:
   // Invalid bean definition with name 'liquibase' defined in
-  // com.netflix.spinnaker.config.SqlConfiguration: Cannot register bean
+  // com.netflix.spinnaker.config.SqlMigrationConfiguration: Cannot register bean
   // definition [Root bean: class [null]; scope=; abstract=false; lazyInit=null;
   // autowireMode=3; dependencyCheck=0; autowireCandidate=true; primary=false;
-  // factoryBeanName=sqlConfiguration; factoryMethodName=liquibase;
+  // factoryBeanName=sqlMigrationConfiguration; factoryMethodName=liquibase;
   // initMethodName=null; destroyMethodName=(inferred); defined in
-  // com.netflix.spinnaker.config.SqlConfiguration] for bean 'liquibase': There
+  // com.netflix.spinnaker.config.SqlMigrationConfiguration] for bean 'liquibase': There
   // is already [Root bean: class [null]; scope=; abstract=false; lazyInit=null;
   // autowireMode=3; dependencyCheck=0; autowireCandidate=true; primary=false;
   // factoryBeanName=com.netflix.spinnaker.kork.sql.config.DefaultSqlConfiguration;
@@ -68,7 +69,10 @@ class SqlConfigurationTest {
               "sql.migration.jdbcUrl=" + SqlTestUtil.tcJdbcUrl)
           .withAllowBeanDefinitionOverriding(true)
           .withConfiguration(
-              UserConfigurations.of(SqlConfiguration.class, Retrofit2TestConfig.class));
+              UserConfigurations.of(
+                  SqlConfiguration.class,
+                  SqlMigrationConfiguration.class,
+                  Retrofit2TestConfig.class));
 
   @BeforeEach
   void init(TestInfo testInfo) {

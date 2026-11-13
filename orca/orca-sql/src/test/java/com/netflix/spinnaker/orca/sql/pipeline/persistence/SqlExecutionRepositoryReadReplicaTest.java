@@ -21,6 +21,7 @@ import static org.assertj.core.api.AssertionsForClassTypes.assertThat;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.netflix.spinnaker.config.SqlConfiguration;
+import com.netflix.spinnaker.config.SqlMigrationConfiguration;
 import com.netflix.spinnaker.config.okhttp3.OkHttpClientProvider;
 import com.netflix.spinnaker.kork.sql.test.SqlTestUtil;
 import com.netflix.spinnaker.orca.api.pipeline.models.ExecutionType;
@@ -50,6 +51,7 @@ import org.springframework.test.context.bean.override.mockito.MockitoBean;
 @SpringBootTest(
     classes = {
       SqlConfiguration.class,
+      SqlMigrationConfiguration.class,
       SqlExecutionRepositoryReadReplicaTest.SqlExecutionRepositoryReadReplicaTestConfiguration.class
     })
 @TestPropertySource(
