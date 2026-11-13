@@ -34,4 +34,5 @@ dependencies {
   testImplementation(project(":orca-test-kotlin"))
   testImplementation("org.wiremock:wiremock")
   testImplementation("com.squareup.retrofit2:retrofit-mock")
+  testImplementation("org.springframework.boot:spring-boot-starter-test")
 }
