@@ -18,14 +18,9 @@
 package com.netflix.spinnaker.kork.web.context;
 
 import com.netflix.spinnaker.kork.common.Header;
-import java.util.Collection;
 import java.util.Optional;
 
 public interface RequestContext {
-  default Optional<String> getAccounts() {
-    return get(Header.ACCOUNTS);
-  }
-
   default Optional<String> getUser() {
     return get(Header.USER);
   }
@@ -63,14 +58,6 @@ public interface RequestContext {
   }
 
   // setters
-  default void setAccounts(Collection<String> accounts) {
-    setAccounts(String.join(",", accounts));
-  }
-
-  default void setAccounts(String value) {
-    set(Header.ACCOUNTS, value);
-  }
-
   default void setUser(String value) {
     set(Header.USER, value);
   }

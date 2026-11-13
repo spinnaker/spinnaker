@@ -75,7 +75,7 @@ class DataControllerSpec extends Specification {
 
   def "should ignore the accounts header when fetching static data"() {
     given:
-    AuthenticatedRequest.setAccounts("restricted")
+    AuthenticatedRequest.set("X-SPINNAKER-ACCOUNTS", "restricted")
 
     when:
     dataController.getStaticData("restricted", [:])

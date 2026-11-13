@@ -22,7 +22,6 @@ import static com.github.tomakehurst.wiremock.client.WireMock.getRequestedFor;
 import static com.github.tomakehurst.wiremock.client.WireMock.ok;
 import static com.github.tomakehurst.wiremock.client.WireMock.urlPathEqualTo;
 import static com.github.tomakehurst.wiremock.core.WireMockConfiguration.wireMockConfig;
-import static org.assertj.core.api.Assertions.assertThat;
 
 import com.github.tomakehurst.wiremock.junit5.WireMockExtension;
 import com.github.tomakehurst.wiremock.matching.RequestPatternBuilder;
@@ -49,18 +48,10 @@ class SpinnakerRequestHeaderInterceptorTest {
 
   public static final String TEST_USER = "some-user";
 
-  public static final String TEST_ACCOUNTS = "some-accounts";
-
   public static final String TEST_REQUEST_ID = "some-request-id";
 
   public static final Map<Header, String> TEST_SPINNAKER_HEADERS =
-      Map.of(
-          Header.USER,
-          TEST_USER,
-          Header.ACCOUNTS,
-          TEST_ACCOUNTS,
-          Header.REQUEST_ID,
-          TEST_REQUEST_ID);
+      Map.of(Header.USER, TEST_USER, Header.REQUEST_ID, TEST_REQUEST_ID);
 
   /**
    * Use this instead of annotating the class with @WireMockTest so there's a WireMock object
@@ -115,35 +106,28 @@ class SpinnakerRequestHeaderInterceptorTest {
   }
 
   @Test
-  void skipAccountHeaders() throws Exception {
+  void accountsHeaderIsNeverPropagated() throws Exception {
     SpinnakerRequestHeaderInterceptor spinnakerRequestHeaderInterceptor =
         new SpinnakerRequestHeaderInterceptor(
-            true /* propagateSpinnakerHeaders */,
-            true /* skipAccountsHeader */,
-            Collections.emptyList() /* additionalHeaders */);
+            true /* propagateSpinnakerHeaders */, Collections.emptyList() /* additionalHeaders */);
 
     RetrofitService retrofitService =
         makeRetrofitService(wireMock.baseUrl(), spinnakerRequestHeaderInterceptor);
 
-    // Add some spinnaker headers to the MDC, including the accounts header
-    assertThat(TEST_SPINNAKER_HEADERS).containsKey(Header.ACCOUNTS);
+    // Add some spinnaker headers to the MDC, including the (retired) accounts header
     TEST_SPINNAKER_HEADERS.forEach(AuthenticatedRequest::set);
+    AuthenticatedRequest.set(Header.ACCOUNTS, "some-accounts");
 
     // Make a request
     retrofitService.getRequest().execute();
 
-    // Verify that wiremock received all spinnaker headers except the accounts header
+    // Verify that wiremock received all the other spinnaker headers, but not the accounts header
+    RequestPatternBuilder requestPatternBuilder = getRequestedFor(urlPathEqualTo(REQUEST_PATH));
     TEST_SPINNAKER_HEADERS.forEach(
-        (Header header, String value) -> {
-          RequestPatternBuilder requestPatternBuilder =
-              getRequestedFor(urlPathEqualTo(REQUEST_PATH));
-          if (Header.ACCOUNTS.equals(header)) {
-            requestPatternBuilder.withoutHeader(header.getHeader());
-          } else {
-            requestPatternBuilder.withHeader(header.getHeader(), equalTo(value));
-          }
-          wireMock.verify(requestPatternBuilder);
-        });
+        (Header header, String value) ->
+            requestPatternBuilder.withHeader(header.getHeader(), equalTo(value)));
+    requestPatternBuilder.withoutHeader(Header.ACCOUNTS.getHeader());
+    wireMock.verify(requestPatternBuilder);
   }
 
   @ParameterizedTest(name = "additionalHeaders: propagateSpinnakerHeaders = {0}")
