@@ -65,7 +65,9 @@ public class CustomResourceStatusEvaluator {
 
   /** An evaluator that reports every resource as stable. */
   public static CustomResourceStatusEvaluator disabled() {
-    return new CustomResourceStatusEvaluator(new KubernetesConfigurationProperties());
+    KubernetesConfigurationProperties properties = new KubernetesConfigurationProperties();
+    properties.getCustomResourceStatus().setEnabled(false);
+    return new CustomResourceStatusEvaluator(properties);
   }
 
   public Status status(KubernetesManifest manifest) {
