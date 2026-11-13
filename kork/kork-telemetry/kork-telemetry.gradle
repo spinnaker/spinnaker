@@ -9,7 +9,12 @@ dependencies {
   api "com.github.ben-manes.caffeine:guava"
 
   testImplementation "com.hubspot.jinjava:jinjava"
+  testImplementation "com.netflix.spectator:spectator-reg-micrometer"
+  testImplementation "io.micrometer:micrometer-core"
+  testImplementation "org.assertj:assertj-core"
+  testImplementation "org.junit.jupiter:junit-jupiter-api"
   testImplementation "org.spockframework:spock-core"
+  testRuntimeOnly "org.junit.jupiter:junit-jupiter-engine"
   testRuntimeOnly "cglib:cglib-nodep"
   testRuntimeOnly "org.objenesis:objenesis"
 }

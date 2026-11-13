@@ -29,6 +29,8 @@ dependencies {
   implementation(project(":keel-ec2-api"))  // needed for resource dependency logic
 
   testImplementation(project(":keel-test"))
+  testImplementation("com.netflix.spectator:spectator-reg-micrometer")
+  testImplementation("io.micrometer:micrometer-core")
   testImplementation(project(":keel-core-test"))
   testImplementation(project(":keel-ec2-api"))  // needed for resource dependency logic
   testImplementation("io.strikt:strikt-jackson")
