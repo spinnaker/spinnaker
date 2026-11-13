@@ -15,6 +15,7 @@
  */
 package com.netflix.spinnaker.clouddriver.aws.deploy.ops
 
+import software.amazon.awssdk.services.autoscaling.model.TerminateInstanceInAutoScalingGroupRequest
 import software.amazon.awssdk.services.ec2.model.TerminateInstancesRequest
 import com.netflix.spinnaker.clouddriver.aws.security.AmazonClientProvider
 import com.netflix.spinnaker.clouddriver.data.task.Task
@@ -42,9 +43,30 @@ class TerminateInstancesAtomicOperation implements AtomicOperation<Void> {
   @Override
   Void operate(List priorOutputs) {
     task.updateStatus BASE_PHASE, "Initializing termination of instances (${description.instanceIds.join(", ")})."
-    def amazonEC2 = amazonClientProvider.getAmazonEC2V2(description.credentials, description.region)
-    amazonEC2.terminateInstances(TerminateInstancesRequest.builder().instanceIds(description.instanceIds).build())
+    if (description.terminateInAutoScalingGroup) {
+      terminateInAutoScalingGroups()
+    } else {
+      def amazonEC2 = amazonClientProvider.getAmazonEC2V2(description.credentials, description.region)
+      amazonEC2.terminateInstances(TerminateInstancesRequest.builder().instanceIds(description.instanceIds).build())
+    }
     task.updateStatus BASE_PHASE, "Done executing termination of instances (${description.instanceIds.join(", ")})."
     null
+  }
+
+  /**
+   * Unlike an EC2 termination, terminating an instance through its Auto Scaling group runs the group's
+   * termination lifecycle hooks. Keeping the desired capacity makes the group launch a replacement.
+   */
+  private void terminateInAutoScalingGroups() {
+    def autoScaling = amazonClientProvider.getAutoScalingV2(description.credentials, description.region)
+    for (String instanceId : description.instanceIds) {
+      task.updateStatus BASE_PHASE, "Terminating $instanceId in its Auto Scaling group without decrementing the desired capacity."
+      autoScaling.terminateInstanceInAutoScalingGroup(
+        TerminateInstanceInAutoScalingGroupRequest.builder()
+          .instanceId(instanceId)
+          .shouldDecrementDesiredCapacity(false)
+          .build()
+      )
+    }
   }
 }
