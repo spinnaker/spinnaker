@@ -14,6 +14,8 @@
  * limitations under the License.
  */
 package com.netflix.spinnaker.clouddriver.aws.deploy.ops
+import software.amazon.awssdk.services.autoscaling.AutoScalingClient
+import software.amazon.awssdk.services.autoscaling.model.TerminateInstanceInAutoScalingGroupRequest
 import software.amazon.awssdk.services.ec2.Ec2Client
 import software.amazon.awssdk.services.ec2.model.TerminateInstancesRequest
 import com.netflix.spinnaker.clouddriver.aws.security.AmazonClientProvider
@@ -30,8 +32,10 @@ class TerminateInstancesAtomicOperationUnitSpec extends Specification {
   }
 
   def mockAmazonEC2 = Mock(Ec2Client)
+  def mockAutoScaling = Mock(AutoScalingClient)
   def mockAmazonClientProvider = Mock(AmazonClientProvider) {
     getAmazonEC2V2(_, _) >> mockAmazonEC2
+    getAutoScalingV2(_, _) >> mockAutoScaling
   }
 
   void "should terminate instances"() {
@@ -48,5 +52,30 @@ class TerminateInstancesAtomicOperationUnitSpec extends Specification {
       0 * _
       1 * terminateInstances(TerminateInstancesRequest.builder().instanceIds(["i-123", "i-456"]).build())
     }
+    0 * mockAutoScaling._
+  }
+
+  void "should terminate instances in their auto scaling groups without decrementing the desired capacity"() {
+    def description = new TerminateInstancesDescription(
+      region: "us-west-1", instanceIds: ["i-123", "i-456"], terminateInAutoScalingGroup: true
+    )
+    description.credentials = TestCredential.named('baz')
+    @Subject def operation = new TerminateInstancesAtomicOperation(description)
+    operation.amazonClientProvider = mockAmazonClientProvider
+
+    when:
+    operation.operate([])
+
+    then:
+    1 * mockAutoScaling.terminateInstanceInAutoScalingGroup(
+      TerminateInstanceInAutoScalingGroupRequest.builder().instanceId("i-123").shouldDecrementDesiredCapacity(false).build()
+    )
+
+    then:
+    1 * mockAutoScaling.terminateInstanceInAutoScalingGroup(
+      TerminateInstanceInAutoScalingGroupRequest.builder().instanceId("i-456").shouldDecrementDesiredCapacity(false).build()
+    )
+    0 * mockAutoScaling._
+    0 * mockAmazonEC2._
   }
 }
