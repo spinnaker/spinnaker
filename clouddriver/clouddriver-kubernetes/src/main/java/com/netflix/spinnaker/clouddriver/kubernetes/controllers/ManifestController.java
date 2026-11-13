@@ -104,7 +104,7 @@ public class ManifestController {
   @RequestMapping(
       value = "/{account:.+}/{location:.+}/{kinds:.+}/labels",
       method = RequestMethod.GET)
-  List<KubernetesManifest> getForAccountLocationByKindsAndLabels(
+  List<? extends Manifest> getForAccountLocationByKindsAndLabels(
       @PathVariable String account,
       @PathVariable String location,
       @PathVariable String kinds,
@@ -112,11 +112,11 @@ public class ManifestController {
 
     // Split the comma separated kinds string into a list
     List<String> kindsList = Arrays.asList(kinds.split(","));
-    List<KubernetesManifest> manifests;
     String request =
         String.format(
             "(account: %s, kinds: %s location: %s, label selectors: %s)",
             account, kindsList, location, labels);
+    List<? extends Manifest> manifests;
     try {
       manifests =
           requestQueue.execute(

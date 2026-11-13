@@ -167,10 +167,10 @@ public class KubernetesManifestProvider {
    * @param location kubernetes namespace
    * @param kinds kubernetes kinds
    * @param labelSelectors label selectors, can be null
-   * @return a list of KubernetesManifest objects
+   * @return a list of KubernetesManifestContainer objects
    */
   @Nullable
-  public List<KubernetesManifest> getManifestsByKindsAndLabels(
+  public List<KubernetesManifestContainer> getManifestsByKindsAndLabels(
       String account, String location, List<String> kinds, Map<String, String> labelSelectors) {
     Optional<KubernetesCredentials> optionalCredentials = accountResolver.getCredentials(account);
     if (optionalCredentials.isEmpty()) {
@@ -180,8 +180,16 @@ public class KubernetesManifestProvider {
 
     List<KubernetesKind> kubernetesKinds = kinds.stream().map(KubernetesKind::fromString).toList();
 
-    return credentials.list(
-        kubernetesKinds, location, KubernetesSelectorList.fromMatchLabels(labelSelectors));
+    List<KubernetesManifest> manifests =
+        credentials.list(
+            kubernetesKinds, location, KubernetesSelectorList.fromMatchLabels(labelSelectors));
+
+    return manifests.stream()
+        .map(
+            m ->
+                KubernetesManifestContainerBuilder.buildManifest(
+                    credentials, m, List.of(), List.of()))
+        .toList();
   }
 
   public enum Sort {

@@ -19,13 +19,17 @@ package com.netflix.spinnaker.clouddriver.kubernetes.caching.view.provider;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
-import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 import com.google.common.collect.ImmutableList;
+import com.netflix.spinnaker.clouddriver.kubernetes.caching.view.model.KubernetesManifestContainer;
+import com.netflix.spinnaker.clouddriver.kubernetes.description.KubernetesResourceProperties;
+import com.netflix.spinnaker.clouddriver.kubernetes.description.ResourcePropertyRegistry;
+import com.netflix.spinnaker.clouddriver.kubernetes.description.manifest.KubernetesApiVersion;
 import com.netflix.spinnaker.clouddriver.kubernetes.description.manifest.KubernetesKind;
 import com.netflix.spinnaker.clouddriver.kubernetes.description.manifest.KubernetesManifest;
+import com.netflix.spinnaker.clouddriver.kubernetes.op.handler.KubernetesDeploymentHandler;
 import com.netflix.spinnaker.clouddriver.kubernetes.security.KubernetesCredentials;
 import com.netflix.spinnaker.clouddriver.kubernetes.security.KubernetesSelectorList;
 import java.util.HashMap;
@@ -43,6 +47,7 @@ class KubernetesManifestProviderTest {
 
   @Mock private KubernetesAccountResolver accountResolver;
   @Mock private KubernetesCredentials credentials;
+  @Mock private ResourcePropertyRegistry resourcePropertyRegistry;
 
   private KubernetesManifestProvider manifestProvider;
 
@@ -61,8 +66,8 @@ class KubernetesManifestProviderTest {
     labelSelectors.put("app", "test-app");
     labelSelectors.put("env", "prod");
 
-    KubernetesManifest manifest1 = mock(KubernetesManifest.class);
-    KubernetesManifest manifest2 = mock(KubernetesManifest.class);
+    KubernetesManifest manifest1 = deploymentManifest("manifest-1");
+    KubernetesManifest manifest2 = deploymentManifest("manifest-2");
     ImmutableList<KubernetesManifest> expectedManifests = ImmutableList.of(manifest1, manifest2);
 
     when(accountResolver.getCredentials(account)).thenReturn(Optional.of(credentials));
@@ -71,19 +76,38 @@ class KubernetesManifestProviderTest {
             eq(location),
             any(KubernetesSelectorList.class)))
         .thenReturn(expectedManifests);
+    when(credentials.getResourcePropertyRegistry()).thenReturn(resourcePropertyRegistry);
+    when(resourcePropertyRegistry.get(any()))
+        .thenReturn(new KubernetesResourceProperties(new KubernetesDeploymentHandler(), false));
 
     // when
-    List<KubernetesManifest> result =
+    List<KubernetesManifestContainer> result =
         manifestProvider.getManifestsByKindsAndLabels(
             account, location, List.of(kind), labelSelectors);
 
     // then
     assertThat(result).isNotNull();
-    assertThat(result).isEqualTo(expectedManifests);
+    assertThat(result.size()).isEqualTo(2);
+
+    List<KubernetesManifest> resultManifests =
+        result.stream().map(KubernetesManifestContainer::getManifest).toList();
+
+    assertThat(resultManifests).isEqualTo(expectedManifests);
     verify(credentials)
         .list(
             eq(List.of(KubernetesKind.fromString(kind))),
             eq(location),
             any(KubernetesSelectorList.class));
+  }
+
+  /** A test Deployment manifest */
+  private static KubernetesManifest deploymentManifest(String deploymentName) {
+    KubernetesManifest deployment = new KubernetesManifest();
+    deployment.put("metadata", new HashMap<>());
+    deployment.setNamespace("test-namespace");
+    deployment.setKind(KubernetesKind.DEPLOYMENT);
+    deployment.setApiVersion(KubernetesApiVersion.APPS_V1);
+    deployment.setName(deploymentName);
+    return deployment;
   }
 }
