@@ -23,6 +23,7 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import org.springaicommunity.mcp.annotation.McpTool;
+import org.springaicommunity.mcp.annotation.McpTool.McpAnnotations;
 import org.springaicommunity.mcp.annotation.McpToolParam;
 
 /**
@@ -48,7 +49,9 @@ public class DeploymentTools {
 
   @McpTool(
       name = "get_clusters",
-      description = "List an application's clusters, grouped by account.")
+      description = "List an application's clusters, grouped by account.",
+      annotations =
+          @McpAnnotations(readOnlyHint = true, destructiveHint = false, idempotentHint = true))
   @SuppressWarnings("unchecked")
   public Map<String, Object> getClusters(
       @McpToolParam(description = "Application name", required = true) String application) {
@@ -58,7 +61,9 @@ public class DeploymentTools {
   @McpTool(
       name = "get_server_groups",
       description =
-          "List an application's server groups, optionally filtered by cloud provider or cluster name.")
+          "List an application's server groups, optionally filtered by cloud provider or cluster name.",
+      annotations =
+          @McpAnnotations(readOnlyHint = true, destructiveHint = false, idempotentHint = true))
   public List<Object> getServerGroups(
       @McpToolParam(description = "Application name", required = true) String application,
       @McpToolParam(
@@ -77,7 +82,9 @@ public class DeploymentTools {
 
   @McpTool(
       name = "get_load_balancers",
-      description = "List all load balancers known to clouddriver for a given cloud provider.")
+      description = "List all load balancers known to clouddriver for a given cloud provider.",
+      annotations =
+          @McpAnnotations(readOnlyHint = true, destructiveHint = false, idempotentHint = true))
   public List<Map> getLoadBalancers(
       @McpToolParam(
               description = "Cloud provider, e.g. 'aws' or 'kubernetes'. Defaults to 'aws'.",
