@@ -23,6 +23,7 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import org.springaicommunity.mcp.annotation.McpTool;
+import org.springaicommunity.mcp.annotation.McpTool.McpAnnotations;
 import org.springaicommunity.mcp.annotation.McpToolParam;
 
 /**
@@ -50,7 +51,9 @@ public class KayentaTools {
 
   @McpTool(
       name = "list_canary_configs",
-      description = "List canary configs, optionally filtered by application.")
+      description = "List canary configs, optionally filtered by application.",
+      annotations =
+          @McpAnnotations(readOnlyHint = true, destructiveHint = false, idempotentHint = true))
   public List<Object> listCanaryConfigs(
       @McpToolParam(
               description = "Only include canary configs for this application",
@@ -62,7 +65,11 @@ public class KayentaTools {
         kayentaService.getCanaryConfigs(application, configurationAccountName));
   }
 
-  @McpTool(name = "get_canary_config", description = "Retrieve a single canary config by id.")
+  @McpTool(
+      name = "get_canary_config",
+      description = "Retrieve a single canary config by id.",
+      annotations =
+          @McpAnnotations(readOnlyHint = true, destructiveHint = false, idempotentHint = true))
   public Map<String, Object> getCanaryConfig(
       @McpToolParam(description = "Canary config id", required = true) String id,
       @McpToolParam(description = "Kayenta configuration storage account name", required = false)
@@ -105,7 +112,11 @@ public class KayentaTools {
     Retrofit2SyncCall.execute(kayentaService.deleteCanaryConfig(id, configurationAccountName));
   }
 
-  @McpTool(name = "list_canary_judges", description = "List all configured canary judges.")
+  @McpTool(
+      name = "list_canary_judges",
+      description = "List all configured canary judges.",
+      annotations =
+          @McpAnnotations(readOnlyHint = true, destructiveHint = false, idempotentHint = true))
   public List<Object> listCanaryJudges() {
     return Retrofit2SyncCall.execute(kayentaService.listJudges());
   }
@@ -113,7 +124,9 @@ public class KayentaTools {
   @McpTool(
       name = "list_canary_metrics_metadata",
       description =
-          "List metric descriptors available from a metrics source, for populating a canary config's metric list.")
+          "List metric descriptors available from a metrics source, for populating a canary config's metric list.",
+      annotations =
+          @McpAnnotations(readOnlyHint = true, destructiveHint = false, idempotentHint = true))
   public List<Object> listCanaryMetricsMetadata(
       @McpToolParam(
               description = "Filter string applied to the metric name/descriptor list",
@@ -130,7 +143,9 @@ public class KayentaTools {
       description =
           "Synchronously run a single metric query against a metrics source and return the results, without saving "
               + "anything - the same 'Test Query' feature in Deck's canary config editor. Use this to validate a "
-              + "metricName/query template resolves to real data before adding it to a canary config.")
+              + "metricName/query template resolves to real data before adding it to a canary config.",
+      annotations =
+          @McpAnnotations(readOnlyHint = true, destructiveHint = false, idempotentHint = true))
   public Map<String, Object> testCanaryMetricQuery(
       @McpToolParam(
               description =
@@ -245,7 +260,9 @@ public class KayentaTools {
 
   @McpTool(
       name = "get_canary_result",
-      description = "Retrieve a canary judgement execution's result.")
+      description = "Retrieve a canary judgement execution's result.",
+      annotations =
+          @McpAnnotations(readOnlyHint = true, destructiveHint = false, idempotentHint = true))
   public Map<String, Object> getCanaryResult(
       @McpToolParam(description = "Canary execution id", required = true) String canaryExecutionId,
       @McpToolParam(description = "Kayenta storage account name", required = false)
@@ -256,7 +273,9 @@ public class KayentaTools {
 
   @McpTool(
       name = "list_canary_results_by_application",
-      description = "List canary judgement executions for an application, most recent first.")
+      description = "List canary judgement executions for an application, most recent first.",
+      annotations =
+          @McpAnnotations(readOnlyHint = true, destructiveHint = false, idempotentHint = true))
   public List<Object> listCanaryResultsByApplication(
       @McpToolParam(description = "Application name", required = true) String application,
       @McpToolParam(description = "Maximum number of results to return", required = false)
@@ -282,7 +301,9 @@ public class KayentaTools {
       name = "get_canary_metric_set_pair_list",
       description =
           "Retrieve the metric set pair list for a canary result - the per-metric experiment/control data points "
-              + "used to compute the judgement.")
+              + "used to compute the judgement.",
+      annotations =
+          @McpAnnotations(readOnlyHint = true, destructiveHint = false, idempotentHint = true))
   public List<Object> getCanaryMetricSetPairList(
       @McpToolParam(description = "Metric set pair list id, from a canary result", required = true)
           String metricSetPairListId,

@@ -28,6 +28,7 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import org.springaicommunity.mcp.annotation.McpTool;
+import org.springaicommunity.mcp.annotation.McpTool.McpAnnotations;
 import org.springaicommunity.mcp.annotation.McpToolParam;
 
 /**
@@ -83,7 +84,11 @@ public class PipelineTools {
         orcaServiceSelector.select().startPipeline(pipelineConfig, user));
   }
 
-  @McpTool(name = "get_pipeline_execution", description = "Retrieve a pipeline execution by id.")
+  @McpTool(
+      name = "get_pipeline_execution",
+      description = "Retrieve a pipeline execution by id.",
+      annotations =
+          @McpAnnotations(readOnlyHint = true, destructiveHint = false, idempotentHint = true))
   public Map<String, Object> getPipelineExecution(
       @McpToolParam(description = "Pipeline execution id", required = true) String executionId) {
     return Retrofit2SyncCall.execute(orcaServiceSelector.select().getPipeline(executionId));
@@ -126,7 +131,9 @@ public class PipelineTools {
               + "context - the same evaluation Deck's expression debugger uses. If 'executionId' is omitted, "
               + "evaluates against the most recent execution for 'application' (optionally narrowed to a single "
               + "pipeline with 'pipelineName'). Pass 'stageId' to evaluate in a specific stage's context instead of "
-              + "the whole execution.")
+              + "the whole execution.",
+      annotations =
+          @McpAnnotations(readOnlyHint = true, destructiveHint = false, idempotentHint = true))
   public Map<String, Object> evaluatePipelineExpression(
       @McpToolParam(description = "SpEL expression to evaluate", required = true) String expression,
       @McpToolParam(

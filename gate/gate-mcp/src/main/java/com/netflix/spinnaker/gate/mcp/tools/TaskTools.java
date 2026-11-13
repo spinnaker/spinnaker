@@ -24,6 +24,7 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import org.springaicommunity.mcp.annotation.McpTool;
+import org.springaicommunity.mcp.annotation.McpTool.McpAnnotations;
 import org.springaicommunity.mcp.annotation.McpToolParam;
 
 /**
@@ -52,7 +53,9 @@ public class TaskTools {
       description =
           "Search/list an application's tasks (ad-hoc orchestrations such as application create/delete, deploys "
               + "submitted outside of a pipeline, etc.), most recent first. Use this to find a task you created "
-              + "earlier with create_task/submit_orchestration, or to audit recent ad-hoc activity for an application.")
+              + "earlier with create_task/submit_orchestration, or to audit recent ad-hoc activity for an application.",
+      annotations =
+          @McpAnnotations(readOnlyHint = true, destructiveHint = false, idempotentHint = true))
   public List<Map<String, Object>> searchApplicationTasks(
       @McpToolParam(description = "Application name", required = true) String application,
       @McpToolParam(
@@ -67,7 +70,11 @@ public class TaskTools {
         orcaServiceSelector.select().getTasks(application, page, limit, statuses));
   }
 
-  @McpTool(name = "get_task", description = "Retrieve an Orca task by id.")
+  @McpTool(
+      name = "get_task",
+      description = "Retrieve an Orca task by id.",
+      annotations =
+          @McpAnnotations(readOnlyHint = true, destructiveHint = false, idempotentHint = true))
   public Map<String, Object> getTask(
       @McpToolParam(description = "Task id", required = true) String taskId) {
     return taskService.getTask(taskId);
