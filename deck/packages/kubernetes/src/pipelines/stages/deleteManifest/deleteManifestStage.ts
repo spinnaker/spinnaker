@@ -1,7 +1,10 @@
+import React from 'react';
+
 import type { IStage } from '@spinnaker/core';
 import { ExecutionDetailsTasks, Registry } from '@spinnaker/core';
 
 import { DeleteManifestStageConfig } from './DeleteManifestStageConfig';
+import { DeletedManifests } from './DeletedManifests';
 import { manifestExecutionDetails } from '../ManifestExecutionDetails';
 import { manifestSelectorValidators } from '../validators/manifestSelectorValidators';
 
@@ -14,7 +17,10 @@ Registry.pipeline.registerStage({
   key: STAGE_KEY,
   cloudProvider: 'kubernetes',
   component: DeleteManifestStageConfig,
-  executionDetailsSections: [manifestExecutionDetails(STAGE_KEY), ExecutionDetailsTasks],
+  executionDetailsSections: [
+    manifestExecutionDetails(STAGE_KEY, (stage) => React.createElement(DeletedManifests, { stage })),
+    ExecutionDetailsTasks,
+  ],
   accountExtractor: (stage: IStage): string[] => (stage.context.account ? [stage.context.account] : []),
   configAccountExtractor: (stage: any): string[] => (stage.account ? [stage.account] : []),
   validators: manifestSelectorValidators(STAGE_NAME),
