@@ -131,7 +131,7 @@ class SqlConfiguration {
       InstrumentedProxy.proxy(registry, it, "sql.executions", mapOf(Pair("repository", "secondary"))) as ExecutionRepository
     }
 
-  @ConditionalOnProperty("monitor.active-executions.redis", havingValue = "false")
+  @ConditionalOnProperty("execution-repository.sql.enabled")
   @Bean
   fun sqlActiveExecutionsMonitor(
     @Qualifier("sqlExecutionRepository") executionRepository: ExecutionStatisticsRepository,
