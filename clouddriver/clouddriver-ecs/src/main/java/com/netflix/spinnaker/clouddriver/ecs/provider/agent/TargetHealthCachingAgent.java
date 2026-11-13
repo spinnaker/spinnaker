@@ -31,6 +31,7 @@ import com.netflix.spinnaker.clouddriver.ecs.cache.client.EcsTargetGroupCacheCli
 import com.netflix.spinnaker.clouddriver.ecs.cache.model.EcsTargetHealth;
 import com.netflix.spinnaker.clouddriver.ecs.model.loadbalancer.EcsTargetGroup;
 import com.netflix.spinnaker.clouddriver.ecs.provider.EcsProvider;
+import com.netflix.spinnaker.clouddriver.ecs.security.NetflixAssumeRoleEcsCredentials;
 import java.util.*;
 import java.util.stream.Collectors;
 import org.slf4j.Logger;
@@ -103,9 +104,15 @@ public class TargetHealthCachingAgent extends AbstractEcsAwsAwareCachingAgent<Ec
   }
 
   protected Set<String> fetchTargetGroups(EcsTargetGroupCacheClient cacheClient) {
+    // Target groups are cached under the AWS account backing this ECS account. Without it, fall
+    // back to every account in the region.
+    String awsAccount =
+        account instanceof NetflixAssumeRoleEcsCredentials
+            ? ((NetflixAssumeRoleEcsCredentials) account).getAwsAccount()
+            : null;
     String searchKey =
         com.netflix.spinnaker.clouddriver.aws.data.Keys.getTargetGroupKey(
-                "*", "*", region, "*", "*")
+                "*", awsAccount != null ? awsAccount : "*", region, "*", "*")
             + "*";
 
     Collection<String> targetGroupKeys =
@@ -115,7 +122,6 @@ public class TargetHealthCachingAgent extends AbstractEcsAwsAwareCachingAgent<Ec
       log.debug("Found " + targetGroupKeys.size() + " target group keys in " + getAgentType());
     }
 
-    // TODO: refine search key instead of filtering these cache results
     List<EcsTargetGroup> tgList =
         cacheClient.find(targetGroupKeys).stream()
             .filter(
