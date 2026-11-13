@@ -204,7 +204,7 @@ class DependentPipelineStarter implements ApplicationContextAware {
     }
 
     def pipeline = authenticationDetails?.user ?
-        AuthenticatedRequest.runAs(authenticationDetails.user, authenticationDetails.allowedAccounts, callable).call() :
+        AuthenticatedRequest.runAs(authenticationDetails.user, callable).call() :
         AuthenticatedRequest.propagate(callable).call()
 
     log.info('executing dependent pipeline {}', pipeline.id)

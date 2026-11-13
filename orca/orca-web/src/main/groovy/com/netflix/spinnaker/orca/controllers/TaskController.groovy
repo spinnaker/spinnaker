@@ -43,6 +43,7 @@ import com.netflix.spinnaker.orca.pipeline.model.StageExecutionImpl
 import com.netflix.spinnaker.orca.pipeline.persistence.ExecutionNotFoundException
 import com.netflix.spinnaker.orca.pipeline.persistence.ExecutionRepository
 import com.netflix.spinnaker.orca.pipeline.util.ContextParameterProcessor
+import com.netflix.spinnaker.orca.security.AllowedAccountsResolver
 import com.netflix.spinnaker.orca.util.ExpressionUtils
 import com.netflix.spinnaker.security.AuthenticatedRequest
 import groovy.transform.InheritConstructors
@@ -95,6 +96,7 @@ class TaskController {
   StageDefinitionBuilderFactory stageDefinitionBuilderFactory
   TaskControllerConfigurationProperties configurationProperties
   Clock clock
+  AllowedAccountsResolver allowedAccountsResolver
 
   TaskController(@Nullable Front50Service front50Service,
                  ExecutionRepository executionRepository,
@@ -106,7 +108,8 @@ class TaskController {
                  ObjectMapper mapper,
                  Registry registry,
                  StageDefinitionBuilderFactory stageDefinitionBuilderFactory,
-                 TaskControllerConfigurationProperties configurationProperties
+                 TaskControllerConfigurationProperties configurationProperties,
+                 AllowedAccountsResolver allowedAccountsResolver
   ) {
     this.front50Service = front50Service
     this.executionRepository = executionRepository
@@ -119,6 +122,7 @@ class TaskController {
     this.registry = registry
     this.stageDefinitionBuilderFactory = stageDefinitionBuilderFactory
     this.configurationProperties = configurationProperties
+    this.allowedAccountsResolver = allowedAccountsResolver
     this.clock = Clock.systemUTC()
   }
 
@@ -640,9 +644,10 @@ class TaskController {
         { stage ->
           stage.context.putAll(context)
           validateStageUpdate(stage)
+          def user = AuthenticatedRequest.getSpinnakerUser().orElse("anonymous")
           stage.lastModified = new StageExecution.LastModifiedDetails(
-              user: AuthenticatedRequest.getSpinnakerUser().orElse("anonymous"),
-              allowedAccounts: AuthenticatedRequest.getSpinnakerAccounts().orElse(null)?.split(",") ?: [],
+              user: user,
+              allowedAccounts: allowedAccountsResolver.resolve(user),
               lastModifiedTime: System.currentTimeMillis()
           )
 

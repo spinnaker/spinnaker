@@ -27,6 +27,7 @@ import javax.annotation.Nonnull
 import java.time.Clock
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.netflix.spinnaker.orca.pipeline.persistence.ExecutionRepository
+import com.netflix.spinnaker.orca.security.AllowedAccountsResolver
 import com.netflix.spinnaker.orca.test.TestConfiguration
 import org.springframework.context.annotation.AnnotationConfigApplicationContext
 import spock.lang.Shared
@@ -53,7 +54,8 @@ class PipelineExecutionLauncherSpec extends Specification {
       Optional.of(pipelineValidator),
       new NoopRegistry(),
       new ExecutionConfigurationProperties(),
-      providedIdRequestFilterConfigurationProperties
+      providedIdRequestFilterConfigurationProperties,
+      new AllowedAccountsResolver(Optional.empty(), Optional.empty(), new ExecutionConfigurationProperties())
     )
   }
 
@@ -78,6 +80,7 @@ class PipelineExecutionLauncherSpec extends Specification {
         registerSingleton("executionConfigurationProperties", new ExecutionConfigurationProperties())
         registerSingleton("registry", new NoopRegistry())
       }
+      register(AllowedAccountsResolver)
       register(ExecutionLauncher)
       refresh()
     }
@@ -107,6 +110,7 @@ class PipelineExecutionLauncherSpec extends Specification {
         registerSingleton("registry", new NoopRegistry())
         registerSingleton("providedIdRequestFilterConfigurationProperties", new ProvidedIdRequestFilterConfigurationProperties())
       }
+      register(AllowedAccountsResolver)
       register(ExecutionLauncher)
       refresh()
     }

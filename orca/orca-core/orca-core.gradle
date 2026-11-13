@@ -32,6 +32,8 @@ dependencies {
   api("io.reactivex.rxjava3:rxjava")
 
   api(project(":orca-api"))
+  implementation("io.spinnaker.fiat:fiat-api")
+  implementation("io.spinnaker.fiat:fiat-core")
   implementation("com.github.ben-manes.caffeine:guava")
   implementation("org.slf4j:slf4j-api")
   implementation("com.fasterxml.jackson.core:jackson-annotations")

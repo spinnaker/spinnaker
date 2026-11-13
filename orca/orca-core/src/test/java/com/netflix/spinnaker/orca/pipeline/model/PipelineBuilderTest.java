@@ -52,14 +52,15 @@ class PipelineBuilderTest {
   }
 
   @Test
-  void buildIncludesAllowedAccountsWhenTrue() {
+  void buildRecordsSuppliedAllowedAccounts() {
     // given
     MDC.put(Header.USER.getHeader(), "SpinnakerUser");
-    MDC.put(Header.ACCOUNTS.getHeader(), "Account1,Account2");
+    // accounts supplied on the request must never be trusted
+    MDC.put(Header.ACCOUNTS.getHeader(), "HeaderAccount");
 
     // when
     PipelineBuilder pipelineBuilder =
-        new PipelineBuilder("my-application").withIncludeAllowedAccounts(true);
+        new PipelineBuilder("my-application").withAllowedAccounts(Set.of("Account1", "Account2"));
     PipelineExecution execution = pipelineBuilder.build();
 
     // then
@@ -68,14 +69,14 @@ class PipelineBuilderTest {
   }
 
   @Test
-  void buildExcludesAllowedAccountsWhenFalse() {
+  void buildIgnoresAccountsHeader() {
     // given
     MDC.put(Header.USER.getHeader(), "SpinnakerUser");
-    MDC.put(Header.ACCOUNTS.getHeader(), "Account1,Account2");
+    // accounts supplied on the request must never be trusted
+    MDC.put(Header.ACCOUNTS.getHeader(), "HeaderAccount");
 
     // when
-    PipelineBuilder pipelineBuilder =
-        new PipelineBuilder("my-application").withIncludeAllowedAccounts(false);
+    PipelineBuilder pipelineBuilder = new PipelineBuilder("my-application");
     PipelineExecution execution = pipelineBuilder.build();
 
     // then

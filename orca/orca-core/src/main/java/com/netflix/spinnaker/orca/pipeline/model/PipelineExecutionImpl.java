@@ -37,6 +37,7 @@ import de.huxhorn.sulky.ulid.ULID;
 import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -521,25 +522,17 @@ public class PipelineExecutionImpl implements PipelineExecution, Serializable {
   }
 
   public static class AuthenticationHelper {
-    public static Optional<AuthenticationDetails> build() {
-      Optional<String> spinnakerUserOptional = AuthenticatedRequest.getSpinnakerUser();
-      Optional<String> spinnakerAccountsOptional = AuthenticatedRequest.getSpinnakerAccounts();
-      if (spinnakerUserOptional.isPresent() || spinnakerAccountsOptional.isPresent()) {
-        return Optional.of(
-            new AuthenticationDetails(
-                spinnakerUserOptional.orElse(null),
-                spinnakerAccountsOptional.map(s -> s.split(",")).orElse(new String[0])));
-      }
-
-      return Optional.empty();
+    /**
+     * Builds the details for the current user, recording the supplied accounts. The accounts must
+     * come from Fiat rather than from request headers.
+     */
+    public static Optional<AuthenticationDetails> build(Collection<String> allowedAccounts) {
+      return AuthenticatedRequest.getSpinnakerUser()
+          .map(user -> new AuthenticationDetails(user, allowedAccounts));
     }
 
     public static Optional<AuthenticationDetails> buildWithoutAccounts() {
-      Optional<String> spinnakerUserOptional = AuthenticatedRequest.getSpinnakerUser();
-      if (spinnakerUserOptional.isPresent()) {
-        return Optional.of(new AuthenticationDetails(spinnakerUserOptional.orElse(null)));
-      }
-      return Optional.empty();
+      return build(Collections.emptySet());
     }
   }
 }

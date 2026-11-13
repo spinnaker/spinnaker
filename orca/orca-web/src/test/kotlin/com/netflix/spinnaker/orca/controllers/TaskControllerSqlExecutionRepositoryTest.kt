@@ -84,7 +84,8 @@ class TaskControllerSqlExecutionRepositoryTest : JUnit5Minutests {
       OrcaObjectMapper.getInstance(),
       NoopRegistry(),
       mock(),
-      taskControllerConfigurationProperties
+      taskControllerConfigurationProperties,
+      mock()
     )
 
     val subject: MockMvc = MockMvcBuilders.standaloneSetup(taskController).build()
