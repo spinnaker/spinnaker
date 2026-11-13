@@ -17,8 +17,7 @@ package com.netflix.spinnaker.clouddriver.sql
 
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.netflix.spectator.api.Registry
-import com.netflix.spinnaker.cats.agent.RunnableAgent
-import com.netflix.spinnaker.clouddriver.cache.CustomScheduledAgent
+import com.netflix.spinnaker.clouddriver.cache.MaintenanceAgent
 import com.netflix.spinnaker.clouddriver.core.provider.CoreProvider
 import com.netflix.spinnaker.clouddriver.data.task.TaskState
 import com.netflix.spinnaker.config.ConnectionPools
@@ -57,7 +56,7 @@ class SqlTaskReaperAgent(
   private val registry: Registry,
   private val properties: SqlTaskLeaseProperties,
   private val retries: SqlRetries = SqlRetries()
-) : TaskReaper, RunnableAgent, CustomScheduledAgent {
+) : TaskReaper, MaintenanceAgent {
 
   private val log = LoggerFactory.getLogger(javaClass)
 
