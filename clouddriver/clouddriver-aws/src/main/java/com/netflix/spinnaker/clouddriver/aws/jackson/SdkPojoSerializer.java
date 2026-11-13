@@ -52,10 +52,14 @@ public class SdkPojoSerializer extends JsonSerializer<SdkPojo> {
     }
   }
 
-  private static String toCamelCase(String name) {
+  static String toCamelCase(String name) {
     if (name == null || name.isEmpty()) {
       return name;
     }
-    return Character.toLowerCase(name.charAt(0)) + name.substring(1);
+    int end = 0;
+    while (end < name.length() && Character.isUpperCase(name.charAt(end))) {
+      end++;
+    }
+    return end == 0 ? name : name.substring(0, end).toLowerCase() + name.substring(end);
   }
 }
