@@ -26,6 +26,7 @@ import com.netflix.spinnaker.clouddriver.requestqueue.RequestQueue;
 import com.netflix.spinnaker.kork.exceptions.SpinnakerException;
 import com.netflix.spinnaker.kork.web.exceptions.NotFoundException;
 import java.util.List;
+import java.util.Map;
 import lombok.Getter;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -96,6 +97,38 @@ public class ManifestController {
     }
 
     return manifest;
+  }
+
+  @PreAuthorize("hasPermission(#account, 'ACCOUNT', 'READ')")
+  @RequestMapping(
+      value = "/{account:.+}/{location:.+}/{kind:.+}/labels",
+      method = RequestMethod.GET)
+  List<KubernetesManifest> getForAccountLocationKindByLabels(
+      @PathVariable String account,
+      @PathVariable String location,
+      @PathVariable String kind,
+      @RequestParam Map<String, String> labels) {
+
+    List<KubernetesManifest> manifests;
+    String request =
+        String.format(
+            "(account: %s, location: %s, label selectors: %s)", account, location, labels);
+    try {
+      manifests =
+          requestQueue.execute(
+              account,
+              () -> manifestProvider.getManifestsByLabels(account, location, kind, labels));
+    } catch (Throwable t) {
+      String message = "Failed to obtain manifests matching: " + request;
+      log.warn(message, t);
+      throw new SpinnakerException(message, t);
+    }
+
+    if (manifests.isEmpty()) {
+      throw new NotFoundException("No manifest found matching: " + request);
+    }
+
+    return manifests;
   }
 
   @RequestMapping(value = "/{account:.+}/{name:.+}", method = RequestMethod.GET)

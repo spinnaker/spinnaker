@@ -30,8 +30,10 @@ import com.netflix.spinnaker.clouddriver.kubernetes.description.manifest.Kuberne
 import com.netflix.spinnaker.clouddriver.kubernetes.description.manifest.KubernetesManifest;
 import com.netflix.spinnaker.clouddriver.kubernetes.description.manifest.KubernetesManifestAnnotater;
 import com.netflix.spinnaker.clouddriver.kubernetes.security.KubernetesCredentials;
+import com.netflix.spinnaker.clouddriver.kubernetes.security.KubernetesSelectorList;
 import java.util.Collection;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ExecutorService;
@@ -61,7 +63,7 @@ public class KubernetesManifestProvider {
   public KubernetesManifestContainer getManifest(
       String account, String location, String name, boolean includeEvents) {
     Optional<KubernetesCredentials> optionalCredentials = accountResolver.getCredentials(account);
-    if (!optionalCredentials.isPresent()) {
+    if (optionalCredentials.isEmpty()) {
       return null;
     }
     KubernetesCredentials credentials = optionalCredentials.get();
@@ -155,6 +157,21 @@ public class KubernetesManifestProvider {
                     .map(KubernetesCoordinates::fromManifest)
                     .collect(Collectors.toList()))
         .orElseThrow(() -> new IllegalArgumentException("Unable to resolve account: " + account));
+  }
+
+  @Nullable
+  public List<KubernetesManifest> getManifestsByLabels(
+      String account, String location, String kind, Map<String, String> labelSelectors) {
+    Optional<KubernetesCredentials> optionalCredentials = accountResolver.getCredentials(account);
+    if (optionalCredentials.isEmpty()) {
+      return null;
+    }
+    KubernetesCredentials credentials = optionalCredentials.get();
+
+    return credentials.list(
+        KubernetesKind.fromString(kind),
+        location,
+        KubernetesSelectorList.fromMatchLabels(labelSelectors));
   }
 
   public enum Sort {
