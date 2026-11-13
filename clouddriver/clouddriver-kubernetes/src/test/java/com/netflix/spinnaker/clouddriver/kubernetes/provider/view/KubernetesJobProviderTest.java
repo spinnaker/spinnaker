@@ -25,6 +25,7 @@ import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyBoolean;
 import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.ArgumentMatchers.isNull;
 import static org.mockito.Mockito.doReturn;
 import static org.mockito.Mockito.mock;
@@ -33,6 +34,7 @@ import com.google.common.collect.ImmutableList;
 import com.google.common.io.Resources;
 import com.netflix.spinnaker.clouddriver.kubernetes.caching.view.model.KubernetesManifestContainer;
 import com.netflix.spinnaker.clouddriver.kubernetes.caching.view.provider.KubernetesManifestProvider;
+import com.netflix.spinnaker.clouddriver.kubernetes.description.manifest.KubernetesKind;
 import com.netflix.spinnaker.clouddriver.kubernetes.description.manifest.KubernetesManifest;
 import com.netflix.spinnaker.clouddriver.kubernetes.model.KubernetesJobStatus;
 import com.netflix.spinnaker.clouddriver.kubernetes.security.KubernetesCredentials;
@@ -83,7 +85,9 @@ class KubernetesJobProviderTest {
         .when(mockManifestProvider)
         .getManifest(anyString(), anyString(), anyString(), anyBoolean());
 
-    doReturn(ImmutableList.of(testManifest)).when(mockCredentials).list(any(), isNull(), any());
+    doReturn(ImmutableList.of(testManifest))
+        .when(mockCredentials)
+        .list(eq(KubernetesKind.POD), isNull(), any());
 
     // when
     KubernetesJobProvider kubernetesJobProvider =
@@ -129,7 +133,9 @@ class KubernetesJobProviderTest {
                 .build())
         .when(mockManifestProvider)
         .getManifest(anyString(), anyString(), anyString(), anyBoolean());
-    doReturn(ImmutableList.of(testManifest)).when(mockCredentials).list(any(), isNull(), any());
+    doReturn(ImmutableList.of(testManifest))
+        .when(mockCredentials)
+        .list(eq(KubernetesKind.POD), isNull(), any());
 
     // when
     KubernetesJobProvider kubernetesJobProvider =
@@ -160,7 +166,9 @@ class KubernetesJobProviderTest {
                 .build())
         .when(mockManifestProvider)
         .getManifest(anyString(), anyString(), anyString(), anyBoolean());
-    doReturn(ImmutableList.of()).when(mockCredentials).list(any(), isNull(), any());
+    doReturn(ImmutableList.of())
+        .when(mockCredentials)
+        .list(eq(KubernetesKind.POD), isNull(), any());
 
     KubernetesJobProvider kubernetesJobProvider =
         new KubernetesJobProvider(credentialsProvider, mockManifestProvider, detailedPodStatus);

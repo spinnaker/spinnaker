@@ -159,19 +159,29 @@ public class KubernetesManifestProvider {
         .orElseThrow(() -> new IllegalArgumentException("Unable to resolve account: " + account));
   }
 
+  /**
+   * This method is used to find all the manifests of the provided kinds that match the given label
+   * selectors.
+   *
+   * @param account kubernetes account
+   * @param location kubernetes namespace
+   * @param kinds kubernetes kinds
+   * @param labelSelectors label selectors, can be null
+   * @return a list of KubernetesManifest objects
+   */
   @Nullable
-  public List<KubernetesManifest> getManifestsByLabels(
-      String account, String location, String kind, Map<String, String> labelSelectors) {
+  public List<KubernetesManifest> getManifestsByKindsAndLabels(
+      String account, String location, List<String> kinds, Map<String, String> labelSelectors) {
     Optional<KubernetesCredentials> optionalCredentials = accountResolver.getCredentials(account);
     if (optionalCredentials.isEmpty()) {
       return null;
     }
     KubernetesCredentials credentials = optionalCredentials.get();
 
+    List<KubernetesKind> kubernetesKinds = kinds.stream().map(KubernetesKind::fromString).toList();
+
     return credentials.list(
-        KubernetesKind.fromString(kind),
-        location,
-        KubernetesSelectorList.fromMatchLabels(labelSelectors));
+        kubernetesKinds, location, KubernetesSelectorList.fromMatchLabels(labelSelectors));
   }
 
   public enum Sort {

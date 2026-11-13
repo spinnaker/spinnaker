@@ -67,17 +67,23 @@ class KubernetesManifestProviderTest {
 
     when(accountResolver.getCredentials(account)).thenReturn(Optional.of(credentials));
     when(credentials.list(
-            eq(KubernetesKind.fromString(kind)), eq(location), any(KubernetesSelectorList.class)))
+            eq(List.of(KubernetesKind.fromString(kind))),
+            eq(location),
+            any(KubernetesSelectorList.class)))
         .thenReturn(expectedManifests);
 
     // when
     List<KubernetesManifest> result =
-        manifestProvider.getManifestsByLabels(account, location, kind, labelSelectors);
+        manifestProvider.getManifestsByKindsAndLabels(
+            account, location, List.of(kind), labelSelectors);
 
     // then
     assertThat(result).isNotNull();
     assertThat(result).isEqualTo(expectedManifests);
     verify(credentials)
-        .list(eq(KubernetesKind.fromString(kind)), eq(location), any(KubernetesSelectorList.class));
+        .list(
+            eq(List.of(KubernetesKind.fromString(kind))),
+            eq(location),
+            any(KubernetesSelectorList.class));
   }
 }
