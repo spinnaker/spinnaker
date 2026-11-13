@@ -31,6 +31,7 @@ import com.netflix.spinnaker.clouddriver.cloudrun.deploy.CloudrunServiceClient;
 import com.netflix.spinnaker.clouddriver.cloudrun.deploy.exception.CloudrunOperationException;
 import com.netflix.spinnaker.clouddriver.cloudrun.description.manifest.CloudrunDeployManifestDescription;
 import com.netflix.spinnaker.clouddriver.cloudrun.model.CloudrunService;
+import com.netflix.spinnaker.clouddriver.cloudrun.op.CloudrunManifestOperationResult;
 import com.netflix.spinnaker.clouddriver.cloudrun.provider.view.CloudrunLoadBalancerProvider;
 import com.netflix.spinnaker.clouddriver.cloudrun.security.CloudrunCredentials;
 import com.netflix.spinnaker.clouddriver.cloudrun.security.CloudrunNamedAccountCredentials;
@@ -168,6 +169,20 @@ class CloudrunDeployManifestOperationTest {
         .startsWith("myapp-v");
     assertThat(path(deployed, "metadata", "annotations", "spinnaker/application"))
         .isEqualTo("myapp");
+  }
+
+  @Test
+  void reportsTheDeployedRevisionSoOrcaCanRefreshItsCache() throws IOException {
+    description.setManifests(List.of(manifest(MANIFEST_WITH_ENV_AND_PROBE)));
+
+    CloudrunManifestOperationResult result = operation.operate(new ArrayList<>());
+
+    String revision =
+        (String) path(singleDeployedManifest(), "spec", "template", "metadata", "name");
+    assertThat(result.getServerGroupNames())
+        .containsExactly(description.getRegion() + ":" + revision);
+    assertThat(result.getServerGroupNameByRegion())
+        .containsEntry(description.getRegion(), revision);
   }
 
   @Test

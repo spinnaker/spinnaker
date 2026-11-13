@@ -138,4 +138,11 @@ class CloudrunServerGroupCachingAgentTest {
     byService.put(service, new ArrayList<>(List.of(revision)));
     return byService;
   }
+
+  @Test
+  void onDemandRefreshIgnoresRequestsForOtherAccountsAndWithoutAServerGroup() {
+    assertThat(agent.handle(null, Map.of("serverGroupName", "app-v001", "account", "other")))
+        .isNull();
+    assertThat(agent.handle(null, Map.of("account", ACCOUNT))).isNull();
+  }
 }

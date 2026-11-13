@@ -18,6 +18,7 @@ dependencies {
   implementation project(":fiat-roles")
   implementation project(":fiat-core")
 
+  implementation "io.spinnaker.kork:kork-exceptions"
   implementation "org.apache.commons:commons-lang3"
   implementation "org.springframework.boot:spring-boot-autoconfigure"
   implementation "org.springframework.security:spring-security-ldap"

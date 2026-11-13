@@ -141,6 +141,9 @@ public class CloudrunDeployManifestOperation implements AtomicOperation<Deployme
     String region = description.getRegion();
     CloudrunManifestOperationResult result = new CloudrunManifestOperationResult();
     result.addManifest(description.getManifests().get(0));
+    // Orca reads these to force a cache refresh of the new revision before later stages resolve it
+    result.getServerGroupNames().add(region + ":" + newVersionName);
+    result.getServerGroupNameByRegion().put(region, newVersionName);
     log.info(" region in deploy manifest operation : " + region);
     log.info(" new version name in deploy manifest operation : " + newVersionName);
     return result;
