@@ -16,6 +16,7 @@
 
 package com.netflix.spinnaker.orca.kayenta.tasks
 
+import com.netflix.spinnaker.orca.kayenta.config.KayentaCanaryReportProperties
 import com.netflix.spinnaker.orca.api.pipeline.models.ExecutionStatus.SUCCEEDED
 import com.netflix.spinnaker.orca.api.pipeline.models.ExecutionStatus.TERMINAL
 import com.netflix.spinnaker.orca.api.test.pipeline
@@ -33,7 +34,7 @@ import org.jetbrains.spek.api.dsl.it
 
 object AggregateCanaryResultsTaskSpec : Spek({
 
-  val task = AggregateCanaryResultsTask()
+  val task = AggregateCanaryResultsTask(CanaryReportLinks(KayentaCanaryReportProperties()))
 
   describe("aggregating canary scores") {
     where(
