@@ -21,6 +21,7 @@ import com.google.common.collect.Iterables;
 import com.netflix.spinnaker.fiat.config.LdapConfig;
 import com.netflix.spinnaker.fiat.model.resources.Role;
 import com.netflix.spinnaker.fiat.permissions.ExternalUser;
+import com.netflix.spinnaker.fiat.providers.ProviderException;
 import com.netflix.spinnaker.fiat.roles.BaseUserRolesProvider;
 import java.text.MessageFormat;
 import java.text.ParseException;
@@ -39,6 +40,8 @@ import org.apache.commons.lang3.tuple.Pair;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.dao.IncorrectResultSizeDataAccessException;
+import org.springframework.ldap.NameNotFoundException;
+import org.springframework.ldap.PartialResultException;
 import org.springframework.ldap.control.PagedResultsDirContextProcessor;
 import org.springframework.ldap.core.AttributesMapper;
 import org.springframework.ldap.core.ContextMapper;
@@ -225,8 +228,37 @@ public class LdapUserRolesProvider extends BaseUserRolesProvider {
     log.info("Querying individual groups memberships for {} users", users.size());
     // ExternalUser is used here as a simple data type to hold the username/roles combination.
     return users.stream()
-        .map(u -> new ExternalUser().setId(u.getId()).setExternalRoles(loadRoles(u)))
+        .map(u -> new ExternalUser().setId(u.getId()).setExternalRoles(loadRolesOrEmpty(u)))
         .collect(Collectors.toMap(ExternalUser::getId, ExternalUser::getExternalRoles));
+  }
+
+  /**
+   * Loads roles for a single user as part of a bulk load. A lookup failure specific to one user
+   * (e.g. one that no longer exists in LDAP) must not prevent roles from being resolved for
+   * everyone else. Anything else, such as LDAP being unreachable, is rethrown so that the sync
+   * fails rather than replacing users' existing roles with empty ones.
+   */
+  private List<Role> loadRolesOrEmpty(ExternalUser user) {
+    try {
+      return loadRoles(user);
+    } catch (ProviderException e) {
+      if (!isUserSpecificFailure(e)) {
+        throw e;
+      }
+      log.error("Unable to load LDAP roles for user {}; continuing with no roles", user.getId(), e);
+      return new ArrayList<>();
+    }
+  }
+
+  private static boolean isUserSpecificFailure(Throwable t) {
+    for (Throwable cause = t; cause != null; cause = cause.getCause()) {
+      if (cause instanceof PartialResultException
+          || cause instanceof NameNotFoundException
+          || cause instanceof IncorrectResultSizeDataAccessException) {
+        return true;
+      }
+    }
+    return false;
   }
 
   private Map<String, Collection<Role>> multiLoadDnBasedRoles(Collection<ExternalUser> users) {
@@ -296,7 +328,11 @@ public class LdapUserRolesProvider extends BaseUserRolesProvider {
                 configProps.getUserSearchBase(), configProps.getUserSearchFilter(), formatArgs);
         partialUserDn = res.getDn().toString();
       } catch (IncorrectResultSizeDataAccessException e) {
-        log.warn("Unable to find a single user entry for {}", userId, e);
+        if (e.getActualSize() == 0) {
+          log.info("User {} was not found in LDAP", userId);
+        } else {
+          log.warn("Unable to find a single user entry for {}: {}", userId, e.getMessage());
+        }
         return null;
       }
     } else {
