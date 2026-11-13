@@ -32,6 +32,7 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import org.springaicommunity.mcp.annotation.McpTool;
+import org.springaicommunity.mcp.annotation.McpTool.McpAnnotations;
 import org.springaicommunity.mcp.annotation.McpToolParam;
 
 /**
@@ -66,7 +67,9 @@ public class KeelTools {
 
   @McpTool(
       name = "get_delivery_config",
-      description = "Retrieve a delivery config manifest by name.")
+      description = "Retrieve a delivery config manifest by name.",
+      annotations =
+          @McpAnnotations(readOnlyHint = true, destructiveHint = false, idempotentHint = true))
   public DeliveryConfig getDeliveryConfig(
       @McpToolParam(description = "Delivery config manifest name", required = true) String name) {
     return Retrofit2SyncCall.execute(keelService.getManifest(name));
@@ -74,7 +77,9 @@ public class KeelTools {
 
   @McpTool(
       name = "get_delivery_config_for_application",
-      description = "Retrieve the delivery config manifest associated with an application.")
+      description = "Retrieve the delivery config manifest associated with an application.",
+      annotations =
+          @McpAnnotations(readOnlyHint = true, destructiveHint = false, idempotentHint = true))
   public DeliveryConfig getDeliveryConfigForApplication(
       @McpToolParam(description = "Application name", required = true) String application) {
     return Retrofit2SyncCall.execute(keelService.getConfigBy(application));
@@ -83,7 +88,9 @@ public class KeelTools {
   @McpTool(
       name = "get_delivery_config_artifacts",
       description =
-          "Get the status of each version of each artifact tracked by a delivery config, across all environments.")
+          "Get the status of each version of each artifact tracked by a delivery config, across all environments.",
+      annotations =
+          @McpAnnotations(readOnlyHint = true, destructiveHint = false, idempotentHint = true))
   public List<Map<String, Object>> getDeliveryConfigArtifacts(
       @McpToolParam(description = "Delivery config manifest name", required = true) String name) {
     return Retrofit2SyncCall.execute(keelService.getManifestArtifacts(name));
@@ -92,7 +99,9 @@ public class KeelTools {
   @McpTool(
       name = "get_delivery_config_schema",
       description =
-          "Retrieve the JSON schema for a delivery config manifest - use this to construct a valid manifest.")
+          "Retrieve the JSON schema for a delivery config manifest - use this to construct a valid manifest.",
+      annotations =
+          @McpAnnotations(readOnlyHint = true, destructiveHint = false, idempotentHint = true))
   public Map<String, Object> getDeliveryConfigSchema() {
     return Retrofit2SyncCall.execute(keelService.schema());
   }
@@ -101,7 +110,9 @@ public class KeelTools {
       name = "validate_delivery_config",
       description =
           "Validate a delivery config manifest without saving it - use this to check a manifest before calling "
-              + "save_delivery_config.")
+              + "save_delivery_config.",
+      annotations =
+          @McpAnnotations(readOnlyHint = true, destructiveHint = false, idempotentHint = true))
   public Map<String, Object> validateDeliveryConfig(
       @McpToolParam(description = "Full delivery config manifest map", required = true)
           Map<String, Object> manifest) {
@@ -112,7 +123,9 @@ public class KeelTools {
       name = "diff_delivery_config",
       description =
           "Ad-hoc validate and diff a delivery config manifest against its current persisted state, without saving "
-              + "it - shows what would change if it were saved.")
+              + "it - shows what would change if it were saved.",
+      annotations =
+          @McpAnnotations(readOnlyHint = true, destructiveHint = false, idempotentHint = true))
   public List<Map> diffDeliveryConfig(
       @McpToolParam(description = "Full delivery config manifest map", required = true)
           Map<String, Object> manifest) {
@@ -143,7 +156,9 @@ public class KeelTools {
   @McpTool(
       name = "get_managed_application",
       description =
-          "Get Managed Delivery details for an application: environments, resources, and their status.")
+          "Get Managed Delivery details for an application: environments, resources, and their status.",
+      annotations =
+          @McpAnnotations(readOnlyHint = true, destructiveHint = false, idempotentHint = true))
   public Map getManagedApplication(
       @McpToolParam(description = "Application name", required = true) String application,
       @McpToolParam(
@@ -170,7 +185,9 @@ public class KeelTools {
   @McpTool(
       name = "get_managed_environments",
       description =
-          "Get the current environments (and their artifact/constraint state) for an application.")
+          "Get the current environments (and their artifact/constraint state) for an application.",
+      annotations =
+          @McpAnnotations(readOnlyHint = true, destructiveHint = false, idempotentHint = true))
   public List<Map<String, Object>> getManagedEnvironments(
       @McpToolParam(description = "Application name", required = true) String application) {
     return Retrofit2SyncCall.execute(keelService.getEnvironments(application));
@@ -180,7 +197,9 @@ public class KeelTools {
       name = "get_environment_constraints",
       description =
           "List the most recent constraint states (e.g. manual judgment, allowed-times, canary) for an environment "
-              + "- use this to see why an artifact version is or isn't allowed to promote.")
+              + "- use this to see why an artifact version is or isn't allowed to promote.",
+      annotations =
+          @McpAnnotations(readOnlyHint = true, destructiveHint = false, idempotentHint = true))
   public List<ConstraintState> getEnvironmentConstraints(
       @McpToolParam(description = "Application name", required = true) String application,
       @McpToolParam(description = "Environment name", required = true) String environment,
@@ -225,7 +244,9 @@ public class KeelTools {
 
   @McpTool(
       name = "get_managed_resource",
-      description = "Retrieve a single Managed Delivery resource by id.")
+      description = "Retrieve a single Managed Delivery resource by id.",
+      annotations =
+          @McpAnnotations(readOnlyHint = true, destructiveHint = false, idempotentHint = true))
   public Resource getManagedResource(
       @McpToolParam(description = "Resource id", required = true) String resourceId) {
     return Retrofit2SyncCall.execute(keelService.getResource(resourceId));
@@ -233,7 +254,9 @@ public class KeelTools {
 
   @McpTool(
       name = "get_managed_resource_status",
-      description = "Get the current status of a Managed Delivery resource.")
+      description = "Get the current status of a Managed Delivery resource.",
+      annotations =
+          @McpAnnotations(readOnlyHint = true, destructiveHint = false, idempotentHint = true))
   public Map<String, String> getManagedResourceStatus(
       @McpToolParam(description = "Resource id", required = true) String resourceId) {
     return Map.of("status", Retrofit2SyncCall.execute(keelService.getResourceStatus(resourceId)));
