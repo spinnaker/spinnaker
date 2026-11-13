@@ -29,8 +29,6 @@ import com.netflix.spinnaker.clouddriver.google.model.loadbalancing.GoogleLoadBa
 import com.netflix.spinnaker.clouddriver.google.security.GoogleNamedAccountCredentials;
 import java.util.ArrayList;
 import java.util.List;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 /**
  * Caches regional external Application Load Balancers backed by the Compute `EXTERNAL_MANAGED`
@@ -42,9 +40,6 @@ import org.slf4j.LoggerFactory;
  */
 public class GoogleExternalHttpLoadBalancerCachingAgent
     extends AbstractGoogleRegionalHttpLoadBalancerCachingAgent<GoogleExternalHttpLoadBalancer> {
-  private static final Logger log =
-      LoggerFactory.getLogger(GoogleExternalHttpLoadBalancerCachingAgent.class);
-
   public GoogleExternalHttpLoadBalancerCachingAgent(
       String clouddriverUserAgentApplicationName,
       GoogleNamedAccountCredentials credentials,
@@ -114,28 +109,5 @@ public class GoogleExternalHttpLoadBalancerCachingAgent
   protected List<GoogleBackendService> getBackendServicesFromView(
       GoogleExternalHttpLoadBalancer loadBalancer) {
     return Utils.getBackendServicesFromExternalHttpLoadBalancerView(loadBalancer.getView());
-  }
-
-  @Override
-  protected void handleMissingBackendService(
-      String backendServiceName, GoogleExternalHttpLoadBalancer loadBalancer) {
-    if (backendServiceName == null) {
-      // A redirect has no backend service to look up.
-      return;
-    }
-    // Preserve the load balancer and let the next successful backend-service read enrich it.
-    log.warn(
-        "Could not enrich regional external HTTP load balancer {} because backend service {} was missing.",
-        loadBalancer.getName(),
-        backendServiceName);
-  }
-
-  @Override
-  protected void handleMissingHealthCheck(
-      String healthCheckName, GoogleExternalHttpLoadBalancer loadBalancer) {
-    log.warn(
-        "Could not enrich regional external HTTP load balancer {} because health check {} was missing.",
-        loadBalancer.getName(),
-        healthCheckName);
   }
 }

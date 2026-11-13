@@ -24,9 +24,11 @@ import com.netflix.spinnaker.clouddriver.google.deploy.description.UpsertGoogleL
 import com.netflix.spinnaker.clouddriver.google.model.callbacks.Utils
 import com.netflix.spinnaker.clouddriver.google.model.loadbalancing.GoogleBackendService
 import com.netflix.spinnaker.clouddriver.google.model.loadbalancing.GoogleExternalHttpLoadBalancer
+import com.netflix.spinnaker.clouddriver.google.model.loadbalancing.GoogleHostRule
 import com.netflix.spinnaker.clouddriver.google.model.loadbalancing.GoogleHttpLoadBalancer
 import com.netflix.spinnaker.clouddriver.google.model.loadbalancing.GoogleInternalHttpLoadBalancer
 import com.netflix.spinnaker.clouddriver.google.model.loadbalancing.GoogleLoadBalancerType
+import com.netflix.spinnaker.clouddriver.google.model.loadbalancing.GooglePathRule
 import com.netflix.spinnaker.clouddriver.google.model.loadbalancing.GoogleSessionAffinity
 import com.netflix.spinnaker.clouddriver.google.security.GoogleNamedAccountCredentials
 import com.netflix.spinnaker.clouddriver.orchestration.AtomicOperations
@@ -121,14 +123,17 @@ class UpsertGoogleLoadBalancerDescriptionValidator extends
             portRange: description.portRange
         )
         List<GoogleBackendService> services = Utils.getBackendServicesFromHttpLoadBalancerView(googleHttpLoadBalancer.view)
-        services?.each { GoogleBackendService service ->
+        services?.findAll { it != null }?.each { GoogleBackendService service ->
           if (!service.healthCheck) {
             errors.rejectValue("defaultService OR hostRules.pathMatcher.defaultService OR hostRules.pathMatcher.pathRules.backendService",
               "upsertGoogleLoadBalancerDescription.backendServices.healthCheckRequired")
           }
         }
+        validateUrlMapServices(description, errors)
         break
       case GoogleLoadBalancerType.INTERNAL_MANAGED:
+        helper.validateRegion(description.region, description.credentials)
+
         if (description.certificate && description.certificateMap) {
           errors.rejectValue("certificate OR certificateMap",
             "upsertGoogleLoadBalancerDescription.certificateAndCertificateMap.mutuallyExclusive")
@@ -168,6 +173,7 @@ class UpsertGoogleLoadBalancerDescriptionValidator extends
               "upsertGoogleLoadBalancerDescription.backendServices.healthCheckRequired")
           }
         }
+        validateUrlMapServices(description, errors)
         break
       case GoogleLoadBalancerType.EXTERNAL_MANAGED:
         helper.validateRegion(description.region, description.credentials)
@@ -204,11 +210,7 @@ class UpsertGoogleLoadBalancerDescriptionValidator extends
         }
 
         validatePort(description.portRange, "portRange", errors)
-
-        if (!description.defaultService) {
-          errors.rejectValue("defaultService",
-            "upsertGoogleLoadBalancerDescription.backendServiceRequired")
-        }
+        validateUrlMapServices(description, errors)
 
         // Each backend service must have a health check.
         def googleExternalHttpLoadBalancer = new GoogleExternalHttpLoadBalancer(
@@ -239,17 +241,7 @@ class UpsertGoogleLoadBalancerDescriptionValidator extends
             "upsertGoogleLoadBalancerDescription.ipProtocol.notSupported")
         }
 
-        def bs = description.backendService
-        if (!bs) {
-          errors.rejectValue("backendService",
-            "upsertGoogleLoadBalancerDescription.backendServiceRequired")
-        }
-
-        def hc = bs.healthCheck
-        if (!hc) {
-          errors.rejectValue("backendService.healthCheck",
-            "upsertGoogleLoadBalancerDescription.backendService.healthCheckRequired")
-        }
+        validateBackendService(description, helper, errors)
 
         if (!description.network || !description.subnet) {
           errors.rejectValue("network OR subnet",
@@ -264,14 +256,7 @@ class UpsertGoogleLoadBalancerDescriptionValidator extends
             "upsertGoogleLoadBalancerDescription.ipProtocol.notSupported")
         }
 
-        def bs = description.backendService
-        if (!bs) {
-          errors.rejectValue("backendService",
-            "upsertGoogleLoadBalancerDescription.backendServiceRequired")
-        } else if (!bs.healthCheck) {
-          errors.rejectValue("backendService.healthCheck",
-            "upsertGoogleLoadBalancerDescription.backendService.healthCheckRequired")
-        }
+        validateBackendService(description, helper, errors)
 
         // GCP accepts at most five entries in a forwarding rule's ports list. This type writes
         // ports only, so portRange is rejected below rather than silently ignored.
@@ -316,17 +301,7 @@ class UpsertGoogleLoadBalancerDescriptionValidator extends
           errors.rejectValue("certificateMap",
             "upsertGoogleLoadBalancerDescription.certificateMap.notSupported")
         }
-        def bs = description.backendService
-        if (!bs) {
-          errors.rejectValue("backendService",
-            "upsertGoogleLoadBalancerDescription.backendServiceRequired")
-        } else {
-          def hc = bs.healthCheck
-          if (!hc) {
-            errors.rejectValue("backendService.healthCheck",
-              "upsertGoogleLoadBalancerDescription.backendService.healthCheckRequired")
-          }
-        }
+        validateBackendService(description, helper, errors)
 
         try {
           def pr = Integer.parseInt(description.portRange)
@@ -345,17 +320,7 @@ class UpsertGoogleLoadBalancerDescriptionValidator extends
         }
         break
       case GoogleLoadBalancerType.TCP:
-        def bs = description.backendService
-        if (!bs) {
-          errors.rejectValue("backendService",
-            "upsertGoogleLoadBalancerDescription.backendServiceRequired")
-        } else {
-          def hc = bs.healthCheck
-          if (!hc) {
-            errors.rejectValue("backendService.healthCheck",
-              "upsertGoogleLoadBalancerDescription.backendService.healthCheckRequired")
-          }
-        }
+        validateBackendService(description, helper, errors)
 
         try {
           def pr = Integer.parseInt(description.portRange)
@@ -374,6 +339,28 @@ class UpsertGoogleLoadBalancerDescriptionValidator extends
     }
   }
 
+  // The HTTP(S) upserts write each URL map entry as a backend service URL and can't write a redirect.
+  private static void validateUrlMapServices(
+    UpsertGoogleLoadBalancerDescription description,
+    ValidationErrors errors) {
+    if (!description.defaultService?.name) {
+      errors.rejectValue("defaultService",
+        "upsertGoogleLoadBalancerDescription.backendServiceRequired")
+    }
+    description.hostRules?.each { GoogleHostRule hostRule ->
+      if (!hostRule?.pathMatcher?.defaultService?.name) {
+        errors.rejectValue("hostRules.pathMatcher.defaultService",
+          "upsertGoogleLoadBalancerDescription.backendServiceRequired")
+      }
+      hostRule?.pathMatcher?.pathRules?.each { GooglePathRule pathRule ->
+        if (!pathRule?.backendService?.name) {
+          errors.rejectValue("hostRules.pathMatcher.pathRules.backendService",
+            "upsertGoogleLoadBalancerDescription.backendServiceRequired")
+        }
+      }
+    }
+  }
+
   private static void validateManagedBackendServices(
     UpsertGoogleLoadBalancerDescription description,
     List<GoogleBackendService> services,
@@ -388,6 +375,25 @@ class UpsertGoogleLoadBalancerDescriptionValidator extends
         errors.rejectValue("${fieldPrefix}.healthCheck.port",
           "upsertGoogleLoadBalancerDescription.healthCheck.port.invalid")
       }
+    }
+  }
+
+  private static void validateBackendService(
+    UpsertGoogleLoadBalancerDescription description,
+    StandardGceAttributeValidator helper,
+    ValidationErrors errors) {
+    def bs = description.backendService
+    if (!bs) {
+      errors.rejectValue("backendService",
+        "upsertGoogleLoadBalancerDescription.backendServiceRequired")
+      return
+    }
+    helper.validateName(bs.name, "backendService.name")
+    if (!bs.healthCheck) {
+      errors.rejectValue("backendService.healthCheck",
+        "upsertGoogleLoadBalancerDescription.backendService.healthCheckRequired")
+    } else {
+      helper.validateName(bs.healthCheck.name, "backendService.healthCheck.name")
     }
   }
 
