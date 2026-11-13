@@ -254,7 +254,7 @@ class TaskController {
         } catch (ExecutionNotFoundException e) {
           null
         }
-      }).subscribeOn(Schedulers.io()).toList().blockingGet().findAll()
+      }.findAll()).subscribeOn(Schedulers.io()).toList().blockingGet()
 
       if (!expand) {
         unexpandPipelineExecutions(executions)
