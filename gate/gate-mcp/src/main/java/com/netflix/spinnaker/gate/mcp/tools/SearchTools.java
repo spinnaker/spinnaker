@@ -24,7 +24,6 @@ import java.util.Map;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springaicommunity.mcp.annotation.McpTool;
-import org.springaicommunity.mcp.annotation.McpTool.McpAnnotations;
 import org.springaicommunity.mcp.annotation.McpToolParam;
 
 /**
@@ -105,9 +104,7 @@ public class SearchTools {
               + "additional types, e.g. 'certificates', 'subnets'). Backed by clouddriver's cached search index, "
               + "not a live infrastructure call. Searching multiple types in one call is efficient (one request, "
               + "one combined cache scan) but shares a single pageSize/page budget across all of them, sorted by "
-              + "relevance - if you need a fair number of results from *each* type instead, use search_all_types.",
-      annotations =
-          @McpAnnotations(readOnlyHint = true, destructiveHint = false, idempotentHint = true))
+              + "relevance - if you need a fair number of results from *each* type instead, use search_all_types.")
   public List<Map> searchInfrastructure(
       @McpToolParam(
               description =
@@ -154,9 +151,7 @@ public class SearchTools {
               + "its own independent result budget and merging the per-type results - the MCP equivalent of Deck's "
               + "global search bar. Use this over search_infrastructure when you want a fair sampling across "
               + "categories rather than one relevance-ranked list; a type that errors is reported separately "
-              + "rather than failing the whole search.",
-      annotations =
-          @McpAnnotations(readOnlyHint = true, destructiveHint = false, idempotentHint = true))
+              + "rather than failing the whole search.")
   public Map<String, Object> searchAllTypes(
       @McpToolParam(
               description =

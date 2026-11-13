@@ -24,7 +24,6 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import org.springaicommunity.mcp.annotation.McpTool;
-import org.springaicommunity.mcp.annotation.McpTool.McpAnnotations;
 import org.springaicommunity.mcp.annotation.McpToolParam;
 
 /**
@@ -47,9 +46,7 @@ public class ManualJudgmentTools {
   @McpTool(
       name = "list_pending_manual_judgments",
       description =
-          "List all pipeline executions for an application that are currently paused waiting on a manual judgment stage.",
-      annotations =
-          @McpAnnotations(readOnlyHint = true, destructiveHint = false, idempotentHint = true))
+          "List all pipeline executions for an application that are currently paused waiting on a manual judgment stage.")
   public List<Map<String, Object>> listPendingManualJudgments(
       @McpToolParam(description = "Application name", required = true) String application) {
     List<Map<String, Object>> runningExecutions =
@@ -63,9 +60,7 @@ public class ManualJudgmentTools {
   @McpTool(
       name = "get_manual_judgment",
       description =
-          "Get the pending manual judgment stage(s), if any, for a specific pipeline execution.",
-      annotations =
-          @McpAnnotations(readOnlyHint = true, destructiveHint = false, idempotentHint = true))
+          "Get the pending manual judgment stage(s), if any, for a specific pipeline execution.")
   public List<Map<String, Object>> getManualJudgment(
       @McpToolParam(description = "Pipeline execution id", required = true) String executionId) {
     Map<String, Object> execution =
