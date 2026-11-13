@@ -31,6 +31,7 @@ import com.netflix.spinnaker.cats.provider.ProviderCache
 import com.netflix.spinnaker.clouddriver.aws.data.Keys
 import com.netflix.spinnaker.clouddriver.aws.security.AmazonClientProvider
 import com.netflix.spinnaker.clouddriver.ecs.cache.model.EcsTargetHealth
+import com.netflix.spinnaker.clouddriver.ecs.security.NetflixAssumeRoleEcsCredentials
 import static com.netflix.spinnaker.clouddriver.core.provider.agent.Namespace.TARGET_GROUPS
 import spock.lang.Specification
 import spock.lang.Subject
@@ -227,6 +228,53 @@ class TargetHealthCachingAgentSpec extends Specification {
 
     then:
     targetHealthList.size() == 0
+  }
+
+  def 'should only look up target groups of the AWS account backing the ECS account'() {
+    given:
+    def ecsCredentials = Mock(NetflixAssumeRoleEcsCredentials) {
+      getName() >> 'ecs-account'
+      getAccountId() >> CommonCachingAgent.ACCOUNT_ID
+      getAwsAccount() >> 'aws-account'
+    }
+    def scopedAgent = new TargetHealthCachingAgent(ecsCredentials, CommonCachingAgent.REGION, clientProvider, mapper)
+    scopedAgent.setAwsCache(awsProviderCache)
+
+    when:
+    scopedAgent.getItems(ecs, Mock(ProviderCache))
+
+    then:
+    1 * awsProviderCache.filterIdentifiers(
+      TARGET_GROUPS.getNs(),
+      Keys.getTargetGroupKey('*', 'aws-account', CommonCachingAgent.REGION, '*', '*') + '*') >> []
+    0 * awsProviderCache.filterIdentifiers(_, _)
+    _ * amazonloadBalancing.describeTargetHealth(_) >> DescribeTargetHealthResponse.builder().build()
+  }
+
+  def 'should look up target groups of every account in the region when the AWS account is unknown'() {
+    given:
+    def credentials = assumeRoleCredentials
+      ? Mock(NetflixAssumeRoleEcsCredentials) {
+          getName() >> 'ecs-account'
+          getAccountId() >> CommonCachingAgent.ACCOUNT_ID
+          getAwsAccount() >> null
+        }
+      : CommonCachingAgent.netflixAmazonCredentials
+    def scopedAgent = new TargetHealthCachingAgent(credentials, CommonCachingAgent.REGION, clientProvider, mapper)
+    scopedAgent.setAwsCache(awsProviderCache)
+
+    when:
+    scopedAgent.getItems(ecs, Mock(ProviderCache))
+
+    then:
+    1 * awsProviderCache.filterIdentifiers(
+      TARGET_GROUPS.getNs(),
+      Keys.getTargetGroupKey('*', '*', CommonCachingAgent.REGION, '*', '*') + '*') >> []
+    0 * awsProviderCache.filterIdentifiers(_, _)
+    _ * amazonloadBalancing.describeTargetHealth(_) >> DescribeTargetHealthResponse.builder().build()
+
+    where:
+    assumeRoleCredentials << [false, true]
   }
 
   def 'should return empty set when no target group cache data available'() {
