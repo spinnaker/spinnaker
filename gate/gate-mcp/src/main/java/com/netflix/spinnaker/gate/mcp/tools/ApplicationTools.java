@@ -27,6 +27,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
 import org.springaicommunity.mcp.annotation.McpTool;
+import org.springaicommunity.mcp.annotation.McpTool.McpAnnotations;
 import org.springaicommunity.mcp.annotation.McpToolParam;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.access.prepost.PostFilter;
@@ -58,7 +59,9 @@ public class ApplicationTools {
   @McpTool(
       name = "list_applications",
       description =
-          "List Spinnaker applications visible to the caller, optionally filtered by owner email.")
+          "List Spinnaker applications visible to the caller, optionally filtered by owner email.",
+      annotations =
+          @McpAnnotations(readOnlyHint = true, destructiveHint = false, idempotentHint = true))
   @PostFilter("hasPermission(filterObject.get('name'), 'APPLICATION', 'READ')")
   @SuppressWarnings("unchecked")
   public List<Map<String, Object>> listApplications(
@@ -77,7 +80,9 @@ public class ApplicationTools {
   @McpTool(
       name = "get_application",
       description =
-          "Get front50 metadata for a single Spinnaker application (name, email, description, owner, ...).")
+          "Get front50 metadata for a single Spinnaker application (name, email, description, owner, ...).",
+      annotations =
+          @McpAnnotations(readOnlyHint = true, destructiveHint = false, idempotentHint = true))
   @SuppressWarnings("unchecked")
   public Map<String, Object> getApplication(
       @McpToolParam(description = "Application name", required = true) String application) {
