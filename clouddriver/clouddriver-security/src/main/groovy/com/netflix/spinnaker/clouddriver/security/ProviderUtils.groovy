@@ -35,6 +35,10 @@ import java.util.concurrent.ConcurrentHashMap
 public class ProviderUtils {
 
   public static Set<String> getScheduledAccounts(Provider provider) {
+    if (provider instanceof BaseProvider) {
+      return ((BaseProvider) provider).getScheduledAccounts()
+    }
+
     provider.agents.findAll { agent ->
       agent instanceof AccountAware
     }.collect { agent ->
