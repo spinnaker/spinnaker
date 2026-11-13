@@ -56,7 +56,7 @@ dependencies {
   testImplementation("org.junit.jupiter:junit-jupiter-api")
   testImplementation("org.assertj:assertj-core")
   testImplementation("org.mockito:mockito-junit-jupiter")
-  testImplementation("io.spinnaker.fiat:fiat-core")
+  testImplementation("io.spinnaker.kork:kork-authz-api")
   testImplementation "io.spinnaker.kork:kork-test"
   // Provides @WebMvcTest/@AutoConfigureMockMvc (Boot 4 repackaged test slices).
   testImplementation "org.springframework.boot:spring-boot-starter-webmvc-test"

@@ -4,7 +4,7 @@ dependencies {
   implementation 'io.spinnaker.kork:kork-crypto'
   implementation 'io.spinnaker.kork:kork-exceptions'
   implementation 'io.spinnaker.kork:kork-security'
-  implementation "io.spinnaker.fiat:fiat-api"
+  implementation "io.spinnaker.kork:kork-authz"
   implementation 'org.springframework.boot:spring-boot-starter-security'
   implementation 'org.springframework.boot:spring-boot-starter-validation'
   // Brings the SAML2 relying-party auto-configuration and standard

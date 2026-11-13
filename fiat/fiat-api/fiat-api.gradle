@@ -1,41 +1,57 @@
-/*
- * Copyright 2016 Google, Inc.
- *
- * Licensed under the Apache License, Version 2.0 (the "License")
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- *
- *   http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
- */
+// Compatibility artifact: classes are owned and published by Kork.
+dependencies {
+  api "io.spinnaker.kork:kork-authz"
+}
+
+// Compile and run the same external consumer against both published dependency pairs.
+sourceSets {
+  legacyConsumer {
+    java.srcDir 'src/consumer/java'
+  }
+  korkConsumer {
+    java.srcDir 'src/consumer/java'
+  }
+}
 
 dependencies {
-  api "io.spinnaker.kork:kork-api"
+  legacyConsumerImplementation project(':fiat-api')
+  legacyConsumerImplementation project(':fiat-core')
+  korkConsumerImplementation "io.spinnaker.kork:kork-authz"
+  korkConsumerImplementation "io.spinnaker.kork:kork-authz-api"
+}
 
-  implementation project(":fiat-core")
+['legacyConsumer', 'korkConsumer'].each { consumer ->
+  tasks.register("${consumer}Test", JavaExec) {
+    group = 'verification'
+    description = "Compiles and runs an authorization consumer using ${consumer} dependencies."
+    classpath = sourceSets[consumer].runtimeClasspath
+    mainClass = 'com.netflix.spinnaker.fiat.compatibility.AuthorizationConsumer'
+  }
+}
 
-  implementation "org.springframework:spring-aop"
-  implementation "org.springframework:spring-web"
-  implementation "org.springframework.security:spring-security-core"
-  implementation "org.springframework.security:spring-security-web"
-  implementation "com.netflix.spectator:spectator-api"
-  implementation "io.spinnaker.kork:kork-core"
-  implementation "io.spinnaker.kork:kork-security"
-  implementation "io.spinnaker.kork:kork-telemetry"
-  implementation "io.spinnaker.kork:kork-web"
-  implementation "io.spinnaker.kork:kork-retrofit"
-  implementation "com.squareup.retrofit2:retrofit"
-  implementation "com.squareup.retrofit2:converter-jackson"
-  implementation "org.apache.commons:commons-lang3"
+tasks.register('consumerCompatibilityTest') {
+  group = 'verification'
+  description = 'Verifies both dependency pairs and class-free Fiat compatibility jars.'
+  dependsOn 'legacyConsumerTest', 'korkConsumerTest', 'jar', ':fiat-core:jar'
+  doLast {
+    [project, project(':fiat-core')].each { compatibilityProject ->
+      def artifact = compatibilityProject.tasks.named('jar').get().archiveFile.get().asFile
+      assert zipTree(artifact).matching { include '**/*.class' }.empty:
+        "Compatibility artifact ${artifact.name} must not contain classes"
+    }
+    ['korkConsumerCompileClasspath', 'korkConsumerRuntimeClasspath'].each { name ->
+      def fiatComponents = configurations[name].incoming.resolutionResult.allDependencies.findAll {
+        it instanceof org.gradle.api.artifacts.result.ResolvedDependencyResult &&
+          it.selected.moduleVersion?.group == 'io.spinnaker.fiat'
+      }
+      assert fiatComponents.empty: "Kork authorization depends on Fiat: ${fiatComponents}"
+    }
+  }
+}
 
-  compileOnly "jakarta.servlet:jakarta.servlet-api"
-
-  implementation "com.github.ben-manes.caffeine:caffeine"
-
-  testImplementation "org.slf4j:slf4j-api"
+tasks.named('test') {
+  dependsOn 'consumerCompatibilityTest'
+}
+tasks.named('check') {
+  dependsOn 'consumerCompatibilityTest'
 }
