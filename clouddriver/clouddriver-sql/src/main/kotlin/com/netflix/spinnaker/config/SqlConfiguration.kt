@@ -26,6 +26,8 @@ import com.netflix.spinnaker.clouddriver.security.AccountDefinitionRepository
 import com.netflix.spinnaker.clouddriver.sql.SqlMaintenanceLock
 import com.netflix.spinnaker.clouddriver.sql.SqlRetries
 import com.netflix.spinnaker.clouddriver.sql.SqlTaskCleanupAgent
+import com.netflix.spinnaker.clouddriver.sql.SqlTaskLeaseManager
+import com.netflix.spinnaker.clouddriver.sql.SqlTaskReaperAgent
 import com.netflix.spinnaker.clouddriver.sql.SqlTaskRepository
 import com.netflix.spinnaker.clouddriver.sql.event.SqlEventCleanupAgent
 import com.netflix.spinnaker.clouddriver.sql.event.SqlEventRepository
@@ -51,7 +53,11 @@ import java.time.Clock
 @Configuration
 @ConditionalOnProperty("sql.enabled")
 @Import(DefaultSqlConfiguration::class)
-@EnableConfigurationProperties(SqlTaskCleanupAgentProperties::class, SqlEventCleanupAgentConfigProperties::class)
+@EnableConfigurationProperties(
+  SqlTaskCleanupAgentProperties::class,
+  SqlEventCleanupAgentConfigProperties::class,
+  SqlTaskLeaseProperties::class
+)
 class SqlConfiguration {
 
   /** Retries shared by the clouddriver-sql repositories, configured by `sql.retries`. */
@@ -60,13 +66,24 @@ class SqlConfiguration {
 
   @Bean
   @ConditionalOnProperty("sql.task-repository.enabled")
+  @ConditionalOnExpression("\${sql.read-only:false} == false")
+  fun sqlTaskLeaseManager(
+    jooq: DSLContext,
+    registry: Registry,
+    properties: SqlTaskLeaseProperties,
+    sqlRetries: SqlRetries
+  ): SqlTaskLeaseManager = SqlTaskLeaseManager(jooq, registry, properties, sqlRetries)
+
+  @Bean
+  @ConditionalOnProperty("sql.task-repository.enabled")
   fun sqlTaskRepository(
     jooq: DSLContext,
     clock: Clock,
     objectMapper: ObjectMapper,
-    sqlRetries: SqlRetries
+    sqlRetries: SqlRetries,
+    sqlTaskLeaseManager: SqlTaskLeaseManager?
   ): TaskRepository =
-    SqlTaskRepository(jooq, objectMapper, clock, ConnectionPools.TASKS.value, sqlRetries)
+    SqlTaskRepository(jooq, objectMapper, clock, ConnectionPools.TASKS.value, sqlRetries, sqlTaskLeaseManager)
 
   @Bean
   @ConditionalOnProperty("sql.task-repository.enabled", "sql.task-repository.secondary.enabled")
@@ -75,9 +92,10 @@ class SqlConfiguration {
     clock: Clock,
     objectMapper: ObjectMapper,
     @Value("\${sql.task-repository.secondary.pool-name}") poolName: String,
-    sqlRetries: SqlRetries
+    sqlRetries: SqlRetries,
+    sqlTaskLeaseManager: SqlTaskLeaseManager?
   ): TaskRepository =
-    SqlTaskRepository(jooq, objectMapper, clock, poolName, sqlRetries)
+    SqlTaskRepository(jooq, objectMapper, clock, poolName, sqlRetries, sqlTaskLeaseManager)
 
   @Bean
   @ConditionalOnProperty("sql.task-repository.enabled")
@@ -90,6 +108,17 @@ class SqlConfiguration {
     sqlRetries: SqlRetries
   ): SqlTaskCleanupAgent =
     SqlTaskCleanupAgent(jooq, clock, registry, properties, sqlRetries)
+
+  @Bean
+  @ConditionalOnProperty("sql.task-repository.enabled")
+  @ConditionalOnExpression("\${sql.read-only:false} == false")
+  fun sqlTaskReaperAgent(
+    jooq: DSLContext,
+    objectMapper: ObjectMapper,
+    registry: Registry,
+    properties: SqlTaskLeaseProperties,
+    sqlRetries: SqlRetries
+  ): SqlTaskReaperAgent = SqlTaskReaperAgent(jooq, objectMapper, registry, properties, sqlRetries)
 
   @Bean
   fun sqlEventRepository(

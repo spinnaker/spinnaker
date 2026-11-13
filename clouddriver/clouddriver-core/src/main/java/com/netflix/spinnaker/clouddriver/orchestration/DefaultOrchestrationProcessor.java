@@ -25,6 +25,7 @@ import com.netflix.spectator.api.Registry;
 import com.netflix.spinnaker.clouddriver.config.OrchestrationExecutorProperties;
 import com.netflix.spinnaker.clouddriver.core.ClouddriverHostname;
 import com.netflix.spinnaker.clouddriver.data.task.Task;
+import com.netflix.spinnaker.clouddriver.data.task.TaskLeaseLostException;
 import com.netflix.spinnaker.clouddriver.data.task.TaskRepository;
 import com.netflix.spinnaker.clouddriver.event.exceptions.DuplicateEventAggregateException;
 import com.netflix.spinnaker.clouddriver.metrics.TimedCallable;
@@ -304,6 +305,17 @@ public class DefaultOrchestrationProcessor implements OrchestrationProcessor {
                 // Don't run the remaining operations against a failed task.
                 failed = true;
                 break;
+              } catch (TaskLeaseLostException e) {
+                // The instance lost the task's lease (the reaper declared it dead, or it
+                // re-registered after a crash recovery). Whoever holds the lease decides the
+                // outcome; the remaining operations are abandoned rather than raced against it.
+                log.warn(
+                    "Lost the lease for task {} while running {}: abandoning the remaining operations",
+                    task.getId(),
+                    atomicOperation.getClass().getSimpleName(),
+                    e);
+                failed = true;
+                break;
               } catch (DuplicateEventAggregateException e) {
                 // In this case, we can safely assume that the atomic operation is being run
                 // elsewhere and can just return the existing task.
@@ -351,6 +363,14 @@ public class DefaultOrchestrationProcessor implements OrchestrationProcessor {
               }
             }
             registry.counter(tasksId.withTag("success", "true")).increment();
+          } catch (TaskLeaseLostException e) {
+            registry
+                .counter(
+                    tasksId
+                        .withTag("success", "false")
+                        .withTag("cause", "TaskLeaseLost"))
+                .increment();
+            log.warn("Abandoning task {} after losing its lease", task.getId(), e);
           } catch (Exception e) {
             registry
                 .counter(
@@ -377,7 +397,11 @@ public class DefaultOrchestrationProcessor implements OrchestrationProcessor {
             }
           } finally {
             if (task.getStatus() == null || !task.getStatus().isCompleted()) {
-              task.complete();
+              try {
+                task.complete();
+              } catch (TaskLeaseLostException e) {
+                log.warn("Could not complete task {} after losing its lease", task.getId(), e);
+              }
             }
           }
           return null;
