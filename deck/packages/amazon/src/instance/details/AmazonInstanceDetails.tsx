@@ -366,6 +366,21 @@ export function AmazonInstanceActionsComponent({
 
   if (instance.serverGroup) {
     actions.push({
+      label: 'Terminate in Server Group',
+      triggerAction: () =>
+        confirm(
+          `Really terminate ${instance.instanceId} in ${instance.serverGroup}?`,
+          `Terminate ${instance.instanceId} in ${instance.serverGroup}`,
+          `Terminating ${instance.instanceId} in ${instance.serverGroup}`,
+          () => AmazonInstanceWriter.terminateInstanceInServerGroup(instance, app),
+          true,
+          {
+            body: `The instance is terminated through its Auto Scaling group, which runs any termination lifecycle hooks
+              and keeps its desired capacity, launching a replacement instance.`,
+          },
+        ),
+    });
+    actions.push({
       label: 'Terminate and Shrink Server Group',
       triggerAction: () =>
         confirm(
