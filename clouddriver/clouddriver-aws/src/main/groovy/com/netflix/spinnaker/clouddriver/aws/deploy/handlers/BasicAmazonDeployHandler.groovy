@@ -303,6 +303,7 @@ class BasicAmazonDeployHandler implements DeployHandler<BasicAmazonDeployDescrip
         .lifecycleHooks(getLifecycleHooks(account, description))
         .setLaunchTemplate(description.setLaunchTemplate)
         .requireIMDSv2(description.requireIMDSv2)
+        .enableInstanceMetadataTags(description.enableInstanceMetadataTags)
         .enableEnclave(description.enableEnclave)
         .tcpEstablishedTimeout(description.tcpEstablishedTimeout)
         .udpStreamTimeout(description.udpStreamTimeout)

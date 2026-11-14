@@ -132,7 +132,7 @@ class BasicAmazonDeployAtomicOperationConverterUnitSpec extends Specification {
   void "should serialize launch template fields correctly"() {
     setup:
     def input = [application: "kato", credentials: 'test',
-                 setLaunchTemplate: true, requireIMDSv2: true, associateIPv6Address: true, unlimitedCpuCredits: true,
+                 setLaunchTemplate: true, requireIMDSv2: true, enableInstanceMetadataTags: true, associateIPv6Address: true, unlimitedCpuCredits: true,
                  placement: [groupName: "test-placement"], licenseSpecifications: [[arn: "test-arn"]],
                  onDemandAllocationStrategy: "prioritized", onDemandBaseCapacity: 2, onDemandPercentageAboveBaseCapacity: 50, spotAllocationStrategy: "lowest-price",
                  spotInstancePools: 3, spotPrice: "0.5", launchTemplateOverridesForInstanceType: [[instanceType: "some.type.large", weightedCapacity: 2]]]
@@ -142,6 +142,7 @@ class BasicAmazonDeployAtomicOperationConverterUnitSpec extends Specification {
 
     then:
     description.application == "kato"
+    description.enableInstanceMetadataTags
     description.placement == new BasicAmazonDeployDescription.LaunchTemplatePlacement(groupName: "test-placement")
     description.licenseSpecifications == [new BasicAmazonDeployDescription.LaunchTemplateLicenseSpecification(arn: "test-arn")]
     description.onDemandAllocationStrategy == "prioritized"
