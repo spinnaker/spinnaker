@@ -21,6 +21,7 @@ import software.amazon.awssdk.services.autoscaling.model.DescribeAutoScalingGrou
 import software.amazon.awssdk.services.autoscaling.model.DescribeLifecycleHooksRequest
 import software.amazon.awssdk.services.autoscaling.model.LaunchTemplateSpecification
 import software.amazon.awssdk.services.ec2.model.DescribeSubnetsRequest
+import software.amazon.awssdk.services.ec2.model.LaunchTemplateInstanceMetadataTagsState
 import software.amazon.awssdk.services.ec2.model.LaunchTemplateVersion
 import software.amazon.awssdk.services.ec2.model.ResponseLaunchTemplateData
 import software.amazon.awssdk.services.elasticloadbalancingv2.model.DescribeTargetGroupsRequest
@@ -190,6 +191,15 @@ class CopyLastAsgAtomicOperation implements AtomicOperation<DeploymentResult> {
           newDescription.setLaunchTemplate = true
           newDescription.enableEnclave = description.enableEnclave != null ? description.enableEnclave :  ancestorLtData.enclaveOptions()?.enabled()
           newDescription.requireIMDSv2 = description.requireIMDSv2 != null ? description.requireIMDSv2 : ancestorLtData.metadataOptions()?.httpTokensAsString() == "required"
+          if (description.enableInstanceMetadataTags == null) {
+            // Carry forward the ancestor's access to instance tags in IMDS only when it was set explicitly,
+            // so a clone neither turns it off nor overrides the AWS default when the ancestor left it unset.
+            String ancestorInstanceMetadataTags = ancestorLtData.metadataOptions()?.instanceMetadataTagsAsString()
+            if (ancestorInstanceMetadataTags != null) {
+              newDescription.enableInstanceMetadataTags =
+                ancestorInstanceMetadataTags == LaunchTemplateInstanceMetadataTagsState.ENABLED.toString()
+            }
+          }
           newDescription.associateIPv6Address = description.associateIPv6Address
           newDescription.unlimitedCpuCredits = description.unlimitedCpuCredits != null
             ? description.unlimitedCpuCredits

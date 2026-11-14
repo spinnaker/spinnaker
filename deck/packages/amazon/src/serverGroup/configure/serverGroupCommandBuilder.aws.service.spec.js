@@ -173,6 +173,33 @@ describe('Service: awsServerGroup', function () {
       expect(command.useSourceCapacity).toBe(true);
     });
 
+    describe('copies access to instance tags in instance metadata from the source launch template', function () {
+      [
+        { instanceMetadataTags: 'enabled', expected: true },
+        { instanceMetadataTags: 'disabled', expected: false },
+        { instanceMetadataTags: undefined, expected: undefined },
+      ].forEach(({ instanceMetadataTags, expected }) => {
+        it(`sets enableInstanceMetadataTags to ${expected} when the source has ${instanceMetadataTags}`, async function () {
+          const serverGroup = {
+            asg: {
+              availabilityZones: [],
+              vpczoneIdentifier: '',
+              suspendedProcesses: [],
+            },
+            launchTemplate: createCustomMockLaunchTemplate('test-lt', {
+              ...mockLaunchTemplateData,
+              metadataOptions: { ...mockLaunchTemplateData.metadataOptions, instanceMetadataTags },
+            }),
+          };
+
+          const command = await testContext.service.buildServerGroupCommandFromExisting({}, serverGroup);
+
+          expect(command.enableInstanceMetadataTags).toBe(expected);
+          expect(command.requireIMDSv2).toBe(true);
+        });
+      });
+    });
+
     describe('extracts properties from server group correctly', function () {
       const sgCommon = {
         ...mockServerGroup,

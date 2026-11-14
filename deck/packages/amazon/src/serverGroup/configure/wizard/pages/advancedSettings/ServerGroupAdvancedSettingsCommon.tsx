@@ -228,6 +228,24 @@ export class ServerGroupAdvancedSettingsCommon extends React.Component<IServerGr
             </div>
           </div>
         )}
+        {asgSettings?.enableLaunchTemplates && (
+          <div className="form-group">
+            <div className="col-md-3 sm-label-right">
+              <b>Instance Metadata Tags </b>
+              <HelpField id="aws.serverGroup.instanceMetadataTags" />
+            </div>
+            <div className="col-md-7 checkbox">
+              <label>
+                <input
+                  type="checkbox"
+                  checked={values.enableInstanceMetadataTags === true}
+                  onChange={(e) => setFieldValue('enableInstanceMetadataTags', e.target.checked)}
+                />{' '}
+                Allow access to instance tags from instance metadata{' '}
+              </label>
+            </div>
+          </div>
+        )}
         {!AWSProviderSettings.disableSpotPricing && values.viewState.useSimpleInstanceTypeSelector && (
           <div className="form-group">
             <div className="col-md-3 sm-label-right">

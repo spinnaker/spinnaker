@@ -150,6 +150,23 @@ describe('Launch template details', () => {
     expect(screen.getByText('User Data', { selector: 'dt' })).toBeInTheDocument();
   });
 
+  it('should render access to instance tags in instance metadata only when the launch template sets it', () => {
+    const { rerender } = render(<LaunchTemplateDetailsSection serverGroup={baseServerGroupWithLt} app={app} />);
+    expand();
+    expect(screen.queryByText('Instance Metadata Tags', { selector: 'dt' })).not.toBeInTheDocument();
+
+    const serverGroupWithTags = {
+      ...baseServerGroupWithLt,
+      launchTemplate: createCustomMockLaunchTemplate('ltWithTags', {
+        ...mockLaunchTemplateData,
+        metadataOptions: { ...mockLaunchTemplateData.metadataOptions, instanceMetadataTags: 'enabled' },
+        userData: btoa('test user data'),
+      }),
+    } as IAmazonServerGroupView;
+    rerender(<LaunchTemplateDetailsSection serverGroup={serverGroupWithTags} app={app} />);
+    expectValue('Instance Metadata Tags', 'enabled');
+  });
+
   it('should conditionally render launch template details for server group with mixedInstancesPolicy', () => {
     const testServerGroup = baseServerGroupWithMipOverrides;
 

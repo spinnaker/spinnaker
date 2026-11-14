@@ -114,6 +114,7 @@ export interface IAmazonServerGroupCommand extends IServerGroupCommand {
   base64UserData: string;
   copySourceCustomBlockDeviceMappings: boolean;
   ebsOptimized: boolean;
+  enableInstanceMetadataTags?: boolean;
   healthCheckGracePeriod: number;
   instanceMonitoring: boolean;
   keyPair: string;

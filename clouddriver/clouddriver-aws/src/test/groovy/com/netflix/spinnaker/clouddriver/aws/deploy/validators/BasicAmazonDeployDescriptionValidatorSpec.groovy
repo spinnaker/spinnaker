@@ -350,6 +350,8 @@ class BasicAmazonDeployDescriptionValidatorSpec extends Specification {
     [spotAllocationStrategy: "lowest-price",
      launchTemplateOverridesForInstanceType:[new BasicAmazonDeployDescription.LaunchTemplateOverridesForInstanceType(
        instanceType: "m5.xlarge", weightedCapacity: 2)]]                                || ["launchTemplateOverridesForInstanceType", "spotAllocationStrategy"]
+    [enableInstanceMetadataTags: true]                                                  || ["enableInstanceMetadataTags"]
+    [requireIMDSv2: true, enableInstanceMetadataTags: false]                            || ["enableInstanceMetadataTags", "requireIMDSv2"]
   }
 
   void "invalid request with unlimited cpu credits and unsupported instance type fails validation"() {

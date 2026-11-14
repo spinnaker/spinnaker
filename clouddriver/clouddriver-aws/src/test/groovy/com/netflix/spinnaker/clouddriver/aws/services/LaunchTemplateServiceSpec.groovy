@@ -432,6 +432,104 @@ class LaunchTemplateServiceSpec extends Specification {
   }
 
   @Unroll
+  void 'should set access to instance tags in instance metadata, for create operation'() {
+    given:
+    def asgConfig = AutoScalingWorker.AsgConfiguration.builder()
+      .setLaunchTemplate(true)
+      .credentials(testCredentials)
+      .legacyUdf(false)
+      .application("myasg-001")
+      .region("us-east-1")
+      .instanceType("m5.large")
+      .securityGroups(["my-sg"])
+      .ami("ami-1")
+      .base64UserData(USER_DATA_STR)
+      .associateIPv6Address(false)
+      .requireIMDSv2(requireIMDSv2)
+      .enableInstanceMetadataTags(enableInstanceMetadataTags)
+      .build()
+
+    when:
+    launchTemplateService.createLaunchTemplate(asgConfig, "myasg-001", "my-lt-001")
+
+    then:
+    1 * mockEc2.createLaunchTemplate(_ as CreateLaunchTemplateRequest) >> { arguments ->
+      CreateLaunchTemplateRequest reqInArg = arguments[0]
+      assert reqInArg.launchTemplateData().metadataOptions() == expected
+      CreateLaunchTemplateResponse.builder()
+        .launchTemplate(LaunchTemplate.builder().launchTemplateId(LT_ID_1).launchTemplateName("my-lt-001").build())
+        .build()
+    }
+
+    where:
+    requireIMDSv2 | enableInstanceMetadataTags || expected
+    false         | true                       || LaunchTemplateInstanceMetadataOptionsRequest.builder().instanceMetadataTags("enabled").build()
+    true          | true                       || LaunchTemplateInstanceMetadataOptionsRequest.builder().httpTokens("required").instanceMetadataTags("enabled").build()
+    true          | false                      || LaunchTemplateInstanceMetadataOptionsRequest.builder().httpTokens("required").instanceMetadataTags("disabled").build()
+    true          | null                       || LaunchTemplateInstanceMetadataOptionsRequest.builder().httpTokens("required").build()
+    false         | null                       || null // not requested: leave the AWS default in place
+  }
+
+  @Unroll
+  void 'should keep source instance metadata options unless the modify description overrides them'() {
+    given:
+    def modifyDesc = new ModifyServerGroupLaunchTemplateDescription(
+      region: "us-east-1",
+      asgName: "myasg",
+      amiName: "ami-1",
+      credentials: testCredentials,
+      instanceType: "m5.large",
+      requireIMDV2: descRequireIMDV2,
+      enableInstanceMetadataTags: descEnableTags,
+    )
+
+    def srcLtData = ResponseLaunchTemplateData.builder()
+      .imageId("ami-1")
+      .instanceType("m5.large")
+      .userData(USER_DATA_STR)
+    if (srcHttpTokens != null || srcTags != null) {
+      def srcMetadataOptions = LaunchTemplateInstanceMetadataOptions.builder()
+      if (srcHttpTokens != null) {
+        srcMetadataOptions.httpTokens(srcHttpTokens)
+      }
+      if (srcTags != null) {
+        srcMetadataOptions.instanceMetadataTags(srcTags)
+      }
+      srcLtData.metadataOptions(srcMetadataOptions.build())
+    }
+    def sourceLtVersion = LaunchTemplateVersion.builder()
+      .launchTemplateId(LT_ID_1)
+      .versionNumber(1L)
+      .launchTemplateData(srcLtData.build())
+      .build()
+
+    when:
+    launchTemplateService.modifyLaunchTemplate(testCredentials, modifyDesc, sourceLtVersion, false)
+
+    then:
+    1 * mockEc2.createLaunchTemplateVersion(_ as CreateLaunchTemplateVersionRequest) >> { arguments ->
+      CreateLaunchTemplateVersionRequest reqInArg = arguments[0]
+      assert reqInArg.launchTemplateData().metadataOptions() == expected
+      CreateLaunchTemplateVersionResponse.builder()
+        .launchTemplateVersion(LaunchTemplateVersion.builder()
+          .launchTemplateId(LT_ID_1)
+          .versionNumber(2L)
+          .launchTemplateData(ResponseLaunchTemplateData.builder().build())
+          .build())
+        .build()
+    }
+
+    where:
+    descRequireIMDV2 | descEnableTags | srcHttpTokens | srcTags    || expected
+    null             | null           | "required"    | "enabled"  || LaunchTemplateInstanceMetadataOptionsRequest.builder().httpTokens("required").instanceMetadataTags("enabled").build() // regression: source tags kept, not dropped
+    true             | null           | "optional"    | "enabled"  || LaunchTemplateInstanceMetadataOptionsRequest.builder().httpTokens("required").instanceMetadataTags("enabled").build() // changing IMDSv2 keeps source tags
+    null             | false          | "required"    | "enabled"  || LaunchTemplateInstanceMetadataOptionsRequest.builder().httpTokens("required").instanceMetadataTags("disabled").build() // description wins per option
+    null             | true           | null          | null       || LaunchTemplateInstanceMetadataOptionsRequest.builder().instanceMetadataTags("enabled").build()
+    null             | null           | "optional"    | null       || LaunchTemplateInstanceMetadataOptionsRequest.builder().httpTokens("optional").build()
+    null             | null           | null          | null       || null
+  }
+
+  @Unroll
   void 'delete launch template version success scenarios are handled as expected'() {
     given:
     def versionToDelete = 2L
