@@ -1,5 +1,5 @@
 /*
- * Copyright 2026 Netflix, Inc.
+ * Copyright 2026 spinnaker.io
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -234,8 +234,6 @@ class SqlTaskReaperAgent(
           .set(field("next_seq"), nextSeq + 1)
           .set(field("current_state"), state.toString())
           .set(field("completed_at"), System.currentTimeMillis())
-          .set(field("lease_owner"), owner)
-          .set(field("lease_epoch"), epoch)
           .where(field("id").eq(taskId))
           .execute()
         resolved = true

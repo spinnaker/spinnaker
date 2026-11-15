@@ -1,5 +1,5 @@
 /*
- * Copyright 2026 Netflix, Inc.
+ * Copyright 2026 spinnaker.io
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,11 +16,11 @@
 package com.netflix.spinnaker.clouddriver.data.task;
 
 /**
- * Thrown when a write to a task is rejected because the executing instance no longer owns
- * the task's lease: the instance was declared dead by the reaper after its lease expired,
- * or its registration epoch was superseded after a restart. The executor should abandon
- * the task — the instance that owns the lease (or the reaper) decides its outcome, and a
- * non-idempotent operation is never re-run blindly.
+ * Thrown when a write to a task is rejected because the executing instance no longer owns the
+ * task's lease: the instance was declared dead by the reaper after its lease expired, or its
+ * registration epoch was superseded after a restart. The executor should abandon the task — the
+ * instance that owns the lease (or the reaper) decides its outcome, and a non-idempotent operation
+ * is never re-run blindly.
  */
 public class TaskLeaseLostException extends RuntimeException {
   public TaskLeaseLostException(String message) {

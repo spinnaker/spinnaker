@@ -1,5 +1,5 @@
 /*
- * Copyright 2026 Netflix, Inc.
+ * Copyright 2026 spinnaker.io
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -21,6 +21,7 @@ import com.netflix.spinnaker.kork.sql.test.SqlTestUtil
 import dev.minutest.junit.JUnit5Minutests
 import dev.minutest.rootContext
 import io.mockk.mockk
+import io.mockk.verify
 import org.jooq.impl.DSL.field
 import strikt.api.expectThat
 import strikt.assertions.isEqualTo
@@ -59,6 +60,17 @@ class SqlTaskLeaseManagerTest : JUnit5Minutests {
       manager.registerOrHeartbeat()
       expectThat(manager.epoch).isEqualTo(1L)
       expectThat(instanceState()).isEqualTo(INSTANCE_ACTIVE)
+    }
+
+    test("shutdown resolves in-flight tasks and marks the instance dead") {
+      manager.registerOrHeartbeat()
+      val reaper = mockk<TaskReaper>(relaxed = true)
+      manager.reaper = reaper
+
+      manager.shutdown()
+
+      expectThat(instanceState()).isEqualTo(INSTANCE_DEAD)
+      verify { reaper.reapInstanceTasks(manager.instanceId, 0L) }
     }
 
     test("mayWrite fences a leased task once the epoch is superseded") {

@@ -1,5 +1,5 @@
 /*
- * Copyright 2026 Netflix, Inc.
+ * Copyright 2026 spinnaker.io
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -140,28 +140,28 @@ class SqlTaskLeaseManager(
   }
 
   /** True when this pod may write to the task: un-leased (legacy) tasks are never fenced;
-   * leased tasks are writable only while this pod holds the same registration epoch and is
-   * not draining. */
+   * leased tasks are writable while this pod holds the same registration epoch. Draining does
+   * not fence writes: the pod still owns the lease and has to be able to finish, or resolve,
+   * the operations that were already running. */
   fun mayWrite(leaseOwner: String?, leaseEpoch: Long?): Boolean {
     if (leaseOwner == null) {
       return true
-    }
-    if (draining) {
-      return false
     }
     val current = epoch ?: return false
     return leaseOwner == instanceId && leaseEpoch == current
   }
 
-  /** Marks the instance DRAINING: heartbeats stop, and no further writes pass the fence
-   * once the remaining operations have finished. */
+  /** Marks the instance DRAINING and extends the lease past the drain window: heartbeats stop,
+   * but the reaper must not win the lease while in-flight operations are still finishing. */
   fun beginDrain() {
     draining = true
     withPool(ConnectionPools.TASKS.value) {
       jooq.transactional(retries) { ctx ->
+        val now = dbNowMillis(ctx)
         ctx.update(clouddriverInstancesTable)
           .set(field("state"), INSTANCE_DRAINING)
-          .set(field("updated_at"), dbNowMillis(ctx))
+          .set(field("lease_expires_at"), now + properties.leaseTtlMs + properties.drainLeaseExtension.toMillis())
+          .set(field("updated_at"), now)
           .where(field("instance_id").eq(instanceId))
           .execute()
       }
@@ -210,10 +210,10 @@ class SqlTaskLeaseManager(
         break
       }
     }
-    // Extend the lease for the reap itself so a concurrent reaper cannot race the final writes.
-    run()
-    epoch?.let { current ->
-      reaper.reapInstanceTasks(instanceId, current)
+    if (::reaper.isInitialized) {
+      epoch?.let { current ->
+        reaper.reapInstanceTasks(instanceId, current)
+      }
     }
     markDead()
     log.info("Instance {} drained and marked dead", instanceId)

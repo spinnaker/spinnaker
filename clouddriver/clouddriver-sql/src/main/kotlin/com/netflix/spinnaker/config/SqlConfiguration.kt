@@ -71,8 +71,12 @@ class SqlConfiguration {
     jooq: DSLContext,
     registry: Registry,
     properties: SqlTaskLeaseProperties,
-    sqlRetries: SqlRetries
-  ): SqlTaskLeaseManager = SqlTaskLeaseManager(jooq, registry, properties, sqlRetries)
+    sqlRetries: SqlRetries,
+    reaper: SqlTaskReaperAgent?
+  ): SqlTaskLeaseManager =
+    SqlTaskLeaseManager(jooq, registry, properties, sqlRetries).also { manager ->
+      reaper?.let { manager.reaper = it }
+    }
 
   @Bean
   @ConditionalOnProperty("sql.task-repository.enabled")

@@ -365,10 +365,7 @@ public class DefaultOrchestrationProcessor implements OrchestrationProcessor {
             registry.counter(tasksId.withTag("success", "true")).increment();
           } catch (TaskLeaseLostException e) {
             registry
-                .counter(
-                    tasksId
-                        .withTag("success", "false")
-                        .withTag("cause", "TaskLeaseLost"))
+                .counter(tasksId.withTag("success", "false").withTag("cause", "TaskLeaseLost"))
                 .increment();
             log.warn("Abandoning task {} after losing its lease", task.getId(), e);
           } catch (Exception e) {
