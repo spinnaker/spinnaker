@@ -1,5 +1,5 @@
 /*
- * Copyright 2026 spinnaker.io
+ * Copyright 2026 Netflix, Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,13 +17,13 @@ package com.netflix.spinnaker.clouddriver.sql
 
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.netflix.spectator.api.Registry
-import com.netflix.spinnaker.clouddriver.cache.MaintenanceAgent
-import com.netflix.spinnaker.clouddriver.core.provider.CoreProvider
 import com.netflix.spinnaker.clouddriver.data.task.TaskState
 import com.netflix.spinnaker.config.ConnectionPools
 import com.netflix.spinnaker.config.SqlTaskLeaseProperties
 import com.netflix.spinnaker.kork.sql.routing.withPool
-import de.huxhorn.sulky.ulid.ULID
+import java.time.Clock
+import java.util.concurrent.Executors
+import java.util.concurrent.ScheduledExecutorService
 import java.util.concurrent.TimeUnit
 import org.jooq.DSLContext
 import org.jooq.impl.DSL.field
@@ -32,9 +32,9 @@ import org.slf4j.LoggerFactory
 /** What the reaper does to the tasks of an instance whose lease has expired. */
 interface TaskReaper {
   /**
-   * Resolves the still-STARTED tasks owned by [owner] (whose registration epoch was
-   * [epoch]): FAILED_RETRYABLE when the task carries a saga Orca can resume, FAILED
-   * otherwise — a non-idempotent cloud operation is never re-run blindly.
+   * Resolves the still-STARTED tasks leased to [owner] under registration [epoch]:
+   * FAILED_RETRYABLE when the task carries a saga Orca can resume, FAILED otherwise —
+   * a non-idempotent cloud operation is never re-run blindly.
    *
    * @return the number of tasks resolved
    */
@@ -49,24 +49,52 @@ interface TaskReaper {
  *
  * Declaring an instance DEAD is a conditional update (`WHERE instance_id = ? AND epoch = ?
  * AND lease_expires_at < now`), so exactly one pod wins the reaping of any given instance.
+ * Runs on a private per-pod scheduler: every pod reaps, the conditional update picks the
+ * single winner.
  */
 class SqlTaskReaperAgent(
   private val jooq: DSLContext,
   private val objectMapper: ObjectMapper,
   private val registry: Registry,
+  private val clock: Clock,
   private val properties: SqlTaskLeaseProperties,
   private val retries: SqlRetries = SqlRetries()
-) : TaskReaper, MaintenanceAgent {
-
+) : TaskReaper {
   private val log = LoggerFactory.getLogger(javaClass)
-
-  private val ulid = ULID()
 
   private val reapedInstanceId = registry.createId("sql.taskReaper.instancesReaped")
   private val reapedTaskId = registry.createId("sql.taskReaper.tasksReaped")
+  private val deadRowsDeletedId = registry.createId("sql.taskReaper.deadRowsDeleted")
   private val timingId = registry.createId("sql.taskReaper.timing")
 
-  override fun run() {
+  private var scheduler: ScheduledExecutorService? = null
+
+  /** Starts the per-pod reap loop. Called by the configuration after bean construction. */
+  fun start() {
+    val exec =
+      Executors.newSingleThreadScheduledExecutor { r ->
+        Thread(r, "sql-task-reaper").apply { isDaemon = true }
+      }
+    scheduler = exec
+    exec.scheduleWithFixedDelay(
+      {
+        try {
+          run()
+        } catch (e: Exception) {
+          log.warn("Reaper pass failed: {}", e.message)
+        }
+      },
+      properties.reaperInitialDelayMs,
+      properties.reaperIntervalMs,
+      TimeUnit.MILLISECONDS
+    )
+  }
+
+  fun stop() {
+    scheduler?.shutdownNow()
+  }
+
+  fun run() {
     withPool(ConnectionPools.TASKS.value) {
       val expired =
         jooq.read(retries) { j ->
@@ -97,6 +125,8 @@ class SqlTaskReaperAgent(
           }
         }
       }
+
+      cleanupDeadRows()
     }
   }
 
@@ -127,6 +157,29 @@ class SqlTaskReaperAgent(
     return won
   }
 
+  /**
+   * DEAD rows are history: their tasks were resolved when the row was declared dead. Left
+   * alone the table grows by one row per pod start (instance ids are unique per JVM), so
+   * rows past [SqlTaskLeaseProperties.deadRowTtlMs] are deleted here.
+   */
+  private fun cleanupDeadRows() {
+    val cutoff = clock.millis() - properties.deadRowTtlMs
+    withPool(ConnectionPools.TASKS.value) {
+      jooq.transactional(retries) { ctx ->
+        val deleted =
+          ctx.deleteFrom(clouddriverInstancesTable)
+            .where(
+              field("state").eq(INSTANCE_DEAD)
+                .and(field("updated_at").lessThan(cutoff))
+            )
+            .execute()
+        if (deleted > 0) {
+          registry.counter(deadRowsDeletedId).increment(deleted.toLong())
+        }
+      }
+    }
+  }
+
   override fun reapInstanceTasks(owner: String, epoch: Long): Int {
     var resolved = 0
     withPool(ConnectionPools.TASKS.value) {
@@ -135,7 +188,7 @@ class SqlTaskReaperAgent(
           j.select(field("id"))
             .from(tasksTable)
             .where(
-              field("owner_id").eq(owner)
+              field("lease_owner").eq(owner)
                 .and(field("lease_epoch").eq(epoch))
                 .and(field("current_state").eq(TaskState.STARTED.toString()))
             )
@@ -161,7 +214,7 @@ class SqlTaskReaperAgent(
 
   /**
    * Resolves one orphaned task under the task's row lock, re-checking that it is still
-   * STARTED and still owned by the dead registration. Saga-backed tasks become
+   * STARTED and still leased to the dead registration. Saga-backed tasks become
    * FAILED_RETRYABLE so Orca's existing resume path can pick them up; everything else is
    * FAILED — the operation may already have hit the cloud API, so it is never re-run.
    */
@@ -210,6 +263,7 @@ class SqlTaskReaperAgent(
           }
 
         val nextSeq = (record.get("next_seq", Long::class.javaObjectType) ?: FIRST_SEQ)
+        val now = clock.millis()
         ctx.insertInto(
               taskStatesTable,
               field("id"),
@@ -223,7 +277,7 @@ class SqlTaskReaperAgent(
             .values(
               ulid.nextULID(),
               taskId,
-              System.currentTimeMillis(),
+              now,
               nextSeq,
               state.toString(),
               "ORCHESTRATION",
@@ -233,7 +287,7 @@ class SqlTaskReaperAgent(
         ctx.update(tasksTable)
           .set(field("next_seq"), nextSeq + 1)
           .set(field("current_state"), state.toString())
-          .set(field("completed_at"), System.currentTimeMillis())
+          .set(field("completed_at"), now)
           .where(field("id").eq(taskId))
           .execute()
         resolved = true
@@ -242,14 +296,11 @@ class SqlTaskReaperAgent(
     return resolved
   }
 
-  override fun getAgentType(): String = javaClass.simpleName
-  override fun getProviderName(): String = CoreProvider.PROVIDER_NAME
-  override fun getPollIntervalMillis(): Long = DEFAULT_POLL_INTERVAL_MILLIS
-  override fun getTimeoutMillis(): Long = DEFAULT_TIMEOUT_MILLIS
+  private val ulid = de.huxhorn.sulky.ulid.ULID()
+
+  fun startSchedulerForTests() = start()
 
   companion object {
-    private val DEFAULT_POLL_INTERVAL_MILLIS = TimeUnit.MINUTES.toMillis(1)
-    private val DEFAULT_TIMEOUT_MILLIS = TimeUnit.MINUTES.toMillis(1)
     private const val FIRST_SEQ = 1L
     private const val MAX_STATUS_LENGTH = 200
   }

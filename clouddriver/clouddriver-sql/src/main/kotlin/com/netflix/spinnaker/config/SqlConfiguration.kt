@@ -71,12 +71,13 @@ class SqlConfiguration {
     jooq: DSLContext,
     registry: Registry,
     properties: SqlTaskLeaseProperties,
-    sqlRetries: SqlRetries,
-    reaper: SqlTaskReaperAgent?
-  ): SqlTaskLeaseManager =
-    SqlTaskLeaseManager(jooq, registry, properties, sqlRetries).also { manager ->
-      reaper?.let { manager.reaper = it }
-    }
+    sqlTaskReaperAgent: SqlTaskReaperAgent,
+    sqlRetries: SqlRetries
+  ): SqlTaskLeaseManager {
+    val manager = SqlTaskLeaseManager(jooq, registry, properties, sqlTaskReaperAgent, sqlRetries)
+    manager.start()
+    return manager
+  }
 
   @Bean
   @ConditionalOnProperty("sql.task-repository.enabled")
@@ -96,10 +97,11 @@ class SqlConfiguration {
     clock: Clock,
     objectMapper: ObjectMapper,
     @Value("\${sql.task-repository.secondary.pool-name}") poolName: String,
-    sqlRetries: SqlRetries,
-    sqlTaskLeaseManager: SqlTaskLeaseManager?
+    sqlRetries: SqlRetries
   ): TaskRepository =
-    SqlTaskRepository(jooq, objectMapper, clock, poolName, sqlRetries, sqlTaskLeaseManager)
+    // The secondary pool serves a different database; a single reaper scans one pool,
+    // so its tasks stay unfenced/legacy rather than stamped and never reaped.
+    SqlTaskRepository(jooq, objectMapper, clock, poolName, sqlRetries, null)
 
   @Bean
   @ConditionalOnProperty("sql.task-repository.enabled")
@@ -120,9 +122,14 @@ class SqlConfiguration {
     jooq: DSLContext,
     objectMapper: ObjectMapper,
     registry: Registry,
+    clock: Clock,
     properties: SqlTaskLeaseProperties,
     sqlRetries: SqlRetries
-  ): SqlTaskReaperAgent = SqlTaskReaperAgent(jooq, objectMapper, registry, properties, sqlRetries)
+  ): SqlTaskReaperAgent {
+    val agent = SqlTaskReaperAgent(jooq, objectMapper, registry, clock, properties, sqlRetries)
+    agent.start()
+    return agent
+  }
 
   @Bean
   fun sqlEventRepository(

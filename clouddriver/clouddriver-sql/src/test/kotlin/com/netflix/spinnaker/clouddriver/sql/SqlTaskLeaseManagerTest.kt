@@ -22,6 +22,7 @@ import dev.minutest.junit.JUnit5Minutests
 import dev.minutest.rootContext
 import io.mockk.mockk
 import io.mockk.verify
+import io.mockk.verify
 import org.jooq.impl.DSL.field
 import strikt.api.expectThat
 import strikt.assertions.isEqualTo
@@ -62,16 +63,6 @@ class SqlTaskLeaseManagerTest : JUnit5Minutests {
       expectThat(instanceState()).isEqualTo(INSTANCE_ACTIVE)
     }
 
-    test("shutdown resolves in-flight tasks and marks the instance dead") {
-      manager.registerOrHeartbeat()
-      val reaper = mockk<TaskReaper>(relaxed = true)
-      manager.reaper = reaper
-
-      manager.shutdown()
-
-      expectThat(instanceState()).isEqualTo(INSTANCE_DEAD)
-      verify { reaper.reapInstanceTasks(manager.instanceId, 0L) }
-    }
 
     test("mayWrite fences a leased task once the epoch is superseded") {
       manager.registerOrHeartbeat()
@@ -89,6 +80,49 @@ class SqlTaskLeaseManagerTest : JUnit5Minutests {
       expectThat(manager.mayWrite(manager.instanceId, 0L)).isEqualTo(false)
       expectThat(manager.mayWrite(manager.instanceId, 1L)).isEqualTo(true)
     }
+
+    test("draining does not fence the owner — in-flight writes run through the window") {
+      manager.registerOrHeartbeat()
+      manager.beginDrain()
+      expectThat(manager.mayWrite(manager.instanceId, 0L)).isEqualTo(true)
+    }
+
+    test("markDead fences everything from this instance") {
+      manager.registerOrHeartbeat()
+      expectThat(manager.mayWrite(manager.instanceId, 0L)).isEqualTo(true)
+      manager.markDead()
+      expectThat(manager.mayWrite(manager.instanceId, 0L)).isEqualTo(false)
+      expectThat(manager.mayWrite(null, null)).isEqualTo(true)
+    }
+
+    test("shutdown resolves own tasks through the injected reaper") {
+      manager.registerOrHeartbeat()
+      val epoch = manager.epoch!!
+      database.context
+        .insertInto(tasksTable)
+        .columns(
+          field("id"), field("request_id"), field("owner_id"), field("created_at"),
+          field("saga_ids"), field("current_state"), field("next_seq"),
+          field("lease_owner"), field("lease_epoch")
+        )
+        .values(
+          "lease-task-1", "lease-task-1-request", manager.instanceId,
+          System.currentTimeMillis(), "[]", "STARTED", 2L,
+          manager.instanceId, epoch
+        )
+        .execute()
+
+      manager.shutdown()
+
+      verify { reaper.reapInstanceTasks(manager.instanceId, epoch) }
+      expectThat(manager.epoch).isNull()
+      val state = database.context
+        .select(field("state"))
+        .from(clouddriverInstancesTable)
+        .where(field("instance_id").eq(manager.instanceId))
+        .fetchOne(field("state"), String::class.java)
+      expectThat(state).isEqualTo(INSTANCE_DEAD)
+    }
   }
 
   inner class Fixture {
@@ -99,7 +133,8 @@ class SqlTaskLeaseManagerTest : JUnit5Minutests {
         leaseTtlMs = 120_000
         shutdownWaitSeconds = 0
       }
-    val manager = SqlTaskLeaseManager(database.context, mockk(relaxed = true), properties)
+    val reaper = mockk<com.netflix.spinnaker.clouddriver.sql.TaskReaper>(relaxed = true)
+    val manager = SqlTaskLeaseManager(database.context, mockk(relaxed = true), properties, reaper)
 
     fun leaseExpiresAt(): Long =
       database.context

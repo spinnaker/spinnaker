@@ -1,5 +1,5 @@
 /*
- * Copyright 2026 spinnaker.io
+ * Copyright 2026 Netflix, Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,15 +16,14 @@
 package com.netflix.spinnaker.clouddriver.sql
 
 import com.netflix.spectator.api.Registry
-import com.netflix.spinnaker.cats.agent.RunnableAgent
-import com.netflix.spinnaker.clouddriver.cache.CustomScheduledAgent
 import com.netflix.spinnaker.clouddriver.core.ClouddriverHostname
-import com.netflix.spinnaker.clouddriver.core.provider.CoreProvider
 import com.netflix.spinnaker.config.ConnectionPools
 import com.netflix.spinnaker.config.SqlTaskLeaseProperties
 import com.netflix.spinnaker.kork.sql.routing.withPool
-import java.util.concurrent.TimeUnit
 import jakarta.annotation.PreDestroy
+import java.util.concurrent.Executors
+import java.util.concurrent.ScheduledExecutorService
+import java.util.concurrent.TimeUnit
 import org.jooq.DSLContext
 import org.jooq.impl.DSL.field
 import org.slf4j.LoggerFactory
@@ -41,39 +40,50 @@ internal const val INSTANCE_DEAD = "DEAD"
  * writes from a superseded registration are rejected with [TaskLeaseLostException] by the
  * repository, and a reaper resolves the tasks of instances whose lease expired.
  *
- * The lease expiry itself is judged against the database clock (`dbNowMillis`), so pod
- * clock skew cannot make a healthy pod look dead or a dead pod look alive.
+ * The heartbeat runs on a private per-pod scheduler, NOT on the cats clustered agent
+ * scheduler: the clustered scheduler runs a given agent on one pod at a time, which for a
+ * lease heartbeat would leave every other pod's lease expired and its tasks reaped while
+ * alive. The reaper shares this requirement (any pod may reap; the conditional update
+ * picks a single winner), so it keeps its own scheduler too.
+ *
+ * Lease expiry is judged against the database clock, so pod clock skew cannot make a
+ * healthy pod look dead or a dead pod look alive.
  */
 class SqlTaskLeaseManager(
   private val jooq: DSLContext,
   private val registry: Registry,
   private val properties: SqlTaskLeaseProperties,
+  private val reaper: TaskReaper,
   private val retries: SqlRetries = SqlRetries()
-) : RunnableAgent, CustomScheduledAgent {
-
+) {
   private val log = LoggerFactory.getLogger(javaClass)
 
   val instanceId: String = ClouddriverHostname.ID
 
   /** The registration epoch this pod is currently running under; null before the first
-   * successful registration. Tasks remember the epoch they were created under. */
+   * successful registration and again after [markDead]. Tasks remember the epoch they
+   * were created under. */
   @Volatile
   var epoch: Long? = null
     private set
 
+  /** Set once the pod has drained and marked itself dead; fences all further writes. */
+  @Volatile
+  private var dead = false
+
   @Volatile
   private var draining = false
+
+  private var scheduler: ScheduledExecutorService? = null
 
   private val heartbeatRenewedId = registry.createId("sql.taskLease.heartbeat.renewed")
   private val heartbeatReregisteredId = registry.createId("sql.taskLease.heartbeat.reregistered")
   private val heartbeatFailedId = registry.createId("sql.taskLease.heartbeat.failed")
 
-  /**
-   * Registers the instance, or renews its lease. The first call (and any call after the
+  /** Registers the instance, or renews its lease. The first call (and any call after the
    * reaper declared this row DEAD, or after our row vanished) bumps the epoch: writes from
    * a superseded registration then fail the lease check, and the executor abandons the
-   * tasks it was running instead of racing the reaper.
-   */
+   * tasks it was running instead of racing the reaper. */
   fun registerOrHeartbeat() {
     withPool(ConnectionPools.TASKS.value) {
       jooq.transactional(retries) { ctx ->
@@ -140,37 +150,53 @@ class SqlTaskLeaseManager(
   }
 
   /** True when this pod may write to the task: un-leased (legacy) tasks are never fenced;
-   * leased tasks are writable while this pod holds the same registration epoch. Draining does
-   * not fence writes: the pod still owns the lease and has to be able to finish, or resolve,
-   * the operations that were already running. */
+   * leased tasks are writable only while this pod holds the same registration epoch and
+   * has not completed its shutdown. Draining alone does not fence — in-flight writes must
+   * keep working through the drain window. */
   fun mayWrite(leaseOwner: String?, leaseEpoch: Long?): Boolean {
-    if (leaseOwner == null) {
-      return true
+    if (leaseOwner == null || dead) {
+      return leaseOwner == null
     }
     val current = epoch ?: return false
     return leaseOwner == instanceId && leaseEpoch == current
   }
 
-  /** Marks the instance DRAINING and extends the lease past the drain window: heartbeats stop,
-   * but the reaper must not win the lease while in-flight operations are still finishing. */
+  /** Marks the instance DRAINING. Observability only: in-flight writes keep passing the
+   * fence during the drain window, so the executor can finish what it is running. */
   fun beginDrain() {
     draining = true
     withPool(ConnectionPools.TASKS.value) {
       jooq.transactional(retries) { ctx ->
-        val now = dbNowMillis(ctx)
         ctx.update(clouddriverInstancesTable)
           .set(field("state"), INSTANCE_DRAINING)
-          .set(field("lease_expires_at"), now + properties.leaseTtlMs + properties.drainLeaseExtension.toMillis())
-          .set(field("updated_at"), now)
+          .set(field("updated_at"), dbNowMillis(ctx))
           .where(field("instance_id").eq(instanceId))
           .execute()
       }
     }
   }
 
-  /** Marks the instance DEAD. Only the pod itself (after a graceful drain) or a reaper
-   * whose conditional update won may do this. */
-  fun markDead() {
+  /** Extends this instance's lease by [extraMs] beyond the normal TTL. Used before the
+   * shutdown reap so a concurrent reaper cannot race the final writes. Direct UPDATE on
+   * the current epoch — unlike a heartbeat it works while draining. */
+  private fun extendLease(extraMs: Long) {
+    val current = epoch ?: return
+    withPool(ConnectionPools.TASKS.value) {
+      jooq.transactional(retries) { ctx ->
+        ctx.update(clouddriverInstancesTable)
+          .set(field("lease_expires_at"), dbNowMillis(ctx) + properties.leaseTtlMs + extraMs)
+          .set(field("updated_at"), dbNowMillis(ctx))
+          .where(field("instance_id").eq(instanceId).and(field("epoch").eq(current)))
+          .execute()
+      }
+    }
+  }
+
+  /** Marks the instance DEAD and supersedes the local epoch, so any straggler write from
+   * this pod after the shutdown reap is fenced. */
+  internal fun markDead() {
+    dead = true
+    epoch = null
     withPool(ConnectionPools.TASKS.value) {
       jooq.transactional(retries) { ctx ->
         ctx.update(clouddriverInstancesTable)
@@ -182,23 +208,43 @@ class SqlTaskLeaseManager(
     }
   }
 
-  override fun run() {
-    if (draining) {
-      return
-    }
+  /** Starts eager registration and the per-pod heartbeat. Called by the configuration
+   * after the bean is constructed; the first registration is best-effort so a transient
+   * DB hiccup at startup does not block the application (the tick retries). */
+  fun start() {
     try {
       registerOrHeartbeat()
     } catch (e: Exception) {
-      // A missed heartbeat is harmless while the TTL has not passed; the log keeps it visible.
-      log.warn("Instance {} failed to renew its lease: {}", instanceId, e.message)
-      registry.counter(heartbeatFailedId).increment()
+      log.warn("Instance {} could not register its lease at startup: {}", instanceId, e.message)
     }
+    val exec =
+      Executors.newSingleThreadScheduledExecutor { r ->
+        Thread(r, "sql-task-lease-heartbeat").apply { isDaemon = true }
+      }
+    scheduler = exec
+    exec.scheduleWithFixedDelay(
+      {
+        if (!dead && !draining) {
+          try {
+            registerOrHeartbeat()
+          } catch (e: Exception) {
+            log.warn("Instance {} failed to renew its lease: {}", instanceId, e.message)
+            registry.counter(heartbeatFailedId).increment()
+          }
+        }
+      },
+      properties.heartbeatIntervalMs,
+      properties.heartbeatIntervalMs,
+      TimeUnit.MILLISECONDS
+    )
   }
 
-  /** Graceful shutdown: mark DRAINING, let the executor finish what it can, resolve what is
-   * left with the reaper's rules, then mark DEAD instead of waiting out the TTL. */
+  /** Graceful shutdown: mark DRAINING, let the executor finish what it can, extend the
+   * lease past the reap, apply the reaper's rules to what is left, then mark DEAD —
+   * instead of leaving the pod's tasks for TTL expiry. */
   @PreDestroy
   fun shutdown() {
+    draining = true
     beginDrain()
     val waitMs = TimeUnit.SECONDS.toMillis(properties.shutdownWaitSeconds)
     val deadline = System.nanoTime() + waitMs * 1_000_000
@@ -210,24 +256,13 @@ class SqlTaskLeaseManager(
         break
       }
     }
-    if (::reaper.isInitialized) {
-      epoch?.let { current ->
-        reaper.reapInstanceTasks(instanceId, current)
-      }
-    }
+    scheduler?.shutdownNow()
+    // Extend the lease past the reap window so a concurrent reaper cannot race the
+    // final writes; extendLease works on the current epoch even while draining.
+    extendLease(properties.drainLeaseExtensionMs)
+    epoch?.let { current -> reaper.reapInstanceTasks(instanceId, current) }
     markDead()
     log.info("Instance {} drained and marked dead", instanceId)
   }
 
-  override fun getAgentType(): String = javaClass.simpleName
-  override fun getProviderName(): String = CoreProvider.PROVIDER_NAME
-  override fun getPollIntervalMillis(): Long = properties.heartbeatIntervalMs
-  override fun getTimeoutMillis(): Long = DEFAULT_TIMEOUT_MILLIS
-
-  lateinit var reaper: TaskReaper
-    internal set
-
-  companion object {
-    private val DEFAULT_TIMEOUT_MILLIS = TimeUnit.SECONDS.toMillis(30)
-  }
 }

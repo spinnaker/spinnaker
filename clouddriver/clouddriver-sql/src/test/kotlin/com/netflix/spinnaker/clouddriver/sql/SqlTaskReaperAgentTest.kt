@@ -26,6 +26,7 @@ import dev.minutest.rootContext
 import org.jooq.impl.DSL.field
 import strikt.api.expectThat
 import strikt.assertions.isEqualTo
+import java.time.Clock
 import java.time.Instant
 import java.time.temporal.ChronoUnit
 
@@ -85,7 +86,7 @@ class SqlTaskReaperAgentTest : JUnit5Minutests {
     val database = SqlTestUtil.initTcMysqlDatabase()!!
     val properties = SqlTaskLeaseProperties()
     val reaper =
-      SqlTaskReaperAgent(database.context, ObjectMapper(), NoopRegistry(), properties)
+      SqlTaskReaperAgent(database.context, ObjectMapper(), NoopRegistry(), Clock.systemDefaultZone(), properties)
 
     val DEAD_INSTANCE = "dead-instance"
     val LIVE_INSTANCE = "live-instance"

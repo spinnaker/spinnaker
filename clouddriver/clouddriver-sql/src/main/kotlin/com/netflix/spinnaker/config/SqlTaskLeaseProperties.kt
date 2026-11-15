@@ -1,5 +1,5 @@
 /*
- * Copyright 2026 spinnaker.io
+ * Copyright 2026 Netflix, Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,7 +15,6 @@
  */
 package com.netflix.spinnaker.config
 
-import java.time.Duration
 import java.util.concurrent.TimeUnit
 import org.springframework.boot.context.properties.ConfigurationProperties
 
@@ -44,11 +43,25 @@ class SqlTaskLeaseProperties {
    */
   var shutdownWaitSeconds: Long = 30
 
+  /**
+   * Extra lease time added past the normal TTL before the shutdown reap, so a concurrent
+   * reaper cannot race the pod's final writes within the drain window.
+   */
+  var drainLeaseExtensionMs: Long = TimeUnit.SECONDS.toMillis(45)
+
   /** How many tasks of a dead instance the reaper resolves per batch. */
   var reaperBatchSize: Int = 100
 
-  /** Extra duration added to [leaseTtlMs] when the pod stops gracefully, so the lease
-   * outlives the [shutdownWaitSeconds] drain window and the pod marks itself dead rather
-   * than being reaped mid-drain. */
-  val drainLeaseExtension: Duration = Duration.ofSeconds(45)
+  /** How often the reaper scans for expired leases. */
+  var reaperIntervalMs: Long = TimeUnit.MINUTES.toMillis(1)
+
+  /** Delay before the reaper's first scan after startup. */
+  var reaperInitialDelayMs: Long = TimeUnit.MINUTES.toMillis(1)
+
+  /**
+   * DEAD instance rows are history once their tasks are resolved; rows whose
+   * `updated_at` is older than this are deleted by the reaper. Instance ids are unique
+   * per JVM, so without this the table grows by one row per pod start.
+   */
+  var deadRowTtlMs: Long = TimeUnit.DAYS.toMillis(7)
 }
