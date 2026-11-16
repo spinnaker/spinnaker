@@ -77,6 +77,17 @@ public class ModifyServerGroupLaunchTemplateDescription extends AbstractAmazonCr
 
   // Launch Template only fields
   private Boolean requireIMDV2;
+
+  /**
+   * Access to the instance tags from the instance metadata service: enabled when true, disabled
+   * when false. When null, the value from the source launch template version is kept.
+   *
+   * @see <a
+   *     href="https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/work-with-tags-in-IMDS.html">Work
+   *     with instance tags in instance metadata</a>
+   */
+  private Boolean enableInstanceMetadataTags;
+
   private String kernelId;
   private String imageId;
   private Boolean associateIPv6Address;
@@ -198,6 +209,7 @@ public class ModifyServerGroupLaunchTemplateDescription extends AbstractAmazonCr
         .append(", securityGroupsAppendOnly=" + securityGroupsAppendOnly)
         .append(", copySourceCustomBlockDeviceMappings=" + copySourceCustomBlockDeviceMappings)
         .append(", requireIMDV2=" + requireIMDV2)
+        .append(", enableInstanceMetadataTags=" + enableInstanceMetadataTags)
         .append(", kernelId=" + kernelId)
         .append(", imageId=" + imageId)
         .append(", associateIPv6Address=" + associateIPv6Address)
