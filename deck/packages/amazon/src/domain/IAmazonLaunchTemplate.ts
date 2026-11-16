@@ -40,6 +40,7 @@ export interface IMetadataOptions {
   httpEndpoint?: 'disabled' | 'enabled';
   httpPutResponseHopLimit?: number;
   httpTokens?: 'required' | 'optional';
+  instanceMetadataTags?: 'disabled' | 'enabled';
   state?: 'pending' | 'applied';
 }
 
