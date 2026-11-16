@@ -17,7 +17,6 @@
 package com.netflix.spinnaker.kork.tomcat;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertThrows;
 
 import com.netflix.spinnaker.kork.crypto.test.CertificateIdentity;
 import com.netflix.spinnaker.kork.tomcat.x509.SslExtensionConfigurationProperties;
@@ -55,12 +54,13 @@ class MaxLocaleCountTest {
     customizer.customize(connector);
 
     assertEquals(defaultLimit, connector.getMaxLocaleCount());
-    assertThrows(IllegalArgumentException.class, () -> parseLocales(connector, LANGUAGES));
+    assertEquals(defaultLimit, parseLocales(connector, LANGUAGES));
 
     connector.setMaxLocaleCount(42);
     customizer.customize(connector);
 
     assertEquals(42, connector.getMaxLocaleCount());
+    assertEquals(15, parseLocales(connector, LANGUAGES));
   }
 
   @SuppressWarnings("unchecked") // The existing containerCustomizer bean has a raw return type.
@@ -114,8 +114,8 @@ class MaxLocaleCountTest {
       if (limit > 0) {
         assertEquals(limit, parseLocales(connector, firstLanguages(limit)));
       }
-      assertThrows(
-          IllegalArgumentException.class, () -> parseLocales(connector, firstLanguages(limit + 1)));
+      // With no parsed locales, Tomcat returns its default locale.
+      assertEquals(limit == 0 ? 1 : limit, parseLocales(connector, firstLanguages(limit + 1)));
     }
   }
 
