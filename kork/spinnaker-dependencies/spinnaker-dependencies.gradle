@@ -39,7 +39,7 @@ ext {
     swagger          : "2.2.49",
     httpcore5        : "5.4.4",
     logback          : "1.5.37",
-    tomcat           : "11.0.27",
+    tomcat           : "11.0.29",
     commonsCompress  : "1.27.1",
     // Testcontainers module for the MiniStack AWS emulator. The module is a thin
     // GenericContainer wrapper, so the emulator version comes from the image tag
