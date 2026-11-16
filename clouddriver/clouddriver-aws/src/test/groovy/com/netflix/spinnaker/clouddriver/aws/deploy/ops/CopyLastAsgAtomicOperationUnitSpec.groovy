@@ -37,6 +37,7 @@ import software.amazon.awssdk.services.ec2.model.CreditSpecification
 import software.amazon.awssdk.services.ec2.model.LaunchTemplateBlockDeviceMapping
 import software.amazon.awssdk.services.ec2.model.LaunchTemplateEbsBlockDevice
 import software.amazon.awssdk.services.ec2.model.LaunchTemplateInstanceMarketOptions
+import software.amazon.awssdk.services.ec2.model.LaunchTemplateInstanceMetadataOptions
 import software.amazon.awssdk.services.ec2.model.LaunchTemplateInstanceNetworkInterfaceSpecification
 import software.amazon.awssdk.services.ec2.model.LaunchTemplateSpotMarketOptions
 import software.amazon.awssdk.services.ec2.model.LaunchTemplateVersion
@@ -721,6 +722,76 @@ class CopyLastAsgAtomicOperationUnitSpec extends Specification {
     7200   | null   | 3600        | 120               || 7200        | 120               | null // request wins
     null   | 45     | 3600        | null              || 3600        | null              | 45   // mixed: request + ancestor
     null   | null   | null        | null              || null        | null              | null // nothing set: AWS default applies
+  }
+
+  @Unroll
+  void "operation carries ancestor launch template access to instance tags in instance metadata forward unless requested"() {
+    given:
+    description.availabilityZones = ['us-east-1': []]
+    description.enableInstanceMetadataTags = reqEnableTags
+
+    and:
+    def ancestorLtData = ResponseLaunchTemplateData.builder()
+      .keyName("key-pair-name")
+    if (ancestorHttpTokens != null || ancestorTags != null) {
+      def ancestorMetadataOptions = LaunchTemplateInstanceMetadataOptions.builder()
+      if (ancestorHttpTokens != null) {
+        ancestorMetadataOptions.httpTokens(ancestorHttpTokens)
+      }
+      if (ancestorTags != null) {
+        ancestorMetadataOptions.instanceMetadataTags(ancestorTags)
+      }
+      ancestorLtData.metadataOptions(ancestorMetadataOptions.build())
+    }
+    def launchTemplateVersion = LaunchTemplateVersion.builder()
+      .launchTemplateName("foo")
+      .launchTemplateId("foo")
+      .versionNumber(0L)
+      .launchTemplateData(ancestorLtData.build())
+      .build()
+
+    def launchTemplateSpec = LaunchTemplateSpecification.builder()
+      .launchTemplateName(launchTemplateVersion.launchTemplateName)
+      .launchTemplateId(launchTemplateVersion.launchTemplateId)
+      .version(launchTemplateVersion.versionNumber.toString())
+      .build()
+
+    and:
+    regionScopedProviderStub.getLaunchTemplateService() >> Mock(LaunchTemplateService) {
+      getLaunchTemplateVersion(launchTemplateSpec) >> Optional.of(launchTemplateVersion)
+    }
+    def mockAncestorAsg = AutoScalingGroup.builder()
+      .autoScalingGroupName("asgard-stack-v000")
+      .minSize(0)
+      .maxSize(2)
+      .desiredCapacity(4)
+      .launchTemplate(launchTemplateSpec)
+      .build()
+    serverGroupNameResolver.resolveLatestServerGroupName("asgard-stack") >> "asgard-stack-v000"
+
+    when:
+    op.operate([])
+
+    then:
+    1 * mockAutoScaling.describeAutoScalingGroups(_) >> {
+      DescribeAutoScalingGroupsResponse.builder().autoScalingGroups([mockAncestorAsg]).build()
+    }
+    1 * deployHandler.handle(_ as BasicAmazonDeployDescription, _) >> { arguments ->
+      BasicAmazonDeployDescription actualDesc = arguments[0]
+
+      assert actualDesc.enableInstanceMetadataTags == expectedEnableTags
+
+      new DeploymentResult(serverGroupNames: ['asgard-stack-v001'], serverGroupNameByRegion: ['us-east-1': 'asgard-stack-v001'])
+    }
+
+    where:
+    reqEnableTags | ancestorHttpTokens | ancestorTags || expectedEnableTags
+    null          | "required"         | "enabled"    || true  // inherited from ancestor
+    null          | "optional"         | "disabled"   || false // inherited from ancestor
+    false         | "required"         | "enabled"    || false // request wins
+    true          | null               | null         || true  // request wins
+    null          | "required"         | null         || null  // ancestor left it unset: AWS default applies
+    null          | null               | null         || null  // nothing set: AWS default applies
   }
 
   private static BasicAmazonDeployDescription expectedDescription(
