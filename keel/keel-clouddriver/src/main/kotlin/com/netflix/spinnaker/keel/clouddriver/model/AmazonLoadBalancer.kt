@@ -1,6 +1,5 @@
 package com.netflix.spinnaker.keel.clouddriver.model
 
-import com.fasterxml.jackson.annotation.JsonAlias
 import com.fasterxml.jackson.annotation.JsonSubTypes
 import com.fasterxml.jackson.annotation.JsonTypeInfo
 import com.fasterxml.jackson.annotation.JsonTypeInfo.As
@@ -26,6 +25,5 @@ interface AmazonLoadBalancer {
   val vpcId: String
   val subnets: Set<String>
   val scheme: String?
-  @get:JsonAlias("dnsname")
   val dnsName: String
 }
