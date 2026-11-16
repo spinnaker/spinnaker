@@ -21,6 +21,7 @@ export const LaunchTemplateDetailsSection = ({ serverGroup }: IAmazonServerGroup
     ? serverGroup.mixedInstancesPolicy.instancesDistribution.spotMaxPrice
     : launchTemplateData?.instanceMarketOptions?.spotOptions?.maxPrice;
   const creditSpecification = launchTemplateData?.creditSpecification?.cpuCredits;
+  const instanceMetadataTags = launchTemplateData?.metadataOptions?.instanceMetadataTags;
   const launchTemplateOverrides = isMip
     ? serverGroup.mixedInstancesPolicy.launchTemplateOverridesForInstanceType
     : null;
@@ -45,6 +46,7 @@ export const LaunchTemplateDetailsSection = ({ serverGroup }: IAmazonServerGroup
             value={launchTemplateData.monitoring.enabled ? 'enabled' : 'disabled'}
           />
         )}
+        {instanceMetadataTags && <LabeledValue label="Instance Metadata Tags" value={instanceMetadataTags} />}
         {maxSpotPrice && <LabeledValue label="Max Spot Price" value={maxSpotPrice} />}
         {launchTemplateData.keyName && <LabeledValue label="Key Name" value={launchTemplateData.keyName} />}
         {launchTemplateData.kernelId && <LabeledValue label="Kernel ID" value={launchTemplateData.kernelId} />}
