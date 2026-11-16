@@ -409,6 +409,9 @@ export function createAwsServerGroupCommandBuilder(
           const networkInterfaces = _.get(launchTemplateData, 'networkInterfaces[0]');
           const ipv6AddressCount = (networkInterfaces as INetworkInterface)?.ipv6AddressCount ?? 0;
 
+          // Leave the option unset when the source doesn't set it, so the AWS default keeps applying
+          const instanceMetadataTags = launchTemplateData.metadataOptions?.instanceMetadataTags;
+
           const asgSettings = AWSProviderSettings.serverGroups;
           const isTestEnv = serverGroup.accountDetails && serverGroup.accountDetails.environment === 'test';
           const shouldAutoEnableIPv6 = asgSettings && asgSettings.enableIPv6 && asgSettings.setIPv6InTest && isTestEnv;
@@ -422,6 +425,7 @@ export function createAwsServerGroupCommandBuilder(
             ebsOptimized: launchTemplateData.ebsOptimized,
             spotPrice: spotMaxPrice || undefined,
             requireIMDSv2: Boolean(launchTemplateData.metadataOptions?.httpTokens === 'required'),
+            enableInstanceMetadataTags: instanceMetadataTags ? instanceMetadataTags === 'enabled' : undefined,
             unlimitedCpuCredits: launchTemplateData.creditSpecification
               ? launchTemplateData.creditSpecification.cpuCredits === 'unlimited'
               : undefined,
