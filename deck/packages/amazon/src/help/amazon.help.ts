@@ -114,6 +114,8 @@ Learn more in <a target="_blank" href="https://spinnaker.io/docs/setup/other_con
     '(Optional) <b>Enabled Metrics</b> are the Auto Scaling Group metrics to enable on this group. Existing metrics are not modified.',
   'aws.serverGroup.imdsv2':
     "(Recommended) <b>IMDSv2</b> helps mitigate AWS credential theft from the exploitation of SSRF vulnerabilities in web applications. All modern AWS SDKs support IMDSv2 and it should not be disabled unless you're using a legacy SDK.",
+  'aws.serverGroup.instanceMetadataTags':
+    '(Optional) <b>Instance Metadata Tags</b> lets instances read their own tags from the instance metadata service (IMDS) under <code>/latest/meta-data/tags/instance</code>, without calling the EC2 API. Tag keys that contain characters IMDS does not allow, such as spaces or <code>/</code>, will make instances fail to launch.',
   'aws.serverGroup.instanceMonitoring':
     '(Optional) <b>Instance Monitoring</b> whether to enable detailed monitoring of instances. Group metrics must be disabled to update an ASG with Instance Monitoring set to false.',
   'aws.serverGroup.tags': '(Optional) <b>Tags</b> are propagated to the instances in this cluster.',
