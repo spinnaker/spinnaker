@@ -192,6 +192,7 @@ public class AutoScalingWorker {
     private Boolean setLaunchTemplate;
 
     private Boolean requireIMDSv2;
+    private Boolean enableInstanceMetadataTags;
     private Boolean associateIPv6Address;
     private Boolean unlimitedCpuCredits;
     private BasicAmazonDeployDescription.LaunchTemplatePlacement placement;

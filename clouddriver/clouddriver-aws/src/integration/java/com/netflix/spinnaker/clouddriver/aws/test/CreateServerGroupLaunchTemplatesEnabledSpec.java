@@ -231,6 +231,7 @@ public class CreateServerGroupLaunchTemplatesEnabledSpec extends AwsBaseSpec {
         TestUtils.loadJson(PATH_PREFIX + "createServerGroup-basic.json")
             .withValue("setLaunchTemplate", true)
             .withValue("requireIMDSv2", true)
+            .withValue("enableInstanceMetadataTags", true)
             .withValue("associateIPv6Address", true)
             .withValue("unlimitedCpuCredits", true)
             .withValue("instanceType", "t3.medium")
@@ -280,6 +281,9 @@ public class CreateServerGroupLaunchTemplatesEnabledSpec extends AwsBaseSpec {
     assertEquals("unlimited", createLtReq.launchTemplateData().creditSpecification().cpuCredits());
     assertEquals(
         "required", createLtReq.launchTemplateData().metadataOptions().httpTokensAsString());
+    assertEquals(
+        "enabled",
+        createLtReq.launchTemplateData().metadataOptions().instanceMetadataTagsAsString());
     assertEquals(1, createLtReq.launchTemplateData().networkInterfaces().get(0).ipv6AddressCount());
 
     assertNull(createLtReq.launchTemplateData().instanceMarketOptions());
