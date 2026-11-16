@@ -72,7 +72,7 @@ class AzureLoadBalancer implements LoadBalancer {
 
   @Override
   boolean equals(Object o) {
-    if (!o instanceof AzureLoadBalancer) {
+    if (!(o instanceof AzureLoadBalancer)) {
       return false
     }
     AzureLoadBalancer a = (AzureLoadBalancer)o;
