@@ -43,7 +43,7 @@ public class SdkPojoDeserializerModifier extends BeanDeserializerModifier {
     return deserializer;
   }
 
-  private static boolean hasSerializableBuilder(Class<?> type) {
+  static boolean hasSerializableBuilder(Class<?> type) {
     try {
       type.getMethod("serializableBuilderClass");
       return true;
