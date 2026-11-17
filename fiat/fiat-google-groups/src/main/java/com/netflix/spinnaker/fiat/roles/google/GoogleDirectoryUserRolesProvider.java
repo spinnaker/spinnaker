@@ -84,7 +84,6 @@ public class GoogleDirectoryUserRolesProvider implements UserRolesProvider, Init
   @Override
   public void afterPropertiesSet() throws Exception {
     Assert.state(config.getDomain() != null, "Supply a domain");
-    Assert.state(config.getAdminUsername() != null, "Supply an admin username");
   }
 
   @Override
@@ -295,19 +294,39 @@ public class GoogleDirectoryUserRolesProvider implements UserRolesProvider, Init
     return handler;
   }
 
-  private GoogleCredentials getGoogleCredential() {
+  @VisibleForTesting
+  protected GoogleCredentials getGoogleCredential() {
     try {
-      if (StringUtils.isNotEmpty(config.getCredentialPath())
-          && StringUtils.isNotEmpty(config.getAdminUsername())) {
-        return ServiceAccountCredentials.fromStream(new FileInputStream(config.getCredentialPath()))
-            .createScoped(SERVICE_ACCOUNT_SCOPES) // add other scopes as needed
-            .createDelegated(config.getAdminUsername());
-      } else {
-        return GoogleCredentials.getApplicationDefault();
+      String adminUsername = StringUtils.trimToNull(config.getAdminUsername());
+      if (adminUsername == null) {
+        return getApplicationDefaultCredentials().createScoped(SERVICE_ACCOUNT_SCOPES);
       }
+
+      GoogleCredentials credentials;
+      if (StringUtils.isNotBlank(config.getCredentialPath())) {
+        try (FileInputStream stream = new FileInputStream(config.getCredentialPath())) {
+          credentials = ServiceAccountCredentials.fromStream(stream);
+        }
+      } else {
+        credentials = getApplicationDefaultCredentials();
+      }
+      credentials = credentials.createScoped(SERVICE_ACCOUNT_SCOPES);
+      if (!(credentials instanceof ServiceAccountCredentials)) {
+        throw new IllegalStateException(
+            "adminUsername requires credentials supporting domain-wide delegation. "
+                + "For direct Workspace role assignment through Workload Identity, "
+                + "omit adminUsername. Otherwise, configure service-account credentials "
+                + "that support delegation.");
+      }
+      return ((ServiceAccountCredentials) credentials).createDelegated(adminUsername);
     } catch (IOException ioe) {
-      throw new RuntimeException(ioe);
+      throw new IllegalStateException("Unable to initialize Google Directory credentials", ioe);
     }
+  }
+
+  @VisibleForTesting
+  protected GoogleCredentials getApplicationDefaultCredentials() throws IOException {
+    return GoogleCredentials.getApplicationDefault();
   }
 
   private Directory getDirectoryService() {
@@ -345,10 +364,13 @@ public class GoogleDirectoryUserRolesProvider implements UserRolesProvider, Init
   @ConfigurationProperties("auth.group-membership.google")
   public static class Config {
 
-    /** Path to json credential file for the groups service account. */
+    /** Optional service-account JSON file used for domain-wide delegation. */
     private String credentialPath;
 
-    /** Email of the Google Apps admin the service account is acting on behalf of. */
+    /**
+     * Optional Workspace user to impersonate using domain-wide delegation. Leave unset for direct
+     * Workspace role assignment using ADC.
+     */
     private String adminUsername;
 
     /** Google Apps for Work domain, e.g. netflix.com */
