@@ -78,7 +78,8 @@ class CopyAmazonLoadBalancerTask implements Task {
               externalPort    : it.listener.loadBalancerPort,
               internalProtocol: it.listener.instanceProtocol,
               internalPort    : it.listener.instancePort,
-              sslCertificateId: it.listener.sslcertificateId
+              // legacy: sslcertificateId is the pre-AWS SDK v2 name; remove once caches have refreshed
+              sslCertificateId: it.listener.sslCertificateId ?: it.listener.sslcertificateId
             ]
           },
           availabilityZones : target.availabilityZones,
