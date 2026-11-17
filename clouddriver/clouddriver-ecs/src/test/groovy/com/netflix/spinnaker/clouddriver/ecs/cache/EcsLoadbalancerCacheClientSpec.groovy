@@ -27,6 +27,7 @@ import com.netflix.spinnaker.clouddriver.ecs.cache.client.EcsLoadbalancerCacheCl
 import com.netflix.spinnaker.clouddriver.ecs.cache.model.EcsLoadBalancerCache
 import com.netflix.spinnaker.clouddriver.ecs.provider.view.EcsAccountMapper
 import spock.lang.Specification
+import spock.lang.Unroll
 import spock.lang.Subject
 
 class EcsLoadbalancerCacheClientSpec extends Specification {
@@ -38,7 +39,8 @@ class EcsLoadbalancerCacheClientSpec extends Specification {
   @Subject
   def client = new EcsLoadbalancerCacheClient(cacheView, objectMapper, accountMapper)
 
-  def 'should convert cache data into object'() {
+  @Unroll
+  def 'should convert cache data into object with the DNS name keyed as #dnsNameKey'() {
     given:
     def loadBalancerName = 'test-name'
     def ecsAccount = 'ecsAccount'
@@ -76,6 +78,7 @@ class EcsLoadbalancerCacheClientSpec extends Specification {
     )
 
     def attributes = objectMapper.convertValue(givenEcsLoadbalancer, Map)
+    attributes[dnsNameKey] = attributes.remove('dnsname')
     def relations = [targetGroups: [targetGroupKey]]
 
     when:
@@ -86,5 +89,11 @@ class EcsLoadbalancerCacheClientSpec extends Specification {
     cacheView.getAll(_, _, _) >> Collections.singleton(new DefaultCacheData(loadbalancerKey, attributes, relations))
     retrievedLoadbalancers.size() == 1
     retrievedLoadbalancers.get(0) == givenEcsLoadbalancer
+
+    where:
+    dnsNameKey << [
+      'dnsName', // what the AWS load balancer caching agent writes
+      'dnsname', // legacy: cached before the AWS SDK v2 move
+    ]
   }
 }

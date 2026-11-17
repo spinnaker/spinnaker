@@ -66,7 +66,7 @@ describe('awsServerGroupCommandBuilder', function () {
         region: 'us-west-1',
         asg: {
           availabilityZones: ['g', 'h', 'i'],
-          vpczoneIdentifier: '',
+          vpcZoneIdentifier: '',
         },
         launchTemplate: mockLaunchTemplate,
       };
@@ -99,7 +99,7 @@ describe('awsServerGroupCommandBuilder', function () {
         region: 'us-west-1',
         asg: {
           availabilityZones: ['g', 'h', 'i'],
-          vpczoneIdentifier: '',
+          vpcZoneIdentifier: '',
         },
         launchConfig: {
           instanceType: 'something-custom',
@@ -126,7 +126,7 @@ describe('awsServerGroupCommandBuilder', function () {
         region: 'us-west-1',
         asg: {
           availabilityZones: ['g', 'h', 'i'],
-          vpczoneIdentifier: '',
+          vpcZoneIdentifier: '',
           suspendedProcesses: [{ processName: 'x' }, { processName: 'a' }],
         },
         launchConfig: {
@@ -162,7 +162,7 @@ describe('awsServerGroupCommandBuilder', function () {
         tags: null,
         asg: {
           availabilityZones: ['g', 'h', 'i'],
-          vpczoneIdentifier: '',
+          vpcZoneIdentifier: '',
           tags: [
             {
               key: 'some-key',

@@ -15,7 +15,6 @@
  */
 package com.netflix.spinnaker.keel.clouddriver.model
 
-import com.fasterxml.jackson.annotation.JsonAlias
 import com.fasterxml.jackson.annotation.JsonAnyGetter
 import com.netflix.spinnaker.keel.api.Moniker
 
@@ -25,7 +24,6 @@ data class ClassicLoadBalancerModel(
   override val loadBalancerType: String = "classic",
   override val availabilityZones: Set<String>,
 
-  @JsonAlias("vpcid", "vpcId")
   override val vpcId: String,
 
   override val subnets: Set<String>,
@@ -46,7 +44,7 @@ data class ClassicLoadBalancerModel(
     val loadBalancerPort: Int,
     val instanceProtocol: String,
     val instancePort: Int,
-    val sslcertificateId: String?
+    val sslCertificateId: String?
   )
 
   data class ClassicLoadBalancerHealthCheck(

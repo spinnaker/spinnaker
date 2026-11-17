@@ -30,7 +30,8 @@ export interface IAmazonAsg extends IAsg {
   loadBalancerNames: string[];
   terminationPolicies: string[];
   enabledMetrics: Array<{ metric: string }>;
-  vpczoneIdentifier?: string;
+  vpcZoneIdentifier?: string;
+  vpczoneIdentifier?: string; // legacy: pre-AWS SDK v2 builder name; remove once caches have refreshed
   suspendedProcesses?: ISuspendedProcess[];
   capacityRebalance?: boolean;
   tags: IAmazonAsgTag[];
