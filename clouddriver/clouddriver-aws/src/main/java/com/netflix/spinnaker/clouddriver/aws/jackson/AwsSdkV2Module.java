@@ -16,15 +16,27 @@
 
 package com.netflix.spinnaker.clouddriver.aws.jackson;
 
+import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.core.Version;
 import com.fasterxml.jackson.databind.module.SimpleModule;
-import software.amazon.awssdk.core.SdkPojo;
+import software.amazon.awssdk.utils.builder.SdkBuilder;
 
+/**
+ * (De)serializes AWS SDK v2 model types through their builders. See {@link
+ * SdkPojoSerializerModifier} and {@link SdkPojoDeserializerModifier}.
+ */
 public class AwsSdkV2Module extends SimpleModule {
 
   public AwsSdkV2Module() {
     super("AwsSdkV2Module", Version.unknownVersion());
-    addSerializer(SdkPojo.class, new SdkPojoSerializer());
+    setSerializerModifier(new SdkPojoSerializerModifier());
     setDeserializerModifier(new SdkPojoDeserializerModifier());
+    // Builder getters return null for every unset scalar member, so omit those whatever the host
+    // mapper's inclusion setting is. Unset lists and maps are written empty; see
+    // SdkPojoSerializerModifier.
+    setMixInAnnotation(SdkBuilder.class, OmitNullMembers.class);
   }
+
+  @JsonInclude(JsonInclude.Include.NON_NULL)
+  private interface OmitNullMembers {}
 }
