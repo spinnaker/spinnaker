@@ -5,6 +5,9 @@ import com.google.api.client.http.HttpResponse
 import com.google.api.client.testing.http.HttpTesting
 import com.google.api.client.testing.http.MockHttpTransport
 import com.google.api.client.testing.http.MockLowLevelHttpResponse
+import com.google.auth.oauth2.GoogleCredentials
+import com.google.auth.oauth2.ServiceAccountCredentials
+import com.google.api.services.directory.DirectoryScopes
 import com.google.api.services.directory.model.Group
 import com.google.api.services.directory.model.Groups
 import com.netflix.spinnaker.fiat.model.resources.Role
@@ -14,6 +17,81 @@ import spock.lang.Unroll
 
 class GoogleDirectoryUserRolesProviderSpec extends Specification {
   GoogleDirectoryUserRolesProvider.Config config = new GoogleDirectoryUserRolesProvider.Config()
+
+  @Unroll
+  def "should use scoped ADC without delegation when adminUsername is '#adminUsername'"() {
+    given:
+    config.domain = "example.com"
+    config.adminUsername = adminUsername
+    // Direct mode must not attempt to open a configured key file.
+    config.credentialPath = "/nonexistent/unused-key.json"
+    def credentials = Mock(GoogleCredentials)
+    def scoped = Mock(GoogleCredentials)
+    def provider = new GoogleDirectoryUserRolesProvider() {
+      @Override
+      protected GoogleCredentials getApplicationDefaultCredentials() {
+        return credentials
+      }
+    }
+    provider.setConfig(config)
+
+    when:
+    provider.afterPropertiesSet()
+    def result = provider.getGoogleCredential()
+
+    then:
+    1 * credentials.createScoped(Collections.singleton(DirectoryScopes.ADMIN_DIRECTORY_GROUP_READONLY)) >> scoped
+    0 * scoped.createDelegated(_)
+    result.is(scoped)
+
+    where:
+    adminUsername << [null, "", "  "]
+  }
+
+  def "should delegate service-account ADC when adminUsername is set"() {
+    given:
+    config.adminUsername = "admin@example.com"
+    def credentials = Mock(ServiceAccountCredentials)
+    def scoped = Mock(ServiceAccountCredentials)
+    def delegated = Mock(ServiceAccountCredentials)
+    def provider = new GoogleDirectoryUserRolesProvider() {
+      @Override
+      protected GoogleCredentials getApplicationDefaultCredentials() {
+        return credentials
+      }
+    }
+    provider.setConfig(config)
+
+    when:
+    def result = provider.getGoogleCredential()
+
+    then:
+    1 * credentials.createScoped(Collections.singleton(DirectoryScopes.ADMIN_DIRECTORY_GROUP_READONLY)) >> scoped
+    1 * scoped.createDelegated("admin@example.com") >> delegated
+    result.is(delegated)
+  }
+
+  def "should reject unsupported delegation instead of silently using ADC directly"() {
+    given:
+    config.adminUsername = "admin@example.com"
+    def credentials = Mock(GoogleCredentials)
+    def scoped = Mock(GoogleCredentials)
+    credentials.createScoped(_) >> scoped
+    def provider = new GoogleDirectoryUserRolesProvider() {
+      @Override
+      protected GoogleCredentials getApplicationDefaultCredentials() {
+        return credentials
+      }
+    }
+    provider.setConfig(config)
+
+    when:
+    provider.getGoogleCredential()
+
+    then:
+    def error = thrown(IllegalStateException)
+    error.message.contains("adminUsername requires credentials supporting domain-wide delegation")
+  }
 
   def "should read google groups"() {
     setup:
