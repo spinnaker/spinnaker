@@ -31,7 +31,7 @@ export const TargetTrackingChart = ({ config, serverGroup, updateUnit }: ITarget
     period: 60,
     threshold: config.targetValue,
     comparisonOperator: 'GreaterThanThreshold',
-    okactions: [],
+    okActions: [],
     insufficientDataActions: [],
     alarmActions: [],
     evaluationPeriods: null,
