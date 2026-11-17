@@ -149,7 +149,7 @@ class ImageCachingAgentSpec extends Specification {
     namedImage.attributes.virtualizationType == 'hvm'
     namedImage.attributes.architecture == 'arm64'
 
-    and: 'and so agrees with the image namespace, which goes through SdkPojoSerializer'
+    and: 'and so agrees with the image namespace, which goes through AwsSdkV2Module'
     def cachedImage = result.cacheResults[IMAGES.ns].find { it.id == Keys.getImageKey('ami-3', accountName, region) }
     cachedImage.attributes.virtualizationType == namedImage.attributes.virtualizationType
     cachedImage.attributes.architecture == namedImage.attributes.architecture

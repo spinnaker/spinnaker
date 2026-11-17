@@ -25,6 +25,7 @@ import com.netflix.spinnaker.orca.pipeline.model.StageExecutionImpl
 import retrofit2.mock.Calls
 import spock.lang.Specification
 import spock.lang.Subject
+import spock.lang.Unroll
 
 class CopyAmazonLoadBalancerTaskSpec extends Specification {
   @Subject
@@ -125,6 +126,45 @@ class CopyAmazonLoadBalancerTaskSpec extends Specification {
     targets = [
       [credentials: "test", availabilityZones: ["us-east-1": ["us-east-1c"]]],
       [name: "example-frontend-vpc0", credentials: "test", availabilityZones: ["us-west-2": ["us-west-2a"]]]
+    ]
+  }
+
+  @Unroll
+  void "should copy the listener certificate keyed as #certificateKey"() {
+    given:
+    def currentLoadBalancer = [
+      loadBalancerName    : "example-frontend",
+      healthCheck         : [:],
+      listenerDescriptions: [[listener: [protocol: "HTTPS", loadBalancerPort: 443, (certificateKey): "arn:cert"]]],
+      securityGroups      : []
+    ]
+    task.oortService = Stub(OortService) {
+      getLoadBalancerDetails("aws", "test", "us-west-1", "example-frontend") >> { Calls.response([currentLoadBalancer]) }
+    }
+    task.mortService = Stub(MortService) {
+      getVPCs() >> { Calls.response(null) }
+    }
+    List operations
+    task.katoService = Mock(KatoService) {
+      1 * requestOperations(_) >> { List params ->
+        operations = params[0] as List
+        new TaskId("1")
+      }
+    }
+
+    when:
+    task.execute(new StageExecutionImpl(PipelineExecutionImpl.newPipeline("orca"), "", [
+      credentials: "test", region: "us-west-1", name: "example-frontend",
+      targets    : [[credentials: "test", availabilityZones: ["us-east-1": ["us-east-1c"]]]]
+    ]))
+
+    then:
+    operations[0].upsertAmazonLoadBalancerDescription.listeners*.sslCertificateId == ["arn:cert"]
+
+    where:
+    certificateKey << [
+      "sslCertificateId", // what clouddriver returns
+      "sslcertificateId", // legacy: pre-AWS SDK v2 name
     ]
   }
 }

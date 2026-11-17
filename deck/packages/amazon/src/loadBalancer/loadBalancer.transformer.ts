@@ -3,6 +3,7 @@ import { chain, filter, flatten, map } from 'lodash';
 import type { Application, IHealth, IInstance, IServerGroup, IVpc } from '@spinnaker/core';
 import { AccountService, NameUtils, SETTINGS } from '@spinnaker/core';
 import { AWSProviderSettings } from '../aws.settings';
+import { getSslCertificateId, getVpcId } from '../common/awsSdkFieldNames';
 import type {
   IALBListenerCertificate,
   IAmazonApplicationLoadBalancer,
@@ -197,25 +198,27 @@ export class AwsLoadBalancerTransformer {
     if (loadBalancer.elb) {
       const elb = loadBalancer.elb as IClassicLoadBalancerSourceData;
       toEdit.securityGroups = elb.securityGroups;
-      toEdit.vpcId = elb.vpcid || elb.vpcId;
+      toEdit.vpcId = getVpcId(elb);
 
       if (elb.listenerDescriptions) {
         toEdit.listeners = elb.listenerDescriptions.map(
           (description: any): IClassicListenerDescription => {
             const listener = description.listener;
-            if (listener.sslcertificateId) {
-              const splitCertificateId = listener.sslcertificateId.split('/');
-              listener.sslcertificateId = splitCertificateId[1];
-              listener.sslCertificateType = splitCertificateId[0].split(':')[2];
+            let sslCertificateId = getSslCertificateId(listener);
+            let sslCertificateType: string;
+            if (sslCertificateId) {
+              const splitCertificateId = sslCertificateId.split('/');
+              sslCertificateId = splitCertificateId[1];
+              sslCertificateType = splitCertificateId[0].split(':')[2];
             }
             return {
               internalProtocol: listener.instanceProtocol,
               internalPort: listener.instancePort,
               externalProtocol: listener.protocol,
               externalPort: listener.loadBalancerPort,
-              sslCertificateId: listener.sslcertificateId,
-              sslCertificateName: listener.sslcertificateId,
-              sslCertificateType: listener.sslCertificateType,
+              sslCertificateId,
+              sslCertificateName: sslCertificateId,
+              sslCertificateType,
               policyNames: description.policyNames,
             };
           },
@@ -278,7 +281,7 @@ export class AwsLoadBalancerTransformer {
     if (loadBalancer.elb) {
       const elb = loadBalancer.elb as IApplicationLoadBalancerSourceData;
       toEdit.securityGroups = elb.securityGroups;
-      toEdit.vpcId = elb.vpcid || elb.vpcId;
+      toEdit.vpcId = getVpcId(elb);
 
       // Convert listeners
       if (elb.listeners) {
@@ -392,7 +395,7 @@ export class AwsLoadBalancerTransformer {
     if (loadBalancer.elb) {
       const elb = loadBalancer.elb as INetworkLoadBalancerSourceData;
       toEdit.securityGroups = elb.securityGroups;
-      toEdit.vpcId = elb.vpcid || elb.vpcId;
+      toEdit.vpcId = getVpcId(elb);
 
       // Convert listeners
       if (elb.listeners) {
