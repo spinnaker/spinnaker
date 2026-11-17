@@ -5,6 +5,7 @@ import type { IServerGroupDetailsProps, ISubnet } from '@spinnaker/core';
 import { AccountService, ServerGroupReader, SubnetReader } from '@spinnaker/core';
 
 import { AwsServices } from '../../aws.services';
+import { getVpcZoneIdentifier } from '../../common/awsSdkFieldNames';
 import type { IAmazonLoadBalancer, IAmazonServerGroup, IAmazonServerGroupView } from '../../domain';
 import { AutoScalingProcessService } from './scalingProcesses/AutoScalingProcessService';
 
@@ -60,9 +61,9 @@ export function amazonServerGroupDetailsGetter(
         });
 
         if (!isEmpty(serverGroup)) {
-          const vpc = serverGroup.asg ? serverGroup.asg.vpczoneIdentifier : '';
+          const vpc = getVpcZoneIdentifier(serverGroup.asg);
 
-          if (vpc !== '') {
+          if (vpc) {
             const subnetId = vpc.split(',')[0];
             SubnetReader.listSubnets().then((subnets: ISubnet[]) => {
               const subnet = subnets.find((s) => s.id === subnetId);

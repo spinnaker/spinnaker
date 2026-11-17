@@ -30,9 +30,10 @@ import software.amazon.awssdk.services.autoscaling.model.AutoScalingGroup;
 import software.amazon.awssdk.services.ec2.model.Instance;
 
 /**
- * {@link SdkPojoSerializer} hands each field to the mapper's own serializer, so AWS SDK v2 shapes
- * inherit its Instant handling. These assert the cached representation, which downstream reads as
- * epoch millis -- {@code AmazonServerGroup.getCreatedTime()} casts the attribute straight to Long.
+ * {@link AwsSdkV2Module} serializes each builder property with the mapper's own serializers, so AWS
+ * SDK v2 shapes inherit its Instant handling. These assert the cached representation, which
+ * downstream reads as epoch millis -- {@code AmazonServerGroup.getCreatedTime()} casts the
+ * attribute straight to Long.
  */
 final class SdkPojoSerializerTimestampTest {
 
