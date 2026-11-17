@@ -6,6 +6,7 @@ import type {
   IUpsertAlarmDescription,
   IUpsertScalingPolicyCommand,
 } from '../ScalingPolicyWriter';
+import { getOkActions } from '../../../../common/awsSdkFieldNames';
 import type {
   IAmazonServerGroup,
   IScalingPolicy,
@@ -31,7 +32,7 @@ export const ScalingPolicyCommandBuilder = {
       insufficientDataActionArns: alarm.insufficientDataActions,
       metricName: alarm.metricName,
       namespace: alarm.namespace,
-      okActionArns: alarm.okactions,
+      okActionArns: getOkActions(alarm),
       period: alarm.period,
       region,
       statistic: alarm.statistic,

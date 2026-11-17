@@ -72,9 +72,9 @@ public class ScalableTargetsCachingAgent implements CachingAgent, AccountAware {
   }
 
   /**
-   * Converts the SDK v2 model itself, never its builder: the {@code AwsSdkV2Module} registered on
-   * clouddriver's ObjectMapper serializes any {@link software.amazon.awssdk.core.SdkPojo} through
-   * {@code getValueForField}, which builders do not implement.
+   * The {@code AwsSdkV2Module} registered on clouddriver's ObjectMapper serializes the SDK v2 model
+   * through its builder, so these attributes read back via {@link
+   * ScalableTarget#serializableBuilderClass()} under the same property names.
    */
   @SuppressWarnings("unchecked")
   public static Map<String, Object> convertScalableTargetToAttributes(

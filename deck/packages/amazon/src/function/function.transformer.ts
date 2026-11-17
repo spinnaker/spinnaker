@@ -2,6 +2,7 @@ import { isEmpty } from 'lodash';
 
 import type { Application } from '@spinnaker/core';
 import { AWSProviderSettings } from '../aws.settings';
+import { getKmsKeyArn } from '../common/awsSdkFieldNames';
 import type { IAmazonFunction, IAmazonFunctionUpsertCommand } from '../domain';
 
 export class AwsFunctionTransformer {
@@ -25,7 +26,9 @@ export class AwsFunctionTransformer {
     deadLetterConfig: {
       targetArn: functionDef.deadLetterConfig ? functionDef.deadLetterConfig.targetArn : '',
     },
-    KMSKeyArn: functionDef.kmskeyArn ? functionDef.kmskeyArn : '',
+    // The upsert description field is still named kmskeyArn
+    kmskeyArn: getKmsKeyArn(functionDef),
+    KMSKeyArn: getKmsKeyArn(functionDef) || '',
     subnetIds: functionDef.vpcConfig ? functionDef.vpcConfig.subnetIds : [],
     securityGroupIds: functionDef.vpcConfig ? functionDef.vpcConfig.securityGroupIds : [],
     vpcId: functionDef.vpcConfig ? functionDef.vpcConfig.vpcId : '',
