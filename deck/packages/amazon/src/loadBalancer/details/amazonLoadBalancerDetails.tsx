@@ -28,6 +28,7 @@ import {
 } from '@spinnaker/core';
 
 import { LoadBalancerActions } from './LoadBalancerActions';
+import { getDnsName, getVpcId } from '../../common/awsSdkFieldNames';
 import type {
   IAmazonApplicationLoadBalancer,
   IAmazonLoadBalancer,
@@ -165,7 +166,7 @@ export async function loadAmazonLoadBalancerDetails({
     .get()) as IAmazonLoadBalancerSourceData[];
   if (details.length) {
     loadBalancer.elb = details[0];
-    loadBalancer.elb.vpcId = loadBalancer.elb.vpcId || loadBalancer.elb.vpcid;
+    loadBalancer.elb.vpcId = getVpcId(loadBalancer.elb);
     loadBalancer.account = accountId;
     loadBalancer.securityGroups = resolveSecurityGroups(
       app,
@@ -292,7 +293,7 @@ export function AmazonLoadBalancerActions({ app, loadBalancer }: ILoadBalancerAc
 export function AmazonLoadBalancerDetailsSection({ app, loadBalancer }: ILoadBalancerDetailsSectionProps): JSX.Element {
   const amazonLoadBalancer = loadBalancer as IAmazonLoadBalancer;
   const elb = amazonLoadBalancer.elb || ({} as IAmazonLoadBalancerSourceData);
-  const dnsName = elb.dnsname || (elb as any).dnsName;
+  const dnsName = getDnsName(elb);
   const subnetPurpose = head((amazonLoadBalancer.subnetDetails || []).map((subnet) => subnet.purpose)) || '';
 
   return (

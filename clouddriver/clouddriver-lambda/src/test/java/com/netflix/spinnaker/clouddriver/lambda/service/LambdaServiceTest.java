@@ -213,7 +213,7 @@ class LambdaServiceTest {
 
     assertEquals(1, allFunctions.size());
     Map<String, Object> function = allFunctions.get(0);
-    // Verifies the AwsSdkV2Module/SdkPojoSerializer converts v2 model objects (which are not
+    // Verifies the AwsSdkV2Module converts v2 model objects (which are not
     // standard Jackson beans) into a populated Map rather than emitting empty/incorrect output.
     assertEquals("testFunction", function.get("functionName"));
     assertEquals("java17", function.get("runtime"));
