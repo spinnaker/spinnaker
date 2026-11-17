@@ -11,7 +11,8 @@ export interface IScalingPolicyAlarm {
   period: number;
   threshold: number;
   comparisonOperator: AlarmComparisonOperator;
-  okactions?: string[];
+  okActions?: string[];
+  okactions?: string[]; // legacy: pre-AWS SDK v2 builder name; remove once caches have refreshed
   insufficientDataActions?: string[];
   alarmActions?: string[];
   evaluationPeriods?: number;

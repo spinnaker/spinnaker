@@ -144,7 +144,7 @@ describe('Service: awsServerGroup', function () {
       var serverGroup = {
         asg: {
           availabilityZones: [],
-          vpczoneIdentifier: '',
+          vpcZoneIdentifier: '',
           suspendedProcesses: [
             { processName: 'Launch' },
             { processName: 'Terminate' },
@@ -162,7 +162,7 @@ describe('Service: awsServerGroup', function () {
       var serverGroup = {
         asg: {
           availabilityZones: [],
-          vpczoneIdentifier: '',
+          vpcZoneIdentifier: '',
           suspendedProcesses: [],
         },
         launchTemplate: mockLaunchTemplate,
@@ -173,13 +173,37 @@ describe('Service: awsServerGroup', function () {
       expect(command.useSourceCapacity).toBe(true);
     });
 
+    describe('derives subnet type and VPC from the ASG zone identifier', function () {
+      beforeEach(function () {
+        SubnetReader.listSubnets.mockReturnValue(
+          Promise.resolve([{ id: 'subnet-1', purpose: 'internal', vpcId: 'vpc-1' }]),
+        );
+      });
+
+      [
+        { desc: 'vpcZoneIdentifier', asg: { vpcZoneIdentifier: 'subnet-1,subnet-2' } },
+        { desc: 'legacy vpczoneIdentifier', asg: { vpczoneIdentifier: 'subnet-1,subnet-2' } },
+      ].forEach((test) => {
+        it(`reads ${test.desc}`, async function () {
+          const serverGroup = {
+            asg: { availabilityZones: [], suspendedProcesses: [], ...test.asg },
+            launchTemplate: mockLaunchTemplate,
+          };
+          const command = await testContext.service.buildServerGroupCommandFromExisting({}, serverGroup);
+
+          expect(command.subnetType).toBe('internal');
+          expect(command.vpcId).toBe('vpc-1');
+        });
+      });
+    });
+
     describe('extracts properties from server group correctly', function () {
       const sgCommon = {
         ...mockServerGroup,
         asg: {
           autoScalingGroupName: 'myasg-test-v000',
           availabilityZones: [],
-          vpczoneIdentifier: '',
+          vpcZoneIdentifier: '',
           suspendedProcesses: [],
           enabledMetrics: [],
         },
