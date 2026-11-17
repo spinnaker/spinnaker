@@ -21,30 +21,30 @@ import com.google.api.client.http.HttpTransport;
 import com.google.api.client.http.javanet.NetHttpTransport;
 import com.google.api.client.json.gson.GsonFactory;
 import com.google.api.client.util.ExponentialBackOff;
+import com.google.api.services.cloudidentity.v1.CloudIdentity;
+import com.google.api.services.cloudidentity.v1.CloudIdentityScopes;
+import com.google.api.services.cloudidentity.v1.model.GroupRelation;
+import com.google.api.services.cloudidentity.v1.model.SearchTransitiveGroupsResponse;
 import com.google.api.services.directory.Directory;
 import com.google.api.services.directory.DirectoryScopes;
 import com.google.api.services.directory.model.Group;
 import com.google.api.services.directory.model.Groups;
 import com.google.auth.http.HttpCredentialsAdapter;
 import com.google.auth.oauth2.GoogleCredentials;
-import com.google.auth.oauth2.ServiceAccountCredentials;
 import com.google.common.annotations.VisibleForTesting;
 import com.netflix.spinnaker.fiat.model.resources.Role;
 import com.netflix.spinnaker.fiat.permissions.ExternalUser;
 import com.netflix.spinnaker.fiat.roles.UserRolesProvider;
-import java.io.FileInputStream;
+import com.netflix.spinnaker.kork.google.auth.GoogleAuthProperties;
+import com.netflix.spinnaker.kork.google.auth.GoogleCredentialsFactory;
 import java.io.IOException;
-import java.util.ArrayDeque;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
-import java.util.Collections;
-import java.util.Deque;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
-import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ForkJoinPool;
 import java.util.function.Function;
@@ -53,7 +53,6 @@ import java.util.stream.Stream;
 import lombok.Data;
 import lombok.Setter;
 import lombok.extern.slf4j.Slf4j;
-import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.InitializingBean;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
@@ -61,7 +60,6 @@ import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.stereotype.Component;
 import org.springframework.util.Assert;
-import org.springframework.util.ObjectUtils;
 
 @Slf4j
 @Component
@@ -78,12 +76,21 @@ public class GoogleDirectoryUserRolesProvider implements UserRolesProvider, Init
 
   @Autowired @Setter private Config config;
 
-  private static final Collection<String> SERVICE_ACCOUNT_SCOPES =
-      Collections.singleton(DirectoryScopes.ADMIN_DIRECTORY_GROUP_READONLY);
+  @Setter private GoogleCredentialsFactory credentialsFactory = new GoogleCredentialsFactory();
+
+  // Reuse credentials across group lookups so the SDK can cache and refresh impersonated tokens.
+  private GoogleCredentials googleCredentials;
+
+  private static final String DIRECTORY_SCOPE = DirectoryScopes.ADMIN_DIRECTORY_GROUP_READONLY;
+
+  private static final String CLOUD_IDENTITY_SCOPE =
+      CloudIdentityScopes.CLOUD_IDENTITY_GROUPS_READONLY;
 
   @Override
   public void afterPropertiesSet() throws Exception {
     Assert.state(config.getDomain() != null, "Supply a domain");
+    Assert.notNull(config.getAuth(), "auth must not be null");
+    config.getAuth().validate();
   }
 
   @Override
@@ -186,12 +193,12 @@ public class GoogleDirectoryUserRolesProvider implements UserRolesProvider, Init
    * Retrieves all Google Groups associated with a given email address, including both direct and
    * indirect group memberships, if configured to do so.
    *
-   * <p>This method first fetches the groups the user is directly a member of via {@link
-   * #getGroupsFromEmail(String)}. If the configuration allows expanding indirect groups (i.e.,
-   * nested groups), it recursively traverses each group's membership to collect nested groups.
+   * <p>When {@code expandIndirectGroups} is enabled, this method uses the Cloud Identity {@code
+   * searchTransitiveGroups} API to fetch all transitive memberships in a single paginated call,
+   * instead of manually traversing nested groups.
    *
-   * <p>The method avoids cycles and duplicate group processing by maintaining a set of already
-   * collected group emails.
+   * <p>When {@code expandIndirectGroups} is disabled, only direct group memberships are returned
+   * via the Admin Directory API.
    *
    * @param email The email address whose group memberships should be retrieved.
    * @return A {@link Groups} object containing all the direct and (optionally) indirect group
@@ -200,50 +207,61 @@ public class GoogleDirectoryUserRolesProvider implements UserRolesProvider, Init
    */
   @VisibleForTesting
   protected Groups getGroupsFromEmailRecursively(String email) throws IOException {
-    log.debug("Starting group fetch");
-    final Groups groups = getGroupsFromEmail(email);
-    log.debug("Completed fetching groups... found " + groups.size());
-    if (groups == null
-        || groups.getGroups() == null
-        || groups.getGroups().isEmpty()
-        || !config.isExpandIndirectGroups()) {
-      log.debug("NO groups found!");
-      return groups;
+    if (!config.isExpandIndirectGroups()) {
+      log.debug("expandIndirectGroups is disabled, fetching direct groups only for {}", email);
+      return getGroupsFromEmail(email);
     }
-    final Set<String> collectedGroup = new HashSet<>();
-    final Deque<String> stack = new ArrayDeque<>();
-    for (Group g : groups.getGroups()) {
-      // Skip the group recursion IF no email is there....
-      if (ObjectUtils.isEmpty(g.getEmail())) {
-        continue;
-      }
-      stack.push(g.getEmail());
-      collectedGroup.add(g.getEmail());
-    }
-    log.debug("Starting group recursion");
-    while (!stack.isEmpty()) {
-      String nextEmail = stack.pop();
-      Groups subGroups = getGroupsFromEmail(nextEmail);
-      if (subGroups == null || subGroups.getGroups() == null || subGroups.getGroups().isEmpty()) {
-        log.debug(
-            "No groups found for email " + nextEmail + " while looking for recursive sub groups");
-        continue;
-      }
-      log.debug("Found groups for email " + nextEmail + " of " + subGroups.getGroups());
-      for (Group g : subGroups.getGroups()) {
-        if (ObjectUtils.isEmpty(g.getEmail())) {
-          groups.getGroups().add(g);
-          continue;
+
+    log.debug("Fetching transitive groups via Cloud Identity API for {}", email);
+    return getTransitiveGroupsFromEmail(email);
+  }
+
+  /**
+   * Uses the Cloud Identity {@code groups.memberships.searchTransitiveGroups} API to retrieve all
+   * direct and indirect group memberships for the given email in a single paginated call.
+   *
+   * @param email The email address whose transitive group memberships should be retrieved.
+   * @return A {@link Groups} object containing all transitive group memberships.
+   * @throws IOException If an error occurs while retrieving group information.
+   */
+  @VisibleForTesting
+  protected Groups getTransitiveGroupsFromEmail(String email) throws IOException {
+    final CloudIdentity service = getCloudIdentityService();
+    final String query = "member_key_id == '" + email + "'";
+    final List<Group> allGroups = new ArrayList<>();
+    String nextPageToken = null;
+
+    do {
+      SearchTransitiveGroupsResponse response =
+          service
+              .groups()
+              .memberships()
+              .searchTransitiveGroups("groups/-")
+              .setQuery(query)
+              .setPageToken(nextPageToken)
+              .buildHttpRequest()
+              .setUnsuccessfulResponseHandler(getGCPBackoffHandlerForGoogleApiRateLImitedCalls())
+              .execute()
+              .parseAs(SearchTransitiveGroupsResponse.class);
+
+      if (response.getMemberships() != null) {
+        for (GroupRelation relation : response.getMemberships()) {
+          Group group = new Group();
+          if (relation.getGroupKey() != null) {
+            group.setEmail(relation.getGroupKey().getId());
+          }
+          if (relation.getDisplayName() != null) {
+            group.setName(relation.getDisplayName());
+          }
+          allGroups.add(group);
         }
-        if (collectedGroup.contains(g.getEmail())) {
-          continue;
-        }
-        stack.push(g.getEmail());
-        groups.getGroups().add(g);
-        collectedGroup.add(g.getEmail());
       }
-    }
-    log.debug("Completed group recursion");
+      nextPageToken = response.getNextPageToken();
+    } while (nextPageToken != null);
+
+    log.debug("Found {} transitive groups for {}", allGroups.size(), email);
+    Groups groups = new Groups();
+    groups.setGroups(allGroups.isEmpty() ? null : allGroups);
     return groups;
   }
 
@@ -295,45 +313,39 @@ public class GoogleDirectoryUserRolesProvider implements UserRolesProvider, Init
   }
 
   @VisibleForTesting
-  protected GoogleCredentials getGoogleCredential() {
+  protected synchronized GoogleCredentials getGoogleCredential() {
+    if (googleCredentials != null) {
+      return googleCredentials;
+    }
     try {
-      String adminUsername = StringUtils.trimToNull(config.getAdminUsername());
-      if (adminUsername == null) {
-        return getApplicationDefaultCredentials().createScoped(SERVICE_ACCOUNT_SCOPES);
+      Collection<String> scopes = new ArrayList<>();
+      scopes.add(DIRECTORY_SCOPE);
+      if (config.isExpandIndirectGroups()) {
+        scopes.add(CLOUD_IDENTITY_SCOPE);
       }
 
-      GoogleCredentials credentials;
-      if (StringUtils.isNotBlank(config.getCredentialPath())) {
-        try (FileInputStream stream = new FileInputStream(config.getCredentialPath())) {
-          credentials = ServiceAccountCredentials.fromStream(stream);
-        }
-      } else {
-        credentials = getApplicationDefaultCredentials();
-      }
-      credentials = credentials.createScoped(SERVICE_ACCOUNT_SCOPES);
-      if (!(credentials instanceof ServiceAccountCredentials)) {
-        throw new IllegalStateException(
-            "adminUsername requires credentials supporting domain-wide delegation. "
-                + "For direct Workspace role assignment through Workload Identity, "
-                + "omit adminUsername. Otherwise, configure service-account credentials "
-                + "that support delegation.");
-      }
-      return ((ServiceAccountCredentials) credentials).createDelegated(adminUsername);
+      googleCredentials = credentialsFactory.create(config.getAuth(), scopes);
+      return googleCredentials;
     } catch (IOException ioe) {
       throw new IllegalStateException("Unable to initialize Google Directory credentials", ioe);
     }
   }
 
-  @VisibleForTesting
-  protected GoogleCredentials getApplicationDefaultCredentials() throws IOException {
-    return GoogleCredentials.getApplicationDefault();
-  }
-
   private Directory getDirectoryService() {
-    GsonFactory jacksonFactory = new GsonFactory();
+    GsonFactory jsonFactory = new GsonFactory();
     GoogleCredentials credentials = getGoogleCredential();
     return new Directory.Builder(
-            httpTransport, jacksonFactory, new HttpCredentialsAdapter(credentials))
+            httpTransport, jsonFactory, new HttpCredentialsAdapter(credentials))
+        .setApplicationName("Spinnaker-Fiat")
+        .build();
+  }
+
+  @VisibleForTesting
+  protected CloudIdentity getCloudIdentityService() {
+    GsonFactory jsonFactory = new GsonFactory();
+    GoogleCredentials credentials = getGoogleCredential();
+    return new CloudIdentity.Builder(
+            httpTransport, jsonFactory, new HttpCredentialsAdapter(credentials))
         .setApplicationName("Spinnaker-Fiat")
         .build();
   }
@@ -364,14 +376,17 @@ public class GoogleDirectoryUserRolesProvider implements UserRolesProvider, Init
   @ConfigurationProperties("auth.group-membership.google")
   public static class Config {
 
-    /** Optional service-account JSON file used for domain-wide delegation. */
-    private String credentialPath;
+    private GoogleAuthProperties auth = new GoogleAuthProperties();
 
-    /**
-     * Optional Workspace user to impersonate using domain-wide delegation. Leave unset for direct
-     * Workspace role assignment using ADC.
-     */
-    private String adminUsername;
+    // Binding guards, not aliases: stale configuration must never select a different identity.
+    public void setCredentialPath(String ignored) {
+      throw GoogleAuthProperties.removedProperty("credentialPath", "use auth.credentialsFile");
+    }
+
+    public void setAdminUsername(String ignored) {
+      throw GoogleAuthProperties.removedProperty(
+          "adminUsername", "configure direct Workspace role assignments; delegation is removed");
+    }
 
     /** Google Apps for Work domain, e.g. netflix.com */
     private String domain;

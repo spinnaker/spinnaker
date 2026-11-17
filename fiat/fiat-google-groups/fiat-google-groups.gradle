@@ -20,8 +20,10 @@ dependencies {
 
   implementation "org.springframework.boot:spring-boot-starter-web"
   implementation "org.apache.commons:commons-lang3"
+  implementation "io.spinnaker.kork:kork-google-auth"
   implementation "com.google.api-client:google-api-client"
   implementation "com.google.apis:google-api-services-admin-directory"
+  implementation "com.google.apis:google-api-services-cloudidentity"
   testImplementation "org.slf4j:slf4j-simple"
 
 }
