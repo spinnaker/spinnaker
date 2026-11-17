@@ -108,7 +108,7 @@ class ActiveServerGroupFixtureMaker : FixtureMaker<ActiveServerGroup> {
         enabledMetrics = emptySet(),
         tags = emptySet(),
         terminationPolicies = emptySet(),
-        vpczoneIdentifier = "vpc-zone"
+        vpcZoneIdentifier = "vpc-zone"
       ),
       scalingPolicies = emptyList(),
       vpcId = "vpcId",
@@ -168,7 +168,7 @@ class ServerGroupFixtureMaker: FixtureMaker<ServerGroup> {
         enabledMetrics = emptySet(),
         tags = emptySet(),
         terminationPolicies = emptySet(),
-        vpczoneIdentifier = "vpc-zone"
+        vpcZoneIdentifier = "vpc-zone"
       ),
       scalingPolicies = emptyList(),
       vpcId = "vpcId",

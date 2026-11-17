@@ -40,6 +40,7 @@ export interface IAmazonFunctionSourceData extends IFunctionSourceData {
   deadLetterConfig: {
     targetArn: string;
   };
-  kmskeyArn: string;
+  kmsKeyArn?: string;
+  kmskeyArn?: string; // legacy: pre-AWS SDK v2 builder name; remove once caches have refreshed
   targetGroups: string[];
 }
