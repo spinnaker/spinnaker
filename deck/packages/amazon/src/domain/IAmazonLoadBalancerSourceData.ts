@@ -37,6 +37,8 @@ export interface IClassicListenerSourceData {
   instanceProtocol: string;
   loadBalancerPort: number;
   protocol: string;
+  sslCertificateId?: string;
+  sslcertificateId?: string; // legacy: pre-AWS SDK v2 builder name; remove once caches have refreshed
 }
 
 export interface IAmazonLoadBalancerSourceData extends ILoadBalancerSourceData {
@@ -44,7 +46,8 @@ export interface IAmazonLoadBalancerSourceData extends ILoadBalancerSourceData {
   availabilityZones: string[];
   cloudProvider: string;
   createdTime: number;
-  dnsname: string;
+  dnsName?: string;
+  dnsname?: string; // legacy: pre-AWS SDK v2 builder name; remove once caches have refreshed
   loadBalancerName: string;
   loadBalancerType?: string;
   name: string;
@@ -55,10 +58,7 @@ export interface IAmazonLoadBalancerSourceData extends ILoadBalancerSourceData {
   subnets: string[];
   type: string;
   vpcId: string;
-  // Some of the backend in clouddriver returns a vpcid (lowecase) only,
-  // and was cached with some of that. Until caches roll off and we are
-  // sure clouddriver is cleaed up, leave this dirtiness in here
-  vpcid?: string;
+  vpcid?: string; // legacy: pre-AWS SDK v2 builder name; remove once caches have refreshed
 }
 
 export interface IAmazonLoadBalancerInstanceSourceData {
@@ -175,7 +175,7 @@ export interface IClassicLoadBalancerSourceData extends IAmazonLoadBalancerSourc
       CookieName: string;
       PolicyName: string;
     }>;
-    lbcookieStickinessPolicies: Array<{
+    lbCookieStickinessPolicies: Array<{
       CookieExpirationPeriod: string;
       PolicyName: string;
     }>;
