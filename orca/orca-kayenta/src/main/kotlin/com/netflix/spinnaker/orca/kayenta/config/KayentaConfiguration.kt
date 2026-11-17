@@ -25,6 +25,7 @@ import com.netflix.spinnaker.orca.jackson.OrcaObjectMapper
 import com.netflix.spinnaker.orca.kayenta.KayentaService
 import com.netflix.spinnaker.orca.retrofit.RetrofitConfiguration
 import org.springframework.beans.factory.annotation.Value
+import org.springframework.boot.context.properties.EnableConfigurationProperties
 import org.springframework.boot.autoconfigure.condition.ConditionalOnExpression
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.ComponentScan
@@ -40,6 +41,7 @@ import com.netflix.spinnaker.orca.kayenta.pipeline.functions.KayentaConfigExpres
   "com.netflix.spinnaker.orca.kayenta.tasks"
 )
 @ConditionalOnExpression("\${kayenta.enabled:false}")
+@EnableConfigurationProperties(KayentaCanaryReportProperties::class)
 class KayentaConfiguration {
 
   @Bean

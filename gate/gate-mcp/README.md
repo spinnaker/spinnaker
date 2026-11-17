@@ -49,6 +49,10 @@ or Keel isn't enabled) are logged as a warning at startup.
 
 ## Tool catalog
 
+Read-only tools advertise `readOnlyHint=true`, `destructiveHint=false` and `idempotentHint=true` in
+`tools/list`, so clients can auto-approve them. Mutating tools keep the MCP defaults
+(`readOnlyHint=false`, `destructiveHint=true`) and are never advertised as read-only.
+
 ### Applications & infrastructure
 
 | Tool | Description |

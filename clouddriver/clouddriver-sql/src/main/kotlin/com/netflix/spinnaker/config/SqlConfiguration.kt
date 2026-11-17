@@ -17,11 +17,13 @@ package com.netflix.spinnaker.config
 
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.netflix.spectator.api.Registry
+import com.netflix.spinnaker.cats.cluster.DefaultNodeIdentity
+import com.netflix.spinnaker.clouddriver.cache.MaintenanceLock
 import com.netflix.spinnaker.clouddriver.data.task.TaskRepository
 import com.netflix.spinnaker.clouddriver.event.persistence.EventRepository
 import com.netflix.spinnaker.clouddriver.security.AccountDefinitionMapper
 import com.netflix.spinnaker.clouddriver.security.AccountDefinitionRepository
-import com.netflix.spinnaker.clouddriver.sql.SqlProvider
+import com.netflix.spinnaker.clouddriver.sql.SqlMaintenanceLock
 import com.netflix.spinnaker.clouddriver.sql.SqlRetries
 import com.netflix.spinnaker.clouddriver.sql.SqlTaskCleanupAgent
 import com.netflix.spinnaker.clouddriver.sql.SqlTaskRepository
@@ -89,17 +91,6 @@ class SqlConfiguration {
   ): SqlTaskCleanupAgent =
     SqlTaskCleanupAgent(jooq, clock, registry, properties, sqlRetries)
 
-  /**
-   * TODO(rz): When enabled, clouddriver gets wired up with two SqlProviders (one here, another in cats-sql).
-   *  This should get cleaned up such that only one sqlProvider is ever created (register agents via an interface, say
-   *  `SqlAgent`?)
-   */
-  @Bean
-  @ConditionalOnProperty("sql.task-repository.enabled")
-  @ConditionalOnExpression("\${sql.read-only:false} == false")
-  fun sqlProvider(sqlTaskCleanupAgent: SqlTaskCleanupAgent): SqlProvider =
-    SqlProvider(mutableListOf(sqlTaskCleanupAgent))
-
   @Bean
   fun sqlEventRepository(
     jooq: DSLContext,
@@ -135,6 +126,23 @@ class SqlConfiguration {
   ): SqlEventCleanupAgent {
     return SqlEventCleanupAgent(jooq, registry, properties, dynamicConfigService)
   }
+
+  /**
+   * Lock for [com.netflix.spinnaker.clouddriver.cache.MaintenanceAgent]s, backed by the same
+   * `cats_agent_locks` table (and `sql.table-namespace`) the CATS SQL scheduler uses. When a
+   * namespace is set, the namespaced table is created if missing.
+   *
+   * Only created on writable pods with maintenance agents enabled: read-only or
+   * maintenance-disabled pods have no maintenance work and may lack DDL rights for that table.
+   */
+  @Bean
+  @ConditionalOnExpression("\${sql.read-only:false} == false")
+  @ConditionalOnProperty(value = ["maintenance-agents.enabled"], matchIfMissing = true)
+  fun sqlMaintenanceLock(
+    jooq: DSLContext,
+    @Value("\${sql.table-namespace:#{null}}") tableNamespace: String?
+  ): MaintenanceLock =
+    SqlMaintenanceLock(jooq, DefaultNodeIdentity(), tableNamespace)
 
   @Bean
   @ConditionalOnProperty("account.storage.enabled", matchIfMissing = true)

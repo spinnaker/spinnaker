@@ -30,6 +30,7 @@ import com.netflix.spinnaker.orca.pipeline.CompoundExecutionOperator
 import com.netflix.spinnaker.orca.pipeline.ExecutionRunner
 import com.netflix.spinnaker.orca.pipeline.StageDefinitionBuilderFactory
 import com.netflix.spinnaker.orca.pipeline.model.*
+import com.netflix.spinnaker.orca.pipeline.persistence.ExecutionNotFoundException
 import com.netflix.spinnaker.orca.pipeline.persistence.ExecutionRepository
 import com.netflix.spinnaker.orca.pipeline.util.ContextParameterProcessor
 import com.netflix.spinnaker.orca.util.ExpressionUtils
@@ -430,6 +431,46 @@ class TaskControllerSpec extends Specification {
     0 * executionRepository._
 
     results.id == ['newer-2', 'newer-1']
+  }
+
+  void '/pipelines with executionIds omits missing executions instead of failing with NPE'() {
+    given:
+    def existing = pipeline {
+      id = 'found-1'
+      application = 'covfefe'
+    }
+
+    when:
+    def response = mockMvc.perform(get('/pipelines?executionIds=missing-1,found-1')).andReturn().response
+    List results = objectMapper.readValue(response.contentAsString, List)
+
+    then:
+    1 * executionRepository.retrieve(ExecutionType.PIPELINE, 'missing-1', false) >> {
+      throw new ExecutionNotFoundException('missing-1')
+    }
+    1 * executionRepository.retrieve(ExecutionType.PIPELINE, 'found-1', false) >> existing
+    0 * executionRepository._
+
+    response.status == 200
+    results*.id == ['found-1']
+  }
+
+  void '/pipelines with executionIds returns empty list when all executions are missing'() {
+    when:
+    def response = mockMvc.perform(get('/pipelines?executionIds=missing-1,missing-2')).andReturn().response
+    List results = objectMapper.readValue(response.contentAsString, List)
+
+    then:
+    1 * executionRepository.retrieve(ExecutionType.PIPELINE, 'missing-1', false) >> {
+      throw new ExecutionNotFoundException('missing-1')
+    }
+    1 * executionRepository.retrieve(ExecutionType.PIPELINE, 'missing-2', false) >> {
+      throw new ExecutionNotFoundException('missing-2')
+    }
+    0 * executionRepository._
+
+    response.status == 200
+    results == []
   }
 
   void 'should update existing stage context'() {

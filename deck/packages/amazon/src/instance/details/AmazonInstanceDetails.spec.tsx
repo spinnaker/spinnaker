@@ -1,6 +1,7 @@
 import { ConfirmationModalService } from '@spinnaker/core';
 
 import { AWSProviderSettings } from '../../aws.settings';
+import { AmazonInstanceWriter } from '../amazon.instance.write.service';
 
 import {
   AmazonInstanceActionsComponent,
@@ -75,5 +76,62 @@ describe('AmazonInstanceDetails', () => {
 
     expect(stateService.includes).toHaveBeenCalledWith('**.instanceDetails', { instanceId: 'i-123' });
     expect(stateService.go).toHaveBeenCalledWith('^');
+  });
+
+  describe('terminate actions', () => {
+    const getActions = (instance: any): any[] =>
+      AmazonInstanceActionsComponent({
+        app: { attributes: {} } as any,
+        instance,
+        router: {} as any,
+        stateParams: {},
+        stateService,
+      }).props.actions;
+    const terminateLabels = (instance: any): string[] =>
+      getActions(instance)
+        .map(({ label }) => label)
+        .filter((label: string) => label.startsWith('Terminate'));
+
+    it('offers terminating in the server group only for instances in a server group', () => {
+      const instance = { account: 'test', health: [], instanceId: 'i-123', placement: {} };
+
+      expect(terminateLabels(instance)).toEqual(['Terminate']);
+      expect(terminateLabels({ ...instance, serverGroup: 'app-v000' })).toEqual([
+        'Terminate',
+        'Terminate in Server Group',
+        'Terminate and Shrink Server Group',
+      ]);
+    });
+
+    it('terminates the instance in its server group once confirmed', () => {
+      const confirmation = vi.spyOn(ConfirmationModalService, 'confirm').mockReturnValue(undefined);
+      const terminate = vi
+        .spyOn(AmazonInstanceWriter, 'terminateInstanceInServerGroup')
+        .mockReturnValue(Promise.resolve({} as any));
+      const app = { attributes: {} } as any;
+      const instance = {
+        account: 'test',
+        health: [],
+        instanceId: 'i-123',
+        placement: {},
+        serverGroup: 'app-v000',
+      } as any;
+
+      AmazonInstanceActionsComponent({ app, instance, router: {} as any, stateParams: {}, stateService })
+        .props.actions.find(({ label }: any) => label === 'Terminate in Server Group')
+        .triggerAction();
+      const params = confirmation.mock.lastCall[0];
+
+      expect(params.header).toBe('Really terminate i-123 in app-v000?');
+      expect(params.buttonText).toBe('Terminate i-123 in app-v000');
+      expect(params.body).toContain('Auto Scaling group');
+      expect(terminate).not.toHaveBeenCalled();
+
+      params.submitMethod();
+
+      expect(terminate).toHaveBeenCalledWith(instance, app);
+      params.taskMonitorConfig.onTaskComplete();
+      expect(stateService.go).toHaveBeenCalledWith('^');
+    });
   });
 });

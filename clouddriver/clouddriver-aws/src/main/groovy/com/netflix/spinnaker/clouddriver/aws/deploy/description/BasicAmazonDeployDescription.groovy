@@ -124,6 +124,16 @@ class BasicAmazonDeployDescription extends AbstractAmazonCredentialsDescription 
   Boolean requireIMDSv2 = false
 
   /**
+   * Access to the instance tags from the instance metadata service (IMDS):
+   * * enabled, when set to true
+   * * disabled, when set to false
+   * * not set in the launch template when null (default), so the AWS default applies
+   * This is a Launch Template only feature
+   * * https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/work-with-tags-in-IMDS.html
+   */
+  Boolean enableInstanceMetadataTags
+
+  /**
    * Associate an IPv6 address
    * This is a Launch Template only feature
    */
@@ -237,7 +247,7 @@ class BasicAmazonDeployDescription extends AbstractAmazonCredentialsDescription 
             "placement", "licenseSpecifications", "onDemandAllocationStrategy",
             "onDemandBaseCapacity", "onDemandPercentageAboveBaseCapacity", "spotAllocationStrategy",
             "spotInstancePools", "launchTemplateOverridesForInstanceType", "enableEnclave",
-            "tcpEstablishedTimeout", "udpStreamTimeout", "udpTimeout"].toSet()
+            "tcpEstablishedTimeout", "udpStreamTimeout", "udpTimeout", "enableInstanceMetadataTags"].toSet()
   }
 
   static Set<String> getMixedInstancesPolicyFieldNames() {

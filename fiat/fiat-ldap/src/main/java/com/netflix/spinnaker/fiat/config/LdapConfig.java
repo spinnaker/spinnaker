@@ -41,7 +41,9 @@ public class LdapConfig {
     contextSource.setPassword(configProps.managerPassword);
     contextSource.afterPropertiesSet();
 
-    return new SpringSecurityLdapTemplate(contextSource);
+    SpringSecurityLdapTemplate ldapTemplate = new SpringSecurityLdapTemplate(contextSource);
+    ldapTemplate.setIgnorePartialResultException(configProps.ignorePartialResultException);
+    return ldapTemplate;
   }
 
   @Data
@@ -51,6 +53,13 @@ public class LdapConfig {
     String url;
     String managerDn;
     String managerPassword;
+
+    /**
+     * Treat a PartialResultException (e.g. unfollowed referrals from Active Directory) as "no
+     * further results" rather than failing the search. Defaults to false to preserve existing
+     * behavior.
+     */
+    boolean ignorePartialResultException = false;
 
     /** Search base to be used when querying users Example: "ou=users" */
     String userSearchBase = "";

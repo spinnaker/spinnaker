@@ -31,6 +31,7 @@ import com.netflix.spinnaker.orca.clouddriver.tasks.MonitorKatoTask;
 import com.netflix.spinnaker.orca.clouddriver.tasks.artifacts.CleanupArtifactsTask;
 import com.netflix.spinnaker.orca.clouddriver.tasks.manifest.*;
 import com.netflix.spinnaker.orca.clouddriver.tasks.manifest.DeployManifestContext.TrafficManagement;
+import com.netflix.spinnaker.orca.clouddriver.tasks.servergroup.ServerGroupCacheForceRefreshTask;
 import com.netflix.spinnaker.orca.pipeline.ExpressionAwareStageDefinitionBuilder;
 import com.netflix.spinnaker.orca.pipeline.tasks.artifacts.BindProducedArtifactsTask;
 import com.netflix.spinnaker.orca.pipeline.util.ContextParameterProcessor;
@@ -60,6 +61,7 @@ public class DeployCloudrunManifestStage extends ExpressionAwareStageDefinitionB
         .withTask(ResolveDeploySourceManifestTask.TASK_NAME, ResolveDeploySourceManifestTask.class)
         .withTask(DeployCloudrunManifestTask.TASK_NAME, DeployCloudrunManifestTask.class)
         .withTask("monitorDeploy", MonitorKatoTask.class)
+        .withTask("forceCacheRefresh", ServerGroupCacheForceRefreshTask.class)
         .withTask(PromoteManifestKatoOutputsTask.TASK_NAME, PromoteManifestKatoOutputsTask.class)
         .withTask(WaitForManifestStableTask.TASK_NAME, WaitForManifestStableTask.class)
         .withTask(CleanupArtifactsTask.TASK_NAME, CleanupArtifactsTask.class)

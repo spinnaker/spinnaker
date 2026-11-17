@@ -93,7 +93,7 @@ public class CloudrunServerGroupCachingAgent extends AbstractCloudrunCachingAgen
   @Override
   public OnDemandResult handle(ProviderCache providerCache, Map<String, ?> data) {
 
-    if (!data.containsKey("serverGroupName") || data.get("account") != getAccountName()) {
+    if (!data.containsKey("serverGroupName") || !getAccountName().equals(data.get("account"))) {
       return null;
     }
     String serverGroupName = data.get("serverGroupName").toString();

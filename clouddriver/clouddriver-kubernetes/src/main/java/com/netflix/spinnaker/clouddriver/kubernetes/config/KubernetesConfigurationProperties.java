@@ -141,7 +141,7 @@ public class KubernetesConfigurationProperties {
      * When false, custom resources are always reported as stable, which was the only behaviour
      * before status evaluation existed.
      */
-    private boolean enabled = false;
+    private boolean enabled = true;
 
     /**
      * Status messages taken from a resource's conditions are truncated to this many characters. A

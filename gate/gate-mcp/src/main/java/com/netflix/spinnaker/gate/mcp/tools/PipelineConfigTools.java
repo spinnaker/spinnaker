@@ -26,6 +26,7 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import org.springaicommunity.mcp.annotation.McpTool;
+import org.springaicommunity.mcp.annotation.McpTool.McpAnnotations;
 import org.springaicommunity.mcp.annotation.McpToolParam;
 
 /**
@@ -50,7 +51,9 @@ public class PipelineConfigTools {
 
   @McpTool(
       name = "list_pipeline_configs",
-      description = "List an application's configured pipelines (definitions, not executions).")
+      description = "List an application's configured pipelines (definitions, not executions).",
+      annotations =
+          @McpAnnotations(readOnlyHint = true, destructiveHint = false, idempotentHint = true))
   public List<Map<String, Object>> listPipelineConfigs(
       @McpToolParam(description = "Application name", required = true) String application,
       @McpToolParam(
@@ -64,7 +67,9 @@ public class PipelineConfigTools {
 
   @McpTool(
       name = "get_pipeline_config",
-      description = "Retrieve a single pipeline definition by name or config id.")
+      description = "Retrieve a single pipeline definition by name or config id.",
+      annotations =
+          @McpAnnotations(readOnlyHint = true, destructiveHint = false, idempotentHint = true))
   public Map<String, Object> getPipelineConfig(
       @McpToolParam(description = "Application name", required = true) String application,
       @McpToolParam(description = "Pipeline name or config id", required = true)

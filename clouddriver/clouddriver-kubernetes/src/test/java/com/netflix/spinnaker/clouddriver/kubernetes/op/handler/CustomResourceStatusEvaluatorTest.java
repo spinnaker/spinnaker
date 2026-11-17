@@ -201,10 +201,20 @@ final class CustomResourceStatusEvaluatorTest {
         withStatus("  conditions:\n    - {type: Stalled, status: \"True\", message: broken}\n");
 
     assertThat(CustomResourceStatusEvaluator.disabled().status(stalled)).isEqualTo(stable());
+    KubernetesConfigurationProperties properties = new KubernetesConfigurationProperties();
+    properties.getCustomResourceStatus().setEnabled(false);
+    assertThat(new CustomResourceStatusEvaluator(properties).status(stalled)).isEqualTo(stable());
+  }
+
+  @Test
+  void isEnabledByDefault() {
+    KubernetesManifest stalled =
+        withStatus("  conditions:\n    - {type: Stalled, status: \"True\", message: broken}\n");
+
     assertThat(
             new CustomResourceStatusEvaluator(new KubernetesConfigurationProperties())
                 .status(stalled))
-        .isEqualTo(stable());
+        .isNotEqualTo(stable());
   }
 
   @Test

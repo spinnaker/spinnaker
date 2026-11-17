@@ -86,6 +86,23 @@ class ServerGroupCacheForceRefreshTaskSpec extends Specification {
     result.status == RUNNING
   }
 
+  void "should succeed without calling clouddriver when the deploy reported no server groups"() {
+    // e.g. an older clouddriver that does not report the revision it deployed
+    setup:
+    stage.context.remove("deploy.server.groups")
+    task.clock = Mock(Clock) {
+      _ * millis() >> 0
+    }
+
+    when:
+    def result = task.execute(stage)
+
+    then:
+    0 * task.cacheService._
+    _ * task.cacheStatusService.pendingForceCacheUpdates("aws", ServerGroupCacheForceRefreshTask.REFRESH_TYPE) >> Calls.response([])
+    result.status == SUCCEEDED
+  }
+
   void "should auto-succeed if force cache refresh takes longer than 12 minutes"() {
     setup:
     task.clock = Mock(Clock) {

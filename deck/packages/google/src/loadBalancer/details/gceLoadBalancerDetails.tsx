@@ -1,4 +1,4 @@
-import React, { useCallback, useEffect, useState } from 'react';
+import React, { useCallback, useEffect, useRef, useState } from 'react';
 
 import {
   AccountService,
@@ -225,6 +225,19 @@ export function useGceLoadBalancerDetails({ app, autoClose, loadBalancerParams }
   const [data, setData] = useState<any>();
   const [loadingDetails, setLoadingDetails] = useState(false);
   const [detailsError, setDetailsError] = useState<string | null>(null);
+  const autoCloseRef = useRef(autoClose);
+  const isMountedRef = useRef(true);
+  const { accountId, name, provider, region, vpcId } = loadBalancerParams || {};
+
+  useEffect(() => {
+    return () => {
+      isMountedRef.current = false;
+    };
+  }, []);
+
+  useEffect(() => {
+    autoCloseRef.current = autoClose;
+  }, [autoClose]);
 
   const refetch = useCallback(async () => {
     if (!loaded || error) {
@@ -234,21 +247,26 @@ export function useGceLoadBalancerDetails({ app, autoClose, loadBalancerParams }
     setLoadingDetails(true);
     setDetailsError(null);
     try {
-      setData(
-        await loadGceLoadBalancerDetails({
-          app,
-          autoClose,
-          loadBalancers,
-          loadBalancerParams,
-          loadBalancerReader,
-        }),
-      );
+      const loadBalancer = await loadGceLoadBalancerDetails({
+        app,
+        autoClose: () => autoCloseRef.current(),
+        loadBalancers,
+        loadBalancerParams: { accountId, name, provider, region, vpcId },
+        loadBalancerReader,
+      });
+      if (isMountedRef.current) {
+        setData(loadBalancer);
+      }
     } catch (e) {
-      setDetailsError(e?.message || String(e));
+      if (isMountedRef.current) {
+        setDetailsError(e?.message || String(e));
+      }
     } finally {
-      setLoadingDetails(false);
+      if (isMountedRef.current) {
+        setLoadingDetails(false);
+      }
     }
-  }, [app, autoClose, error, loadBalancerReader, loadBalancers, loadBalancerParams, loaded]);
+  }, [accountId, app, error, loadBalancerReader, loadBalancers, loaded, name, provider, region, vpcId]);
 
   useEffect(() => {
     refetch();

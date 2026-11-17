@@ -38,7 +38,7 @@ public class KubernetesManifestNamer implements NamingStrategy<KubernetesManifes
   public KubernetesManifestNamer(
       @Value("${kubernetes.v2.apply-app-labels:true}") boolean applyAppLabels,
       @Value("${kubernetes.v2.managed-by-suffix:}") String managedBySuffix,
-      @Value("${kubernetes.v2.apply-provenance-annotations:false}")
+      @Value("${kubernetes.v2.apply-provenance-annotations:true}")
           boolean applyProvenanceAnnotations) {
     this.applyAppLabels = applyAppLabels;
     this.managedBySuffix = managedBySuffix;

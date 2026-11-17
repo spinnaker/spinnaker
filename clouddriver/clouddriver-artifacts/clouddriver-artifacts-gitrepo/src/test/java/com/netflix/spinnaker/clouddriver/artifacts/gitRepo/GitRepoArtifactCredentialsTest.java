@@ -18,16 +18,25 @@ package com.netflix.spinnaker.clouddriver.artifacts.gitRepo;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.Mockito.doAnswer;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
 import com.netflix.spinnaker.kork.artifacts.model.Artifact;
+import java.io.ByteArrayOutputStream;
 import java.io.IOException;
+import java.io.InputStream;
+import java.io.OutputStream;
 import java.nio.file.Files;
+import java.nio.file.Path;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
+import java.util.concurrent.atomic.AtomicReference;
+import java.util.stream.Stream;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -381,6 +390,55 @@ class GitRepoArtifactCredentialsTest {
         assertThrows(IllegalArgumentException.class, () -> credentials.download(artifact));
 
     assertThat(exception.getMessage()).containsIgnoringCase("host");
+  }
+
+  @Test
+  @DisplayName(
+      "Should not truncate an archive still being read when the same artifact is archived again")
+  void shouldNotTruncateArchiveBeingReadWhenArchivedAgain() throws Exception {
+    String repoUrl = "https://github.com/spinnaker/clouddriver.git";
+    Path stagingPath = Files.createTempDirectory("gitrepoartifacttests");
+    when(mockFileSystem.getLocalClonePath(repoUrl, "main")).thenReturn(stagingPath);
+    when(mockFileSystem.tryTimedLock(repoUrl, "main")).thenReturn(true);
+    when(mockFileSystem.canRetainClone()).thenReturn(true);
+
+    byte[] archive = new byte[64 * 1024];
+    Arrays.fill(archive, (byte) 'a');
+    AtomicReference<InputStream> firstDownload = new AtomicReference<>();
+    ByteArrayOutputStream firstDownloadBody = new ByteArrayOutputStream();
+    doAnswer(
+            invocation -> {
+              Files.write(invocation.getArgument(3), archive);
+              return null;
+            })
+        .doAnswer(
+            invocation -> {
+              // like "git archive --output", truncate the output file and rewrite it in place
+              try (OutputStream out = Files.newOutputStream(invocation.getArgument(3))) {
+                firstDownload.get().transferTo(firstDownloadBody);
+                out.write(archive);
+              }
+              return null;
+            })
+        .when(mockExecutor)
+        .archive(any(), eq("main"), eq(""), any());
+
+    GitRepoArtifactCredentials credentials =
+        new GitRepoArtifactCredentials(mockExecutor, mockFileSystem, null);
+    Artifact artifact = Artifact.builder().reference(repoUrl).version("main").build();
+
+    try (InputStream first = credentials.download(artifact)) {
+      firstDownload.set(first);
+      firstDownloadBody.write(first.readNBytes(1024));
+      try (InputStream second = credentials.download(artifact)) {
+        assertThat(second.readAllBytes()).hasSize(archive.length).isEqualTo(archive);
+      }
+    }
+
+    assertThat(firstDownloadBody.toByteArray()).hasSize(archive.length).isEqualTo(archive);
+    try (Stream<Path> files = Files.list(stagingPath)) {
+      assertThat(files).containsExactly(stagingPath.resolve("clouddriver.tgz"));
+    }
   }
 
   /*
