@@ -83,7 +83,7 @@ class LambdaDescriptionV2DeserializationTest {
     CreateLambdaFunctionDescription desc =
         mapper.convertValue(input, CreateLambdaFunctionDescription.class);
 
-    // Serialize back out (SdkPojoSerializer) and re-read to confirm both directions work.
+    // Serialize back out (AwsSdkV2Module) and re-read to confirm both directions work.
     @SuppressWarnings("unchecked")
     Map<String, Object> serialized = mapper.convertValue(desc, Map.class);
     CreateLambdaFunctionDescription reparsed =

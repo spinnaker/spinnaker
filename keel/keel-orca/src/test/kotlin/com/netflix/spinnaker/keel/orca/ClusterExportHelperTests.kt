@@ -57,7 +57,7 @@ class ClusterExportHelperTests : JUnit5Minutests {
         enabledMetrics = emptySet(),
         tags = emptySet(),
         terminationPolicies = emptySet(),
-        vpczoneIdentifier = ""
+        vpcZoneIdentifier = ""
       ),
       scalingPolicies = emptyList(),
       vpcId = "foo",

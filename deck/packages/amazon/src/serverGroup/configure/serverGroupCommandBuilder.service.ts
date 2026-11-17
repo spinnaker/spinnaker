@@ -4,6 +4,7 @@ import type { Application, DeckRuntimeServices, InstanceTypeService } from '@spi
 import { AccountService, DeploymentStrategyRegistry, NameUtils, SubnetReader } from '@spinnaker/core';
 
 import { AWSProviderSettings } from '../../aws.settings';
+import { getVpcZoneIdentifier } from '../../common/awsSdkFieldNames';
 import type { IAmazonLaunchTemplateOverrides, ILaunchTemplateData } from '../../domain';
 import type { IAmazonServerGroup, IAmazonServerGroupView, INetworkInterface } from '../../domain';
 import type { AwsServerGroupConfigurationService } from './serverGroupConfiguration.service';
@@ -338,8 +339,8 @@ export function createAwsServerGroupCommandBuilder(
           command.suspendedProcesses = [];
         }
 
-        const vpcZoneIdentifier = serverGroup.asg.vpczoneIdentifier;
-        if (vpcZoneIdentifier !== '') {
+        const vpcZoneIdentifier = getVpcZoneIdentifier(serverGroup.asg);
+        if (vpcZoneIdentifier) {
           const subnetId = vpcZoneIdentifier.split(',')[0];
           const subnet = subnets.find((x) => x.id === subnetId);
           command.subnetType = subnet.purpose;
