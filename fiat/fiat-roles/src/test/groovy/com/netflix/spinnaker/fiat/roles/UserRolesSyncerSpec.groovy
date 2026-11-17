@@ -717,7 +717,7 @@ class UserRolesSyncerSpec extends Specification {
     expect:
     repo.getAllById() == allUsers.collectEntries { [ it.id, it.roles]}
     [user1, user2, user3, newServiceAcct, abcServiceAcct, unrestrictedUser]
-            .forEach({ it -> repo.get(it.getId()).get() == it.merge(unrestrictedUser) })
+            .forEach({ it -> assert repo.get(it.getId()).get() == it.merge(unrestrictedUser) })
   }
 
   class AlwaysUpHealthIndicator extends ResourceProvidersHealthIndicator {
