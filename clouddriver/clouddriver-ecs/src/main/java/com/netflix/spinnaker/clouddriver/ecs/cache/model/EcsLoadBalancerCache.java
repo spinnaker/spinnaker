@@ -16,6 +16,7 @@
 
 package com.netflix.spinnaker.clouddriver.ecs.cache.model;
 
+import com.fasterxml.jackson.annotation.JsonAlias;
 import com.netflix.spinnaker.clouddriver.ecs.EcsCloudProvider;
 import com.netflix.spinnaker.clouddriver.model.LoadBalancer;
 import com.netflix.spinnaker.clouddriver.model.LoadBalancerServerGroup;
@@ -39,7 +40,13 @@ public class EcsLoadBalancerCache implements LoadBalancer {
   private String loadBalancerName;
   private String canonicalHostedZoneId;
   private String vpcId;
+
+  // The AWS load balancer cache keys this by the SDK v2 builder property name, dnsName. The field
+  // name itself still matches legacy entries cached before the SDK v2 move, and keeps the
+  // property name the ECS UI reads.
+  @JsonAlias("dnsName")
   private String dnsname;
+
   private Long createdTime;
   private List<String> subnets;
   private List<String> securityGroups;

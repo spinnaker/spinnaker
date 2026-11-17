@@ -11,7 +11,7 @@ export const mockAmazonAsg: IAmazonAsg = {
   loadBalancerNames: ['lb-123'],
   tags: [],
   availabilityZones: ['a', 'b', 'c'],
-  vpczoneIdentifier: '',
+  vpcZoneIdentifier: '',
   enabledMetrics: [],
   suspendedProcesses: [],
   defaultCooldown: 300,
