@@ -16,6 +16,7 @@
 
 package com.netflix.spinnaker.echo.config;
 
+import com.netflix.spinnaker.kork.google.auth.GoogleAuthProperties;
 import java.util.List;
 import lombok.Data;
 import org.springframework.boot.context.properties.ConfigurationProperties;
@@ -30,6 +31,10 @@ public class GoogleCloudBuildProperties {
     private String name;
     private String project;
     private String subscriptionName;
-    private String jsonKey;
+    private GoogleAuthProperties auth = new GoogleAuthProperties();
+
+    public void setJsonKey(String ignored) {
+      throw GoogleAuthProperties.removedProperty("jsonKey", "use auth.credentialsFile");
+    }
   }
 }

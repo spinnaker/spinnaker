@@ -91,17 +91,16 @@ public class GooglePubsubSubscriber implements PubsubSubscriber {
       GooglePubsubSubscription subscription, PubsubMessageHandler pubsubMessageHandler) {
     String subscriptionName = subscription.getSubscriptionName();
     String project = subscription.getProject();
-    String jsonPath = subscription.getJsonPath();
 
     GooglePubsubMessageReceiver messageReceiver =
         new GooglePubsubMessageReceiver(
             subscription.getAckDeadlineSeconds(), subscription.getName(), pubsubMessageHandler);
 
-    Credentials credentials = null;
+    Credentials credentials;
     try {
-      credentials = new GooglePubsubCredentialsProvider(jsonPath).getCredentials();
+      credentials = new GooglePubsubCredentialsProvider(subscription.getAuth()).getCredentials();
     } catch (IOException e) {
-      log.error("Could not create Google Pubsub json credentials: {}", e.getMessage());
+      throw new IllegalStateException("Unable to initialize Google Pubsub credentials", e);
     }
 
     return new GooglePubsubSubscriber(

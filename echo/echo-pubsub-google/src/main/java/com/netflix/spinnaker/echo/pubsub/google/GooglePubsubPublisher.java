@@ -79,12 +79,12 @@ public class GooglePubsubPublisher implements PubsubPublisher {
     try {
       Publisher p =
           Publisher.newBuilder(fullName)
-              .setCredentialsProvider(new GooglePubsubCredentialsProvider(config.getJsonPath()))
+              .setCredentialsProvider(new GooglePubsubCredentialsProvider(config.getAuth()))
               .setBatchingSettings(batchingSettings)
               .build();
       publisher.setPublisher(p);
     } catch (IOException ioe) {
-      log.error("Could not create Google Pubsub Publishers", ioe);
+      throw new IllegalStateException("Unable to initialize Google Pubsub publisher", ioe);
     }
 
     return publisher;

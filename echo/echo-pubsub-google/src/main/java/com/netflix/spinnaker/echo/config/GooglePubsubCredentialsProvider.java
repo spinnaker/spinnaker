@@ -18,37 +18,28 @@ package com.netflix.spinnaker.echo.config;
 
 import com.google.api.gax.core.CredentialsProvider;
 import com.google.auth.Credentials;
-import com.google.auth.oauth2.GoogleCredentials;
-import com.google.auth.oauth2.ServiceAccountCredentials;
-import java.io.FileInputStream;
+import com.google.cloud.pubsub.v1.stub.SubscriberStubSettings;
+import com.netflix.spinnaker.kork.google.auth.GoogleAuthProperties;
+import com.netflix.spinnaker.kork.google.auth.GoogleCredentialsFactory;
 import java.io.IOException;
-import lombok.AllArgsConstructor;
-import lombok.NoArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
-import org.apache.commons.lang3.StringUtils;
 
-@AllArgsConstructor
-@NoArgsConstructor
-@Slf4j
 public class GooglePubsubCredentialsProvider implements CredentialsProvider {
 
-  private String jsonPath;
+  private final GoogleAuthProperties auth;
+  private final GoogleCredentialsFactory credentialsFactory;
+
+  public GooglePubsubCredentialsProvider(GoogleAuthProperties auth) {
+    this(auth, new GoogleCredentialsFactory());
+  }
+
+  GooglePubsubCredentialsProvider(
+      GoogleAuthProperties auth, GoogleCredentialsFactory credentialsFactory) {
+    this.auth = auth;
+    this.credentialsFactory = credentialsFactory;
+  }
 
   @Override
   public Credentials getCredentials() throws IOException {
-    if (StringUtils.isNotEmpty(this.jsonPath)) {
-      try {
-        return ServiceAccountCredentials.fromStream(new FileInputStream(this.jsonPath));
-      } catch (IOException e) {
-        log.error("Could not import Google Pubsub json credentials: {}", e.getMessage());
-      }
-    } else {
-      try {
-        return GoogleCredentials.getApplicationDefault();
-      } catch (IOException e) {
-        log.error("Could not import default application credentials: {}", e.getMessage());
-      }
-    }
-    throw new IllegalStateException("Unable to authenticate to Google Pubsub.");
+    return credentialsFactory.create(auth, SubscriberStubSettings.getDefaultServiceScopes());
   }
 }
