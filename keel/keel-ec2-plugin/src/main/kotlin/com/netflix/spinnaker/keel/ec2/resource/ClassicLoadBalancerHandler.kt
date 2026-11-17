@@ -245,7 +245,7 @@ class ClassicLoadBalancerHandler(
                       externalPort = it.listener.loadBalancerPort,
                       internalProtocol = it.listener.instanceProtocol,
                       internalPort = it.listener.instancePort,
-                      sslCertificateId = it.listener.sslcertificateId
+                      sslCertificateId = it.listener.sslCertificateId
                     )
                   }.toSet(),
                   dependencies = LoadBalancerDependencies(

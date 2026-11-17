@@ -137,7 +137,7 @@ internal class ClassicLoadBalancerHandlerTests : JUnit5Minutests {
           loadBalancerPort = listener.externalPort,
           instanceProtocol = listener.internalProtocol,
           instancePort = listener.internalPort,
-          sslcertificateId = null
+          sslCertificateId = null
         )
       )
     ),
