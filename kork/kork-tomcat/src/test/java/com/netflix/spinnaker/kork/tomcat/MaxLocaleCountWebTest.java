@@ -23,6 +23,7 @@ import java.net.http.HttpClient;
 import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
 import java.util.Locale;
+import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.ValueSource;
 import org.springframework.boot.autoconfigure.EnableAutoConfiguration;
@@ -35,6 +36,19 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 class MaxLocaleCountWebTest {
+
+  @Test
+  void defaultLimitIgnoresExcessLocales() throws Exception {
+    try (ConfigurableApplicationContext context =
+            new SpringApplicationBuilder(TestApplication.class).properties("server.port=0").run();
+        HttpClient client = HttpClient.newHttpClient()) {
+      int port = ((ServletWebServerApplicationContext) context).getWebServer().getPort();
+      HttpResponse<String> response = request(client, port, MaxLocaleCountTest.LANGUAGES);
+
+      assertEquals(200, response.statusCode());
+      assertEquals("en-US", response.body());
+    }
+  }
 
   @ParameterizedTest
   @ValueSource(ints = {12, -1, -2})
@@ -50,12 +64,9 @@ class MaxLocaleCountWebTest {
       assertEquals(200, response.statusCode());
       assertEquals("en-US", response.body());
 
-      if (limit >= 0) {
-        assertEquals(
-            500, request(client, port, MaxLocaleCountTest.firstLanguages(13)).statusCode());
-      } else {
-        assertEquals(200, request(client, port, MaxLocaleCountTest.LANGUAGES).statusCode());
-      }
+      HttpResponse<String> excessResponse = request(client, port, MaxLocaleCountTest.LANGUAGES);
+      assertEquals(200, excessResponse.statusCode());
+      assertEquals("en-US", excessResponse.body());
     }
   }
 
