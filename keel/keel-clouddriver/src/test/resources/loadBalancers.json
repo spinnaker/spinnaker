@@ -21,7 +21,7 @@
     "policies": {
       "appCookieStickinessPolicies": [],
       "otherPolicies": [],
-      "lbcookieStickinessPolicies": []
+      "lbCookieStickinessPolicies": []
     },
     "availabilityZones": [
       "us-east-1c",
@@ -52,9 +52,8 @@
       "unhealthyThreshold": 2,
       "healthyThreshold": 5
     },
-    "vpcid": "vpc-11111111",
     "idleTimeout": 60,
-    "dnsname": "internal-keeldemo-main-clb-1444444440.us-east-1.elb.amazonaws.com",
+    "dnsName": "internal-keeldemo-main-clb-1444444440.us-east-1.elb.amazonaws.com",
     "createdTime": 1572286917070,
     "subnets": [
       "subnet-12345678",
@@ -138,7 +137,7 @@
     "policies": {
       "appCookieStickinessPolicies": [],
       "otherPolicies": [],
-      "lbcookieStickinessPolicies": []
+      "lbCookieStickinessPolicies": []
     },
     "availabilityZones": [
       "us-west-2c",
@@ -169,9 +168,8 @@
       "unhealthyThreshold": 2,
       "healthyThreshold": 5
     },
-    "vpcid": "vpc-12345678",
     "idleTimeout": 60,
-    "dnsname": "internal-keeldemo-main-clb-222222222.us-west-2.elb.amazonaws.com",
+    "dnsName": "internal-keeldemo-main-clb-222222222.us-west-2.elb.amazonaws.com",
     "createdTime": 1572286851780,
     "subnets": [
       "subnet-11111111",
@@ -362,7 +360,7 @@
     "loadBalancerName": "keeldemo-prestaging-alb",
     "canonicalHostedZoneId": "XXXXXXXXXXXXXX",
     "idleTimeout": 60,
-    "dnsname": "internal-keeldemo-prestaging-alb-1010274582.us-east-1.elb.amazonaws.com",
+    "dnsName": "internal-keeldemo-prestaging-alb-1010274582.us-east-1.elb.amazonaws.com",
     "createdTime": 1571875608830,
     "securityGroups": [
       "sg-11111111111111111"
@@ -558,7 +556,7 @@
     "loadBalancerName": "keeldemo-prestaging-alb",
     "canonicalHostedZoneId": "ZZZZZZZZZZZZZ",
     "idleTimeout": 60,
-    "dnsname": "internal-keeldemo-prestaging-alb-1111111111.us-west-2.elb.amazonaws.com",
+    "dnsName": "internal-keeldemo-prestaging-alb-1111111111.us-west-2.elb.amazonaws.com",
     "createdTime": 1568244342190,
     "securityGroups": [
       "sg-11111111111111111"
@@ -652,7 +650,7 @@
     "policies": {
       "appCookieStickinessPolicies": [],
       "otherPolicies": [],
-      "lbcookieStickinessPolicies": []
+      "lbCookieStickinessPolicies": []
     },
     "availabilityZones": [
       "us-east-1c",
@@ -683,9 +681,8 @@
       "unhealthyThreshold": 2,
       "healthyThreshold": 5
     },
-    "vpcid": "vpc-11111111",
     "idleTimeout": 60,
-    "dnsname": "internal-keeldemo-prestaging-clb-2222222222.us-east-1.elb.amazonaws.com",
+    "dnsName": "internal-keeldemo-prestaging-clb-2222222222.us-east-1.elb.amazonaws.com",
     "createdTime": 1571875609440,
     "subnets": [
       "subnet-12345678",
@@ -762,7 +759,7 @@
     "policies": {
       "appCookieStickinessPolicies": [],
       "otherPolicies": [],
-      "lbcookieStickinessPolicies": []
+      "lbCookieStickinessPolicies": []
     },
     "availabilityZones": [
       "us-west-2c",
@@ -793,9 +790,8 @@
       "unhealthyThreshold": 2,
       "healthyThreshold": 5
     },
-    "vpcid": "vpc-12345678",
     "idleTimeout": 60,
-    "dnsname": "internal-keeldemo-prestaging-clb-333333333.us-west-2.elb.amazonaws.com",
+    "dnsName": "internal-keeldemo-prestaging-clb-333333333.us-west-2.elb.amazonaws.com",
     "createdTime": 1568244342060,
     "subnets": [
       "subnet-11111111",
@@ -948,7 +944,7 @@
     "loadBalancerName": "keeldemo-test-alb",
     "canonicalHostedZoneId": "ZZZZZZZZZZZZZ",
     "idleTimeout": 60,
-    "dnsname": "internal-keeldemo-test-alb-000000000.us-west-2.elb.amazonaws.com",
+    "dnsName": "internal-keeldemo-test-alb-000000000.us-west-2.elb.amazonaws.com",
     "createdTime": 1561408840100,
     "securityGroups": [
       "sg-11111111111111111"
@@ -1137,7 +1133,7 @@
     "loadBalancerName": "keeldemo-test-alb",
     "canonicalHostedZoneId": "XXXXXXXXXXXXXX",
     "idleTimeout": 60,
-    "dnsname": "internal-keeldemo-test-alb-999999999.us-east-1.elb.amazonaws.com",
+    "dnsName": "internal-keeldemo-test-alb-999999999.us-east-1.elb.amazonaws.com",
     "createdTime": 1571875602710,
     "securityGroups": [
       "sg-11111111111111111"
@@ -1203,7 +1199,7 @@
     "policies": {
       "appCookieStickinessPolicies": [],
       "otherPolicies": [],
-      "lbcookieStickinessPolicies": []
+      "lbCookieStickinessPolicies": []
     },
     "availabilityZones": [
       "us-west-2c",
@@ -1234,9 +1230,8 @@
       "unhealthyThreshold": 2,
       "healthyThreshold": 5
     },
-    "vpcid": "vpc-12345678",
     "idleTimeout": 60,
-    "dnsname": "internal-keeldemo-test-clb-888888888.us-west-2.elb.amazonaws.com",
+    "dnsName": "internal-keeldemo-test-clb-888888888.us-west-2.elb.amazonaws.com",
     "createdTime": 1561157207030,
     "subnets": [
       "subnet-11111111",
@@ -1306,7 +1301,7 @@
     "policies": {
       "appCookieStickinessPolicies": [],
       "otherPolicies": [],
-      "lbcookieStickinessPolicies": []
+      "lbCookieStickinessPolicies": []
     },
     "availabilityZones": [
       "us-east-1c",
@@ -1337,9 +1332,8 @@
       "unhealthyThreshold": 2,
       "healthyThreshold": 5
     },
-    "vpcid": "vpc-11111111",
     "idleTimeout": 60,
-    "dnsname": "internal-keeldemo-test-clb-7777777777.us-east-1.elb.amazonaws.com",
+    "dnsName": "internal-keeldemo-test-clb-7777777777.us-east-1.elb.amazonaws.com",
     "createdTime": 1571875655050,
     "subnets": [
       "subnet-12345678",
