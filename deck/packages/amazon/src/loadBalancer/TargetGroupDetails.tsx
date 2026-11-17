@@ -12,6 +12,7 @@ import {
   withRouter,
 } from '@spinnaker/core';
 
+import { getDnsName } from '../common/awsSdkFieldNames';
 import type { IAmazonApplicationLoadBalancer, ITargetGroup } from '../domain';
 import { VpcTag } from '../vpc/VpcTag';
 
@@ -148,7 +149,7 @@ export class TargetGroupDetailsComponent extends React.Component<
   }
 
   private renderDetails(loadBalancer: IAmazonApplicationLoadBalancer, targetGroup: ITargetGroup) {
-    const dnsName = (loadBalancer as any).dnsname || loadBalancer.elb?.dnsname;
+    const dnsName = getDnsName(loadBalancer as any) || getDnsName(loadBalancer.elb);
     const attributes = (targetGroup.attributes || {}) as any;
     return (
       <div className="content">

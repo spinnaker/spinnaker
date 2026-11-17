@@ -302,7 +302,7 @@ object ActiveServerGroupTest : ModelParsingTestSupport<CloudDriverService, Activ
     |    ],
     |    "newInstancesProtectedFromScaleIn": false,
     |    "serviceLinkedRoleARN": "arn:aws:iam::$owner:role/aws-service-role/autoscaling.amazonaws.com/AWSServiceRoleForAutoScaling",
-    |    "vpczoneIdentifier": "${subnets.joinToString(",")}"
+    |    "vpcZoneIdentifier": "${subnets.joinToString(",")}"
     |  },
     |  "scalingPolicies": [
     |   {
@@ -335,7 +335,7 @@ object ActiveServerGroupTest : ModelParsingTestSupport<CloudDriverService, Activ
     |         "threshold": 560.0,
     |         "comparisonOperator": "GreaterThanThreshold",
     |         "metrics": [],
-    |         "okactions": []
+    |         "okActions": []
     |       }
     |     ],
     |     "targetTrackingConfiguration": {
@@ -437,7 +437,7 @@ object ActiveServerGroupTest : ModelParsingTestSupport<CloudDriverService, Activ
       enabledMetrics = emptySet(),
       tags = setOf(Tag("spinnaker:application", app)),
       terminationPolicies = setOf("Default"),
-      vpczoneIdentifier = subnets.joinToString(",")
+      vpcZoneIdentifier = subnets.joinToString(",")
     ),
     scalingPolicies = listOf(
       ScalingPolicy(
