@@ -51,10 +51,6 @@ final class GoogleCloudBuildAccountFactory {
   }
 
   private GoogleCredentials getCredentials(GoogleCloudBuildProperties.Account account) {
-    if (account.getJsonKey().isPresent()) {
-      return credentialService.getFromKey(account.getJsonKey().get());
-    } else {
-      return credentialService.getApplicationDefault();
-    }
+    return credentialService.getCredentials(account.getAuth());
   }
 }

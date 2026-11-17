@@ -18,51 +18,32 @@ package com.netflix.spinnaker.igor.gcb;
 
 import com.google.api.services.cloudbuild.v1.CloudBuildScopes;
 import com.google.auth.oauth2.GoogleCredentials;
-import java.io.FileInputStream;
+import com.netflix.spinnaker.kork.google.auth.GoogleAuthProperties;
+import com.netflix.spinnaker.kork.google.auth.GoogleCredentialsFactory;
 import java.io.IOException;
-import java.io.InputStream;
 import java.io.UncheckedIOException;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.stereotype.Component;
 
-/**
- * Factory for calling Google API code to create a GoogleCredentials, either from application
- * default credentials or from a supplied path to a JSON key.
- */
+/** Applies the Cloud Build API scopes to the shared Google authentication contract. */
 @Component
 @ConditionalOnProperty("gcb.enabled")
 class GoogleCredentialsService {
-  GoogleCredentials getFromKey(String jsonPath) {
-    try {
-      InputStream stream = getCredentialAsStream(jsonPath);
-      return loadCredential(stream);
-    } catch (IOException e) {
-      throw new UncheckedIOException(e);
-    }
+  private final GoogleCredentialsFactory credentialsFactory;
+
+  GoogleCredentialsService() {
+    this(new GoogleCredentialsFactory());
   }
 
-  GoogleCredentials getApplicationDefault() {
-    try {
-      GoogleCredentials credentials = GoogleCredentials.getApplicationDefault();
-
-      return credentials.createScopedRequired()
-          ? credentials.createScoped(CloudBuildScopes.all())
-          : credentials;
-    } catch (IOException e) {
-      throw new UncheckedIOException(e);
-    }
+  GoogleCredentialsService(GoogleCredentialsFactory credentialsFactory) {
+    this.credentialsFactory = credentialsFactory;
   }
 
-  private InputStream getCredentialAsStream(String jsonPath) {
+  GoogleCredentials getCredentials(GoogleAuthProperties auth) {
     try {
-      return new FileInputStream(jsonPath);
+      return credentialsFactory.create(auth, CloudBuildScopes.all());
     } catch (IOException e) {
-      throw new IllegalArgumentException(
-          String.format("Unable to read credential file: %s", jsonPath), e);
+      throw new UncheckedIOException("Unable to initialize Google Cloud Build credentials", e);
     }
-  }
-
-  private GoogleCredentials loadCredential(InputStream stream) throws IOException {
-    return GoogleCredentials.fromStream(stream).createScoped(CloudBuildScopes.all());
   }
 }
