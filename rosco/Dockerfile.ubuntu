@@ -1,6 +1,9 @@
 FROM ubuntu:resolute
 LABEL maintainer="sig-platform@spinnaker.io"
 
+# TODO: Remove the Java4Shell (CVE-2026-114938) workaround after Ubuntu ships a fixed JDK.
+ENV JAVA_TOOL_OPTIONS="-XX:-UseBASE64Intrinsics"
+
 ENV KUSTOMIZE4_VERSION=4.5.7
 ENV KUSTOMIZE5_VERSION=5.8.1
 ENV PACKER_VERSION=1.15.4

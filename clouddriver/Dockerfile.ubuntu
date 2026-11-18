@@ -1,5 +1,8 @@
 FROM ubuntu:resolute
 LABEL maintainer="sig-platform@spinnaker.io"
+
+# TODO: Remove the Java4Shell (CVE-2026-114938) workaround after Ubuntu ships a fixed JDK.
+ENV JAVA_TOOL_OPTIONS="-XX:-UseBASE64Intrinsics"
 ARG TARGETARCH
 ENV GOOGLE_CLOUD_SDK_VERSION=575.0.1
 ENV PATH="$PATH:/opt/google-cloud-sdk/bin/"

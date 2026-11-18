@@ -1,5 +1,8 @@
 FROM ubuntu:resolute
 LABEL maintainer="sig-platform@spinnaker.io"
+
+# TODO: Remove the Java4Shell (CVE-2026-114938) workaround after Ubuntu ships a fixed JDK.
+ENV JAVA_TOOL_OPTIONS="-XX:-UseBASE64Intrinsics"
 RUN apt-get update && apt-get -y install openjdk-25-jre-headless wget
 # Refresh the CA bundle, remove G1, and rebuild the JVM truststore from scratch.
 RUN apt-get update && apt-get -y install --only-upgrade ca-certificates ca-certificates-java && \
