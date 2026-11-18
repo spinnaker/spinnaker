@@ -16,6 +16,9 @@
 
 package com.netflix.spinnaker.clouddriver.google.security
 
+import com.netflix.spinnaker.kork.google.auth.GoogleAuthProperties
+import com.netflix.spinnaker.kork.google.auth.GoogleCredentialsFactory
+
 import com.google.api.services.compute.Compute
 import com.google.api.services.compute.model.*
 import com.google.common.annotations.VisibleForTesting
@@ -89,9 +92,8 @@ class GoogleNamedAccountCredentials extends AbstractAccountCredentials<GoogleCre
     Map<String, Map> zoneToAcceleratorTypesMap = [:]
     Map<String, List<String>> locationToCpuPlatformsMap
     List<GoogleInstanceTypeDisk> instanceTypeDisks = []
-    String jsonKey
-    String serviceAccountId
-    String serviceAccountProject
+    GoogleAuthProperties auth = new GoogleAuthProperties()
+    GoogleCredentialsFactory credentialsFactory = new GoogleCredentialsFactory()
     GoogleCredentials credentials
     Compute compute
     ConsulConfig consulConfig
@@ -156,18 +158,13 @@ class GoogleNamedAccountCredentials extends AbstractAccountCredentials<GoogleCre
       return this
     }
 
-    Builder jsonKey(String jsonKey) {
-      this.jsonKey = jsonKey
+    Builder auth(GoogleAuthProperties auth) {
+      this.auth = auth
       return this
     }
 
-    Builder serviceAccountId(String serviceAccountId) {
-      this.serviceAccountId = serviceAccountId
-      return this
-    }
-
-    Builder serviceAccountProject(String serviceAccountProject) {
-      this.serviceAccountProject = serviceAccountProject
+    Builder credentialsFactory(GoogleCredentialsFactory credentialsFactory) {
+      this.credentialsFactory = credentialsFactory
       return this
     }
 
@@ -233,25 +230,9 @@ class GoogleNamedAccountCredentials extends AbstractAccountCredentials<GoogleCre
 
     GoogleNamedAccountCredentials build() {
       GoogleCredentials credentials = this.credentials
-      GString credInfo = "Google Credentials ($name): "
       if (credentials == null) {
-        if (jsonKey) {
-          credInfo += "From JSON key"
-          credentials = new GoogleJsonCredentials(project, computeVersion, jsonKey)
-        } else if (serviceAccountId && serviceAccountProject) {
-          credInfo += "Impersonating $serviceAccountProject/$serviceAccountId"
-          credentials = new GoogleImpersonatedServiceAccountCredentials(project,
-                                                                        computeVersion,
-                                                                        serviceAccountId,
-                                                                        serviceAccountProject)
-        } else {
-          credInfo += "Application Default Credentials"
-          credentials = new GoogleCredentials(project, computeVersion)
-        }
-      } else {
-        credInfo += "Direct"
+        credentials = new GoogleAuthCredentials(project, computeVersion, auth, credentialsFactory)
       }
-      log.info(credInfo)
       Compute compute = this.compute
       if (compute == null) {
         compute = credentials.getCompute(applicationName)

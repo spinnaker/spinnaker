@@ -32,6 +32,10 @@ import com.netflix.spinnaker.credentials.definition.AbstractCredentialsLoader;
 import com.netflix.spinnaker.credentials.poller.Poller;
 import com.netflix.spinnaker.kork.client.ServiceClientProvider;
 import com.netflix.spinnaker.kork.configserver.ConfigFileService;
+import com.netflix.spinnaker.kork.google.auth.GoogleCredentialsFactory;
+import java.io.ByteArrayInputStream;
+import java.io.IOException;
+import java.nio.charset.StandardCharsets;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -60,6 +64,15 @@ public class GoogleCredentialsConfiguration {
           GoogleExecutor googleExecutor,
           String clouddriverUserAgentApplicationName) {
 
+    GoogleCredentialsFactory credentialsFactory =
+        new GoogleCredentialsFactory(
+            path -> {
+              String contents = configFileService.getContents(path);
+              if (contents == null) {
+                throw new IOException("Unable to read auth.credentialsFile");
+              }
+              return new ByteArrayInputStream(contents.getBytes(StandardCharsets.UTF_8));
+            });
     return new CredentialsTypeBaseConfiguration(
         applicationContext,
         CredentialsTypeProperties
@@ -70,8 +83,6 @@ public class GoogleCredentialsConfiguration {
             .credentialsParser(
                 a -> {
                   try {
-                    String jsonKey = configFileService.getContents(a.getJsonPath());
-
                     return new GoogleNamedAccountCredentials.Builder()
                         .name(a.getName())
                         .environment(
@@ -85,9 +96,8 @@ public class GoogleCredentialsConfiguration {
                         .project(a.getProject())
                         .computeVersion(
                             a.isAlphaListed() ? ComputeVersion.ALPHA : ComputeVersion.DEFAULT)
-                        .jsonKey(jsonKey)
-                        .serviceAccountId(a.getServiceAccountId())
-                        .serviceAccountProject(a.getServiceAccountProject())
+                        .auth(a.getAuth())
+                        .credentialsFactory(credentialsFactory)
                         .imageProjects(a.getImageProjects())
                         .requiredGroupMembership(a.getRequiredGroupMembership())
                         .permissions(a.getPermissions().build())
