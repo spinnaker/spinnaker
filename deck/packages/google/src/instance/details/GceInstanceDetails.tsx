@@ -13,7 +13,14 @@ import {
   withRouter,
 } from '@spinnaker/core';
 
+import {
+  buildGceTagHelpMap,
+  GceCustomMetadataList,
+  GceLabelsList,
+  GceTagsList,
+} from '../../common/GceResourceMetadata';
 import { GceXpnNamingService } from '../../common/xpnNaming.gce.service';
+import { formatGceInstanceType } from '../custom/customInstanceFormatter';
 
 interface IGceInstanceDetailsProps extends IRouterInjectedProps {
   app: any;
@@ -372,7 +379,7 @@ export function GceInstanceDetailsComponent(props: IGceInstanceDetailsProps): JS
                 <dt>Region</dt>
                 <dd>{instance.region}</dd>
                 <dt>Type</dt>
-                <dd>{instance.machineType || instance.instanceType || instance.type}</dd>
+                <dd>{formatGceInstanceType(instance.machineType || instance.instanceType || instance.type)}</dd>
                 <dt>Network</dt>
                 <dd>{instance.network || '-'}</dd>
                 <dt>Subnet</dt>
@@ -388,6 +395,27 @@ export function GceInstanceDetailsComponent(props: IGceInstanceDetailsProps): JS
                 <dt>External IP</dt>
                 <dd>{instance.externalIpAddress || '-'}</dd>
               </dl>
+            </CollapsibleSection>
+            <CollapsibleSection heading="Custom Metadata">
+              <GceCustomMetadataList
+                items={instance.metadata?.items}
+                helpKeyPrefix="gce.instance.customMetadata"
+                emptyMessage="No custom metadata associated with this instance"
+              />
+            </CollapsibleSection>
+            <CollapsibleSection heading="Tags">
+              <GceTagsList
+                tags={instance.tags?.items}
+                helpMap={buildGceTagHelpMap(props.app, instance.account, instance.tags?.items)}
+                emptyMessage="No tags associated with this instance"
+              />
+            </CollapsibleSection>
+            <CollapsibleSection heading="Labels">
+              <GceLabelsList
+                labels={instance.labels}
+                helpKeyPrefix="gce.instance.labels"
+                emptyMessage="No labels associated with this instance"
+              />
             </CollapsibleSection>
             <CollapsibleSection heading="SSH" defaultExpanded={false}>
               {instance.sshLink && (
