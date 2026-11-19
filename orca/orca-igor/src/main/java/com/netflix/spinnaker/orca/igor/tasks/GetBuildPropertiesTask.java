@@ -62,7 +62,12 @@ public class GetBuildPropertiesTask extends RetryableIgorTask<CIStageDefinition>
             stageDefinition.getMaster(),
             stageDefinition.getJob());
     if (properties.isEmpty()) {
-      if (stageDefinition.getMaster().startsWith("travis-")) {
+      // Travis and GitLab CI scrape SPINNAKER_PROPERTY_* lines from the build log rather than
+      // fetching a real property file, so an empty result is a valid "no properties emitted" case
+      // rather than a misconfiguration. Travis is detected by its master-name prefix; GitLab CI is
+      // detected by the sentinel property-file value defaulted in GitlabCiStage.
+      if (stageDefinition.getMaster().startsWith("travis-")
+          || "gitlab-ci".equals(stageDefinition.getPropertyFile())) {
         return TaskResult.builder(ExecutionStatus.SUCCEEDED).build();
       }
       throw new ConfigurationException(
