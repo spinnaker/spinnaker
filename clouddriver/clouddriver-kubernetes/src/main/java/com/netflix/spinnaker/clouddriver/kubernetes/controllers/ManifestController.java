@@ -24,8 +24,11 @@ import com.netflix.spinnaker.clouddriver.kubernetes.description.manifest.Kuberne
 import com.netflix.spinnaker.clouddriver.kubernetes.model.Manifest;
 import com.netflix.spinnaker.clouddriver.requestqueue.RequestQueue;
 import com.netflix.spinnaker.kork.exceptions.SpinnakerException;
+import com.netflix.spinnaker.kork.web.exceptions.InvalidRequestException;
 import com.netflix.spinnaker.kork.web.exceptions.NotFoundException;
+import java.util.Arrays;
 import java.util.List;
+import java.util.Map;
 import lombok.Getter;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -96,6 +99,47 @@ public class ManifestController {
     }
 
     return manifest;
+  }
+
+  @PreAuthorize("hasPermission(#account, 'ACCOUNT', 'READ')")
+  @RequestMapping(
+      value = "/{account:.+}/{location:.+}/{kinds:.+}/labels",
+      method = RequestMethod.GET)
+  List<? extends Manifest> getForAccountLocationByKindsAndLabels(
+      @PathVariable String account,
+      @PathVariable String location,
+      @PathVariable String kinds,
+      @RequestParam Map<String, String> labels) {
+
+    // Split the comma separated kinds string into a list, ignoring blank entries
+    List<String> kindsList =
+        Arrays.stream(kinds.split(",")).map(String::trim).filter(k -> !k.isEmpty()).toList();
+    if (kindsList.isEmpty()) {
+      throw new InvalidRequestException("At least one non-blank kind is required");
+    }
+    String request =
+        String.format(
+            "(account: %s, kinds: %s, location: %s, label selectors: %s)",
+            account, kindsList, location, labels);
+    List<? extends Manifest> manifests;
+    try {
+      manifests =
+          requestQueue.execute(
+              account,
+              () ->
+                  manifestProvider.getManifestsByKindsAndLabels(
+                      account, location, kindsList, labels));
+    } catch (Throwable t) {
+      String message = "Failed to obtain manifests matching: " + request;
+      log.warn(message, t);
+      throw new SpinnakerException(message, t);
+    }
+
+    if (manifests.isEmpty()) {
+      throw new NotFoundException("No manifest found matching: " + request);
+    }
+
+    return manifests;
   }
 
   @RequestMapping(value = "/{account:.+}/{name:.+}", method = RequestMethod.GET)

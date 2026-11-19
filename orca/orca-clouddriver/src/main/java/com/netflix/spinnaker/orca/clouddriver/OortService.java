@@ -90,6 +90,19 @@ public interface OortService {
       @Path("app") String app,
       @Path("clusterName") String clusterName);
 
+  /**
+   * Returns all manifests of the given kinds in the given namespace that match the given labels.
+   *
+   * @param kinds comma-separated Kubernetes kinds, e.g. "service,deployment"
+   * @param labels label selectors, sent as query parameters
+   */
+  @GET("manifests/{account}/{location}/{kinds}/labels")
+  Call<List<Manifest>> getManifestsByKindsAndLabels(
+      @Path("account") String account,
+      @Path("location") String location,
+      @Path("kinds") String kinds,
+      @QueryMap Map<String, String> labels);
+
   @Deprecated
   @GET("applications/{app}/serverGroups/{account}/{region}/{serverGroup}")
   Call<ResponseBody> getServerGroup(

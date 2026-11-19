@@ -30,8 +30,10 @@ import com.netflix.spinnaker.clouddriver.kubernetes.description.manifest.Kuberne
 import com.netflix.spinnaker.clouddriver.kubernetes.description.manifest.KubernetesManifest;
 import com.netflix.spinnaker.clouddriver.kubernetes.description.manifest.KubernetesManifestAnnotater;
 import com.netflix.spinnaker.clouddriver.kubernetes.security.KubernetesCredentials;
+import com.netflix.spinnaker.clouddriver.kubernetes.security.KubernetesSelectorList;
 import java.util.Collection;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ExecutorService;
@@ -61,7 +63,7 @@ public class KubernetesManifestProvider {
   public KubernetesManifestContainer getManifest(
       String account, String location, String name, boolean includeEvents) {
     Optional<KubernetesCredentials> optionalCredentials = accountResolver.getCredentials(account);
-    if (!optionalCredentials.isPresent()) {
+    if (optionalCredentials.isEmpty()) {
       return null;
     }
     KubernetesCredentials credentials = optionalCredentials.get();
@@ -155,6 +157,39 @@ public class KubernetesManifestProvider {
                     .map(KubernetesCoordinates::fromManifest)
                     .collect(Collectors.toList()))
         .orElseThrow(() -> new IllegalArgumentException("Unable to resolve account: " + account));
+  }
+
+  /**
+   * This method is used to find all the manifests of the provided kinds that match the given label
+   * selectors.
+   *
+   * @param account kubernetes account
+   * @param location kubernetes namespace
+   * @param kinds kubernetes kinds
+   * @param labelSelectors label selectors, can be null
+   * @return a list of KubernetesManifestContainer objects, empty if the account can't be resolved
+   *     or no manifests match
+   */
+  public List<KubernetesManifestContainer> getManifestsByKindsAndLabels(
+      String account, String location, List<String> kinds, Map<String, String> labelSelectors) {
+    Optional<KubernetesCredentials> optionalCredentials = accountResolver.getCredentials(account);
+    if (optionalCredentials.isEmpty()) {
+      return List.of();
+    }
+    KubernetesCredentials credentials = optionalCredentials.get();
+
+    List<KubernetesKind> kubernetesKinds = kinds.stream().map(KubernetesKind::fromString).toList();
+
+    List<KubernetesManifest> manifests =
+        credentials.list(
+            kubernetesKinds, location, KubernetesSelectorList.fromMatchLabels(labelSelectors));
+
+    return manifests.stream()
+        .map(
+            m ->
+                KubernetesManifestContainerBuilder.buildManifest(
+                    credentials, m, List.of(), List.of()))
+        .toList();
   }
 
   public enum Sort {
