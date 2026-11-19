@@ -1,6 +1,6 @@
 package com.netflix.spinnaker.keel.lifecycle
 
-import com.netflix.spectator.api.NoopRegistry
+import com.netflix.spectator.micrometer.MicrometerRegistry
 import com.netflix.spinnaker.config.LifecycleConfig
 import com.netflix.spinnaker.keel.telemetry.LifecycleMonitorLoadFailed
 import com.netflix.spinnaker.time.MutableClock
@@ -9,8 +9,14 @@ import dev.minutest.rootContext
 import io.mockk.coVerify
 import io.mockk.every
 import io.mockk.mockk
+import io.micrometer.core.instrument.Tags
+import io.micrometer.core.instrument.simple.SimpleMeterRegistry
 import io.mockk.verify
 import org.springframework.context.ApplicationEventPublisher
+import strikt.api.expectThat
+import strikt.assertions.hasSize
+import strikt.assertions.isEmpty
+import strikt.assertions.isEqualTo
 
 class LifecycleMonitorSchedulerTests : JUnit5Minutests {
   class Fixture {
@@ -20,7 +26,8 @@ class LifecycleMonitorSchedulerTests : JUnit5Minutests {
     val publisher: ApplicationEventPublisher = mockk(relaxed = true)
     val config = LifecycleConfig()
     val clock = MutableClock()
-    val registry = NoopRegistry()
+    val meters = SimpleMeterRegistry()
+    val registry = MicrometerRegistry(meters)
 
     val version = "123.4"
     val link = "www.bake.com/$version"
@@ -73,6 +80,10 @@ class LifecycleMonitorSchedulerTests : JUnit5Minutests {
           monitorRepository.tasksDueForCheck(any(), any())
         }
       }
+
+      test("no loop duration is recorded") {
+        expectThat(meters.find("keel.scheduled.method.duration").timers()).isEmpty()
+      }
     }
 
     context("application up") {
@@ -96,6 +107,13 @@ class LifecycleMonitorSchedulerTests : JUnit5Minutests {
 
         test("both tasks get monitored") {
           coVerify(exactly = 2) { monitor.monitor(any()) }
+        }
+
+        test("the loop duration is recorded once, tagged lifecycle") {
+          val timers = meters.find("keel.scheduled.method.duration").timers()
+          expectThat(timers).hasSize(1)
+          expectThat(Tags.of(timers.single().id.tags)).isEqualTo(Tags.of("type", "lifecycle"))
+          expectThat(timers.single().count()).isEqualTo(1L)
         }
       }
 
