@@ -117,6 +117,66 @@ describe('GceInstanceDetails', () => {
     rendered.unmount();
   });
 
+  it('restores custom metadata, tags, labels, and formatted custom machine types', async () => {
+    vi.spyOn(AccountService, 'challengeDestructiveActions').mockReturnValue(Promise.resolve(false));
+    vi.spyOn(RecentHistoryService, 'addExtraDataToLatest').mockReturnValue(undefined);
+    vi.spyOn(Details, 'Header').mockImplementation(({ name }: any) => <div>{name}</div>);
+    vi.spyOn(InstanceReader, 'getInstanceDetails').mockReturnValue(
+      Promise.resolve(
+        instance({
+          instanceType: 'n2-custom-4-8192',
+          labels: { team: 'fnord' },
+          metadata: { items: [{ key: 'startup-script', value: 'echo hello' }] },
+          tags: { items: ['http-server'] },
+        }),
+      ),
+    );
+    const app = {
+      ...application(),
+      securityGroups: { data: [{ accountName: 'test-account', name: 'allow-http', targetTags: ['http-server'] }] },
+    };
+    render(
+      <GceInstanceDetails
+        app={app}
+        instance={{ account: 'test-account', instanceId: 'instance-1', region: 'us-central1' }}
+        router={{} as any}
+        stateParams={{}}
+        stateService={{} as any}
+      />,
+    );
+
+    expect(await screen.findByText('N2 4 vCPU / 8 GB RAM')).toBeInTheDocument();
+    ['Custom Metadata', 'Tags', 'Labels'].forEach(expandSection);
+
+    expect(definitionFor('startup-script')).toBe('echo hello');
+    const tag = screen.getByText('http-server', { selector: 'dd' });
+    expect(tag.querySelector('.help-field')).not.toBeNull();
+    expect(definitionFor('team')).toBe('fnord');
+  });
+
+  it('shows empty-state messages when an instance has no metadata, tags, or labels', async () => {
+    vi.spyOn(AccountService, 'challengeDestructiveActions').mockReturnValue(Promise.resolve(false));
+    vi.spyOn(RecentHistoryService, 'addExtraDataToLatest').mockReturnValue(undefined);
+    vi.spyOn(Details, 'Header').mockImplementation(({ name }: any) => <div>{name}</div>);
+    vi.spyOn(InstanceReader, 'getInstanceDetails').mockReturnValue(Promise.resolve(instance()));
+    render(
+      <GceInstanceDetails
+        app={application()}
+        instance={{ account: 'test-account', instanceId: 'instance-1', region: 'us-central1' }}
+        router={{} as any}
+        stateParams={{}}
+        stateService={{} as any}
+      />,
+    );
+
+    await screen.findByRole('heading', { name: 'Custom Metadata' });
+    ['Custom Metadata', 'Tags', 'Labels'].forEach(expandSection);
+
+    expect(screen.getByText('No custom metadata associated with this instance')).toBeInTheDocument();
+    expect(screen.getByText('No tags associated with this instance')).toBeInTheDocument();
+    expect(screen.getByText('No labels associated with this instance')).toBeInTheDocument();
+  });
+
   it('clears actions on instance identity changes and ignores stale responses', async () => {
     vi.spyOn(AccountService, 'challengeDestructiveActions').mockReturnValue(Promise.resolve(false));
     const oldRequest = deferred<any>();
@@ -354,4 +414,16 @@ function deferred<T>() {
     reject = rejectPromise;
   });
   return { promise, reject, resolve };
+}
+
+function expandSection(name: string): void {
+  const heading = screen.getByRole('heading', { name });
+  const section = heading.closest('.collapsible-section');
+  if (!section?.querySelector('.content-body')) {
+    fireEvent.click(heading.parentElement as HTMLElement);
+  }
+}
+
+function definitionFor(term: string): string | undefined {
+  return screen.getByText(term, { selector: 'dt' }).nextElementSibling?.textContent ?? undefined;
 }
