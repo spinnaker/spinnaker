@@ -1,0 +1,332 @@
+[
+  {
+    "apiVersion": "v1",
+    "count": 1,
+    "firstTimestamp": "2024-04-08T22:28:47Z",
+    "involvedObject": {
+      "apiVersion": "apps/v1",
+      "kind": "Deployment",
+      "name": "example-service",
+      "namespace": "my-namespace",
+      "resourceVersion": "1112085608",
+      "uid": "613dd07b-8234-4382-aabe-7264626dd494"
+    },
+    "kind": "Event",
+    "lastTimestamp": "2024-04-08T22:28:47Z",
+    "message": "Scaled up replica set example-service-867f486c5 to 1",
+    "metadata": {
+      "creationTimestamp": "2024-04-08T22:28:47Z",
+      "name": "example-service.17c46e9120ca73a9",
+      "namespace": "my-namespace",
+      "resourceVersion": "54793926",
+      "uid": "bd7937cb-0dc8-4e4e-b83c-22588bf0c577"
+    },
+    "reason": "ScalingReplicaSet",
+    "reportingComponent": "deployment-controller",
+    "reportingInstance": "",
+    "source": {
+      "component": "deployment-controller"
+    },
+    "type": "Normal"
+  },
+  {
+    "apiVersion": "v1",
+    "count": 1,
+    "firstTimestamp": "2024-04-08T22:28:47Z",
+    "involvedObject": {
+      "apiVersion": "apps/v1",
+      "kind": "Deployment",
+      "name": "example-service",
+      "namespace": "my-namespace",
+      "resourceVersion": "1112085608",
+      "uid": "613dd07b-8234-4382-aabe-7264626dd494"
+    },
+    "kind": "Event",
+    "lastTimestamp": "2024-04-08T22:28:47Z",
+    "message": "Scaled up replica set example-service-867f486c5 to 1",
+    "metadata": {
+      "creationTimestamp": "2024-04-08T22:28:47Z",
+      "name": "example-service.17c46e9120ca73a9",
+      "namespace": "my-namespace",
+      "resourceVersion": "54793926",
+      "uid": "bd7937cb-0dc8-4e4e-b83c-22588bf0c577"
+    },
+    "reason": "ScalingReplicaSet",
+    "reportingComponent": "deployment-controller",
+    "reportingInstance": "",
+    "source": {
+      "component": "deployment-controller"
+    },
+    "type": "Normal"
+  },
+  {
+    "apiVersion": "v1",
+    "count": 1,
+    "firstTimestamp": "2024-04-08T22:28:56Z",
+    "involvedObject": {
+      "apiVersion": "apps/v1",
+      "kind": "Deployment",
+      "name": "example-service",
+      "namespace": "my-namespace",
+      "resourceVersion": "1112085621",
+      "uid": "613dd07b-8234-4382-aabe-7264626dd494"
+    },
+    "kind": "Event",
+    "lastTimestamp": "2024-04-08T22:28:56Z",
+    "message": "Scaled down replica set example-service-7d4f49b9c6 to 1 from 2",
+    "metadata": {
+      "creationTimestamp": "2024-04-08T22:28:56Z",
+      "name": "example-service.17c46e9311996259",
+      "namespace": "my-namespace",
+      "resourceVersion": "54793977",
+      "uid": "1b15cf04-f2bc-4731-ac18-153727716dd9"
+    },
+    "reason": "ScalingReplicaSet",
+    "reportingComponent": "deployment-controller",
+    "reportingInstance": "",
+    "source": {
+      "component": "deployment-controller"
+    },
+    "type": "Normal"
+  },
+  {
+    "apiVersion": "v1",
+    "count": 1,
+    "firstTimestamp": "2024-04-08T22:28:56Z",
+    "involvedObject": {
+      "apiVersion": "apps/v1",
+      "kind": "Deployment",
+      "name": "example-service",
+      "namespace": "my-namespace",
+      "resourceVersion": "1112085621",
+      "uid": "613dd07b-8234-4382-aabe-7264626dd494"
+    },
+    "kind": "Event",
+    "lastTimestamp": "2024-04-08T22:28:56Z",
+    "message": "Scaled up replica set example-service-867f486c5 to 2 from 1",
+    "metadata": {
+      "creationTimestamp": "2024-04-08T22:28:56Z",
+      "name": "example-service.17c46e9313418dde",
+      "namespace": "my-namespace",
+      "resourceVersion": "54793981",
+      "uid": "cd8c00d9-0308-4fe3-9daf-6ec400e48e74"
+    },
+    "reason": "ScalingReplicaSet",
+    "reportingComponent": "deployment-controller",
+    "reportingInstance": "",
+    "source": {
+      "component": "deployment-controller"
+    },
+    "type": "Normal"
+  },
+  {
+    "apiVersion": "v1",
+    "count": 1,
+    "firstTimestamp": "2024-04-08T22:28:47Z",
+    "involvedObject": {
+      "apiVersion": "apps/v1",
+      "kind": "Deployment",
+      "name": "example-service",
+      "namespace": "my-namespace",
+      "resourceVersion": "1112085608",
+      "uid": "613dd07b-8234-4382-aabe-7264626dd494"
+    },
+    "kind": "Event",
+    "lastTimestamp": "2024-04-08T22:28:47Z",
+    "message": "Scaled up replica set example-service-867f486c5 to 1",
+    "metadata": {
+      "creationTimestamp": "2024-04-08T22:28:47Z",
+      "name": "example-service.17c46e9120ca73a9",
+      "namespace": "my-namespace",
+      "resourceVersion": "54793926",
+      "uid": "bd7937cb-0dc8-4e4e-b83c-22588bf0c577"
+    },
+    "reason": "ScalingReplicaSet",
+    "reportingComponent": "deployment-controller",
+    "reportingInstance": "",
+    "source": {
+      "component": "deployment-controller"
+    },
+    "type": "Normal"
+  },
+  {
+    "apiVersion": "v1",
+    "count": 1,
+    "firstTimestamp": "2024-04-08T22:28:56Z",
+    "involvedObject": {
+      "apiVersion": "apps/v1",
+      "kind": "Deployment",
+      "name": "example-service",
+      "namespace": "my-namespace",
+      "resourceVersion": "1112085621",
+      "uid": "613dd07b-8234-4382-aabe-7264626dd494"
+    },
+    "kind": "Event",
+    "lastTimestamp": "2024-04-08T22:28:56Z",
+    "message": "Scaled down replica set example-service-7d4f49b9c6 to 1 from 2",
+    "metadata": {
+      "creationTimestamp": "2024-04-08T22:28:56Z",
+      "name": "example-service.17c46e9311996259",
+      "namespace": "my-namespace",
+      "resourceVersion": "54793977",
+      "uid": "1b15cf04-f2bc-4731-ac18-153727716dd9"
+    },
+    "reason": "ScalingReplicaSet",
+    "reportingComponent": "deployment-controller",
+    "reportingInstance": "",
+    "source": {
+      "component": "deployment-controller"
+    },
+    "type": "Normal"
+  },
+  {
+    "apiVersion": "v1",
+    "count": 1,
+    "firstTimestamp": "2024-04-08T22:28:56Z",
+    "involvedObject": {
+      "apiVersion": "apps/v1",
+      "kind": "Deployment",
+      "name": "example-service",
+      "namespace": "my-namespace",
+      "resourceVersion": "1112085621",
+      "uid": "613dd07b-8234-4382-aabe-7264626dd494"
+    },
+    "kind": "Event",
+    "lastTimestamp": "2024-04-08T22:28:56Z",
+    "message": "Scaled up replica set example-service-867f486c5 to 2 from 1",
+    "metadata": {
+      "creationTimestamp": "2024-04-08T22:28:56Z",
+      "name": "example-service.17c46e9313418dde",
+      "namespace": "my-namespace",
+      "resourceVersion": "54793981",
+      "uid": "cd8c00d9-0308-4fe3-9daf-6ec400e48e74"
+    },
+    "reason": "ScalingReplicaSet",
+    "reportingComponent": "deployment-controller",
+    "reportingInstance": "",
+    "source": {
+      "component": "deployment-controller"
+    },
+    "type": "Normal"
+  },
+  {
+    "apiVersion": "v1",
+    "count": 1,
+    "firstTimestamp": "2024-04-08T22:28:47Z",
+    "involvedObject": {
+      "apiVersion": "apps/v1",
+      "kind": "Deployment",
+      "name": "example-service",
+      "namespace": "my-namespace",
+      "resourceVersion": "1112085608",
+      "uid": "613dd07b-8234-4382-aabe-7264626dd494"
+    },
+    "kind": "Event",
+    "lastTimestamp": "2024-04-08T22:28:47Z",
+    "message": "Scaled up replica set example-service-867f486c5 to 1",
+    "metadata": {
+      "creationTimestamp": "2024-04-08T22:28:47Z",
+      "name": "example-service.17c46e9120ca73a9",
+      "namespace": "my-namespace",
+      "resourceVersion": "54793926",
+      "uid": "bd7937cb-0dc8-4e4e-b83c-22588bf0c577"
+    },
+    "reason": "ScalingReplicaSet",
+    "reportingComponent": "deployment-controller",
+    "reportingInstance": "",
+    "source": {
+      "component": "deployment-controller"
+    },
+    "type": "Normal"
+  },
+  {
+    "apiVersion": "v1",
+    "count": 1,
+    "firstTimestamp": "2024-04-08T22:28:56Z",
+    "involvedObject": {
+      "apiVersion": "apps/v1",
+      "kind": "Deployment",
+      "name": "example-service",
+      "namespace": "my-namespace",
+      "resourceVersion": "1112085621",
+      "uid": "613dd07b-8234-4382-aabe-7264626dd494"
+    },
+    "kind": "Event",
+    "lastTimestamp": "2024-04-08T22:28:56Z",
+    "message": "Scaled down replica set example-service-7d4f49b9c6 to 1 from 2",
+    "metadata": {
+      "creationTimestamp": "2024-04-08T22:28:56Z",
+      "name": "example-service.17c46e9311996259",
+      "namespace": "my-namespace",
+      "resourceVersion": "54793977",
+      "uid": "1b15cf04-f2bc-4731-ac18-153727716dd9"
+    },
+    "reason": "ScalingReplicaSet",
+    "reportingComponent": "deployment-controller",
+    "reportingInstance": "",
+    "source": {
+      "component": "deployment-controller"
+    },
+    "type": "Normal"
+  },
+  {
+    "apiVersion": "v1",
+    "count": 1,
+    "firstTimestamp": "2024-04-08T22:28:56Z",
+    "involvedObject": {
+      "apiVersion": "apps/v1",
+      "kind": "Deployment",
+      "name": "example-service",
+      "namespace": "my-namespace",
+      "resourceVersion": "1112085621",
+      "uid": "613dd07b-8234-4382-aabe-7264626dd494"
+    },
+    "kind": "Event",
+    "lastTimestamp": "2024-04-08T22:28:56Z",
+    "message": "Scaled up replica set example-service-867f486c5 to 2 from 1",
+    "metadata": {
+      "creationTimestamp": "2024-04-08T22:28:56Z",
+      "name": "example-service.17c46e9313418dde",
+      "namespace": "my-namespace",
+      "resourceVersion": "54793981",
+      "uid": "cd8c00d9-0308-4fe3-9daf-6ec400e48e74"
+    },
+    "reason": "ScalingReplicaSet",
+    "reportingComponent": "deployment-controller",
+    "reportingInstance": "",
+    "source": {
+      "component": "deployment-controller"
+    },
+    "type": "Normal"
+  },
+  {
+    "apiVersion": "v1",
+    "count": 1,
+    "firstTimestamp": "2024-04-08T22:29:07Z",
+    "involvedObject": {
+      "apiVersion": "apps/v1",
+      "kind": "Deployment",
+      "name": "example-service",
+      "namespace": "my-namespace",
+      "resourceVersion": "1112085951",
+      "uid": "613dd07b-8234-4382-aabe-7264626dd494"
+    },
+    "kind": "Event",
+    "lastTimestamp": "2024-04-08T22:29:07Z",
+    "message": "Scaled down replica set example-service-7d4f49b9c6 to 0 from 1",
+    "metadata": {
+      "creationTimestamp": "2024-04-08T22:29:07Z",
+      "name": "example-service.17c46e9592f64837",
+      "namespace": "my-namespace",
+      "resourceVersion": "54794030",
+      "uid": "0c8940cd-a356-4c55-acde-d453924bc068"
+    },
+    "reason": "ScalingReplicaSet",
+    "reportingComponent": "deployment-controller",
+    "reportingInstance": "",
+    "source": {
+      "component": "deployment-controller"
+    },
+    "type": "Normal"
+  }
+]
