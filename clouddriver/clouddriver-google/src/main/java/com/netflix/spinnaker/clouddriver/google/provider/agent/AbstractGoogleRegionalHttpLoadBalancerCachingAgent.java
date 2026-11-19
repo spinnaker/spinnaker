@@ -74,7 +74,7 @@ import org.slf4j.LoggerFactory;
  *
  * <p>Both families start at a regional forwarding rule and walk through a regional target proxy,
  * regional URL map, regional backend services, health checks, and backend group health. Subclasses
- * own the GCP scheme/model differences and the policy for missing optional graph components.
+ * own the GCP scheme/model differences.
  */
 abstract class AbstractGoogleRegionalHttpLoadBalancerCachingAgent<T extends GoogleLoadBalancer>
     extends AbstractGoogleLoadBalancerCachingAgent {
@@ -247,18 +247,23 @@ abstract class AbstractGoogleRegionalHttpLoadBalancerCachingAgent<T extends Goog
   /** Returns every backend service referenced by the model's view, used for health resolution. */
   protected abstract List<GoogleBackendService> getBackendServicesFromView(T loadBalancer);
 
-  /**
-   * Applies the subclass policy when a URL map references a backend service not present in the
-   * region. Internal managed fails the load balancer (throws) so a partial graph is never cached;
-   * external managed logs and keeps a best-effort cache entry for the next refresh.
-   */
-  protected abstract void handleMissingBackendService(String backendServiceName, T loadBalancer);
+  // Throwing here would fail the pass for every load balancer in the region, so the load balancer
+  // is cached without the missing component, and a later pass fills it in if it appears.
+  private void handleMissingBackendService(String backendServiceName, T loadBalancer) {
+    log.warn(
+        "Could not enrich regional {} HTTP load balancer {} because backend service {} was missing.",
+        getLoadBalancingScheme(),
+        loadBalancer.getName(),
+        backendServiceName);
+  }
 
-  /**
-   * Applies the subclass policy when a backend service references an unresolved health check. Same
-   * internal-fails / external-best-effort split as {@link #handleMissingBackendService}.
-   */
-  protected abstract void handleMissingHealthCheck(String healthCheckName, T loadBalancer);
+  private void handleMissingHealthCheck(String healthCheckName, T loadBalancer) {
+    log.warn(
+        "Could not enrich regional {} HTTP load balancer {} because health check {} was missing.",
+        getLoadBalancingScheme(),
+        loadBalancer.getName(),
+        healthCheckName);
+  }
 
   private String getWrongSchemeMessage() {
     return "Not responsible for on demand caching of load balancers without "
@@ -577,7 +582,9 @@ abstract class AbstractGoogleRegionalHttpLoadBalancerCachingAgent<T extends Goog
     Set<String> queuedServices = new HashSet<>();
 
     String urlMapDefaultService = Utils.getLocalName(urlMap.getDefaultService());
-    queuedServices.add(urlMapDefaultService);
+    if (urlMapDefaultService != null) {
+      queuedServices.add(urlMapDefaultService);
+    }
     setDefaultService(loadBalancer, namedBackendService(urlMapDefaultService));
 
     if (urlMap.getPathMatchers() != null && urlMap.getHostRules() != null) {
@@ -610,7 +617,9 @@ abstract class AbstractGoogleRegionalHttpLoadBalancerCachingAgent<T extends Goog
           }
         }
 
-        queuedServices.add(pathMatchDefaultService);
+        if (pathMatchDefaultService != null) {
+          queuedServices.add(pathMatchDefaultService);
+        }
         for (PathRule pathRule : pathRules) {
           if (pathRule.getService() != null) {
             queuedServices.add(Utils.getLocalName(pathRule.getService()));

@@ -16,26 +16,41 @@
 
 package com.netflix.spinnaker.clouddriver.google.provider.agent;
 
+import static java.util.stream.Collectors.toMap;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
+import static org.assertj.core.api.Assertions.tuple;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verifyNoInteractions;
+import static org.mockito.Mockito.when;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.google.api.client.googleapis.batch.json.JsonBatchCallback;
+import com.google.api.client.googleapis.services.AbstractGoogleClientRequest;
+import com.google.api.client.http.HttpHeaders;
 import com.google.api.services.compute.Compute;
+import com.google.api.services.compute.ComputeRequest;
 import com.google.api.services.compute.model.*;
 import com.netflix.spectator.api.DefaultRegistry;
 import com.netflix.spinnaker.clouddriver.google.batch.GoogleBatchRequest;
 import com.netflix.spinnaker.clouddriver.google.model.GoogleHealthCheck;
+import com.netflix.spinnaker.clouddriver.google.model.callbacks.Utils;
 import com.netflix.spinnaker.clouddriver.google.model.loadbalancing.GoogleBackendService;
 import com.netflix.spinnaker.clouddriver.google.model.loadbalancing.GoogleInternalHttpLoadBalancer;
+import com.netflix.spinnaker.clouddriver.google.model.loadbalancing.GoogleLoadBalancer;
+import com.netflix.spinnaker.clouddriver.google.model.loadbalancing.GoogleSessionAffinity;
 import com.netflix.spinnaker.clouddriver.google.security.GoogleCredentials;
 import com.netflix.spinnaker.clouddriver.google.security.GoogleNamedAccountCredentials;
+import java.io.IOException;
+import java.io.UncheckedIOException;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 import org.junit.jupiter.api.Test;
 
 public class GoogleInternalHttpLoadBalancerCachingAgentTest {
+  private static final String PROJECT = "test";
+  private static final String REGION = "us-central1";
 
   private static HealthCheck buildBaseHealthCheck(String name, String region) {
     HealthCheck hc = new HealthCheck();
@@ -362,21 +377,225 @@ public class GoogleInternalHttpLoadBalancerCachingAgentTest {
     }
   }
 
+  @Test
+  void constructLoadBalancers_cachesRedirectingUrlMapAndTheRestOfTheRegion() throws IOException {
+    HttpRedirectAction redirect = new HttpRedirectAction().setHttpsRedirect(true);
+    PathMatcher pathMatcher =
+        new PathMatcher()
+            .setName("matcher")
+            .setDefaultService(backendServiceUrl("backend-service"))
+            .setPathRules(
+                List.of(new PathRule().setPaths(List.of("/old/*")).setUrlRedirect(redirect)));
+    UrlMap redirectMap =
+        new UrlMap()
+            .setName("redirect-map")
+            .setDefaultUrlRedirect(redirect)
+            .setPathMatchers(List.of(pathMatcher))
+            .setHostRules(List.of(new HostRule().setHosts(List.of("*")).setPathMatcher("matcher")));
+    UrlMap plainMap =
+        new UrlMap().setName("plain-map").setDefaultService(backendServiceUrl("backend-service"));
+    Compute compute = mock(Compute.class);
+    stubRegion(
+        compute,
+        Map.of("redirect-lb", redirectMap, "plain-lb", plainMap),
+        List.of(new BackendService().setName("backend-service").setSessionAffinity("CLIENT_IP")));
+
+    Map<String, GoogleInternalHttpLoadBalancer> loadBalancers = constructLoadBalancers(compute);
+
+    assertThat(loadBalancers).containsOnlyKeys("redirect-lb", "plain-lb");
+    GoogleInternalHttpLoadBalancer loadBalancer = loadBalancers.get("redirect-lb");
+    assertThat(loadBalancer.getDefaultService()).isNull();
+    assertThat(loadBalancer.getHostRules().get(0).getPathMatcher().getPathRules())
+        .singleElement()
+        .satisfies(pathRule -> assertThat(pathRule.getBackendService()).isNull());
+    assertThat(Utils.getBackendServicesFromInternalHttpLoadBalancerView(loadBalancer.getView()))
+        .singleElement()
+        .satisfies(
+            service -> {
+              assertThat(service.getName()).isEqualTo("backend-service");
+              assertThat(service.getSessionAffinity()).isEqualTo(GoogleSessionAffinity.CLIENT_IP);
+            });
+  }
+
+  @Test
+  void constructLoadBalancers_keepsLoadBalancerWhoseBackendServiceOrHealthCheckIsMissing()
+      throws IOException {
+    UrlMap danglingMap =
+        new UrlMap()
+            .setName("dangling-map")
+            .setDefaultService(backendServiceUrl("missing-service"))
+            .setPathMatchers(
+                List.of(
+                    new PathMatcher()
+                        .setName("matcher")
+                        .setDefaultService(backendServiceUrl("backend-service"))))
+            .setHostRules(List.of(new HostRule().setHosts(List.of("*")).setPathMatcher("matcher")));
+    UrlMap plainMap =
+        new UrlMap().setName("plain-map").setDefaultService(backendServiceUrl("backend-service"));
+    Compute compute = mock(Compute.class);
+    stubRegion(
+        compute,
+        Map.of("dangling-lb", danglingMap, "plain-lb", plainMap),
+        List.of(
+            new BackendService()
+                .setName("backend-service")
+                .setHealthChecks(
+                    List.of(
+                        "projects/" + PROJECT + "/regions/" + REGION + "/healthChecks/missing"))));
+
+    Map<String, GoogleInternalHttpLoadBalancer> loadBalancers = constructLoadBalancers(compute);
+
+    assertThat(loadBalancers).containsOnlyKeys("dangling-lb", "plain-lb");
+    assertThat(
+            Utils.getBackendServicesFromInternalHttpLoadBalancerView(
+                loadBalancers.get("dangling-lb").getView()))
+        .extracting(
+            GoogleBackendService::getName,
+            GoogleBackendService::getRegion,
+            GoogleBackendService::getHealthCheck)
+        .containsExactly(
+            tuple("missing-service", null, null), tuple("backend-service", REGION, null));
+  }
+
   private void invokeHandleHealthCheck(
       HealthCheck healthCheck, List<GoogleBackendService> googleBackendServices) {
     AbstractGoogleRegionalHttpLoadBalancerCachingAgent.handleHealthCheck(
         healthCheck, googleBackendServices);
   }
 
+  private static Map<String, GoogleInternalHttpLoadBalancer> constructLoadBalancers(
+      Compute compute) {
+    return createAgent(compute).constructLoadBalancers().stream()
+        .map(GoogleInternalHttpLoadBalancer.class::cast)
+        .collect(toMap(GoogleLoadBalancer::getName, loadBalancer -> loadBalancer));
+  }
+
+  /** Stubs a region with one INTERNAL_MANAGED HTTP forwarding rule per URL map. */
+  private static void stubRegion(
+      Compute compute, Map<String, UrlMap> urlMapsByRuleName, List<BackendService> backendServices)
+      throws IOException {
+    Compute.RegionBackendServices regionBackendServices = mock(Compute.RegionBackendServices.class);
+    Compute.RegionBackendServices.List listBackendServices =
+        mock(Compute.RegionBackendServices.List.class);
+    when(compute.regionBackendServices()).thenReturn(regionBackendServices);
+    when(regionBackendServices.list(PROJECT, REGION)).thenReturn(listBackendServices);
+    when(listBackendServices.execute())
+        .thenReturn(new BackendServiceList().setItems(backendServices));
+
+    Compute.RegionHealthChecks regionHealthChecks = mock(Compute.RegionHealthChecks.class);
+    Compute.RegionHealthChecks.List listHealthChecks = mock(Compute.RegionHealthChecks.List.class);
+    when(compute.regionHealthChecks()).thenReturn(regionHealthChecks);
+    when(regionHealthChecks.list(PROJECT, REGION)).thenReturn(listHealthChecks);
+    when(listHealthChecks.setPageToken(null)).thenReturn(listHealthChecks);
+    when(listHealthChecks.execute()).thenReturn(new HealthCheckList());
+
+    Compute.RegionTargetHttpProxies targetHttpProxies = mock(Compute.RegionTargetHttpProxies.class);
+    Compute.RegionUrlMaps regionUrlMaps = mock(Compute.RegionUrlMaps.class);
+    when(compute.regionTargetHttpProxies()).thenReturn(targetHttpProxies);
+    when(compute.regionUrlMaps()).thenReturn(regionUrlMaps);
+    List<ForwardingRule> forwardingRules = new ArrayList<>();
+    for (Map.Entry<String, UrlMap> entry : urlMapsByRuleName.entrySet()) {
+      String proxyName = entry.getKey() + "-proxy";
+      String urlMapName = entry.getValue().getName();
+      forwardingRules.add(
+          new ForwardingRule()
+              .setName(entry.getKey())
+              .setRegion("projects/" + PROJECT + "/regions/" + REGION)
+              .setLoadBalancingScheme("INTERNAL_MANAGED")
+              .setTarget(
+                  "projects/" + PROJECT + "/regions/" + REGION + "/targetHttpProxies/" + proxyName)
+              .setPortRange("80-80"));
+      Compute.RegionTargetHttpProxies.Get getProxy =
+          mock(Compute.RegionTargetHttpProxies.Get.class);
+      when(targetHttpProxies.get(PROJECT, REGION, proxyName)).thenReturn(getProxy);
+      when(getProxy.execute())
+          .thenReturn(
+              new TargetHttpProxy()
+                  .setUrlMap(
+                      "projects/" + PROJECT + "/regions/" + REGION + "/urlMaps/" + urlMapName));
+      Compute.RegionUrlMaps.Get getUrlMap = mock(Compute.RegionUrlMaps.Get.class);
+      when(regionUrlMaps.get(PROJECT, REGION, urlMapName)).thenReturn(getUrlMap);
+      when(getUrlMap.execute()).thenReturn(entry.getValue());
+    }
+
+    Compute.ForwardingRules computeForwardingRules = mock(Compute.ForwardingRules.class);
+    Compute.ForwardingRules.List listForwardingRules = mock(Compute.ForwardingRules.List.class);
+    when(compute.forwardingRules()).thenReturn(computeForwardingRules);
+    when(computeForwardingRules.list(PROJECT, REGION)).thenReturn(listForwardingRules);
+    when(listForwardingRules.setPageToken(null)).thenReturn(listForwardingRules);
+    when(listForwardingRules.execute())
+        .thenReturn(new ForwardingRuleList().setItems(forwardingRules));
+  }
+
+  private static String backendServiceUrl(String name) {
+    return "projects/" + PROJECT + "/regions/" + REGION + "/backendServices/" + name;
+  }
+
   private static GoogleInternalHttpLoadBalancerCachingAgent createAgent(Compute compute) {
     GoogleNamedAccountCredentials credentials =
         new GoogleNamedAccountCredentials.Builder()
             .name("auto")
-            .project("test")
+            .project(PROJECT)
             .compute(compute)
             .credentials(mock(GoogleCredentials.class))
             .build();
-    return new GoogleInternalHttpLoadBalancerCachingAgent(
-        "clouddriver", credentials, new ObjectMapper(), new DefaultRegistry(), "us-central1");
+    return new TestGoogleInternalHttpLoadBalancerCachingAgent(credentials);
+  }
+
+  /** Runs each Compute request and its batch callbacks inline, without the HTTP batch transport. */
+  private static class TestGoogleInternalHttpLoadBalancerCachingAgent
+      extends GoogleInternalHttpLoadBalancerCachingAgent {
+    TestGoogleInternalHttpLoadBalancerCachingAgent(GoogleNamedAccountCredentials credentials) {
+      super("clouddriver", credentials, new ObjectMapper(), new DefaultRegistry(), REGION);
+    }
+
+    @Override
+    public <T> T timeExecute(AbstractGoogleClientRequest<T> request, String api, String... tags)
+        throws IOException {
+      return request.execute();
+    }
+
+    @Override
+    public GoogleBatchRequest buildGoogleBatchRequest() {
+      return new FakeGoogleBatchRequest();
+    }
+
+    @Override
+    public Object executeIfRequestsAreQueued(
+        GoogleBatchRequest googleBatchRequest, String instrumentationContext) {
+      ((FakeGoogleBatchRequest) googleBatchRequest).executeQueued();
+      return null;
+    }
+  }
+
+  private static class FakeGoogleBatchRequest extends GoogleBatchRequest {
+    private final List<ComputeRequest> requests = new ArrayList<>();
+    private final List<JsonBatchCallback> callbacks = new ArrayList<>();
+
+    FakeGoogleBatchRequest() {
+      super(mock(Compute.class), "clouddriver");
+    }
+
+    @Override
+    public void queue(ComputeRequest request, JsonBatchCallback callback) {
+      requests.add(request);
+      callbacks.add(callback);
+    }
+
+    @Override
+    public Integer size() {
+      return requests.size();
+    }
+
+    @SuppressWarnings("unchecked")
+    void executeQueued() {
+      for (int i = 0; i < requests.size(); i++) {
+        try {
+          callbacks.get(i).onSuccess(requests.get(i).execute(), new HttpHeaders());
+        } catch (IOException e) {
+          throw new UncheckedIOException(e);
+        }
+      }
+    }
   }
 }
