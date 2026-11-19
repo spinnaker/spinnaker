@@ -86,7 +86,8 @@ class GoogleCloudBuildAccount {
 
   ImmutableList<BuildTrigger> listTriggers() {
     ListBuildTriggersResponse listBuildTriggersResponse = client.listTriggers();
-    return ImmutableList.copyOf(listBuildTriggersResponse.getTriggers());
+    List<BuildTrigger> triggers = listBuildTriggersResponse.getTriggers();
+    return triggers != null ? ImmutableList.copyOf(triggers) : ImmutableList.of();
   }
 
   Build runTrigger(String triggerId, RepoSource repoSource) {
