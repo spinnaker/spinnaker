@@ -354,7 +354,8 @@ export function createAwsServerGroupCommandBuilder(
           Object.assign(command, {
             instanceType: serverGroup.launchConfig.instanceType,
             iamRole: serverGroup.launchConfig.iamInstanceProfile,
-            keyPair: serverGroup.launchConfig.keyName,
+            // a source without a key pair keeps launching instances without one, rather than using the account default
+            keyPair: serverGroup.launchConfig.keyName || '',
             associatePublicIpAddress: serverGroup.launchConfig.associatePublicIpAddress,
             ramdiskId: serverGroup.launchConfig.ramdiskId,
             instanceMonitoring:
@@ -419,7 +420,7 @@ export function createAwsServerGroupCommandBuilder(
 
           Object.assign(command, {
             iamRole: launchTemplateData.iamInstanceProfile.name,
-            keyPair: launchTemplateData.keyName,
+            keyPair: launchTemplateData.keyName || '',
             associateIPv6Address: shouldAutoEnableIPv6 || Boolean(ipv6AddressCount),
             ramdiskId: launchTemplateData.ramdiskId,
             instanceMonitoring: launchTemplateData.monitoring && launchTemplateData.monitoring.enabled,
