@@ -19,14 +19,11 @@ RUN tar -xf /tmp/workdir/kayenta-web/build/distributions/kayenta.tar -C /opt
 #
 # Release Image
 #
-FROM alpine:3.20
+FROM alpine:3.24
 
 LABEL maintainer="delivery-engineering@netflix.com"
 
-# TODO: Remove the Java4Shell (CVE-2026-114938) workaround after upgrading to a fixed JDK.
-ENV JAVA_TOOL_OPTIONS="-XX:-UseBASE64Intrinsics"
-
-RUN apk --no-cache add --update openjdk17-jre
+RUN apk --no-cache add --update 'openjdk17-jre>=17.0.21.1_p2-r0'
 # Refresh the CA bundle, remove G1, and reject images trusting compromised roots.
 RUN apk --no-cache upgrade && \
     sed -i 's@^mozilla/emSign_Root_CA_-_G1.crt$@!mozilla/emSign_Root_CA_-_G1.crt@' /etc/ca-certificates.conf && \

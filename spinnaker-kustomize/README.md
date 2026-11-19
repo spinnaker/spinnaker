@@ -76,14 +76,12 @@ configuration options.
 
 ### Java runtime security
 
-The Ubuntu runtime images require OpenJDK 17 package version
-`17.0.21.1+2-1~22.04.1` or later to fix Java4Shell (CVE-2026-114938).
-Alpine 3.20 does not publish a fixed OpenJDK 17 package, so its runtime images
-set `JAVA_TOOL_OPTIONS="-XX:-UseBASE64Intrinsics"` to disable the affected
-optimization, as recommended in the [Java4Shell advisory](https://calif.io/java4shell/).
-If you override `JAVA_TOOL_OPTIONS`, retain `-XX:-UseBASE64Intrinsics` until
-you upgrade to a fixed JDK. Rebuild and deploy runtime images to apply these
-protections to existing installations.
+The Alpine runtime images use Alpine 3.24 and require OpenJDK 17 package
+version `17.0.21.1_p2-r0` or later. The Ubuntu runtime images require OpenJDK 17
+package version `17.0.21.1+2-1~22.04.1` or later. These versions fix Java4Shell
+(CVE-2026-114938); see the [Java4Shell advisory](https://calif.io/java4shell/).
+Rebuild and deploy runtime images to apply these protections to existing
+installations.
 
 ### NGINX ingress controllers
 
