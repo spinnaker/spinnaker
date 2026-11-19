@@ -23,7 +23,7 @@ allprojects {
     implementation project(":clouddriver-api")
     implementation project(":clouddriver-core")
     implementation "com.squareup.okhttp3:okhttp"
-    implementation "io.spinnaker.fiat:fiat-core"
+    implementation "io.spinnaker.kork:kork-authz-api"
     implementation "io.spinnaker.kork:kork-artifacts"
     implementation "io.spinnaker.kork:kork-credentials"
     implementation "io.spinnaker.kork:kork-web"

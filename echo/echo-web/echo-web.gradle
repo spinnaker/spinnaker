@@ -31,8 +31,8 @@ dependencies {
     implementation project(':echo-pubsub-aws')
     implementation project(':echo-pubsub-google')
     implementation project(':echo-telemetry')
-    implementation "io.spinnaker.fiat:fiat-api"
-    implementation "io.spinnaker.fiat:fiat-core"
+    implementation "io.spinnaker.kork:kork-authz"
+    implementation "io.spinnaker.kork:kork-authz-api"
     implementation "org.springframework.boot:spring-boot-starter-webmvc"
     implementation "org.springframework.boot:spring-boot-starter-actuator"
     implementation "org.springframework.boot:spring-boot-starter-quartz"

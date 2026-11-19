@@ -22,8 +22,8 @@ dependencies {
   implementation project(":gate-core")
 
   implementation "com.google.guava:guava"
-  implementation "io.spinnaker.fiat:fiat-core"
-  implementation "io.spinnaker.fiat:fiat-api"
+  implementation "io.spinnaker.kork:kork-authz-api"
+  implementation "io.spinnaker.kork:kork-authz"
   implementation "io.spinnaker.kork:kork-plugins"
   implementation "io.spinnaker.kork:kork-retrofit"
   implementation "io.spinnaker.kork:kork-web"
