@@ -18,6 +18,7 @@
 package com.netflix.spinnaker.igor.build
 
 import com.netflix.spinnaker.igor.config.GoogleCloudBuildProperties
+import com.netflix.spinnaker.igor.gitlabci.service.GitlabCiService
 import com.netflix.spinnaker.igor.jenkins.service.JenkinsService
 import com.netflix.spinnaker.igor.model.BuildServiceProvider
 import com.netflix.spinnaker.igor.service.BuildService
@@ -104,6 +105,14 @@ class InfoController {
             recursiveGetJobs(jenkinsService.jobs.list)
 
             return jobList
+        } else if (buildService instanceof GitlabCiService) {
+            // GitLab CI projects are listed live from GitLab (like Jenkins' job tree), so a newly
+            // integrated instance's projects appear in the dropdown immediately. The shared
+            // buildCache path below only contains projects that have had a successful pipeline
+            // (cached for cachedJobTTLDays, default 60), which would otherwise hide valid projects
+            // and retain stale ones after membership changes.
+            GitlabCiService gitlabCiService = (GitlabCiService) buildService
+            return gitlabCiService.getProjects().collect { String.valueOf(it.id) }
         } else {
             return buildCache.getJobNames(master)
         }
