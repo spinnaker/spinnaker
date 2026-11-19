@@ -1,9 +1,6 @@
 FROM ubuntu:resolute
 LABEL maintainer="sig-platform@spinnaker.io"
 
-# TODO: Remove the Java4Shell (CVE-2026-114938) workaround after Ubuntu ships a fixed JDK.
-ENV JAVA_TOOL_OPTIONS="-XX:-UseBASE64Intrinsics"
-
 ENV KUSTOMIZE4_VERSION=4.5.7
 ENV KUSTOMIZE5_VERSION=5.8.1
 ENV PACKER_VERSION=1.15.4
@@ -18,6 +15,8 @@ RUN apt-get update && apt-get -y install openjdk-25-jre-headless wget unzip curl
   wget https://releases.hashicorp.com/packer/${PACKER_VERSION}/packer_${PACKER_VERSION}_linux_${TARGETARCH}.zip && \
   unzip packer_${PACKER_VERSION}_linux_${TARGETARCH}.zip && \
   rm packer_${PACKER_VERSION}_linux_${TARGETARCH}.zip
+# Require Ubuntu's fix for CVE-2026-114938 while allowing later package versions.
+RUN dpkg --compare-versions "$(dpkg-query -W -f='${Version}' openjdk-25-jre-headless)" ge '25.0.5.1+2-1~26.04.1'
 # Refresh the CA bundle, remove G1, and rebuild the JVM truststore from scratch.
 RUN apt-get update && apt-get -y install --only-upgrade ca-certificates ca-certificates-java && \
     sed -i 's@^mozilla/emSign_Root_CA_-_G1.crt$@!mozilla/emSign_Root_CA_-_G1.crt@' /etc/ca-certificates.conf && \
