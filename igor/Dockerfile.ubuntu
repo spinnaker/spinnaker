@@ -1,6 +1,8 @@
 FROM ubuntu:resolute
 LABEL maintainer="sig-platform@spinnaker.io"
 RUN apt-get update && apt-get -y install curl openjdk-17-jre-headless wget
+# Require Ubuntu's fix for CVE-2026-114938 while allowing later package versions.
+RUN dpkg --compare-versions "$(dpkg-query -W -f='${Version}' openjdk-17-jre-headless)" ge '17.0.21.1+2-1~26.04.1'
 # Refresh the CA bundle, remove G1, and rebuild the JVM truststore from scratch.
 RUN apt-get update && apt-get -y install --only-upgrade ca-certificates ca-certificates-java && \
     sed -i 's@^mozilla/emSign_Root_CA_-_G1.crt$@!mozilla/emSign_Root_CA_-_G1.crt@' /etc/ca-certificates.conf && \
