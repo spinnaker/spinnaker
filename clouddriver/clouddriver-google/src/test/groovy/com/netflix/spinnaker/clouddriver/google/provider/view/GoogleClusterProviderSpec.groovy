@@ -23,6 +23,8 @@ import com.netflix.spinnaker.clouddriver.google.deploy.GCEUtil
 import com.netflix.spinnaker.clouddriver.google.model.loadbalancing.GoogleBackendService
 import com.netflix.spinnaker.clouddriver.google.model.loadbalancing.GoogleExternalHttpLoadBalancer
 import com.netflix.spinnaker.clouddriver.google.model.loadbalancing.GoogleInternalHttpLoadBalancer
+import com.netflix.spinnaker.clouddriver.google.model.loadbalancing.GoogleLoadBalancedBackend
+import com.netflix.spinnaker.clouddriver.google.model.loadbalancing.GoogleNetworkLoadBalancer
 import com.netflix.spinnaker.clouddriver.google.model.loadbalancing.GoogleRegionalExternalNetworkLoadBalancer
 import spock.lang.Specification
 import spock.lang.Subject
@@ -34,6 +36,7 @@ class GoogleClusterProviderSpec extends Specification {
   private static final REGION = "us-central1"
   private static final SERVER_GROUP = "app-v001"
   private static final LOAD_BALANCER = "external-lb"
+  private static final NETWORK_LOAD_BALANCER = "network-lb"
   private static final BACKEND_SERVICE = "external-backend-service"
 
   void "external managed load balancer participates in disabled-state aggregation"() {
@@ -105,7 +108,7 @@ class GoogleClusterProviderSpec extends Specification {
       serverGroup.disabled
   }
 
-  void "internal managed load balancer keeps the cached disabled state in the aggregation"() {
+  void "internal managed load balancer participates in disabled-state aggregation"() {
     setup:
       def loadBalancer = new GoogleInternalHttpLoadBalancer(
         name: LOAD_BALANCER,
@@ -137,8 +140,52 @@ class GoogleClusterProviderSpec extends Specification {
         [loadBalancer] as Set)
 
     then:
-      // The backend does not list the server group, but INTERNAL_MANAGED alone never overrides
-      // the cached flag.
-      !serverGroup.disabled
+      serverGroup.disabled
+  }
+
+  void "internal managed load balancer and a target pool both count toward disabled state (in backend: #inBackend, in target pool: #inTargetPool)"() {
+    setup:
+      def backends = inBackend ? [new GoogleLoadBalancedBackend(serverGroupUrl: "projects/test/regions/$REGION/instanceGroups/$SERVER_GROUP")] : []
+      def internalManaged = new GoogleInternalHttpLoadBalancer(
+        name: LOAD_BALANCER,
+        account: ACCOUNT,
+        region: REGION,
+        defaultService: new GoogleBackendService(name: BACKEND_SERVICE, backends: backends),
+        hostRules: [])
+      def network = new GoogleNetworkLoadBalancer(name: NETWORK_LOAD_BALANCER, account: ACCOUNT, region: REGION)
+      def serverGroupCacheData = Mock(CacheData)
+      serverGroupCacheData.getAttributes() >> [
+        name    : SERVER_GROUP,
+        region  : REGION,
+        zone    : REGION + "-a",
+        // The caching agent sets this to whether the server group has no target pools.
+        disabled: !inTargetPool,
+        asg     : [
+          (GCEUtil.REGIONAL_LOAD_BALANCER_NAMES): [LOAD_BALANCER, NETWORK_LOAD_BALANCER],
+          (GCEUtil.REGION_BACKEND_SERVICE_NAMES): [BACKEND_SERVICE],
+        ]
+      ]
+      serverGroupCacheData.getRelationships() >> [(LOAD_BALANCERS.ns): [
+        Keys.getLoadBalancerKey(REGION, ACCOUNT, LOAD_BALANCER),
+        Keys.getLoadBalancerKey(REGION, ACCOUNT, NETWORK_LOAD_BALANCER),
+      ]]
+      @Subject def provider = new GoogleClusterProvider(objectMapper: new ObjectMapper())
+
+    when:
+      def serverGroup = provider.serverGroupFromCacheData(
+        serverGroupCacheData,
+        ACCOUNT,
+        [],
+        [] as Set,
+        [internalManaged, network] as Set)
+
+    then:
+      serverGroup.disabled == disabled
+
+    where:
+      inBackend | inTargetPool || disabled
+      false     | true         || false
+      true      | false        || false
+      false     | false        || true
   }
 }
