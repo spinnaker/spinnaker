@@ -23,6 +23,8 @@ import com.netflix.spinnaker.igor.config.JenkinsConfig
 import com.netflix.spinnaker.igor.config.JenkinsProperties
 import com.netflix.spinnaker.igor.helpers.TestUtils
 import com.netflix.spinnaker.igor.jenkins.service.JenkinsService
+import com.netflix.spinnaker.igor.gitlabci.service.GitlabCiService
+import com.netflix.spinnaker.igor.gitlabci.client.model.Project
 import com.netflix.spinnaker.igor.model.BuildServiceProvider
 import com.netflix.spinnaker.igor.service.BuildOperations
 import com.netflix.spinnaker.igor.service.BuildServices
@@ -288,6 +290,26 @@ class InfoControllerSpec extends Specification {
         1 * cache.getJobNames('travis-master1') >> ["some-job"]
         response.contentAsString == '["some-job"]'
 
+    }
+
+    void 'lists GitLab CI projects live, not from the build cache'() {
+        given:
+        GitlabCiService gitlabCiService = Stub(GitlabCiService)
+        createMocks(['gitlab-master1': gitlabCiService])
+
+        when:
+        MockHttpServletResponse response = mockMvc.perform(get('/jobs/gitlab-master1')
+            .accept(MediaType.APPLICATION_JSON)).andReturn().response
+
+        then:
+        // live projects from GitLab (like Jenkins), identified by their project id
+        gitlabCiService.getProjects() >> [
+            new Project(id: 9266),
+            new Project(id: 1234)
+        ]
+        // the shared build-cache path must NOT be used for GitLab CI
+        0 * cache.getJobNames(_)
+        response.contentAsString == '["9266","1234"]'
     }
 
     private void setResponse(String body) {
