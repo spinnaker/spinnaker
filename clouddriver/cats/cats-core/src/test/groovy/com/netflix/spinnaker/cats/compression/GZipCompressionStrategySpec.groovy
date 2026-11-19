@@ -28,16 +28,16 @@ class GZipCompressionStrategySpec extends Specification {
 
     then:
     if (shouldCompress) {
-      result != data
+      assert result != data
     } else {
-      result == data
+      assert result == data
     }
     subject.decompress(result) == data
 
     where:
-    data          || shouldCompress
-    'hello world' || true
-    'foo bar baz' || true
-    'a'           || false
+    data                       || shouldCompress
+    'hello world, hello world' || true
+    'foo bar baz, foo bar baz' || true
+    'a'                        || false
   }
 }
