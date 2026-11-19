@@ -26,6 +26,7 @@ import (
 	pipeline_template "github.com/spinnaker/spinnaker/spin/cmd/pipeline-template"
 	"github.com/spinnaker/spinnaker/spin/cmd/pipeline/execution"
 	"github.com/spinnaker/spinnaker/spin/cmd/project"
+	"github.com/spinnaker/spinnaker/spin/cmd/task"
 )
 
 // AddSubCommands adds all the subcommands to the rootCmd.
@@ -46,4 +47,6 @@ func AddSubCommands(rootCmd *cobra.Command, rootOpts *cmd.RootOptions) {
 	rootCmd.AddCommand(pipeline_template.NewPipelineTemplateCmd(rootOpts))
 
 	rootCmd.AddCommand(project.NewProjectCmd(rootOpts))
+
+	rootCmd.AddCommand(task.NewTaskCmd(rootOpts))
 }
