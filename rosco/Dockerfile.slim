@@ -1,4 +1,4 @@
-FROM alpine:3.20
+FROM alpine:3.24
 LABEL maintainer="sig-platform@spinnaker.io"
 
 ENV KUSTOMIZE_VERSION=3.9.4
@@ -12,7 +12,7 @@ ARG PACKER_PLUGINS="amazon azure googlecompute"
 
 WORKDIR /packer
 
-RUN apk --no-cache add --update bash wget curl openssl openjdk17-jre git openssh-client && \
+RUN apk --no-cache add --update bash wget curl openssl 'openjdk17-jre>=17.0.21.1_p2-r0' git openssh-client && \
   wget https://releases.hashicorp.com/packer/${PACKER_VERSION}/packer_${PACKER_VERSION}_linux_${TARGETARCH}.zip && \
   unzip packer_${PACKER_VERSION}_linux_${TARGETARCH}.zip && \
   rm packer_${PACKER_VERSION}_linux_${TARGETARCH}.zip
