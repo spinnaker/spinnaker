@@ -9,6 +9,8 @@ rm -rf /var/lib/apt/lists/*
 
 service apache2 stop
 a2enmod proxy proxy_ajp proxy_http rewrite deflate headers mime proxy_balancer proxy_connect proxy_html xml2enc
+cp docker/server.conf /etc/apache2/conf-available/spinnaker-server.conf
+a2enconf spinnaker-server
 chown -R www-data:www-data /etc/apache2
 
 mkdir -p /var/lib/apache2

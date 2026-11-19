@@ -5,6 +5,3 @@ ErrorLog /dev/stderr
 <IfModule ssl_module>
         SSLPassPhraseDialog exec:/etc/apache2/passphrase
 </IfModule>
-
-ServerSignature Off
-ServerTokens Prod
