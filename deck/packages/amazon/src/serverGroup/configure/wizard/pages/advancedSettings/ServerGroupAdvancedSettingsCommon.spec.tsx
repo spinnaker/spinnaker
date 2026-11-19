@@ -35,6 +35,43 @@ describe('ServerGroupAdvancedSettingsCommon', () => {
     expect(cooldown.parentElement).toHaveClass('col-md-2');
   });
 
+  describe('key name', () => {
+    const noKeyPair = 'None (launch instances without a key pair)';
+
+    function buildValuesWithKeyPair(keyPair: string | null | undefined) {
+      const values = buildValues();
+      return { ...values, keyPair, backingData: { ...values.backingData, filtered: { keyPairs: ['test-keypair'] } } };
+    }
+
+    function validate(keyPair: string | null | undefined) {
+      return new ServerGroupAdvancedSettingsCommon({} as any).validate(buildValuesWithKeyPair(keyPair) as any);
+    }
+
+    it('is required until a key pair or launching without one is chosen', () => {
+      expect(validate(undefined).keyPair).toBe('Key Name is required');
+      expect(validate(null).keyPair).toBe('Key Name is required');
+      expect(validate('test-keypair').keyPair).toBeUndefined();
+      expect(validate('').keyPair).toBeUndefined();
+    });
+
+    it('shows that instances launch without a key pair when the key name is empty', () => {
+      renderSettings(buildValuesWithKeyPair(''));
+
+      expect(screen.getByText(noKeyPair)).toBeInTheDocument();
+    });
+
+    it('can be changed to launch instances without a key pair', () => {
+      const getValues = renderSettings(buildValuesWithKeyPair('test-keypair'));
+
+      const keyNameSelect = screen.getByText('test-keypair').closest('.Select-control');
+      fireEvent.mouseDown(keyNameSelect, { button: 0 });
+      fireEvent.mouseDown(screen.getByText(noKeyPair), { button: 0 });
+
+      expect(getValues().keyPair).toBe('');
+      expect(screen.getByText(noKeyPair)).toBeInTheDocument();
+    });
+  });
+
   describe('instance metadata tags', () => {
     const label = 'Allow access to instance tags from instance metadata';
 
