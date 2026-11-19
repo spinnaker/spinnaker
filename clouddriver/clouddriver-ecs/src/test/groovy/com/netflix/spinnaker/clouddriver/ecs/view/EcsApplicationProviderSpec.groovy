@@ -18,6 +18,7 @@ package com.netflix.spinnaker.clouddriver.ecs.view
 
 import software.amazon.awssdk.services.ecs.model.DeploymentConfiguration
 import java.time.Instant
+import java.util.regex.Pattern
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.netflix.spinnaker.cats.cache.Cache
 import com.netflix.spinnaker.cats.cache.DefaultCacheData
@@ -79,5 +80,72 @@ class EcsApplicationProviderSpec extends Specification {
 
     then:
     retrievedApp == givenApp
+  }
+
+  def 'should list the applications of each configured account and region'() {
+    given:
+    def accountA = new NetflixECSCredentials(TestCredential.named('account-a'))
+    def accountB = new NetflixECSCredentials(TestCredential.named('account-b', [regions: [[name: 'us-east-1']]]))
+    def unconfiguredAccount = new NetflixECSCredentials(TestCredential.named('account-c'))
+    def cacheData = [
+      serviceCacheData(accountA, 'us-east-1', 'appone-east-v001'),
+      serviceCacheData(accountA, 'us-west-1', 'appone-west-v001'),
+      serviceCacheData(accountB, 'us-east-1', 'apptwo-east-v001'),
+      serviceCacheData(unconfiguredAccount, 'us-east-1', 'appthree-east-v001'),
+      serviceCacheData(accountA, 'eu-west-1', 'appfour-west-v001'),
+    ]
+    credentialsRepository.getAll() >> [accountA, accountB]
+    cache.filterIdentifiers(_, _) >> { String type, String glob -> cacheData*.id.findAll { it ==~ globToRegex(glob) } }
+    cache.getAll(_, _) >> { String type, Collection<String> ids -> cacheData.findAll { ids.contains(it.id) } }
+
+    when:
+    def applications = provider.getApplications(expand)
+
+    then:
+    applications == expected as Set
+
+    where:
+    expand | expected
+    true   | [application('appone', [('account-a'): ['appone-east']]),
+              application('appone', [('account-a'): ['appone-west']]),
+              application('apptwo', [('account-b'): ['apptwo-east']])]
+    false  | [application('appone', [:]),
+              application('apptwo', [:])]
+  }
+
+  def 'should look up the services of every account and region at once'() {
+    given:
+    def accountA = new NetflixECSCredentials(TestCredential.named('account-a'))
+    def accountB = new NetflixECSCredentials(TestCredential.named('account-b'))
+    credentialsRepository.getAll() >> [accountA, accountB]
+
+    when:
+    provider.getApplications(true)
+
+    then:
+    1 * cache.filterIdentifiers(_, _) >> []
+  }
+
+  private DefaultCacheData serviceCacheData(NetflixECSCredentials credentials, String region, String serviceName) {
+    def service = software.amazon.awssdk.services.ecs.model.Service.builder()
+      .serviceName(serviceName)
+      .deploymentConfiguration(DeploymentConfiguration.builder()
+        .maximumPercent(100)
+        .minimumHealthyPercent(0)
+        .build())
+      .desiredCount(1)
+      .createdAt(Instant.now())
+      .build()
+    def attributes = TestServiceCachingAgentFactory.create(credentials, region).convertServiceToAttributes(service)
+    return new DefaultCacheData(Keys.getServiceKey(credentials.getName(), region, serviceName), attributes, [:])
+  }
+
+  private static String globToRegex(String glob) {
+    return glob.split('\\*', -1).collect { Pattern.quote(it) }.join('.*')
+  }
+
+  private static EcsApplication application(String name, Map<String, List<String>> clusterNames) {
+    Map<String, Set<String>> clusters = clusterNames.collectEntries { k, v -> [(k): v as Set] }
+    return new EcsApplication(name, [name: name], clusters)
   }
 }
