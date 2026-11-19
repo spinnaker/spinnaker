@@ -23,7 +23,7 @@
     "@spinnaker/core": "workspace:^0.29.1",
     "@uirouter/react": "1.0.7",
     "formik": "1.5.1",
-    "js-yaml": "4.1.1",
+    "js-yaml": "4.3.2",
     "lodash": "4.18.1",
     "react": "17.0.2",
     "react-bootstrap": "0.32.1",
