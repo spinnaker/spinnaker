@@ -16,7 +16,6 @@
 
 package com.netflix.spinnaker.clouddriver.google.deploy.ops.loadbalancer
 
-import com.google.api.client.googleapis.json.GoogleJsonResponseException
 import com.google.api.services.compute.model.*
 import com.netflix.spinnaker.clouddriver.data.task.Task
 import com.netflix.spinnaker.clouddriver.data.task.TaskRepository
@@ -24,6 +23,9 @@ import com.netflix.spinnaker.clouddriver.google.deploy.GCEUtil
 import com.netflix.spinnaker.clouddriver.google.deploy.GoogleOperationPoller
 import com.netflix.spinnaker.clouddriver.google.deploy.SafeRetry
 import com.netflix.spinnaker.clouddriver.google.deploy.description.DeleteGoogleLoadBalancerDescription
+import com.netflix.spinnaker.clouddriver.google.deploy.exception.GoogleOperationException
+import com.netflix.spinnaker.clouddriver.google.model.callbacks.Utils
+import com.netflix.spinnaker.clouddriver.googlecommon.deploy.GoogleApiException
 import groovy.util.logging.Slf4j
 import org.springframework.beans.factory.annotation.Autowired
 
@@ -46,16 +48,6 @@ class DeleteGoogleHttpLoadBalancerAtomicOperation extends DeleteGoogleLoadBalanc
 
   private static Task getTask() {
     TaskRepository.threadLocalTask.get()
-  }
-
-  // Used to find all services referenced in a URL map.
-  private static void addServicesFromPathMatchers(List<String> backendServiceUrls, List<PathMatcher> pathMatchers) {
-    for (PathMatcher pathMatcher : pathMatchers) {
-      backendServiceUrls.add(pathMatcher.getDefaultService())
-      for (PathRule pathRule : pathMatcher.getPathRules()) {
-        backendServiceUrls.add(pathRule.getService())
-      }
-    }
   }
 
   @Autowired
@@ -109,19 +101,19 @@ class DeleteGoogleHttpLoadBalancerAtomicOperation extends DeleteGoogleLoadBalanc
     }
     def urlMapName = GCEUtil.getLocalName(retrievedTargetProxy.getUrlMap())
 
-    List<String> listenersToDelete = []
+    List<ForwardingRule> listenersToDelete = []
     projectForwardingRules.each { ForwardingRule rule ->
       try {
         def proxy = GCEUtil.getTargetProxyFromRule(compute, project, rule, BASE_PHASE, safeRetry, this)
         if (GCEUtil.getLocalName(proxy?.urlMap) == urlMapName) {
-          listenersToDelete << rule.getName()
+          listenersToDelete << rule
         }
-      } catch (GoogleJsonResponseException e) {
+      } catch (GoogleOperationException e) {
         // 404 is thrown if the target proxy does not exist.
         // We can ignore 404's here because we are iterating over all forwarding rules and some other process may have
         // deleted the target proxy between the time we queried for the list of forwarding rules and now.
         // Any other exception needs to be propagated.
-        if (e.getStatusCode() != 404) {
+        if (!(e.cause instanceof GoogleApiException.NotFoundException)) {
           throw e
         }
       }
@@ -138,17 +130,16 @@ class DeleteGoogleHttpLoadBalancerAtomicOperation extends DeleteGoogleLoadBalanc
     List<UrlMap> projectUrlMaps = mapList.getItems()
 
     UrlMap urlMap = projectUrlMaps.find { it.name == urlMapName }
+    if (!urlMap) {
+      GCEUtil.updateStatusAndThrowNotFoundException("URL map $urlMapName not found for $project", task, BASE_PHASE)
+    }
     projectUrlMaps.removeAll { it.name == urlMapName }
 
-    List<String> backendServiceUrls = new ArrayList<String>()
-    backendServiceUrls.add(urlMap.getDefaultService())
-    addServicesFromPathMatchers(backendServiceUrls, urlMap.getPathMatchers())
-    backendServiceUrls.unique()
+    List<String> backendServiceNames = Utils.getBackendServicesFromUrlMap(urlMap).unique()
 
     // Backend services. Also, get health check URLs.
     List<String> healthCheckUrls = new ArrayList<String>()
-    for (String backendServiceUrl : backendServiceUrls) {
-      def backendServiceName = GCEUtil.getLocalName(backendServiceUrl)
+    for (String backendServiceName : backendServiceNames) {
       task.updateStatus BASE_PHASE, "Retrieving backend service $backendServiceName..."
       BackendService backendService = safeRetry.doRetry(
         { timeExecute(
@@ -167,17 +158,21 @@ class DeleteGoogleHttpLoadBalancerAtomicOperation extends DeleteGoogleLoadBalanc
         throw new IllegalStateException("Server groups still associated with Http(s) load balancer: ${description.loadBalancerName}.")
       }
 
-      healthCheckUrls.addAll(backendService.getHealthChecks())
+      healthCheckUrls.addAll(backendService.getHealthChecks() ?: [])
     }
     healthCheckUrls.unique()
 
     def timeoutSeconds = description.deleteOperationTimeoutSeconds
 
-    listenersToDelete.each { String ruleName ->
+    listenersToDelete.each { ForwardingRule rule ->
+      String ruleName = rule.getName()
       task.updateStatus BASE_PHASE, "Deleting listener $ruleName..."
-      Operation operation = GCEUtil.deleteGlobalListener(compute, project, ruleName, BASE_PHASE, safeRetry, this)
-      googleOperationPoller.waitForGlobalOperation(compute, project, operation.getName(),
-        timeoutSeconds, task, "listener " + ruleName, BASE_PHASE)
+      Operation operation = GCEUtil.deleteGlobalListener(compute, project, rule, BASE_PHASE, timeoutSeconds,
+        task, googleOperationPoller, safeRetry, this)
+      if (operation) {
+        googleOperationPoller.waitForGlobalOperation(compute, project, operation.getName(),
+          timeoutSeconds, task, "listener " + ruleName, BASE_PHASE)
+      }
     }
 
     task.updateStatus BASE_PHASE, "Deleting URL map $urlMapName..."
@@ -194,14 +189,36 @@ class DeleteGoogleHttpLoadBalancerAtomicOperation extends DeleteGoogleLoadBalanc
       registry
     ) as Operation
 
-    googleOperationPoller.waitForGlobalOperation(compute, project, deleteUrlMapOperation.getName(),
-        timeoutSeconds, task, "url map " + urlMapName, BASE_PHASE)
+    if (deleteUrlMapOperation) {
+      googleOperationPoller.waitForGlobalOperation(compute, project, deleteUrlMapOperation.getName(),
+          timeoutSeconds, task, "url map " + urlMapName, BASE_PHASE)
+    } else {
+      // SafeRetry returns null both for 404 and for a URL map another resource still uses.
+      UrlMap remainingUrlMap = safeRetry.doRetry(
+        { timeExecute(
+              compute.urlMaps().get(project, urlMapName),
+              "compute.urlMaps.get",
+              TAG_SCOPE, SCOPE_GLOBAL) },
+        "Url map $urlMapName",
+        task,
+        [400, 403, 412],
+        [404],
+        [action: "get", phase: BASE_PHASE, operation: "compute.urlMaps.get", (TAG_SCOPE): SCOPE_GLOBAL],
+        registry
+      ) as UrlMap
+      if (remainingUrlMap) {
+        String message = "URL map $urlMapName is still used by another resource, such as a target proxy left by an " +
+          "earlier delete, so it was not deleted. Its listeners are already gone. Delete that resource, then URL map " +
+          "$urlMapName, backend services $backendServiceNames and their health checks in $project."
+        task.updateStatus BASE_PHASE, message
+        throw new IllegalStateException(message)
+      }
+    }
 
     // We make a list of the delete operations for backend services.
     List<BackendServiceAsyncDeleteOperation> deleteBackendServiceAsyncOperations =
         new ArrayList<BackendServiceAsyncDeleteOperation>()
-    for (String backendServiceUrl : backendServiceUrls) {
-      def backendServiceName = GCEUtil.getLocalName(backendServiceUrl)
+    for (String backendServiceName : backendServiceNames) {
       Operation deleteBackendServiceOp = GCEUtil.deleteIfNotInUse(
         { timeExecute(
               compute.backendServices().delete(project, backendServiceName),

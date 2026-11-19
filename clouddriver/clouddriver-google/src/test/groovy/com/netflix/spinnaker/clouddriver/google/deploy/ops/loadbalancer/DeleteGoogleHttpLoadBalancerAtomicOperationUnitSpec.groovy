@@ -21,8 +21,8 @@ import com.google.api.services.compute.model.*
 import com.netflix.spectator.api.DefaultRegistry
 import com.netflix.spinnaker.clouddriver.data.task.Task
 import com.netflix.spinnaker.clouddriver.data.task.TaskRepository
+import com.netflix.spinnaker.clouddriver.google.GoogleApiTestUtils
 import com.netflix.spinnaker.clouddriver.google.config.GoogleConfigurationProperties
-import com.netflix.spinnaker.clouddriver.google.deploy.GCEUtil
 import com.netflix.spinnaker.clouddriver.google.deploy.GoogleOperationPoller
 import com.netflix.spinnaker.clouddriver.google.deploy.SafeRetry
 import com.netflix.spinnaker.clouddriver.google.deploy.description.DeleteGoogleLoadBalancerDescription
@@ -107,6 +107,7 @@ class DeleteGoogleHttpLoadBalancerAtomicOperationUnitSpec extends Specification 
           status: DONE)
 
       def globalOperations = Mock(Compute.GlobalOperations)
+      def forwardingRuleOperationGet = Mock(Compute.GlobalOperations.Get)
       def targetHttpProxiesOperationGet = Mock(Compute.GlobalOperations.Get)
       def urlMapsOperationGet = Mock(Compute.GlobalOperations.Get)
       def backendServicesOperationGet = Mock(Compute.GlobalOperations.Get)
@@ -159,7 +160,9 @@ class DeleteGoogleHttpLoadBalancerAtomicOperationUnitSpec extends Specification 
       1 * healthChecks.delete(PROJECT_NAME, HEALTH_CHECK_NAME) >> healthChecksDelete
       1 * healthChecksDelete.execute() >> healthChecksDeleteOp
 
-      4 * computeMock.globalOperations() >> globalOperations
+      5 * computeMock.globalOperations() >> globalOperations
+      1 * globalOperations.get(PROJECT_NAME, FORWARDING_RULE_DELETE_OP_NAME) >> forwardingRuleOperationGet
+      1 * forwardingRuleOperationGet.execute() >> globalForwardingRulesDeleteOp
       1 * globalOperations.get(PROJECT_NAME, TARGET_HTTP_PROXY_DELETE_OP_NAME) >> targetHttpProxiesOperationGet
       1 * targetHttpProxiesOperationGet.execute() >> targetHttpProxiesDeleteOp
       1 * globalOperations.get(PROJECT_NAME, URL_MAP_DELETE_OP_NAME) >> urlMapsOperationGet
@@ -186,10 +189,10 @@ class DeleteGoogleHttpLoadBalancerAtomicOperationUnitSpec extends Specification 
           name: URL_MAP_NAME,
           defaultService: BACKEND_SERVICE_URL,
           pathMatchers: [
-              [defaultService: BACKEND_SERVICE_URL+"2",
+              new PathMatcher(defaultService: BACKEND_SERVICE_URL+"2",
                pathRules: [
-                  [service: BACKEND_SERVICE_URL+"3"], [service: BACKEND_SERVICE_URL]
-               ]]
+                  new PathRule(service: BACKEND_SERVICE_URL+"3"), new PathRule(service: BACKEND_SERVICE_URL)
+               ])
           ])
       def backendServices = Mock(Compute.BackendServices)
       def backendServicesGet = Mock(Compute.BackendServices.Get)
@@ -234,6 +237,7 @@ class DeleteGoogleHttpLoadBalancerAtomicOperationUnitSpec extends Specification 
           status: DONE)
 
       def globalOperations = Mock(Compute.GlobalOperations)
+      def forwardingRuleOperationGet = Mock(Compute.GlobalOperations.Get)
       def targetHttpProxiesOperationGet = Mock(Compute.GlobalOperations.Get)
       def urlMapsOperationGet = Mock(Compute.GlobalOperations.Get)
       def backendServicesOperationGet = Mock(Compute.GlobalOperations.Get)
@@ -301,7 +305,9 @@ class DeleteGoogleHttpLoadBalancerAtomicOperationUnitSpec extends Specification 
       1 * healthChecks.delete(PROJECT_NAME, HEALTH_CHECK_NAME+"2") >> healthChecksDelete2
       1 * healthChecksDelete2.execute() >> healthChecksDeleteOp2
 
-      7 * computeMock.globalOperations() >> globalOperations
+      8 * computeMock.globalOperations() >> globalOperations
+      1 * globalOperations.get(PROJECT_NAME, FORWARDING_RULE_DELETE_OP_NAME) >> forwardingRuleOperationGet
+      1 * forwardingRuleOperationGet.execute() >> globalForwardingRulesDeleteOp
       1 * globalOperations.get(PROJECT_NAME, TARGET_HTTP_PROXY_DELETE_OP_NAME) >> targetHttpProxiesOperationGet
       1 * targetHttpProxiesOperationGet.execute() >> targetHttpProxiesDeleteOp
       1 * globalOperations.get(PROJECT_NAME, URL_MAP_DELETE_OP_NAME) >> urlMapsOperationGet
@@ -387,6 +393,7 @@ class DeleteGoogleHttpLoadBalancerAtomicOperationUnitSpec extends Specification 
           error: new Operation.Error(errors: [new Operation.Error.Errors(message: "error")]))
 
       def globalOperations = Mock(Compute.GlobalOperations)
+      def forwardingRuleOperationGet = Mock(Compute.GlobalOperations.Get)
       def targetHttpProxiesOperationGet = Mock(Compute.GlobalOperations.Get)
       def urlMapsOperationGet = Mock(Compute.GlobalOperations.Get)
       def backendServicesOperationGet = Mock(Compute.GlobalOperations.Get)
@@ -439,7 +446,9 @@ class DeleteGoogleHttpLoadBalancerAtomicOperationUnitSpec extends Specification 
       1 * healthChecks.delete(PROJECT_NAME, HEALTH_CHECK_NAME) >> healthChecksDelete
       1 * healthChecksDelete.execute() >> healthChecksPendingDeleteOp
 
-      4 * computeMock.globalOperations() >> globalOperations
+      5 * computeMock.globalOperations() >> globalOperations
+      1 * globalOperations.get(PROJECT_NAME, FORWARDING_RULE_DELETE_OP_NAME) >> forwardingRuleOperationGet
+      1 * forwardingRuleOperationGet.execute() >> globalForwardingRulesDeleteOp
       1 * globalOperations.get(PROJECT_NAME, TARGET_HTTP_PROXY_DELETE_OP_NAME) >> targetHttpProxiesOperationGet
       1 * targetHttpProxiesOperationGet.execute() >> targetHttpProxiesDeleteOp
       1 * globalOperations.get(PROJECT_NAME, URL_MAP_DELETE_OP_NAME) >> urlMapsOperationGet
@@ -483,7 +492,6 @@ class DeleteGoogleHttpLoadBalancerAtomicOperationUnitSpec extends Specification 
           accountName: ACCOUNT_NAME,
           credentials: credentials)
      @Subject def operation = new DeleteGoogleHttpLoadBalancerAtomicOperation(description)
-     GCEUtil.deleteGlobalListener(computeMock, PROJECT_NAME, HTTP_LOAD_BALANCER_NAME, BASE_PHASE, safeRetry, operation) >> targetHttpProxiesDeleteOp
      operation.googleOperationPoller =
         new GoogleOperationPoller(
           googleConfigurationProperties: new GoogleConfigurationProperties(),
@@ -498,11 +506,12 @@ class DeleteGoogleHttpLoadBalancerAtomicOperationUnitSpec extends Specification 
       operation.operate([])
 
     then:
-      3 * computeMock.globalForwardingRules() >> globalForwardingRules
+      4 * computeMock.globalForwardingRules() >> globalForwardingRules
       1 * globalForwardingRules.list(PROJECT_NAME) >> globalForwardingRulesList
       1 * globalForwardingRulesList.execute() >> [items: [forwardingRule]]
-      1 * globalForwardingRules.get(PROJECT_NAME, HTTP_LOAD_BALANCER_NAME) >> globalForwardingRulesGet
-      1 * globalForwardingRulesGet.execute() >> forwardingRule
+      // The rule delete returns no operation, so the rule is read again and is gone.
+      2 * globalForwardingRules.get(PROJECT_NAME, HTTP_LOAD_BALANCER_NAME) >> globalForwardingRulesGet
+      2 * globalForwardingRulesGet.execute() >>> [forwardingRule, null]
       3 * computeMock.targetHttpProxies() >> targetHttpProxies
       2 * targetHttpProxies.get(PROJECT_NAME, TARGET_HTTP_PROXY_NAME) >> targetHttpProxiesGet
       2 * targetHttpProxiesGet.execute() >> targetHttpProxy
@@ -567,6 +576,7 @@ class DeleteGoogleHttpLoadBalancerAtomicOperationUnitSpec extends Specification 
           status: DONE)
 
       def globalOperations = Mock(Compute.GlobalOperations)
+      def forwardingRuleOperationGet = Mock(Compute.GlobalOperations.Get)
       def targetHttpProxiesOperationGet = Mock(Compute.GlobalOperations.Get)
       def urlMapsOperationGet = Mock(Compute.GlobalOperations.Get)
       def backendServicesOperationGet = Mock(Compute.GlobalOperations.Get)
@@ -619,7 +629,9 @@ class DeleteGoogleHttpLoadBalancerAtomicOperationUnitSpec extends Specification 
       1 * healthChecks.delete(PROJECT_NAME, HEALTH_CHECK_NAME) >> healthChecksDelete
       1 * healthChecksDelete.execute() >> healthChecksDeleteOp
 
-      6 * computeMock.globalOperations() >> globalOperations
+      7 * computeMock.globalOperations() >> globalOperations
+      1 * globalOperations.get(PROJECT_NAME, FORWARDING_RULE_DELETE_OP_NAME) >> forwardingRuleOperationGet
+      1 * forwardingRuleOperationGet.execute() >> globalForwardingRulesDeleteOp
       3 * globalOperations.get(PROJECT_NAME, TARGET_HTTP_PROXY_DELETE_OP_NAME) >> targetHttpProxiesOperationGet
       2 * targetHttpProxiesOperationGet.execute() >> targetHttpProxiesDeleteOpPending
       1 * targetHttpProxiesOperationGet.execute() >> targetHttpProxiesDeleteOpDone
@@ -668,6 +680,7 @@ class DeleteGoogleHttpLoadBalancerAtomicOperationUnitSpec extends Specification 
         status: DONE)
 
       def globalOperations = Mock(Compute.GlobalOperations)
+      def forwardingRuleOperationGet = Mock(Compute.GlobalOperations.Get)
       def targetHttpProxiesOperationGet = Mock(Compute.GlobalOperations.Get)
       def urlMapsOperationGet = Mock(Compute.GlobalOperations.Get)
       def healthChecksOperationGet = Mock(Compute.GlobalOperations.Get)
@@ -720,13 +733,203 @@ class DeleteGoogleHttpLoadBalancerAtomicOperationUnitSpec extends Specification 
       1 * healthChecks.delete(PROJECT_NAME, HEALTH_CHECK_NAME) >> healthChecksDelete
       1 * healthChecksDelete.execute() >> healthChecksDeleteOp
 
-      3 * computeMock.globalOperations() >> globalOperations
+      4 * computeMock.globalOperations() >> globalOperations
+      1 * globalOperations.get(PROJECT_NAME, FORWARDING_RULE_DELETE_OP_NAME) >> forwardingRuleOperationGet
+      1 * forwardingRuleOperationGet.execute() >> globalForwardingRulesDeleteOp
       1 * globalOperations.get(PROJECT_NAME, TARGET_HTTP_PROXY_DELETE_OP_NAME) >> targetHttpProxiesOperationGet
       1 * targetHttpProxiesOperationGet.execute() >> targetHttpProxiesDeleteOp
       1 * globalOperations.get(PROJECT_NAME, URL_MAP_DELETE_OP_NAME) >> urlMapsOperationGet
       1 * urlMapsOperationGet.execute() >> urlMapsDeleteOp
       1 * globalOperations.get(PROJECT_NAME, HEALTH_CHECK_DELETE_OP_NAME) >> healthChecksOperationGet
       1 * healthChecksOperationGet.execute() >> healthChecksDeleteOp
+  }
+
+  void "should delete Http Load Balancer whose url map has redirects and a backend service without health checks"() {
+    setup:
+      def computeMock = Mock(Compute)
+      def globalForwardingRules = Mock(Compute.GlobalForwardingRules)
+      def globalForwardingRulesList = Mock(Compute.GlobalForwardingRules.List)
+      def globalForwardingRulesGet = Mock(Compute.GlobalForwardingRules.Get)
+      def globalForwardingRulesDelete = Mock(Compute.GlobalForwardingRules.Delete)
+      def forwardingRule = new ForwardingRule(target: TARGET_HTTP_PROXY_URL, name: HTTP_LOAD_BALANCER_NAME)
+      def targetHttpProxies = Mock(Compute.TargetHttpProxies)
+      def targetHttpProxiesGet = Mock(Compute.TargetHttpProxies.Get)
+      def targetHttpProxiesDelete = Mock(Compute.TargetHttpProxies.Delete)
+      def urlMaps = Mock(Compute.UrlMaps)
+      def urlMapsList = Mock(Compute.UrlMaps.List)
+      def urlMapsDelete = Mock(Compute.UrlMaps.Delete)
+      def redirect = new HttpRedirectAction(httpsRedirect: true)
+      // Compute omits empty lists, so a path matcher without path rules has none at all.
+      def urlMap = new UrlMap(
+        name: URL_MAP_NAME,
+        defaultUrlRedirect: redirect,
+        pathMatchers: [
+          new PathMatcher(name: "matcher-a", defaultService: BACKEND_SERVICE_URL),
+          new PathMatcher(
+            name: "matcher-b",
+            defaultService: BACKEND_SERVICE_URL,
+            pathRules: [new PathRule(paths: ["/old/*"], urlRedirect: redirect)])
+        ])
+      def backendServices = Mock(Compute.BackendServices)
+      def backendServicesGet = Mock(Compute.BackendServices.Get)
+      def backendServicesDelete = Mock(Compute.BackendServices.Delete)
+      def healthChecks = Mock(Compute.HealthChecks)
+      def poller = Mock(GoogleOperationPoller)
+
+      def credentials = new GoogleNamedAccountCredentials.Builder().project(PROJECT_NAME).compute(computeMock).build()
+      def description = new DeleteGoogleLoadBalancerDescription(
+        loadBalancerName: HTTP_LOAD_BALANCER_NAME,
+        accountName: ACCOUNT_NAME,
+        credentials: credentials)
+      @Subject def operation = new DeleteGoogleHttpLoadBalancerAtomicOperation(description)
+      operation.googleOperationPoller = poller
+      operation.registry = registry
+      operation.safeRetry = safeRetry
+
+    when:
+      operation.operate([])
+
+    then:
+      _ * computeMock.globalForwardingRules() >> globalForwardingRules
+      1 * globalForwardingRules.list(PROJECT_NAME) >> globalForwardingRulesList
+      1 * globalForwardingRulesList.execute() >> [items: [forwardingRule]]
+      1 * globalForwardingRules.get(PROJECT_NAME, HTTP_LOAD_BALANCER_NAME) >> globalForwardingRulesGet
+      1 * globalForwardingRulesGet.execute() >> forwardingRule
+      1 * globalForwardingRules.delete(PROJECT_NAME, HTTP_LOAD_BALANCER_NAME) >> globalForwardingRulesDelete
+      1 * globalForwardingRulesDelete.execute() >> new Operation(name: FORWARDING_RULE_DELETE_OP_NAME, status: DONE)
+      _ * computeMock.targetHttpProxies() >> targetHttpProxies
+      _ * targetHttpProxies.get(PROJECT_NAME, TARGET_HTTP_PROXY_NAME) >> targetHttpProxiesGet
+      _ * targetHttpProxiesGet.execute() >> new TargetHttpProxy(urlMap: URL_MAP_URL)
+      1 * targetHttpProxies.delete(PROJECT_NAME, TARGET_HTTP_PROXY_NAME) >> targetHttpProxiesDelete
+      1 * targetHttpProxiesDelete.execute() >> new Operation(name: TARGET_HTTP_PROXY_DELETE_OP_NAME, status: DONE)
+      _ * computeMock.urlMaps() >> urlMaps
+      1 * urlMaps.list(PROJECT_NAME) >> urlMapsList
+      1 * urlMapsList.execute() >> new UrlMapList(items: [urlMap])
+      1 * urlMaps.delete(PROJECT_NAME, URL_MAP_NAME) >> urlMapsDelete
+      1 * urlMapsDelete.execute() >> new Operation(name: URL_MAP_DELETE_OP_NAME, status: DONE)
+      _ * computeMock.backendServices() >> backendServices
+      1 * backendServices.get(PROJECT_NAME, BACKEND_SERVICE_NAME) >> backendServicesGet
+      1 * backendServicesGet.execute() >> new BackendService()
+      1 * backendServices.delete(PROJECT_NAME, BACKEND_SERVICE_NAME) >> backendServicesDelete
+      1 * backendServicesDelete.execute() >> new Operation(name: BACKEND_SERVICE_DELETE_OP_NAME, status: DONE)
+      0 * computeMock.healthChecks()
+      4 * poller.waitForGlobalOperation(*_)
+  }
+
+  void "should #outcome when the url map delete returns no operation because the url map is #state"() {
+    setup:
+      def computeMock = Mock(Compute)
+      def globalForwardingRules = Mock(Compute.GlobalForwardingRules)
+      def globalForwardingRulesList = Mock(Compute.GlobalForwardingRules.List)
+      def globalForwardingRulesGet = Mock(Compute.GlobalForwardingRules.Get)
+      def globalForwardingRulesDelete = Mock(Compute.GlobalForwardingRules.Delete)
+      def forwardingRule = new ForwardingRule(target: TARGET_HTTP_PROXY_URL, name: HTTP_LOAD_BALANCER_NAME)
+      def targetHttpProxies = Mock(Compute.TargetHttpProxies)
+      def targetHttpProxiesGet = Mock(Compute.TargetHttpProxies.Get)
+      def targetHttpProxiesDelete = Mock(Compute.TargetHttpProxies.Delete)
+      def urlMaps = Mock(Compute.UrlMaps)
+      def urlMapsList = Mock(Compute.UrlMaps.List)
+      def urlMapsDelete = Mock(Compute.UrlMaps.Delete)
+      def urlMapsGet = Mock(Compute.UrlMaps.Get)
+      def urlMap = new UrlMap(defaultService: BACKEND_SERVICE_URL, name: URL_MAP_NAME)
+      def backendServices = Mock(Compute.BackendServices)
+      def backendServicesGet = Mock(Compute.BackendServices.Get)
+      def backendServicesDelete = Mock(Compute.BackendServices.Delete)
+      def healthChecks = Mock(Compute.HealthChecks)
+      def healthChecksDelete = Mock(Compute.HealthChecks.Delete)
+      def poller = Mock(GoogleOperationPoller)
+
+      def credentials = new GoogleNamedAccountCredentials.Builder().project(PROJECT_NAME).compute(computeMock).build()
+      def description = new DeleteGoogleLoadBalancerDescription(
+        loadBalancerName: HTTP_LOAD_BALANCER_NAME,
+        accountName: ACCOUNT_NAME,
+        credentials: credentials)
+      @Subject def operation = new DeleteGoogleHttpLoadBalancerAtomicOperation(description)
+      operation.googleOperationPoller = poller
+      operation.registry = registry
+      operation.safeRetry = safeRetry
+
+    when:
+      def error = null
+      try {
+        operation.operate([])
+      } catch (IllegalStateException e) {
+        error = e
+      }
+
+    then:
+      _ * computeMock.globalForwardingRules() >> globalForwardingRules
+      1 * globalForwardingRules.list(PROJECT_NAME) >> globalForwardingRulesList
+      1 * globalForwardingRulesList.execute() >> [items: [forwardingRule]]
+      1 * globalForwardingRules.get(PROJECT_NAME, HTTP_LOAD_BALANCER_NAME) >> globalForwardingRulesGet
+      1 * globalForwardingRulesGet.execute() >> forwardingRule
+      1 * globalForwardingRules.delete(PROJECT_NAME, HTTP_LOAD_BALANCER_NAME) >> globalForwardingRulesDelete
+      1 * globalForwardingRulesDelete.execute() >> new Operation(name: FORWARDING_RULE_DELETE_OP_NAME, status: DONE)
+      _ * computeMock.targetHttpProxies() >> targetHttpProxies
+      _ * targetHttpProxies.get(PROJECT_NAME, TARGET_HTTP_PROXY_NAME) >> targetHttpProxiesGet
+      _ * targetHttpProxiesGet.execute() >> new TargetHttpProxy(urlMap: URL_MAP_URL)
+      1 * targetHttpProxies.delete(PROJECT_NAME, TARGET_HTTP_PROXY_NAME) >> targetHttpProxiesDelete
+      1 * targetHttpProxiesDelete.execute() >> new Operation(name: TARGET_HTTP_PROXY_DELETE_OP_NAME, status: DONE)
+      _ * computeMock.urlMaps() >> urlMaps
+      1 * urlMaps.list(PROJECT_NAME) >> urlMapsList
+      1 * urlMapsList.execute() >> new UrlMapList(items: [urlMap])
+      _ * urlMaps.delete(PROJECT_NAME, URL_MAP_NAME) >> urlMapsDelete
+      (1.._) * urlMapsDelete.execute() >> { throw GoogleApiTestUtils.makeGoogleJsonResponseException(deleteStatus, deleteReason) }
+      1 * urlMaps.get(PROJECT_NAME, URL_MAP_NAME) >> urlMapsGet
+      1 * urlMapsGet.execute() >> { stillExists ? urlMap : { throw GoogleApiTestUtils.makeGoogleJsonResponseException(404) }() }
+      _ * computeMock.backendServices() >> backendServices
+      1 * backendServices.get(PROJECT_NAME, BACKEND_SERVICE_NAME) >> backendServicesGet
+      1 * backendServicesGet.execute() >> new BackendService(healthChecks: [HEALTH_CHECK_URL])
+      (stillExists ? 0 : 1) * backendServices.delete(PROJECT_NAME, BACKEND_SERVICE_NAME) >> backendServicesDelete
+      (stillExists ? 0 : 1) * backendServicesDelete.execute() >> new Operation(name: BACKEND_SERVICE_DELETE_OP_NAME, status: DONE)
+      _ * computeMock.healthChecks() >> healthChecks
+      (stillExists ? 0 : 1) * healthChecks.delete(PROJECT_NAME, HEALTH_CHECK_NAME) >> healthChecksDelete
+      (stillExists ? 0 : 1) * healthChecksDelete.execute() >> new Operation(name: HEALTH_CHECK_DELETE_OP_NAME, status: DONE)
+      (stillExists ? 2 : 4) * poller.waitForGlobalOperation(*_)
+      stillExists ? error.message.contains("URL map $URL_MAP_NAME is still used by another resource") : error == null
+
+    where:
+      state          | deleteStatus | deleteReason                     | stillExists || outcome
+      "still in use" | 400          | "resourceInUseByAnotherResource" | true        || "fail with a clear error"
+      "already gone" | 404          | null                             | false       || "keep deleting"
+  }
+
+  void "should fail to delete Http Load Balancer whose url map is gone"() {
+    setup:
+      def computeMock = Mock(Compute)
+      def globalForwardingRules = Mock(Compute.GlobalForwardingRules)
+      def globalForwardingRulesList = Mock(Compute.GlobalForwardingRules.List)
+      def forwardingRule = new ForwardingRule(target: TARGET_HTTP_PROXY_URL, name: HTTP_LOAD_BALANCER_NAME)
+      def targetHttpProxies = Mock(Compute.TargetHttpProxies)
+      def targetHttpProxiesGet = Mock(Compute.TargetHttpProxies.Get)
+      def urlMaps = Mock(Compute.UrlMaps)
+      def urlMapsList = Mock(Compute.UrlMaps.List)
+
+      def credentials = new GoogleNamedAccountCredentials.Builder().project(PROJECT_NAME).compute(computeMock).build()
+      def description = new DeleteGoogleLoadBalancerDescription(
+        loadBalancerName: HTTP_LOAD_BALANCER_NAME,
+        accountName: ACCOUNT_NAME,
+        credentials: credentials)
+      @Subject def operation = new DeleteGoogleHttpLoadBalancerAtomicOperation(description)
+      operation.googleOperationPoller = Mock(GoogleOperationPoller)
+      operation.registry = registry
+      operation.safeRetry = safeRetry
+
+    when:
+      operation.operate([])
+
+    then:
+      _ * computeMock.globalForwardingRules() >> globalForwardingRules
+      1 * globalForwardingRules.list(PROJECT_NAME) >> globalForwardingRulesList
+      1 * globalForwardingRulesList.execute() >> [items: [forwardingRule]]
+      _ * computeMock.targetHttpProxies() >> targetHttpProxies
+      _ * targetHttpProxies.get(PROJECT_NAME, TARGET_HTTP_PROXY_NAME) >> targetHttpProxiesGet
+      _ * targetHttpProxiesGet.execute() >> new TargetHttpProxy(urlMap: URL_MAP_URL)
+      _ * computeMock.urlMaps() >> urlMaps
+      1 * urlMaps.list(PROJECT_NAME) >> urlMapsList
+      1 * urlMapsList.execute() >> new UrlMapList(items: [])
+      0 * globalForwardingRules.delete(_, _)
+      thrown GoogleResourceNotFoundException
   }
 
   void "should fail if server group still associated"() {

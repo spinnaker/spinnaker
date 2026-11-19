@@ -22,7 +22,6 @@ import com.netflix.spectator.api.DefaultRegistry
 import com.netflix.spinnaker.clouddriver.data.task.Task
 import com.netflix.spinnaker.clouddriver.data.task.TaskRepository
 import com.netflix.spinnaker.clouddriver.google.config.GoogleConfigurationProperties
-import com.netflix.spinnaker.clouddriver.google.deploy.GCEUtil
 import com.netflix.spinnaker.clouddriver.google.deploy.GoogleOperationPoller
 import com.netflix.spinnaker.clouddriver.google.deploy.SafeRetry
 import com.netflix.spinnaker.clouddriver.google.deploy.description.DeleteGoogleLoadBalancerDescription
@@ -102,6 +101,7 @@ class DeleteGoogleSslLoadBalancerAtomicOperationUnitSpec extends Specification {
         status: DONE)
 
       def globalOperations = Mock(Compute.GlobalOperations)
+      def forwardingRuleOperationGet = Mock(Compute.GlobalOperations.Get)
       def targetSslProxiesOperationGet = Mock(Compute.GlobalOperations.Get)
       def backendServicesOperationGet = Mock(Compute.GlobalOperations.Get)
       def healthChecksOperationGet = Mock(Compute.GlobalOperations.Get)
@@ -156,7 +156,10 @@ class DeleteGoogleSslLoadBalancerAtomicOperationUnitSpec extends Specification {
       1 * healthChecks.delete(PROJECT_NAME, HEALTH_CHECK_NAME) >> healthChecksDelete
       1 * healthChecksDelete.execute() >> healthChecksDeleteOp
 
-      3 * computeMock.globalOperations() >> globalOperations
+      4 * computeMock.globalOperations() >> globalOperations
+
+      1 * globalOperations.get(PROJECT_NAME, FORWARDING_RULE_DELETE_OP_NAME) >> forwardingRuleOperationGet
+      1 * forwardingRuleOperationGet.execute() >> globalForwardingRulesDeleteOp
 
       1 * globalOperations.get(PROJECT_NAME, TARGET_SSL_PROXY_DELETE_OP_NAME) >> targetSslProxiesOperationGet
       1 * targetSslProxiesOperationGet.execute() >> targetSslProxiesDeleteOp
@@ -229,9 +232,9 @@ class DeleteGoogleSslLoadBalancerAtomicOperationUnitSpec extends Specification {
       def targetSslProxiesDeleteOp = new Operation(
         name: TARGET_SSL_PROXY_DELETE_OP_NAME,
         status: PENDING)
-      GCEUtil.deleteGlobalListener(computeMock, PROJECT_NAME, SSL_LOAD_BALANCER_NAME, BASE_PHASE, safeRetry) >> targetSslProxiesDeleteOp
 
       def globalOperations = Mock(Compute.GlobalOperations)
+      def forwardingRuleOperationGet = Mock(Compute.GlobalOperations.Get)
       def targetSslProxiesOperationGet = Mock(Compute.GlobalOperations.Get)
 
       def credentials = new GoogleNamedAccountCredentials.Builder().project(PROJECT_NAME).compute(computeMock).build()
@@ -279,7 +282,10 @@ class DeleteGoogleSslLoadBalancerAtomicOperationUnitSpec extends Specification {
       1 * targetSslProxies.delete(PROJECT_NAME, TARGET_SSL_PROXY_NAME) >> targetSslProxiesDel
       1 * targetSslProxiesDel.execute() >> targetSslProxiesDeleteOp
 
-      1 * computeMock.globalOperations() >> globalOperations
+      2 * computeMock.globalOperations() >> globalOperations
+
+      1 * globalOperations.get(PROJECT_NAME, FORWARDING_RULE_DELETE_OP_NAME) >> forwardingRuleOperationGet
+      1 * forwardingRuleOperationGet.execute() >> globalForwardingRulesDeleteOp
 
       1 * globalOperations.get(PROJECT_NAME, TARGET_SSL_PROXY_DELETE_OP_NAME) >> targetSslProxiesOperationGet
       1 * targetSslProxiesOperationGet.execute() >> targetSslProxiesDeleteOp

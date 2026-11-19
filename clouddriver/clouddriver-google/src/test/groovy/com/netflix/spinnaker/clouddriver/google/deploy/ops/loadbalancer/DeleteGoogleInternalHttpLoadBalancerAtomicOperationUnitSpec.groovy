@@ -22,7 +22,6 @@ import com.netflix.spectator.api.DefaultRegistry
 import com.netflix.spinnaker.clouddriver.data.task.Task
 import com.netflix.spinnaker.clouddriver.data.task.TaskRepository
 import com.netflix.spinnaker.clouddriver.google.config.GoogleConfigurationProperties
-import com.netflix.spinnaker.clouddriver.google.deploy.GCEUtil
 import com.netflix.spinnaker.clouddriver.google.deploy.GoogleOperationPoller
 import com.netflix.spinnaker.clouddriver.google.deploy.SafeRetry
 import com.netflix.spinnaker.clouddriver.google.deploy.description.DeleteGoogleLoadBalancerDescription
@@ -108,6 +107,7 @@ class DeleteGoogleInternalHttpLoadBalancerAtomicOperationUnitSpec extends Specif
           status: DONE)
 
       def regionOperations = Mock(Compute.RegionOperations)
+      def forwardingRuleOperationGet = Mock(Compute.RegionOperations.Get)
       def targetHttpProxiesOperationGet = Mock(Compute.RegionOperations.Get)
       def urlMapsOperationGet = Mock(Compute.RegionOperations.Get)
       def backendServicesOperationGet = Mock(Compute.RegionOperations.Get)
@@ -161,7 +161,9 @@ class DeleteGoogleInternalHttpLoadBalancerAtomicOperationUnitSpec extends Specif
       1 * healthChecks.delete(PROJECT_NAME, REGION, HEALTH_CHECK_NAME) >> healthChecksDelete
       1 * healthChecksDelete.execute() >> healthChecksDeleteOp
 
-      4 * computeMock.regionOperations() >> regionOperations
+      5 * computeMock.regionOperations() >> regionOperations
+      1 * regionOperations.get(PROJECT_NAME, REGION, FORWARDING_RULE_DELETE_OP_NAME) >> forwardingRuleOperationGet
+      1 * forwardingRuleOperationGet.execute() >> regionForwardingRulesDeleteOp
       1 * regionOperations.get(PROJECT_NAME, REGION, TARGET_HTTP_PROXY_DELETE_OP_NAME) >> targetHttpProxiesOperationGet
       1 * targetHttpProxiesOperationGet.execute() >> targetHttpProxiesDeleteOp
       1 * regionOperations.get(PROJECT_NAME, REGION, URL_MAP_DELETE_OP_NAME) >> urlMapsOperationGet
@@ -237,6 +239,7 @@ class DeleteGoogleInternalHttpLoadBalancerAtomicOperationUnitSpec extends Specif
           status: DONE)
 
       def regionOperations = Mock(Compute.RegionOperations)
+      def forwardingRuleOperationGet = Mock(Compute.RegionOperations.Get)
       def targetHttpProxiesOperationGet = Mock(Compute.RegionOperations.Get)
       def urlMapsOperationGet = Mock(Compute.RegionOperations.Get)
       def backendServicesOperationGet = Mock(Compute.RegionOperations.Get)
@@ -305,7 +308,9 @@ class DeleteGoogleInternalHttpLoadBalancerAtomicOperationUnitSpec extends Specif
       1 * healthChecks.delete(PROJECT_NAME, REGION, HEALTH_CHECK_NAME+"2") >> healthChecksDelete2
       1 * healthChecksDelete2.execute() >> healthChecksDeleteOp2
 
-      7 * computeMock.regionOperations() >> regionOperations
+      8 * computeMock.regionOperations() >> regionOperations
+      1 * regionOperations.get(PROJECT_NAME, REGION, FORWARDING_RULE_DELETE_OP_NAME) >> forwardingRuleOperationGet
+      1 * forwardingRuleOperationGet.execute() >> regionForwardingRulesDeleteOp
       1 * regionOperations.get(PROJECT_NAME, REGION, TARGET_HTTP_PROXY_DELETE_OP_NAME) >> targetHttpProxiesOperationGet
       1 * targetHttpProxiesOperationGet.execute() >> targetHttpProxiesDeleteOp
       1 * regionOperations.get(PROJECT_NAME, REGION, URL_MAP_DELETE_OP_NAME) >> urlMapsOperationGet
@@ -345,7 +350,8 @@ class DeleteGoogleInternalHttpLoadBalancerAtomicOperationUnitSpec extends Specif
       1 * computeMock.forwardingRules() >> regionForwardingRules
       1 * regionForwardingRules.list(PROJECT_NAME, REGION) >> regionForwardingRulesList
       1 * regionForwardingRulesList.execute() >> [items: []]
-      thrown GoogleResourceNotFoundException
+      def e = thrown(GoogleResourceNotFoundException)
+      e.message.contains("If an earlier delete removed it, its target proxy, URL map, backend services and health checks")
   }
 
   void "should fail to delete Internal Http Load Balancer if failed to delete a resource"() {
@@ -392,6 +398,7 @@ class DeleteGoogleInternalHttpLoadBalancerAtomicOperationUnitSpec extends Specif
           error: new Operation.Error(errors: [new Operation.Error.Errors(message: "error")]))
 
       def regionOperations = Mock(Compute.RegionOperations)
+      def forwardingRuleOperationGet = Mock(Compute.RegionOperations.Get)
       def targetHttpProxiesOperationGet = Mock(Compute.RegionOperations.Get)
       def urlMapsOperationGet = Mock(Compute.RegionOperations.Get)
       def backendServicesOperationGet = Mock(Compute.RegionOperations.Get)
@@ -445,7 +452,9 @@ class DeleteGoogleInternalHttpLoadBalancerAtomicOperationUnitSpec extends Specif
       1 * healthChecks.delete(PROJECT_NAME, REGION, HEALTH_CHECK_NAME) >> healthChecksDelete
       1 * healthChecksDelete.execute() >> healthChecksPendingDeleteOp
 
-      4 * computeMock.regionOperations() >> regionOperations
+      5 * computeMock.regionOperations() >> regionOperations
+      1 * regionOperations.get(PROJECT_NAME, REGION, FORWARDING_RULE_DELETE_OP_NAME) >> forwardingRuleOperationGet
+      1 * forwardingRuleOperationGet.execute() >> regionForwardingRulesDeleteOp
       1 * regionOperations.get(PROJECT_NAME, REGION, TARGET_HTTP_PROXY_DELETE_OP_NAME) >> targetHttpProxiesOperationGet
       1 * targetHttpProxiesOperationGet.execute() >> targetHttpProxiesDeleteOp
       1 * regionOperations.get(PROJECT_NAME, REGION, URL_MAP_DELETE_OP_NAME) >> urlMapsOperationGet
@@ -490,7 +499,6 @@ class DeleteGoogleInternalHttpLoadBalancerAtomicOperationUnitSpec extends Specif
           accountName: ACCOUNT_NAME,
           credentials: credentials)
      @Subject def operation = new DeleteGoogleInternalHttpLoadBalancerAtomicOperation(description)
-     GCEUtil.deleteGlobalListener(computeMock, PROJECT_NAME, HTTP_LOAD_BALANCER_NAME, BASE_PHASE, safeRetry, operation) >> targetHttpProxiesDeleteOp
      operation.googleOperationPoller =
         new GoogleOperationPoller(
           googleConfigurationProperties: new GoogleConfigurationProperties(),
@@ -505,11 +513,12 @@ class DeleteGoogleInternalHttpLoadBalancerAtomicOperationUnitSpec extends Specif
       operation.operate([])
 
     then:
-      3 * computeMock.forwardingRules() >> regionForwardingRules
+      4 * computeMock.forwardingRules() >> regionForwardingRules
       1 * regionForwardingRules.list(PROJECT_NAME, REGION) >> regionForwardingRulesList
       1 * regionForwardingRulesList.execute() >> [items: [forwardingRule]]
-      1 * regionForwardingRules.get(PROJECT_NAME, REGION, HTTP_LOAD_BALANCER_NAME) >> regionForwardingRulesGet
-      1 * regionForwardingRulesGet.execute() >> forwardingRule
+      // The rule delete returns no operation, so the rule is read again and is gone.
+      2 * regionForwardingRules.get(PROJECT_NAME, REGION, HTTP_LOAD_BALANCER_NAME) >> regionForwardingRulesGet
+      2 * regionForwardingRulesGet.execute() >>> [forwardingRule, null]
       3 * computeMock.regionTargetHttpProxies() >> targetHttpProxies
       2 * targetHttpProxies.get(PROJECT_NAME, REGION, TARGET_HTTP_PROXY_NAME) >> targetHttpProxiesGet
       2 * targetHttpProxiesGet.execute() >> targetHttpProxy
@@ -574,6 +583,7 @@ class DeleteGoogleInternalHttpLoadBalancerAtomicOperationUnitSpec extends Specif
           status: DONE)
 
       def regionOperations = Mock(Compute.RegionOperations)
+      def forwardingRuleOperationGet = Mock(Compute.RegionOperations.Get)
       def targetHttpProxiesOperationGet = Mock(Compute.RegionOperations.Get)
       def urlMapsOperationGet = Mock(Compute.RegionOperations.Get)
       def backendServicesOperationGet = Mock(Compute.RegionOperations.Get)
@@ -627,7 +637,9 @@ class DeleteGoogleInternalHttpLoadBalancerAtomicOperationUnitSpec extends Specif
       1 * healthChecks.delete(PROJECT_NAME, REGION, HEALTH_CHECK_NAME) >> healthChecksDelete
       1 * healthChecksDelete.execute() >> healthChecksDeleteOp
 
-      6 * computeMock.regionOperations() >> regionOperations
+      7 * computeMock.regionOperations() >> regionOperations
+      1 * regionOperations.get(PROJECT_NAME, REGION, FORWARDING_RULE_DELETE_OP_NAME) >> forwardingRuleOperationGet
+      1 * forwardingRuleOperationGet.execute() >> regionForwardingRulesDeleteOp
       3 * regionOperations.get(PROJECT_NAME, REGION, TARGET_HTTP_PROXY_DELETE_OP_NAME) >> targetHttpProxiesOperationGet
       2 * targetHttpProxiesOperationGet.execute() >> targetHttpProxiesDeleteOpPending
       1 * targetHttpProxiesOperationGet.execute() >> targetHttpProxiesDeleteOpDone
@@ -676,6 +688,7 @@ class DeleteGoogleInternalHttpLoadBalancerAtomicOperationUnitSpec extends Specif
         status: DONE)
 
       def regionOperations = Mock(Compute.RegionOperations)
+      def forwardingRuleOperationGet = Mock(Compute.RegionOperations.Get)
       def targetHttpProxiesOperationGet = Mock(Compute.RegionOperations.Get)
       def urlMapsOperationGet = Mock(Compute.RegionOperations.Get)
       def healthChecksOperationGet = Mock(Compute.RegionOperations.Get)
@@ -729,7 +742,9 @@ class DeleteGoogleInternalHttpLoadBalancerAtomicOperationUnitSpec extends Specif
       1 * healthChecks.delete(PROJECT_NAME, REGION, HEALTH_CHECK_NAME) >> healthChecksDelete
       1 * healthChecksDelete.execute() >> healthChecksDeleteOp
 
-      3 * computeMock.regionOperations() >> regionOperations
+      4 * computeMock.regionOperations() >> regionOperations
+      1 * regionOperations.get(PROJECT_NAME, REGION, FORWARDING_RULE_DELETE_OP_NAME) >> forwardingRuleOperationGet
+      1 * forwardingRuleOperationGet.execute() >> regionForwardingRulesDeleteOp
       1 * regionOperations.get(PROJECT_NAME, REGION, TARGET_HTTP_PROXY_DELETE_OP_NAME) >> targetHttpProxiesOperationGet
       1 * targetHttpProxiesOperationGet.execute() >> targetHttpProxiesDeleteOp
       1 * regionOperations.get(PROJECT_NAME, REGION, URL_MAP_DELETE_OP_NAME) >> urlMapsOperationGet

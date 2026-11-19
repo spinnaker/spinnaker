@@ -1216,6 +1216,9 @@ public abstract class AbstractUpsertGoogleRegionalHttpLoadBalancerAtomicOperatio
         region,
         forwardingRuleName,
         getBasePhase(),
+        null,
+        getTask(),
+        googleOperationPoller,
         getSafeRetry(),
         AbstractUpsertGoogleRegionalHttpLoadBalancerAtomicOperation.this);
   }
