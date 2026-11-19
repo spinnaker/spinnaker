@@ -289,7 +289,8 @@ class CopyLastAsgAtomicOperation implements AtomicOperation<DeploymentResult> {
         newDescription.capacity.min = description.capacity?.min != null ? description.capacity.min : ancestorAsg.minSize()
         newDescription.capacity.max = description.capacity?.max != null ? description.capacity.max : ancestorAsg.maxSize()
         newDescription.capacity.desired = description.capacity?.desired != null ? description.capacity.desired : ancestorAsg.desiredCapacity()
-        newDescription.keyPair = description.keyPair ?: (sourceIsTarget ? keyName : description.credentials.defaultKeyPair)
+        // an empty key pair is kept so that the new server group launches instances without a key pair
+        newDescription.keyPair = description.keyPair != null ? description.keyPair : (sourceIsTarget ? keyName : description.credentials.defaultKeyPair)
         newDescription.associatePublicIpAddress = description.associatePublicIpAddress != null ? description.associatePublicIpAddress : associatePublicIpAddress
         newDescription.cooldown = description.cooldown != null ? description.cooldown : ancestorAsg.defaultCooldown()
         newDescription.enabledMetrics = description.enabledMetrics != null ? description.enabledMetrics : ancestorAsg.enabledMetrics()*.metric
