@@ -33,7 +33,6 @@ import com.netflix.spinnaker.security.AccessControlled;
 import com.netflix.spinnaker.security.AuthenticatedRequest;
 import com.netflix.spinnaker.security.UserPermissionEvaluator;
 import java.io.Serializable;
-import java.util.Arrays;
 import java.util.Collections;
 import java.util.Map;
 import java.util.Optional;
@@ -258,16 +257,6 @@ public class FiatPermissionEvaluator implements UserPermissionEvaluator {
     authorizationFailure.set(
         hasPermission ? null : new AuthorizationFailure(a, r, resourceName.toString()));
 
-    if (permission != null && permission.isLegacyFallback() && hasPermission) {
-      // log any access that was granted as part of a legacy fallback.
-      if (a == Authorization.READ) {
-        // purposely logging at 'debug' as 'READ' will be sufficiently more verbose
-        log.debug("Legacy fallback granted {} access (type: {}, resource: {})", a, r, resourceName);
-      } else {
-        log.warn("Legacy fallback granted {} access (type: {}, resource: {})", a, r, resourceName);
-      }
-    }
-
     return hasPermission;
   }
 
@@ -301,7 +290,6 @@ public class FiatPermissionEvaluator implements UserPermissionEvaluator {
 
     AtomicBoolean cacheHit = new AtomicBoolean(true);
     AtomicBoolean successfulLookup = new AtomicBoolean(true);
-    AtomicBoolean legacyFallback = new AtomicBoolean(false);
     AtomicReference<Throwable> exception = new AtomicReference<>();
 
     try {
@@ -313,25 +301,11 @@ public class FiatPermissionEvaluator implements UserPermissionEvaluator {
                 try {
                   return AuthenticatedRequest.propagate(
                           () -> {
-                            try {
-                              return retryHandler.retry(
-                                  "getUserPermission for " + loadUserName,
-                                  () ->
-                                      Retrofit2SyncCall.execute(
-                                          fiatService.getUserPermission(loadUserName)));
-                            } catch (Exception e) {
-                              if (!fiatStatus.isLegacyFallbackEnabled()) {
-                                throw e;
-                              }
-
-                              legacyFallback.set(true);
-                              successfulLookup.set(false);
-                              exception.set(e);
-
-                              // this fallback permission will be temporarily cached in the
-                              // permissions cache
-                              return buildFallbackView();
-                            }
+                            return retryHandler.retry(
+                                "getUserPermission for " + loadUserName,
+                                () ->
+                                    Retrofit2SyncCall.execute(
+                                        fiatService.getUserPermission(loadUserName)));
                           })
                       .call();
                 } catch (RuntimeException re) {
@@ -352,24 +326,12 @@ public class FiatPermissionEvaluator implements UserPermissionEvaluator {
 
     if (!successfulLookup.get()) {
       log.error(
-          "Cannot get whole user permission for user {}, reason: {} (fallbackAccounts: {})",
+          "Cannot get whole user permission for user {}, reason: {}",
           username,
-          exception.get().getMessage(),
-          getAccountsForView(view));
-      id = id.withTag("legacyFallback", legacyFallback.get());
+          exception.get().getMessage());
     }
 
     registry.counter(id).increment();
-
-    if (view != null && view.isLegacyFallback() && view.getAccounts().isEmpty()) {
-      // rebuild a potentially stale (could have come from the cache) legacy fallback
-      view = buildFallbackView();
-
-      log.debug(
-          "Rebuilt legacy fallback user permission for {} (fallbackAccounts: {})",
-          username,
-          getAccountsForView(view));
-    }
 
     return view;
   }
@@ -459,43 +421,19 @@ public class FiatPermissionEvaluator implements UserPermissionEvaluator {
         // allow access to any applications w/o explicit permissions
         return true;
       }
-      return permission.isLegacyFallback() || containsAuth.apply(permission.getApplications());
+      return containsAuth.apply(permission.getApplications());
     } else if (resourceType.equals(ResourceType.SERVICE_ACCOUNT)) {
       return permission.getServiceAccounts().stream()
           .anyMatch(view -> view.getName().equalsIgnoreCase(resourceName));
     } else if (resourceType.equals(ResourceType.BUILD_SERVICE)) {
-      return permission.isLegacyFallback() || containsAuth.apply(permission.getBuildServices());
+      return containsAuth.apply(permission.getBuildServices());
     } else if (permission.getExtensionResources() != null
         && permission.getExtensionResources().containsKey(resourceType)) {
       val extensionResources = permission.getExtensionResources().get(resourceType);
-      return permission.isLegacyFallback() || containsAuth.apply(extensionResources);
+      return containsAuth.apply(extensionResources);
     } else {
       return false;
     }
-  }
-
-  private UserPermission.View buildFallbackView() {
-    return new UserPermission.View(
-            new UserPermission()
-                .setId(AuthenticatedRequest.getSpinnakerUser().orElse("anonymous"))
-                .setAccounts(
-                    Arrays.stream(AuthenticatedRequest.getSpinnakerAccounts().orElse("").split(","))
-                        .filter(a -> a != null && !a.isEmpty())
-                        .map(a -> new Account().setName(a))
-                        .collect(Collectors.toSet())))
-        .setLegacyFallback(true)
-        .setAllowAccessToUnknownApplications(true);
-  }
-
-  private String getAccountsForView(UserPermission.View view) {
-    String fallbackAccounts = "''";
-
-    if (view != null && view.getAccounts() != null && !view.getAccounts().isEmpty()) {
-      fallbackAccounts =
-          view.getAccounts().stream().map(Account.View::getName).collect(Collectors.joining(","));
-    }
-
-    return fallbackAccounts;
   }
 
   /*

@@ -90,12 +90,9 @@ public class HeaderAuthConfig {
     // there's no need for callers to support session cookies, and dealing with
     // expiration, etc.
     //
-    // With this, when services.fiat.legacyFallback is false, FiatSessionFilter
-    // doesn't ever do meaningful work because request.getSession() always returns
-    // null, so save some cycles by setting fiat.session-filter.enabled to false.
-    //
-    // When services.fiat.legacyFallback is true, FiatSessionFilter still
-    // invalidates the cache for the user.
+    // With this, FiatSessionFilter doesn't ever do meaningful work because
+    // request.getSession() always returns null, so save some cycles by setting
+    // fiat.session-filter.enabled to false.
     securityContextRepository.setAllowSessionCreation(false);
     requestHeaderAuthenticationFilter.setSecurityContextRepository(securityContextRepository);
     return requestHeaderAuthenticationFilter;

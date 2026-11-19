@@ -21,7 +21,6 @@ import com.github.benmanes.caffeine.cache.Caffeine
 
 import com.netflix.spectator.api.Registry
 import com.netflix.spinnaker.fiat.model.UserPermission
-import com.netflix.spinnaker.fiat.shared.FiatClientConfigurationProperties
 import com.netflix.spinnaker.fiat.shared.FiatPermissionEvaluator
 import com.netflix.spinnaker.fiat.shared.FiatStatus
 import com.netflix.spinnaker.gate.security.AllowedAccountsSupport
@@ -76,9 +75,6 @@ class X509AuthenticationUserDetailsService implements AuthenticationUserDetailsS
 
   @Autowired
   FiatPermissionEvaluator fiatPermissionEvaluator
-
-  @Autowired
-  FiatClientConfigurationProperties fiatClientConfigurationProperties
 
   @Autowired
   FiatStatus fiatStatus
@@ -182,18 +178,15 @@ class X509AuthenticationUserDetailsService implements AuthenticationUserDetailsS
           id = id.withTag("success", true).withTag("fallback", "none")
         } catch (Exception e) {
           log.debug(
-            "Unsuccessful X509 authentication (user: {}, roleCount: {}, roles: {}, legacyFallback: {})",
+            "Unsuccessful X509 authentication (user: {}, roleCount: {}, roles: {})",
             email,
             roles.size(),
             roles,
-            fiatClientConfigurationProperties.legacyFallback,
             e
           )
-          id = id.withTag("success", false).withTag("fallback", fiatClientConfigurationProperties.legacyFallback)
+          id = id.withTag("success", false).withTag("fallback", "none")
 
-          if (!fiatClientConfigurationProperties.legacyFallback) {
-            throw e
-          }
+          throw e
         } finally {
           registry.counter(id).increment()
         }

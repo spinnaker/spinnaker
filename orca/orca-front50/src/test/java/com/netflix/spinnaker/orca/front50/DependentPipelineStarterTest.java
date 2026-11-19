@@ -71,7 +71,7 @@ class DependentPipelineStarterTest {
   }
 
   @Test
-  void shouldOnlyPropagateCredentialsWhenExplicitlyProvided() {
+  void shouldPropagateUserButNeverAccounts() {
     // given
     Map<String, Object> triggeredPipelineConfig = new HashMap<>();
     triggeredPipelineConfig.put("name", "triggered");
@@ -132,7 +132,7 @@ class DependentPipelineStarterTest {
 
     assertThat(result.getName()).isEqualTo("triggered");
     assertThat(gotMDC.get("X-SPINNAKER-USER")).isEqualTo("user");
-    assertThat(gotMDC.get("X-SPINNAKER-ACCOUNTS")).isEqualTo("acct3,acct4");
+    assertThat(gotMDC.get("X-SPINNAKER-ACCOUNTS")).isNull();
 
     // Test without authenticated user
     result =

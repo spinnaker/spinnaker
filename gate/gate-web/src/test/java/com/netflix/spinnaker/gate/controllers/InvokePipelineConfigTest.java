@@ -23,7 +23,6 @@ import static com.github.tomakehurst.wiremock.client.WireMock.postRequestedFor;
 import static com.github.tomakehurst.wiremock.client.WireMock.urlMatching;
 import static com.github.tomakehurst.wiremock.client.WireMock.urlPathEqualTo;
 import static com.github.tomakehurst.wiremock.core.WireMockConfiguration.wireMockConfig;
-import static com.netflix.spinnaker.kork.common.Header.ACCOUNTS;
 import static com.netflix.spinnaker.kork.common.Header.REQUEST_ID;
 import static com.netflix.spinnaker.kork.common.Header.USER;
 import static org.mockito.ArgumentMatchers.anyBoolean;
@@ -555,9 +554,6 @@ class InvokePipelineConfigTest {
         .characterEncoding(StandardCharsets.UTF_8.toString())
         .header(USER.getHeader(), USERNAME)
         .header(REQUEST_ID.getHeader(), SUBMITTED_REQUEST_ID)
-        .header(
-            ACCOUNTS.getHeader(),
-            ACCOUNT) // to silence warning when X-SPINNAKER-ACCOUNTS is missing
         .content(objectMapper.writeValueAsString(TRIGGER));
   }
 

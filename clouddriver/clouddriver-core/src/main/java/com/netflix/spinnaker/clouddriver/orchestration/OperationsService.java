@@ -16,7 +16,6 @@
 package com.netflix.spinnaker.clouddriver.orchestration;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.google.common.base.Splitter;
 import com.netflix.spectator.api.Id;
 import com.netflix.spectator.api.Registry;
 import com.netflix.spinnaker.clouddriver.data.task.SagaId;
@@ -29,11 +28,9 @@ import com.netflix.spinnaker.clouddriver.orchestration.sagas.SnapshotAtomicOpera
 import com.netflix.spinnaker.clouddriver.saga.models.Saga;
 import com.netflix.spinnaker.clouddriver.saga.persistence.SagaRepository;
 import com.netflix.spinnaker.clouddriver.security.AccountCredentialsRepository;
-import com.netflix.spinnaker.clouddriver.security.AllowedAccountsValidator;
 import com.netflix.spinnaker.kork.exceptions.SystemException;
 import com.netflix.spinnaker.kork.web.exceptions.ExceptionMessageDecorator;
 import com.netflix.spinnaker.orchestration.OperationDescription;
-import com.netflix.spinnaker.security.AuthenticatedRequest;
 import java.lang.reflect.Method;
 import java.util.ArrayList;
 import java.util.Collection;
@@ -57,11 +54,8 @@ import org.springframework.validation.ObjectError;
 @Slf4j
 public class OperationsService {
 
-  private final Splitter COMMA_SPLITTER = Splitter.on(",");
-
   private final AtomicOperationsRegistry atomicOperationsRegistry;
   private final List<DescriptionAuthorizer> descriptionAuthorizers;
-  private final Collection<AllowedAccountsValidator> allowedAccountValidators;
   private final List<AtomicOperationDescriptionPreProcessor>
       atomicOperationDescriptionPreProcessors;
   private final AccountCredentialsRepository accountCredentialsRepository;
@@ -75,7 +69,6 @@ public class OperationsService {
   public OperationsService(
       AtomicOperationsRegistry atomicOperationsRegistry,
       List<DescriptionAuthorizer> descriptionAuthorizers,
-      Optional<Collection<AllowedAccountsValidator>> allowedAccountValidators,
       Optional<List<AtomicOperationDescriptionPreProcessor>>
           atomicOperationDescriptionPreProcessors,
       AccountCredentialsRepository accountCredentialsRepository,
@@ -85,7 +78,6 @@ public class OperationsService {
       ExceptionMessageDecorator exceptionMessageDecorator) {
     this.atomicOperationsRegistry = atomicOperationsRegistry;
     this.descriptionAuthorizers = descriptionAuthorizers;
-    this.allowedAccountValidators = allowedAccountValidators.orElse(Collections.emptyList());
     this.atomicOperationDescriptionPreProcessors =
         atomicOperationDescriptionPreProcessors.orElse(Collections.emptyList());
     this.accountCredentialsRepository = accountCredentialsRepository;
@@ -122,10 +114,6 @@ public class OperationsService {
 
   private List<AtomicOperationBindingResult> convert(
       @Nullable String cloudProvider, @Nonnull List<Map<String, Map<String, Object>>> inputs) {
-
-    String username = AuthenticatedRequest.getSpinnakerUser().orElse("unknown");
-    List<String> allowedAccounts =
-        COMMA_SPLITTER.splitToList(AuthenticatedRequest.getSpinnakerAccounts().orElse(""));
 
     List<OperationDescription> descriptions = new ArrayList<>();
     return inputs.stream()
@@ -179,9 +167,6 @@ public class OperationsService {
                             // TODO(rz): Assert description is T
                             validator.validate(descriptions, description, errors);
                           }
-
-                          allowedAccountValidators.forEach(
-                              it -> it.validate(username, allowedAccounts, description, errors));
 
                           if (description != null) {
                             DescriptionAuthorizer descriptionAuthorizer =

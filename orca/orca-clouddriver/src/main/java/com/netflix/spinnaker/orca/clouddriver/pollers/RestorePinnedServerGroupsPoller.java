@@ -149,12 +149,10 @@ public class RestorePinnedServerGroupsPoller extends AbstractPollingNotification
       try {
         List<Map<String, Object>> jobs = new ArrayList<>();
         jobs.add(buildDeleteEntityTagsOperation(pinnedServerGroupTag));
-        var allowedAccount = Collections.singletonList(pinnedServerGroupTag.account);
 
         Optional<ServerGroup> serverGroup =
             AuthenticatedRequest.runAs(
                     username,
-                    allowedAccount,
                     () ->
                         pollerSupport.fetchServerGroup(
                             pinnedServerGroupTag.account,
@@ -181,7 +179,6 @@ public class RestorePinnedServerGroupsPoller extends AbstractPollingNotification
 
         AuthenticatedRequest.runAs(
                 username,
-                allowedAccount,
                 () -> executionLauncher.start(ExecutionType.ORCHESTRATION, cleanupOperation))
             .call();
 

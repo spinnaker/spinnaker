@@ -175,7 +175,7 @@ class EchoNotifyingExecutionListener implements ExecutionListener {
     def user = pipeline.authentication?.user
     ApplicationNotifications notifications
     if (user) {
-      notifications = AuthenticatedRequest.runAs(user, pipeline.authentication.allowedAccounts ?: [] as Collection<String>, {
+      notifications = AuthenticatedRequest.runAs(user, {
         Retrofit2SyncCall.execute(front50Service.getApplicationNotifications(pipeline.application))
       }).call()
     } else {

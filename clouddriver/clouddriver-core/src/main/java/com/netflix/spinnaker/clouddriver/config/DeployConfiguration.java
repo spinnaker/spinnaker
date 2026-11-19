@@ -35,7 +35,6 @@ import com.netflix.spinnaker.clouddriver.orchestration.OrchestrationProcessor;
 import com.netflix.spinnaker.clouddriver.orchestration.events.OperationEventHandler;
 import com.netflix.spinnaker.clouddriver.saga.persistence.SagaRepository;
 import com.netflix.spinnaker.clouddriver.security.AccountCredentialsRepository;
-import com.netflix.spinnaker.clouddriver.security.AllowedAccountsValidator;
 import com.netflix.spinnaker.kork.web.context.RequestContextProvider;
 import com.netflix.spinnaker.kork.web.exceptions.ExceptionMessageDecorator;
 import com.netflix.spinnaker.kork.web.exceptions.ExceptionSummaryService;
@@ -104,7 +103,6 @@ class DeployConfiguration {
   OperationsService operationsService(
       AtomicOperationsRegistry atomicOperationsRegistry,
       List<DescriptionAuthorizer> descriptionAuthorizers,
-      Optional<Collection<AllowedAccountsValidator>> allowedAccountsValidators,
       Optional<List<AtomicOperationDescriptionPreProcessor>>
           atomicOperationDescriptionPreProcessors,
       AccountCredentialsRepository accountCredentialsRepository,
@@ -115,7 +113,6 @@ class DeployConfiguration {
     return new OperationsService(
         atomicOperationsRegistry,
         descriptionAuthorizers,
-        allowedAccountsValidators,
         atomicOperationDescriptionPreProcessors,
         accountCredentialsRepository,
         sagaRepository,

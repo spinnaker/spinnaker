@@ -17,9 +17,12 @@
 package com.netflix.spinnaker.clouddriver.controllers
 
 import com.netflix.spinnaker.clouddriver.model.DataProvider
-import com.netflix.spinnaker.kork.web.context.AuthenticatedRequestContextProvider
-import com.netflix.spinnaker.kork.web.context.RequestContextProvider
+import com.netflix.spinnaker.fiat.shared.FiatPermissionEvaluator
+import com.netflix.spinnaker.security.AuthenticatedRequest
 import org.springframework.security.access.AccessDeniedException
+import org.springframework.security.core.Authentication
+import org.springframework.security.core.context.SecurityContextHolder
+import org.springframework.security.authentication.TestingAuthenticationToken
 import spock.lang.Shared
 import spock.lang.Specification
 import spock.lang.Subject
@@ -31,10 +34,10 @@ class DataControllerSpec extends Specification {
   @Shared
   Optional<List<DataProvider>> dataProviders
 
-  @Subject
-  def dataController = new DataController(dataProviders)
+  FiatPermissionEvaluator permissionEvaluator = Mock(FiatPermissionEvaluator)
 
-  RequestContextProvider contextProvider = new AuthenticatedRequestContextProvider()
+  @Subject
+  DataController dataController
 
   void setupSpec() {
     DataProvider dataProvider = Mock(DataProvider) {
@@ -46,26 +49,46 @@ class DataControllerSpec extends Specification {
   }
 
   void setup() {
-    contextProvider.get().setAccounts(null as String)
+    dataController = new DataController(dataProviders, permissionEvaluator)
+    SecurityContextHolder.context.authentication = new TestingAuthenticationToken("user", "pw")
   }
 
+  void cleanup() {
+    SecurityContextHolder.clearContext()
+  }
 
-  def "should verify access to account when fetching static data"() {
+  def "should verify access to account via fiat when fetching static data"() {
     when:
     dataController.getStaticData("restricted", [:])
 
     then:
+    1 * permissionEvaluator.hasPermission(_ as Authentication, "restricted", "ACCOUNT", "READ") >> false
     thrown(AccessDeniedException)
 
     when:
-    contextProvider.get().setAccounts("restricted")
     dataController.getStaticData("restricted", [:])
 
     then:
+    1 * permissionEvaluator.hasPermission(_ as Authentication, "restricted", "ACCOUNT", "READ") >> true
     notThrown(AccessDeniedException)
   }
 
-  def "should deny when fetching adhoc data with no accounts"() {
+  def "should ignore the accounts header when fetching static data"() {
+    given:
+    AuthenticatedRequest.set("X-SPINNAKER-ACCOUNTS", "restricted")
+
+    when:
+    dataController.getStaticData("restricted", [:])
+
+    then:
+    1 * permissionEvaluator.hasPermission(_ as Authentication, "restricted", "ACCOUNT", "READ") >> false
+    thrown(AccessDeniedException)
+
+    cleanup:
+    AuthenticatedRequest.clear()
+  }
+
+  def "should deny when fetching adhoc data without account access"() {
     given:
     def httpServletRequest = Mock(HttpServletRequest)
 
@@ -73,29 +96,21 @@ class DataControllerSpec extends Specification {
     dataController.getAdhocData("groupId", "restricted", httpServletRequest)
 
     then:
+    1 * permissionEvaluator.hasPermission(_ as Authentication, "restricted", "ACCOUNT", "READ") >> false
     thrown(AccessDeniedException)
   }
 
-  def "should allow access to account when fetching adhoc data with correct account"() {
+  def "should allow access when fetching adhoc data with account access"() {
     given:
     def httpServletRequest = Mock(HttpServletRequest)
-    contextProvider.get().setAccounts("restricted")
 
     when:
     dataController.getAdhocData("groupId", "restricted", httpServletRequest)
 
     then:
+    1 * permissionEvaluator.hasPermission(_ as Authentication, "restricted", "ACCOUNT", "READ") >> true
     httpServletRequest.getAttribute(_ as String) >> { return "pattern" }
     httpServletRequest.getServletPath() >> { return "/servlet/path" }
     notThrown(AccessDeniedException)
-  }
-
-  // If the wrong slf4j is on the classpath, this fails. So leaving this test in here for sanity.
-  def "request context works"() {
-    given:
-    contextProvider.get().setAccounts("restricted")
-
-    expect:
-    "restricted".equals(contextProvider.get().getAccounts().get())
   }
 }

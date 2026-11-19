@@ -41,16 +41,16 @@ class PipelineExecutionImplSpec extends Specification {
 
   def "should return Optional.empty if no authenticated details available"() {
     expect:
-    !PipelineExecutionImpl.AuthenticationHelper.build().present
+    !PipelineExecutionImpl.AuthenticationHelper.build([]).present
   }
 
-  def "should build AuthenticationDetails containing authenticated details"() {
+  def "should build AuthenticationDetails with the supplied accounts, ignoring the accounts header"() {
     given:
     MDC.put(Header.USER.header, "SpinnakerUser")
-    MDC.put(Header.ACCOUNTS.header, "Account1,Account2")
+    MDC.put("X-SPINNAKER-ACCOUNTS", "HeaderAccount")
 
     when:
-    def authenticationDetails = PipelineExecutionImpl.AuthenticationHelper.build().get()
+    def authenticationDetails = PipelineExecutionImpl.AuthenticationHelper.build(["Account1", "Account2"]).get()
 
     then:
     authenticationDetails.user == "SpinnakerUser"
@@ -60,7 +60,7 @@ class PipelineExecutionImplSpec extends Specification {
   def "should build AuthenticationDetails without accounts"() {
     given:
     MDC.put(Header.USER.header, "SpinnakerUser")
-    MDC.put(Header.ACCOUNTS.header, "Account1,Account2")
+    MDC.put("X-SPINNAKER-ACCOUNTS", "Account1,Account2")
 
     when:
     def authenticationDetails = PipelineExecutionImpl.AuthenticationHelper.buildWithoutAccounts().get()
