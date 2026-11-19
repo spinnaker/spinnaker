@@ -127,6 +127,8 @@ class BasicAmazonDeployHandlerUnitSpec extends Specification {
     def defaults = new AwsConfiguration.DeployDefaults(iamRole: 'IamRole')
     def credsRepo = Stub(CredentialsRepository) {
       getOne("baz") >> {TestCredential.named("baz")}
+      getOne("emptyKeyPair") >> {TestCredential.named("emptyKeyPair", [defaultKeyPair: ''])}
+      getOne("noKeyPair") >> {TestCredential.named("noKeyPair", [defaultKeyPair: null])}
     }
     this.handler = new BasicAmazonDeployHandler(
       rspf, credsRepo, amazonServerGroupProvider, defaults, scalingPolicyCopier, blockDeviceConfig, Mock(LaunchTemplateRollOutConfig)
@@ -343,6 +345,43 @@ class BasicAmazonDeployHandlerUnitSpec extends Specification {
 
     where:
     unlimitedCreditsInput << [true, false]
+  }
+
+  void "should deploy with key pair '#expectedKeyPair' when '#requestedKeyPair' is requested in account #account"() {
+    setup:
+    def description = new BasicAmazonDeployDescription(
+      amiName: "ami-12345",
+      instanceType: this.instanceType,
+      subnetType: "internal",
+      availabilityZones: ["us-west-1": []],
+      credentials: TestCredential.named(account),
+      keyPair: requestedKeyPair
+    )
+
+    and:
+    def keyPairPassed = "not deployed"
+    AutoScalingWorker.metaClass.deploy = { AsgConfiguration asgCfg ->
+      keyPairPassed = asgCfg.keyPair
+      "foo"
+    }
+
+    when:
+    handler.handle(description, [])
+
+    then:
+    keyPairPassed == expectedKeyPair
+
+    where:
+    account        | requestedKeyPair || expectedKeyPair
+    "baz"          | "my-keypair"     || "my-keypair"      // request wins
+    "baz"          | null             || "default-keypair" // falls back to the account default
+    "baz"          | ""               || null              // explicitly launch without a key pair
+    "emptyKeyPair" | "my-keypair"     || "my-keypair"
+    "emptyKeyPair" | null             || null              // account default is empty
+    "emptyKeyPair" | ""               || null
+    "noKeyPair"    | "my-keypair"     || "my-keypair"
+    "noKeyPair"    | null             || null              // account has no default
+    "noKeyPair"    | ""               || null
   }
 
   void "should set unlimited cpu credits to the default false only if applicable to all instance types"() {
