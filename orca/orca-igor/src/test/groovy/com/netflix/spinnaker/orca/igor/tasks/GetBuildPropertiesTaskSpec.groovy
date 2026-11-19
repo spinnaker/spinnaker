@@ -164,6 +164,22 @@ class GetBuildPropertiesTaskSpec extends Specification {
     result.status == ExecutionStatus.SUCCEEDED
   }
 
+  def "does not fail stage when the gitlab-ci sentinel property file yields no properties"() {
+    given:
+    // GitlabCiStage defaults propertyFile to the "gitlab-ci" sentinel; a GitLab job that emits no
+    // SPINNAKER_PROPERTY_* lines should succeed (log-scrape, nothing to scrape) rather than throw.
+    def stage = createStage("gitlab-ci")
+
+    and:
+    1 * buildService.getPropertyFile(BUILD_NUMBER, "gitlab-ci", MASTER, JOB) >> [:]
+
+    when:
+    TaskResult result = task.execute(stage)
+
+    then:
+    result.status == ExecutionStatus.SUCCEEDED
+  }
+
   def "does not fetch properties if the property file is empty"() {
     given:
     def stage = createStage("")
