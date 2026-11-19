@@ -357,6 +357,9 @@ public class CreateServerGroupLaunchTemplatesEnabledSpec extends AwsBaseSpec {
     assertEquals(
         "standard",
         createLtReq.launchTemplateData().creditSpecification().cpuCredits()); // default for t3 type
+    assertEquals(
+        "default-keypair",
+        createLtReq.launchTemplateData().keyName()); // TestCredential's default key pair
 
     ArgumentCaptor<CreateAutoScalingGroupRequest> createAsgArgs =
         ArgumentCaptor.forClass(CreateAutoScalingGroupRequest.class);
@@ -364,6 +367,56 @@ public class CreateServerGroupLaunchTemplatesEnabledSpec extends AwsBaseSpec {
     CreateAutoScalingGroupRequest createAsgReq = createAsgArgs.getValue();
 
     assertEquals(EXPECTED_LAUNCH_TEMPLATE_SPEC, createAsgReq.launchTemplate());
+  }
+
+  @DisplayName(
+      "Given request for server group with an empty key pair, "
+          + "successfully submit createServerGroup operation with launch template without a key pair")
+  @Test
+  public void createServerGroup_emptyKeyPair_expect_launchTemplateWithoutKeyPair()
+      throws InterruptedException {
+    // given
+    Map<String, Object> requestBody =
+        TestUtils.loadJson(PATH_PREFIX + "createServerGroup-basic.json")
+            .withValue("setLaunchTemplate", true)
+            .withValue("keyPair", "")
+            .withValue("securityGroup", new String[] {"myAwsApp"})
+            .withValue("instanceType", "t3.medium")
+            .asMap();
+
+    // when, then
+    String taskId =
+        given()
+            .contentType(ContentType.JSON)
+            .body(requestBody)
+            .when()
+            .post(getBaseUrl() + CREATE_SERVER_GROUP_OP_PATH)
+            .then()
+            .statusCode(200)
+            .contentType(ContentType.JSON)
+            .body("id", notNullValue())
+            .body("resourceUri", containsString("/task/"))
+            .extract()
+            .path("id");
+
+    // then
+    final String taskHistory = getTaskUpdatesAfterCompletion(taskId);
+    assertTrue(
+        taskHistory.contains(
+            String.format(
+                EXPECTED_DEPLOY_WITH_LT_MSG_FMT,
+                EXPECTED_SERVER_GROUP_NAME,
+                EXPECTED_LAUNCH_TEMPLATE_ID)));
+    assertTrue(taskHistory.contains(EXPECTED_DEPLOY_SUCCESS_MSG));
+
+    // capture and assert arguments
+    ArgumentCaptor<CreateLaunchTemplateRequest> createLaunchTemplateArgs =
+        ArgumentCaptor.forClass(CreateLaunchTemplateRequest.class);
+    verify(mockEc2).createLaunchTemplate(createLaunchTemplateArgs.capture());
+    CreateLaunchTemplateRequest createLtReq = createLaunchTemplateArgs.getValue();
+
+    assertTrue(createLtReq.launchTemplateName().contains("myAwsApp-myStack-v000-"));
+    assertNull(createLtReq.launchTemplateData().keyName());
   }
 
   @DisplayName("Given request with incompatible AMI and instance type, fail with accurate message")
