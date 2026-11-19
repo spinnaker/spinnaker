@@ -7,10 +7,16 @@ import { GceAutoscalingPolicyWriter } from '../../autoscalingPolicy';
 import { GceCloneServerGroupModal } from '../configure/wizard/GceCloneServerGroupModal';
 import { registerGoogleProvider } from '../../gce.module';
 import {
+  GceAutoHealingPolicySection,
+  GceAutoscalingPolicySection,
   GceServerGroupActions,
+  GceServerGroupCustomMetadataSection,
   gceServerGroupDetailsSections,
+  GceServerGroupLabelsSection,
   GceServerGroupLaunchConfigSection,
+  GceServerGroupTagsSection,
 } from './gceServerGroupDetails';
+import { GceServerGroupDiskDescriptions } from './GceServerGroupDiskDescriptions';
 import { GceResizeServerGroupModal } from './resize/GceResizeServerGroupModal';
 import { GceRollbackServerGroupModal } from './rollback/GceRollbackServerGroupModal';
 
@@ -64,7 +70,7 @@ describe('GCE server group details integration', () => {
 
     const sections = CloudProviderRegistry.getValue('gce', 'serverGroup.detailsSections');
     expect(sections).toEqual(gceServerGroupDetailsSections);
-    const policySections = sections.slice(-2);
+    const policySections = policySectionsFrom(sections);
     render(
       <>
         {policySections.map((Section: React.ComponentType<any>, index: number) => (
@@ -86,7 +92,7 @@ describe('GCE server group details integration', () => {
   it('registered policy sections derive read-only summaries from disabled provider state', () => {
     registerGoogleProvider();
     vi.spyOn(CloudProviderRegistry, 'isDisabled').mockReturnValue(true);
-    const policySections = CloudProviderRegistry.getValue('gce', 'serverGroup.detailsSections').slice(-2);
+    const policySections = policySectionsFrom(CloudProviderRegistry.getValue('gce', 'serverGroup.detailsSections'));
     render(
       <>
         {policySections.map((Section: React.ComponentType<any>, index: number) => (
@@ -113,7 +119,7 @@ describe('GCE server group details integration', () => {
       autoscalingPolicy: undefined,
       autoHealingPolicy: undefined,
     };
-    const policySections = CloudProviderRegistry.getValue('gce', 'serverGroup.detailsSections').slice(-2);
+    const policySections = policySectionsFrom(CloudProviderRegistry.getValue('gce', 'serverGroup.detailsSections'));
     render(
       <>
         {policySections.map((Section: React.ComponentType<any>, index: number) => (
@@ -171,6 +177,210 @@ describe('GCE server group details integration', () => {
     expect(definition('Secure Boot')).toBe('false');
     expect(definition('vTPM')).toBe('false');
     expect(definition('Integrity Monitoring')).toBe('false');
+  });
+
+  it('restores image, instance type, and the legacy launch configuration fields', () => {
+    render(
+      <GceServerGroupLaunchConfigSection
+        app={app}
+        serverGroup={{
+          ...serverGroup,
+          network: 'default',
+          subnet: 'default-subnet',
+          launchConfig: {
+            imageId: 'fnord-image-v1',
+            instanceType: 'custom-2-4096',
+            launchConfigurationName: 'fnord-main-v004-template',
+            minCpuPlatform: 'Intel Skylake',
+            instanceTemplate: {
+              name: 'fnord-main-v004-template',
+              properties: {
+                canIpForward: true,
+                disks: [
+                  {
+                    boot: true,
+                    deviceName: 'boot',
+                    initializeParams: {
+                      diskSizeGb: 10,
+                      diskType: 'pd-ssd',
+                      sourceImage: 'https://compute.googleapis.com/projects/p/global/images/fnord-image-v1',
+                    },
+                  },
+                ],
+                metadata: { items: [{ key: 'startup-script', value: 'echo hello' }] },
+                networkInterfaces: [{ accessConfigs: [{ name: 'External NAT' }] }],
+                serviceAccounts: [
+                  {
+                    email: 'fnord@test.iam.gserviceaccount.com',
+                    scopes: ['https://www.googleapis.com/auth/cloud-platform'],
+                  },
+                ],
+              },
+            },
+          },
+        }}
+      />,
+    );
+
+    expect(definition('Image')).toBe('fnord-image-v1');
+    expect(definition('Instance Type')).toBe('N1 2 vCPU / 4 GB RAM');
+    expect(definition('Minimum CPU Platform')).toBe('Intel Skylake');
+    expect(definition('Boot Disk')).toBe('Persistent SSD: 10GB');
+    expect(definition('Service Account')).toBe('fnord@test.iam.gserviceaccount.com');
+    expect(definition('Auth Scopes')?.trim()).toBe('cloud-platform');
+    expect(definition('Network')).toBe('default');
+    expect(definition('Subnet')).toBe('default-subnet');
+    expect(definition('Associate Public IP Address')).toBe('true');
+    expect(definition('Can IP Forward')).toBe('true');
+    expect(screen.queryByText('Name', { selector: 'dt' })).not.toBeInTheDocument();
+
+    expect(screen.queryByText('echo hello')).not.toBeInTheDocument();
+    fireEvent.click(screen.getByText('Show Startup Script'));
+    expect(screen.getByText('echo hello', { selector: 'pre' })).toBeInTheDocument();
+    expect(screen.getByText('Hide Startup Script')).toBeInTheDocument();
+  });
+
+  it('falls back to defaults when launch configuration fields are absent', () => {
+    render(<GceServerGroupLaunchConfigSection app={app} serverGroup={serverGroup} />);
+
+    expect(definition('Image')).toBe('-');
+    expect(definition('Instance Type')).toBe('-');
+    expect(definition('Minimum CPU Platform')).toBe('(Automatic)');
+    expect(definition('Associate Public IP Address')).toBe('false');
+    expect(definition('Startup Script')).toBe('[none]');
+    expect(screen.queryByText('Service Account', { selector: 'dt' })).not.toBeInTheDocument();
+    expect(screen.queryByText('Auth Scopes', { selector: 'dt' })).not.toBeInTheDocument();
+  });
+
+  it('renders boot and additional disk descriptions from the instance template', () => {
+    const { container } = render(
+      <dl>
+        <GceServerGroupDiskDescriptions
+          application={app}
+          serverGroup={
+            {
+              ...serverGroup,
+              launchConfig: {
+                instanceTemplate: {
+                  properties: {
+                    disks: [
+                      {
+                        boot: true,
+                        deviceName: 'boot',
+                        initializeParams: {
+                          diskSizeGb: 10,
+                          diskType: 'pd-ssd',
+                          sourceImage: 'https://compute.googleapis.com/projects/p/global/images/fnord-image-v1',
+                        },
+                      },
+                      { boot: false, deviceName: 'data', initializeParams: { diskSizeGb: 375, diskType: 'local-ssd' } },
+                    ],
+                  },
+                },
+              },
+            } as any
+          }
+        />
+      </dl>,
+    );
+
+    expect(Array.from(container.querySelectorAll('dt')).map((term) => term.textContent)).toEqual(['Boot Disk', 'Disk']);
+    expect(Array.from(container.querySelectorAll('dd')).map((definition) => definition.textContent)).toEqual([
+      'Persistent SSD: 10GB',
+      'Image: fnord-image-v1',
+      'Local SSD: 375GB',
+    ]);
+  });
+
+  it('registers custom metadata, tags, and labels sections', () => {
+    registerGoogleProvider();
+
+    expect(CloudProviderRegistry.getValue('gce', 'serverGroup.detailsSections')).toEqual(
+      expect.arrayContaining([
+        GceServerGroupCustomMetadataSection,
+        GceServerGroupTagsSection,
+        GceServerGroupLabelsSection,
+      ]),
+    );
+  });
+
+  it('renders truncated custom metadata from the instance template', () => {
+    const { container } = render(
+      <GceServerGroupCustomMetadataSection
+        app={app}
+        serverGroup={{
+          ...serverGroup,
+          launchConfig: {
+            instanceTemplate: {
+              properties: {
+                metadata: {
+                  items: [
+                    { key: 'load-balancer-names', value: 'fnord-lb' },
+                    { key: 'long-value', value: 'x'.repeat(100) },
+                  ],
+                },
+              },
+            },
+          },
+        }}
+      />,
+    );
+    expandSection('Custom Metadata');
+
+    expect(Array.from(container.querySelectorAll('dt')).map((term) => term.textContent?.trim())).toEqual([
+      'load-balancer-names',
+      'long-value',
+    ]);
+    expect(definition('load-balancer-names')).toBe('fnord-lb');
+    expect(definition('long-value')).toBe(`${'x'.repeat(90)}...`);
+  });
+
+  it('renders network tags with firewall help and instance template labels', () => {
+    const appWithFirewalls = {
+      ...app,
+      securityGroups: {
+        data: [
+          { accountName: 'prod', name: 'allow-http', targetTags: ['http-server'] },
+          { accountName: 'other', name: 'other-account-http', targetTags: ['http-server'] },
+        ],
+      },
+    };
+    const serverGroupWithTagsAndLabels = {
+      ...serverGroup,
+      instanceTemplateLabels: { team: 'fnord' },
+      launchConfig: { instanceTemplate: { properties: { tags: { items: ['http-server', 'untagged'] } } } },
+    };
+    const { container } = render(
+      <>
+        <GceServerGroupTagsSection app={appWithFirewalls} serverGroup={serverGroupWithTagsAndLabels} />
+        <GceServerGroupLabelsSection app={app} serverGroup={serverGroupWithTagsAndLabels} />
+      </>,
+    );
+    expandSection('Tags');
+    expandSection('Labels');
+
+    expect(Array.from(container.querySelectorAll('dd')).map((tag) => tag.textContent?.trim())).toEqual([
+      'http-server',
+      'untagged',
+      'fnord',
+    ]);
+    expect(container.querySelectorAll('dd .help-field')).toHaveLength(1);
+    expect(definition('team')).toBe('fnord');
+  });
+
+  it('shows empty-state messages when metadata, tags, and labels are missing', () => {
+    render(
+      <>
+        <GceServerGroupCustomMetadataSection app={app} serverGroup={serverGroup} />
+        <GceServerGroupTagsSection app={app} serverGroup={serverGroup} />
+        <GceServerGroupLabelsSection app={app} serverGroup={serverGroup} />
+      </>,
+    );
+    ['Custom Metadata', 'Tags', 'Labels'].forEach(expandSection);
+
+    expect(screen.getByText('No custom metadata associated with this server group')).toBeInTheDocument();
+    expect(screen.getByText('No tags associated with this server group')).toBeInTheDocument();
+    expect(screen.getByText('No labels associated with this server group')).toBeInTheDocument();
   });
 
   it('adds rollback and resize without changing existing enabled action visibility', () => {
@@ -308,4 +518,10 @@ function expandSection(name: string): void {
 
 function definition(term: string): string | undefined {
   return screen.getByText(term, { selector: 'dt' }).nextElementSibling?.textContent ?? undefined;
+}
+
+function policySectionsFrom(sections: Array<React.ComponentType<any>>): Array<React.ComponentType<any>> {
+  return sections.filter(
+    (section) => section === GceAutoscalingPolicySection || section === GceAutoHealingPolicySection,
+  );
 }
