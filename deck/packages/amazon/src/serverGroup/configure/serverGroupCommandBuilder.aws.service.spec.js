@@ -224,6 +224,34 @@ describe('Service: awsServerGroup', function () {
       });
     });
 
+    describe('copies the key pair from the source server group', function () {
+      const asg = { availabilityZones: [], vpcZoneIdentifier: '', suspendedProcesses: [] };
+
+      [
+        { keyName: 'test-keypair', expected: 'test-keypair' },
+        { keyName: undefined, expected: '' },
+      ].forEach(({ keyName, expected }) => {
+        it(`sets keyPair to '${expected}' when the source launch template has key name ${keyName}`, async function () {
+          const serverGroup = {
+            asg,
+            launchTemplate: createCustomMockLaunchTemplate('test-lt', { ...mockLaunchTemplateData, keyName }),
+          };
+
+          const command = await testContext.service.buildServerGroupCommandFromExisting({}, serverGroup);
+
+          expect(command.keyPair).toBe(expected);
+        });
+
+        it(`sets keyPair to '${expected}' when the source launch configuration has key name ${keyName}`, async function () {
+          const serverGroup = { asg, launchConfig: { instanceType: 'r5.large', securityGroups: [], keyName } };
+
+          const command = await testContext.service.buildServerGroupCommandFromExisting({}, serverGroup);
+
+          expect(command.keyPair).toBe(expected);
+        });
+      });
+    });
+
     describe('extracts properties from server group correctly', function () {
       const sgCommon = {
         ...mockServerGroup,
