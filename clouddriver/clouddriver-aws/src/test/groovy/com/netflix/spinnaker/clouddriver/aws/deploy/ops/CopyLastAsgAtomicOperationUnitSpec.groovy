@@ -794,6 +794,62 @@ class CopyLastAsgAtomicOperationUnitSpec extends Specification {
     null          | null               | null         || null  // nothing set: AWS default applies
   }
 
+  @Unroll
+  void "operation copies ancestor key pair '#ancestorKeyPair' unless key pair '#reqKeyPair' is requested"() {
+    given:
+    description.availabilityZones = ['us-east-1': []]
+    description.keyPair = reqKeyPair
+
+    and:
+    def launchTemplateVersion = LaunchTemplateVersion.builder()
+      .launchTemplateName("foo")
+      .launchTemplateId("foo")
+      .versionNumber(0L)
+      .launchTemplateData(ResponseLaunchTemplateData.builder().keyName(ancestorKeyPair).build())
+      .build()
+
+    def launchTemplateSpec = LaunchTemplateSpecification.builder()
+      .launchTemplateName(launchTemplateVersion.launchTemplateName)
+      .launchTemplateId(launchTemplateVersion.launchTemplateId)
+      .version(launchTemplateVersion.versionNumber.toString())
+      .build()
+
+    and:
+    regionScopedProviderStub.getLaunchTemplateService() >> Mock(LaunchTemplateService) {
+      getLaunchTemplateVersion(launchTemplateSpec) >> Optional.of(launchTemplateVersion)
+    }
+    def mockAncestorAsg = AutoScalingGroup.builder()
+      .autoScalingGroupName("asgard-stack-v000")
+      .minSize(0)
+      .maxSize(2)
+      .desiredCapacity(4)
+      .launchTemplate(launchTemplateSpec)
+      .build()
+    serverGroupNameResolver.resolveLatestServerGroupName("asgard-stack") >> "asgard-stack-v000"
+
+    when:
+    op.operate([])
+
+    then:
+    1 * mockAutoScaling.describeAutoScalingGroups(_) >> {
+      DescribeAutoScalingGroupsResponse.builder().autoScalingGroups([mockAncestorAsg]).build()
+    }
+    1 * deployHandler.handle(_ as BasicAmazonDeployDescription, _) >> { arguments ->
+      BasicAmazonDeployDescription actualDesc = arguments[0]
+
+      assert actualDesc.keyPair == expectedKeyPair
+
+      new DeploymentResult(serverGroupNames: ['asgard-stack-v001'], serverGroupNameByRegion: ['us-east-1': 'asgard-stack-v001'])
+    }
+
+    where:
+    reqKeyPair   | ancestorKeyPair || expectedKeyPair
+    "my-keypair" | "key-pair-name" || "my-keypair"    // request wins
+    null         | "key-pair-name" || "key-pair-name" // inherited from ancestor
+    ""           | "key-pair-name" || ""              // explicitly launch without a key pair
+    null         | null            || null            // ancestor has no key pair either
+  }
+
   private static BasicAmazonDeployDescription expectedDescription(
           String expectedSpotPrice = null,
           String region,
