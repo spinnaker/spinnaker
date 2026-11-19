@@ -40,6 +40,12 @@ kayenta:
   enabled: ${services.kayenta.enabled:false}
   baseUrl: ${services.kayenta.baseUrl:http://localhost:8090}
 
+# SQL is the only supported execution repository. Also requires sql.enabled=true and a
+# configured sql.connectionPools.default.
+execution-repository:
+  sql:
+    enabled: true
+
 redis:
   connection: ${services.redis.baseUrl:redis://localhost:6379}
 

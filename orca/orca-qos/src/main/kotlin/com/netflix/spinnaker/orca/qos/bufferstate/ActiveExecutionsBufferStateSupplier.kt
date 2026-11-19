@@ -28,7 +28,7 @@ import org.springframework.stereotype.Component
 /**
  * Supplies the buffering state based on a threshold of system-wide active executions.
  *
- * As an immediate implementation, this supplier depends on [RedisActiveExecutionMonitor] to update the registry with
+ * As an immediate implementation, this supplier depends on [com.netflix.spinnaker.orca.sql.telemetry.SqlActiveExecutionsMonitor] to update the registry with
  * system-wide active executions. The polling interval of that monitor will determine the resolution of the buffering
  * state. By default, this is 60 seconds.
  */

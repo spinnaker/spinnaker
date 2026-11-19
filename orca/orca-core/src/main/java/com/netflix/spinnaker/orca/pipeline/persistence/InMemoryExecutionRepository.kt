@@ -77,6 +77,7 @@ class InMemoryExecutionRepository : ExecutionRepository {
 
   override fun cancel(type: ExecutionType, id: String, user: String?, reason: String?) {
     retrieve(type, id).also {
+      it.isCanceled = true
       it.status = ExecutionStatus.CANCELED
       if (user != null) {
         it.canceledBy = user

@@ -21,24 +21,16 @@ import com.netflix.spinnaker.kork.jedis.JedisClientConfiguration;
 import com.netflix.spinnaker.kork.jedis.RedisClientSelector;
 import com.netflix.spinnaker.kork.jedis.lock.RedisLockManager;
 import com.netflix.spinnaker.kork.lock.LockManager;
-import com.netflix.spinnaker.kork.telemetry.InstrumentedProxy;
 import com.netflix.spinnaker.orca.lock.RunOnLockAcquired;
 import com.netflix.spinnaker.orca.lock.RunOnRedisLockAcquired;
 import com.netflix.spinnaker.orca.notifications.NotificationClusterLock;
 import com.netflix.spinnaker.orca.notifications.RedisClusterNotificationClusterLock;
 import com.netflix.spinnaker.orca.notifications.RedisNotificationClusterLock;
-import com.netflix.spinnaker.orca.pipeline.persistence.ExecutionRepository;
-import com.netflix.spinnaker.orca.pipeline.persistence.jedis.RedisExecutionRepository;
-import groovy.util.logging.Slf4j;
-import io.reactivex.rxjava3.core.Scheduler;
 import java.time.Clock;
-import java.util.Collections;
 import java.util.Optional;
 import org.apache.commons.pool2.impl.GenericObjectPoolConfig;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Qualifier;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.boot.context.properties.ConfigurationProperties;
@@ -46,38 +38,15 @@ import org.springframework.context.annotation.*;
 import redis.clients.jedis.JedisCluster;
 import redis.clients.jedis.JedisPoolConfig;
 
-@Slf4j
 @Configuration
 @ConditionalOnProperty(value = "redis.enabled", matchIfMissing = true)
-@Import({JedisClientConfiguration.class, JedisConfiguration.class})
+@Import({JedisClientConfiguration.class})
 public class RedisConfiguration {
 
   private static final Logger log = LoggerFactory.getLogger(RedisConfiguration.class);
 
   public static class Clients {
-    public static final String EXECUTION_REPOSITORY = "executionRepository";
     public static final String TASK_QUEUE = "taskQueue";
-  }
-
-  @Bean
-  @ConditionalOnProperty(value = "execution-repository.redis.enabled", matchIfMissing = true)
-  public ExecutionRepository redisExecutionRepository(
-      Registry registry,
-      RedisClientSelector redisClientSelector,
-      @Qualifier("queryAllScheduler") Scheduler queryAllScheduler,
-      @Qualifier("queryByAppScheduler") Scheduler queryByAppScheduler,
-      @Value("${chunk-size.execution-repository:75}") Integer threadPoolChunkSize,
-      @Value("${keiko.queue.redis.queue-name:}") String bufferedPrefix) {
-    ExecutionRepository repository =
-        new RedisExecutionRepository(
-            registry,
-            redisClientSelector,
-            queryAllScheduler,
-            queryByAppScheduler,
-            threadPoolChunkSize,
-            bufferedPrefix);
-    return InstrumentedProxy.proxy(
-        registry, repository, "redis.executionRepository", Collections.emptyMap());
   }
 
   @Bean

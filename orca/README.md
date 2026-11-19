@@ -81,16 +81,16 @@ This is because in most cases a message takes less than 1ms to complete and we d
 
 The following storage backends are supported for storing Execution state:
 
-* Redis (default)
-* MySQL (recommended)
+* MySQL or PostgreSQL (SQL is the only supported execution store; Redis execution storage was removed in 2027.0.0)
 
 The following backends are supported for the work queue:
 
 * Redis
+* MySQL or PostgreSQL
 
 ## Running Orca
 
-Orca requires Redis (and optionally MySQL) to be up and running.
+Orca requires a SQL database (MySQL or PostgreSQL), plus Redis if using the Redis work queue, to be up and running.
 
 Start Orca via `./gradlew orca` (run from the monorepo root). See [CLAUDE.md](../CLAUDE.md) for the full set of build/run commands.
 

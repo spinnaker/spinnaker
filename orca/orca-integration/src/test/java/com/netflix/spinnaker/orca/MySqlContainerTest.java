@@ -76,7 +76,7 @@ public class MySqlContainerTest extends BaseContainerTest {
     Map<String, Boolean> sql = Map.of("enabled", true);
     Map<String, Boolean> redis = Map.of("enabled", false);
     Map<String, Object> pendingExecutionService = Map.of("sql", sql, "redis", redis);
-    Map<String, Object> executionRepository = Map.of("sql", sql, "redis", redis);
+    Map<String, Object> executionRepository = Map.of("sql", sql);
     Map<String, Object> keiko = Map.of("sql", sql, "redis", redis);
 
     Map<String, Object> properties =
@@ -96,9 +96,7 @@ public class MySqlContainerTest extends BaseContainerTest {
             "keiko.queue",
             keiko,
             "queue.pendingExecutionService",
-            pendingExecutionService,
-            "monitor.activeExecutions.redis",
-            "false");
+            pendingExecutionService);
     ObjectMapper mapper = new ObjectMapper();
     return mapper.writeValueAsString(properties);
   }

@@ -45,7 +45,6 @@ dependencies {
   implementation(project(":orca-interlink"))
   implementation(project(":orca-kayenta"))
   implementation(project(":orca-keel"))
-  implementation(project(":orca-migration"))
   implementation(project(":orca-mine"))
   implementation(project(":orca-peering"))
   implementation(project(":orca-pipelinetemplate"))
