@@ -23,6 +23,9 @@ FROM alpine:3.20
 
 LABEL maintainer="delivery-engineering@netflix.com"
 
+# TODO: Remove the Java4Shell (CVE-2026-114938) workaround after upgrading to a fixed JDK.
+ENV JAVA_TOOL_OPTIONS="-XX:-UseBASE64Intrinsics"
+
 RUN apk --no-cache add --update openjdk17-jre
 # Refresh the CA bundle, remove G1, and reject images trusting compromised roots.
 RUN apk --no-cache upgrade && \

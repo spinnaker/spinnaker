@@ -1,6 +1,10 @@
 FROM alpine:3.20
 LABEL maintainer="sig-platform@spinnaker.io"
 
+# TODO: Remove the Java4Shell (CVE-2026-114938) workaround after upgrading to a fixed JDK.
+ENV JAVA_TOOL_OPTIONS="-XX:-UseBASE64Intrinsics"
+
+
 ENV KUSTOMIZE_VERSION=3.9.4
 ENV KUSTOMIZE4_VERSION=4.5.7
 ENV PACKER_VERSION=1.10.1

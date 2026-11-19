@@ -74,6 +74,33 @@ configuration options.
 1. (Optional) add configuration to `./overlays/config/files/`
 1. (Optional) add `./components` and `./overlays`
 
+### Java runtime security
+
+The Ubuntu runtime images require OpenJDK 17 package version
+`17.0.21.1+2-1~22.04.1` or later to fix Java4Shell (CVE-2026-114938).
+Alpine 3.20 does not publish a fixed OpenJDK 17 package, so its runtime images
+set `JAVA_TOOL_OPTIONS="-XX:-UseBASE64Intrinsics"` to disable the affected
+optimization, as recommended in the [Java4Shell advisory](https://calif.io/java4shell/).
+If you override `JAVA_TOOL_OPTIONS`, retain `-XX:-UseBASE64Intrinsics` until
+you upgrade to a fixed JDK. Rebuild and deploy runtime images to apply these
+protections to existing installations.
+
+### NGINX ingress controllers
+
+This installer creates an Ingress resource but does not install or update an
+ingress controller. Both Deck runtime image variants use Apache HTTP Server.
+
+If your external ingress controller uses NGINX with HTTP/2 enabled, check its
+vendor's fixes for CVE-2026-123633 and CVE-2026-123007. The upstream NGINX fixes
+are included in 1.30.7 and 1.31.9, or a vendor release with equivalent backports;
+the controller's version number can differ from its embedded NGINX version.
+See the [NGINX security advisories](https://nginx.org/en/security_advisories.html).
+
+Until a fixed controller is deployed, disable HTTP/2 in the controller's
+configuration, reload it, and confirm the old workers have exited. Changing the
+Deck or Gate configuration does not configure the external controller. Follow
+the controller vendor's instructions and re-enable HTTP/2 after upgrading.
+
 ## Configuration
 
 Java services load default configuration from `/opt/<service>/config/<service>.yml`
