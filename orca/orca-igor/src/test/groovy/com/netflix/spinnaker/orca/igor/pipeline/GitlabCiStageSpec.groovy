@@ -124,4 +124,76 @@ class GitlabCiStageSpec extends Specification {
     then:
     tasks.findAll { it.implementingClass == BindProducedArtifactsTask }.size() == 0
   }
+
+  def "should default the property file to the gitlab-ci sentinel when absent"() {
+    given:
+    def gitlabCiStage = new GitlabCiStage()
+
+    def stage = stage {
+      type = "gitlabCi"
+      context = [
+        master     : "ericsson-gitlab",
+        job        : "my-group/my-project",
+        buildNumber: 4
+      ]
+    }
+
+    when:
+    gitlabCiStage.buildTaskGraph(stage)
+
+    then:
+    // GitLab CI has no real property file; the sentinel lets Igor scrape SPINNAKER_PROPERTY_*
+    // lines from the log without the user supplying a meaningless value (mirrors Travis).
+    stage.context.propertyFile == "gitlab-ci"
+  }
+
+  @Unroll
+  def "should default the property file to the gitlab-ci sentinel when blank (#description)"() {
+    given:
+    def gitlabCiStage = new GitlabCiStage()
+
+    def stage = stage {
+      type = "gitlabCi"
+      context = [
+        master      : "ericsson-gitlab",
+        job         : "my-group/my-project",
+        buildNumber : 4,
+        propertyFile: propertyFile
+      ]
+    }
+
+    when:
+    gitlabCiStage.buildTaskGraph(stage)
+
+    then:
+    // The Deck stage sends an empty-string propertyFile (present-but-blank), so a plain
+    // putIfAbsent would not override it -- blank must be treated as "not supplied".
+    stage.context.propertyFile == "gitlab-ci"
+
+    where:
+    propertyFile || description
+    ""           || "empty string"
+    null         || "explicit null"
+  }
+
+  def "should not override a user-supplied property file"() {
+    given:
+    def gitlabCiStage = new GitlabCiStage()
+
+    def stage = stage {
+      type = "gitlabCi"
+      context = [
+        master      : "ericsson-gitlab",
+        job         : "my-group/my-project",
+        buildNumber : 4,
+        propertyFile: "custom.properties"
+      ]
+    }
+
+    when:
+    gitlabCiStage.buildTaskGraph(stage)
+
+    then:
+    stage.context.propertyFile == "custom.properties"
+  }
 }
