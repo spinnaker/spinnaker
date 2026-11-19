@@ -1,7 +1,8 @@
 'use strict';
 
-import { AccountService, ExpectedArtifactService } from '@spinnaker/core';
+import { AccountService, ExpectedArtifactService, InstanceTypeService, ProviderServiceDelegate } from '@spinnaker/core';
 
+import { registerGoogleProvider } from '../../gce.module';
 import { GceServerGroupCommandBuilder } from './serverGroupCommandBuilder.service';
 
 describe('GceServerGroupCommandBuilder', () => {
@@ -254,5 +255,62 @@ describe('GceServerGroupCommandBuilder', () => {
     );
 
     expect(command.autoHealingPolicy).toBeUndefined();
+  });
+
+  it('wires core InstanceTypeService via ProviderServiceDelegate when cloning a persistent-disk server group', async () => {
+    registerGoogleProvider();
+    vi.spyOn(AccountService, 'getAllAccountDetailsForProvider').mockResolvedValue([]);
+    const promiseService = { all: (values) => Promise.all(values), resolve: (value) => Promise.resolve(value) };
+    const delegate = new ProviderServiceDelegate(promiseService);
+    const runtimeServices = {
+      instanceTypeService: new InstanceTypeService(delegate),
+      providerServiceDelegate: delegate,
+    };
+    delegate.bindRuntimeServices(runtimeServices);
+    const runtimeBuilder = delegate.getDelegate('gce', 'serverGroup.commandBuilder');
+
+    const serverGroup = buildServerGroup();
+    serverGroup.launchConfig.instanceType = 'e2-standard-2';
+    serverGroup.launchConfig.instanceTemplate.properties.disks = [
+      {
+        initializeParams: {
+          diskType: 'pd-ssd',
+          diskSizeGb: 50,
+        },
+      },
+    ];
+
+    const command = await runtimeBuilder.buildServerGroupCommandFromExisting(application(), serverGroup);
+
+    expect(command.disks).toEqual([{ type: 'pd-ssd', sizeGb: 50 }]);
+    expect(command.viewState.instanceTypeDetails.name).toBe('e2-standard-2');
+    expect(command.viewState.overriddenStorageDescription).toBe('1×50');
+  });
+
+  it('wires core InstanceTypeService via ProviderServiceDelegate when editing a pipeline cluster', async () => {
+    registerGoogleProvider();
+    vi.spyOn(AccountService, 'getAllAccountDetailsForProvider').mockResolvedValue([]);
+    const promiseService = { all: (values) => Promise.all(values), resolve: (value) => Promise.resolve(value) };
+    const delegate = new ProviderServiceDelegate(promiseService);
+    const runtimeServices = {
+      instanceTypeService: new InstanceTypeService(delegate),
+      providerServiceDelegate: delegate,
+    };
+    delegate.bindRuntimeServices(runtimeServices);
+    const runtimeBuilder = delegate.getDelegate('gce', 'serverGroup.commandBuilder');
+
+    const command = await runtimeBuilder.buildServerGroupCommandFromPipeline(
+      application(),
+      pipelineCluster({
+        instanceType: 'e2-custom-2-4096',
+        disks: [{ type: 'pd-ssd', sizeGb: 20 }],
+      }),
+      {},
+      {},
+    );
+
+    expect(command.viewState.instanceProfile).toBe('buildCustom');
+    expect(command.viewState.instanceTypeDetails.name).toBe('buildCustom');
+    expect(command.viewState.overriddenStorageDescription).toBe('1×20');
   });
 });
