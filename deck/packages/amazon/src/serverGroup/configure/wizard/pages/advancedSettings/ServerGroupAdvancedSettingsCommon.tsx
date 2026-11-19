@@ -9,13 +9,16 @@ import type { IServerGroupAdvancedSettingsProps } from './ServerGroupAdvancedSet
 import { AWSProviderSettings } from '../../../../../aws.settings';
 import type { IAmazonServerGroupCommand } from '../../../serverGroupConfiguration.service';
 
+const NO_KEY_PAIR_LABEL = 'None (launch instances without a key pair)';
+
 export class ServerGroupAdvancedSettingsCommon extends React.Component<IServerGroupAdvancedSettingsProps> {
   private duplicateKeys = false;
 
   public validate = (values: IAmazonServerGroupCommand) => {
     const errors = {} as any;
 
-    if (!values.keyPair) {
+    // An empty key name launches instances without a key pair; an unset one has to be chosen explicitly
+    if (values.keyPair === undefined || values.keyPair === null) {
       errors.keyPair = 'Key Name is required';
     }
     if (this.duplicateKeys) {
@@ -148,7 +151,7 @@ export class ServerGroupAdvancedSettingsCommon extends React.Component<IServerGr
               value={values.keyPair}
               required={true}
               clearable={false}
-              options={keyPairs.map((t) => ({ label: t, value: t }))}
+              options={[{ label: NO_KEY_PAIR_LABEL, value: '' }, ...keyPairs.map((t) => ({ label: t, value: t }))]}
               onChange={(option: Option) => setFieldValue('keyPair', option.value)}
             />
           </div>
