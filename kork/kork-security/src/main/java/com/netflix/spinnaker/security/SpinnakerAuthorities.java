@@ -18,13 +18,16 @@ package com.netflix.spinnaker.security;
 
 import java.util.Collection;
 import java.util.List;
+import java.util.Set;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
+import org.springframework.security.authentication.AnonymousAuthenticationToken;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
+import org.springframework.security.core.userdetails.UserDetails;
 
 /**
  * Constants and utilities for working with Spring Security GrantedAuthority objects specific to
@@ -33,6 +36,11 @@ import org.springframework.security.core.authority.SimpleGrantedAuthority;
  */
 public class SpinnakerAuthorities {
   private static final String ROLE_PREFIX = "ROLE_";
+  private static final String SPINNAKER_PREFIX = "SPINNAKER_";
+  private static final String SCOPE_PREFIX = "SCOPE_";
+
+  /** Authorities Spring Security's OAuth2 and OIDC user services grant to every user. */
+  private static final Set<String> PROVIDER_AUTHORITIES = Set.of("OAUTH2_USER", "OIDC_USER");
 
   public static final String ADMIN = "SPINNAKER_ADMIN";
 
@@ -46,6 +54,25 @@ public class SpinnakerAuthorities {
   @Nonnull
   public static GrantedAuthority forRoleName(@Nonnull String role) {
     return new SimpleGrantedAuthority(ROLE_PREFIX + role);
+  }
+
+  /**
+   * Creates the granted authorities of a user: one authority per (bare) role and one {@code
+   * ALLOWED_ACCOUNT_} authority per allowed account.
+   */
+  @Nonnull
+  public static List<GrantedAuthority> forRolesAndAccounts(
+      @Nullable Collection<String> roles, @Nullable Collection<String> allowedAccounts) {
+    Stream<GrantedAuthority> roleAuthorities =
+        roles == null
+            ? Stream.empty()
+            : roles.stream()
+                .filter(r -> r != null && !r.isBlank())
+                .map(SimpleGrantedAuthority::new);
+    return Stream.concat(
+            roleAuthorities,
+            AllowedAccountsAuthorities.buildAllowedAccounts(allowedAccounts).stream())
+        .collect(Collectors.toList());
   }
 
   /** Checks if the given user is a Spinnaker admin. */
@@ -72,6 +99,46 @@ public class SpinnakerAuthorities {
       return List.of();
     }
     return streamRoles(authentication).distinct().collect(Collectors.toList());
+  }
+
+  /**
+   * Gets the names of the roles of the given user as they are known to the identity provider and to
+   * Fiat: bare role authorities and {@code ROLE_}-prefixed authorities, without the prefix.
+   * Authorities that do not represent a role (allowed accounts, {@code SPINNAKER_}, OAuth2 scopes
+   * and the default OAuth2/OIDC user authorities) are excluded.
+   */
+  @Nonnull
+  public static List<String> getRoleNames(@Nullable Authentication authentication) {
+    if (authentication == null) {
+      return List.of();
+    }
+    return authentication.getAuthorities().stream()
+        .map(GrantedAuthority::getAuthority)
+        .filter(a -> a != null && !a.isEmpty())
+        .filter(a -> !a.startsWith(AllowedAccountsAuthorities.PREFIX))
+        .filter(a -> !a.startsWith(SPINNAKER_PREFIX))
+        .filter(a -> !a.startsWith(SCOPE_PREFIX))
+        .filter(a -> !PROVIDER_AUTHORITIES.contains(a))
+        .filter(a -> !a.equals(ANONYMOUS_AUTHORITY.getAuthority()))
+        .map(a -> a.startsWith(ROLE_PREFIX) ? a.substring(ROLE_PREFIX.length()) : a)
+        .distinct()
+        .collect(Collectors.toList());
+  }
+
+  /**
+   * @return whether the authentication identifies a user. An anonymous token only does when its
+   *     principal is a real user (as Gate's anonymous mode provides); the default String principal
+   *     ("anonymousUser") does not.
+   */
+  public static boolean hasIdentity(@Nullable Authentication authentication) {
+    if (authentication == null
+        || !authentication.isAuthenticated()
+        || authentication.getName() == null
+        || authentication.getName().isBlank()) {
+      return false;
+    }
+    return !(authentication instanceof AnonymousAuthenticationToken)
+        || authentication.getPrincipal() instanceof UserDetails;
   }
 
   @Nonnull

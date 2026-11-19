@@ -183,6 +183,7 @@ public class OAuthUserInfoServiceHelperTest {
 
     OAuth2User fakeUser = mock(OAuth2User.class);
     when(fakeUser.getAttributes()).thenReturn(badAttributes);
+    when(userInfoMapping.getUsername()).thenReturn("username");
 
     OAuth2UserRequest request = mock(OAuth2UserRequest.class);
     AllowedAccountsSupport allowedAccountsSupport = mock(AllowedAccountsSupport.class);
@@ -207,8 +208,7 @@ public class OAuthUserInfoServiceHelperTest {
         .when(allowedAccountsSupport)
         .filterAllowedAccounts(userName, roles);
 
-    assertThat(helper.getSpinnakerOAuth2User(fakeUser, request).getAttributes().get("firstName"))
-        .isNull();
+    assertThat(helper.toOAuth2User(fakeUser, request).getAttributes().get("firstName")).isNull();
   }
 
   @ParameterizedTest
