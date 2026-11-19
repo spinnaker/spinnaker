@@ -43,10 +43,12 @@ dependencies {
 
   runtimeOnly "io.spinnaker.kork:kork-runtime"
 
+  testImplementation testFixtures("io.spinnaker.kork:kork-core")
   testImplementation project(":front50-api")
   testImplementation project(":front50-test")
   testImplementation project(":front50-sql")
   testImplementation "io.spinnaker.kork:kork-sql-test"
+  testRuntimeOnly "com.h2database:h2"
   testImplementation "io.reactivex.rxjava3:rxjava"
   testImplementation "org.apache.groovy:groovy-json"
   testImplementation "org.springframework.boot:spring-boot-starter-webmvc-test"

@@ -37,6 +37,7 @@ dependencies {
     implementation project(it)
   }
 
+  testImplementation testFixtures("io.spinnaker.kork:kork-core")
   testImplementation "io.spinnaker.kork:kork-jedis"
   testImplementation "org.testcontainers:testcontainers"
 

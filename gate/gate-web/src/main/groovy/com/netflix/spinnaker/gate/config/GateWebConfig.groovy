@@ -17,6 +17,7 @@
 package com.netflix.spinnaker.gate.config
 
 import com.netflix.spectator.api.Registry
+import io.micrometer.core.instrument.MeterRegistry
 import com.netflix.spinnaker.gate.interceptors.RequestContextInterceptor
 import com.netflix.spinnaker.gate.interceptors.ResponseHeaderInterceptor
 import com.netflix.spinnaker.gate.interceptors.ResponseHeaderInterceptorConfigurationProperties
@@ -50,7 +51,7 @@ import jakarta.servlet.http.HttpServletResponse
 @EnableConfigurationProperties(ResponseHeaderInterceptorConfigurationProperties.class)
 public class GateWebConfig implements WebMvcConfigurer {
   @Autowired
-  Registry registry
+  MeterRegistry registry
 
   @Autowired
   DynamicConfigService dynamicConfigService
@@ -72,7 +73,7 @@ public class GateWebConfig implements WebMvcConfigurer {
   public void addInterceptors(InterceptorRegistry registry) {
     registry.addInterceptor(
       new MetricsInterceptor(
-        this.registry, "controller.invocations", ["account", "region"], ["BasicErrorController"]
+        this.registry, "controller.invocations", ["account", "region"], [], ["BasicErrorController"]
       )
     )
 

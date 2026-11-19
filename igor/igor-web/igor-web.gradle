@@ -24,6 +24,7 @@ dependencies {
     implementation "com.vdurmont:semver4j"
     implementation "commons-io:commons-io"
 
+    testImplementation testFixtures("io.spinnaker.kork:kork-core")
     testImplementation "org.springframework.boot:spring-boot-starter-test"
     // Provides @WebMvcTest/@AutoConfigureMockMvc (Boot 4 repackaged test slices;
     // no longer transitively provided for web slice tests).

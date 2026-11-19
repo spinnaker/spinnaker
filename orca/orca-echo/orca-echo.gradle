@@ -36,6 +36,7 @@ dependencies {
   testImplementation("org.springframework:spring-test")
   testImplementation("org.wiremock:wiremock")
   testImplementation("org.assertj:assertj-core")
+  testImplementation("io.micrometer:micrometer-core")
   testImplementation("org.junit.jupiter:junit-jupiter-api")
   testImplementation("org.junit.jupiter:junit-jupiter-params")
   testRuntimeOnly("net.bytebuddy:byte-buddy")

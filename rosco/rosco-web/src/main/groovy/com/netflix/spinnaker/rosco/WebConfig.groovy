@@ -16,7 +16,7 @@
 
 package com.netflix.spinnaker.rosco
 
-import com.netflix.spectator.api.Registry
+import io.micrometer.core.instrument.MeterRegistry
 import com.netflix.spinnaker.filters.AuthenticatedRequestFilter
 import com.netflix.spinnaker.kork.web.interceptors.MetricsInterceptor
 import groovy.transform.CompileStatic
@@ -33,13 +33,13 @@ import org.springframework.web.servlet.config.annotation.WebMvcConfigurer
 public class WebConfig implements WebMvcConfigurer {
 
   @Autowired
-  Registry registry
+  MeterRegistry registry
 
   @Override
   public void addInterceptors(InterceptorRegistry registry) {
     registry.addInterceptor(
       new MetricsInterceptor(
-        this.registry, "controller.invocations", ["cloudProvider", "region"], ["BasicErrorController"]
+        this.registry, "controller.invocations", ["cloudProvider", "region"], [], ["BasicErrorController"]
       )
     )
   }

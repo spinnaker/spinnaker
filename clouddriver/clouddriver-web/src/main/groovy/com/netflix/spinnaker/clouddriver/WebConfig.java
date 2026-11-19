@@ -24,6 +24,7 @@ import com.netflix.spinnaker.filters.AuthenticatedRequestFilter;
 import com.netflix.spinnaker.kork.dynamicconfig.DynamicConfigService;
 import com.netflix.spinnaker.kork.web.context.MdcCopyingAsyncTaskExecutor;
 import com.netflix.spinnaker.kork.web.interceptors.MetricsInterceptor;
+import io.micrometer.core.instrument.MeterRegistry;
 import jakarta.servlet.Filter;
 import java.util.List;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -51,12 +52,12 @@ import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
 })
 @EnableConfigurationProperties({CredentialsConfiguration.class, RequestQueueConfiguration.class})
 public class WebConfig implements WebMvcConfigurer {
-  private final Registry registry;
+  private final MeterRegistry registry;
   private final AsyncTaskExecutor asyncTaskExecutor;
 
   @Autowired
   public WebConfig(
-      Registry registry,
+      MeterRegistry registry,
       @Qualifier("threadPoolTaskScheduler") AsyncTaskExecutor asyncTaskExecutor) {
     this.registry = registry;
     this.asyncTaskExecutor = asyncTaskExecutor;
@@ -69,6 +70,7 @@ public class WebConfig implements WebMvcConfigurer {
             this.registry,
             "controller.invocations",
             List.of("account", "region"),
+            List.of(),
             List.of("BasicErrorController")));
   }
 
