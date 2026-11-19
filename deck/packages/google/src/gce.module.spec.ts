@@ -2,6 +2,7 @@ import { fireEvent, render, screen, waitFor } from '@testing-library/react';
 import React from 'react';
 
 import {
+  AccountService,
   CloudProviderRegistry,
   ConfirmationModalService,
   DeckRuntimeContext,
@@ -139,9 +140,12 @@ describe('Google provider registration', () => {
     expect(result[1]).toBe(networkLoadBalancer as any);
   });
 
-  it('constructs the registered server group command builder with the native promise service', () => {
+  it('constructs the registered server group command builder with the native promise service', async () => {
     googlePackage.registerGoogleProvider();
+    vi.spyOn(AccountService, 'listAccounts').mockResolvedValue([{ name: 'test-account' }] as any);
+    vi.spyOn(AccountService, 'getAllAccountDetailsForProvider').mockResolvedValue([] as any);
 
+    expect(GceServerGroupCommandBuilder.requiresDeckRuntimeServices).toBe(true);
     const commandBuilder = new ProviderServiceDelegate(nativePromiseService).getDelegate<GceServerGroupCommandBuilder>(
       'gce',
       'serverGroup.commandBuilder',
@@ -149,6 +153,41 @@ describe('Google provider registration', () => {
 
     expect(commandBuilder.buildNewServerGroupCommand).toEqual(expect.any(Function));
     expect(commandBuilder.buildServerGroupCommandFromExisting).toEqual(expect.any(Function));
+
+    const command = await commandBuilder.buildServerGroupCommandFromExisting(
+      { name: 'fnord', attributes: {} } as any,
+      {
+        name: 'fnord-v001',
+        moniker: { stack: 'main', detail: '' },
+        account: 'test-account',
+        asg: { minSize: 1, maxSize: 1, desiredCapacity: 1 },
+        securityGroups: [],
+        region: 'us-central1',
+        regional: false,
+        zones: ['us-central1-a'],
+        canIpForward: false,
+        instanceTemplateLabels: {},
+        launchConfig: {
+          instanceType: 'e2-standard-2',
+          minCpuPlatform: 'Intel',
+          imageId: 'test-image',
+          instanceTemplate: {
+            selfLink: 'https://compute/projects/test-project/global/instanceTemplates/test-template',
+            properties: {
+              networkInterfaces: [],
+              scheduling: {},
+              metadata: { items: [] },
+              tags: { items: [] },
+              serviceAccounts: [],
+              disks: [{ initializeParams: { diskType: 'pd-ssd', diskSizeGb: 50 } }],
+            },
+          },
+        },
+      } as any,
+    );
+
+    expect(command.viewState.instanceTypeDetails.name).toBe('e2-standard-2');
+    expect(command.viewState.overriddenStorageDescription).toBe('1×50');
   });
 
   it('normalizes HTTP load balancers without constructor dependencies', () => {
