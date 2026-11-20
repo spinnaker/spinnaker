@@ -37,6 +37,7 @@ include(
   "kork-exceptions",
   "kork-expressions",
   "kork-github",
+  "kork-google-auth",
   "kork-jedis",
   "kork-jedis-test",
   "kork-moniker",
