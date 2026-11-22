@@ -75,6 +75,15 @@ public class OAuth2SsoConfig {
     requestCache.setMatchingRequestParameterName(null);
 
     httpSecurity
+        .securityContext(
+            context ->
+                // Spring Security 6 defaults to requireExplicitSave=true, but
+                // ExternalAuthTokenFilter relies on the Spring Security 5 behavior of
+                // persisting the SecurityContext after every request: without the implicit
+                // save, every Bearer-token request repeats the provider user-info
+                // round-trip and API clients never receive a session
+                // (https://github.com/spinnaker/spinnaker/issues/7994).
+                context.requireExplicitSave(false))
         .authorizeHttpRequests(auth -> auth.anyRequest().authenticated())
         .requestCache(cache -> cache.requestCache(requestCache))
         .oauth2Login(
