@@ -112,6 +112,24 @@ class ResizeAsgAtomicOperationUnitSpec extends Specification {
     capacity(0, 2, 3)    | 1          | 2          | 3              || true
   }
 
+  void "should name the server group when the capacity constraint is violated"() {
+    given:
+    def constraints = new ResizeAsgDescription.Constraints(capacity: capacity(1, 2, 0))
+    def autoScalingGroup = AutoScalingGroup.builder()
+      .autoScalingGroupName("myasg-stack-v000")
+      .minSize(1)
+      .maxSize(2)
+      .desiredCapacity(3)
+      .build()
+
+    when:
+    ResizeAsgAtomicOperation.validateConstraints(constraints, autoScalingGroup)
+
+    then:
+    IllegalStateException e = thrown()
+    e.message.startsWith("Expected capacity constraint violated for myasg-stack-v000 (expected: ")
+  }
+
   @Unroll
   void "should support resize requests with only some fields to update (min: #minSize, max: #maxSize, desired: #desired)"() {
     setup:
