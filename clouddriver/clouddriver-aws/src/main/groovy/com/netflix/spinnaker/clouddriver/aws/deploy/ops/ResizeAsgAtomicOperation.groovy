@@ -128,10 +128,10 @@ class ResizeAsgAtomicOperation implements AtomicOperation<Void> {
     if (hasViolation) {
       throw new IllegalStateException(
         String.format(
-          "Expected capacity constraint violated (expected: %s, was: %s)",
+          "Expected capacity constraint violated for %s (expected: %s, was: %s)",
+          autoScalingGroup.autoScalingGroupName,
           expected,
-          current,
-          autoScalingGroup.autoScalingGroupName
+          current
         )
       )
     }
