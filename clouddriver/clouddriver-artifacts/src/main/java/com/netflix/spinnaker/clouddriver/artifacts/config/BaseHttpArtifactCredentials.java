@@ -21,7 +21,11 @@ import com.netflix.spinnaker.credentials.definition.InvalidCredentialsConfigurat
 import com.netflix.spinnaker.kork.annotations.VisibleForTesting;
 import com.netflix.spinnaker.kork.web.url.UrlRestrictions;
 import java.io.IOException;
+import java.time.Instant;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Optional;
+import java.util.regex.Pattern;
 import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
 import okhttp3.Headers;
@@ -172,9 +176,22 @@ public abstract class BaseHttpArtifactCredentials<T extends UserInputValidatedAr
 
       // Non-redirect response
       if (!response.isSuccessful()) {
+        String rateLimit = rateLimitDetail(response.headers(), Instant.now());
         response.body().close();
+        if (!rateLimit.isEmpty() && (response.code() == 403 || response.code() == 429)) {
+          log.warn(
+              "Artifact account '{}' got {} from {}: {}",
+              account.getName(),
+              response.code(),
+              currentUrl.host(),
+              rateLimit);
+        }
         throw new IOException(
-            String.format("Received %d status code from %s", response.code(), currentUrl.host()));
+            String.format(
+                "Received %d status code from %s%s",
+                response.code(),
+                currentUrl.host(),
+                rateLimit.isEmpty() ? "" : " (" + rateLimit + ")"));
       }
 
       return response.body();
@@ -182,5 +199,41 @@ public abstract class BaseHttpArtifactCredentials<T extends UserInputValidatedAr
 
     throw new IOException(
         String.format("Too many redirects (>%d) following %s", maxRedirects, url));
+  }
+
+  private static final Pattern RATE_LIMIT_RESOURCE = Pattern.compile("[a-z_]{1,32}");
+
+  /**
+   * Describes the rate limit headers of a failed response, as sent by GitHub ({@code
+   * X-RateLimit-*}) and by other hosts ({@code Retry-After}), so that "Received 403 status code"
+   * says whether the account ran out of requests. Only numbers and a short lowercase resource name
+   * are copied from the response. Returns an empty string when none of the headers is present.
+   */
+  @VisibleForTesting
+  static String rateLimitDetail(Headers headers, Instant now) {
+    List<String> parts = new ArrayList<>();
+    nonNegative(headers.get("X-RateLimit-Remaining")).ifPresent(v -> parts.add("remaining=" + v));
+    nonNegative(headers.get("X-RateLimit-Limit")).ifPresent(v -> parts.add("limit=" + v));
+    String resource = headers.get("X-RateLimit-Resource");
+    if (resource != null && RATE_LIMIT_RESOURCE.matcher(resource).matches()) {
+      parts.add("resource=" + resource);
+    }
+    nonNegative(headers.get("X-RateLimit-Reset"))
+        .ifPresent(
+            reset -> parts.add("resets in " + Math.max(0, reset - now.getEpochSecond()) + "s"));
+    nonNegative(headers.get("Retry-After")).ifPresent(v -> parts.add("retry after " + v + "s"));
+    return parts.isEmpty() ? "" : "rate limit: " + String.join(", ", parts);
+  }
+
+  private static Optional<Long> nonNegative(String value) {
+    if (value == null) {
+      return Optional.empty();
+    }
+    try {
+      long parsed = Long.parseLong(value.trim());
+      return parsed < 0 ? Optional.empty() : Optional.of(parsed);
+    } catch (NumberFormatException e) {
+      return Optional.empty();
+    }
   }
 }

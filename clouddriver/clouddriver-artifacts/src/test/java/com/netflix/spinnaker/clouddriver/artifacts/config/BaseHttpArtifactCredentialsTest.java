@@ -24,8 +24,10 @@ import com.netflix.spinnaker.kork.web.url.UrlRestrictions;
 import com.netflix.spinnaker.kork.web.url.UrlRestrictionsProperties;
 import java.io.IOException;
 import java.io.InputStream;
+import java.time.Instant;
 import java.util.Arrays;
 import java.util.List;
+import okhttp3.Headers;
 import okhttp3.OkHttpClient;
 import okhttp3.mockwebserver.MockResponse;
 import okhttp3.mockwebserver.MockWebServer;
@@ -216,6 +218,62 @@ class BaseHttpArtifactCredentialsTest {
   }
 
   // Test implementation classes
+
+  @Test
+  void failedDownloadNamesTheRateLimit() {
+    TestArtifactAccount account = new TestArtifactAccount();
+    credentials = new TestArtifactCredentials(new OkHttpClient(), account);
+    long reset = Instant.now().getEpochSecond() + 411;
+    mockServer.enqueue(
+        new MockResponse()
+            .setResponseCode(403)
+            .setHeader("X-RateLimit-Limit", "5000")
+            .setHeader("X-RateLimit-Remaining", "0")
+            .setHeader("X-RateLimit-Resource", "core")
+            .setHeader("X-RateLimit-Reset", String.valueOf(reset))
+            .setBody("API rate limit exceeded for user ID 1"));
+
+    IOException e =
+        assertThrows(
+            IOException.class, () -> credentials.fetchUrl(mockServer.url("/file").toString()));
+
+    assertTrue(
+        e.getMessage().startsWith("Received 403 status code from "), "message: " + e.getMessage());
+    assertTrue(
+        e.getMessage().contains("(rate limit: remaining=0, limit=5000, resource=core, resets in "),
+        "message: " + e.getMessage());
+    assertFalse(e.getMessage().contains("user ID"), "body leaked: " + e.getMessage());
+  }
+
+  @Test
+  void failedDownloadWithoutRateLimitHeadersKeepsTheMessage() {
+    TestArtifactAccount account = new TestArtifactAccount();
+    credentials = new TestArtifactCredentials(new OkHttpClient(), account);
+    mockServer.enqueue(new MockResponse().setResponseCode(404));
+
+    IOException e =
+        assertThrows(
+            IOException.class, () -> credentials.fetchUrl(mockServer.url("/file").toString()));
+
+    assertEquals("Received 404 status code from " + mockServer.url("/").host(), e.getMessage());
+  }
+
+  @Test
+  void rateLimitDetailIgnoresMalformedHeaders() {
+    Headers headers =
+        new Headers.Builder()
+            .add("X-RateLimit-Remaining", "-1")
+            .add("X-RateLimit-Resource", "Core; evil")
+            .add("Retry-After", "Wed, 21 Oct 2026 07:28:00 GMT")
+            .build();
+    assertEquals("", BaseHttpArtifactCredentials.rateLimitDetail(headers, Instant.now()));
+
+    Headers retry = new Headers.Builder().add("Retry-After", "60").build();
+    assertEquals(
+        "rate limit: retry after 60s",
+        BaseHttpArtifactCredentials.rateLimitDetail(retry, Instant.now()));
+  }
+
   static class TestArtifactAccount extends UserInputValidatedArtifactAccount {
     private UrlRestrictions mutableRestrictions;
 
