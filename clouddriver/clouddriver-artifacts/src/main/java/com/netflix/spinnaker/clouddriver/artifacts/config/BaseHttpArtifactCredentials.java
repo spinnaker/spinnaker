@@ -93,9 +93,6 @@ public abstract class BaseHttpArtifactCredentials<T extends UserInputValidatedAr
     Optional<String> authHeader = getAuthHeader(account);
     if (authHeader.isPresent()) {
       headers.set("Authorization", authHeader.get());
-      log.info("Loaded credentials for artifact account {}", account.getName());
-    } else {
-      log.info("No credentials included for artifact account {}", account.getName());
     }
     return headers.build();
   }
@@ -140,6 +137,13 @@ public abstract class BaseHttpArtifactCredentials<T extends UserInputValidatedAr
           currentUrl.host().equals(originalHost.host())
               ? getHeaders(account, currentUrl)
               : new Headers.Builder().build();
+      // Logged from the headers actually sent, so credentials that subclasses add on top of
+      // getHeaders(account) (e.g. GitHub App installation tokens) are reported correctly.
+      if (headers.get("Authorization") != null) {
+        log.info("Loaded credentials for artifact account {}", account.getName());
+      } else {
+        log.info("No credentials included for artifact account {}", account.getName());
+      }
       Request request = new Request.Builder().headers(headers).url(currentUrl).build();
       Response response = okHttpClient.newCall(request).execute();
 
