@@ -56,6 +56,7 @@ import com.google.api.services.compute.model.InstanceProperties;
 import com.google.api.services.compute.model.InstanceTemplate;
 import com.google.api.services.compute.model.Metadata.Items;
 import com.google.api.services.compute.model.NamedPort;
+import com.google.common.annotations.VisibleForTesting;
 import com.google.common.base.Splitter;
 import com.google.common.base.Splitter.MapSplitter;
 import com.google.common.collect.ImmutableList;
@@ -710,15 +711,17 @@ public abstract class AbstractGoogleServerGroupCachingAgent
       serverGroup.setRegion(credentials.regionFromZone(zone));
     }
     GoogleInstanceFlexibilityPolicy flexPolicy =
-        convertInstanceFlexibilityPolicy(manager.getInstanceFlexibilityPolicy());
+        convertInstanceFlexibilityPolicy(manager.getInstanceFlexibilityPolicy(), manager.getName());
     if (flexPolicy != null) {
       serverGroup.setInstanceFlexibilityPolicy(flexPolicy);
     }
   }
 
   @Nullable
-  private static GoogleInstanceFlexibilityPolicy convertInstanceFlexibilityPolicy(
-      @Nullable InstanceGroupManagerInstanceFlexibilityPolicy gcePolicy) {
+  @VisibleForTesting
+  static GoogleInstanceFlexibilityPolicy convertInstanceFlexibilityPolicy(
+      @Nullable InstanceGroupManagerInstanceFlexibilityPolicy gcePolicy,
+      @Nullable String serverGroupName) {
     if (gcePolicy == null || gcePolicy.getInstanceSelections() == null) {
       return null;
     }
@@ -742,6 +745,8 @@ public abstract class AbstractGoogleServerGroupCachingAgent
                           new GoogleInstanceFlexibilityPolicy.InstanceSelection();
                       sel.setRank(gceSel.getRank());
                       sel.setMachineTypes(gceSel.getMachineTypes());
+                      sel.setMinCpuPlatform(gceSel.getMinCpuPlatform());
+                      sel.setDisks(convertSelectionDisks(gceSel.getDisks(), serverGroupName));
                       return sel;
                     }));
     // Keep model semantics consistent: an empty/fully filtered policy is treated as absent.
@@ -749,6 +754,65 @@ public abstract class AbstractGoogleServerGroupCachingAgent
       return null;
     }
     return new GoogleInstanceFlexibilityPolicy(selections);
+  }
+
+  /**
+   * Maps GCE selection disks back to Spinnaker disk overrides. Disks are identified by {@code boot}
+   * or by the persistent-disk index encoded in the generated device name ({@code
+   * <serverGroup>-<index>}), so clones can re-target the new server group's template disks. Disks
+   * that match neither (e.g. added outside Spinnaker) are not representable and are skipped.
+   */
+  @Nullable
+  private static List<GoogleInstanceFlexibilityPolicy.DiskOverride> convertSelectionDisks(
+      @Nullable List<AttachedDisk> disks, @Nullable String serverGroupName) {
+    if (disks == null || disks.isEmpty()) {
+      return null;
+    }
+    List<GoogleInstanceFlexibilityPolicy.DiskOverride> overrides = new ArrayList<>();
+    for (AttachedDisk disk : disks) {
+      if (disk == null) {
+        continue;
+      }
+      GoogleInstanceFlexibilityPolicy.DiskOverride override =
+          new GoogleInstanceFlexibilityPolicy.DiskOverride();
+      if (Boolean.TRUE.equals(disk.getBoot())) {
+        override.setBoot(true);
+      } else {
+        Integer index = parseDeviceIndex(disk.getDeviceName(), serverGroupName);
+        if (index == null) {
+          log.debug(
+              "Skipping instance selection disk {} of {}: not a server group template disk",
+              disk.getDeviceName(),
+              serverGroupName);
+          continue;
+        }
+        override.setIndex(index);
+      }
+      if (disk.getInitializeParams() != null) {
+        String diskType = disk.getInitializeParams().getDiskType();
+        override.setType(diskType == null ? null : Utils.getLocalName(diskType));
+        override.setSizeGb(disk.getInitializeParams().getDiskSizeGb());
+      }
+      overrides.add(override);
+    }
+    return overrides.isEmpty() ? null : overrides;
+  }
+
+  @Nullable
+  private static Integer parseDeviceIndex(
+      @Nullable String deviceName, @Nullable String serverGroupName) {
+    if (deviceName == null || serverGroupName == null) {
+      return null;
+    }
+    String prefix = serverGroupName + "-";
+    if (!deviceName.startsWith(prefix)) {
+      return null;
+    }
+    try {
+      return Integer.valueOf(deviceName.substring(prefix.length()));
+    } catch (NumberFormatException e) {
+      return null;
+    }
   }
 
   private static ImmutableList<String> getZones(@Nullable DistributionPolicy distributionPolicy) {

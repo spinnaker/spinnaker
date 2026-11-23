@@ -22,6 +22,7 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.api.services.compute.Compute;
 import com.google.api.services.compute.model.AttachedDisk;
+import com.google.api.services.compute.model.AttachedDiskInitializeParams;
 import com.google.api.services.compute.model.Autoscaler;
 import com.google.api.services.compute.model.Backend;
 import com.google.api.services.compute.model.BackendService;
@@ -95,6 +96,7 @@ import java.io.UncheckedIOException;
 import java.util.*;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
+import javax.annotation.Nullable;
 import lombok.Data;
 import lombok.extern.log4j.Log4j2;
 import org.apache.commons.lang3.StringUtils;
@@ -256,7 +258,13 @@ public class BasicGoogleDeployHandler
       setNamedPortsToInstanceGroup(description, lbToUpdate, instanceGroupManager);
 
       createInstanceGroupManagerFromInput(
-          description, instanceGroupManager, lbToUpdate, nextServerGroupName, region, task);
+          description,
+          instanceGroupManager,
+          lbToUpdate,
+          nextServerGroupName,
+          region,
+          attachedDisks,
+          task);
 
       task.updateStatus(
           BASE_PHASE,
@@ -1231,8 +1239,26 @@ public class BasicGoogleDeployHandler
       String region,
       Task task)
       throws IOException {
+    createInstanceGroupManagerFromInput(
+        description, instanceGroupManager, lbInfo, serverGroupName, region, null, task);
+  }
+
+  /**
+   * @param templateDisks the disks of the instance template backing this server group; required to
+   *     resolve instance flexibility selection disk overrides, may be null otherwise.
+   */
+  protected void createInstanceGroupManagerFromInput(
+      BasicGoogleDeployDescription description,
+      InstanceGroupManager instanceGroupManager,
+      LoadBalancerInfo lbInfo,
+      String serverGroupName,
+      String region,
+      @Nullable List<AttachedDisk> templateDisks,
+      Task task)
+      throws IOException {
     if (Boolean.TRUE.equals(description.getRegional())) {
       setDistributionPolicyToInstanceGroup(description, instanceGroupManager);
+      applyInstanceSelectionDiskOverrides(description, instanceGroupManager, templateDisks);
       GoogleRmigRedistributionContract.enforce(instanceGroupManager);
       String targetLink =
           createRegionalInstanceGroupManagerAndWait(
@@ -1338,6 +1364,9 @@ public class BasicGoogleDeployHandler
                       if (entry.getValue().getRank() != null) {
                         selection.setRank(entry.getValue().getRank());
                       }
+                      if (StringUtils.isNotBlank(entry.getValue().getMinCpuPlatform())) {
+                        selection.setMinCpuPlatform(entry.getValue().getMinCpuPlatform().trim());
+                      }
                       return selection;
                     }));
     int droppedEntries = totalEntries - selections.size();
@@ -1356,6 +1385,108 @@ public class BasicGoogleDeployHandler
     flexPolicy.setInstanceSelections(selections);
     instanceGroupManager.setInstanceFlexibilityPolicy(flexPolicy);
     log.debug("Configured instance flexibility policy with {} selection groups", selections.size());
+  }
+
+  /**
+   * Resolves per-selection disk overrides against the instance template disks and sets them on the
+   * already-mapped GCE instance selections.
+   *
+   * <p>GCE replaces a template disk when an instance selection disk has the same {@code
+   * deviceName}; otherwise it attaches an extra disk. Spinnaker generates template device names
+   * from the server group name ({@code <serverGroup>-<index>}), so callers cannot know them up
+   * front. Overrides therefore target a disk by {@code boot} or persistent-disk {@code index}, and
+   * the full template disk is copied (source image, labels, auto-delete, device name) before
+   * applying the overridden type/size.
+   *
+   * @see <a
+   *     href="https://cloud.google.com/compute/docs/instance-groups/about-instance-flexibility">How
+   *     minCpuPlatform and disks overrides work (GCP docs)</a>
+   */
+  protected void applyInstanceSelectionDiskOverrides(
+      BasicGoogleDeployDescription description,
+      InstanceGroupManager instanceGroupManager,
+      @Nullable List<AttachedDisk> templateDisks) {
+    if (description.getInstanceFlexibilityPolicy() == null
+        || description.getInstanceFlexibilityPolicy().getInstanceSelections() == null
+        || instanceGroupManager.getInstanceFlexibilityPolicy() == null
+        || instanceGroupManager.getInstanceFlexibilityPolicy().getInstanceSelections() == null) {
+      return;
+    }
+    Map<String, InstanceGroupManagerInstanceFlexibilityPolicyInstanceSelection> gceSelections =
+        instanceGroupManager.getInstanceFlexibilityPolicy().getInstanceSelections();
+    description
+        .getInstanceFlexibilityPolicy()
+        .getInstanceSelections()
+        .forEach(
+            (name, selection) -> {
+              InstanceGroupManagerInstanceFlexibilityPolicyInstanceSelection gceSelection =
+                  name == null ? null : gceSelections.get(name);
+              if (gceSelection == null
+                  || selection == null
+                  || CollectionUtils.isEmpty(selection.getDisks())) {
+                return;
+              }
+              if (templateDisks == null) {
+                throw new IllegalArgumentException(
+                    String.format(
+                        "Instance selection '%s' defines disk overrides but the instance template"
+                            + " disks are unavailable.",
+                        name));
+              }
+              gceSelection.setDisks(
+                  selection.getDisks().stream()
+                      .map(override -> resolveDiskOverride(name, override, templateDisks))
+                      .collect(Collectors.toList()));
+            });
+  }
+
+  private static AttachedDisk resolveDiskOverride(
+      String selectionName,
+      com.netflix.spinnaker.clouddriver.google.model.GoogleInstanceFlexibilityPolicy.DiskOverride
+          override,
+      List<AttachedDisk> templateDisks) {
+    List<AttachedDisk> persistentDisks =
+        templateDisks.stream()
+            .filter(disk -> !"SCRATCH".equals(disk.getType()))
+            .collect(Collectors.toList());
+    AttachedDisk target;
+    if (Boolean.TRUE.equals(override.getBoot())) {
+      target =
+          persistentDisks.stream()
+              .filter(disk -> Boolean.TRUE.equals(disk.getBoot()))
+              .findFirst()
+              .orElse(null);
+    } else if (override.getIndex() != null
+        && override.getIndex() >= 0
+        && override.getIndex() < persistentDisks.size()) {
+      target = persistentDisks.get(override.getIndex());
+    } else {
+      target = null;
+    }
+    if (target == null) {
+      throw new IllegalArgumentException(
+          String.format(
+              "Instance selection '%s' disk override %s does not match any of the %d persistent"
+                  + " disks of the instance template.",
+              selectionName, override, persistentDisks.size()));
+    }
+
+    // Shallow copies: GenericJson#clone deep-copies nested values and fails on immutable maps
+    // (e.g. labels), and only the top-level type/size fields are replaced here.
+    AttachedDisk resolved = new AttachedDisk();
+    resolved.putAll(target);
+    AttachedDiskInitializeParams params = new AttachedDiskInitializeParams();
+    if (target.getInitializeParams() != null) {
+      params.putAll(target.getInitializeParams());
+    }
+    if (StringUtils.isNotBlank(override.getType())) {
+      params.setDiskType(override.getType().trim());
+    }
+    if (override.getSizeGb() != null) {
+      params.setDiskSizeGb(override.getSizeGb());
+    }
+    resolved.setInitializeParams(params);
+    return resolved;
   }
 
   private void updateBackendServices(
