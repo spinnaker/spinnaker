@@ -67,6 +67,8 @@ import org.mockito.kotlin.never
 import org.mockito.kotlin.reset
 import org.mockito.kotlin.verify
 import org.mockito.kotlin.whenever
+import io.micrometer.core.instrument.MeterRegistry
+import io.micrometer.core.instrument.simple.SimpleMeterRegistry
 import java.time.Clock
 import java.time.Duration
 import java.time.Instant.now
@@ -893,6 +895,9 @@ class TestConfig {
 
   @Bean
   fun registry(): Registry = NoopRegistry()
+
+  @Bean
+  fun meterRegistry(): MeterRegistry = SimpleMeterRegistry()
 
   @Bean
   fun dummyTask(): DummyTask = mock {

@@ -17,13 +17,13 @@ package com.netflix.spinnaker.gate.ratelimit;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
-import com.netflix.spectator.api.NoopRegistry;
 import com.netflix.spinnaker.gate.config.RateLimiterConfiguration;
 import com.netflix.spinnaker.gate.config.RateLimiterConfiguration.Rule;
 import com.netflix.spinnaker.gate.security.RequestIdentityExtractor;
 import com.netflix.spinnaker.gate.security.oauth2.SpinnakerOAuth2User;
 import com.netflix.spinnaker.kork.jedis.EmbeddedRedis;
 import com.netflix.spinnaker.security.User;
+import io.micrometer.core.instrument.simple.SimpleMeterRegistry;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
@@ -105,7 +105,7 @@ class RateLimitingFilterTest {
   RateLimitingFilter filter() {
     return new RateLimitingFilter(
         new RedisRateLimiter(pool),
-        new NoopRegistry(),
+        new SimpleMeterRegistry(),
         new RedisRateLimitPrincipalProvider(pool, config),
         new DefaultRateLimitPrincipalResolver(extractors),
         new RateLimitRuleMatcher(config.getRules(), config.getExcludePathPatterns()));

@@ -18,20 +18,24 @@ package com.netflix.spinnaker.kork.metrics;
 
 import com.netflix.spectator.api.Registry;
 import com.netflix.spectator.api.Spectator;
-import com.netflix.spectator.gc.GcLogger;
-import com.netflix.spectator.jvm.Jmx;
 import com.netflix.spectator.micrometer.MicrometerRegistry;
 import io.micrometer.core.instrument.MeterRegistry;
 import jakarta.annotation.PreDestroy;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnClass;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
-import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
+/**
+ * Bridges Spectator's {@link Registry} to the application's Micrometer {@link MeterRegistry}.
+ *
+ * <p>JVM metrics come from Spring Boot's Micrometer binders, not from Spectator.
+ *
+ * <p>TODO: remove with the rest of Spectator (deprecated, removal planned for 2027.0.0) once all
+ * call sites use Micrometer directly.
+ */
 @Configuration
 @ConditionalOnClass(Registry.class)
-@EnableConfigurationProperties(SpectatorGcLoggingConfiguration.class)
 public class SpectatorConfiguration {
 
   @Bean
@@ -41,28 +45,21 @@ public class SpectatorConfiguration {
   }
 
   @Bean
-  RegistryInitializer registryInitializer(
-      Registry registry, SpectatorGcLoggingConfiguration spectatorConfigurationProperties) {
-    return new RegistryInitializer(registry, spectatorConfigurationProperties.isLoggingEnabled());
+  GlobalRegistryRegistration globalRegistryRegistration(Registry registry) {
+    return new GlobalRegistryRegistration(registry);
   }
 
-  private static class RegistryInitializer {
+  /** Makes the bridge available to code that records through {@link Spectator#globalRegistry()}. */
+  private static class GlobalRegistryRegistration {
     private final Registry registry;
-    private final GcLogger gcLogger;
 
-    public RegistryInitializer(Registry registry, boolean enableJmxLogging) {
+    GlobalRegistryRegistration(Registry registry) {
       this.registry = registry;
       Spectator.globalRegistry().add(registry);
-      if (enableJmxLogging) {
-        Jmx.registerStandardMXBeans(registry);
-      }
-      gcLogger = new GcLogger();
-      gcLogger.start(null);
     }
 
     @PreDestroy
     public void destroy() {
-      gcLogger.stop();
       Spectator.globalRegistry().remove(registry);
     }
   }

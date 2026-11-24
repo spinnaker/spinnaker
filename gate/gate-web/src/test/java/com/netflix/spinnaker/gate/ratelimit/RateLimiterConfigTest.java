@@ -18,10 +18,10 @@ package com.netflix.spinnaker.gate.ratelimit;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.mock;
 
-import com.netflix.spectator.api.NoopRegistry;
-import com.netflix.spectator.api.Registry;
 import com.netflix.spinnaker.gate.config.RateLimiterConfig;
 import com.netflix.spinnaker.gate.config.RateLimiterConfiguration;
+import io.micrometer.core.instrument.MeterRegistry;
+import io.micrometer.core.instrument.simple.SimpleMeterRegistry;
 import java.util.List;
 import java.util.Optional;
 import org.junit.jupiter.api.Test;
@@ -85,8 +85,8 @@ class RateLimiterConfigTest {
     }
 
     @Bean
-    Registry registry() {
-      return new NoopRegistry();
+    MeterRegistry meterRegistry() {
+      return new SimpleMeterRegistry();
     }
 
     @Bean

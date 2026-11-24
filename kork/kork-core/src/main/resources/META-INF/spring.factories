@@ -1,3 +1,5 @@
 org.springframework.context.ApplicationListener=\
   com.netflix.spinnaker.kork.spring.SpringBoot1CompatibilityApplicationListener,\
   com.netflix.spinnaker.kork.web.exceptions.DefaultThreadUncaughtExceptionHandler
+org.springframework.boot.EnvironmentPostProcessor=\
+  com.netflix.spinnaker.kork.metrics.OtlpDefaultsEnvironmentPostProcessor

@@ -19,8 +19,10 @@ import com.netflix.spectator.api.NoopRegistry;
 import com.netflix.spectator.api.Registry;
 import com.netflix.spinnaker.kork.jedis.exception.MissingRequiredConfiguration;
 import com.netflix.spinnaker.kork.jedis.telemetry.InstrumentedJedisPool;
+import io.micrometer.core.instrument.MeterRegistry;
 import java.net.URI;
 import java.util.Optional;
+import java.util.function.BiFunction;
 import org.apache.commons.pool2.impl.GenericObjectPoolConfig;
 import redis.clients.jedis.Jedis;
 import redis.clients.jedis.JedisPool;
@@ -28,14 +30,23 @@ import redis.clients.jedis.util.Pool;
 
 public class JedisPoolFactory {
 
-  private final Registry registry;
+  private final BiFunction<JedisPool, String, InstrumentedJedisPool> instrumentedPool;
 
+  @SuppressWarnings("removal")
   public JedisPoolFactory() {
     this(new NoopRegistry());
   }
 
+  public JedisPoolFactory(MeterRegistry registry) {
+    this.instrumentedPool = (pool, name) -> new InstrumentedJedisPool(registry, pool, name);
+  }
+
+  /**
+   * @deprecated Spectator is deprecated. Use {@link #JedisPoolFactory(MeterRegistry)}.
+   */
+  @Deprecated(forRemoval = true)
   public JedisPoolFactory(Registry registry) {
-    this.registry = registry;
+    this.instrumentedPool = (pool, name) -> new InstrumentedJedisPool(registry, pool, name);
   }
 
   public Pool<Jedis> build(
@@ -49,8 +60,7 @@ public class JedisPoolFactory {
     GenericObjectPoolConfig poolConfig =
         Optional.ofNullable(properties.poolConfig).orElse(objectPoolConfig);
 
-    return new InstrumentedJedisPool(
-        registry,
+    return instrumentedPool.apply(
         // Pool name should always be "null", as setting this is incompat with some SaaS Redis
         // offerings
         new JedisPool(

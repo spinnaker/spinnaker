@@ -20,6 +20,7 @@ import com.netflix.spectator.api.Registry
 import com.netflix.spinnaker.kork.dynamicconfig.DynamicConfigService
 import com.netflix.spinnaker.kork.jedis.JedisDriverProperties
 import com.netflix.spinnaker.kork.jedis.JedisPoolFactory
+import io.micrometer.core.instrument.MeterRegistry
 import com.netflix.spinnaker.orca.q.QueueShovel
 import com.netflix.spinnaker.q.Activator
 import com.netflix.spinnaker.q.DeadMessageCallback
@@ -60,7 +61,7 @@ class RedisQueueShovelConfiguration {
     @Value("\${redis.connection-previous:#{null}}") previousConnection: String?,
     @Value("\${redis.timeout:2000}") timeout: Int,
     redisPoolConfig: GenericObjectPoolConfig<Jedis>,
-    registry: Registry
+    registry: MeterRegistry
   ): Pool<Jedis> {
     if (mainConnection == previousConnection) {
       throw BeanInitializationException("previous Redis connection must not be the same as current connection")

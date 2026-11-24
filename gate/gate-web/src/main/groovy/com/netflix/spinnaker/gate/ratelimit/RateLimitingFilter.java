@@ -19,13 +19,10 @@ import static com.netflix.spinnaker.gate.filters.RequestLoggingFilter.REQUEST_ST
 import static net.logstash.logback.argument.StructuredArguments.value;
 import static org.springframework.http.HttpStatus.TOO_MANY_REQUESTS;
 
-import com.netflix.spectator.api.BasicTag;
-import com.netflix.spectator.api.Counter;
-import com.netflix.spectator.api.Id;
-import com.netflix.spectator.api.Registry;
-import com.netflix.spectator.api.Tag;
-import com.netflix.spectator.api.histogram.PercentileTimer;
 import com.netflix.spinnaker.gate.config.RateLimiterConfiguration.Rule;
+import io.micrometer.core.instrument.Counter;
+import io.micrometer.core.instrument.MeterRegistry;
+import io.micrometer.core.instrument.Timer;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpFilter;
@@ -37,7 +34,6 @@ import java.time.Duration;
 import java.time.Instant;
 import java.time.ZonedDateTime;
 import java.time.format.DateTimeFormatter;
-import java.util.Collections;
 import java.util.Optional;
 import java.util.concurrent.TimeUnit;
 import lombok.extern.slf4j.Slf4j;
@@ -49,18 +45,18 @@ import org.springframework.http.MediaType;
 public class RateLimitingFilter extends HttpFilter {
 
   private final RateLimiter rateLimiter;
-  private final Registry registry;
+  private final MeterRegistry registry;
   private final RateLimitPrincipalProvider rateLimitPrincipalProvider;
   private final RateLimitPrincipalResolver principalResolver;
   private final RateLimitRuleMatcher ruleMatcher;
 
   private final Counter throttlingCounter;
   private final Counter learningThrottlingCounter;
-  private final Id controllerInvocationsId;
+  private final Timer.Builder controllerInvocations;
 
   public RateLimitingFilter(
       RateLimiter rateLimiter,
-      Registry registry,
+      MeterRegistry registry,
       RateLimitPrincipalProvider rateLimitPrincipalProvider,
       RateLimitPrincipalResolver principalResolver,
       RateLimitRuleMatcher ruleMatcher) {
@@ -73,15 +69,15 @@ public class RateLimitingFilter extends HttpFilter {
     throttlingCounter = registry.counter("rateLimit.throttling");
     learningThrottlingCounter = registry.counter("rateLimit.throttlingLearning");
 
-    this.controllerInvocationsId =
-        registry
-            .createId("controller.invocations")
-            .withTag("controller", "unknown")
-            .withTag("method", "unknown")
-            .withTag("status", "4xx")
-            .withTag("statusCode", "429")
-            .withTag("success", "false")
-            .withTag("cause", "RateLimitingFilter");
+    this.controllerInvocations =
+        Timer.builder("controller.invocations")
+            .tags(
+                "controller", "unknown",
+                "method", "unknown",
+                "status", "4xx",
+                "statusCode", "429",
+                "success", "false",
+                "cause", "RateLimitingFilter");
   }
 
   @Override
@@ -93,7 +89,8 @@ public class RateLimitingFilter extends HttpFilter {
         Optional.ofNullable(MDC.get(REQUEST_START_TIME))
             .ifPresent(
                 startTime -> {
-                  PercentileTimer.get(registry, controllerInvocationsId)
+                  controllerInvocations
+                      .register(registry)
                       .record(
                           System.currentTimeMillis() - Long.parseLong(startTime),
                           TimeUnit.MILLISECONDS);
@@ -222,21 +219,19 @@ public class RateLimitingFilter extends HttpFilter {
     return (int) Math.max(1, untilReset.plusMillis(999).toSeconds());
   }
 
-  // TODO: new instrumentation should use Micrometer; move with the rest of this filter's metrics
-  // when Spectator is removed (2027.0.0).
   private void recordRuleMetrics(Rule rule, Rate rate) {
-    Iterable<Tag> tags = Collections.singletonList(new BasicTag("rule", rule.getName()));
     if (rate.isThrottled()) {
-      registry.counter("rateLimit.rule.throttled", tags).increment();
+      registry.counter("rateLimit.rule.throttled", "rule", rule.getName()).increment();
     }
-    registry.counter("rateLimit.rule.requests", tags).increment();
+    registry.counter("rateLimit.rule.requests", "rule", rule.getName()).increment();
   }
 
   private void recordPrincipalMetrics(RateLimitPrincipal principal, Rate rate) {
-    Iterable<Tag> tags = Collections.singletonList(new BasicTag("principal", principal.getName()));
     if (rate.isThrottled()) {
-      registry.counter("rateLimit.principal.throttled", tags).increment();
+      registry
+          .counter("rateLimit.principal.throttled", "principal", principal.getName())
+          .increment();
     }
-    registry.counter("rateLimit.principal.requests", tags).increment();
+    registry.counter("rateLimit.principal.requests", "principal", principal.getName()).increment();
   }
 }

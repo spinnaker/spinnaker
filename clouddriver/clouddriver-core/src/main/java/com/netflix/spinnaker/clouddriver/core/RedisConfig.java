@@ -22,6 +22,7 @@ import com.netflix.spinnaker.clouddriver.data.task.jedis.RedisTaskRepository;
 import com.netflix.spinnaker.kork.jedis.JedisClientDelegate;
 import com.netflix.spinnaker.kork.jedis.RedisClientDelegate;
 import com.netflix.spinnaker.kork.jedis.telemetry.InstrumentedJedisPool;
+import io.micrometer.core.instrument.MeterRegistry;
 import java.net.URI;
 import java.util.Optional;
 import org.apache.commons.pool2.impl.GenericObjectPool;
@@ -76,11 +77,12 @@ public class RedisConfig {
   @Bean
   JedisPool jedisPool(
       Registry registry,
+      MeterRegistry meterRegistry,
       RedisConfigurationProperties redisConfigurationProperties,
       GenericObjectPoolConfig redisPoolConfig) {
     JedisPool jedisPool =
         createPool(
-            registry,
+            meterRegistry,
             redisPoolConfig,
             redisConfigurationProperties.getConnection(),
             redisConfigurationProperties.getTimeout(),
@@ -101,7 +103,7 @@ public class RedisConfig {
   }
 
   private static JedisPool createPool(
-      Registry registry,
+      MeterRegistry registry,
       GenericObjectPoolConfig redisPoolConfig,
       String connection,
       int timeout,
@@ -137,7 +139,7 @@ public class RedisConfig {
 
   @Bean
   JedisPool jedisPoolPrevious(
-      Registry registry, RedisConfigurationProperties redisConfigurationProperties) {
+      MeterRegistry registry, RedisConfigurationProperties redisConfigurationProperties) {
     if (redisConfigurationProperties.getConnectionPrevious() == null
         || redisConfigurationProperties
             .getConnection()

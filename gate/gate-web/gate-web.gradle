@@ -57,6 +57,7 @@ dependencies {
 
   testImplementation platform("org.springframework.ai:spring-ai-bom:1.1.8")
   testImplementation "org.springframework.ai:spring-ai-starter-mcp-server-webmvc"
+  testImplementation testFixtures("io.spinnaker.kork:kork-core")
   testImplementation project(":gate-ldap") // TODO: Move system tests to own module
   testImplementation project(":gate-basic")
   testImplementation project(":gate-header")

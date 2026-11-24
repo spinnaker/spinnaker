@@ -18,14 +18,19 @@ package com.netflix.spinnaker.kork.web.interceptors;
 
 import static java.lang.String.format;
 
-import com.netflix.spectator.api.Id;
+import com.netflix.spectator.api.BasicTag;
 import com.netflix.spectator.api.Registry;
-import com.netflix.spectator.api.histogram.PercentileDistributionSummary;
-import com.netflix.spectator.api.histogram.PercentileTimer;
+import io.micrometer.core.instrument.DistributionSummary;
+import io.micrometer.core.instrument.MeterRegistry;
+import io.micrometer.core.instrument.Tag;
+import io.micrometer.core.instrument.Tags;
+import io.micrometer.core.instrument.Timer;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import java.util.Collection;
 import java.util.HashSet;
+import java.util.LinkedHashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.TimeUnit;
@@ -34,19 +39,21 @@ import org.springframework.web.servlet.HandlerInterceptor;
 import org.springframework.web.servlet.HandlerMapping;
 
 /**
- * An interceptor that logs Controller metrics to an underlying {@link
- * com.netflix.spectator.api.Registry}.
+ * An interceptor that records controller metrics to a Micrometer {@link MeterRegistry}.
  *
  * <p>A `timer` will be created for each request with the following tags:
  *
  * <p>- controller name - controller method - status (2xx, 4xx, 5xx, etc.) - statusCode (200, 404,
  * 500, etc.) - success (true/false depending on whether the request resulted in an exception) -
  * cause (if success == false, the name of the raised exception)
+ *
+ * <p>A distribution summary of the request content length is recorded under {@code
+ * <metricName>.contentLength} with the same tags.
  */
 public class MetricsInterceptor implements HandlerInterceptor {
   static final String TIMER_ATTRIBUTE = "Metrics_startTime";
 
-  private final Registry registry;
+  private final Recorder recorder;
   private final String metricName;
   private final String contentLengthMetricName;
   private final Set<String> pathVariablesToTag = new HashSet<String>();
@@ -54,15 +61,35 @@ public class MetricsInterceptor implements HandlerInterceptor {
   private final Set<String> controllersToExclude = new HashSet<String>();
 
   /**
-   * @deprecated Instead use the other constructor.
+   * @deprecated Use {@link #MetricsInterceptor(MeterRegistry, String, Collection, Collection,
+   *     Collection)}.
    */
-  @Deprecated
+  @Deprecated(forRemoval = true)
   public MetricsInterceptor(
       Registry registry,
       String metricName,
       Collection<String> pathVariablesToTag,
       Collection<String> controllersToExclude) {
     this(registry, metricName, pathVariablesToTag, null, controllersToExclude);
+  }
+
+  /**
+   * @deprecated Spectator is deprecated. Use {@link #MetricsInterceptor(MeterRegistry, String,
+   *     Collection, Collection, Collection)}.
+   */
+  @Deprecated(forRemoval = true)
+  public MetricsInterceptor(
+      Registry registry,
+      String metricName,
+      Collection<String> pathVariablesToTag,
+      Collection<String> queryParamsToTag,
+      Collection<String> controllersToExclude) {
+    this(
+        new SpectatorRecorder(registry),
+        metricName,
+        pathVariablesToTag,
+        queryParamsToTag,
+        controllersToExclude);
   }
 
   /**
@@ -73,12 +100,26 @@ public class MetricsInterceptor implements HandlerInterceptor {
    * @param controllersToExclude Controller names that should be excluded from metrics
    */
   public MetricsInterceptor(
-      Registry registry,
+      MeterRegistry registry,
       String metricName,
       Collection<String> pathVariablesToTag,
       Collection<String> queryParamsToTag,
       Collection<String> controllersToExclude) {
-    this.registry = registry;
+    this(
+        new MicrometerRecorder(registry),
+        metricName,
+        pathVariablesToTag,
+        queryParamsToTag,
+        controllersToExclude);
+  }
+
+  private MetricsInterceptor(
+      Recorder recorder,
+      String metricName,
+      Collection<String> pathVariablesToTag,
+      Collection<String> queryParamsToTag,
+      Collection<String> controllersToExclude) {
+    this.recorder = recorder;
     this.metricName = metricName;
     this.contentLengthMetricName = format("%s.contentLength", metricName);
     if (pathVariablesToTag != null) {
@@ -117,46 +158,45 @@ public class MetricsInterceptor implements HandlerInterceptor {
         status = 500;
       }
 
-      Id id =
-          registry
-              .createId(metricName)
-              .withTag("controller", controller)
-              .withTag("method", handlerMethod.getMethod().getName())
-              .withTag("status", status.toString().charAt(0) + "xx")
-              .withTag("statusCode", status.toString())
-              .withTag("criticality", metricCriticality(handlerMethod));
+      Map<String, String> tags = new LinkedHashMap<>();
+      tags.put("controller", controller);
+      tags.put("method", handlerMethod.getMethod().getName());
+      tags.put("status", status.toString().charAt(0) + "xx");
+      tags.put("statusCode", status.toString());
+      tags.put("criticality", metricCriticality(handlerMethod));
 
       Map variables = (Map) request.getAttribute(HandlerMapping.URI_TEMPLATE_VARIABLES_ATTRIBUTE);
       for (String pathVariable : pathVariablesToTag) {
         if (variables.containsKey(pathVariable)) {
-          id = id.withTag(pathVariable, variables.get(pathVariable).toString());
+          tags.put(pathVariable, variables.get(pathVariable).toString());
         } else {
-          id = id.withTag(pathVariable, "None");
+          tags.put(pathVariable, "None");
         }
       }
 
       for (String queryParamName : queryParamsToTag) {
         String parameter = request.getParameter(queryParamName);
         if (parameter != null) {
-          id = id.withTag(queryParamName, parameter);
+          tags.put(queryParamName, parameter);
         } else {
-          id = id.withTag(queryParamName, "None");
+          tags.put(queryParamName, "None");
         }
       }
 
       if (ex != null) {
-        id = id.withTag("success", "false").withTag("cause", ex.getClass().getSimpleName());
+        tags.put("success", "false");
+        tags.put("cause", ex.getClass().getSimpleName());
       } else {
-        id = id.withTag("success", "true").withTag("cause", "None");
+        tags.put("success", "true");
+        tags.put("cause", "None");
       }
 
-      PercentileTimer.get(registry, id)
-          .record(
-              getNanoTime() - ((Long) request.getAttribute(TIMER_ATTRIBUTE)), TimeUnit.NANOSECONDS);
-
-      PercentileDistributionSummary.get(
-              registry, registry.createId(contentLengthMetricName).withTags(id.tags()))
-          .record(request.getContentLengthLong());
+      recorder.record(
+          metricName,
+          contentLengthMetricName,
+          tags,
+          getNanoTime() - ((Long) request.getAttribute(TIMER_ATTRIBUTE)),
+          request.getContentLengthLong());
     }
   }
 
@@ -177,5 +217,69 @@ public class MetricsInterceptor implements HandlerInterceptor {
 
   protected Long getNanoTime() {
     return System.nanoTime();
+  }
+
+  private interface Recorder {
+    void record(
+        String timerName,
+        String contentLengthName,
+        Map<String, String> tags,
+        long durationNanos,
+        long contentLength);
+  }
+
+  private static class MicrometerRecorder implements Recorder {
+    private final MeterRegistry registry;
+
+    MicrometerRecorder(MeterRegistry registry) {
+      this.registry = registry;
+    }
+
+    @Override
+    public void record(
+        String timerName,
+        String contentLengthName,
+        Map<String, String> tags,
+        long durationNanos,
+        long contentLength) {
+      List<Tag> meterTags =
+          tags.entrySet().stream().map(e -> Tag.of(e.getKey(), e.getValue())).toList();
+      Timer.builder(timerName)
+          .tags(Tags.of(meterTags))
+          .register(registry)
+          .record(durationNanos, TimeUnit.NANOSECONDS);
+      DistributionSummary.builder(contentLengthName)
+          .tags(Tags.of(meterTags))
+          .register(registry)
+          .record(contentLength);
+    }
+  }
+
+  /** TODO: remove with the deprecated Spectator constructors (Spectator removal, 2027.0.0). */
+  private static class SpectatorRecorder implements Recorder {
+    private final Registry registry;
+
+    SpectatorRecorder(Registry registry) {
+      this.registry = registry;
+    }
+
+    @Override
+    public void record(
+        String timerName,
+        String contentLengthName,
+        Map<String, String> tags,
+        long durationNanos,
+        long contentLength) {
+      List<com.netflix.spectator.api.Tag> idTags =
+          tags.entrySet().stream()
+              .map(e -> (com.netflix.spectator.api.Tag) new BasicTag(e.getKey(), e.getValue()))
+              .toList();
+      registry
+          .timer(registry.createId(timerName, idTags))
+          .record(durationNanos, TimeUnit.NANOSECONDS);
+      registry
+          .distributionSummary(registry.createId(contentLengthName, idTags))
+          .record(contentLength);
+    }
   }
 }
