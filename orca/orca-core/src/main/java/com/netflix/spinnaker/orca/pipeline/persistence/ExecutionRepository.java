@@ -141,6 +141,16 @@ public interface ExecutionRepository {
   Observable<PipelineExecution> retrievePipelinesForPipelineConfigId(
       @Nonnull String pipelineConfigId, @Nonnull ExecutionCriteria criteria);
 
+  /**
+   * Pipelines for an application with the given execution name. Canary executions use a random
+   * config id, so they are looked up by application and name instead.
+   */
+  @Nonnull
+  Observable<PipelineExecution> retrievePipelinesForApplicationAndName(
+      @Nonnull String application,
+      @Nonnull String pipelineName,
+      @Nonnull ExecutionCriteria criteria);
+
   @Nonnull
   Collection<String> retrievePipelineConfigIdsForApplication(@Nonnull String application);
 
