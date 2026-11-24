@@ -486,13 +486,13 @@ class TaskHealthCachingAgentSpec extends Specification {
 
     for (CacheData cacheData : dataMap.get(HEALTH.toString())) {
       def attributes = cacheData.getAttributes()
-      keys.contains(cacheData.getId())
-      taskIds.contains(attributes.get('taskId'))
-      attributes.get('state') == 'Up'
-      attributes.get('service') == 'service-name'
-      attributes.get('taskArn') == 'task-arn'
-      attributes.get('type') == 'loadBalancer'
-      attributes.get('instanceId') == 'i-deadbeef'
+      assert keys.contains(cacheData.getId())
+      assert taskIds.contains(attributes.get('taskId'))
+      assert attributes.get('state') == 'Up'
+      assert attributes.get('service') == 'service-name'
+      assert attributes.get('taskArn') == 'task-arn'
+      assert attributes.get('type') == 'loadBalancer'
+      assert attributes.get('instanceId') == 'i-deadbeef'
     }
   }
 }
