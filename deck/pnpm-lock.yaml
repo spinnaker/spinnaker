@@ -1580,7 +1580,7 @@ importers:
         version: 4.22.2(supports-color@8.1.1)
       http-proxy-middleware:
         specifier: ^2.0.0
-        version: 2.0.9(debug@4.4.3(supports-color@8.1.1))
+        version: 2.0.10(debug@4.4.3(supports-color@8.1.1))
       husky:
         specifier: ^6.0.0
         version: 6.0.0
@@ -6293,8 +6293,8 @@ packages:
     resolution: {integrity: sha512-T1gkAiYYDWYx3V5Bmyu7HcfcvL7mUrTWiM6yOfa3PIphViJ/gFPbvidQ+veqSOHci/PxBcDabeUNCzpOODJZig==}
     engines: {node: '>= 14'}
 
-  http-proxy-middleware@2.0.9:
-    resolution: {integrity: sha512-c1IyJYLYppU574+YI7R4QyX2ystMtVXZwIdzazUIPIJsHuWNd+mho2j+bKoHftndicGj9yh+xjd+l0yj7VeT1Q==}
+  http-proxy-middleware@2.0.10:
+    resolution: {integrity: sha512-RKzRWNPxUZqbuk3BC5mGVJbBnWgr+diEnjJexIOytFbBzDy88Fbh/YvBr3DsNrl1jYAfjWfpATEv0NO35FDuPQ==}
     engines: {node: '>=12.0.0'}
     peerDependencies:
       '@types/express': ^4.17.13
@@ -6459,8 +6459,8 @@ packages:
   invariant@2.2.4:
     resolution: {integrity: sha512-phJfQVBuaJM5raOpJjSfkiD6BpbCE4Ns//LaXl6wGYtUBY83nWS6Rf9tXm2e8VaK60JEjYldbPif/A2B1C2gNA==}
 
-  ip-address@10.2.0:
-    resolution: {integrity: sha512-/+S6j4E9AHvW9SWMSEY9Xfy66O5PWvVEJ08O0y5JGyEKQpojb0K0GKpz/v5HJ/G0vi3D2sjGK78119oXZeE0qA==}
+  ip-address@10.7.6:
+    resolution: {integrity: sha512-00LYkM6byILa9eQIx6qoaXCM40xTLd56AZ4vyaPW3YTyb49VZYPo5xsiAq4tuQ54GH4R7gVdYScJ1B7B77PuTg==}
     engines: {node: '>= 12'}
 
   ipaddr.js@1.9.1:
@@ -8969,8 +8969,8 @@ packages:
     resolution: {integrity: sha512-g7EMS6xhc8TOO5W6xlm3oXyjdtzvyFY4LokI5f/UURu+xjeq9vli5NRBYH+FUNR7nP+yMcSrD0+Rao9GQrwG5Q==}
     hasBin: true
 
-  svgo@2.8.2:
-    resolution: {integrity: sha512-TyzE4NVGLUFy+H/Uy4N6c3G0HEeprsVfge6Lmq+0FdQQ/zqoVYB62IsBZORsiL+o96s6ff/V6/3UQo/C0cgCAA==}
+  svgo@2.8.4:
+    resolution: {integrity: sha512-2GJ4h3rl13qYTdwllaK6QlL8tG+UrM8626V2Ylcd/yBUv2Y/EwLsYisVV6UDCRmlk+C74G8nMpxJCk0RWPdDCw==}
     engines: {node: '>=10.13.0'}
     hasBin: true
 
@@ -12454,7 +12454,7 @@ snapshots:
       '@svgr/core': 6.5.1(supports-color@8.1.1)
       cosmiconfig: 7.1.0
       deepmerge: 4.3.1
-      svgo: 2.8.2
+      svgo: 2.8.4
 
   '@svgr/rollup@6.5.1(supports-color@8.1.1)':
     dependencies:
@@ -15540,7 +15540,7 @@ snapshots:
     transitivePeerDependencies:
       - supports-color
 
-  http-proxy-middleware@2.0.9(debug@4.4.3(supports-color@8.1.1)):
+  http-proxy-middleware@2.0.10(debug@4.4.3(supports-color@8.1.1)):
     dependencies:
       '@types/http-proxy': 1.17.17
       http-proxy: 1.18.1(debug@4.4.3(supports-color@8.1.1))
@@ -15716,7 +15716,7 @@ snapshots:
     dependencies:
       loose-envify: 1.4.0
 
-  ip-address@10.2.0: {}
+  ip-address@10.7.6: {}
 
   ipaddr.js@1.9.1: {}
 
@@ -18658,7 +18658,7 @@ snapshots:
 
   socks@2.8.9:
     dependencies:
-      ip-address: 10.2.0
+      ip-address: 10.7.6
       smart-buffer: 4.2.0
 
   source-map-js@1.2.1: {}
@@ -18851,7 +18851,7 @@ snapshots:
     dependencies:
       svgpath: 2.6.0
 
-  svgo@2.8.2:
+  svgo@2.8.4:
     dependencies:
       commander: 7.2.0
       css-select: 4.3.0
