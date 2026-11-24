@@ -43,6 +43,11 @@ final class InstanceFlexibilityPolicyValidationSupport {
   static final String NEGATIVE_RANK_CODE = "negativeRank"
   static final String EMPTY_MACHINE_TYPES_CODE = "emptyMachineTypes"
   static final String DUPLICATE_MACHINE_TYPE_CODE = "duplicateMachineType"
+  static final String BLANK_MIN_CPU_PLATFORM_CODE = "blankMinCpuPlatform"
+  static final String INVALID_DISK_OVERRIDE_TARGET_CODE = "invalidDiskOverrideTarget"
+  static final String EMPTY_DISK_OVERRIDE_CODE = "emptyDiskOverride"
+  static final String INVALID_DISK_OVERRIDE_SIZE_CODE = "invalidDiskOverrideSize"
+  static final String DUPLICATE_DISK_OVERRIDE_CODE = "duplicateDiskOverride"
   static final String INSTANCE_TYPE_NOT_IN_SELECTIONS_WARNING =
     "instanceType '{}' is not present in any instanceFlexibilityPolicy.instanceSelections.machineTypes. " +
       "MIG flexibility selections may never directly use the template machine type."
@@ -62,6 +67,17 @@ final class InstanceFlexibilityPolicyValidationSupport {
     "Each instance selection must specify a non-empty list of non-blank machine types."
   static final String DUPLICATE_MACHINE_TYPE_MESSAGE =
     "Machine types must be unique across instance selections."
+  static final String BLANK_MIN_CPU_PLATFORM_MESSAGE =
+    "Instance selection minCpuPlatform must not be blank when specified."
+  static final String INVALID_DISK_OVERRIDE_TARGET_MESSAGE =
+    "Each instance selection disk override must set boot: true or a non-negative index, not both " +
+      "with conflicting values."
+  static final String EMPTY_DISK_OVERRIDE_MESSAGE =
+    "Each instance selection disk override must set a non-blank type and/or sizeGb."
+  static final String INVALID_DISK_OVERRIDE_SIZE_MESSAGE =
+    "Instance selection disk override sizeGb must be greater than zero."
+  static final String DUPLICATE_DISK_OVERRIDE_MESSAGE =
+    "An instance selection must not override the same disk more than once."
 
   static List<ValidationIssue> validate(BasicGoogleDeployDescription description) {
     def selections = description.instanceFlexibilityPolicy?.instanceSelections
@@ -122,9 +138,78 @@ final class InstanceFlexibilityPolicyValidationSupport {
         new ValidationIssue(DUPLICATE_MACHINE_TYPE_CODE, DUPLICATE_MACHINE_TYPE_MESSAGE))
     }
 
+    if (selections.values().any { selection ->
+      selection?.minCpuPlatform != null && !selection.minCpuPlatform.trim()
+    }) {
+      issues.add(
+        new ValidationIssue(BLANK_MIN_CPU_PLATFORM_CODE, BLANK_MIN_CPU_PLATFORM_MESSAGE))
+    }
+
+    validateDiskOverrides(selections, issues)
+
     warnIfInstanceTypeMissingFromSelections(description, selections)
 
     return issues
+  }
+
+  /**
+   * Validates per-selection disk overrides. Whether an index exists in the instance template is
+   * only known at deploy time and is checked by the deploy handler.
+   */
+  private static void validateDiskOverrides(Map<String, ?> selections, List<ValidationIssue> issues) {
+    boolean invalidTarget = false
+    boolean emptyOverride = false
+    boolean invalidSize = false
+    boolean duplicate = false
+    selections.values().each { selection ->
+      Set<Integer> targetedIndexes = new HashSet<>()
+      selection?.disks?.each { disk ->
+        Integer targetIndex = diskOverrideTargetIndex(disk)
+        if (targetIndex == null) {
+          invalidTarget = true
+        } else if (!targetedIndexes.add(targetIndex)) {
+          duplicate = true
+        }
+        if (disk != null) {
+          if (!disk.type?.trim() && disk.sizeGb == null) {
+            emptyOverride = true
+          }
+          if (disk.sizeGb != null && disk.sizeGb <= 0) {
+            invalidSize = true
+          }
+        }
+      }
+    }
+    if (invalidTarget) {
+      issues.add(
+        new ValidationIssue(INVALID_DISK_OVERRIDE_TARGET_CODE, INVALID_DISK_OVERRIDE_TARGET_MESSAGE))
+    }
+    if (emptyOverride) {
+      issues.add(new ValidationIssue(EMPTY_DISK_OVERRIDE_CODE, EMPTY_DISK_OVERRIDE_MESSAGE))
+    }
+    if (invalidSize) {
+      issues.add(
+        new ValidationIssue(INVALID_DISK_OVERRIDE_SIZE_CODE, INVALID_DISK_OVERRIDE_SIZE_MESSAGE))
+    }
+    if (duplicate) {
+      issues.add(
+        new ValidationIssue(DUPLICATE_DISK_OVERRIDE_CODE, DUPLICATE_DISK_OVERRIDE_MESSAGE))
+    }
+  }
+
+  /**
+   * Returns the persistent-disk index a disk override targets (boot is index 0), or null when the
+   * target is missing or contradictory.
+   */
+  private static Integer diskOverrideTargetIndex(def disk) {
+    if (disk == null) {
+      return null
+    }
+    boolean boot = Boolean.TRUE == disk.boot
+    if (boot) {
+      return disk.index == null || disk.index == 0 ? 0 : null
+    }
+    return disk.index != null && disk.index >= 0 ? disk.index : null
   }
 
   /**
