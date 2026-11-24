@@ -18,14 +18,19 @@ package com.netflix.spinnaker.clouddriver.artifacts.config;
 
 import static org.junit.jupiter.api.Assertions.*;
 
+import ch.qos.logback.classic.Logger;
+import ch.qos.logback.classic.spi.ILoggingEvent;
+import ch.qos.logback.core.read.ListAppender;
 import com.netflix.spinnaker.fiat.model.resources.Permissions;
 import com.netflix.spinnaker.kork.artifacts.model.Artifact;
 import com.netflix.spinnaker.kork.web.url.UrlRestrictions;
 import com.netflix.spinnaker.kork.web.url.UrlRestrictionsProperties;
 import java.io.IOException;
 import java.io.InputStream;
+import java.time.Instant;
 import java.util.Arrays;
 import java.util.List;
+import okhttp3.Headers;
 import okhttp3.OkHttpClient;
 import okhttp3.mockwebserver.MockResponse;
 import okhttp3.mockwebserver.MockWebServer;
@@ -33,6 +38,7 @@ import okhttp3.mockwebserver.RecordedRequest;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.slf4j.LoggerFactory;
 
 class BaseHttpArtifactCredentialsTest {
 
@@ -216,6 +222,137 @@ class BaseHttpArtifactCredentialsTest {
   }
 
   // Test implementation classes
+
+  @Test
+  void failedDownloadNamesTheRateLimit() {
+    TestArtifactAccount account = new TestArtifactAccount();
+    credentials = new TestArtifactCredentials(new OkHttpClient(), account);
+    long reset = Instant.now().getEpochSecond() + 411;
+    mockServer.enqueue(
+        new MockResponse()
+            .setResponseCode(403)
+            .setHeader("X-RateLimit-Limit", "5000")
+            .setHeader("X-RateLimit-Remaining", "0")
+            .setHeader("X-RateLimit-Resource", "core")
+            .setHeader("X-RateLimit-Reset", String.valueOf(reset))
+            .setBody("API rate limit exceeded for user ID 1"));
+
+    IOException e =
+        assertThrows(
+            IOException.class, () -> credentials.fetchUrl(mockServer.url("/file").toString()));
+
+    assertTrue(
+        e.getMessage().startsWith("Received 403 status code from "), "message: " + e.getMessage());
+    assertTrue(
+        e.getMessage().contains("(rate limit: remaining=0, limit=5000, resource=core, resets in "),
+        "message: " + e.getMessage());
+    assertFalse(e.getMessage().contains("user ID"), "body leaked: " + e.getMessage());
+  }
+
+  @Test
+  void failedDownloadWithoutRateLimitHeadersKeepsTheMessage() {
+    TestArtifactAccount account = new TestArtifactAccount();
+    credentials = new TestArtifactCredentials(new OkHttpClient(), account);
+    mockServer.enqueue(new MockResponse().setResponseCode(404));
+
+    IOException e =
+        assertThrows(
+            IOException.class, () -> credentials.fetchUrl(mockServer.url("/file").toString()));
+
+    assertEquals("Received 404 status code from " + mockServer.url("/").host(), e.getMessage());
+  }
+
+  @Test
+  void rateLimitDetailIgnoresMalformedHeaders() {
+    Headers headers =
+        new Headers.Builder()
+            .add("X-RateLimit-Remaining", "-1")
+            .add("X-RateLimit-Resource", "Core; evil")
+            .add("Retry-After", "Wed, 21 Oct 2026 07:28:00 GMT")
+            .build();
+    assertEquals("", BaseHttpArtifactCredentials.rateLimitDetail(headers, Instant.now()));
+
+    Headers retry = new Headers.Builder().add("Retry-After", "60").build();
+    assertEquals(
+        "rate limit: retry after 60s",
+        BaseHttpArtifactCredentials.rateLimitDetail(retry, Instant.now()));
+  }
+
+  @Test
+  void credentialsAreLoggedOnceAcrossRedirects() throws Exception {
+    TestArtifactAccount account = new TestArtifactAccount();
+    credentials =
+        new TestArtifactCredentials(
+            new OkHttpClient(), account, Headers.of("Authorization", "token abc"));
+
+    // Same host first, then a cross-host hop (127.0.0.1) that is sent without credentials.
+    String otherHost =
+        maliciousServer.url("/final").newBuilder().host("127.0.0.1").build().toString();
+    mockServer.enqueue(new MockResponse().setResponseCode(302).setHeader("Location", "/next"));
+    mockServer.enqueue(new MockResponse().setResponseCode(302).setHeader("Location", otherHost));
+    maliciousServer.enqueue(new MockResponse().setBody("content"));
+
+    List<String> logs =
+        credentialLogs(
+            () ->
+                credentials.fetchUrl(
+                    mockServer.url("/start").newBuilder().host("localhost").build()));
+
+    assertEquals(List.of("Loaded credentials for artifact account test-account"), logs);
+    assertEquals("token abc", mockServer.takeRequest().getHeader("Authorization"));
+    assertNull(maliciousServer.takeRequest().getHeader("Authorization"));
+  }
+
+  @Test
+  void downloadWithoutCredentialsIsLogged() throws Exception {
+    TestArtifactAccount account = new TestArtifactAccount();
+    credentials = new TestArtifactCredentials(new OkHttpClient(), account);
+    mockServer.enqueue(new MockResponse().setBody("content"));
+
+    List<String> logs = credentialLogs(() -> credentials.fetchUrl(mockServer.url("/file")));
+
+    assertEquals(List.of("No credentials included for artifact account test-account"), logs);
+  }
+
+  @Test
+  void subclassesDecideWhichHeaderCarriesCredentials() throws Exception {
+    TestArtifactAccount account = new TestArtifactAccount();
+    credentials =
+        new TestArtifactCredentials(
+            new OkHttpClient(), account, Headers.of("Private-Token", "abc")) {
+          @Override
+          protected boolean sendsCredentials(Headers headers) {
+            return headers.get("Private-Token") != null;
+          }
+        };
+    mockServer.enqueue(new MockResponse().setBody("content"));
+
+    List<String> logs = credentialLogs(() -> credentials.fetchUrl(mockServer.url("/file")));
+
+    assertEquals(List.of("Loaded credentials for artifact account test-account"), logs);
+  }
+
+  interface Fetch {
+    void run() throws IOException;
+  }
+
+  /** Runs the fetch and returns the credentials log lines it wrote. */
+  private static List<String> credentialLogs(Fetch fetch) throws IOException {
+    Logger logger = (Logger) LoggerFactory.getLogger(BaseHttpArtifactCredentials.class);
+    ListAppender<ILoggingEvent> appender = new ListAppender<>();
+    appender.start();
+    logger.addAppender(appender);
+    try {
+      fetch.run();
+    } finally {
+      logger.detachAppender(appender);
+    }
+    return appender.list.stream()
+        .map(ILoggingEvent::getFormattedMessage)
+        .filter(m -> m.contains("credentials"))
+        .toList();
+  }
+
   static class TestArtifactAccount extends UserInputValidatedArtifactAccount {
     private UrlRestrictions mutableRestrictions;
 
@@ -234,8 +371,21 @@ class BaseHttpArtifactCredentialsTest {
   }
 
   static class TestArtifactCredentials extends BaseHttpArtifactCredentials<TestArtifactAccount> {
+    private final Headers headers;
+
     protected TestArtifactCredentials(OkHttpClient okHttpClient, TestArtifactAccount account) {
+      this(okHttpClient, account, new Headers.Builder().build());
+    }
+
+    protected TestArtifactCredentials(
+        OkHttpClient okHttpClient, TestArtifactAccount account, Headers headers) {
       super(okHttpClient, account);
+      this.headers = headers;
+    }
+
+    @Override
+    protected Headers getHeaders(TestArtifactAccount account) {
+      return headers;
     }
 
     @Override
