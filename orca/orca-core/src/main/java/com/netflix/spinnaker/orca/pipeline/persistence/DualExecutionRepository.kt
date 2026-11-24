@@ -218,6 +218,17 @@ class DualExecutionRepository(
     ).distinct { it.id }
   }
 
+  override fun retrievePipelinesForApplicationAndName(
+    application: String,
+    pipelineName: String,
+    criteria: ExecutionCriteria
+  ): Observable<PipelineExecution> {
+    return Observable.merge(
+      primary.retrievePipelinesForApplicationAndName(application, pipelineName, criteria),
+      previous.retrievePipelinesForApplicationAndName(application, pipelineName, criteria)
+    ).distinct { it.id }
+  }
+
   override fun retrieveAndFilterPipelineExecutionIdsForApplication(
     @Nonnull application: String,
     @Nonnull pipelineConfigIds: List<String>,
