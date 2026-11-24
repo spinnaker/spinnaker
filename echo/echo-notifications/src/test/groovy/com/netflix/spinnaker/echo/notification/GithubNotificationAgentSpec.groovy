@@ -20,6 +20,7 @@ import com.netflix.spinnaker.echo.github.GithubCommitDetail
 import com.netflix.spinnaker.echo.github.GithubCommit
 import com.netflix.spinnaker.echo.github.GithubService
 import com.netflix.spinnaker.echo.github.GithubStatus
+import com.netflix.spinnaker.echo.github.GithubTokenProvider
 import com.netflix.spinnaker.echo.api.events.Event
 import com.netflix.spinnaker.kork.retrofit.exceptions.SpinnakerNetworkException
 import okhttp3.Request
@@ -38,6 +39,7 @@ class GithubNotificationAgentSpec extends Specification {
   void setup() {
     agent.spinnakerUrl = "http://spinnaker.io"
     agent.setGithubService(github)
+    agent.setTokenProvider(GithubTokenProvider.personalAccessToken("token"))
   }
 
 
