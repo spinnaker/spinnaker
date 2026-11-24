@@ -398,6 +398,7 @@ export class ExecutionComponent extends React.PureComponent<
                     params={{ application: application.name, pipelineId: execution.pipelineConfigId }}
                   >
                     <button
+                      aria-label="Configure pipeline"
                       className="btn btn-xs btn-default single-execution-details__configure"
                       onClick={this.handleConfigureClicked}
                     >

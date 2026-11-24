@@ -24,9 +24,6 @@ import com.netflix.spinnaker.keel.api.ec2.ClassicLoadBalancerSpec
 import com.netflix.spinnaker.keel.api.ec2.ClusterSpec
 import com.netflix.spinnaker.keel.api.ec2.SecurityGroupSpec
 import com.netflix.spinnaker.keel.api.ec2.old.ClusterV1Spec
-import com.netflix.spinnaker.keel.api.titus.TestContainerVerification
-import com.netflix.spinnaker.keel.api.titus.TitusClusterSpec
-import com.netflix.spinnaker.keel.api.titus.TitusServerGroup.Location
 import com.netflix.spinnaker.keel.core.api.SubmittedDeliveryConfig
 import dev.minutest.junit.JUnit5Minutests
 import dev.minutest.rootContext
@@ -35,7 +32,6 @@ import org.springframework.boot.test.context.SpringBootTest
 import org.springframework.boot.test.context.SpringBootTest.WebEnvironment.NONE
 import strikt.api.expectCatching
 import strikt.assertions.isA
-import strikt.assertions.isEqualTo
 import strikt.assertions.isSuccess
 
 @SpringBootTest(webEnvironment = NONE)
@@ -74,35 +70,6 @@ class DeliveryConfigYamlParsingTests @Autowired constructor(
       parseSuccessfully("alb-example.yml")
         .get { environments.first().resources.first().spec }
         .isA<ApplicationLoadBalancerSpec>()
-    }
-
-    test("titus cluster") {
-      parseSuccessfully("titus-cluster-example.yml")
-        .get { environments.first().resources.first().spec }
-        .isA<TitusClusterSpec>()
-    }
-
-    test("simple titus cluster") {
-      parseSuccessfully("simple-titus-cluster-example.yml")
-        .get { environments.first().resources.first().spec }
-        .isA<TitusClusterSpec>()
-    }
-
-    test("titus cluster with artifact") {
-      parseSuccessfully("titus-cluster-with-artifact-example.yml")
-        .get { environments.first().resources.first().spec }
-        .isA<TitusClusterSpec>()
-    }
-
-    test("titus cluster with test container") {
-      parseSuccessfully("titus-cluster-with-test-container.yml")
-        .get { environments.first().verifyWith.first() }
-        .isEqualTo(
-          TestContainerVerification(
-            image = "acme/widget:stable",
-            location = Location(account = "test", region = "us-east-1")
-          )
-        )
     }
   }
 

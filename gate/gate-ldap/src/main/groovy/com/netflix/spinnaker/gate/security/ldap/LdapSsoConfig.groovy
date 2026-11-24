@@ -20,7 +20,7 @@ import com.netflix.spinnaker.gate.config.AuthConfig
 import com.netflix.spinnaker.gate.security.AllowedAccountsSupport
 import com.netflix.spinnaker.gate.security.SpinnakerAuthConfig
 import com.netflix.spinnaker.gate.services.PermissionService
-import com.netflix.spinnaker.security.User
+import com.netflix.spinnaker.security.SpinnakerAuthorities
 import org.apache.commons.lang3.StringUtils
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.autoconfigure.condition.ConditionalOnExpression
@@ -36,12 +36,12 @@ import org.springframework.security.config.annotation.web.builders.HttpSecurity
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity
 import org.springframework.security.core.GrantedAuthority
 import org.springframework.security.core.userdetails.UserDetails
+import org.springframework.security.ldap.userdetails.InetOrgPerson
 import org.springframework.security.ldap.userdetails.UserDetailsContextMapper
 import org.springframework.security.web.SecurityFilterChain
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter
 import org.springframework.security.web.authentication.www.BasicAuthenticationFilter
 import org.springframework.security.web.savedrequest.HttpSessionRequestCache
-import org.springframework.session.web.http.DefaultCookieSerializer
 import org.springframework.stereotype.Component
 
 @ConditionalOnExpression('${ldap.enabled:false}')
@@ -58,9 +58,6 @@ class LdapSsoConfig {
 
   @Autowired
   LdapUserContextMapper ldapUserContextMapper
-
-  @Autowired
-  DefaultCookieSerializer defaultCookieSerializer
 
   @Autowired
   protected void configure(AuthenticationManagerBuilder auth) throws Exception {
@@ -94,7 +91,6 @@ class LdapSsoConfig {
   @Order(3)
   SecurityFilterChain securityFilterChain(HttpSecurity http, AuthenticationConfiguration authConfiguration) throws Exception {
     def authenticationManager = authConfiguration.getAuthenticationManager()
-    defaultCookieSerializer.setSameSite(null)
     HttpSessionRequestCache requestCache = new HttpSessionRequestCache();
     requestCache.setMatchingRequestParameterName(null);
     // Configure request cache to save original requests
@@ -127,12 +123,19 @@ class LdapSsoConfig {
       def roles = sanitizeRoles(authorities)
       permissionService.loginWithRoles(username, roles)
 
-      return new User(username: username,
-        email: ctx.getStringAttribute("mail"),
-        firstName: ctx.getStringAttribute("givenName"),
-        lastName: ctx.getStringAttribute("sn"),
-        roles: roles,
-        allowedAccounts: allowedAccountsSupport.filterAllowedAccounts(username, roles))
+      // InetOrgPerson carries the profile attributes. Its context constructor requires a uid
+      // attribute, which not every directory has (e.g. Active Directory), so set the fields here.
+      def essence = new InetOrgPerson.Essence()
+      essence.dn = ctx.dn.toString()
+      essence.username = username
+      essence.mail = ctx.getStringAttribute("mail")
+      essence.givenName = ctx.getStringAttribute("givenName")
+      // Person requires cn and sn, but not every directory entry has them: don't fail the login
+      essence.sn = ctx.getStringAttribute("sn") ?: ""
+      essence.cn = [ctx.getStringAttribute("cn") ?: username] as String[]
+      essence.password = ""
+      essence.authorities = SpinnakerAuthorities.forRolesAndAccounts(roles, allowedAccountsSupport.filterAllowedAccounts(username, roles))
+      return essence.createUserDetails()
     }
 
     @Override

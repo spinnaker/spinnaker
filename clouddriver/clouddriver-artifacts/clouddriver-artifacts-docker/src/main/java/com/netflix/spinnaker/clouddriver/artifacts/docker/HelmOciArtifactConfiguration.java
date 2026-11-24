@@ -18,6 +18,7 @@
 package com.netflix.spinnaker.clouddriver.artifacts.docker;
 
 import com.netflix.spinnaker.credentials.CredentialsTypeProperties;
+import com.netflix.spinnaker.credentials.definition.InvalidCredentialsConfigurationException;
 import com.netflix.spinnaker.kork.client.ServiceClientProvider;
 import lombok.extern.slf4j.Slf4j;
 import okhttp3.OkHttpClient;
@@ -59,6 +60,8 @@ class HelmOciArtifactConfiguration {
               try {
                 return new HelmOciDockerArtifactCredentials(
                     a, helmOciOkHttpClient, helmChartsFileSystem, serviceClientProvider);
+              } catch (InvalidCredentialsConfigurationException e) {
+                throw e;
               } catch (Exception e) {
                 log.warn("Failure instantiating Docker artifact account {}: ", a, e);
                 return null;

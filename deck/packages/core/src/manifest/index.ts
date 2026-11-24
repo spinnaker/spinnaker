@@ -4,3 +4,4 @@ export * from './stage/JobStageExecutionLogs';
 export * from './stage/JobManifestPodLogs';
 export * from './ManifestYaml';
 export * from './PodNameProvider';
+export * from './storedManifest';

@@ -30,8 +30,16 @@ const mapStateToProps = (state: ICanaryState, ownProps: IDisableableOwnProps) =>
 
 // A component wrapped in `disableable` is disabled if one of the keys passed
 // through `disabledStateKeys` returns true when checked against the Redux store.
-function disableable<T extends IDisableable>(Component: React.SFC<T>) {
-  return connect(mapStateToProps)((props: T & IDisableable & IDisableableStateProps) => {
+function disableable<T extends IDisableable>(
+  Component: React.ComponentType<T>,
+): React.ComponentType<T & IDisableableOwnProps> {
+  // react-redux 7's stricter connect() typings can't unify their `Matching<>` helper
+  // against an unresolved generic T, so the wrapped render function takes `any` and
+  // the connected result is cast to the shape this function has always actually
+  // returned (T's props, `disabled` from IDisableable, and the `disabledStateKeys`
+  // own-prop mapStateToProps reads).
+  const Wrapped = (rawProps: any) => {
+    const props = rawProps as T & IDisableable & IDisableableStateProps;
     const { disabled, disabledBecauseOfState } = props;
 
     // Would use object spread except for weird interaction with TS generics.
@@ -42,7 +50,8 @@ function disableable<T extends IDisableable>(Component: React.SFC<T>) {
       'dispatch',
     ]) as unknown) as T;
     return <Component {...otherProps} disabled={disabled || disabledBecauseOfState} />;
-  });
+  };
+  return (connect(mapStateToProps)(Wrapped) as unknown) as React.ComponentType<T & IDisableableOwnProps>;
 }
 
 type IDisableableButtonProps = React.DetailedHTMLProps<

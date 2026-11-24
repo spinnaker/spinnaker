@@ -16,20 +16,28 @@
 
 package com.netflix.spinnaker.echo.artifacts;
 
+import static com.netflix.spinnaker.echo.artifacts.GitWebhookArtifactReferences.OWNER_AND_REPOSITORY;
+import static com.netflix.spinnaker.echo.artifacts.GitWebhookArtifactReferences.encodePath;
+import static com.netflix.spinnaker.echo.artifacts.GitWebhookArtifactReferences.hasDotSegment;
+import static com.netflix.spinnaker.echo.artifacts.GitWebhookArtifactReferences.isPlainHttpUrl;
+
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.netflix.spinnaker.kork.artifacts.model.Artifact;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
+import java.util.Locale;
 import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
 import lombok.Data;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 @Component
+@Slf4j
 public class GitHubArtifactExtractor implements WebhookArtifactExtractor {
   private final ObjectMapper objectMapper;
 
@@ -41,6 +49,28 @@ public class GitHubArtifactExtractor implements WebhookArtifactExtractor {
   @Override
   public List<Artifact> getArtifacts(String source, Map payload) {
     PushEvent pushEvent = objectMapper.convertValue(payload, PushEvent.class);
+    Repository repository = pushEvent.repository;
+    if (repository == null || repository.contentsUrl == null || repository.fullName == null) {
+      return new ArrayList<>();
+    }
+
+    // The payload is not trusted until the trigger verifies its signature, and these values end up
+    // in the URL that clouddriver fetches, so only accept the shape GitHub produces:
+    // <api base>/repos/<owner>/<repo>/contents/{+path}
+    String contentsSuffix = "/repos/" + repository.fullName + "/contents/{+path}";
+    if (!OWNER_AND_REPOSITORY.matcher(repository.fullName).matches()
+        || hasDotSegment(repository.fullName)
+        || !repository
+            .contentsUrl
+            .toLowerCase(Locale.ROOT)
+            .endsWith(contentsSuffix.toLowerCase(Locale.ROOT))
+        || !isPlainHttpUrl(
+            repository.contentsUrl.substring(
+                0, repository.contentsUrl.length() - contentsSuffix.length()))) {
+      log.warn("Ignoring GitHub push with an invalid repository full_name or contents_url");
+      return new ArrayList<>();
+    }
+
     String sha = pushEvent.after;
     Set<String> affectedFiles =
         pushEvent.commits.stream()
@@ -52,6 +82,7 @@ public class GitHubArtifactExtractor implements WebhookArtifactExtractor {
                   return fs;
                 })
             .flatMap(Collection::stream)
+            .filter(GitWebhookArtifactReferences::isSafeFilePath)
             .collect(Collectors.toSet());
 
     return affectedFiles.stream()
@@ -61,7 +92,7 @@ public class GitHubArtifactExtractor implements WebhookArtifactExtractor {
                     .name(f)
                     .version(sha)
                     .type("github/file")
-                    .reference(pushEvent.repository.contentsUrl.replace("{+path}", f))
+                    .reference(repository.contentsUrl.replace("{+path}", encodePath(f)))
                     .build())
         .collect(Collectors.toList());
   }
@@ -88,5 +119,8 @@ public class GitHubArtifactExtractor implements WebhookArtifactExtractor {
   private static class Repository {
     @JsonProperty("contents_url")
     private String contentsUrl;
+
+    @JsonProperty("full_name")
+    private String fullName;
   }
 }

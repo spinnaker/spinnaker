@@ -29,10 +29,12 @@ import com.netflix.spinnaker.clouddriver.cloudrun.model.*;
 import com.netflix.spinnaker.clouddriver.model.ClusterProvider;
 import java.util.*;
 import java.util.stream.Collectors;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 import org.springframework.util.CollectionUtils;
 
+@Slf4j
 @Component
 public class CloudrunClusterProvider implements ClusterProvider<CloudrunCluster> {
 
@@ -269,6 +271,16 @@ public class CloudrunClusterProvider implements ClusterProvider<CloudrunCluster>
                         name -> {
                           CloudrunLoadBalancer loadBalancer =
                               provider.getLoadBalancer(serverGroup.getAccount(), name);
+                          if (loadBalancer == null) {
+                            // The load balancer can be absent from the cache (e.g. between caching
+                            // cycles or after the service was removed); skip rather than fail the
+                            // whole clusters view.
+                            log.warn(
+                                "Load balancer {} for server group {} not found in cache; skipping latest revision tags",
+                                name,
+                                serverGroup.getName());
+                            return;
+                          }
                           Map<String, Object> tags = new HashMap<>();
                           tags.put("latestRevision", loadBalancer.getLatestReadyRevisionName());
                           if (serverGroup

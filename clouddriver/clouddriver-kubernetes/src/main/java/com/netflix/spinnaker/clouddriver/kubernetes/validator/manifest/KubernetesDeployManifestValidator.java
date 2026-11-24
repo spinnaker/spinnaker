@@ -26,6 +26,7 @@ import com.netflix.spinnaker.clouddriver.kubernetes.description.manifest.Kuberne
 import com.netflix.spinnaker.clouddriver.kubernetes.description.manifest.KubernetesManifest;
 import com.netflix.spinnaker.clouddriver.kubernetes.validator.KubernetesValidationUtil;
 import com.netflix.spinnaker.clouddriver.security.AccountCredentialsProvider;
+import java.util.Collections;
 import java.util.List;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
@@ -47,7 +48,24 @@ public class KubernetesDeployManifestValidator
       return;
     }
 
-    for (KubernetesManifest manifest : description.getManifests()) {
+    List<KubernetesManifest> manifests = description.getManifests();
+    if (manifests == null || manifests.isEmpty()) {
+      // Match the operation's fallback for older callers that still submit a single manifest.
+      @SuppressWarnings("deprecation")
+      KubernetesManifest legacyManifest = description.getManifest();
+      if (legacyManifest != null) {
+        manifests = Collections.singletonList(legacyManifest);
+      } else if (manifests == null) {
+        errors.rejectValue(
+            "manifests",
+            "deployKubernetesManifest.manifests.empty",
+            null,
+            "No resolved manifests were provided. Check manifest artifact resolution.");
+        return;
+      }
+    }
+
+    for (KubernetesManifest manifest : manifests) {
       // technically OK - sometimes manifest multi-docs are submitted with trailing `---` entries
       if (manifest == null) {
         continue;

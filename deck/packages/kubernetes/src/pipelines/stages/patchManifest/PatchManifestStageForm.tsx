@@ -16,19 +16,17 @@ import { PatchManifestOptionsForm } from './PatchManifestOptionsForm';
 import { ManifestBindArtifactsSelector } from '../deployManifest/ManifestBindArtifactsSelector';
 import type { IManifestBindArtifact } from '../deployManifest/ManifestBindArtifactsSelector';
 import { ManifestSource } from '../../../manifest/ManifestSource';
+import type { IManifestSelector } from '../../../manifest/selector/IManifestSelector';
 import { SelectorMode } from '../../../manifest/selector/IManifestSelector';
 import { ManifestSelector } from '../../../manifest/selector/ManifestSelector';
-
-interface IPatchManifestStageConfigFormProps {
-  stageFieldUpdated: () => void;
-}
+import { applyManifestSelector } from '../../../manifest/selector/applyManifestSelector';
 
 interface IPatchManifestStageConfigFormState {
   rawManifest: string;
 }
 
 export class PatchManifestStageForm extends React.Component<
-  IPatchManifestStageConfigFormProps & IFormikStageConfigInjectedProps,
+  IFormikStageConfigInjectedProps,
   IPatchManifestStageConfigFormState
 > {
   private readonly excludedManifestArtifactTypes = [
@@ -39,7 +37,7 @@ export class PatchManifestStageForm extends React.Component<
     ArtifactTypePatterns.MAVEN_FILE,
   ];
 
-  public constructor(props: IPatchManifestStageConfigFormProps & IFormikStageConfigInjectedProps) {
+  public constructor(props: IFormikStageConfigInjectedProps) {
     super(props);
     const patchBody: any[] = get(props.formik.values, 'patchBody');
     const isTextManifest: boolean = get(props.formik.values, 'source') === ManifestSource.TEXT;
@@ -83,8 +81,8 @@ export class PatchManifestStageForm extends React.Component<
     this.props.formik.setFieldValue('patchBody', manifests);
   };
 
-  private onManifestSelectorChange = (): void => {
-    this.props.stageFieldUpdated();
+  private onManifestSelectorChange = (selector: IManifestSelector): void => {
+    applyManifestSelector(this.props.formik, selector);
   };
 
   private getSourceOptions = (): Array<Option<string>> => {

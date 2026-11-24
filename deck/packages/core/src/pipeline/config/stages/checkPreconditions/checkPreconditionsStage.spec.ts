@@ -14,7 +14,7 @@ describe('checkPreconditionsStage', () => {
     const stageConfig = Registry.pipeline.getStageConfig({ type: 'checkPreconditions' } as any);
 
     expect(stageConfig).toEqual(
-      jasmine.objectContaining({
+      expect.objectContaining({
         label: 'Check Preconditions',
         description: 'Checks for preconditions before continuing',
         key: 'checkPreconditions',

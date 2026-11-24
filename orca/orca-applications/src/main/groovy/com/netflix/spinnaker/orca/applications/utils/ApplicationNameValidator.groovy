@@ -30,7 +30,6 @@ trait ApplicationNameValidator {
       'gce'         : new NameConstraint(63, '^([a-zA-Z][a-zA-Z0-9]*)?$'),
       'kubernetes'  : new NameConstraint(63, '^([a-zA-Z][a-zA-Z0-9-]*)$'),
       'openstack'   : new NameConstraint(250, '^[a-zA-Z_0-9.]*$'),
-      'titus'       : new NameConstraint(250, '^[a-zA-Z_0-9.]*$'),
       'tencentcloud': new NameConstraint(50, '^[a-zA-Z_0-9.\u4e00-\u9fa5-]*$')
   ]
 

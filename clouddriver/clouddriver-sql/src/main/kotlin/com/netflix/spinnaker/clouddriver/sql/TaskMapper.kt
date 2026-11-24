@@ -42,9 +42,9 @@ class TaskMapper(
 
   fun map(rs: ResultSet): Collection<Task> {
     val tasks = mutableMapOf<String, SqlTask>()
-    val results = mutableMapOf<String, MutableList<Any>>()
-    val history = mutableMapOf<String, MutableList<Status>>()
-    val taskOutputs = mutableMapOf<String, MutableList<TaskOutput>>()
+    val results = mutableMapOf<String, MutableList<Pair<RowOrder, Any>>>()
+    val history = mutableMapOf<String, MutableList<Pair<RowOrder, Status>>>()
+    val taskOutputs = mutableMapOf<String, MutableList<Pair<RowOrder, TaskOutput>>>()
 
     while (rs.next()) {
       when {
@@ -64,7 +64,7 @@ class TaskMapper(
             if (!results.containsKey(rs.getString("task_id"))) {
               results[rs.getString("task_id")] = mutableListOf()
             }
-            results[rs.getString("task_id")]!!.add(mapper.readValue(rs.getString("body"), Map::class.java))
+            results[rs.getString("task_id")]!!.add(RowOrder.of(rs) to mapper.readValue(rs.getString("body"), Map::class.java))
           } catch (e: IOException) {
             val id = rs.getString("id")
             val taskId = rs.getString("task_id")
@@ -79,7 +79,7 @@ class TaskMapper(
             history[rs.getString("task_id")] = mutableListOf()
           }
           history[rs.getString("task_id")]!!.add(
-            DefaultTaskStatus.create(
+            RowOrder.of(rs) to DefaultTaskStatus.create(
               rs.getString("phase"),
               rs.getString("status"),
               TaskState.valueOf(rs.getString("state"))
@@ -91,7 +91,7 @@ class TaskMapper(
             taskOutputs[rs.getString("task_id")] = mutableListOf()
           }
           taskOutputs[rs.getString("task_id")]!!.add(
-            TaskDisplayOutput(
+            RowOrder.of(rs) to TaskDisplayOutput(
               rs.getString("manifest"),
               rs.getString("phase"),
               rs.getString("std_out"),
@@ -103,10 +103,31 @@ class TaskMapper(
     }
 
     return tasks.values.map { task ->
-      task.hydrateResultObjects(results.getOrDefault(task.id, mutableListOf()))
-      task.hydrateHistory(history.getOrDefault(task.id, mutableListOf()))
-      task.hydrateTaskOutputs(taskOutputs.getOrDefault(task.id, mutableListOf()))
+      task.hydrateResultObjects(results.inOrder(task.id))
+      task.hydrateHistory(history.inOrder(task.id))
+      task.hydrateTaskOutputs(taskOutputs.inOrder(task.id))
       task
+    }
+  }
+
+  private fun <T> Map<String, List<Pair<RowOrder, T>>>.inOrder(taskId: String): MutableList<T> =
+    get(taskId).orEmpty().sortedBy { it.first }.map { it.second }.toMutableList()
+
+  /**
+   * Where a task's state, result or output row belongs in its history: rows written before the `seq` column
+   * existed come first, in their original `(created_at, id)` order, then everything else by `seq`.
+   */
+  private data class RowOrder(val seq: Long?, val createdAt: Long?, val rowId: String?) : Comparable<RowOrder> {
+    override fun compareTo(other: RowOrder): Int = ORDER.compare(this, other)
+
+    companion object {
+      private val ORDER = compareBy<RowOrder>({ it.seq != null }, { it.seq }, { it.createdAt }, { it.rowId })
+
+      fun of(rs: ResultSet) = RowOrder(
+        (rs.getObject("seq") as Number?)?.toLong(),
+        (rs.getObject("sort_created_at") as Number?)?.toLong(),
+        rs.getString("row_id")
+      )
     }
   }
 

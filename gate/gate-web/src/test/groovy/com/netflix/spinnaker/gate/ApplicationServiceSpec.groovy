@@ -494,7 +494,37 @@ class ApplicationServiceSpec extends Specification {
     then:
     result != null
     1 * front50.getPipelineConfigByApplicationAndName(app, nameOrId, true) >> { throw spinnakerHttpException404() }
-    1 * front50.getPipelineConfigById(nameOrId) >> Calls.response([ id: "by-id", name: "by-name" ])
+    1 * front50.getPipelineConfigById(nameOrId) >> Calls.response([ id: "by-id", name: "by-name", application: app ])
+  }
+
+  void "getPipelineConfigForApplication throws an exception when the pipeline with a matching id is in a different application"() {
+    given:
+    def app = "theApp"
+    def nameOrId = "dev"
+
+    when:
+    def service = applicationService()
+    service.getPipelineConfigForApplication(app, nameOrId)
+
+    then:
+    def e = thrown NotFoundException
+    e.message.contains("in application theApp")
+    1 * front50.getPipelineConfigByApplicationAndName(app, nameOrId, true) >> { throw spinnakerHttpException404() }
+    1 * front50.getPipelineConfigById(nameOrId) >> Calls.response([ id: "dev", name: "some-name", application: "otherApp" ])
+  }
+
+  void "getPipelineConfigForApplication matches the application of a pipeline found by id ignoring case"() {
+    given:
+    def app = "theApp"
+    def nameOrId = "by-id"
+
+    when:
+    def result = applicationService().getPipelineConfigForApplication(app, nameOrId)
+
+    then:
+    result.id == "by-id"
+    1 * front50.getPipelineConfigByApplicationAndName(app, nameOrId, true) >> { throw spinnakerHttpException404() }
+    1 * front50.getPipelineConfigById(nameOrId) >> Calls.response([ id: "by-id", name: "by-name", application: "THEAPP" ])
   }
 
   void "getPipelineConfigForApplication throws an exception when neither name nor id match"() {
@@ -529,7 +559,7 @@ class ApplicationServiceSpec extends Specification {
     // The key part of this test is that gate queries front50 by id.  The choice
     // of id here needs to match the expectation for result (i.e. throw an exception or not),
     // but is otherwise arbitrary.
-    1 * front50.getPipelineConfigById(nameOrId) >> Calls.response([ id: nameOrId, name: "arbitrary-name" ])
+    1 * front50.getPipelineConfigById(nameOrId) >> Calls.response([ id: nameOrId, name: "arbitrary-name", application: app ])
   }
 
   void "getPipelineConfigForApplication throws an exception when response to query by id doesn't match"() {

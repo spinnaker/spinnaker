@@ -28,7 +28,7 @@ export interface INotificationsListState {
 }
 
 export class NotificationsList extends React.Component<INotificationsListProps, INotificationsListState> {
-  private destroy$ = new Subject();
+  private destroy$ = new Subject<void>();
 
   constructor(props: INotificationsListProps) {
     super(props);

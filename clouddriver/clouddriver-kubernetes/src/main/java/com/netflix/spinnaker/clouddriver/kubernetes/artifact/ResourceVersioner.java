@@ -23,6 +23,7 @@ import com.google.common.collect.ImmutableList;
 import com.netflix.spinnaker.clouddriver.kubernetes.caching.view.provider.ArtifactProvider;
 import com.netflix.spinnaker.clouddriver.kubernetes.description.manifest.KubernetesManifest;
 import com.netflix.spinnaker.clouddriver.kubernetes.security.KubernetesCredentials;
+import com.netflix.spinnaker.clouddriver.kubernetes.security.KubernetesSelectorList;
 import com.netflix.spinnaker.kork.annotations.NonnullByDefault;
 import com.netflix.spinnaker.kork.artifacts.model.Artifact;
 import java.util.List;
@@ -49,10 +50,12 @@ public final class ResourceVersioner {
     this.artifactProvider = Objects.requireNonNull(artifactProvider);
   }
 
-  public OptionalInt getVersion(KubernetesManifest manifest, KubernetesCredentials credentials) {
+  public OptionalInt getVersion(
+      KubernetesManifest manifest,
+      KubernetesCredentials credentials,
+      KubernetesSelectorList labelSelectors) {
     ImmutableList<Artifact> priorVersions =
-        artifactProvider.getArtifacts(
-            manifest.getKind(), manifest.getName(), manifest.getNamespace(), credentials);
+        artifactProvider.getArtifacts(manifest, manifest.getName(), credentials, labelSelectors);
 
     OptionalInt maybeVersion = findMatchingVersion(priorVersions, manifest);
     if (maybeVersion.isPresent()) {
@@ -67,10 +70,11 @@ public final class ResourceVersioner {
   }
 
   public OptionalInt getLatestVersion(
-      KubernetesManifest manifest, KubernetesCredentials credentials) {
+      KubernetesManifest manifest,
+      KubernetesCredentials credentials,
+      KubernetesSelectorList labelSelectors) {
     ImmutableList<Artifact> priorVersions =
-        artifactProvider.getArtifacts(
-            manifest.getKind(), manifest.getName(), manifest.getNamespace(), credentials);
+        artifactProvider.getArtifacts(manifest, manifest.getName(), credentials, labelSelectors);
     return findLatestVersion(priorVersions);
   }
 

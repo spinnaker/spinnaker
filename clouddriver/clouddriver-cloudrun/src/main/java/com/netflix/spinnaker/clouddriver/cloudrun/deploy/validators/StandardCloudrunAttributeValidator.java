@@ -37,7 +37,7 @@ public class StandardCloudrunAttributeValidator {
       CloudrunNamedAccountCredentials cloudrunCredentials =
           credentialsRepository.getOne(credentials);
       if (cloudrunCredentials == null) {
-        errors.rejectValue("${context}.account", "${context}.account.notFound");
+        errors.rejectValue(context + ".account", context + ".account.notFound");
         result = false;
       }
     }
@@ -45,10 +45,10 @@ public class StandardCloudrunAttributeValidator {
   }
 
   private boolean validateNotEmpty(Object value, String attribute) {
-    if (value != "" && value != null) {
+    if (value != null && !"".equals(value)) {
       return true;
     } else {
-      errors.rejectValue("${context}.${attribute}", "${context}.${attribute}.empty");
+      errors.rejectValue(context + "." + attribute, context + "." + attribute + ".empty");
       return false;
     }
   }

@@ -18,8 +18,8 @@ package com.netflix.spinnaker.orca.clouddriver.service
 
 import com.netflix.spinnaker.orca.api.preconfigured.jobs.PreconfiguredJobConfigurationProvider
 import com.netflix.spinnaker.orca.api.preconfigured.jobs.PreconfiguredJobStageProperties
-import com.netflix.spinnaker.orca.api.preconfigured.jobs.TitusPreconfiguredJobProperties
 import com.netflix.spinnaker.orca.clouddriver.config.JobConfigurationProperties
+import com.netflix.spinnaker.orca.clouddriver.config.KubernetesPreconfiguredJobProperties
 import org.springframework.beans.factory.ObjectProvider
 import spock.lang.Specification
 
@@ -27,7 +27,7 @@ class JobServiceSpec extends Specification {
 
   def 'should initialize the preconfigured job stages with config objects'() {
     given:
-    JobConfigurationProperties jobConfigurationProperties = new JobConfigurationProperties(titus: [new TitusPreconfiguredJobProperties("test", "type")])
+    JobConfigurationProperties jobConfigurationProperties = new JobConfigurationProperties(kubernetes: [new KubernetesPreconfiguredJobProperties(label: "test", type: "type")])
     ObjectProvider<List<PreconfiguredJobConfigurationProvider>>   provider = Mock()
     when:
     List<PreconfiguredJobStageProperties> jobStageProperties = new JobService(jobConfigurationProperties, provider).preconfiguredStages
@@ -39,7 +39,7 @@ class JobServiceSpec extends Specification {
 
   def 'should initialize the preconfigured job stages via config objects & provider objects'() {
     given:
-    JobConfigurationProperties jobConfigurationProperties = new JobConfigurationProperties(titus: [new TitusPreconfiguredJobProperties("test", "type")])
+    JobConfigurationProperties jobConfigurationProperties = new JobConfigurationProperties(kubernetes: [new KubernetesPreconfiguredJobProperties(label: "test", type: "type")])
     ObjectProvider<List<PreconfiguredJobConfigurationProvider>>   provider = Mock()
 
     when:
@@ -54,12 +54,8 @@ class JobServiceSpec extends Specification {
   class TestPreconfiguredJobConfigurationProvider implements PreconfiguredJobConfigurationProvider {
 
     @Override
-    List<TitusPreconfiguredJobProperties> getJobConfigurations() {
-      TitusPreconfiguredJobProperties jobProps = new TitusPreconfiguredJobProperties("jobconfigplugin", "pluginimpl")
-      jobProps.cluster.imageId = 'someId'
-      jobProps.cluster.region = 'us-east-1'
-      jobProps.cluster.application = 'test'
-      return [jobProps]
+    List<KubernetesPreconfiguredJobProperties> getJobConfigurations() {
+      return [new KubernetesPreconfiguredJobProperties(label: "jobconfigplugin", type: "pluginimpl", cloudProvider: "kubernetes")]
     }
   }
 

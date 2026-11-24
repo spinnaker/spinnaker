@@ -14,7 +14,6 @@ import com.netflix.spinnaker.keel.api.ec2.ClassicLoadBalancerSpec
 import com.netflix.spinnaker.keel.api.ec2.ClusterDependencies
 import com.netflix.spinnaker.keel.api.ec2.ClusterSpec
 import com.netflix.spinnaker.keel.api.ec2.LoadBalancerDependencies
-import com.netflix.spinnaker.keel.api.titus.TitusClusterSpec
 import org.apache.commons.codec.digest.DigestUtils
 import kotlin.reflect.KClass
 import kotlin.reflect.full.instanceParameter
@@ -27,7 +26,6 @@ internal fun <T : ResourceSpec> T.withDependencies(specClass: KClass<out T>, dep
   return when (this) {
     // need to call the overrides on the specific sub-types here as they're extension functions
     is ClusterSpec -> withDependencies(dependencies) as T
-    is TitusClusterSpec -> withDependencies(dependencies) as T
     is ClassicLoadBalancerSpec -> withDependencies(dependencies) as T
     is ApplicationLoadBalancerSpec -> withDependencies(dependencies) as T
     // otherwise, we attempt to copy the spec with dependencies updated if it's a data class
@@ -45,31 +43,6 @@ internal fun <T : ResourceSpec> T.withDependencies(specClass: KClass<out T>, dep
 }
 
 private fun ClusterSpec.withDependencies(deps: Set<Dependency>): ClusterSpec {
-  val commonDeps = deps.commonInAllRegions(locations.regions.map { it.name })
-  val overrideDeps = deps.groupBy { it.region }
-    .mapValues { (key, deps) -> deps - commonDeps }
-
-  return copy(
-    _defaults = defaults.copy(
-      dependencies = defaults.dependencies?.copy(
-        loadBalancerNames = commonDeps.namesForType(LOAD_BALANCER),
-        securityGroupNames = commonDeps.namesForType(SECURITY_GROUP),
-        targetGroups = commonDeps.namesForType(TARGET_GROUP)
-      )
-    ),
-    overrides = overrides.mapValues { (region, serverGroupSpec) ->
-      serverGroupSpec.copy(
-        dependencies = ClusterDependencies(
-          loadBalancerNames =  overrideDeps[region].namesForType(LOAD_BALANCER),
-          securityGroupNames = overrideDeps[region].namesForType(SECURITY_GROUP),
-          targetGroups = overrideDeps[region].namesForType(TARGET_GROUP)
-        )
-      )
-    }
-  )
-}
-
-private fun TitusClusterSpec.withDependencies(deps: Set<Dependency>): TitusClusterSpec {
   val commonDeps = deps.commonInAllRegions(locations.regions.map { it.name })
   val overrideDeps = deps.groupBy { it.region }
     .mapValues { (key, deps) -> deps - commonDeps }

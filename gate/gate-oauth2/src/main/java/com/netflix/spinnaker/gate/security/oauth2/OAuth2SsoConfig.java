@@ -18,9 +18,11 @@ package com.netflix.spinnaker.gate.security.oauth2;
 
 import com.netflix.spinnaker.gate.config.AuthConfig;
 import com.netflix.spinnaker.gate.security.SpinnakerAuthConfig;
+import com.netflix.spinnaker.gate.security.UserProfileMapping;
 import java.time.Duration;
 import java.util.HashMap;
 import lombok.Data;
+import lombok.EqualsAndHashCode;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.context.properties.ConfigurationProperties;
@@ -38,9 +40,9 @@ import org.springframework.security.oauth2.client.registration.ClientRegistratio
 import org.springframework.security.oauth2.client.registration.InMemoryClientRegistrationRepository;
 import org.springframework.security.oauth2.client.web.OAuth2AuthorizationRequestRedirectFilter;
 import org.springframework.security.oauth2.client.web.OAuth2LoginAuthenticationFilter;
+import org.springframework.security.oauth2.jwt.JwtDecoder;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.savedrequest.HttpSessionRequestCache;
-import org.springframework.session.web.http.DefaultCookieSerializer;
 import org.springframework.stereotype.Component;
 import org.springframework.web.client.RestTemplate;
 
@@ -55,9 +57,9 @@ public class OAuth2SsoConfig {
   @Autowired private AuthConfig authConfig;
   @Autowired private SpinnakerOAuth2UserInfoService customOAuth2UserService;
   @Autowired private SpinnakerOIDCUserInfoService oidcUserInfoService;
-  @Autowired private DefaultCookieSerializer defaultCookieSerializer;
   @Autowired private ClientRegistrationRepository clientRegistrationRepository;
   @Autowired private OAuthUserInfoServiceHelper userInfoServiceHelper;
+  @Autowired private UserInfoMapping userInfoMapping;
 
   @Autowired
   private OAuth2AccessTokenResponseClient<OAuth2AuthorizationCodeGrantRequest> tokenResponseClient;
@@ -69,13 +71,21 @@ public class OAuth2SsoConfig {
   // ManagedDeliverySchemaEndpointConfiguration#schemaSecurityFilterChain should go first
   @Order(3)
   SecurityFilterChain securityFilterChain(HttpSecurity httpSecurity) throws Exception {
-    defaultCookieSerializer.setSameSite(null);
     authConfig.configure(httpSecurity);
     String registrationId = getFirstRegistrationId();
     HttpSessionRequestCache requestCache = new HttpSessionRequestCache();
     requestCache.setMatchingRequestParameterName(null);
 
     httpSecurity
+        .securityContext(
+            context ->
+                // Spring Security 6 defaults to requireExplicitSave=true, but
+                // ExternalAuthTokenFilter relies on the Spring Security 5 behavior of
+                // persisting the SecurityContext after every request: without the implicit
+                // save, every Bearer-token request repeats the provider user-info
+                // round-trip and API clients never receive a session
+                // (https://github.com/spinnaker/spinnaker/issues/7994).
+                context.requireExplicitSave(false))
         .authorizeHttpRequests(auth -> auth.anyRequest().authenticated())
         .requestCache(cache -> cache.requestCache(requestCache))
         .oauth2Login(
@@ -104,9 +114,32 @@ public class OAuth2SsoConfig {
             });
     if (registrationId != null) {
       RestTemplate restTemplate = createRestTemplateWithTimeouts();
+      ExternalAuthTokenFilterConfigurationProperties.Jwt jwt =
+          externalAuthTokenFilterProperties.getJwt();
+      JwtDecoder jwtDecoder = null;
+      String jwtUsernameClaim = null;
+      if (jwt.isEnabled()) {
+        jwtDecoder = ExternalJwtDecoderFactory.create(jwt);
+        // A validated JWT must carry this claim to identify the user; otherwise the filter rejects
+        // it instead of attempting a Fiat login with a null username.
+        jwtUsernameClaim = userInfoMapping.getUsername();
+        log.info(
+            "ExternalAuthTokenFilter validates JWT bearer tokens from issuer {} for audiences {} "
+                + "(user-info fallback: {}, username claim: {})",
+            jwt.getIssuerUri(),
+            jwt.getAudiences(),
+            jwt.isUserInfoFallback(),
+            jwtUsernameClaim);
+      }
       ExternalAuthTokenFilter externalAuthTokenFilter =
           new ExternalAuthTokenFilter(
-              clientRegistrationRepository, userInfoServiceHelper, registrationId, restTemplate);
+              clientRegistrationRepository,
+              userInfoServiceHelper,
+              registrationId,
+              restTemplate,
+              jwtDecoder,
+              jwt.isUserInfoFallback(),
+              jwtUsernameClaim);
       httpSecurity.addFilterBefore(externalAuthTokenFilter, OAuth2LoginAuthenticationFilter.class);
     }
 
@@ -138,10 +171,14 @@ public class OAuth2SsoConfig {
   @Component
   @ConfigurationProperties("spring.security.oauth2.client.registration.user-info-mapping")
   @Data
-  public static class UserInfoMapping {
-    private String email = "email";
-    private String firstName = "given_name";
-    private String lastName = "family_name";
+  @EqualsAndHashCode(callSuper = true)
+  public static class UserInfoMapping extends UserProfileMapping {
+    public UserInfoMapping() {
+      setEmail("email");
+      setFirstName("given_name");
+      setLastName("family_name");
+    }
+
     private String username = "email";
     private String serviceAccountEmail = "client_email";
     private String roles = null;

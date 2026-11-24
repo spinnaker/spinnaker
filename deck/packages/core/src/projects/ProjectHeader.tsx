@@ -27,7 +27,7 @@ export interface IProjectHeaderState {
 @Overridable('createProjectHeader')
 export class ProjectHeader extends React.Component<IProjectHeaderProps, IProjectHeaderState> {
   public state: IProjectHeaderState = { state: null, application: null, isOpen: false };
-  private destroy$ = new Subject();
+  private destroy$ = new Subject<void>();
 
   public componentDidMount() {
     const { success$ } = this.props.transition.router.globals;

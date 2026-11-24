@@ -49,13 +49,13 @@ describe('Application Model', function () {
     loadBalancers: any[],
     securityGroupsByApplicationName: any[],
   ) {
-    spyOn(securityGroupReader, 'loadSecurityGroupsByApplicationName').and.returnValue(
+    vi.spyOn(securityGroupReader, 'loadSecurityGroupsByApplicationName').mockReturnValue(
       Promise.resolve(securityGroupsByApplicationName),
     );
-    spyOn(loadBalancerReader, 'loadLoadBalancers').and.returnValue(Promise.resolve(loadBalancers));
-    spyOn(clusterService, 'loadServerGroups').and.returnValue(Promise.resolve(serverGroups));
-    spyOn(securityGroupReader, 'loadSecurityGroups').and.returnValue(Promise.resolve([] as any));
-    spyOn(securityGroupReader, 'getApplicationSecurityGroups').and.callFake(function (
+    vi.spyOn(loadBalancerReader, 'loadLoadBalancers').mockReturnValue(Promise.resolve(loadBalancers));
+    vi.spyOn(clusterService, 'loadServerGroups').mockReturnValue(Promise.resolve(serverGroups));
+    vi.spyOn(securityGroupReader, 'loadSecurityGroups').mockReturnValue(Promise.resolve([] as any));
+    vi.spyOn(securityGroupReader, 'getApplicationSecurityGroups').mockImplementation(function (
       _app: Application,
       groupsByName: any[],
     ) {
@@ -71,16 +71,16 @@ describe('Application Model', function () {
   describe('refresh subscriptions', () => {
     it('notifies callbacks without a lifecycle object until explicitly unsubscribed', () => {
       application = ApplicationModelBuilder.createApplicationForTests('app');
-      const onRefresh = jasmine.createSpy('onRefresh');
-      const onError = jasmine.createSpy('onError');
+      const onRefresh = vi.fn();
+      const onError = vi.fn();
       const unsubscribe = application.onRefresh(onRefresh, onError);
       const refreshError = new Error('refresh failed');
 
       (application as any).refreshStream.next(null);
       (application as any).refreshFailureStream.next(refreshError);
 
-      expect(onRefresh).toHaveBeenCalledOnceWith(null);
-      expect(onError).toHaveBeenCalledOnceWith(refreshError);
+      expect(onRefresh).toHaveBeenCalledExactlyOnceWith(null);
+      expect(onError).toHaveBeenCalledExactlyOnceWith(refreshError);
 
       unsubscribe();
       (application as any).refreshStream.next(null);
@@ -105,11 +105,11 @@ describe('Application Model', function () {
     describe('activate', function () {
       it('refreshes section if not already active and not already loaded', async function () {
         await configureApplication([], [], []);
-        spyOn(application.getDataSource('lazySource'), 'refresh').and.callThrough();
+        vi.spyOn(application.getDataSource('lazySource'), 'refresh');
 
         application.getDataSource('lazySource').activate();
         await flushPromise(application.getDataSource('lazySource').ready());
-        expect((application.getDataSource('lazySource').refresh as any).calls.count()).toBe(1);
+        expect((application.getDataSource('lazySource').refresh as any).mock.calls.length).toBe(1);
         expect(application.getDataSource('lazySource').active).toBe(true);
         expect(application.getDataSource('lazySource').loaded).toBe(true);
 
@@ -118,13 +118,13 @@ describe('Application Model', function () {
         application.getDataSource('lazySource').activate();
         // not refreshed since still loaded
         expect(application.getDataSource('lazySource').active).toBe(true);
-        expect((application.getDataSource('lazySource').refresh as any).calls.count()).toBe(1);
+        expect((application.getDataSource('lazySource').refresh as any).mock.calls.length).toBe(1);
 
         application.getDataSource('lazySource').deactivate();
         application.getDataSource('lazySource').loaded = false;
         application.getDataSource('lazySource').activate();
         await flushPromise(application.getDataSource('lazySource').ready());
-        expect((application.getDataSource('lazySource').refresh as any).calls.count()).toBe(2);
+        expect((application.getDataSource('lazySource').refresh as any).mock.calls.length).toBe(2);
       });
     });
 

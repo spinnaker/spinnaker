@@ -16,31 +16,33 @@ describe('cloudrunServerGroupDetailsGetter', () => {
     },
   };
 
-  it('auto-closes and completes when server group lookup fails', (done) => {
-    const autoClose = jasmine.createSpy('autoClose');
-    spyOn(ServerGroupReader, 'getServerGroup').and.returnValue(Promise.reject(new Error('not found')) as any);
+  it('auto-closes and completes when server group lookup fails', () =>
+    new Promise((done, reject) => {
+      const autoClose = vi.fn();
+      vi.spyOn(ServerGroupReader, 'getServerGroup').mockReturnValue(Promise.reject(new Error('not found')) as any);
 
-    cloudrunServerGroupDetailsGetter(props, autoClose).subscribe({
-      next: () => fail('should not emit a server group'),
-      error: () => fail('should not emit an error'),
-      complete: () => {
-        expect(autoClose).toHaveBeenCalled();
-        done();
-      },
-    });
-  });
+      cloudrunServerGroupDetailsGetter(props, autoClose).subscribe({
+        next: () => fail('should not emit a server group'),
+        error: () => fail('should not emit an error'),
+        complete: () => {
+          expect(autoClose).toHaveBeenCalled();
+          done();
+        },
+      });
+    }));
 
-  it('auto-closes and completes when lookup returns no server group', (done) => {
-    const autoClose = jasmine.createSpy('autoClose');
-    spyOn(ServerGroupReader, 'getServerGroup').and.returnValue(Promise.resolve(null) as any);
+  it('auto-closes and completes when lookup returns no server group', () =>
+    new Promise((done, reject) => {
+      const autoClose = vi.fn();
+      vi.spyOn(ServerGroupReader, 'getServerGroup').mockReturnValue(Promise.resolve(null) as any);
 
-    cloudrunServerGroupDetailsGetter(props, autoClose).subscribe({
-      next: () => fail('should not emit a server group'),
-      error: () => fail('should not emit an error'),
-      complete: () => {
-        expect(autoClose).toHaveBeenCalled();
-        done();
-      },
-    });
-  });
+      cloudrunServerGroupDetailsGetter(props, autoClose).subscribe({
+        next: () => fail('should not emit a server group'),
+        error: () => fail('should not emit an error'),
+        complete: () => {
+          expect(autoClose).toHaveBeenCalled();
+          done();
+        },
+      });
+    }));
 });

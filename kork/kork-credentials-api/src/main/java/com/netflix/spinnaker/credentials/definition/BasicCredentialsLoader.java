@@ -82,6 +82,7 @@ public class BasicCredentialsLoader<T extends CredentialsDefinition, U extends C
         .forEach(credentialsRepository::delete);
 
     List<Map.Entry<T, U>> toApply = new ArrayList<>();
+    InvalidCredentialsConfigurationException invalidConfiguration = null;
 
     for (T definition : definitions) {
       T loadedDefinition = loadedDefinitions.get(definition.getName());
@@ -90,6 +91,13 @@ public class BasicCredentialsLoader<T extends CredentialsDefinition, U extends C
           U cred = parser.parse(definition);
           if (cred != null) {
             toApply.add(Map.entry(definition, cred));
+          }
+        } catch (InvalidCredentialsConfigurationException e) {
+          log.error("Invalid credentials definition '{}'", definition.getName(), e);
+          if (invalidConfiguration == null) {
+            invalidConfiguration = e;
+          } else {
+            invalidConfiguration.addSuppressed(e);
           }
         } catch (RuntimeException e) {
           log.error(
@@ -114,5 +122,9 @@ public class BasicCredentialsLoader<T extends CredentialsDefinition, U extends C
                 "Error saving credentials '{}'; will retry on next load", definition.getName(), e);
           }
         });
+
+    if (invalidConfiguration != null) {
+      throw invalidConfiguration;
+    }
   }
 }

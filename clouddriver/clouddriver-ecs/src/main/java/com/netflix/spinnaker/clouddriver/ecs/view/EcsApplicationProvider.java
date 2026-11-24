@@ -17,7 +17,6 @@
 package com.netflix.spinnaker.clouddriver.ecs.view;
 
 import com.google.common.collect.Sets;
-import com.netflix.spinnaker.clouddriver.aws.security.AmazonCredentials;
 import com.netflix.spinnaker.clouddriver.ecs.cache.Keys;
 import com.netflix.spinnaker.clouddriver.ecs.cache.client.ServiceCacheClient;
 import com.netflix.spinnaker.clouddriver.ecs.cache.model.Service;
@@ -27,9 +26,12 @@ import com.netflix.spinnaker.clouddriver.model.Application;
 import com.netflix.spinnaker.clouddriver.model.ApplicationProvider;
 import com.netflix.spinnaker.credentials.CredentialsRepository;
 import com.netflix.spinnaker.moniker.Moniker;
+import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -51,9 +53,16 @@ public class EcsApplicationProvider implements ApplicationProvider {
 
   @Override
   public Application getApplication(String name) {
-    String glob = Keys.getServiceKey("*", "*", name + "*");
-    Collection<String> ecsServices = serviceCacheClient.filterIdentifiers(glob);
-    for (Application application : populateApplicationSet(ecsServices, true)) {
+    Collection<Service> services =
+        serviceCacheClient.canFindByApplication()
+            ? serviceCacheClient.findByApplication(name)
+            : Collections.emptyList();
+    if (services.isEmpty()) {
+      // Also the path when the services have not been re-cached with the indexed application yet.
+      String glob = Keys.getServiceKey("*", "*", name + "*");
+      services = serviceCacheClient.getAll(serviceCacheClient.filterIdentifiers(glob));
+    }
+    for (Application application : populateApplicationSet(services, true)) {
       if (name.equals(application.getName())) {
         return application;
       }
@@ -63,50 +72,45 @@ public class EcsApplicationProvider implements ApplicationProvider {
 
   @Override
   public Set<EcsApplication> getApplications(boolean expand) {
-    Set<EcsApplication> applications = new HashSet<>();
+    Map<String, Set<String>> regionsByAccount = new HashMap<>();
     for (NetflixECSCredentials credentials : credentialsRepository.getAll()) {
-      Set<EcsApplication> retrievedApplications =
-          findApplicationsForAllRegions(credentials, expand);
-      applications.addAll(retrievedApplications);
+      Set<String> regions =
+          regionsByAccount.computeIfAbsent(credentials.getName(), name -> new HashSet<>());
+      credentials.getRegions().forEach(region -> regions.add(region.getName()));
     }
 
-    return applications;
-  }
+    // One key lookup for every account and region, instead of one per account and region.
+    List<String> serviceKeys = new ArrayList<>();
+    for (String key : serviceCacheClient.filterIdentifiers(Keys.getServiceKey("*", "*", "*"))) {
+      Map<String, String> parts = Keys.parse(key);
+      if (parts != null
+          && regionsByAccount
+              .getOrDefault(parts.get("account"), Collections.emptySet())
+              .contains(parts.get("region"))) {
+        serviceKeys.add(key);
+      }
+    }
 
-  private Set<EcsApplication> findApplicationsForAllRegions(
-      AmazonCredentials credentials, boolean expand) {
+    // Applications are still built separately for each account and region.
+    Map<String, HashMap<String, EcsApplication>> applicationsByAccountAndRegion = new HashMap<>();
+    for (Service service : serviceCacheClient.getAll(serviceKeys)) {
+      HashMap<String, EcsApplication> applicationHashMap =
+          applicationsByAccountAndRegion.computeIfAbsent(
+              service.getAccount() + Keys.SEPARATOR + service.getRegion(),
+              accountAndRegion -> new HashMap<>());
+      inferApplicationFromServices(applicationHashMap, service, expand);
+    }
+
     Set<EcsApplication> applications = new HashSet<>();
-
-    for (AmazonCredentials.AWSRegion awsRegion : credentials.getRegions()) {
-      applications.addAll(
-          findApplicationsForRegion(credentials.getName(), awsRegion.getName(), expand));
+    for (HashMap<String, EcsApplication> applicationHashMap :
+        applicationsByAccountAndRegion.values()) {
+      applications.addAll(transposeApplicationMapToSet(applicationHashMap));
     }
-
     return applications;
   }
 
-  private Set<EcsApplication> findApplicationsForRegion(
-      String account, String region, boolean expand) {
-    HashMap<String, EcsApplication> applicationHashMap =
-        populateApplicationMap(account, region, expand);
-    return transposeApplicationMapToSet(applicationHashMap);
-  }
-
-  private HashMap<String, EcsApplication> populateApplicationMap(
-      String account, String region, boolean expand) {
+  private Set<EcsApplication> populateApplicationSet(Collection<Service> services, boolean expand) {
     HashMap<String, EcsApplication> applicationHashMap = new HashMap<>();
-    Collection<Service> services = serviceCacheClient.getAll(account, region);
-
-    for (Service service : services) {
-      applicationHashMap = inferApplicationFromServices(applicationHashMap, service, expand);
-    }
-    return applicationHashMap;
-  }
-
-  private Set<EcsApplication> populateApplicationSet(
-      Collection<String> identifiers, boolean expand) {
-    HashMap<String, EcsApplication> applicationHashMap = new HashMap<>();
-    Collection<Service> services = serviceCacheClient.getAll(identifiers);
 
     for (Service service : services) {
       if (credentialsRepository.has(service.getAccount())) {

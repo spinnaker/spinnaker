@@ -1,4 +1,4 @@
-import { mockHttpClient } from '../api/mock/jasmine';
+import { mockHttpClient } from '../api/mock/mockHttpSupport';
 import type { Application } from '../application/application.model';
 import { ApplicationModelBuilder } from '../application/applicationModel.builder';
 import { InfrastructureCaches } from '../cache';
@@ -20,7 +20,7 @@ describe('Service: securityGroupReader', function () {
       get: () => null as any,
       put: () => {},
     };
-    spyOn(InfrastructureCaches, 'get').and.returnValue(cacheStub);
+    vi.spyOn(InfrastructureCaches, 'get').mockReturnValue(cacheStub);
 
     const securityGroupTransformer = {
       normalizeSecurityGroup: (securityGroup: ISecurityGroup) => Promise.resolve(securityGroup),

@@ -27,7 +27,6 @@ import com.netflix.spinnaker.front50.api.model.pipeline.Pipeline;
 import com.netflix.spinnaker.front50.config.StorageServiceConfigurationProperties;
 import com.netflix.spinnaker.kork.web.exceptions.NotFoundException;
 import com.netflix.spinnaker.security.AuthenticatedRequest;
-import com.netflix.spinnaker.security.User;
 import io.github.resilience4j.circuitbreaker.CircuitBreaker;
 import io.github.resilience4j.circuitbreaker.CircuitBreakerConfig;
 import io.github.resilience4j.circuitbreaker.CircuitBreakerRegistry;
@@ -76,6 +75,7 @@ public abstract class StorageServiceSupport<T extends Timestamped> {
 
   private final AtomicLong lastRefreshedTime = new AtomicLong();
   private final AtomicLong lastSeenStorageTime = new AtomicLong();
+  private final Object refreshLock = new Object();
 
   AtomicReference<CountDownLatch> globalLatch = new AtomicReference<>(null);
 
@@ -314,11 +314,9 @@ public abstract class StorageServiceSupport<T extends Timestamped> {
   }
 
   public void bulkImport(Collection<T> items) {
-    User authenticatedUser = new User();
-    authenticatedUser.setUsername(AuthenticatedRequest.getSpinnakerUser().orElse("anonymous"));
+    String lastModifiedBy = AuthenticatedRequest.getSpinnakerUser().orElse("anonymous");
 
     if (service instanceof BulkStorageService) {
-      String lastModifiedBy = AuthenticatedRequest.getSpinnakerUser().orElse("anonymous");
       Long lastModified = System.currentTimeMillis();
 
       items.forEach(
@@ -345,7 +343,7 @@ public abstract class StorageServiceSupport<T extends Timestamped> {
                                       return Observable.just(item);
                                     },
                                     true,
-                                    authenticatedUser)
+                                    lastModifiedBy)
                                 .call();
                           } catch (Exception e) {
                             throw new RuntimeException(e);
@@ -364,12 +362,16 @@ public abstract class StorageServiceSupport<T extends Timestamped> {
   /** Update local cache with any recently modified items. */
   protected void refresh() {
     long startTime = System.nanoTime();
-    if (configProperties.isOptimizeCacheRefreshes()) {
-      log.debug("Running optimized cache refresh");
-      allItemsCache.set(fetchAllItemsOptimized(allItemsCache.get()));
-    } else {
-      log.debug("Running unoptimized cache refresh");
-      allItemsCache.set(fetchAllItems(allItemsCache.get()));
+    // fetchAllItems* advance lastSeenStorageTime before allItemsCache is published; serialize so a
+    // concurrent refresher can't pair the advanced time with the stale cache and overwrite it.
+    synchronized (refreshLock) {
+      if (configProperties.isOptimizeCacheRefreshes()) {
+        log.debug("Running optimized cache refresh");
+        allItemsCache.set(fetchAllItemsOptimized(allItemsCache.get()));
+      } else {
+        log.debug("Running unoptimized cache refresh");
+        allItemsCache.set(fetchAllItems(allItemsCache.get()));
+      }
     }
     long elapsed = System.nanoTime() - startTime;
     registry

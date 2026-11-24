@@ -166,13 +166,7 @@ public class DeployCloudFoundryServerGroupAtomicOperationConverter
       return new CloudFoundryArtifactCredentials(credentials.getClient());
     }
 
-    ArtifactCredentials credentials =
-        credentialsRepository.getFirstCredentialsWithName(artifactAccount);
-    if (credentials == null) {
-      throw new IllegalArgumentException(
-          "Unable to find artifact credentials '" + artifactAccount + "'");
-    }
-    return credentials;
+    return credentialsRepository.getCredentialsForType(artifactAccount, artifact.getType());
   }
 
   // visible for testing

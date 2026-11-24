@@ -1,6 +1,6 @@
 package com.netflix.spinnaker.kork.tomcat;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 
 import java.net.URI;
 import org.junit.jupiter.api.Test;
@@ -15,13 +15,12 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpMethod;
-import org.springframework.http.HttpStatus;
-import org.springframework.http.ResponseEntity;
 import org.springframework.http.client.HttpComponentsClientHttpRequestFactory;
 import org.springframework.test.context.TestPropertySource;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.client.HttpClientErrorException;
 import org.springframework.web.client.RestTemplate;
 import org.springframework.web.util.UriComponentsBuilder;
 
@@ -29,12 +28,7 @@ import org.springframework.web.util.UriComponentsBuilder;
 @SpringBootTest(
     webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT,
     classes = {WebEnvironmentTest.TestControllerConfiguration.class})
-// It would be lovely to have a per-method TestPropertySource annotation, or
-// some other simple way to parametrize tests to verify what happens when
-// default.rejectIllegalHeader isn't set at all, and set to true, in addition to
-// setting it to false.  At the moment this doesn't seem worth the code
-// duplication / complexity.  See
-// https://github.com/spring-projects/spring-framework/issues/18951.
+// Tomcat 11 rejects malformed headers even when this legacy option is disabled.
 @TestPropertySource(
     properties = {
       "logging.level.org.apache.coyote.http11.Http11InputBuffer = DEBUG",
@@ -47,7 +41,7 @@ class WebEnvironmentTest {
   @Autowired TestRestTemplate restTemplate;
 
   @Test
-  void testTomcatWithIllegalHttpHeaders() throws Exception {
+  void rejectsIllegalHeadersWithLegacySettingDisabled() throws Exception {
     // Use Apache HttpComponents client which allows invalid headers
     // The default JDK HttpClient in Spring Boot 3.5+ validates headers on the client side
     RestTemplate httpComponentsRestTemplate =
@@ -56,8 +50,7 @@ class WebEnvironmentTest {
             .build();
 
     HttpHeaders headers = new HttpHeaders();
-    // this is enough to cause a BAD_REQUEST if tomcat has rejectIllegalHeaders
-    // set to true
+    // Tomcat 11 always rejects this invalid header name.
     headers.add("X-Dum@my", "foo");
 
     URI uri =
@@ -66,10 +59,11 @@ class WebEnvironmentTest {
             .build()
             .toUri();
 
-    ResponseEntity<String> entity =
-        httpComponentsRestTemplate.exchange(
-            uri, HttpMethod.GET, new HttpEntity<>(headers), String.class);
-    assertEquals(HttpStatus.OK, entity.getStatusCode());
+    assertThrows(
+        HttpClientErrorException.BadRequest.class,
+        () ->
+            httpComponentsRestTemplate.exchange(
+                uri, HttpMethod.GET, new HttpEntity<>(headers), String.class));
   }
 
   @SpringBootApplication

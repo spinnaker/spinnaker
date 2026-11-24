@@ -1,3 +1,4 @@
+import type { Mock } from 'vitest';
 import '../../../bootstrap/runtimeInitializers';
 import type { ICustomValidator, IPipelineValidationResults, IValidatorConfig } from './PipelineConfigValidator';
 import { PipelineConfigValidator } from './PipelineConfigValidator';
@@ -15,7 +16,7 @@ import type { IStageBeforeTypeValidationConfig } from './stageBeforeType.validat
 import type { IStageOrTriggerBeforeTypeValidationConfig } from './stageOrTriggerBeforeType.validator';
 import type { ITargetImpedanceValidationConfig } from './targetImpedance.validator';
 
-import Spy = jasmine.Spy;
+import Spy = Mock;
 
 describe('pipelineConfigValidator', () => {
   let pipeline: IPipeline, validate: () => Promise<void>, validationResults: IPipelineValidationResults;
@@ -73,7 +74,7 @@ describe('pipelineConfigValidator', () => {
 
   describe('validation', () => {
     it('performs validation against stages and triggers where declared, ignores others', async () => {
-      spyOn(Registry.pipeline, 'getTriggerConfig').and.callFake((type: string) => {
+      vi.spyOn(Registry.pipeline, 'getTriggerConfig').mockImplementation((type: string) => {
         if (type === 'withTriggerValidation') {
           return buildStageTypeConfig([
             {
@@ -85,7 +86,7 @@ describe('pipelineConfigValidator', () => {
         }
         return buildStageTypeConfig();
       });
-      spyOn(Registry.pipeline, 'getStageConfig').and.callFake((stage: IStage) => {
+      vi.spyOn(Registry.pipeline, 'getStageConfig').mockImplementation((stage: IStage) => {
         if (stage.type === 'withValidation') {
           return buildStageTypeConfig([
             {
@@ -111,7 +112,7 @@ describe('pipelineConfigValidator', () => {
     });
 
     it('executes all validators', async () => {
-      spyOn(Registry.pipeline, 'getStageConfig').and.callFake((stage: IStage) => {
+      vi.spyOn(Registry.pipeline, 'getStageConfig').mockImplementation((stage: IStage) => {
         if (stage.type === 'withValidation') {
           return buildStageTypeConfig([
             {
@@ -147,7 +148,7 @@ describe('pipelineConfigValidator', () => {
   describe('validators', () => {
     describe('stageOrTriggerBeforeType', () => {
       beforeEach(() => {
-        spyOn(Registry.pipeline, 'getStageConfig').and.callFake((stage: IStage) => {
+        vi.spyOn(Registry.pipeline, 'getStageConfig').mockImplementation((stage: IStage) => {
           if (stage.type === 'withValidationIncludingParent') {
             return buildStageTypeConfig([
               {
@@ -235,7 +236,7 @@ describe('pipelineConfigValidator', () => {
       });
 
       it('checks parent pipeline triggers for match', async () => {
-        spyOn(PipelineConfigService, 'getPipelinesForApplication').and.returnValue(
+        vi.spyOn(PipelineConfigService, 'getPipelinesForApplication').mockReturnValue(
           Promise.resolve([{ id: 'abcd', triggers: [{ type: 'prereq' }] }]) as any,
         );
 
@@ -249,7 +250,7 @@ describe('pipelineConfigValidator', () => {
       });
 
       it('caches pipeline configs', async () => {
-        spyOn(PipelineConfigService, 'getPipelinesForApplication').and.returnValue(
+        vi.spyOn(PipelineConfigService, 'getPipelinesForApplication').mockReturnValue(
           Promise.resolve([{ id: 'abcd', triggers: [{ type: 'prereq' }] }] as any),
         );
 
@@ -259,14 +260,14 @@ describe('pipelineConfigValidator', () => {
         );
 
         await validate();
-        expect((PipelineConfigService.getPipelinesForApplication as Spy).calls.count()).toBe(1);
+        expect((PipelineConfigService.getPipelinesForApplication as Spy).mock.calls.length).toBe(1);
 
         await validate();
-        expect((PipelineConfigService.getPipelinesForApplication as Spy).calls.count()).toBe(1);
+        expect((PipelineConfigService.getPipelinesForApplication as Spy).mock.calls.length).toBe(1);
       });
 
       it('fails if own stages and parent pipeline triggers do not match', async () => {
-        spyOn(PipelineConfigService, 'getPipelinesForApplication').and.returnValue(
+        vi.spyOn(PipelineConfigService, 'getPipelinesForApplication').mockReturnValue(
           Promise.resolve([
             { id: 'abcd', triggers: [{ type: 'not-prereq' }] },
             { id: 'other', triggers: [{ type: 'prereq' }] },
@@ -284,7 +285,7 @@ describe('pipelineConfigValidator', () => {
 
       it('rejects when loading an external parent pipeline fails', async () => {
         const loadingError = new Error('parent pipeline unavailable');
-        spyOn(PipelineConfigService, 'getPipelinesForApplication').and.returnValue(Promise.reject(loadingError));
+        vi.spyOn(PipelineConfigService, 'getPipelinesForApplication').mockReturnValue(Promise.reject(loadingError));
         pipeline = buildPipeline(
           [{ type: 'withValidationIncludingParent', refId: 1 }],
           [{ type: 'pipeline', application: 'unavailableApp', pipeline: 'abcd' }],
@@ -294,7 +295,7 @@ describe('pipelineConfigValidator', () => {
       });
 
       it('does not check parent triggers unless specified in validator', async () => {
-        spyOn(PipelineConfigService, 'getPipelinesForApplication').and.returnValue(
+        vi.spyOn(PipelineConfigService, 'getPipelinesForApplication').mockReturnValue(
           Promise.resolve([{ id: 'abcd', triggers: [{ type: 'prereq' }] }] as any),
         );
 
@@ -303,14 +304,14 @@ describe('pipelineConfigValidator', () => {
           [{ type: 'pipeline', application: 'someApp', pipeline: 'abcd' }],
         );
         await validate();
-        expect((PipelineConfigService.getPipelinesForApplication as Spy).calls.count()).toBe(0);
+        expect((PipelineConfigService.getPipelinesForApplication as Spy).mock.calls.length).toBe(0);
         expect(validationResults.stages.length).toBe(1);
       });
     });
 
     describe('stageBeforeType', () => {
       it('fails if no stage is first or not preceded by declared stage type', async () => {
-        spyOn(Registry.pipeline, 'getStageConfig').and.callFake((stage: IStage) => {
+        vi.spyOn(Registry.pipeline, 'getStageConfig').mockImplementation((stage: IStage) => {
           if (stage.type === 'withValidation') {
             return buildStageTypeConfig([
               {
@@ -357,7 +358,7 @@ describe('pipelineConfigValidator', () => {
       });
 
       it('validates against multiple types if present', async () => {
-        spyOn(Registry.pipeline, 'getStageConfig').and.callFake((stage: IStage) => {
+        vi.spyOn(Registry.pipeline, 'getStageConfig').mockImplementation((stage: IStage) => {
           if (stage.type === 'withValidation') {
             return buildStageTypeConfig([
               {
@@ -397,7 +398,7 @@ describe('pipelineConfigValidator', () => {
 
     describe('checkRequiredField', () => {
       beforeEach(() => {
-        spyOn(Registry.pipeline, 'getStageConfig').and.callFake((stage: IStage) => {
+        vi.spyOn(Registry.pipeline, 'getStageConfig').mockImplementation((stage: IStage) => {
           if (stage.type === 'simpleField') {
             return buildStageTypeConfig([
               {
@@ -488,7 +489,7 @@ describe('pipelineConfigValidator', () => {
 
     describe('targetImpedance', () => {
       beforeEach(() => {
-        spyOn(Registry.pipeline, 'getStageConfig').and.callFake((stage: IStage) => {
+        vi.spyOn(Registry.pipeline, 'getStageConfig').mockImplementation((stage: IStage) => {
           if (stage.type === 'targetCheck') {
             return buildStageTypeConfig([
               {
@@ -782,7 +783,7 @@ describe('pipelineConfigValidator', () => {
       let validationCalled = false;
       beforeEach(() => {
         validationCalled = false;
-        spyOn(Registry.pipeline, 'getStageConfig').and.returnValue(
+        vi.spyOn(Registry.pipeline, 'getStageConfig').mockReturnValue(
           buildStageTypeConfig([
             {
               type: 'custom',
@@ -816,7 +817,7 @@ describe('pipelineConfigValidator', () => {
 
     describe('custom validator', () => {
       beforeEach(() => {
-        spyOn(Registry.pipeline, 'getStageConfig').and.callFake((stage: IStage) => {
+        vi.spyOn(Registry.pipeline, 'getStageConfig').mockImplementation((stage: IStage) => {
           if (stage.type === 'targetCheck') {
             return buildStageTypeConfig([
               {
@@ -849,7 +850,7 @@ describe('pipelineConfigValidator', () => {
 
   describe('serviceAccountAccess', () => {
     beforeEach(() => {
-      spyOn(Registry.pipeline, 'getStageConfig').and.callFake((stage: IStage) => {
+      vi.spyOn(Registry.pipeline, 'getStageConfig').mockImplementation((stage: IStage) => {
         if (stage.type === 'targetCheck') {
           return buildStageTypeConfig([
             {
@@ -861,7 +862,7 @@ describe('pipelineConfigValidator', () => {
         return buildStageTypeConfig();
       });
 
-      spyOn(ServiceAccountReader, 'getServiceAccounts').and.returnValue(Promise.resolve(['my-account']));
+      vi.spyOn(ServiceAccountReader, 'getServiceAccounts').mockReturnValue(Promise.resolve(['my-account']));
     });
 
     it('calls service account access validator', async () => {

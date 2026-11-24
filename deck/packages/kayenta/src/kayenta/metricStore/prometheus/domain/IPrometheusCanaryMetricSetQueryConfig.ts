@@ -5,10 +5,4 @@ export interface IPrometheusCanaryMetricSetQueryConfig extends ICanaryMetricSetQ
   metricName: string;
   labelBindings: string[];
   groupByFields: string[];
-  queryType: PrometheusQueryType;
-}
-
-export enum PrometheusQueryType {
-  PROMQL = 'PROMQL',
-  DEFAULT = 'DEFAULT',
 }

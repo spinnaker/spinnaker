@@ -24,11 +24,13 @@ import com.google.api.client.json.gson.GsonFactory
 import com.google.api.services.compute.Compute
 import com.google.api.services.compute.model.Image
 import com.google.api.services.compute.model.ImageList
+import com.google.api.services.compute.model.Instance
 import com.netflix.spectator.api.DefaultRegistry
 import com.netflix.spinnaker.clouddriver.data.task.Task
 import com.netflix.spinnaker.clouddriver.data.task.TaskRepository
 import com.netflix.spinnaker.clouddriver.google.GoogleApiTestUtils
 import com.netflix.spinnaker.clouddriver.google.config.GoogleConfigurationProperties
+import com.netflix.spinnaker.clouddriver.google.deploy.description.BaseGoogleInstanceDescription.WorkloadIdentityConfig
 import com.netflix.spinnaker.clouddriver.google.deploy.description.CreateGoogleInstanceDescription
 import com.netflix.spinnaker.clouddriver.google.deploy.exception.GoogleResourceNotFoundException
 import com.netflix.spinnaker.clouddriver.google.model.GoogleDisk
@@ -41,6 +43,7 @@ import com.netflix.spinnaker.config.GoogleConfiguration
 import groovy.mock.interceptor.MockFor
 import spock.lang.Specification
 import spock.lang.Subject
+import spock.lang.Unroll
 
 class CreateGoogleInstanceAtomicOperationUnitSpec extends Specification implements TestDefaults {
   private static final ACCOUNT_NAME = "auto"
@@ -57,7 +60,8 @@ class CreateGoogleInstanceAtomicOperationUnitSpec extends Specification implemen
     TaskRepository.threadLocalTask.set(Mock(Task))
   }
 
-  void "should create instance"() {
+  @Unroll
+  void "should create instance (workload identity: #workloadIdentityConfig)"() {
     setup:
       def computeMock = new MockFor(Compute)
       def googleBatchMock = new MockFor(GoogleBatchRequest)
@@ -117,6 +121,7 @@ class CreateGoogleInstanceAtomicOperationUnitSpec extends Specification implemen
                                                                   instanceType: INSTANCE_TYPE,
                                                                   zone: ZONE,
                                                                   accountName: ACCOUNT_NAME,
+                                                                  workloadIdentityConfig: workloadIdentityConfig,
                                                                   credentials: credentials)
             @Subject def operation = new CreateGoogleInstanceAtomicOperation(description)
             operation.registry = registry
@@ -130,13 +135,22 @@ class CreateGoogleInstanceAtomicOperationUnitSpec extends Specification implemen
 
     then:
       1 * googleNetworkProviderMock.getAllMatchingKeyPattern("gce:networks:default:$ACCOUNT_NAME:global") >> [new GoogleNetwork()]
-      1 * instancesMock.insert(PROJECT_NAME, ZONE, _) >> instancesInsertMock
+      1 * instancesMock.insert(PROJECT_NAME, ZONE, { Instance instance ->
+        instance.workloadIdentityConfig?.identity == expectedIdentity &&
+          instance.workloadIdentityConfig?.identityCertificateEnabled == expectedCertificateEnabled
+      }) >> instancesInsertMock
       1 * instancesInsertMock.execute()
       registry.timer(
           GoogleApiTestUtils.makeOkId(
             registry, "compute.instances.insert",
             [scope: "zonal", zone: ZONE])
       ).count() == 1
+
+    where:
+      workloadIdentityConfig                                                                 || expectedIdentity | expectedCertificateEnabled
+      null                                                                                   || null             | null
+      new WorkloadIdentityConfig(identity: "my-identity", identityCertificateEnabled: true)  || "my-identity"    | true
+      new WorkloadIdentityConfig(identity: "", identityCertificateEnabled: false)            || null             | null
   }
 
   void "should fail to create instance because machine type is invalid"() {

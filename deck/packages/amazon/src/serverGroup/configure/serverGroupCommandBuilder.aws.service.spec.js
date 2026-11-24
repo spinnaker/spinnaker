@@ -1,5 +1,4 @@
 'use strict';
-
 import { AccountService, SubnetReader } from '@spinnaker/core';
 
 import { AWSProviderSettings } from '../../aws.settings';
@@ -11,22 +10,22 @@ import {
 } from '@spinnaker/mocks';
 import { createAwsServerGroupCommandBuilder } from './serverGroupCommandBuilder.service';
 
+const testContext = {};
+
 describe('Service: awsServerGroup', function () {
   let instanceTypeService;
   beforeEach(function () {
     instanceTypeService = {
-      getCategoryForMultipleInstanceTypes: jasmine
-        .createSpy('getCategoryForMultipleInstanceTypes')
-        .and.returnValue(Promise.resolve('custom')),
+      getCategoryForMultipleInstanceTypes: vi.fn().mockReturnValue(Promise.resolve('custom')),
     };
-    this.service = createAwsServerGroupCommandBuilder(instanceTypeService);
+    testContext.service = createAwsServerGroupCommandBuilder(instanceTypeService);
   });
 
   afterEach(AWSProviderSettings.resetToOriginal);
 
   describe('buildServerGroupCommandFromPipeline', function () {
     beforeEach(function () {
-      this.cluster = {
+      testContext.cluster = {
         loadBalancers: ['elb-1'],
         account: 'prod',
         availabilityZones: {
@@ -44,9 +43,9 @@ describe('Service: awsServerGroup', function () {
         region: 'us-east-1',
       };
 
-      spyOn(AccountService, 'getAvailabilityZonesForAccountAndRegion').and.returnValue(Promise.resolve(['d', 'g']));
+      vi.spyOn(AccountService, 'getAvailabilityZonesForAccountAndRegion').mockReturnValue(Promise.resolve(['d', 'g']));
 
-      spyOn(AccountService, 'getCredentialsKeyedByAccount').and.returnValue(
+      vi.spyOn(AccountService, 'getCredentialsKeyedByAccount').mockReturnValue(
         Promise.resolve({
           test: ['us-east-1', 'us-west-1'],
           prod: ['us-west-1', 'eu-west-1'],
@@ -55,19 +54,19 @@ describe('Service: awsServerGroup', function () {
     });
 
     it('applies account, region from cluster', async function () {
-      const command = await this.service.buildServerGroupCommandFromPipeline({}, this.cluster);
+      const command = await testContext.service.buildServerGroupCommandFromPipeline({}, testContext.cluster);
 
       expect(command.credentials).toBe('prod');
       expect(command.region).toBe('us-west-1');
     });
 
     it('sets usePreferredZones', async function () {
-      let command = await this.service.buildServerGroupCommandFromPipeline({}, this.cluster);
+      let command = await testContext.service.buildServerGroupCommandFromPipeline({}, testContext.cluster);
       expect(command.viewState.usePreferredZones).toBe(true);
 
       // remove an availability zone, should be false
-      this.cluster.availabilityZones['us-west-1'].pop();
-      command = await this.service.buildServerGroupCommandFromPipeline({}, this.cluster);
+      testContext.cluster.availabilityZones['us-west-1'].pop();
+      command = await testContext.service.buildServerGroupCommandFromPipeline({}, testContext.cluster);
       expect(command.viewState.usePreferredZones).toBe(false);
     });
 
@@ -121,7 +120,7 @@ describe('Service: awsServerGroup', function () {
 
       clusters.forEach((test) => {
         it(`cluster with ${test.desc}`, async function () {
-          const actualCommand = await this.service.buildServerGroupCommandFromPipeline({}, test.cluster);
+          const actualCommand = await testContext.service.buildServerGroupCommandFromPipeline({}, test.cluster);
 
           expect(instanceTypeService.getCategoryForMultipleInstanceTypes).toHaveBeenCalledWith(
             'aws',
@@ -137,15 +136,15 @@ describe('Service: awsServerGroup', function () {
 
   describe('buildServerGroupCommandFromExisting', function () {
     beforeEach(function () {
-      spyOn(AccountService, 'getPreferredZonesByAccount').and.returnValue(Promise.resolve([]));
-      spyOn(SubnetReader, 'listSubnets').and.returnValue(Promise.resolve([]));
+      vi.spyOn(AccountService, 'getPreferredZonesByAccount').mockReturnValue(Promise.resolve([]));
+      vi.spyOn(SubnetReader, 'listSubnets').mockReturnValue(Promise.resolve([]));
     });
 
     it('retains non-core suspended processes', async function () {
       var serverGroup = {
         asg: {
           availabilityZones: [],
-          vpczoneIdentifier: '',
+          vpcZoneIdentifier: '',
           suspendedProcesses: [
             { processName: 'Launch' },
             { processName: 'Terminate' },
@@ -155,7 +154,7 @@ describe('Service: awsServerGroup', function () {
         },
         launchTemplate: mockLaunchTemplate,
       };
-      const command = await this.service.buildServerGroupCommandFromExisting({}, serverGroup);
+      const command = await testContext.service.buildServerGroupCommandFromExisting({}, serverGroup);
       expect(command.suspendedProcesses).toEqual(['AZRebalance']);
     });
 
@@ -163,15 +162,94 @@ describe('Service: awsServerGroup', function () {
       var serverGroup = {
         asg: {
           availabilityZones: [],
-          vpczoneIdentifier: '',
+          vpcZoneIdentifier: '',
           suspendedProcesses: [],
         },
         launchTemplate: mockLaunchTemplate,
       };
-      const command = await this.service.buildServerGroupCommandFromExisting({}, serverGroup, 'editPipeline');
+      const command = await testContext.service.buildServerGroupCommandFromExisting({}, serverGroup, 'editPipeline');
 
       expect(command.viewState.useSimpleCapacity).toBe(false);
       expect(command.useSourceCapacity).toBe(true);
+    });
+
+    describe('derives subnet type and VPC from the ASG zone identifier', function () {
+      beforeEach(function () {
+        SubnetReader.listSubnets.mockReturnValue(
+          Promise.resolve([{ id: 'subnet-1', purpose: 'internal', vpcId: 'vpc-1' }]),
+        );
+      });
+
+      [
+        { desc: 'vpcZoneIdentifier', asg: { vpcZoneIdentifier: 'subnet-1,subnet-2' } },
+        { desc: 'legacy vpczoneIdentifier', asg: { vpczoneIdentifier: 'subnet-1,subnet-2' } },
+      ].forEach((test) => {
+        it(`reads ${test.desc}`, async function () {
+          const serverGroup = {
+            asg: { availabilityZones: [], suspendedProcesses: [], ...test.asg },
+            launchTemplate: mockLaunchTemplate,
+          };
+          const command = await testContext.service.buildServerGroupCommandFromExisting({}, serverGroup);
+
+          expect(command.subnetType).toBe('internal');
+          expect(command.vpcId).toBe('vpc-1');
+        });
+      });
+    });
+
+    describe('copies access to instance tags in instance metadata from the source launch template', function () {
+      [
+        { instanceMetadataTags: 'enabled', expected: true },
+        { instanceMetadataTags: 'disabled', expected: false },
+        { instanceMetadataTags: undefined, expected: undefined },
+      ].forEach(({ instanceMetadataTags, expected }) => {
+        it(`sets enableInstanceMetadataTags to ${expected} when the source has ${instanceMetadataTags}`, async function () {
+          const serverGroup = {
+            asg: {
+              availabilityZones: [],
+              vpcZoneIdentifier: '',
+              suspendedProcesses: [],
+            },
+            launchTemplate: createCustomMockLaunchTemplate('test-lt', {
+              ...mockLaunchTemplateData,
+              metadataOptions: { ...mockLaunchTemplateData.metadataOptions, instanceMetadataTags },
+            }),
+          };
+
+          const command = await testContext.service.buildServerGroupCommandFromExisting({}, serverGroup);
+
+          expect(command.enableInstanceMetadataTags).toBe(expected);
+          expect(command.requireIMDSv2).toBe(true);
+        });
+      });
+    });
+
+    describe('copies the key pair from the source server group', function () {
+      const asg = { availabilityZones: [], vpcZoneIdentifier: '', suspendedProcesses: [] };
+
+      [
+        { keyName: 'test-keypair', expected: 'test-keypair' },
+        { keyName: undefined, expected: '' },
+      ].forEach(({ keyName, expected }) => {
+        it(`sets keyPair to '${expected}' when the source launch template has key name ${keyName}`, async function () {
+          const serverGroup = {
+            asg,
+            launchTemplate: createCustomMockLaunchTemplate('test-lt', { ...mockLaunchTemplateData, keyName }),
+          };
+
+          const command = await testContext.service.buildServerGroupCommandFromExisting({}, serverGroup);
+
+          expect(command.keyPair).toBe(expected);
+        });
+
+        it(`sets keyPair to '${expected}' when the source launch configuration has key name ${keyName}`, async function () {
+          const serverGroup = { asg, launchConfig: { instanceType: 'r5.large', securityGroups: [], keyName } };
+
+          const command = await testContext.service.buildServerGroupCommandFromExisting({}, serverGroup);
+
+          expect(command.keyPair).toBe(expected);
+        });
+      });
     });
 
     describe('extracts properties from server group correctly', function () {
@@ -180,7 +258,7 @@ describe('Service: awsServerGroup', function () {
         asg: {
           autoScalingGroupName: 'myasg-test-v000',
           availabilityZones: [],
-          vpczoneIdentifier: '',
+          vpcZoneIdentifier: '',
           suspendedProcesses: [],
           enabledMetrics: [],
         },
@@ -361,7 +439,7 @@ describe('Service: awsServerGroup', function () {
 
       [...serverGroupsWithoutMip, ...serverGroupsWithMip].forEach((test) => {
         it(`extracts instanceProfile, instanceType and useSimpleInstanceTypeSelector from server group with ${test.desc} correctly`, async function () {
-          const actualCommand = await this.service.buildServerGroupCommandFromExisting({}, test.sg, 'clone');
+          const actualCommand = await testContext.service.buildServerGroupCommandFromExisting({}, test.sg, 'clone');
 
           expect(instanceTypeService.getCategoryForMultipleInstanceTypes).toHaveBeenCalledWith(
             'aws',
@@ -377,7 +455,7 @@ describe('Service: awsServerGroup', function () {
 
       serverGroupsWithMip.forEach((test) => {
         it(`extracts launchTemplateOverridesForInstanceType and sets explicit priority correctly for server group with ${test.desc}`, async function () {
-          const actualCommand = await this.service.buildServerGroupCommandFromExisting({}, test.sg, 'clone');
+          const actualCommand = await testContext.service.buildServerGroupCommandFromExisting({}, test.sg, 'clone');
 
           expect(
             _.isEqual(

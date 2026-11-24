@@ -329,8 +329,11 @@ public class OperationsService {
       throw new SystemException("Could not find convertDescription method on converter", e);
     }
 
+    // Resolve against the converter class: a converter inheriting a generic `D
+    // convertDescription(Map)` only has a concrete description type in that context.
     Class<?> convertDescriptionReturnType =
-        ResolvableType.forMethodReturnType(convertDescriptionMethod).getRawClass();
+        ResolvableType.forMethodReturnType(convertDescriptionMethod, converter.getClass())
+            .resolve();
 
     for (AtomicOperationDescriptionPreProcessor preProcessor : descriptionPreProcessors) {
       if (preProcessor.supports(convertDescriptionReturnType)) {

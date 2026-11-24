@@ -21,7 +21,6 @@ import com.netflix.spinnaker.cats.cluster.DefaultNodeIdentity;
 import com.netflix.spinnaker.cats.cluster.NodeStatusProvider;
 import com.netflix.spinnaker.cats.cluster.ShardingFilter;
 import com.netflix.spinnaker.cats.redis.cluster.ClusteredAgentScheduler;
-import com.netflix.spinnaker.cats.redis.cluster.ClusteredSortAgentScheduler;
 import com.netflix.spinnaker.clouddriver.core.RedisConfigurationProperties;
 import com.netflix.spinnaker.kork.dynamicconfig.DynamicConfigService;
 import com.netflix.spinnaker.kork.jedis.RedisClientDelegate;
@@ -31,7 +30,6 @@ import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.boot.health.actuate.endpoint.HealthEndpoint;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import redis.clients.jedis.JedisPool;
 
 @Configuration
 @ConditionalOnProperty(value = "caching.write-enabled", matchIfMissing = true)
@@ -43,37 +41,30 @@ public class AgentSchedulerConfig {
   AgentScheduler redisAgentScheduler(
       RedisConfigurationProperties redisConfigurationProperties,
       RedisClientDelegate redisClientDelegate,
-      JedisPool jedisPool,
       AgentIntervalProvider agentIntervalProvider,
       NodeStatusProvider nodeStatusProvider,
       HealthEndpoint healthEndpoint,
       DynamicConfigService dynamicConfigService,
       ShardingFilter shardingFilter) {
-    if (redisConfigurationProperties.getScheduler().equalsIgnoreCase("default")) {
-      URI redisUri = URI.create(redisConfigurationProperties.getConnection());
-      String redisHost = redisUri.getHost();
-      int redisPort = redisUri.getPort();
-      if (redisPort == -1) {
-        redisPort = 6379;
-      }
-      return new ClusteredAgentScheduler(
-          redisClientDelegate,
-          new DefaultNodeIdentity(redisHost, redisPort),
-          agentIntervalProvider,
-          nodeStatusProvider,
-          healthEndpoint,
-          redisConfigurationProperties.getAgent().getEnabledPattern(),
-          redisConfigurationProperties.getAgent().getAgentLockAcquisitionIntervalSeconds(),
-          dynamicConfigService,
-          shardingFilter);
-    } else if (redisConfigurationProperties.getScheduler().equalsIgnoreCase("sort")) {
-      return new ClusteredSortAgentScheduler(
-          jedisPool,
-          nodeStatusProvider,
-          agentIntervalProvider,
-          redisConfigurationProperties.getParallelism());
-    } else {
-      throw new IllegalStateException("redis.scheduler must be one of 'default', 'sort', or ''.");
+    if (!redisConfigurationProperties.getScheduler().equalsIgnoreCase("default")) {
+      throw new IllegalStateException("redis.scheduler must be 'default'.");
     }
+
+    URI redisUri = URI.create(redisConfigurationProperties.getConnection());
+    String redisHost = redisUri.getHost();
+    int redisPort = redisUri.getPort();
+    if (redisPort == -1) {
+      redisPort = 6379;
+    }
+    return new ClusteredAgentScheduler(
+        redisClientDelegate,
+        new DefaultNodeIdentity(redisHost, redisPort),
+        agentIntervalProvider,
+        nodeStatusProvider,
+        healthEndpoint,
+        redisConfigurationProperties.getAgent().getEnabledPattern(),
+        redisConfigurationProperties.getAgent().getAgentLockAcquisitionIntervalSeconds(),
+        dynamicConfigService,
+        shardingFilter);
   }
 }

@@ -158,6 +158,11 @@ class CreateGoogleInstanceAtomicOperation extends GoogleAtomicOperation<Deployme
       instance.minCpuPlatform = description.minCpuPlatform
     }
 
+    def workloadIdentityConfig = GCEUtil.buildWorkloadIdentityConfig(description.workloadIdentityConfig)
+    if (workloadIdentityConfig) {
+      instance.setWorkloadIdentityConfig(workloadIdentityConfig)
+    }
+
     task.updateStatus BASE_PHASE, "Creating instance $description.instanceName..."
     timeExecute(compute.instances().insert(project, zone, instance),
         "compute.instances.insert",

@@ -77,11 +77,34 @@ public class ModifyServerGroupLaunchTemplateDescription extends AbstractAmazonCr
 
   // Launch Template only fields
   private Boolean requireIMDV2;
+
+  /**
+   * Access to the instance tags from the instance metadata service: enabled when true, disabled
+   * when false. When null, the value from the source launch template version is kept.
+   *
+   * @see <a
+   *     href="https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/work-with-tags-in-IMDS.html">Work
+   *     with instance tags in instance metadata</a>
+   */
+  private Boolean enableInstanceMetadataTags;
+
   private String kernelId;
   private String imageId;
   private Boolean associateIPv6Address;
   private Boolean unlimitedCpuCredits;
   private Boolean enableEnclave;
+
+  /**
+   * Connection tracking idle timeouts (seconds) for the primary network interface. When null, the
+   * value from the source launch template version is kept.
+   *
+   * @see <a
+   *     href="https://docs.aws.amazon.com/AWSEC2/latest/APIReference/API_ConnectionTrackingSpecificationRequest.html">ConnectionTrackingSpecificationRequest</a>
+   */
+  private Integer tcpEstablishedTimeout;
+
+  private Integer udpStreamTimeout;
+  private Integer udpTimeout;
 
   /**
    * Mixed Instances Policy properties.
@@ -186,10 +209,14 @@ public class ModifyServerGroupLaunchTemplateDescription extends AbstractAmazonCr
         .append(", securityGroupsAppendOnly=" + securityGroupsAppendOnly)
         .append(", copySourceCustomBlockDeviceMappings=" + copySourceCustomBlockDeviceMappings)
         .append(", requireIMDV2=" + requireIMDV2)
+        .append(", enableInstanceMetadataTags=" + enableInstanceMetadataTags)
         .append(", kernelId=" + kernelId)
         .append(", imageId=" + imageId)
         .append(", associateIPv6Address=" + associateIPv6Address)
         .append(", unlimitedCpuCredits=" + unlimitedCpuCredits)
+        .append(", tcpEstablishedTimeout=" + tcpEstablishedTimeout)
+        .append(", udpStreamTimeout=" + udpStreamTimeout)
+        .append(", udpTimeout=" + udpTimeout)
         .append(", onDemandAllocationStrategy=" + onDemandAllocationStrategy)
         .append(", onDemandBaseCapacity=" + onDemandBaseCapacity)
         .append(", onDemandPercentageAboveBaseCapacity=" + onDemandPercentageAboveBaseCapacity)

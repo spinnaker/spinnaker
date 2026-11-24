@@ -71,7 +71,7 @@ describe('amazon ecs: ECSApp Pipeline', () => {
     cy.get('a:contains("Configure")').click({ force: true });
     cy.get('button:contains("Add stage")').click();
     cy.get('.pipeline-stage-type-select .Select-arrow').click();
-    cy.get('.Select-option').contains('Destroy Server Group').click();
+    cy.get('[role="option"]').contains('Destroy Server Group').click();
 
     cy.get('.pipeline-config-view .stage-details')
       .should('be.visible')

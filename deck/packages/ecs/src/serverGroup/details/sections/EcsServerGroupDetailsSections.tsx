@@ -3,6 +3,56 @@ import React from 'react';
 import type { IServerGroupDetailsSectionProps } from '@spinnaker/core';
 import { CollapsibleSection, FirewallLabels, HealthCounts } from '@spinnaker/core';
 
+export function EcsDeploymentSection({ serverGroup }: IServerGroupDetailsSectionProps) {
+  const sg = serverGroup as any;
+  const taskDefinitionRevision = sg.taskDefinitionRevision;
+  const rolloutState: string | undefined = sg.rolloutState;
+  const rolloutStateReason: string | undefined = sg.rolloutStateReason;
+  const deploymentId: string | undefined = sg.deploymentId;
+
+  // These come from the server-group details payload, which clouddriver serializes from the full
+  // EcsServerGroup (rollout fields flattened via @JsonAnyGetter). The values are cached, but the
+  // ecs-native deploy stage runs a forceCacheRefresh AFTER ECS reports the rollout COMPLETED, so
+  // the cache is fresh by the time a deploy finishes rather than lagging a caching cycle.
+
+  // Omit the section entirely when there's nothing ECS-deployment-specific to show (e.g. a classic
+  // ecs service with no revision and no rollout state).
+  if (taskDefinitionRevision == null && rolloutState == null) {
+    return null;
+  }
+
+  return (
+    <CollapsibleSection heading="Deployment (ECS)" defaultExpanded={true}>
+      <dl className="dl-horizontal dl-narrow">
+        {taskDefinitionRevision != null && (
+          <>
+            <dt>Task Def Revision</dt>
+            <dd>{taskDefinitionRevision}</dd>
+          </>
+        )}
+        {rolloutState != null && (
+          <>
+            <dt>Rollout State</dt>
+            <dd>{rolloutState}</dd>
+          </>
+        )}
+        {rolloutStateReason != null && (
+          <>
+            <dt>Reason</dt>
+            <dd>{rolloutStateReason}</dd>
+          </>
+        )}
+        {deploymentId != null && (
+          <>
+            <dt>Deployment ID</dt>
+            <dd>{deploymentId}</dd>
+          </>
+        )}
+      </dl>
+    </CollapsibleSection>
+  );
+}
+
 export function EcsTaskDefinitionSection({ serverGroup }: IServerGroupDetailsSectionProps) {
   const taskDefinition = (serverGroup as any).taskDefinition || {};
   return (

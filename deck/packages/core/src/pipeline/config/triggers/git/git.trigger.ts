@@ -8,6 +8,7 @@ Registry.pipeline.registerTrigger({
   description: 'Executes the pipeline on a git push',
   executionStatusComponent: GitTriggerExecutionStatus,
   excludedArtifactTypePatterns: excludeAllTypesExcept(
+    ArtifactTypePatterns.GITEA_FILE,
     ArtifactTypePatterns.GITHUB_FILE,
     ArtifactTypePatterns.GITLAB_FILE,
     ArtifactTypePatterns.BITBUCKET_FILE,

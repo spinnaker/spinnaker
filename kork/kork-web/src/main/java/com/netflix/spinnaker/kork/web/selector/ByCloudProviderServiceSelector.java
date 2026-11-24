@@ -37,7 +37,7 @@ import java.util.Set;
  *         selectorClass: com.netflix.spinnaker.kork.web.selector.ByCloudProviderServiceSelector
  *         cloudProviders:
  *           - kubernetes
- *           - titus
+ *           - ecs
  * </pre>
  */
 public class ByCloudProviderServiceSelector implements ServiceSelector {

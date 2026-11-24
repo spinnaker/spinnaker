@@ -216,7 +216,12 @@ export class CustomBannerConfig extends React.Component<ICustomBannerConfigProps
                     />
                   </td>
                   <td>
-                    <button className="link custom-banner-config-remove" onClick={() => this.removeBanner(idx)}>
+                    <button
+                      aria-label={`Remove banner ${idx + 1}`}
+                      className="link custom-banner-config-remove"
+                      onClick={() => this.removeBanner(idx)}
+                      type="button"
+                    >
                       <span className="glyphicon glyphicon-trash" />
                     </button>
                   </td>

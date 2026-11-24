@@ -4,7 +4,7 @@ serviceAccount: delivery-engineering@netflix.com
 environments:
 - name: test
   resources:
-  - kind: titus/cluster@v1
+  - kind: bogus/cluster@v1
     spec:
       moniker:
         app: fnord

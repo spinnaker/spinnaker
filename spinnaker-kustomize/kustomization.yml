@@ -6,6 +6,8 @@ resources:
 components:
 - components/mysql
 - components/redis
+## Opt-in: Gate API rate limiting (learning mode by default); see components/rate-limit/files/gate.yml
+#- components/rate-limit
 - overlays/config
 namespace: spinnaker
 images:

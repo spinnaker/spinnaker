@@ -1,34 +1,35 @@
-import { UIRouterContext, UIRouterReact } from '@uirouter/react';
-import { mount } from 'enzyme';
+import type { Mock } from 'vitest';
+import { hashLocationPlugin, servicesPlugin, UIRouterContext, UIRouterReact } from '@uirouter/react';
+import { act, cleanup, fireEvent, render, screen, waitFor, within } from '@testing-library/react';
+import type { RenderResult } from '@testing-library/react';
+import { setupUser } from '../../utils/testUtils/userEvent';
+import ace from 'ace-builds';
+import $ from 'jquery';
 import { cloneDeep } from 'lodash';
 import React from 'react';
-import { act } from 'react-dom/test-utils';
 
 import { AccountService } from '../../account/AccountService';
 import type { IAccountDetails } from '../../account/AccountService';
 import { ApplicationModelBuilder } from '../../application/applicationModel.builder';
+import { ApplicationDataSourceRegistry } from '../../application/service/ApplicationDataSourceRegistry';
 import { ApplicationReader } from '../../application/service/ApplicationReader';
 import type { DeckRuntime } from '../../bootstrap/DeckRuntime';
 import { createDeckRuntime } from '../../bootstrap/DeckRuntime';
 import { DeckRuntimeContext } from '../../bootstrap/DeckRuntimeContext';
 import { ViewStateCache } from '../../cache';
 import { SETTINGS } from '../../config';
-import { PageNavigator, ReactSelectInput } from '../../presentation';
+import type { IPipeline, IStage, IStageTypeConfig, ITriggerTypeConfig } from '../../domain';
 import { ReactModal } from '../../presentation/ReactModal';
 import { Registry } from '../../registry';
-import { PipelineConfigActions } from './actions/PipelineConfigActions';
+import { getFormGroupByLabel } from '../../utils/testUtils/rtl';
 import {
   applyStageConfigDefaults,
   COMMON_STAGE_FIELDS,
   PipelineConfigPageComponent,
   STAGE_IDENTITY_FIELDS,
 } from './PipelineConfigPage';
-import { PipelineGraph } from './graph/PipelineGraph';
 import { PipelineConfigService } from './services/PipelineConfigService';
-import { StageConfigWrapper } from './stages/StageConfigWrapper';
-import { BaseProviderStageConfig } from './stages/baseProviderStage/BaseProviderStageConfig';
-import { StageConfigField } from './stages/common/stageConfigField/StageConfigField';
-import type { IPipeline, IStageTypeConfig } from '../../domain';
+import { ScriptStageConfig, validate as validateScriptStage } from './stages/script/ScriptStageConfig';
 import { ConfigurePipelineTemplateModal } from './templates/ConfigurePipelineTemplateModal';
 import { PipelineTemplateReader } from './templates/PipelineTemplateReader';
 
@@ -38,18 +39,18 @@ describe('PipelineConfigPage', () => {
   let providerRenderStates: boolean[];
   let router: UIRouterReact;
   let runtime: DeckRuntime;
-  let stateGo: jasmine.Spy;
-  let transitionCleanup: jasmine.Spy;
-  let transitionOnBefore: jasmine.Spy;
+  let transitionCleanup: Mock;
+  let transitionOnBefore: Mock;
 
-  const PipelineConfigPage = (props: any) => (
+  const PipelineConfigPage = ({ app, className }: { app: any; className?: string }) => (
     <UIRouterContext.Provider value={router}>
       <DeckRuntimeContext.Provider value={runtime}>
         <PipelineConfigPageComponent
-          {...props}
+          app={app}
+          className={className}
           router={router}
           stateParams={$stateParams}
-          stateService={{ go: stateGo } as any}
+          stateService={router.stateService}
         />
       </DeckRuntimeContext.Provider>
     </UIRouterContext.Provider>
@@ -92,22 +93,23 @@ describe('PipelineConfigPage', () => {
   const createApp = (pipelines: IPipeline[], strategies: IPipeline[] = []) => {
     const app = ApplicationModelBuilder.createApplicationForTests(
       'app',
-      { key: 'pipelineConfigs', lazy: true, defaultData: [] as IPipeline[] },
-      { key: 'strategyConfigs', lazy: true, defaultData: [] as IPipeline[] },
+      ...ApplicationDataSourceRegistry.getDataSources(),
     );
     app.pipelineConfigs.data = pipelines;
     app.strategyConfigs.data = strategies;
-    spyOn(app.pipelineConfigs, 'activate').and.callThrough();
-    spyOn(app.pipelineConfigs, 'refresh').and.returnValue(Promise.resolve(pipelines) as any);
-    spyOn(app.strategyConfigs, 'activate').and.callThrough();
-    spyOn(app.strategyConfigs, 'refresh').and.returnValue(Promise.resolve(strategies) as any);
+    vi.spyOn(app.pipelineConfigs, 'activate');
+    vi.spyOn(app.pipelineConfigs, 'refresh').mockReturnValue(Promise.resolve(pipelines) as any);
+    vi.spyOn(app.strategyConfigs, 'activate');
+    vi.spyOn(app.strategyConfigs, 'refresh').mockReturnValue(Promise.resolve(strategies) as any);
     return app;
   };
 
   const flush = async () => {
-    await Promise.resolve();
-    await new Promise((resolve) => setTimeout(resolve, 0));
-    await Promise.resolve();
+    await act(async () => {
+      await Promise.resolve();
+      await new Promise((resolve) => setTimeout(resolve, 0));
+      await Promise.resolve();
+    });
   };
 
   const deferred = <T,>() => {
@@ -159,6 +161,7 @@ describe('PipelineConfigPage', () => {
     Registry.pipeline.registerStage({
       key: 'wait',
       label: 'Wait',
+      description: 'Pauses execution before continuing.',
     } as IStageTypeConfig);
     Registry.pipeline.registerStage({
       key: 'manualJudgment',
@@ -226,7 +229,7 @@ describe('PipelineConfigPage', () => {
 
   const expectCommonFieldsPreserved = (stage: any) => {
     expect(stage).toEqual(
-      jasmine.objectContaining({
+      expect.objectContaining({
         refId: '2',
         requisiteStageRefIds: ['1'],
         isNew: true,
@@ -250,6 +253,182 @@ describe('PipelineConfigPage', () => {
       `${previousProvider}ProviderField`,
     ].forEach((field) => expect(stage[field]).toBeUndefined());
   };
+
+  const renderPage = (app: any, className?: string) => render(<PipelineConfigPage app={app} className={className} />);
+
+  const rerenderPage = (rendered: RenderResult, app: any, className?: string) =>
+    rendered.rerender(<PipelineConfigPage app={app} className={className} />);
+
+  const waitForPipeline = async (name: string) => screen.findByRole('heading', { name: new RegExp(name) });
+
+  const field = (label: string) => getFormGroupByLabel(label);
+
+  const select = (label: string) => within(field(label)).getByRole('combobox');
+
+  const choose = async (user: ReturnType<typeof setupUser>, label: string, option: string) => {
+    await user.click(select(label));
+    await user.click(await screen.findByRole('option', { name: new RegExp(`^${option}(?:\\s|$)`) }));
+  };
+
+  const graph = () => document.querySelector('.pipeline-config-graph') as HTMLElement;
+
+  const graphLabel = (name: string) => within(graph()).getByText(name, { selector: '.label-body a' });
+
+  const revision = () => Number(document.querySelector('.pipeline-configurer')?.getAttribute('data-revision'));
+
+  const saveAndGetPipeline = async (user: ReturnType<typeof setupUser>) => {
+    const savePipeline = vi.spyOn(PipelineConfigService, 'savePipeline').mockResolvedValue();
+    await user.click(screen.getByRole('button', { name: /Save Changes/ }));
+    await waitFor(() => expect(savePipeline).toHaveBeenCalledTimes(1));
+    return savePipeline.mock.calls[0][0];
+  };
+
+  // Renders each modal the page opens, and settles the page's promise when the modal closes
+  const renderModals = () =>
+    vi.spyOn(ReactModal, 'show').mockImplementation(
+      ((ModalComponent: React.ComponentType<any>, props: any) =>
+        new Promise((resolve, reject) => {
+          const modal = render(
+            <ModalComponent
+              {...props}
+              closeModal={(result?: any) => {
+                modal.unmount();
+                resolve(result);
+              }}
+              dismissModal={(reason?: any) => {
+                modal.unmount();
+                reject(reason);
+              }}
+            />,
+          );
+        })) as any,
+    );
+
+  const setJsonEditorValue = (update: (json: any) => any) => {
+    const editor = ace.edit(document.querySelector('.ace-editor') as HTMLElement);
+    act(() => {
+      editor.setValue(JSON.stringify(update(JSON.parse(editor.getValue()))));
+    });
+  };
+
+  // Like Formik-based editors, captures the stage when it mounts
+  const MountedStageConfig = ({ stage }: { stage: any }) => {
+    const [value] = React.useState(stage.value);
+    return <div className="mounted-stage-config">{value}</div>;
+  };
+
+  const registerMountedStage = () =>
+    Registry.pipeline.registerStage({
+      key: 'mounted',
+      label: 'Mounted',
+      component: MountedStageConfig,
+    } as IStageTypeConfig);
+
+  const mountedStageValue = () => document.querySelector('.mounted-stage-config')?.textContent;
+
+  const jsonEditorValue = () => JSON.parse(ace.edit(document.querySelector('.ace-editor') as HTMLElement).getValue());
+
+  const openPipelineAction = async (user: ReturnType<typeof setupUser>, action: string) => {
+    await user.click(screen.getByRole('button', { name: 'Pipeline Actions' }));
+    await user.click(screen.getByText(action, { selector: 'a' }));
+  };
+
+  const editPipelineJson = async (user: ReturnType<typeof setupUser>, update: (json: any) => any) => {
+    await openPipelineAction(user, 'Edit as JSON');
+    setJsonEditorValue(update);
+    await user.click(screen.getByRole('button', { name: /Update Pipeline/ }));
+  };
+
+  const EditingStageConfig = ({ updateStageField }: { updateStageField: (changes: any) => void }) => (
+    <button onClick={() => updateStageField({ value: 'edited' })}>Edit value</button>
+  );
+
+  let localStageMounts = 0;
+
+  // Like Formik-based editors, keeps its own copy of the stage
+  const LocalStateStageConfig = ({
+    stage,
+    updateStageField,
+  }: {
+    stage: any;
+    updateStageField: (changes: any) => void;
+  }) => {
+    const [value, setValue] = React.useState(stage.value);
+    React.useEffect(() => {
+      localStageMounts++;
+    }, []);
+    return (
+      <input
+        aria-label="Local value"
+        value={value}
+        onChange={(event) => {
+          setValue(event.target.value);
+          updateStageField({ value: event.target.value });
+        }}
+      />
+    );
+  };
+
+  const registerLocalStage = () => {
+    localStageMounts = 0;
+    Registry.pipeline.registerStage({
+      key: 'local',
+      label: 'Local',
+      component: LocalStateStageConfig,
+    } as IStageTypeConfig);
+  };
+
+  const localStageInput = () => screen.queryByRole('textbox', { name: 'Local value' }) as HTMLInputElement;
+
+  const typeLocalValue = async (user: ReturnType<typeof setupUser>, value: string) => {
+    await user.clear(localStageInput());
+    await user.type(localStageInput(), value);
+  };
+
+  const executionOptions = () => screen.queryByText(/Disable concurrent pipeline executions/);
+
+  // Like Front50 with stale checks enabled: rejects a save with a stale updateTs, and stores a new updateTs for
+  // each accepted save
+  const staleCheckingSave = (stored: IPipeline) => {
+    const staleSaves: IPipeline[] = [];
+    const submittedUpdateTs: number[] = [];
+    const savePipeline = vi.spyOn(PipelineConfigService, 'savePipeline').mockImplementation((toSave: IPipeline) => {
+      submittedUpdateTs.push(toSave.updateTs);
+      if (toSave.updateTs !== stored.updateTs) {
+        staleSaves.push(toSave);
+        return Promise.reject({ data: { message: 'The submitted pipeline is stale.' } });
+      }
+      stored.updateTs += 1;
+      return Promise.resolve();
+    });
+    return { savePipeline, staleSaves, submittedUpdateTs };
+  };
+
+  const maxConcurrentInput = () => screen.getByRole('spinbutton');
+
+  // Keeps its value in the trigger form's Formik state, and counts its mounts
+  const registerTestTrigger = () => {
+    const mounts = { count: 0 };
+    const TestTrigger = ({ formik }: { formik: any }) => {
+      React.useEffect(() => {
+        mounts.count++;
+      }, []);
+      return (
+        <input
+          aria-label="Test trigger value"
+          value={formik.values.value || ''}
+          onChange={(event) => formik.setFieldValue('value', event.target.value)}
+        />
+      );
+    };
+    // Registered under a key allowed by SETTINGS.triggerTypes
+    Registry.pipeline.registerTrigger({ key: 'webhook', label: 'Test', component: TestTrigger } as ITriggerTypeConfig);
+    return mounts;
+  };
+
+  const testTriggerInputs = () => screen.getAllByRole('textbox', { name: 'Test trigger value' }) as HTMLInputElement[];
+
+  const testTriggerValues = () => testTriggerInputs().map((input) => input.value);
 
   it('defines distinct minimal retention policies for stage type and provider changes', () => {
     expect(STAGE_IDENTITY_FIELDS).toEqual(['requisiteStageRefIds', 'refId', 'isNew', 'name', 'type']);
@@ -284,68 +463,88 @@ describe('PipelineConfigPage', () => {
 
     expect(applyStageConfigDefaults(stage, config)).toBe(true);
     expect(stage).toEqual(
-      jasmine.objectContaining({ name: 'Regular', alias: 'legacyRegular', nested: { value: 'default value' } }),
+      expect.objectContaining({ name: 'Regular', alias: 'legacyRegular', nested: { value: 'default value' } }),
     );
     expect(stage.nested).not.toBe(defaults.nested);
     expect(defaults).toEqual({ nested: { value: 'default value' } });
     expect(applyStageConfigDefaults(stage, config)).toBe(false);
   });
 
-  beforeEach(() => {
+  beforeEach(async () => {
+    vi.spyOn(HTMLElement.prototype, 'offsetWidth', 'get').mockReturnValue(320);
     $stateParams = {};
+    ApplicationDataSourceRegistry.clearDataSources();
+    ApplicationDataSourceRegistry.registerDataSource({ key: 'pipelineConfigs', lazy: true, defaultData: [] });
+    ApplicationDataSourceRegistry.registerDataSource({ key: 'strategyConfigs', lazy: true, defaultData: [] });
     router = new UIRouterReact();
+    router.plugin(servicesPlugin);
+    router.plugin(hashLocationPlugin);
+    router.stateRegistry.register({ name: 'home', url: '/' });
+    router.stateRegistry.register({ name: 'home.application', url: 'application' });
+    router.stateRegistry.register({ name: 'home.application.pipelines', url: '/pipelines' });
+    router.stateRegistry.register({ name: 'home.application.pipelines.configure', url: '/configure' });
+    router.stateRegistry.register({ name: 'home.application.pipelines.executions', url: '/executions' });
+    await router.stateService.go('home.application.pipelines.configure', {}, { location: false });
     runtime = createDeckRuntime(router);
-    stateGo = jasmine.createSpy('stateGo');
-    transitionCleanup = jasmine.createSpy('transitionCleanup');
-    transitionOnBefore = spyOn(router.transitionService, 'onBefore').and.returnValue(transitionCleanup);
+    transitionCleanup = vi.fn();
+    transitionOnBefore = vi.spyOn(router.transitionService, 'onBefore').mockReturnValue(transitionCleanup);
     fiatEnabled = SETTINGS.feature.fiatEnabled;
     providerRenderStates = [];
     Registry.reinitialize();
     ViewStateCache.get('pipelineConfig').removeAll();
-    spyOn(AccountService, 'applicationAccounts').and.callFake(() => Promise.resolve([account('aws')]) as any);
-    spyOn(ApplicationReader, 'getApplicationPermissions').and.returnValue(Promise.resolve({}) as any);
-    spyOn(runtime.services.executionService, 'getExecutionsForConfigIds').and.returnValue(Promise.resolve([]));
+    vi.spyOn(AccountService, 'applicationAccounts').mockImplementation(() => Promise.resolve([account('aws')]) as any);
+    vi.spyOn(ApplicationReader, 'getApplicationPermissions').mockReturnValue(Promise.resolve({}) as any);
+    vi.spyOn(runtime.services.executionService, 'getExecutionsForConfigIds').mockReturnValue(Promise.resolve([]));
   });
 
   afterEach(() => {
-    router.dispose();
+    cleanup();
     runtime.dispose();
+    router.dispose();
     SETTINGS.feature = { ...SETTINGS.feature, fiatEnabled };
     Registry.reinitialize();
+    ApplicationDataSourceRegistry.clearDataSources();
     ViewStateCache.get('pipelineConfig').removeAll();
   });
 
   it('refreshes configs and renders the requested pipeline configurer by id', async () => {
     const requested = pipeline('target-id', 'Requested Pipeline');
     const app = createApp([pipeline('first-id', 'First Pipeline'), requested]);
+    const refresh = deferred<IPipeline[]>();
+    (app.pipelineConfigs.refresh as Mock).mockReturnValue(refresh.promise);
     $stateParams.pipelineId = requested.id;
 
-    const wrapper = mount(<PipelineConfigPage app={app} className="flex-fill" />);
-    await flush();
-    wrapper.update();
+    const rendered = renderPage(app, 'flex-fill');
+    expect(screen.getByText('Loading pipeline configuration...')).toBeVisible();
+
+    refresh.resolve(app.pipelineConfigs.data);
+    await waitForPipeline('Requested Pipeline');
 
     expect(app.pipelineConfigs.activate).toHaveBeenCalled();
     expect(app.pipelineConfigs.refresh).toHaveBeenCalled();
-    expect(wrapper.find('.pipeline-configurer').exists()).toBe(true);
-    expect(wrapper.find('.pipeline-config-heading h3').text()).toContain('Requested Pipeline');
+    expect(document.querySelector('.pipeline-configurer')).toBeInTheDocument();
+    rendered.unmount();
 
-    wrapper.unmount();
+    const failingApp = createApp([requested]);
+    (failingApp.pipelineConfigs.refresh as Mock).mockRejectedValue(new Error('refresh failed'));
+    renderPage(failingApp);
+    expect(await screen.findByText('Could not load pipeline configuration.')).toBeVisible();
   });
 
   it('uses the injected router for transition guarding and back navigation', async () => {
+    const user = setupUser();
     const requested = pipeline('target-id', 'Requested Pipeline');
     const app = createApp([requested]);
     $stateParams.pipelineId = requested.id;
 
-    const wrapper = mount(<PipelineConfigPage app={app} />);
-    await flush();
-    wrapper.update();
+    const rendered = renderPage(app);
+    await waitForPipeline('Requested Pipeline');
+    await user.click(document.querySelector('.btn-configure') as HTMLElement);
 
-    wrapper.find('.btn-configure').simulate('click');
-    expect(stateGo).toHaveBeenCalledWith('^.executions');
-    expect(transitionOnBefore).toHaveBeenCalledWith({}, jasmine.any(Function));
+    await waitFor(() => expect(router.stateService.current.name).toBe('home.application.pipelines.executions'));
+    expect(transitionOnBefore).toHaveBeenCalledWith({}, expect.any(Function));
 
-    wrapper.unmount();
+    rendered.unmount();
     expect(transitionCleanup).toHaveBeenCalled();
   });
 
@@ -353,131 +552,123 @@ describe('PipelineConfigPage', () => {
     const app = createApp([pipeline('target-id', 'Requested Pipeline')]);
     $stateParams.pipelineId = 'target-id';
 
-    const wrapper = mount(<PipelineConfigPage app={app} className="flex-fill" />);
-    await flush();
-    wrapper.update();
+    renderPage(app, 'flex-fill');
+    await waitForPipeline('Requested Pipeline');
 
-    expect(wrapper.find('pipeline-configurer').exists()).toBe(false);
-    expect(wrapper.find('.pipeline-config-page.container-fluid').exists()).toBe(true);
-    expect(wrapper.find('.pipeline-config-page.full-width').exists()).toBe(true);
-    expect(wrapper.find('.pipeline-config-page.flex-fill').exists()).toBe(true);
-    expect(wrapper.find('.pipeline-configurer').exists()).toBe(true);
-    expect(wrapper.find('.pipeline-configurer').closest('.col-md-10.col-md-offset-1').exists()).toBe(true);
-    expect(wrapper.find('.pipeline-config-view .row.horizontal > .col-md-12').exists()).toBe(true);
-
-    wrapper.unmount();
+    const page = document.querySelector('.pipeline-config-page');
+    expect(page).toHaveClass('container-fluid', 'full-width', 'flex-fill');
+    expect(page?.querySelector('.col-md-10.col-md-offset-1 .pipeline-configurer')).toBeInTheDocument();
+    expect(page?.querySelector('.pipeline-config-view .row.horizontal > .col-md-12')).toBeInTheDocument();
+    expect(document.querySelector('pipeline-configurer')).not.toBeInTheDocument();
   });
 
   it('uses the pipeline config page as the scroll container for page navigation', async () => {
     const app = createApp([pipeline('target-id', 'Requested Pipeline')]);
     $stateParams.pipelineId = 'target-id';
+    const closest = vi.spyOn($.fn, 'closest');
 
-    const wrapper = mount(<PipelineConfigPage app={app} />);
-    await flush();
-    wrapper.update();
+    renderPage(app);
+    await waitForPipeline('Requested Pipeline');
 
-    expect(wrapper.find(PageNavigator).prop('scrollableContainer')).toBe('.pipeline-config-page');
-
-    wrapper.unmount();
+    expect(closest).toHaveBeenCalledWith('.pipeline-config-page');
+    expect(document.querySelector('.page-navigator')?.closest('.pipeline-config-page')).toBeInTheDocument();
   });
 
   it('uses the custom stage type selector when adding a stage', async () => {
+    const user = setupUser();
     registerStageTypes();
     const requested = pipeline('target-id', 'Requested Pipeline');
-    requested.stages = [{ refId: '1', name: '', type: '', isNew: true, requisiteStageRefIds: [] } as any];
     const app = createApp([requested]);
     $stateParams.pipelineId = requested.id;
-    showStageConfig(requested.id);
 
-    const wrapper = mount(<PipelineConfigPage app={app} />);
-    await flush();
-    wrapper.update();
+    renderPage(app);
+    await waitForPipeline('Requested Pipeline');
+    await user.click(screen.getByRole('button', { name: /Add stage/ }));
 
-    const typeSelect = wrapper.find(ReactSelectInput).filterWhere((node) => node.prop('name') === 'type');
-    expect(typeSelect.exists()).toBe(true);
-    expect(typeSelect.prop('inputClassName')).not.toContain('input-sm');
-    expect((typeSelect.prop('options') as any[]).map((option) => option.label)).toEqual(['Manual Judgment', 'Wait']);
-    expect(wrapper.find('.pipeline-stage-config-heading select').exists()).toBe(false);
+    const typeSelect = await waitFor(() => select('Type'));
+    expect(typeSelect.closest('.pipeline-stage-type-select')).not.toHaveClass('input-sm');
+    await user.click(typeSelect);
+    expect(document.querySelector('.VirtualSelectGrid')).toBeInTheDocument();
+    expect((await screen.findAllByRole('option')).map((option) => option.textContent)).toEqual([
+      expect.stringContaining('Manual Judgment'),
+      expect.stringContaining('Wait'),
+    ]);
+    expect(screen.getByText('Pauses execution before continuing.')).toBeVisible();
+    expect(screen.getByText('Wait').closest('.stage-choice')).toBeInTheDocument();
+    const initialActiveDescendant = typeSelect.getAttribute('aria-activedescendant');
+    expect(initialActiveDescendant).toBeTruthy();
+    expect(document.getElementById(initialActiveDescendant as string)).toHaveTextContent('Manual Judgment');
 
-    const renderedOption = mount(
-      (typeSelect.prop('optionRenderer') as any)({
-        label: 'Wait',
-        value: 'wait',
-        description: 'Pauses execution before continuing.',
-      }),
+    fireEvent.keyDown(typeSelect, { key: 'ArrowDown', keyCode: 40, which: 40 });
+    const navigatedActiveDescendant = typeSelect.getAttribute('aria-activedescendant');
+    expect(navigatedActiveDescendant).not.toBe(initialActiveDescendant);
+    expect(document.getElementById(navigatedActiveDescendant as string)).toHaveTextContent('Wait');
+
+    await user.type(typeSelect, 'wait');
+    expect(screen.queryByRole('option', { name: /Manual Judgment/ })).not.toBeInTheDocument();
+    expect(screen.getByRole('option', { name: /^Wait/ })).toBeVisible();
+    const filteredActiveDescendant = typeSelect.getAttribute('aria-activedescendant');
+    expect(filteredActiveDescendant).not.toBe(navigatedActiveDescendant);
+    expect(document.getElementById(filteredActiveDescendant as string)).toBe(
+      screen.getByRole('option', { name: /^Wait/ }),
     );
-    expect(renderedOption.find('.stage-choice').exists()).toBe(true);
-    expect(renderedOption.text()).toContain('Pauses execution before continuing.');
+    fireEvent.keyDown(typeSelect, { key: 'Enter', keyCode: 13, which: 13 });
 
-    renderedOption.unmount();
-    wrapper.unmount();
+    const saved = await saveAndGetPipeline(user);
+    expect(saved.stages[0]).toEqual(
+      expect.objectContaining({ refId: '1', name: 'Wait', type: 'wait', requisiteStageRefIds: [] }),
+    );
+    expect(document.querySelector('.pipeline-stage-config-heading select')).not.toBeInTheDocument();
   });
 
   it('keeps focus on a stage field after the new-stage type selector initially autofocuses', async () => {
+    const user = setupUser();
     registerStageTypes();
     const requested = pipeline('target-id', 'Requested Pipeline');
     requested.stages = [{ refId: '1', name: 'Build', type: 'wait', isNew: true, requisiteStageRefIds: [] } as any];
     const app = createApp([requested]);
     $stateParams.pipelineId = requested.id;
     showStageConfig(requested.id);
-    const host = document.createElement('div');
-    document.body.appendChild(host);
-    const wrapper = mount(<PipelineConfigPage app={app} />, { attachTo: host });
 
-    try {
-      await flush();
-      wrapper.update();
+    renderPage(app);
+    await waitForPipeline('Requested Pipeline');
 
-      const typeInput = host.querySelector('.pipeline-stage-type-select input[role="combobox"]') as HTMLInputElement;
-      const stageNameInput = wrapper
-        .find('.pipeline-stage-config-heading input[type="text"]')
-        .filterWhere((node) => node.prop('value') === 'Build');
-      const stageNameElement = stageNameInput.getDOMNode() as HTMLInputElement;
+    const typeInput = select('Type');
+    const stageName = within(field('Stage Name')).getByRole('textbox');
+    expect(document.activeElement).toBe(typeInput);
 
-      expect(document.activeElement).toBe(typeInput);
+    await user.click(stageName);
+    await user.clear(stageName);
+    await user.type(stageName, 'Updated Build');
 
-      stageNameElement.focus();
-      expect(document.activeElement).toBe(stageNameElement);
-
-      await act(async () => {
-        stageNameInput.prop('onChange')({ target: { value: 'Updated Build' } } as any);
-        await flush();
-      });
-      wrapper.update();
-
-      expect(document.activeElement).toBe(stageNameElement);
-    } finally {
-      wrapper.unmount();
-      host.remove();
-    }
+    expect(document.activeElement).toBe(stageName);
+    expect(stageName).toHaveValue('Updated Build');
   });
 
   it('uses the custom multi selector for stage dependencies', async () => {
+    const user = setupUser();
     registerStageTypes();
     const requested = pipeline('target-id', 'Requested Pipeline');
     requested.stages = [
       { refId: '1', name: 'Build', type: 'wait', requisiteStageRefIds: [] } as any,
-      { refId: '2', name: 'Deploy', type: 'wait', requisiteStageRefIds: ['1'] } as any,
+      { refId: '2', name: 'Deploy', type: 'wait', requisiteStageRefIds: [] } as any,
     ];
     const app = createApp([requested]);
     $stateParams.pipelineId = requested.id;
     showStageConfig(requested.id, 1);
 
-    const wrapper = mount(<PipelineConfigPage app={app} />);
-    await flush();
-    wrapper.update();
+    renderPage(app);
+    await waitForPipeline('Requested Pipeline');
 
-    const dependencySelect = wrapper
-      .find(ReactSelectInput)
-      .filterWhere((node) => node.prop('name') === 'requisiteStageRefIds');
-    expect(dependencySelect.exists()).toBe(true);
-    expect(dependencySelect.prop('multi')).toBe(true);
-    expect(dependencySelect.prop('inputClassName')).toContain('pipeline-stage-dependency-select');
-    expect(dependencySelect.prop('inputClassName')).not.toContain('input-sm');
-    expect(dependencySelect.prop('options')).toContain(jasmine.objectContaining({ label: 'Build', value: '1' }));
-    expect(wrapper.find('.pipeline-stage-config-heading select[multiple]').exists()).toBe(false);
+    const dependencySelect = select('Depends On');
+    expect(dependencySelect.closest('.pipeline-stage-dependency-select')).not.toHaveClass('input-sm');
+    await user.click(dependencySelect);
+    expect(screen.getByRole('option', { name: 'Build' })).toBeVisible();
+    await user.click(screen.getByRole('option', { name: 'Build' }));
 
-    wrapper.unmount();
+    const saved = await saveAndGetPipeline(user);
+    expect(saved.stages[1].requisiteStageRefIds).toEqual(['1']);
+    expect(document.querySelector('.pipeline-stage-config-heading select[multiple]')).not.toBeInTheDocument();
   });
 
   it('keeps the stage header labels close to their controls', async () => {
@@ -491,24 +682,18 @@ describe('PipelineConfigPage', () => {
     $stateParams.pipelineId = requested.id;
     showStageConfig(requested.id, 1);
 
-    const wrapper = mount(<PipelineConfigPage app={app} />);
-    await flush();
-    wrapper.update();
+    renderPage(app);
+    await waitForPipeline('Requested Pipeline');
 
-    const headerFields = wrapper
-      .find(StageConfigField)
-      .filterWhere((node) => ['Stage Name', 'Depends On'].includes(node.prop('label')));
-
-    expect(headerFields.length).toBe(2);
-    headerFields.forEach((field) => {
-      expect(field.prop('labelColumns')).toBe(2);
-      expect(field.prop('fieldColumns')).toBe(9);
+    ['Stage Name', 'Depends On'].forEach((label) => {
+      const group = field(label);
+      expect(group.querySelector('label')).toHaveClass('col-md-2');
+      expect(group.querySelector('label + div')).toHaveClass('col-md-9');
     });
-
-    wrapper.unmount();
   });
 
   it('replaces the graph pipeline when stage dependencies change', async () => {
+    const user = setupUser();
     registerStageTypes();
     const requested = pipeline('target-id', 'Requested Pipeline');
     requested.stages = [
@@ -519,29 +704,22 @@ describe('PipelineConfigPage', () => {
     $stateParams.pipelineId = requested.id;
     showStageConfig(requested.id, 1);
 
-    const wrapper = mount(<PipelineConfigPage app={app} />);
-    await flush();
-    wrapper.update();
+    renderPage(app);
+    await waitForPipeline('Requested Pipeline');
+    const initialLinks = Array.from(graph().querySelectorAll('path.link')).map((link) => link.getAttribute('d'));
 
-    const originalGraphPipeline = wrapper.find(PipelineGraph).prop('pipeline') as IPipeline;
-    const dependencySelect = wrapper
-      .find(ReactSelectInput)
-      .filterWhere((node) => node.prop('name') === 'requisiteStageRefIds');
+    await choose(user, 'Depends On', 'Build');
 
-    await act(async () => {
-      dependencySelect.prop('onChange')({ target: { value: ['1'] } } as any);
-      await flush();
-    });
-    wrapper.update();
-
-    const updatedGraphPipeline = wrapper.find(PipelineGraph).prop('pipeline') as IPipeline;
-    expect(updatedGraphPipeline).not.toBe(originalGraphPipeline);
-    expect(updatedGraphPipeline.stages[1].requisiteStageRefIds).toEqual(['1']);
-
-    wrapper.unmount();
+    await waitFor(() =>
+      expect(Array.from(graph().querySelectorAll('path.link')).map((link) => link.getAttribute('d'))).not.toEqual(
+        initialLinks,
+      ),
+    );
+    expect(graphLabel('Deploy').closest('g.active')).toBeInTheDocument();
   });
 
   it('replaces the graph pipeline when stage fields change', async () => {
+    const user = setupUser();
     registerStageTypes();
     const requested = pipeline('target-id', 'Requested Pipeline');
     requested.stages = [{ refId: '1', name: 'Build', type: 'wait', requisiteStageRefIds: [] } as any];
@@ -549,78 +727,44 @@ describe('PipelineConfigPage', () => {
     $stateParams.pipelineId = requested.id;
     showStageConfig(requested.id);
 
-    const wrapper = mount(<PipelineConfigPage app={app} />);
-    await flush();
-    wrapper.update();
+    renderPage(app);
+    await waitForPipeline('Requested Pipeline');
+    expect(graphLabel('Build')).toBeVisible();
 
-    const originalGraphPipeline = wrapper.find(PipelineGraph).prop('pipeline') as IPipeline;
-    const stageNameInput = wrapper
-      .find('.pipeline-stage-config-heading input[type="text"]')
-      .filterWhere((node) => node.prop('value') === 'Build');
+    const stageName = within(field('Stage Name')).getByRole('textbox');
+    await user.clear(stageName);
+    await user.type(stageName, 'Bake');
 
-    await act(async () => {
-      stageNameInput.prop('onChange')({ target: { value: 'Bake' } } as any);
-      await flush();
-    });
-    wrapper.update();
-
-    const updatedGraphPipeline = wrapper.find(PipelineGraph).prop('pipeline') as IPipeline;
-    expect(updatedGraphPipeline).not.toBe(originalGraphPipeline);
-    expect(updatedGraphPipeline.stages[0].name).toBe('Bake');
-
-    wrapper.unmount();
+    await waitFor(() => expect(graphLabel('Bake')).toBeVisible());
+    expect(within(graph()).queryByText('Build', { selector: '.label-body a' })).not.toBeInTheDocument();
   });
 
   it('renders direct React common execution controls for stages', async () => {
+    const user = setupUser();
     registerStageTypes();
     const requested = pipeline('target-id', 'Requested Pipeline');
     requested.stages = [
-      {
-        refId: '1',
-        name: 'Build',
-        type: 'wait',
-        requisiteStageRefIds: [],
-        failOnFailedExpressions: false,
-      } as any,
+      { refId: '1', name: 'Build', type: 'wait', requisiteStageRefIds: [], failOnFailedExpressions: false } as any,
     ];
     const app = createApp([requested]);
     $stateParams.pipelineId = requested.id;
     showStageConfig(requested.id);
 
-    const wrapper = mount(<PipelineConfigPage app={app} />);
-    await flush();
-    wrapper.update();
+    renderPage(app);
+    await waitForPipeline('Requested Pipeline');
 
-    await act(async () => {
-      wrapper.find('[data-test-id="fail-on-failed-expressions"]').first().prop('onChange')({
-        target: { checked: true },
-      } as any);
-      wrapper.find('[data-test-id="optional-stage-enabled"]').first().prop('onChange')({
-        target: { checked: true },
-      } as any);
-      await flush();
-    });
-    wrapper.update();
+    await user.click(within(field('Fail on Failed Expressions')).getByRole('checkbox'));
+    await user.click(within(field('Conditional on Expression')).getByRole('checkbox'));
+    const expression = within(field('Conditional on Expression')).getByRole('textbox');
+    fireEvent.change(expression, { target: { value: '${ parameters.deploy }' } });
 
-    await act(async () => {
-      wrapper.find('[data-test-id="optional-stage-expression"]').first().prop('onChange')({
-        target: { value: '${ parameters.deploy }' },
-      } as any);
-      await flush();
-    });
-    wrapper.update();
-
-    const updatedPipeline = wrapper.find(PipelineGraph).prop('pipeline') as IPipeline;
-    expect(updatedPipeline.stages[0].failOnFailedExpressions).toBe(true);
-    expect(updatedPipeline.stages[0].stageEnabled).toEqual({
-      type: 'expression',
-      expression: '${ parameters.deploy }',
-    });
-
-    wrapper.unmount();
+    const saved = await saveAndGetPipeline(user);
+    expect(saved.stages[0].failOnFailedExpressions).toBe(true);
+    expect(saved.stages[0].stageEnabled).toEqual({ type: 'expression', expression: '${ parameters.deploy }' });
   });
 
   it('preserves existing stage notifications when generic notification sending is disabled', async () => {
+    const user = setupUser();
     registerStageTypes();
     const requested = pipeline('target-id', 'Requested Pipeline');
     requested.stages = [
@@ -637,29 +781,19 @@ describe('PipelineConfigPage', () => {
     $stateParams.pipelineId = requested.id;
     showStageConfig(requested.id);
 
-    const wrapper = mount(<PipelineConfigPage app={app} />);
-    await flush();
-    wrapper.update();
+    renderPage(app);
+    await waitForPipeline('Requested Pipeline');
+    await user.click(screen.getByRole('checkbox', { name: 'Send notifications for this stage' }));
 
-    const notificationsToggle = wrapper
-      .find('input[type="checkbox"]')
-      .filterWhere((node) => node.prop('checked') === true);
-    await act(async () => {
-      notificationsToggle.last().prop('onChange')({ target: { checked: false } } as any);
-      await flush();
-    });
-    wrapper.update();
-
-    const updatedPipeline = wrapper.find(PipelineGraph).prop('pipeline') as IPipeline;
-    expect(updatedPipeline.stages[0].sendNotifications).toBeUndefined();
-    expect(updatedPipeline.stages[0].notifications).toEqual([{ type: 'email', address: 'team@example.com' }]);
-
-    wrapper.unmount();
+    const saved = await saveAndGetPipeline(user);
+    expect(saved.stages[0].sendNotifications).toBeUndefined();
+    expect(saved.stages[0].notifications).toEqual([{ type: 'email', address: 'team@example.com' }]);
   });
 
   it('renders manual judgment authorized groups from application permissions', async () => {
+    const user = setupUser();
     SETTINGS.feature = { ...SETTINGS.feature, fiatEnabled: true };
-    (ApplicationReader.getApplicationPermissions as jasmine.Spy).and.returnValue(
+    (ApplicationReader.getApplicationPermissions as Mock).mockReturnValue(
       Promise.resolve({ READ: ['readers'], WRITE: ['writers'], EXECUTE: ['executors'] }) as any,
     );
     registerStageTypes();
@@ -677,35 +811,17 @@ describe('PipelineConfigPage', () => {
     $stateParams.pipelineId = requested.id;
     showStageConfig(requested.id);
 
-    const wrapper = mount(<PipelineConfigPage app={app} />);
-    await flush();
-    wrapper.update();
+    renderPage(app);
+    await waitForPipeline('Requested Pipeline');
+    await user.click(select('Authorized Groups'));
 
-    const authorizedGroupsSelect = wrapper
-      .find(ReactSelectInput)
-      .filterWhere((node) => node.prop('name') === 'selectedStageRoles');
-    expect(authorizedGroupsSelect.exists()).toBe(true);
-    expect(authorizedGroupsSelect.prop('multi')).toBe(true);
-    expect(authorizedGroupsSelect.prop('options')).toContain(
-      jasmine.objectContaining({ label: 'readers', value: 'readers' }),
-    );
-    expect(authorizedGroupsSelect.prop('options')).toContain(
-      jasmine.objectContaining({ label: 'writers', value: 'writers' }),
-    );
-    expect(authorizedGroupsSelect.prop('options')).toContain(
-      jasmine.objectContaining({ label: 'executors', value: 'executors' }),
-    );
+    expect(screen.getByRole('option', { name: 'readers' })).toBeVisible();
+    expect(screen.getByRole('option', { name: 'writers' })).toBeVisible();
+    expect(screen.getByRole('option', { name: 'executors' })).toBeVisible();
+    await user.click(screen.getByRole('option', { name: 'executors' }));
 
-    await act(async () => {
-      authorizedGroupsSelect.prop('onChange')({ target: { value: ['executors'] } } as any);
-      await flush();
-    });
-    wrapper.update();
-
-    const updatedPipeline = wrapper.find(PipelineGraph).prop('pipeline') as IPipeline;
-    expect(updatedPipeline.stages[0].selectedStageRoles).toEqual(['executors']);
-
-    wrapper.unmount();
+    const saved = await saveAndGetPipeline(user);
+    expect(saved.stages[0].selectedStageRoles).toEqual(['writers', 'executors']);
   });
 
   it('shows template configuration controls', async () => {
@@ -713,41 +829,33 @@ describe('PipelineConfigPage', () => {
     const plan = { ...pipeline(requested.id, requested.name), stages: [] } as IPipeline;
     const app = createApp([requested]);
     $stateParams.pipelineId = requested.id;
-    spyOn(PipelineTemplateReader, 'getPipelinePlan').and.returnValue(Promise.resolve(plan));
+    vi.spyOn(PipelineTemplateReader, 'getPipelinePlan').mockResolvedValue(plan);
 
-    const wrapper = mount(<PipelineConfigPage app={app} />);
-    await flush();
-    wrapper.update();
+    renderPage(app);
 
-    const configureTemplateButtons = wrapper
-      .find('button')
-      .filterWhere((node) => node.text().includes('Configure Template'));
-    expect(configureTemplateButtons.exists()).toBe(true);
-
-    wrapper.unmount();
+    expect(await screen.findByRole('button', { name: /Configure Template/ })).toBeVisible();
   });
 
   it('opens the shared React modal with a clone and makes successful configuration revertible', async () => {
+    const user = setupUser();
     const requested = templatedV1();
     const originalPlan = { ...pipeline(requested.id, requested.name), stages: [] } as IPipeline;
     (originalPlan as any).executionId = 'rendered-execution-id';
     const app = createApp([requested]);
     $stateParams.pipelineId = requested.id;
     $stateParams.executionId = 'route-execution-id';
-    spyOn(PipelineTemplateReader, 'getPipelinePlan').and.returnValue(Promise.resolve(originalPlan));
+    vi.spyOn(PipelineTemplateReader, 'getPipelinePlan').mockResolvedValue(originalPlan);
     const modalResult = deferred<{ plan: IPipeline; config: IPipeline }>();
-    const showModal = spyOn(ReactModal, 'show').and.returnValue(modalResult.promise);
+    const showModal = vi.spyOn(ReactModal, 'show').mockReturnValue(modalResult.promise);
 
-    const wrapper = mount(<PipelineConfigPage app={app} />);
-    await flush();
-    wrapper.update();
+    renderPage(app);
+    const configure = await screen.findByRole('button', { name: /Configure Template/ });
+    await user.click(configure);
+    const modalProps = showModal.mock.lastCall[1] as any;
 
-    const configure = wrapper.find('[data-test-id="configure-template"]');
-    configure.prop('onClick')();
-    const modalProps = showModal.calls.mostRecent().args[1] as any;
-    expect(showModal.calls.mostRecent().args[0]).toBe(ConfigurePipelineTemplateModal);
+    expect(showModal.mock.lastCall[0]).toBe(ConfigurePipelineTemplateModal);
     expect(modalProps).toEqual(
-      jasmine.objectContaining({
+      expect.objectContaining({
         application: app,
         executionId: 'rendered-execution-id',
         isNew: requested.isNew,
@@ -757,78 +865,54 @@ describe('PipelineConfigPage', () => {
     expect(modalProps.pipelineTemplateConfig).toEqual(requested);
     expect(modalProps.pipelineTemplateConfig).not.toBe(requested);
     modalProps.pipelineTemplateConfig.name = 'mutated clone';
-    expect((wrapper.find(PipelineGraph).prop('pipeline') as IPipeline).name).toBe('Template Pipeline');
+    expect(screen.getByRole('heading', { name: /Template Pipeline/ })).toBeVisible();
 
-    const configured = { ...requested, isNew: true, name: 'Configured Pipeline' } as IPipeline;
-    const configuredPlan = { ...originalPlan, name: 'Configured Pipeline' } as IPipeline;
-    await act(async () => {
-      modalResult.resolve({ plan: configuredPlan, config: configured });
-      await flush();
+    modalResult.resolve({
+      plan: { ...originalPlan, name: 'Configured Pipeline' },
+      config: { ...requested, isNew: true, name: 'Configured Pipeline' },
     });
-    wrapper.update();
+    await waitForPipeline('Configured Pipeline');
+    expect(screen.getByRole('button', { name: /Save Changes/ })).toBeVisible();
 
-    expect((wrapper.find(PipelineGraph).prop('pipeline') as IPipeline).name).toBe('Configured Pipeline');
-    expect(wrapper.text()).toContain('Save Changes');
-    expect(wrapper.find('[data-test-id="Pipeline.revertChanges"]').exists()).toBe(true);
-
-    await act(async () => {
-      wrapper.find('[data-test-id="Pipeline.revertChanges"]').prop('onClick')();
-      await flush();
-    });
-    wrapper.update();
-
-    expect((wrapper.find(PipelineGraph).prop('pipeline') as IPipeline).name).toBe('Template Pipeline');
-    expect(wrapper.find('[data-test-id="Pipeline.revertChanges"]').exists()).toBe(false);
-
-    wrapper.unmount();
+    await user.click(screen.getByRole('button', { name: /Revert/ }));
+    expect(await waitForPipeline('Template Pipeline')).toBeVisible();
+    expect(screen.queryByRole('button', { name: /Revert/ })).not.toBeInTheDocument();
   });
 
   it('applies a template modal result after execution enrichment replaces the same pipeline model', async () => {
+    const user = setupUser();
     const requested = templatedV1(false, 'https://templates.example/{{ execution.id }}');
     const originalPlan = { ...pipeline(requested.id, requested.name), stages: [] } as IPipeline;
     (originalPlan as any).executionId = 'rendered-execution-id';
     const app = createApp([requested]);
     $stateParams.pipelineId = requested.id;
-    spyOn(PipelineTemplateReader, 'getPipelinePlan').and.returnValue(Promise.resolve(originalPlan));
+    vi.spyOn(PipelineTemplateReader, 'getPipelinePlan').mockResolvedValue(originalPlan);
     const executionEnrichment = deferred<any[]>();
-    (runtime.services.executionService.getExecutionsForConfigIds as jasmine.Spy).and.returnValue(
-      executionEnrichment.promise,
-    );
+    (runtime.services.executionService.getExecutionsForConfigIds as Mock).mockReturnValue(executionEnrichment.promise);
     const modalResult = deferred<{ plan: IPipeline; config: IPipeline }>();
-    spyOn(ReactModal, 'show').and.returnValue(modalResult.promise);
+    vi.spyOn(ReactModal, 'show').mockReturnValue(modalResult.promise);
 
-    const wrapper = mount(<PipelineConfigPage app={app} />);
-    await flush();
-    wrapper.update();
-    wrapper.find('[data-test-id="configure-template"]').prop('onClick')();
+    renderPage(app);
+    const configure = await screen.findByRole('button', { name: /Configure Template/ });
+    await user.click(configure);
 
-    await act(async () => {
-      executionEnrichment.resolve([
-        { id: 'rendered-execution-id', name: 'Enriched execution', stages: [], trigger: {} },
-      ]);
-      await flush();
+    executionEnrichment.resolve([{ id: 'rendered-execution-id', name: 'Enriched execution', stages: [], trigger: {} }]);
+    await screen.findByText(/Enriched execution/);
+    expect(configure).toBeDisabled();
+
+    modalResult.resolve({
+      plan: {
+        ...pipeline(requested.id, 'Configured Pipeline'),
+        executionId: 'rendered-execution-id',
+        stages: [],
+      } as any,
+      config: { ...requested, name: 'Configured Pipeline' },
     });
-    wrapper.update();
 
-    expect(wrapper.text()).toContain('Enriched execution');
-    expect(wrapper.find('[data-test-id="configure-template"]').prop('disabled')).toBe(true);
-
-    const configured = { ...requested, name: 'Configured Pipeline' } as IPipeline;
-    const configuredPlan = { ...pipeline(requested.id, 'Configured Pipeline'), stages: [] } as IPipeline;
-    await act(async () => {
-      modalResult.resolve({ plan: configuredPlan, config: configured });
-      await flush();
-    });
-    wrapper.update();
-
-    const rendered = wrapper.find(PipelineGraph).prop('pipeline') as IPipeline;
-    expect(rendered.name).toBe('Configured Pipeline');
-    expect((rendered as any).executionId).toBe('rendered-execution-id');
-    expect(wrapper.text()).toContain('Enriched execution');
-    expect(wrapper.text()).toContain('Save Changes');
-    expect(wrapper.find('[data-test-id="configure-template"]').prop('disabled')).toBe(false);
-
-    wrapper.unmount();
+    await waitForPipeline('Configured Pipeline');
+    expect(screen.getByText(/Enriched execution/)).toBeVisible();
+    expect(screen.getByRole('button', { name: /Save Changes/ })).toBeVisible();
+    expect(configure).toBeEnabled();
   });
 
   it('applies only the latest template modal result and keeps loading until it completes', async () => {
@@ -836,52 +920,45 @@ describe('PipelineConfigPage', () => {
     const originalPlan = { ...pipeline(requested.id, requested.name), stages: [] } as IPipeline;
     const app = createApp([requested]);
     $stateParams.pipelineId = requested.id;
-    spyOn(PipelineTemplateReader, 'getPipelinePlan').and.returnValue(Promise.resolve(originalPlan));
+    vi.spyOn(PipelineTemplateReader, 'getPipelinePlan').mockResolvedValue(originalPlan);
     const firstModal = deferred<{ plan: IPipeline; config: IPipeline }>();
     const secondModal = deferred<{ plan: IPipeline; config: IPipeline }>();
-    const showModal = spyOn(ReactModal, 'show').and.returnValues(firstModal.promise, secondModal.promise);
+    const showModal = vi
+      .spyOn(ReactModal, 'show')
+      .mockReturnValueOnce(firstModal.promise)
+      .mockReturnValueOnce(secondModal.promise);
 
-    const wrapper = mount(<PipelineConfigPage app={app} />);
-    await flush();
-    wrapper.update();
-
-    const configure = wrapper.find('[data-test-id="configure-template"]').prop('onClick') as () => void;
-    await act(async () => {
-      configure();
-      configure();
-      await flush();
+    renderPage(app);
+    const configure = await screen.findByRole('button', { name: /Configure Template/ });
+    act(() => {
+      fireEvent.click(configure);
+      fireEvent.click(configure);
     });
-    wrapper.update();
 
     expect(showModal).toHaveBeenCalledTimes(2);
-    expect(wrapper.find('[data-test-id="configure-template"]').prop('disabled')).toBe(true);
+    expect(configure).toBeDisabled();
 
-    const firstConfig = { ...requested, name: 'Stale First Config' } as IPipeline;
-    const firstPlan = { ...originalPlan, name: 'Stale First Plan' } as IPipeline;
-    await act(async () => {
-      firstModal.resolve({ plan: firstPlan, config: firstConfig });
-      await flush();
+    firstModal.resolve({
+      plan: { ...originalPlan, name: 'Stale First Plan' },
+      config: { ...requested, name: 'Stale First Config' },
     });
-    wrapper.update();
+    await flush();
 
-    expect((wrapper.find(PipelineGraph).prop('pipeline') as IPipeline).name).toBe(requested.name);
-    expect(wrapper.find('[data-test-id="configure-template"]').prop('disabled')).toBe(true);
+    expect(screen.getByRole('heading', { name: /Template Pipeline/ })).toBeVisible();
+    expect(configure).toBeDisabled();
 
-    const secondConfig = { ...requested, name: 'Latest Config' } as IPipeline;
-    const secondPlan = { ...originalPlan, name: 'Latest Plan' } as IPipeline;
-    await act(async () => {
-      secondModal.resolve({ plan: secondPlan, config: secondConfig });
-      await flush();
+    secondModal.resolve({
+      plan: { ...originalPlan, name: 'Latest Plan' },
+      config: { ...requested, name: 'Latest Config' },
     });
-    wrapper.update();
+    await waitForPipeline('Latest Config');
 
-    expect((wrapper.find(PipelineGraph).prop('pipeline') as IPipeline).name).toBe('Latest Plan');
-    expect(wrapper.find('[data-test-id="configure-template"]').prop('disabled')).toBe(false);
-    expect(wrapper.text()).toContain('Save Changes');
-    wrapper.unmount();
+    expect(configure).toBeEnabled();
+    expect(screen.getByRole('button', { name: /Save Changes/ })).toBeVisible();
   });
 
   it('ignores a template modal result after a different pipeline load supersedes it', async () => {
+    const user = setupUser();
     const requested = templatedV1();
     const originalPlan = { ...pipeline(requested.id, requested.name), stages: [] } as IPipeline;
     const app = createApp([requested]);
@@ -891,76 +968,46 @@ describe('PipelineConfigPage', () => {
     (reloaded as any).config.pipeline.pipelineConfigId = reloaded.id;
     const reloadedPlan = { ...pipeline(reloaded.id, reloaded.name), stages: [] } as IPipeline;
     const reloadedApp = createApp([reloaded]);
-    spyOn(PipelineTemplateReader, 'getPipelinePlan').and.callFake((config: IPipeline) =>
+    vi.spyOn(PipelineTemplateReader, 'getPipelinePlan').mockImplementation((config: IPipeline) =>
       Promise.resolve(config.name === reloaded.name ? reloadedPlan : originalPlan),
     );
     const modalResult = deferred<{ plan: IPipeline; config: IPipeline }>();
-    spyOn(ReactModal, 'show').and.returnValue(modalResult.promise);
+    vi.spyOn(ReactModal, 'show').mockReturnValue(modalResult.promise);
 
-    const wrapper = mount(<PipelineConfigPage app={app} />);
-    await flush();
-    wrapper.update();
-    wrapper.find('[data-test-id="configure-template"]').prop('onClick')();
+    const rendered = renderPage(app);
+    await user.click(await screen.findByRole('button', { name: /Configure Template/ }));
 
     $stateParams.pipelineId = reloaded.id;
-    wrapper.setProps({ app: reloadedApp });
-    await flush();
-    wrapper.update();
-    expect((wrapper.find(PipelineGraph).prop('pipeline') as IPipeline).name).toBe(reloaded.name);
+    rerenderPage(rendered, reloadedApp);
+    await waitForPipeline('Reloaded Pipeline');
 
-    await act(async () => {
-      modalResult.resolve({
-        plan: { ...originalPlan, name: 'Stale Modal Plan' },
-        config: { ...requested, name: 'Stale Modal Config' },
-      });
-      await flush();
+    modalResult.resolve({
+      plan: { ...originalPlan, name: 'Stale Modal Plan' },
+      config: { ...requested, name: 'Stale Modal Config' },
     });
-    wrapper.update();
+    await flush();
 
-    expect((wrapper.find(PipelineGraph).prop('pipeline') as IPipeline).name).toBe(reloaded.name);
-    expect(wrapper.text()).not.toContain('Save Changes');
-    expect(wrapper.find('[data-test-id="configure-template"]').prop('disabled')).toBe(false);
-    wrapper.unmount();
+    expect(screen.getByRole('heading', { name: /Reloaded Pipeline/ })).toBeVisible();
+    expect(screen.queryByRole('button', { name: /Save Changes/ })).not.toBeInTheDocument();
+    expect(screen.getByRole('button', { name: /Configure Template/ })).toBeEnabled();
   });
 
   it('always marks a successful template configuration dirty and only save establishes the new baseline', async () => {
+    const user = setupUser();
     const requested = templatedV1();
     const originalPlan = { ...pipeline(requested.id, requested.name), stages: [] } as IPipeline;
     const app = createApp([requested]);
     $stateParams.pipelineId = requested.id;
-    spyOn(PipelineTemplateReader, 'getPipelinePlan').and.returnValue(Promise.resolve(originalPlan));
-    spyOn(PipelineConfigService, 'savePipeline').and.returnValue(Promise.resolve());
-    spyOn(ReactModal, 'show').and.returnValue(
-      Promise.resolve({ plan: cloneDeep(originalPlan), config: cloneDeep(requested) }),
-    );
+    vi.spyOn(PipelineTemplateReader, 'getPipelinePlan').mockResolvedValue(originalPlan);
+    vi.spyOn(ReactModal, 'show').mockResolvedValue({ plan: cloneDeep(originalPlan), config: cloneDeep(requested) });
 
-    const wrapper = mount(<PipelineConfigPage app={app} />);
-    await flush();
-    wrapper.update();
+    renderPage(app);
+    await user.click(await screen.findByRole('button', { name: /Configure Template/ }));
+    const saved = await saveAndGetPipeline(user);
 
-    await act(async () => {
-      wrapper.find('[data-test-id="configure-template"]').prop('onClick')();
-      await flush();
-    });
-    wrapper.update();
-    expect(wrapper.text()).toContain('Save Changes');
-
-    await act(async () => {
-      wrapper
-        .find('button.btn-primary')
-        .filterWhere((button) => button.text().includes('Save Changes'))
-        .prop('onClick')();
-      await flush();
-    });
-    wrapper.update();
-
-    expect(PipelineConfigService.savePipeline).toHaveBeenCalledWith(
-      jasmine.objectContaining({ id: requested.id, name: requested.name }),
-    );
-    expect(wrapper.text()).toContain('In sync with server');
-    expect(wrapper.find('[data-test-id="Pipeline.revertChanges"]').exists()).toBe(false);
-
-    wrapper.unmount();
+    expect(saved).toEqual(expect.objectContaining({ id: requested.id, name: requested.name }));
+    expect(await screen.findByText('In sync with server')).toBeVisible();
+    expect(screen.queryByRole('button', { name: /Revert/ })).not.toBeInTheDocument();
   });
 
   it('auto-opens a new static V1 template exactly once and does not reopen after dismissal', async () => {
@@ -969,26 +1016,19 @@ describe('PipelineConfigPage', () => {
     $stateParams.pipelineId = requested.id;
     $stateParams.new = '1';
     const modalResult = deferred<any>();
-    const showModal = spyOn(ReactModal, 'show').and.returnValue(modalResult.promise);
+    const showModal = vi.spyOn(ReactModal, 'show').mockReturnValue(modalResult.promise);
 
-    const wrapper = mount(<PipelineConfigPage app={app} />);
-    await flush();
-    wrapper.update();
-    expect(showModal).toHaveBeenCalledTimes(1);
+    const rendered = renderPage(app);
+    await waitFor(() => expect(showModal).toHaveBeenCalledTimes(1));
 
-    await act(async () => {
-      modalResult.reject('dismissed');
-      await flush();
-    });
-    wrapper.setProps({ app });
+    modalResult.reject('dismissed');
     await flush();
-    wrapper.update();
+    rerenderPage(rendered, app);
+    await flush();
 
     expect(showModal).toHaveBeenCalledTimes(1);
-    expect((wrapper.find(PipelineGraph).prop('pipeline') as IPipeline).name).toBe(requested.name);
-    expect(wrapper.find('[data-test-id="configure-template"]').prop('disabled')).toBe(false);
-
-    wrapper.unmount();
+    expect(screen.getByRole('heading', { name: /Template Pipeline/ })).toBeVisible();
+    expect(screen.getByRole('button', { name: /Configure Template/ })).toBeEnabled();
   });
 
   it('auto-opens a new V2 template exactly once', async () => {
@@ -997,24 +1037,19 @@ describe('PipelineConfigPage', () => {
     const app = createApp([requested]);
     $stateParams.pipelineId = requested.id;
     $stateParams.new = '1';
-    spyOn(PipelineTemplateReader, 'getPipelinePlan').and.returnValue(Promise.resolve(plan));
+    vi.spyOn(PipelineTemplateReader, 'getPipelinePlan').mockResolvedValue(plan);
     const modalResult = deferred<any>();
-    const showModal = spyOn(ReactModal, 'show').and.returnValue(modalResult.promise);
+    const showModal = vi.spyOn(ReactModal, 'show').mockReturnValue(modalResult.promise);
 
-    const wrapper = mount(<PipelineConfigPage app={app} />);
+    const rendered = renderPage(app);
+    await waitFor(() => expect(showModal).toHaveBeenCalledTimes(1));
+
+    modalResult.reject('dismissed');
     await flush();
-    wrapper.update();
-    expect(showModal).toHaveBeenCalledTimes(1);
-
-    await act(async () => {
-      modalResult.reject('dismissed');
-      await flush();
-    });
-    wrapper.setProps({ app });
+    rerenderPage(rendered, app);
     await flush();
-    expect(showModal).toHaveBeenCalledTimes(1);
 
-    wrapper.unmount();
+    expect(showModal).toHaveBeenCalledTimes(1);
   });
 
   it('does not auto-open a new dynamic V1 template', async () => {
@@ -1022,65 +1057,52 @@ describe('PipelineConfigPage', () => {
     const app = createApp([requested]);
     $stateParams.pipelineId = requested.id;
     $stateParams.new = '1';
-    const showModal = spyOn(ReactModal, 'show');
+    const showModal = vi.spyOn(ReactModal, 'show').mockReturnValue(undefined);
 
-    const wrapper = mount(<PipelineConfigPage app={app} />);
-    await flush();
-    wrapper.update();
+    renderPage(app);
+    await waitForPipeline('Template Pipeline');
 
     expect(showModal).not.toHaveBeenCalled();
-
-    wrapper.unmount();
   });
 
   it('ignores template modal completion after unmount', async () => {
+    const user = setupUser();
     const requested = templatedV1();
     const originalPlan = { ...pipeline(requested.id, requested.name), stages: [] } as IPipeline;
     const app = createApp([requested]);
     $stateParams.pipelineId = requested.id;
-    spyOn(PipelineTemplateReader, 'getPipelinePlan').and.returnValue(Promise.resolve(originalPlan));
+    vi.spyOn(PipelineTemplateReader, 'getPipelinePlan').mockResolvedValue(originalPlan);
     const modalResult = deferred<{ plan: IPipeline; config: IPipeline }>();
-    spyOn(ReactModal, 'show').and.returnValue(modalResult.promise);
-    const consoleError = spyOn(console, 'error');
+    vi.spyOn(ReactModal, 'show').mockReturnValue(modalResult.promise);
+    const consoleError = vi.spyOn(console, 'error').mockReturnValue(undefined);
 
-    const wrapper = mount(<PipelineConfigPage app={app} />);
+    const rendered = renderPage(app);
+    await user.click(await screen.findByRole('button', { name: /Configure Template/ }));
+    rendered.unmount();
+
+    modalResult.resolve({ plan: originalPlan, config: requested });
     await flush();
-    wrapper.update();
-    wrapper.find('[data-test-id="configure-template"]').prop('onClick')();
-    wrapper.unmount();
-
-    await act(async () => {
-      modalResult.resolve({ plan: originalPlan, config: requested });
-      await flush();
-    });
 
     expect(consoleError).not.toHaveBeenCalled();
   });
 
   it('saves the selected history revision when restoring pipeline history', async () => {
+    const user = setupUser();
     const requested = pipeline('target-id', 'Current Pipeline');
     const restored = { ...pipeline('target-id', 'Restored Pipeline'), updateTs: 'old-revision' };
     const app = createApp([requested]);
     $stateParams.pipelineId = requested.id;
-    spyOn(ReactModal, 'show').and.returnValue(Promise.resolve(restored));
-    spyOn(PipelineConfigService, 'savePipeline').and.returnValue(Promise.resolve());
+    vi.spyOn(ReactModal, 'show').mockResolvedValue(restored);
+    const savePipeline = vi.spyOn(PipelineConfigService, 'savePipeline').mockResolvedValue();
 
-    const wrapper = mount(<PipelineConfigPage app={app} />);
-    await flush();
-    wrapper.update();
+    renderPage(app);
+    await waitForPipeline('Current Pipeline');
+    await user.click(screen.getByRole('button', { name: 'Pipeline Actions' }));
+    await user.click(screen.getByText('Show Revision History'));
 
-    await act(async () => {
-      wrapper.find(PipelineConfigActions).prop('showHistory')();
-      await flush();
-    });
-
-    expect(PipelineConfigService.savePipeline).toHaveBeenCalledWith(
-      jasmine.objectContaining({
-        name: 'Restored Pipeline',
-      }),
+    await waitFor(() =>
+      expect(savePipeline).toHaveBeenCalledWith(expect.objectContaining({ name: 'Restored Pipeline' })),
     );
-
-    wrapper.unmount();
   });
 
   it('loads accounts once for an app, shows pending state, and ignores completion after unmount', async () => {
@@ -1090,42 +1112,27 @@ describe('PipelineConfigPage', () => {
     const app = createApp([requested]);
     $stateParams.pipelineId = requested.id;
     showStageConfig(requested.id);
-    let resolveAccounts: (accounts: IAccountDetails[]) => void;
-    const accountRequest = new Promise<IAccountDetails[]>((resolve) => (resolveAccounts = resolve));
-    (AccountService.applicationAccounts as jasmine.Spy).and.returnValue(accountRequest as any);
+    const accountRequest = deferred<IAccountDetails[]>();
+    (AccountService.applicationAccounts as Mock).mockReturnValue(accountRequest.promise as any);
 
-    const wrapper = mount(<PipelineConfigPage app={app} />);
-    await flush();
-    wrapper.update();
+    const rendered = renderPage(app);
+    await waitForPipeline('Requested Pipeline');
 
-    expect(AccountService.applicationAccounts).toHaveBeenCalledOnceWith(app);
-    expect(wrapper.text()).toContain('Loading application accounts...');
-    expect(
-      wrapper
-        .find(StageConfigField)
-        .filterWhere((node) => node.prop('label') === 'Stage Name')
-        .exists(),
-    ).toBe(true);
-    expect(wrapper.find('[data-test-id="fail-on-failed-expressions"]').exists()).toBe(true);
-    expect(wrapper.text()).toContain('Remove stage');
-    expect(wrapper.text()).toContain('Edit stage as JSON');
-    expect(
-      wrapper
-        .find(ReactSelectInput)
-        .filterWhere((node) => node.prop('name') === 'type')
-        .exists(),
-    ).toBe(false);
+    expect(AccountService.applicationAccounts).toHaveBeenCalledExactlyOnceWith(app);
+    expect(screen.getByText(/Loading application accounts/)).toBeVisible();
+    expect(within(field('Stage Name')).getByRole('textbox')).toBeVisible();
+    expect(within(field('Fail on Failed Expressions')).getByRole('checkbox')).toBeVisible();
+    expect(screen.getByRole('button', { name: /Remove stage/ })).toBeVisible();
+    expect(screen.getByRole('button', { name: /Edit stage as JSON/ })).toBeVisible();
+    expect(screen.queryByText('Type', { selector: '.label-text' })).not.toBeInTheDocument();
 
-    wrapper.setProps({ app });
+    rerenderPage(rendered, app);
     await flush();
     expect(AccountService.applicationAccounts).toHaveBeenCalledTimes(1);
 
-    wrapper.unmount();
-    await act(async () => {
-      resolveAccounts([account('aws')]);
-      await flush();
-    });
-
+    rendered.unmount();
+    accountRequest.resolve([account('aws')]);
+    await flush();
     expect(AccountService.applicationAccounts).toHaveBeenCalledTimes(1);
   });
 
@@ -1136,34 +1143,18 @@ describe('PipelineConfigPage', () => {
     const app = createApp([requested]);
     $stateParams.pipelineId = requested.id;
     showStageConfig(requested.id);
-    (AccountService.applicationAccounts as jasmine.Spy).and.callFake(() =>
-      Promise.reject(new Error('accounts failed')),
-    );
-    const getConfigurableStageTypes = spyOn(Registry.pipeline, 'getConfigurableStageTypes').and.callThrough();
+    (AccountService.applicationAccounts as Mock).mockRejectedValue(new Error('accounts failed'));
+    const getConfigurableStageTypes = vi.spyOn(Registry.pipeline, 'getConfigurableStageTypes');
 
-    const wrapper = mount(<PipelineConfigPage app={app} />);
-    await flush();
-    wrapper.update();
+    renderPage(app);
 
-    expect(wrapper.text()).toContain('Could not load application accounts: accounts failed');
-    expect(
-      wrapper
-        .find(StageConfigField)
-        .filterWhere((node) => node.prop('label') === 'Stage Name')
-        .exists(),
-    ).toBe(true);
-    expect(wrapper.find('[data-test-id="fail-on-failed-expressions"]').exists()).toBe(true);
-    expect(wrapper.text()).toContain('Remove stage');
-    expect(wrapper.text()).toContain('Edit stage as JSON');
-    expect(
-      wrapper
-        .find(ReactSelectInput)
-        .filterWhere((node) => node.prop('name') === 'type')
-        .exists(),
-    ).toBe(false);
+    expect(await screen.findByText('Could not load application accounts: accounts failed')).toBeVisible();
+    expect(within(field('Stage Name')).getByRole('textbox')).toBeVisible();
+    expect(within(field('Fail on Failed Expressions')).getByRole('checkbox')).toBeVisible();
+    expect(screen.getByRole('button', { name: /Remove stage/ })).toBeVisible();
+    expect(screen.getByRole('button', { name: /Edit stage as JSON/ })).toBeVisible();
+    expect(screen.queryByText('Type', { selector: '.label-text' })).not.toBeInTheDocument();
     expect(getConfigurableStageTypes).not.toHaveBeenCalled();
-
-    wrapper.unmount();
   });
 
   it('renders a successful empty account state without unfiltered stage type choices', async () => {
@@ -1173,35 +1164,22 @@ describe('PipelineConfigPage', () => {
     const app = createApp([requested]);
     $stateParams.pipelineId = requested.id;
     showStageConfig(requested.id);
-    (AccountService.applicationAccounts as jasmine.Spy).and.returnValue(Promise.resolve([]) as any);
-    const getConfigurableStageTypes = spyOn(Registry.pipeline, 'getConfigurableStageTypes').and.callThrough();
+    (AccountService.applicationAccounts as Mock).mockResolvedValue([] as any);
+    const getConfigurableStageTypes = vi.spyOn(Registry.pipeline, 'getConfigurableStageTypes');
 
-    const wrapper = mount(<PipelineConfigPage app={app} />);
-    await flush();
-    wrapper.update();
+    renderPage(app);
 
-    expect(wrapper.text()).toContain('No application accounts are available.');
-    expect(
-      wrapper
-        .find(StageConfigField)
-        .filterWhere((node) => node.prop('label') === 'Stage Name')
-        .exists(),
-    ).toBe(true);
-    expect(wrapper.find('[data-test-id="fail-on-failed-expressions"]').exists()).toBe(true);
-    expect(wrapper.text()).toContain('Remove stage');
-    expect(wrapper.text()).toContain('Edit stage as JSON');
-    expect(
-      wrapper
-        .find(ReactSelectInput)
-        .filterWhere((node) => node.prop('name') === 'type')
-        .exists(),
-    ).toBe(false);
+    expect(await screen.findByText('No application accounts are available.')).toBeVisible();
+    expect(within(field('Stage Name')).getByRole('textbox')).toBeVisible();
+    expect(within(field('Fail on Failed Expressions')).getByRole('checkbox')).toBeVisible();
+    expect(screen.getByRole('button', { name: /Remove stage/ })).toBeVisible();
+    expect(screen.getByRole('button', { name: /Edit stage as JSON/ })).toBeVisible();
+    expect(screen.queryByText('Type', { selector: '.label-text' })).not.toBeInTheDocument();
     expect(getConfigurableStageTypes).not.toHaveBeenCalled();
-
-    wrapper.unmount();
   });
 
   it('filters an unselected base stage to ECS accounts and renders only the ECS implementation', async () => {
+    const user = setupUser();
     registerBaseProviderStages();
     const requested = pipeline('target-id', 'Requested Pipeline');
     requested.stages = [
@@ -1217,35 +1195,23 @@ describe('PipelineConfigPage', () => {
     const accounts = [account('ecs')];
     $stateParams.pipelineId = requested.id;
     showStageConfig(requested.id);
-    (AccountService.applicationAccounts as jasmine.Spy).and.returnValue(Promise.resolve(accounts) as any);
-    const getConfigurableStageTypes = spyOn(Registry.pipeline, 'getConfigurableStageTypes').and.callThrough();
+    (AccountService.applicationAccounts as Mock).mockResolvedValue(accounts as any);
+    const getConfigurableStageTypes = vi.spyOn(Registry.pipeline, 'getConfigurableStageTypes');
 
-    const wrapper = mount(<PipelineConfigPage app={app} />);
-    await flush();
-    wrapper.update();
+    renderPage(app);
+    await screen.findByText('ECS stage config');
 
-    const updatedPipeline = wrapper.find(PipelineGraph).prop('pipeline') as IPipeline;
     expect(getConfigurableStageTypes).toHaveBeenCalledWith(accounts);
-    expect(
-      (wrapper
-        .find(ReactSelectInput)
-        .filterWhere((node) => node.prop('name') === 'type')
-        .prop('options') as any[])[0],
-    ).toEqual(jasmine.objectContaining({ key: 'destroyServerGroup', cloudProviders: ['ecs'] }));
-    expect(updatedPipeline.stages[0]).toEqual(
-      jasmine.objectContaining({
-        type: 'destroyServerGroup',
-        cloudProvider: 'ecs',
-        cloudProviderType: 'ecs',
-      }),
+    expect(field('Provider')).toHaveTextContent(/EC2 Container Service|ecs/);
+    expect(screen.queryByText('AWS stage config')).not.toBeInTheDocument();
+    const saved = await saveAndGetPipeline(user);
+    expect(saved.stages[0]).toEqual(
+      expect.objectContaining({ type: 'destroyServerGroup', cloudProvider: 'ecs', cloudProviderType: 'ecs' }),
     );
-    expect(wrapper.find('.ecs-stage-config').exists()).toBe(true);
-    expect(wrapper.find('.aws-stage-config').exists()).toBe(false);
-
-    wrapper.unmount();
   });
 
   it('infers a persisted singleton provider without deleting existing stage configuration', async () => {
+    const user = setupUser();
     registerBaseProviderStages('customDestroyServerGroup');
     registerStageTypes();
     const requested = pipeline('target-id', 'Requested Pipeline');
@@ -1258,36 +1224,27 @@ describe('PipelineConfigPage', () => {
     const app = createApp([requested]);
     $stateParams.pipelineId = requested.id;
     showStageConfig(requested.id, 1);
-    (AccountService.applicationAccounts as jasmine.Spy).and.returnValue(Promise.resolve([account('ecs')]) as any);
+    (AccountService.applicationAccounts as Mock).mockResolvedValue([account('ecs')] as any);
 
-    const wrapper = mount(<PipelineConfigPage app={app} />);
-    await flush();
-    wrapper.update();
+    const rendered = renderPage(app);
+    await screen.findByText('ECS stage config');
 
-    const inferredStage = (wrapper.find(PipelineGraph).prop('pipeline') as IPipeline).stages[1];
-    expect(inferredStage).toEqual({
+    expect(field('Provider')).toHaveTextContent(/EC2 Container Service|ecs/);
+    expect(within(field('Provider')).queryByRole('combobox')).not.toBeInTheDocument();
+    expect(providerRenderStates).not.toContain(false);
+    expect(revision()).toBe(1);
+    const saved = await saveAndGetPipeline(user);
+    expect(saved.stages[1]).toEqual({
       ...originalStage,
       type: 'customDestroyServerGroup',
       cloudProvider: 'ecs',
       cloudProviderType: 'ecs',
     } as any);
-    expect(wrapper.find(BaseProviderStageConfig).prop('readOnly')).toBe(true);
-    expect(wrapper.find(BaseProviderStageConfig).prop('selectedProvider')).toBe('ecs');
-    expect(wrapper.find('.ecs-stage-config').exists()).toBe(true);
-    expect(wrapper.find('.aws-stage-config').exists()).toBe(false);
-    expect(providerRenderStates.length).toBeGreaterThan(0);
-    expect(providerRenderStates).not.toContain(false);
-    expect(wrapper.find('.pipeline-configurer').prop('data-revision')).toBe(1);
-    expect(wrapper.text()).toContain('Save Changes');
 
-    wrapper.setProps({ app });
+    rerenderPage(rendered, app);
     await flush();
-    wrapper.update();
-
-    expect(wrapper.find('.pipeline-configurer').prop('data-revision')).toBe(1);
+    expect(revision()).toBe(1);
     expect(providerRenderStates).not.toContain(false);
-
-    wrapper.unmount();
   });
 
   [
@@ -1295,6 +1252,7 @@ describe('PipelineConfigPage', () => {
     { presentField: 'cloudProviderType', missingField: 'cloudProvider' },
   ].forEach(({ presentField, missingField }) => {
     it(`normalizes a persisted stage with only ${presentField} before rendering its provider implementation`, async () => {
+      const user = setupUser();
       registerBaseProviderStages();
       const requested = pipeline('target-id', 'Requested Pipeline');
       requested.stages = [
@@ -1309,35 +1267,23 @@ describe('PipelineConfigPage', () => {
       const app = createApp([requested]);
       $stateParams.pipelineId = requested.id;
       showStageConfig(requested.id);
-      (AccountService.applicationAccounts as jasmine.Spy).and.returnValue(
-        Promise.resolve([account('aws'), account('ecs')]) as any,
-      );
+      (AccountService.applicationAccounts as Mock).mockResolvedValue([account('aws'), account('ecs')] as any);
 
-      const wrapper = mount(<PipelineConfigPage app={app} />);
-      await flush();
-      wrapper.update();
+      renderPage(app);
+      await screen.findByText('ECS stage config');
 
-      const updatedPipeline = wrapper.find(PipelineGraph).prop('pipeline') as IPipeline;
-      expect(updatedPipeline.stages[0].cloudProvider).toBe('ecs');
-      expect(updatedPipeline.stages[0].cloudProviderType).toBe('ecs');
-      expect(updatedPipeline.stages[0][missingField]).toBe('ecs');
-      expect(wrapper.find(BaseProviderStageConfig).prop('readOnly')).toBe(true);
-      expect(
-        wrapper
-          .find(ReactSelectInput)
-          .filterWhere((node) => node.prop('name') === 'cloudProviderType')
-          .exists(),
-      ).toBe(false);
-      expect(wrapper.find('.ecs-stage-config').exists()).toBe(true);
+      expect(screen.queryByRole('combobox', { name: /provider/i })).not.toBeInTheDocument();
       expect(providerRenderStates).not.toContain(false);
-      expect(wrapper.find('.pipeline-configurer').prop('data-revision')).toBe(1);
-      expect(wrapper.text()).toContain('Save Changes');
-
-      wrapper.unmount();
+      expect(revision()).toBe(1);
+      const saved = await saveAndGetPipeline(user);
+      expect(saved.stages[0].cloudProvider).toBe('ecs');
+      expect(saved.stages[0].cloudProviderType).toBe('ecs');
+      expect(saved.stages[0][missingField]).toBe('ecs');
     });
   });
 
   it('normalizes the same persisted stage again if JSON editing makes its provider fields incoherent', async () => {
+    const user = setupUser();
     registerBaseProviderStages();
     const requested = pipeline('target-id', 'Requested Pipeline');
     requested.stages = [
@@ -1352,36 +1298,26 @@ describe('PipelineConfigPage', () => {
     const app = createApp([requested]);
     $stateParams.pipelineId = requested.id;
     showStageConfig(requested.id);
-    (AccountService.applicationAccounts as jasmine.Spy).and.returnValue(
-      Promise.resolve([account('aws'), account('ecs')]) as any,
-    );
-    spyOn(ReactModal, 'show').and.callFake((_component, props: { stage: IStage }) => {
+    (AccountService.applicationAccounts as Mock).mockResolvedValue([account('aws'), account('ecs')] as any);
+    vi.spyOn(ReactModal, 'show').mockImplementation((_component, props: { stage: IStage }) => {
       delete props.stage.cloudProviderType;
       return Promise.resolve();
     });
 
-    const wrapper = mount(<PipelineConfigPage app={app} />);
-    await flush();
-    wrapper.update();
-    expect(wrapper.find('.pipeline-configurer').prop('data-revision')).toBe(1);
+    renderPage(app);
+    await screen.findByText('ECS stage config');
+    expect(revision()).toBe(1);
 
-    const editJsonButton = wrapper.find('button').filterWhere((node) => node.text().includes('Edit stage as JSON'));
-    await act(async () => {
-      editJsonButton.prop('onClick')();
-      await flush();
-    });
-    wrapper.update();
+    await user.click(screen.getByRole('button', { name: /Edit stage as JSON/ }));
+    await waitFor(() => expect(revision()).toBe(3));
 
-    const normalizedStage = (wrapper.find(PipelineGraph).prop('pipeline') as IPipeline).stages[0];
-    expect(normalizedStage.cloudProvider).toBe('ecs');
-    expect(normalizedStage.cloudProviderType).toBe('ecs');
-    expect(wrapper.find('.pipeline-configurer').prop('data-revision')).toBe(3);
+    const saved = await saveAndGetPipeline(user);
+    expect(saved.stages[0]).toEqual(expect.objectContaining({ cloudProvider: 'ecs', cloudProviderType: 'ecs' }));
     expect(providerRenderStates).not.toContain(false);
-
-    wrapper.unmount();
   });
 
   it('waits for provider selection, switches provider implementations, and updates once per selection', async () => {
+    const user = setupUser();
     registerBaseProviderStages();
     const requested = pipeline('target-id', 'Requested Pipeline');
     requested.stages = [
@@ -1396,55 +1332,43 @@ describe('PipelineConfigPage', () => {
     const app = createApp([requested]);
     $stateParams.pipelineId = requested.id;
     showStageConfig(requested.id);
-    (AccountService.applicationAccounts as jasmine.Spy).and.returnValue(
-      Promise.resolve([account('aws'), account('ecs')]) as any,
-    );
+    (AccountService.applicationAccounts as Mock).mockResolvedValue([account('aws'), account('ecs')] as any);
+    const configurableStageTypes = Registry.pipeline.getConfigurableStageTypes([account('aws'), account('ecs')]);
+    configurableStageTypes[0].cloudProviders.push('gcp');
+    vi.spyOn(Registry.pipeline, 'getConfigurableStageTypes').mockReturnValue(configurableStageTypes);
 
-    const wrapper = mount(<PipelineConfigPage app={app} />);
-    await flush();
-    wrapper.update();
+    renderPage(app);
+    await waitForPipeline('Requested Pipeline');
 
-    expect(wrapper.find(BaseProviderStageConfig).prop('providers')).toEqual(['aws', 'ecs']);
-    expect(wrapper.find('.aws-stage-config').exists()).toBe(false);
-    expect(wrapper.find('.ecs-stage-config').exists()).toBe(false);
-    expect(wrapper.find(StageConfigWrapper).exists()).toBe(false);
-    const initialRevision = wrapper.find('.pipeline-configurer').prop('data-revision') as number;
+    expect(screen.queryByText('AWS stage config')).not.toBeInTheDocument();
+    expect(screen.queryByText('ECS stage config')).not.toBeInTheDocument();
+    const initialRevision = revision();
 
-    const providerSelect = () =>
-      wrapper.find(ReactSelectInput).filterWhere((node) => node.prop('name') === 'cloudProviderType');
-    await act(async () => {
-      providerSelect().prop('onChange')({ target: { value: 'ecs' } } as any);
-      await flush();
-    });
-    wrapper.update();
+    await choose(user, 'Provider', 'ecs');
+    expect(await screen.findByText('ECS stage config')).toBeVisible();
+    expect(screen.queryByText('AWS stage config')).not.toBeInTheDocument();
+    expect(revision()).toBe(initialRevision + 1);
+    const details = document.querySelector('.stage-details') as HTMLElement;
+    expect(details.children[0]).toContainElement(screen.getByText('Provider', { selector: '.label-text' }));
+    expect(details.children[1]).toContainElement(screen.getByText('ECS stage config'));
 
-    expect(wrapper.find('.ecs-stage-config').exists()).toBe(true);
-    expect(wrapper.find('.aws-stage-config').exists()).toBe(false);
-    expect(wrapper.find('.pipeline-configurer').prop('data-revision')).toBe(initialRevision + 1);
-    expect(wrapper.find('.stage-details').first().childAt(0).is(BaseProviderStageConfig)).toBe(true);
-    expect(wrapper.find('.stage-details').first().childAt(1).is(StageConfigWrapper)).toBe(true);
+    await choose(user, 'Provider', 'aws');
+    expect(await screen.findByText('AWS stage config')).toBeVisible();
+    expect(screen.queryByText('ECS stage config')).not.toBeInTheDocument();
+    expect(revision()).toBe(initialRevision + 2);
 
-    await act(async () => {
-      providerSelect().prop('onChange')({ target: { value: 'aws' } } as any);
-      await flush();
-    });
-    wrapper.update();
+    const saved = await saveAndGetPipeline(user);
+    expect(saved.stages[0]).toEqual(expect.objectContaining({ cloudProvider: 'aws', cloudProviderType: 'aws' }));
 
-    const updatedPipeline = wrapper.find(PipelineGraph).prop('pipeline') as IPipeline;
-    expect(updatedPipeline.stages[0]).toEqual(
-      jasmine.objectContaining({ cloudProvider: 'aws', cloudProviderType: 'aws' }),
-    );
-    expect(wrapper.find('.aws-stage-config').exists()).toBe(true);
-    expect(wrapper.find('.ecs-stage-config').exists()).toBe(false);
-    expect(wrapper.find('.pipeline-configurer').prop('data-revision')).toBe(initialRevision + 2);
-    expect(() => wrapper.find(BaseProviderStageConfig).prop('onProviderChange')('gcp')).toThrowError(
-      /destroyServerGroup.*gcp/,
-    );
-
-    wrapper.unmount();
+    await user.click(select('Provider'));
+    await user.click(screen.getByRole('option', { name: /^gcp/ }));
+    expect(
+      screen.getByText('No provider implementation found for stage type "destroyServerGroup" and provider "gcp".'),
+    ).toBeVisible();
   });
 
   it('removes ECS-specific fields while preserving common controls when switching from ECS to AWS', async () => {
+    const user = setupUser();
     registerBaseProviderStages();
     registerStageTypes();
     const requested = pipeline('target-id', 'Requested Pipeline');
@@ -1455,33 +1379,24 @@ describe('PipelineConfigPage', () => {
     const app = createApp([requested]);
     $stateParams.pipelineId = requested.id;
     showStageConfig(requested.id, 1);
-    (AccountService.applicationAccounts as jasmine.Spy).and.returnValue(
-      Promise.resolve([account('aws'), account('ecs')]) as any,
-    );
+    (AccountService.applicationAccounts as Mock).mockResolvedValue([account('aws'), account('ecs')] as any);
 
-    const wrapper = mount(<PipelineConfigPage app={app} />);
-    await flush();
-    wrapper.update();
+    renderPage(app);
+    await screen.findByText('ECS stage config');
+    await choose(user, 'Provider', 'aws');
+    expect(await screen.findByText('AWS stage config')).toBeVisible();
 
-    await act(async () => {
-      wrapper.find(BaseProviderStageConfig).prop('onProviderChange')('aws');
-      await flush();
-    });
-    wrapper.update();
-
-    const switchedStage = (wrapper.find(PipelineGraph).prop('pipeline') as IPipeline).stages[1];
+    const saved = await saveAndGetPipeline(user);
+    const switchedStage = saved.stages[1];
     expectCommonFieldsPreserved(switchedStage);
     expectProviderFieldsRemoved(switchedStage, 'ecs');
     expect(switchedStage).toEqual(
-      jasmine.objectContaining({ type: 'destroyServerGroup', cloudProvider: 'aws', cloudProviderType: 'aws' }),
+      expect.objectContaining({ type: 'destroyServerGroup', cloudProvider: 'aws', cloudProviderType: 'aws' }),
     );
-    expect(wrapper.find('.aws-stage-config').exists()).toBe(true);
-    expect(wrapper.find('.ecs-stage-config').exists()).toBe(false);
-
-    wrapper.unmount();
   });
 
   it('removes AWS-specific fields while preserving common controls when switching from AWS to ECS', async () => {
+    const user = setupUser();
     registerBaseProviderStages('customDestroyServerGroup');
     registerStageTypes();
     const requested = pipeline('target-id', 'Requested Pipeline');
@@ -1492,37 +1407,28 @@ describe('PipelineConfigPage', () => {
     const app = createApp([requested]);
     $stateParams.pipelineId = requested.id;
     showStageConfig(requested.id, 1);
-    (AccountService.applicationAccounts as jasmine.Spy).and.returnValue(
-      Promise.resolve([account('aws'), account('ecs')]) as any,
-    );
+    (AccountService.applicationAccounts as Mock).mockResolvedValue([account('aws'), account('ecs')] as any);
 
-    const wrapper = mount(<PipelineConfigPage app={app} />);
-    await flush();
-    wrapper.update();
+    renderPage(app);
+    await screen.findByText('AWS stage config');
+    await choose(user, 'Provider', 'ecs');
+    expect(await screen.findByText('ECS stage config')).toBeVisible();
 
-    await act(async () => {
-      wrapper.find(BaseProviderStageConfig).prop('onProviderChange')('ecs');
-      await flush();
-    });
-    wrapper.update();
-
-    const switchedStage = (wrapper.find(PipelineGraph).prop('pipeline') as IPipeline).stages[1];
+    const saved = await saveAndGetPipeline(user);
+    const switchedStage = saved.stages[1];
     expectCommonFieldsPreserved(switchedStage);
     expectProviderFieldsRemoved(switchedStage, 'aws');
     expect(switchedStage).toEqual(
-      jasmine.objectContaining({
+      expect.objectContaining({
         type: 'customDestroyServerGroup',
         cloudProvider: 'ecs',
         cloudProviderType: 'ecs',
       }),
     );
-    expect(wrapper.find('.ecs-stage-config').exists()).toBe(true);
-    expect(wrapper.find('.aws-stage-config').exists()).toBe(false);
-
-    wrapper.unmount();
   });
 
   it('retains only stage identity fields when changing stage type', async () => {
+    const user = setupUser();
     registerBaseProviderStages();
     registerStageTypes();
     const requested = pipeline('target-id', 'Requested Pipeline');
@@ -1533,32 +1439,24 @@ describe('PipelineConfigPage', () => {
     const app = createApp([requested]);
     $stateParams.pipelineId = requested.id;
     showStageConfig(requested.id, 1);
-    (AccountService.applicationAccounts as jasmine.Spy).and.returnValue(Promise.resolve([account('ecs')]) as any);
+    (AccountService.applicationAccounts as Mock).mockResolvedValue([account('ecs')] as any);
 
-    const wrapper = mount(<PipelineConfigPage app={app} />);
-    await flush();
-    wrapper.update();
+    renderPage(app);
+    await screen.findByText('ECS stage config');
+    await choose(user, 'Type', 'Wait');
 
-    const typeSelect = wrapper.find(ReactSelectInput).filterWhere((node) => node.prop('name') === 'type');
-    await act(async () => {
-      typeSelect.prop('onChange')({ target: { value: 'wait' } } as any);
-      await flush();
-    });
-    wrapper.update();
-
-    const changedStage = (wrapper.find(PipelineGraph).prop('pipeline') as IPipeline).stages[1];
-    expect(changedStage).toEqual({
+    const saved = await saveAndGetPipeline(user);
+    expect(saved.stages[1]).toEqual({
       refId: '2',
       requisiteStageRefIds: ['1'],
       isNew: true,
       name: 'Custom destroy name',
       type: 'wait',
     } as any);
-
-    wrapper.unmount();
   });
 
   it('persists an implementation-specific stage key when selecting its provider', async () => {
+    const user = setupUser();
     registerBaseProviderStages('customDestroyServerGroup');
     const requested = pipeline('target-id', 'Requested Pipeline');
     requested.stages = [
@@ -1573,23 +1471,15 @@ describe('PipelineConfigPage', () => {
     const app = createApp([requested]);
     $stateParams.pipelineId = requested.id;
     showStageConfig(requested.id);
-    (AccountService.applicationAccounts as jasmine.Spy).and.returnValue(Promise.resolve([account('ecs')]) as any);
+    (AccountService.applicationAccounts as Mock).mockResolvedValue([account('ecs')] as any);
 
-    const wrapper = mount(<PipelineConfigPage app={app} />);
-    await flush();
-    wrapper.update();
+    renderPage(app);
+    await screen.findByText('ECS stage config');
 
-    const updatedPipeline = wrapper.find(PipelineGraph).prop('pipeline') as IPipeline;
-    expect(updatedPipeline.stages[0]).toEqual(
-      jasmine.objectContaining({
-        type: 'customDestroyServerGroup',
-        cloudProvider: 'ecs',
-        cloudProviderType: 'ecs',
-      }),
+    const saved = await saveAndGetPipeline(user);
+    expect(saved.stages[0]).toEqual(
+      expect.objectContaining({ type: 'customDestroyServerGroup', cloudProvider: 'ecs', cloudProviderType: 'ecs' }),
     );
-    expect(wrapper.find('.ecs-stage-config').exists()).toBe(true);
-
-    wrapper.unmount();
   });
 
   it('preserves direct rendering for non-base React stage configs', async () => {
@@ -1604,17 +1494,14 @@ describe('PipelineConfigPage', () => {
     $stateParams.pipelineId = requested.id;
     showStageConfig(requested.id);
 
-    const wrapper = mount(<PipelineConfigPage app={app} />);
-    await flush();
-    wrapper.update();
+    renderPage(app);
 
-    expect(wrapper.find('.regular-stage-config').exists()).toBe(true);
-    expect(wrapper.find(BaseProviderStageConfig).exists()).toBe(false);
-
-    wrapper.unmount();
+    expect(await screen.findByText('Regular stage config')).toBeVisible();
+    expect(screen.queryByText('Provider', { selector: '.label-text' })).not.toBeInTheDocument();
   });
 
   it('applies cloned defaults, alias, and default label once through the dirty-state update path', async () => {
+    const user = setupUser();
     const defaults = { nested: { value: 'default value' }, credentials: 'default-account' };
     Registry.pipeline.registerStage({
       key: 'regularWithDefaults',
@@ -1632,33 +1519,28 @@ describe('PipelineConfigPage', () => {
     $stateParams.pipelineId = requested.id;
     showStageConfig(requested.id);
 
-    const wrapper = mount(<PipelineConfigPage app={app} />);
-    await flush();
-    wrapper.update();
+    const rendered = renderPage(app);
+    await screen.findByText('Regular stage config');
+    expect(revision()).toBe(1);
 
-    const defaultedStage = (wrapper.find(PipelineGraph).prop('pipeline') as IPipeline).stages[0] as any;
-    expect(defaultedStage).toEqual(
-      jasmine.objectContaining({
+    const saved = await saveAndGetPipeline(user);
+    expect(saved.stages[0]).toEqual(
+      expect.objectContaining({
         name: 'Regular With Defaults',
         alias: 'legacyRegular',
         nested: { value: 'default value' },
         credentials: 'default-account',
       }),
     );
-    expect(defaultedStage.nested).not.toBe(defaults.nested);
-    expect(wrapper.find('.pipeline-configurer').prop('data-revision')).toBe(1);
-    expect(wrapper.text()).toContain('Save Changes');
+    expect(saved.stages[0].nested).not.toBe(defaults.nested);
 
-    wrapper.setProps({ app });
+    rerenderPage(rendered, app);
     await flush();
-    wrapper.update();
-
-    expect(wrapper.find('.pipeline-configurer').prop('data-revision')).toBe(1);
-
-    wrapper.unmount();
+    expect(revision()).toBe(1);
   });
 
   it('preserves strategy stage type filtering after accounts load', async () => {
+    const user = setupUser();
     Registry.pipeline.registerStage({ key: 'pipelineOnly', label: 'Pipeline Only' } as IStageTypeConfig);
     Registry.pipeline.registerStage({
       key: 'strategyStage',
@@ -1672,17 +1554,14 @@ describe('PipelineConfigPage', () => {
     $stateParams.pipelineId = requested.id;
     showStageConfig(requested.id);
 
-    const wrapper = mount(<PipelineConfigPage app={app} />);
-    await flush();
-    wrapper.update();
+    renderPage(app);
+    await waitForPipeline('Requested Strategy');
+    await user.click(select('Type'));
 
-    const options = wrapper
-      .find(ReactSelectInput)
-      .filterWhere((node) => node.prop('name') === 'type')
-      .prop('options') as any[];
-    expect(options.map((option) => option.value)).toEqual(['strategyStage']);
-
-    wrapper.unmount();
+    expect((await screen.findAllByRole('option')).map((option) => option.textContent)).toEqual([
+      expect.stringContaining('Strategy Stage'),
+    ]);
+    expect(screen.queryByRole('option', { name: /Pipeline Only/ })).not.toBeInTheDocument();
   });
 
   it('ignores an old account request that resolves after the application changes', async () => {
@@ -1695,39 +1574,30 @@ describe('PipelineConfigPage', () => {
     const newApp = createApp([newPipeline]);
     $stateParams.pipelineId = 'target-id';
     showStageConfig('target-id');
-    let resolveOldAccounts: (accounts: IAccountDetails[]) => void;
-    let resolveNewAccounts: (accounts: IAccountDetails[]) => void;
-    const oldRequest = new Promise<IAccountDetails[]>((resolve) => (resolveOldAccounts = resolve));
-    const newRequest = new Promise<IAccountDetails[]>((resolve) => (resolveNewAccounts = resolve));
-    (AccountService.applicationAccounts as jasmine.Spy).and.callFake((requestedApp) =>
-      requestedApp === oldApp ? oldRequest : newRequest,
+    const oldRequest = deferred<IAccountDetails[]>();
+    const newRequest = deferred<IAccountDetails[]>();
+    (AccountService.applicationAccounts as Mock).mockImplementation((requestedApp) =>
+      requestedApp === oldApp ? oldRequest.promise : newRequest.promise,
     );
 
-    const wrapper = mount(<PipelineConfigPage app={oldApp} />);
+    const rendered = renderPage(oldApp);
+    await waitForPipeline('Old Pipeline');
+    rerenderPage(rendered, newApp);
+    await waitForPipeline('New Pipeline');
+
+    newRequest.resolve([account('ecs')]);
+    expect(await screen.findByText('ECS stage config')).toBeVisible();
+    expect(field('Provider')).toHaveTextContent(/EC2 Container Service|ecs/);
+
+    oldRequest.resolve([account('aws')]);
     await flush();
-    wrapper.setProps({ app: newApp });
-    await flush();
-
-    await act(async () => {
-      resolveNewAccounts([account('ecs')]);
-      await flush();
-    });
-    wrapper.update();
-    expect(wrapper.find(BaseProviderStageConfig).prop('providers')).toEqual(['ecs']);
-
-    await act(async () => {
-      resolveOldAccounts([account('aws')]);
-      await flush();
-    });
-    wrapper.update();
-    expect(wrapper.find(BaseProviderStageConfig).prop('providers')).toEqual(['ecs']);
-    expect(wrapper.find('.ecs-stage-config').exists()).toBe(true);
-    expect(wrapper.find('.aws-stage-config').exists()).toBe(false);
-
-    wrapper.unmount();
+    expect(field('Provider')).toHaveTextContent(/EC2 Container Service|ecs/);
+    expect(screen.getByText('ECS stage config')).toBeVisible();
+    expect(screen.queryByText('AWS stage config')).not.toBeInTheDocument();
   });
 
   it('marks a copied provider stage as new so its provider remains editable', async () => {
+    const user = setupUser();
     registerBaseProviderStages();
     registerStageTypes();
     const requested = pipeline('target-id', 'Requested Pipeline');
@@ -1736,46 +1606,936 @@ describe('PipelineConfigPage', () => {
     const copiedStage = providerStage('ecs');
     copiedStage.isNew = false;
     $stateParams.pipelineId = requested.id;
-    (AccountService.applicationAccounts as jasmine.Spy).and.returnValue(
-      Promise.resolve([account('aws'), account('ecs')]) as any,
-    );
-    spyOn(ReactModal, 'show').and.returnValue(Promise.resolve(copiedStage));
+    (AccountService.applicationAccounts as Mock).mockResolvedValue([account('aws'), account('ecs')] as any);
+    vi.spyOn(ReactModal, 'show').mockResolvedValue(copiedStage);
 
-    const wrapper = mount(<PipelineConfigPage app={app} />);
-    await flush();
-    wrapper.update();
+    renderPage(app);
+    await waitForPipeline('Requested Pipeline');
+    await user.click(screen.getByRole('button', { name: /Copy an existing stage/ }));
 
-    const copyButton = wrapper.find('button').filterWhere((node) => node.text().includes('Copy an existing stage'));
-    await act(async () => {
-      copyButton.prop('onClick')();
-      await flush();
-    });
-    wrapper.update();
-
-    const copied = (wrapper.find(PipelineGraph).prop('pipeline') as IPipeline).stages[1];
-    expect(copied.isNew).toBe(true);
-    expect(wrapper.find(BaseProviderStageConfig).prop('readOnly')).toBe(false);
-    expect(
-      wrapper
-        .find(ReactSelectInput)
-        .filterWhere((node) => node.prop('name') === 'cloudProviderType')
-        .exists(),
-    ).toBe(true);
-
-    wrapper.unmount();
+    expect(await screen.findByText('ECS stage config')).toBeVisible();
+    expect(select('Provider')).toBeVisible();
+    const saved = await saveAndGetPipeline(user);
+    expect(saved.stages[1].isNew).toBe(true);
   });
 
   it('does not fall back to the first pipeline or match by name when the id is missing', async () => {
     const app = createApp([pipeline('first-id', 'missing-id')]);
     $stateParams.pipelineId = 'missing-id';
 
-    const wrapper = mount(<PipelineConfigPage app={app} />);
+    renderPage(app);
+
+    expect(await screen.findByText('No pipeline found with that name.')).toBeVisible();
+    expect(document.querySelector('.pipeline-configurer')).not.toBeInTheDocument();
+  });
+
+  it('applies stage JSON edits to the stage editor and the pipeline', async () => {
+    const user = setupUser();
+    registerMountedStage();
+    const requested = pipeline('target-id', 'Requested Pipeline');
+    requested.stages = [
+      { refId: '1', name: 'Bake', type: 'mounted', value: 'before', requisiteStageRefIds: [] } as any,
+    ];
+    const app = createApp([requested]);
+    $stateParams.pipelineId = requested.id;
+    showStageConfig(requested.id);
+    renderModals();
+
+    renderPage(app);
+    await waitForPipeline('Requested Pipeline');
+    expect(mountedStageValue()).toBe('before');
+
+    await user.click(screen.getByRole('button', { name: /Edit stage as JSON/ }));
+    setJsonEditorValue((stage) => ({ ...stage, value: 'after' }));
+    await user.click(screen.getByRole('button', { name: /Update Stage/ }));
+
+    await waitFor(() => expect(mountedStageValue()).toBe('after'));
+    await user.click(screen.getByRole('button', { name: /Revert/ }));
+    await waitFor(() => expect(mountedStageValue()).toBe('before'));
+
+    await user.click(screen.getByRole('button', { name: /Edit stage as JSON/ }));
+    setJsonEditorValue((stage) => ({ ...stage, value: 'after' }));
+    await user.click(screen.getByRole('button', { name: /Update Stage/ }));
+
+    const saved = await saveAndGetPipeline(user);
+    expect(saved.stages[0].value).toBe('after');
+  });
+
+  it('mounts a new stage editor when selecting another stage of the same type', async () => {
+    const user = setupUser();
+    registerMountedStage();
+    const requested = pipeline('target-id', 'Requested Pipeline');
+    requested.stages = [
+      { refId: '1', name: 'First', type: 'mounted', value: 'first', requisiteStageRefIds: [] } as any,
+      { refId: '2', name: 'Second', type: 'mounted', value: 'second', requisiteStageRefIds: ['1'] } as any,
+    ];
+    const app = createApp([requested]);
+    $stateParams.pipelineId = requested.id;
+    showStageConfig(requested.id, 0);
+
+    renderPage(app);
+    await waitForPipeline('Requested Pipeline');
+    expect(mountedStageValue()).toBe('first');
+
+    await user.click(graphLabel('Second'));
+
+    await waitFor(() => expect(mountedStageValue()).toBe('second'));
+  });
+
+  it('does not repeat stage type lookups when a stage field changes', async () => {
+    const user = setupUser();
+    registerStageTypes();
+    const requested = pipeline('target-id', 'Requested Pipeline');
+    requested.stages = [{ refId: '1', name: 'Build', type: 'wait', requisiteStageRefIds: [] } as any];
+    const app = createApp([requested]);
+    $stateParams.pipelineId = requested.id;
+    showStageConfig(requested.id);
+
+    renderPage(app);
+    await waitForPipeline('Requested Pipeline');
     await flush();
-    wrapper.update();
 
-    expect(wrapper.find('.pipeline-configurer').exists()).toBe(false);
-    expect(wrapper.text()).toContain('No pipeline found with that name.');
+    const getConfigurableStageTypes = vi.spyOn(Registry.pipeline, 'getConfigurableStageTypes');
+    const getProvidersFor = vi.spyOn(Registry.pipeline, 'getProvidersFor');
+    const stageName = within(field('Stage Name')).getByRole('textbox');
+    await user.clear(stageName);
+    await user.type(stageName, 'Bake');
 
-    wrapper.unmount();
+    await waitFor(() => expect(graphLabel('Bake')).toBeVisible());
+    expect(getConfigurableStageTypes).not.toHaveBeenCalled();
+    expect(getProvidersFor).not.toHaveBeenCalled();
+  });
+
+  it('applies pipeline JSON edits to the stage editor', async () => {
+    const user = setupUser();
+    registerMountedStage();
+    const requested = pipeline('target-id', 'Requested Pipeline');
+    requested.stages = [
+      { refId: '1', name: 'Bake', type: 'mounted', value: 'before', requisiteStageRefIds: [] } as any,
+    ];
+    const app = createApp([requested]);
+    $stateParams.pipelineId = requested.id;
+    showStageConfig(requested.id);
+    renderModals();
+
+    renderPage(app);
+    await waitForPipeline('Requested Pipeline');
+
+    await openPipelineAction(user, 'Edit as JSON');
+    setJsonEditorValue((json) => ({ ...json, stages: [{ ...json.stages[0], value: 'after' }] }));
+    await user.click(screen.getByRole('button', { name: /Update Pipeline/ }));
+
+    await waitFor(() => expect(mountedStageValue()).toBe('after'));
+    expect(screen.getByRole('button', { name: /Save Changes/ })).toBeVisible();
+    const saved = await saveAndGetPipeline(user);
+    expect(saved.stages[0].value).toBe('after');
+  });
+
+  it('shows stage editor changes in the stage and pipeline JSON views', async () => {
+    const user = setupUser();
+    Registry.pipeline.registerStage({
+      key: 'editing',
+      label: 'Editing',
+      component: EditingStageConfig,
+    } as IStageTypeConfig);
+    const requested = pipeline('target-id', 'Requested Pipeline');
+    requested.stages = [
+      { refId: '1', name: 'Bake', type: 'editing', value: 'before', requisiteStageRefIds: [] } as any,
+    ];
+    const app = createApp([requested]);
+    $stateParams.pipelineId = requested.id;
+    showStageConfig(requested.id);
+    renderModals();
+
+    renderPage(app);
+    await waitForPipeline('Requested Pipeline');
+    await user.click(screen.getByRole('button', { name: 'Edit value' }));
+
+    await user.click(screen.getByRole('button', { name: /Edit stage as JSON/ }));
+    expect(jsonEditorValue().value).toBe('edited');
+
+    await user.click(screen.getByRole('button', { name: 'Cancel' }));
+    await openPipelineAction(user, 'Edit as JSON');
+    expect(jsonEditorValue().stages[0].value).toBe('edited');
+  });
+
+  it('keeps the stage editor mounted while its stage is edited', async () => {
+    const user = setupUser();
+    let mounts = 0;
+    const MountCountingStageConfig = (props: { updateStageField: (changes: any) => void }) => {
+      React.useEffect(() => {
+        mounts++;
+      }, []);
+      return <EditingStageConfig {...props} />;
+    };
+    Registry.pipeline.registerStage({
+      key: 'editing',
+      label: 'Editing',
+      component: MountCountingStageConfig,
+    } as IStageTypeConfig);
+    const requested = pipeline('target-id', 'Requested Pipeline');
+    requested.stages = [
+      { refId: '1', name: 'Build', type: 'editing', requisiteStageRefIds: [] } as any,
+      { refId: '2', name: 'Bake', type: 'editing', value: 'before', requisiteStageRefIds: [] } as any,
+    ];
+    const app = createApp([requested]);
+    $stateParams.pipelineId = requested.id;
+    showStageConfig(requested.id, 1);
+
+    renderPage(app);
+    await waitForPipeline('Requested Pipeline');
+
+    await user.click(screen.getByRole('button', { name: 'Edit value' }));
+    const stageName = within(field('Stage Name')).getByRole('textbox');
+    await user.clear(stageName);
+    await user.type(stageName, 'Package');
+    await choose(user, 'Depends On', 'Build');
+
+    const saved = await saveAndGetPipeline(user);
+    expect(saved.stages[1]).toEqual(
+      expect.objectContaining({ value: 'edited', name: 'Package', requisiteStageRefIds: ['1'] }),
+    );
+    expect(mounts).toBe(1);
+  });
+
+  it("resets an editor's own state when changes are reverted", async () => {
+    const user = setupUser();
+    // Like Formik-based editors, keeps its own copy of the stage
+    const LocalStateStageConfig = ({
+      stage,
+      updateStageField,
+    }: {
+      stage: any;
+      updateStageField: (changes: any) => void;
+    }) => {
+      const [value, setValue] = React.useState(stage.value);
+      return (
+        <input
+          aria-label="Local value"
+          value={value}
+          onChange={(event) => {
+            setValue(event.target.value);
+            updateStageField({ value: event.target.value });
+          }}
+        />
+      );
+    };
+    Registry.pipeline.registerStage({
+      key: 'local',
+      label: 'Local',
+      component: LocalStateStageConfig,
+    } as IStageTypeConfig);
+    const requested = pipeline('target-id', 'Requested Pipeline');
+    requested.stages = [{ refId: '1', name: 'Bake', type: 'local', value: 'before', requisiteStageRefIds: [] } as any];
+    const app = createApp([requested]);
+    $stateParams.pipelineId = requested.id;
+    showStageConfig(requested.id, 0);
+    renderModals();
+
+    renderPage(app);
+    await waitForPipeline('Requested Pipeline');
+
+    const localValue = screen.getByRole('textbox', { name: 'Local value' });
+    await user.clear(localValue);
+    await user.type(localValue, 'edited');
+    expect(localValue).toHaveValue('edited');
+
+    await user.click(screen.getByRole('button', { name: /Revert/ }));
+
+    await waitFor(() => expect(screen.getByRole('textbox', { name: 'Local value' })).toHaveValue('before'));
+    await openPipelineAction(user, 'Edit as JSON');
+    expect(jsonEditorValue().stages[0].value).toBe('before');
+  });
+
+  it("mounts the next stage's editor when the selected stage is removed", async () => {
+    const user = setupUser();
+    registerLocalStage();
+    const requested = pipeline('target-id', 'Requested Pipeline');
+    requested.stages = [
+      { refId: '1', name: 'Bake A', type: 'local', value: 'a', requisiteStageRefIds: [] } as any,
+      { refId: '2', name: 'Bake B', type: 'local', value: 'b', requisiteStageRefIds: ['1'] } as any,
+    ];
+    const app = createApp([requested]);
+    $stateParams.pipelineId = requested.id;
+    showStageConfig(requested.id, 0);
+
+    renderPage(app);
+    await waitForPipeline('Requested Pipeline');
+    expect(localStageInput()).toHaveValue('a');
+
+    await user.click(screen.getByRole('button', { name: /Remove stage/ }));
+
+    await waitFor(() => expect(localStageInput()).toHaveValue('b'));
+    expect(within(graph()).queryByText('Bake A', { selector: '.label-body a' })).not.toBeInTheDocument();
+    expect(graphLabel('Bake B')).toBeVisible();
+    const saved = await saveAndGetPipeline(user);
+    expect(saved.stages.map((stage: IStage) => stage.refId)).toEqual(['2']);
+  });
+
+  it('keeps the editor and its state when the selected stage is selected again', async () => {
+    const user = setupUser();
+    registerLocalStage();
+    const requested = pipeline('target-id', 'Requested Pipeline');
+    requested.stages = [{ refId: '1', name: 'Bake', type: 'local', value: 'before', requisiteStageRefIds: [] } as any];
+    const app = createApp([requested]);
+    $stateParams.pipelineId = requested.id;
+    showStageConfig(requested.id, 0);
+
+    renderPage(app);
+    await waitForPipeline('Requested Pipeline');
+    await typeLocalValue(user, 'edited');
+    await user.click(graphLabel('Bake'));
+
+    expect(localStageInput()).toHaveValue('edited');
+    expect(localStageMounts).toBe(1);
+  });
+
+  it("keeps each stage's edits when switching between stages of the same type", async () => {
+    const user = setupUser();
+    registerLocalStage();
+    const requested = pipeline('target-id', 'Requested Pipeline');
+    requested.stages = [
+      { refId: '1', name: 'Bake A', type: 'local', value: 'a', requisiteStageRefIds: [] } as any,
+      { refId: '2', name: 'Bake B', type: 'local', value: 'b', requisiteStageRefIds: ['1'] } as any,
+    ];
+    const app = createApp([requested]);
+    $stateParams.pipelineId = requested.id;
+    showStageConfig(requested.id, 1);
+
+    renderPage(app);
+    await waitForPipeline('Requested Pipeline');
+    await typeLocalValue(user, 'b-edited');
+
+    await user.click(graphLabel('Bake A'));
+    await waitFor(() => expect(localStageInput()).toHaveValue('a'));
+
+    await user.click(graphLabel('Bake B'));
+    await waitFor(() => expect(localStageInput()).toHaveValue('b-edited'));
+    const saved = await saveAndGetPipeline(user);
+    expect(saved.stages.map((stage: IStage) => stage.value)).toEqual(['a', 'b-edited']);
+  });
+
+  it('shows edits after leaving the stage and coming back', async () => {
+    const user = setupUser();
+    registerLocalStage();
+    const requested = pipeline('target-id', 'Requested Pipeline');
+    requested.stages = [{ refId: '1', name: 'Bake', type: 'local', value: 'before', requisiteStageRefIds: [] } as any];
+    const app = createApp([requested]);
+    $stateParams.pipelineId = requested.id;
+    showStageConfig(requested.id, 0);
+
+    renderPage(app);
+    await waitForPipeline('Requested Pipeline');
+    await typeLocalValue(user, 'edited');
+
+    await user.click(graphLabel('Configuration'));
+    await waitFor(() => expect(localStageInput()).not.toBeInTheDocument());
+
+    await user.click(graphLabel('Bake'));
+    await waitFor(() => expect(localStageInput()).toHaveValue('edited'));
+  });
+
+  it("mounts the new type's editor and redraws the graph when stage JSON changes the type", async () => {
+    const user = setupUser();
+    registerLocalStage();
+    Registry.pipeline.registerStage({
+      key: 'other',
+      label: 'Other',
+      component: () => <div className="other-stage-config">Other stage config</div>,
+    } as IStageTypeConfig);
+    const requested = pipeline('target-id', 'Requested Pipeline');
+    requested.stages = [{ refId: '1', name: 'Bake', type: 'local', value: 'before', requisiteStageRefIds: [] } as any];
+    const app = createApp([requested]);
+    $stateParams.pipelineId = requested.id;
+    showStageConfig(requested.id, 0);
+    renderModals();
+
+    renderPage(app);
+    await waitForPipeline('Requested Pipeline');
+
+    await user.click(screen.getByRole('button', { name: /Edit stage as JSON/ }));
+    setJsonEditorValue((stage) => ({ ...stage, type: 'other', name: 'Renamed' }));
+    await user.click(screen.getByRole('button', { name: /Update Stage/ }));
+
+    expect(await screen.findByText('Other stage config')).toBeVisible();
+    expect(localStageInput()).not.toBeInTheDocument();
+    await waitFor(() => expect(graphLabel('Renamed')).toBeVisible());
+  });
+
+  it('keeps the editor and the clean state when JSON edits are cancelled', async () => {
+    const user = setupUser();
+    registerLocalStage();
+    const requested = pipeline('target-id', 'Requested Pipeline');
+    requested.stages = [{ refId: '1', name: 'Bake', type: 'local', value: 'before', requisiteStageRefIds: [] } as any];
+    const app = createApp([requested]);
+    $stateParams.pipelineId = requested.id;
+    showStageConfig(requested.id, 0);
+    renderModals();
+
+    renderPage(app);
+    await waitForPipeline('Requested Pipeline');
+
+    await user.click(screen.getByRole('button', { name: /Edit stage as JSON/ }));
+    await user.click(screen.getByRole('button', { name: 'Cancel' }));
+    await user.click(screen.getByRole('button', { name: 'Pipeline Actions' }));
+    await user.click(screen.getByText('Edit as JSON'));
+    await user.click(screen.getByRole('button', { name: 'Cancel' }));
+    await flush();
+
+    expect(localStageMounts).toBe(1);
+    expect(localStageInput()).toHaveValue('before');
+    expect(screen.queryByRole('button', { name: /Save Changes/ })).not.toBeInTheDocument();
+  });
+
+  it('handles a pipeline JSON edit that removes the selected stage', async () => {
+    const user = setupUser();
+    registerLocalStage();
+    const requested = pipeline('target-id', 'Requested Pipeline');
+    requested.stages = [{ refId: '1', name: 'Bake', type: 'local', value: 'before', requisiteStageRefIds: [] } as any];
+    const app = createApp([requested]);
+    $stateParams.pipelineId = requested.id;
+    showStageConfig(requested.id, 0);
+    renderModals();
+
+    renderPage(app);
+    await waitForPipeline('Requested Pipeline');
+    expect(localStageInput()).toHaveValue('before');
+
+    await editPipelineJson(user, (json) => ({ ...json, stages: [] }));
+
+    await waitFor(() => expect(localStageInput()).not.toBeInTheDocument());
+    expect(within(graph()).queryByText('Bake', { selector: '.label-body a' })).not.toBeInTheDocument();
+    expect(executionOptions()).toBeVisible();
+    const saved = await saveAndGetPipeline(user);
+    expect(saved.stages).toEqual([]);
+  });
+
+  it('selects the last remaining stage when a pipeline JSON edit removes the selected stage', async () => {
+    const user = setupUser();
+    registerLocalStage();
+    const requested = pipeline('target-id', 'Requested Pipeline');
+    requested.stages = [
+      { refId: '1', name: 'Bake A', type: 'local', value: 'a', requisiteStageRefIds: [] } as any,
+      { refId: '2', name: 'Bake B', type: 'local', value: 'b', requisiteStageRefIds: ['1'] } as any,
+    ];
+    const app = createApp([requested]);
+    $stateParams.pipelineId = requested.id;
+    showStageConfig(requested.id, 1);
+    renderModals();
+
+    renderPage(app);
+    await waitForPipeline('Requested Pipeline');
+    expect(localStageInput()).toHaveValue('b');
+
+    await editPipelineJson(user, (json) => ({ ...json, stages: json.stages.slice(0, 1) }));
+
+    await waitFor(() => expect(localStageInput()).toHaveValue('a'));
+  });
+
+  it('shows the triggers when a restored history revision has no stages', async () => {
+    const user = setupUser();
+    registerLocalStage();
+    const requested = pipeline('target-id', 'Requested Pipeline');
+    requested.stages = [
+      { refId: '1', name: 'Bake A', type: 'local', value: 'a', requisiteStageRefIds: [] } as any,
+      { refId: '2', name: 'Bake B', type: 'local', value: 'b', requisiteStageRefIds: ['1'] } as any,
+    ];
+    const restored = { ...pipeline('target-id', 'Requested Pipeline'), stages: [] as any[] };
+    const app = createApp([requested]);
+    $stateParams.pipelineId = requested.id;
+    showStageConfig(requested.id, 1);
+    vi.spyOn(ReactModal, 'show').mockResolvedValue(restored);
+    vi.spyOn(PipelineConfigService, 'savePipeline').mockResolvedValue();
+
+    renderPage(app);
+    await waitForPipeline('Requested Pipeline');
+    expect(localStageInput()).toHaveValue('b');
+
+    await user.click(screen.getByRole('button', { name: 'Pipeline Actions' }));
+    await user.click(screen.getByText('Show Revision History'));
+
+    await waitFor(() => expect(localStageInput()).not.toBeInTheDocument());
+    expect(executionOptions()).toBeVisible();
+  });
+
+  it('selects the last remaining stage when template configuration removes the selected stage', async () => {
+    const user = setupUser();
+    registerLocalStage();
+    const requested = templatedV1();
+    const originalPlan = {
+      ...pipeline(requested.id, requested.name),
+      stages: [
+        { refId: '1', name: 'Bake A', type: 'local', value: 'a', requisiteStageRefIds: [] } as any,
+        { refId: '2', name: 'Bake B', type: 'local', value: 'b', requisiteStageRefIds: ['1'] } as any,
+      ],
+    } as IPipeline;
+    const app = createApp([requested]);
+    $stateParams.pipelineId = requested.id;
+    showStageConfig(requested.id, 1);
+    vi.spyOn(PipelineTemplateReader, 'getPipelinePlan').mockResolvedValue(originalPlan);
+    const modalResult = deferred<{ plan: IPipeline; config: IPipeline }>();
+    vi.spyOn(ReactModal, 'show').mockReturnValue(modalResult.promise);
+
+    renderPage(app);
+    await waitFor(() => expect(localStageInput()).toHaveValue('b'));
+
+    await user.click(screen.getByRole('button', { name: /Configure Template/ }));
+    modalResult.resolve({ plan: { ...originalPlan, stages: originalPlan.stages.slice(0, 1) }, config: requested });
+
+    await waitFor(() => expect(localStageInput()).toHaveValue('a'));
+  });
+
+  it('gives a copied stage its own editor and values', async () => {
+    const user = setupUser();
+    registerLocalStage();
+    const requested = pipeline('target-id', 'Requested Pipeline');
+    requested.stages = [{ refId: '1', name: 'Bake', type: 'local', value: 'before', requisiteStageRefIds: [] } as any];
+    const app = createApp([requested]);
+    $stateParams.pipelineId = requested.id;
+    showStageConfig(requested.id, 0);
+    vi.spyOn(ReactModal, 'show').mockResolvedValue({
+      refId: '9',
+      name: 'Bake',
+      type: 'local',
+      value: 'before',
+      requisiteStageRefIds: [],
+    });
+
+    renderPage(app);
+    await waitForPipeline('Requested Pipeline');
+    await typeLocalValue(user, 'original-edited');
+
+    await user.click(screen.getByRole('button', { name: /Copy an existing stage/ }));
+
+    await waitFor(() => expect(localStageInput()).toHaveValue('before'));
+    await typeLocalValue(user, 'copy-edited');
+
+    const saved = await saveAndGetPipeline(user);
+    expect(saved.stages.map((stage: any) => stage.value)).toEqual(['original-edited', 'copy-edited']);
+  });
+
+  it('keeps the stage editor mounted through a save, and later edits still apply', async () => {
+    const user = setupUser();
+    registerLocalStage();
+    const requested = pipeline('target-id', 'Requested Pipeline');
+    requested.stages = [{ refId: '1', name: 'Bake', type: 'local', value: 'before', requisiteStageRefIds: [] } as any];
+    const app = createApp([requested]);
+    $stateParams.pipelineId = requested.id;
+    showStageConfig(requested.id);
+    const savePipeline = vi.spyOn(PipelineConfigService, 'savePipeline').mockResolvedValue();
+
+    renderPage(app);
+    await waitForPipeline('Requested Pipeline');
+    await typeLocalValue(user, 'edited');
+    await user.click(screen.getByRole('button', { name: /Save Changes/ }));
+
+    await waitFor(() => expect(screen.queryByRole('button', { name: /Save Changes/ })).not.toBeInTheDocument());
+    expect(savePipeline).toHaveBeenCalledWith(
+      expect.objectContaining({ stages: [expect.objectContaining({ value: 'edited' })] }),
+    );
+    expect(localStageInput()).toHaveValue('edited');
+    expect(localStageMounts).toBe(1);
+
+    await typeLocalValue(user, 'edited again');
+
+    expect(screen.getByRole('button', { name: /Save Changes/ })).toBeVisible();
+    expect(localStageMounts).toBe(1);
+    await user.click(screen.getByRole('button', { name: /Save Changes/ }));
+    await waitFor(() => expect(savePipeline).toHaveBeenCalledTimes(2));
+    expect(savePipeline.mock.lastCall[0].stages[0].value).toBe('edited again');
+  });
+
+  it('keeps and flags edits made while a save is in progress', async () => {
+    const user = setupUser();
+    registerLocalStage();
+    const requested = pipeline('target-id', 'Requested Pipeline');
+    requested.stages = [{ refId: '1', name: 'Bake', type: 'local', value: 'before', requisiteStageRefIds: [] } as any];
+    const app = createApp([requested]);
+    $stateParams.pipelineId = requested.id;
+    showStageConfig(requested.id);
+    const saveResult = deferred<void>();
+    const savePipeline = vi.spyOn(PipelineConfigService, 'savePipeline').mockReturnValue(saveResult.promise);
+
+    renderPage(app);
+    await waitForPipeline('Requested Pipeline');
+    await typeLocalValue(user, 'edited');
+    await user.click(screen.getByRole('button', { name: /Save Changes/ }));
+    await typeLocalValue(user, 'during save');
+    await act(async () => {
+      saveResult.resolve();
+      await flush();
+    });
+
+    expect(savePipeline).toHaveBeenCalledWith(
+      expect.objectContaining({ stages: [expect.objectContaining({ value: 'edited' })] }),
+    );
+    expect(localStageInput()).toHaveValue('during save');
+    expect(screen.getByRole('button', { name: /Save Changes/ })).toBeVisible();
+    savePipeline.mockResolvedValue();
+    await user.click(screen.getByRole('button', { name: /Save Changes/ }));
+    await waitFor(() => expect(savePipeline).toHaveBeenCalledTimes(2));
+    expect(savePipeline.mock.lastCall[0].stages[0].value).toBe('during save');
+  });
+
+  it('keeps the new updateTs when a save finishes while the stage JSON modal is open', async () => {
+    const user = setupUser();
+    registerLocalStage();
+    const requested = { ...pipeline('target-id', 'Requested Pipeline'), updateTs: 1 };
+    requested.stages = [{ refId: '1', name: 'Bake', type: 'local', value: 'before', requisiteStageRefIds: [] } as any];
+    const app = createApp([requested]);
+    $stateParams.pipelineId = requested.id;
+    showStageConfig(requested.id);
+    const saveResult = deferred<void>();
+    // A save updates the submitted pipeline's updateTs, so record it when it is submitted
+    const submittedUpdateTs: number[] = [];
+    const savePipeline = vi.spyOn(PipelineConfigService, 'savePipeline').mockImplementation((toSave: IPipeline) => {
+      submittedUpdateTs.push(toSave.updateTs);
+      return saveResult.promise;
+    });
+    renderModals();
+
+    renderPage(app);
+    await waitForPipeline('Requested Pipeline');
+    await typeLocalValue(user, 'edited');
+    await user.click(screen.getByRole('button', { name: /Save Changes/ }));
+    await user.click(screen.getByRole('button', { name: /Edit stage as JSON/ }));
+    // The server stores a new updateTs while the modal is open
+    requested.updateTs = 2;
+    saveResult.resolve();
+    await screen.findByText('In sync with server');
+    setJsonEditorValue((stage) => ({ ...stage, value: 'from json' }));
+    await user.click(screen.getByRole('button', { name: /Update Stage/ }));
+
+    await user.click(await screen.findByRole('button', { name: /Save Changes/ }));
+    await waitFor(() => expect(savePipeline).toHaveBeenCalledTimes(2));
+    expect(submittedUpdateTs).toEqual([1, 2]);
+    expect(savePipeline.mock.lastCall[0].stages).toEqual([expect.objectContaining({ value: 'from json' })]);
+  });
+
+  it('keeps the new updateTs when a save finishes while the pipeline JSON modal is open', async () => {
+    const user = setupUser();
+    registerLocalStage();
+    const requested = { ...pipeline('target-id', 'Requested Pipeline'), updateTs: 1 };
+    requested.stages = [{ refId: '1', name: 'Bake', type: 'local', value: 'before', requisiteStageRefIds: [] } as any];
+    const app = createApp([requested]);
+    $stateParams.pipelineId = requested.id;
+    showStageConfig(requested.id);
+    const saveResult = deferred<void>();
+    // A save updates the submitted pipeline's updateTs, so record it when it is submitted
+    const submittedUpdateTs: number[] = [];
+    const savePipeline = vi.spyOn(PipelineConfigService, 'savePipeline').mockImplementation((toSave: IPipeline) => {
+      submittedUpdateTs.push(toSave.updateTs);
+      return saveResult.promise;
+    });
+    renderModals();
+
+    renderPage(app);
+    await waitForPipeline('Requested Pipeline');
+    await typeLocalValue(user, 'edited');
+    await user.click(screen.getByRole('button', { name: /Save Changes/ }));
+    await openPipelineAction(user, 'Edit as JSON');
+
+    expect(jsonEditorValue().updateTs).toBe(1);
+
+    // The server stores a new updateTs while the modal is open
+    requested.updateTs = 2;
+    saveResult.resolve();
+    await screen.findByText('In sync with server');
+    setJsonEditorValue((json) => ({ ...json, description: 'From JSON' }));
+    await user.click(screen.getByRole('button', { name: /Update Pipeline/ }));
+
+    await user.click(await screen.findByRole('button', { name: /Save Changes/ }));
+    await waitFor(() => expect(savePipeline).toHaveBeenCalledTimes(2));
+    expect(submittedUpdateTs).toEqual([1, 2]);
+    expect(savePipeline.mock.lastCall[0].description).toBe('From JSON');
+  });
+
+  it('keeps pending changes marked unsaved after enabling the pipeline', async () => {
+    const user = setupUser();
+    registerLocalStage();
+    const requested = { ...pipeline('target-id', 'Requested Pipeline'), disabled: true };
+    requested.stages = [{ refId: '1', name: 'Bake', type: 'local', value: 'before', requisiteStageRefIds: [] } as any];
+    const app = createApp([requested]);
+    $stateParams.pipelineId = requested.id;
+    showStageConfig(requested.id);
+    const savePipeline = vi.spyOn(PipelineConfigService, 'savePipeline').mockResolvedValue();
+    renderModals();
+
+    renderPage(app);
+    const heading = await waitForPipeline('Requested Pipeline');
+    expect(heading).toHaveTextContent('(disabled)');
+    await typeLocalValue(user, 'edited');
+    await openPipelineAction(user, 'Enable');
+    await user.click(screen.getByRole('button', { name: 'Enable pipeline' }));
+
+    await waitFor(() => expect(heading).not.toHaveTextContent('(disabled)'));
+    expect(savePipeline).toHaveBeenCalledWith(
+      expect.objectContaining({ disabled: false, stages: [expect.objectContaining({ value: 'before' })] }),
+    );
+    expect(screen.getByRole('textbox', { name: 'Local value' })).toHaveValue('edited');
+    expect(screen.getByRole('button', { name: /Save Changes/ })).toBeVisible();
+
+    await user.click(screen.getByRole('button', { name: /Save Changes/ }));
+    await waitFor(() => expect(savePipeline).toHaveBeenCalledTimes(2));
+    expect(savePipeline.mock.lastCall[0]).toEqual(
+      expect.objectContaining({ disabled: false, stages: [expect.objectContaining({ value: 'edited' })] }),
+    );
+  });
+
+  it('saves without a stale updateTs after the pipeline is locked and unlocked', async () => {
+    const user = setupUser();
+    registerLocalStage();
+    const requested = { ...pipeline('target-id', 'Requested Pipeline'), updateTs: 1 };
+    requested.stages = [{ refId: '1', name: 'Bake', type: 'local', value: 'before', requisiteStageRefIds: [] } as any];
+    const app = createApp([requested]);
+    $stateParams.pipelineId = requested.id;
+    showStageConfig(requested.id);
+    const { savePipeline, staleSaves, submittedUpdateTs } = staleCheckingSave(requested);
+    renderModals();
+
+    renderPage(app);
+    await waitForPipeline('Requested Pipeline');
+    await openPipelineAction(user, 'Lock');
+    await user.click(screen.getByRole('button', { name: 'Lock pipeline' }));
+    await screen.findByText('Pipeline is locked');
+    await openPipelineAction(user, 'Unlock');
+    await user.click(screen.getByRole('button', { name: 'Unlock pipeline' }));
+    await screen.findByText('In sync with server');
+    await typeLocalValue(user, 'edited');
+    await user.click(screen.getByRole('button', { name: /Save Changes/ }));
+
+    await waitFor(() => expect(savePipeline).toHaveBeenCalledTimes(3));
+    await screen.findByText('In sync with server');
+    expect(staleSaves).toEqual([]);
+    expect(submittedUpdateTs).toEqual([1, 2, 3]);
+    expect(savePipeline.mock.lastCall[0]).toEqual(
+      expect.objectContaining({ stages: [expect.objectContaining({ value: 'edited' })] }),
+    );
+    expect(screen.queryByRole('button', { name: /Save Changes/ })).not.toBeInTheDocument();
+  });
+
+  it('saves without a stale updateTs after the pipeline is disabled and enabled', async () => {
+    const user = setupUser();
+    registerLocalStage();
+    const requested = { ...pipeline('target-id', 'Requested Pipeline'), updateTs: 1 };
+    requested.stages = [{ refId: '1', name: 'Bake', type: 'local', value: 'before', requisiteStageRefIds: [] } as any];
+    const app = createApp([requested]);
+    $stateParams.pipelineId = requested.id;
+    showStageConfig(requested.id);
+    const { savePipeline, staleSaves, submittedUpdateTs } = staleCheckingSave(requested);
+    renderModals();
+
+    renderPage(app);
+    const heading = await waitForPipeline('Requested Pipeline');
+    await openPipelineAction(user, 'Disable');
+    await user.click(screen.getByRole('button', { name: 'Disable pipeline' }));
+    await waitFor(() => expect(heading).toHaveTextContent('(disabled)'));
+    await typeLocalValue(user, 'disabled edit');
+    await user.click(screen.getByRole('button', { name: /Save Changes/ }));
+    await waitFor(() => expect(savePipeline).toHaveBeenCalledTimes(2));
+    await screen.findByText('In sync with server');
+    await openPipelineAction(user, 'Enable');
+    await user.click(screen.getByRole('button', { name: 'Enable pipeline' }));
+    await waitFor(() => expect(heading).not.toHaveTextContent('(disabled)'));
+    await typeLocalValue(user, 'enabled edit');
+    await user.click(screen.getByRole('button', { name: /Save Changes/ }));
+
+    await waitFor(() => expect(savePipeline).toHaveBeenCalledTimes(4));
+    await screen.findByText('In sync with server');
+    expect(staleSaves).toEqual([]);
+    expect(submittedUpdateTs).toEqual([1, 2, 3, 4]);
+    expect(savePipeline.mock.lastCall[0]).toEqual(
+      expect.objectContaining({ disabled: false, stages: [expect.objectContaining({ value: 'enabled edit' })] }),
+    );
+    expect(screen.queryByRole('button', { name: /Save Changes/ })).not.toBeInTheDocument();
+  });
+
+  it('keeps an execution option change after more edits in a Formik stage form', async () => {
+    const user = setupUser();
+    Registry.pipeline.registerStage({
+      label: 'Script',
+      key: 'script',
+      defaults: { waitForCompletion: true, failPipeline: true },
+      component: ScriptStageConfig,
+      validateFn: validateScriptStage,
+    } as IStageTypeConfig);
+    const requested = pipeline('target-id', 'Requested Pipeline');
+    requested.stages = [
+      {
+        refId: '1',
+        name: 'Script',
+        type: 'script',
+        command: 'echo 1',
+        failPipeline: true,
+        continuePipeline: false,
+        requisiteStageRefIds: [],
+      } as any,
+    ];
+    const app = createApp([requested]);
+    $stateParams.pipelineId = requested.id;
+    showStageConfig(requested.id);
+
+    renderPage(app);
+    await waitForPipeline('Requested Pipeline');
+    const command = screen.getByDisplayValue('echo 1');
+    const ignoreFailure = within(field('If stage fails')).getByRole('radio', { name: /ignore the failure/ });
+
+    // The first edit gives the form its own copy of the stage
+    fireEvent.change(command, { target: { value: 'echo 2' } });
+    await user.click(ignoreFailure);
+    fireEvent.change(command, { target: { value: 'echo 3' } });
+
+    await waitFor(() => expect(ignoreFailure).toBeChecked());
+    const saved = await saveAndGetPipeline(user);
+    expect(saved.stages[0]).toEqual(
+      expect.objectContaining({ command: 'echo 3', failPipeline: false, continuePipeline: true }),
+    );
+  });
+
+  it('remounts the stage editor with a restored history revision', async () => {
+    const user = setupUser();
+    registerMountedStage();
+    const requested = pipeline('target-id', 'Requested Pipeline');
+    requested.stages = [
+      { refId: '1', name: 'Bake', type: 'mounted', value: 'before', requisiteStageRefIds: [] } as any,
+    ];
+    const restored = {
+      ...pipeline('target-id', 'Requested Pipeline'),
+      stages: [{ refId: '1', name: 'Bake', type: 'mounted', value: 'restored', requisiteStageRefIds: [] } as any],
+    };
+    const app = createApp([requested]);
+    $stateParams.pipelineId = requested.id;
+    showStageConfig(requested.id);
+    vi.spyOn(ReactModal, 'show').mockResolvedValue(restored);
+    vi.spyOn(PipelineConfigService, 'savePipeline').mockResolvedValue();
+
+    renderPage(app);
+    await waitForPipeline('Requested Pipeline');
+    expect(mountedStageValue()).toBe('before');
+
+    await openPipelineAction(user, 'Show Revision History');
+
+    await waitFor(() => expect(mountedStageValue()).toBe('restored'));
+  });
+
+  it('applies pipeline JSON edits to the execution options', async () => {
+    const user = setupUser();
+    const requested = pipeline('target-id', 'Requested Pipeline');
+    requested.limitConcurrent = false;
+    requested.maxConcurrentExecutions = 2;
+    const app = createApp([requested]);
+    $stateParams.pipelineId = requested.id;
+    renderModals();
+
+    renderPage(app);
+    await waitForPipeline('Requested Pipeline');
+    expect(maxConcurrentInput()).toHaveValue(2);
+
+    await openPipelineAction(user, 'Edit as JSON');
+    setJsonEditorValue((json) => ({ ...json, maxConcurrentExecutions: 5 }));
+    await user.click(screen.getByRole('button', { name: /Update Pipeline/ }));
+
+    await waitFor(() => expect(maxConcurrentInput()).toHaveValue(5));
+  });
+
+  it('updates the execution options when the template is configured', async () => {
+    const user = setupUser();
+    const requested = templatedV1();
+    const originalPlan = {
+      ...pipeline(requested.id, requested.name),
+      stages: [],
+      limitConcurrent: false,
+      maxConcurrentExecutions: 2,
+    } as IPipeline;
+    const app = createApp([requested]);
+    $stateParams.pipelineId = requested.id;
+    vi.spyOn(PipelineTemplateReader, 'getPipelinePlan').mockResolvedValue(originalPlan);
+    const modalResult = deferred<{ plan: IPipeline; config: IPipeline }>();
+    vi.spyOn(ReactModal, 'show').mockReturnValue(modalResult.promise);
+
+    renderPage(app);
+    const configure = await screen.findByRole('button', { name: /Configure Template/ });
+    expect(maxConcurrentInput()).toHaveValue(2);
+
+    await user.click(configure);
+    modalResult.resolve({ plan: { ...originalPlan, maxConcurrentExecutions: 5 }, config: requested });
+
+    await waitFor(() => expect(maxConcurrentInput()).toHaveValue(5));
+  });
+
+  it('keeps a trigger form mounted while triggers and other pipeline fields are edited', async () => {
+    const user = setupUser();
+    const testTrigger = registerTestTrigger();
+    const requested = pipeline('target-id', 'Requested Pipeline');
+    requested.triggers = [{ type: 'webhook', enabled: true, value: 'first' } as any];
+    const app = createApp([requested]);
+    $stateParams.pipelineId = requested.id;
+
+    renderPage(app);
+    await waitForPipeline('Requested Pipeline');
+
+    const [triggerValue] = testTriggerInputs();
+    await user.clear(triggerValue);
+    await user.type(triggerValue, 'edited');
+    await user.type(screen.getByPlaceholderText(/explain the purpose of this pipeline/), 'Described');
+
+    expect(testTriggerValues()).toEqual(['edited']);
+    expect(testTrigger.count).toBe(1);
+    const saved = await saveAndGetPipeline(user);
+    expect(saved.triggers[0]).toEqual(expect.objectContaining({ value: 'edited' }));
+    expect(saved.description).toBe('Described');
+  });
+
+  it('keeps the other trigger forms mounted when a trigger is removed', async () => {
+    const user = setupUser();
+    const testTrigger = registerTestTrigger();
+    const requested = pipeline('target-id', 'Requested Pipeline');
+    requested.triggers = [
+      { type: 'webhook', enabled: true, value: 'first' } as any,
+      { type: 'webhook', enabled: true, value: 'second' } as any,
+    ];
+    const app = createApp([requested]);
+    $stateParams.pipelineId = requested.id;
+
+    renderPage(app);
+    await waitForPipeline('Requested Pipeline');
+    expect(testTrigger.count).toBe(2);
+
+    await user.click(screen.getAllByRole('button', { name: 'Remove trigger' })[0]);
+
+    await waitFor(() => expect(testTriggerValues()).toEqual(['second']));
+    expect(testTrigger.count).toBe(2);
+    const saved = await saveAndGetPipeline(user);
+    expect(saved.triggers.map((trigger: any) => trigger.value)).toEqual(['second']);
+  });
+
+  it('resets trigger forms when the pipeline is edited as JSON or reverted', async () => {
+    const user = setupUser();
+    registerTestTrigger();
+    const requested = pipeline('target-id', 'Requested Pipeline');
+    requested.triggers = [{ type: 'webhook', enabled: true, value: 'first' } as any];
+    const app = createApp([requested]);
+    $stateParams.pipelineId = requested.id;
+    renderModals();
+
+    renderPage(app);
+    await waitForPipeline('Requested Pipeline');
+
+    const [triggerValue] = testTriggerInputs();
+    await user.clear(triggerValue);
+    await user.type(triggerValue, 'edited');
+    await openPipelineAction(user, 'Edit as JSON');
+    expect(jsonEditorValue().triggers[0].value).toBe('edited');
+    setJsonEditorValue((json) => ({ ...json, triggers: [{ ...json.triggers[0], value: 'from json' }] }));
+    await user.click(screen.getByRole('button', { name: /Update Pipeline/ }));
+
+    await waitFor(() => expect(testTriggerValues()).toEqual(['from json']));
+
+    await user.click(screen.getByRole('button', { name: /Revert/ }));
+
+    await waitFor(() => expect(testTriggerValues()).toEqual(['first']));
+    await openPipelineAction(user, 'Edit as JSON');
+    expect(jsonEditorValue().triggers[0]).toEqual(expect.objectContaining({ value: 'first' }));
+    await user.click(screen.getByRole('button', { name: 'Cancel' }));
   });
 });

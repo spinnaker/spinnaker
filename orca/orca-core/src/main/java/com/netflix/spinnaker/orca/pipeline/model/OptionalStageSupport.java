@@ -42,7 +42,11 @@ public class OptionalStageSupport {
    */
   public static boolean isOptional(
       StageExecution stage, ContextParameterProcessor contextParameterProcessor) {
-    Map stageEnabled = (Map) stage.getContext().get("stageEnabled");
+    // Ignore ancestor outputs; stageEnabled controls only the current stage.
+    Map stageEnabled =
+        stage.getContext().containsKey("stageEnabled")
+            ? (Map) stage.getContext().get("stageEnabled")
+            : null;
     String type = stageEnabled == null ? null : (String) stageEnabled.get("type");
     String optionalType = type == null ? null : type.toLowerCase();
     if (!OPTIONAL_STAGE_TYPES.containsKey(optionalType)) {

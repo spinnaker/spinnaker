@@ -1,6 +1,6 @@
 import { noop } from 'lodash';
 
-import { mockHttpClient } from '../api/mock/jasmine';
+import { mockHttpClient } from '../api/mock/mockHttpSupport';
 import type { MockHttpClient } from '../api/mock/mockHttpClient';
 import { Application } from '../application/application.model';
 import { ApplicationModelBuilder } from '../application/applicationModel.builder';
@@ -30,9 +30,11 @@ describe('serverGroupWriter', function () {
       convertServerGroupCommandToDeployConfiguration: (command: any) => command,
     };
     serverGroupWriter = new ServerGroupWriter(serverGroupTransformer);
-    spyOn(serverGroupTransformer, 'convertServerGroupCommandToDeployConfiguration').and.callFake((command: any) => {
-      return command;
-    });
+    vi.spyOn(serverGroupTransformer, 'convertServerGroupCommandToDeployConfiguration').mockImplementation(
+      (command: any) => {
+        return command;
+      },
+    );
   });
 
   describe('clone server group submit', function () {
@@ -149,7 +151,7 @@ describe('direct runtime server group writer', () => {
     await task;
 
     expect(submitted.job[0]).toEqual(
-      jasmine.objectContaining({
+      expect.objectContaining({
         type: 'destroyServerGroup',
         serverGroupName: 'app-test-v001',
         credentials: 'test-account',

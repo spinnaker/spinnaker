@@ -16,11 +16,13 @@
 
 package com.netflix.spinnaker.clouddriver.ecs.deploy.validators;
 
+import com.netflix.spinnaker.clouddriver.ecs.EcsNativeOperation;
 import com.netflix.spinnaker.clouddriver.ecs.EcsOperation;
 import com.netflix.spinnaker.clouddriver.orchestration.AtomicOperations;
 import org.springframework.stereotype.Component;
 
 @EcsOperation(AtomicOperations.ENABLE_SERVER_GROUP)
+@EcsNativeOperation(AtomicOperations.ENABLE_SERVER_GROUP)
 @Component("enableServiceAtomicOperationValidator")
 public class EnableServiceDescriptionValidator extends ServerGroupDescriptionValidator {
   public EnableServiceDescriptionValidator() {

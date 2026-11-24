@@ -33,7 +33,7 @@ class ElasticSearchEntityTagsReconcilerSpec extends Specification {
     buildEntityTags("id-2", "aws", "servergroup", "clouddriver-main-v002", "myaccount", "us-west-2"),
     buildEntityTags("id-3", "aws", "servergroup", "clouddriver-main-v003", "myaccount", "us-west-1"),
     buildEntityTags("id-4", "k8s", "servergroup", "clouddriver-main-v004", "myaccount", "us-west-1"),
-    buildEntityTags("id-5", "titus", "servergroup", "clouddriver-main-v005", "myaccount", "us-west-1"),
+    buildEntityTags("id-5", "ecs", "servergroup", "clouddriver-main-v005", "myaccount", "us-west-1"),
     buildEntityTags("id-6", "aws", "cluster", "clouddriver-main", "myaccount", "us-east-1"),
   ]
 
@@ -48,10 +48,10 @@ class ElasticSearchEntityTagsReconcilerSpec extends Specification {
     }
   }
 
-  def titusServerGroupProvider = Mock(ServerGroupProvider) {
-    _ * getCloudProviderId() >> { return "titus" }
+  def ecsServerGroupProvider = Mock(ServerGroupProvider) {
+    _ * getCloudProviderId() >> { return "ecs" }
     _ * buildServerGroupIdentifier(_, _, _) >> { String account, String region, String entityId ->
-      return "titus:servergroups:${entityId}:${account}:${region}"
+      return "ecs:servergroups:${entityId}:${account}:${region}"
     }
   }
 
@@ -67,7 +67,7 @@ class ElasticSearchEntityTagsReconcilerSpec extends Specification {
   @Subject
   def entityTagsReconciler = new ElasticSearchEntityTagsReconciler(
     front50Service,
-    Optional.of([amazonServerGroupProvider, titusServerGroupProvider])
+    Optional.of([amazonServerGroupProvider, ecsServerGroupProvider])
   )
 
   def "should build provider-specific identifier"() {
@@ -87,9 +87,9 @@ class ElasticSearchEntityTagsReconcilerSpec extends Specification {
         "aws:servergroups:clouddriver-main-v001:myaccount:us-west-1"
       ]
     }
-    1 * titusServerGroupProvider.getServerGroupIdentifiers(null, null) >> {
+    1 * ecsServerGroupProvider.getServerGroupIdentifiers(null, null) >> {
       return [
-        "titus:servergroups:clouddriver-main-v005:myaccount:us-west-1"
+        "ecs:servergroups:clouddriver-main-v005:myaccount:us-west-1"
       ]
     }
 

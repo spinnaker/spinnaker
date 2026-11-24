@@ -1,7 +1,6 @@
+import { fireEvent, render } from '@testing-library/react';
 import React from 'react';
-import { shallow } from 'enzyme';
 
-import { normalizeGceLoadBalancerCommand } from './gceLoadBalancerModels';
 import {
   applyGceProxyTypeConstraints,
   GCE_PROXY_TYPE_CONFIG,
@@ -9,6 +8,7 @@ import {
   getGceProxyResourceOptions,
   validateGceProxyLoadBalancerCommand,
 } from './GceProxyLoadBalancerEditor';
+import { normalizeGceLoadBalancerCommand } from './gceLoadBalancerModels';
 
 describe('GceProxyLoadBalancerEditor', () => {
   it('defines frontend and backend protocols that match each Clouddriver proxy contract', () => {
@@ -50,7 +50,7 @@ describe('GceProxyLoadBalancerEditor', () => {
     expect(constrained.listeners[0].protocol).toBe('SSL');
     expect(constrained.listeners[0].certificate).toEqual({ name: 'cert-a' });
     expect(constrained.backendServices[0]).toEqual(
-      jasmine.objectContaining({
+      expect.objectContaining({
         affinityCookieTtlSec: 300,
         connectionDrainingTimeoutSec: 45,
         portName: 'https',
@@ -107,7 +107,10 @@ describe('GceProxyLoadBalancerEditor', () => {
         { name: 'address-b', account: 'account-b', region: 'global' },
       ],
       backendServices: [{ name: 'backend-a', account: 'account-a', region: 'global' }],
-      certificates: [{ name: 'cert-a', account: 'account-a' }],
+      certificates: [
+        { name: 'cert-a', account: 'account-a' },
+        { name: 'regional-cert', account: 'account-a', region: 'us-central1' },
+      ],
       healthChecks: [{ name: 'check-a', account: 'account-a' }],
       networks: [],
       regions: [{ name: 'global' }],
@@ -203,15 +206,15 @@ describe('GceProxyLoadBalancerEditor', () => {
         'create',
       ),
     );
-    const wrapper = shallow(
-      <GceProxyLoadBalancerEditor command={command} data={emptyData()} onChange={jasmine.createSpy('onChange')} />,
+    const { container } = render(
+      <GceProxyLoadBalancerEditor command={command} data={emptyData()} onChange={vi.fn()} />,
     );
 
-    expect(wrapper.find('[data-field="certificate"]').exists()).toBe(true);
-    expect(wrapper.find('[data-field="portName"]').exists()).toBe(true);
-    expect(wrapper.find('[data-field="connectionDrainingTimeoutSec"]').exists()).toBe(true);
-    expect(wrapper.find('[data-field="network"]').exists()).toBe(false);
-    expect(wrapper.find('[data-field="subnet"]').exists()).toBe(false);
+    expect(field(container, 'certificate')).toBeInTheDocument();
+    expect(field(container, 'portName')).toBeInTheDocument();
+    expect(field(container, 'connectionDrainingTimeoutSec')).toBeInTheDocument();
+    expect(field(container, 'network')).not.toBeInTheDocument();
+    expect(field(container, 'subnet')).not.toBeInTheDocument();
   });
 
   it('renders regional network and subnet fields for INTERNAL without unsupported draining controls', () => {
@@ -221,14 +224,14 @@ describe('GceProxyLoadBalancerEditor', () => {
         'create',
       ),
     );
-    const wrapper = shallow(
-      <GceProxyLoadBalancerEditor command={command} data={emptyData()} onChange={jasmine.createSpy('onChange')} />,
+    const { container } = render(
+      <GceProxyLoadBalancerEditor command={command} data={emptyData()} onChange={vi.fn()} />,
     );
 
-    expect(wrapper.find('[data-field="network"]').exists()).toBe(true);
-    expect(wrapper.find('[data-field="subnet"]').exists()).toBe(true);
-    expect(wrapper.find('[data-field="connectionDrainingTimeoutSec"]').exists()).toBe(false);
-    expect(wrapper.find('[data-field="certificate"]').exists()).toBe(false);
+    expect(field(container, 'network')).toBeInTheDocument();
+    expect(field(container, 'subnet')).toBeInTheDocument();
+    expect(field(container, 'connectionDrainingTimeoutSec')).not.toBeInTheDocument();
+    expect(field(container, 'certificate')).not.toBeInTheDocument();
   });
 
   it('keeps generated listener and backend service names aligned when the load balancer name changes', () => {
@@ -238,12 +241,14 @@ describe('GceProxyLoadBalancerEditor', () => {
         'create',
       ),
     );
-    const onChange = jasmine.createSpy('onChange');
-    const wrapper = shallow(<GceProxyLoadBalancerEditor command={command} data={emptyData()} onChange={onChange} />);
+    const onChange = vi.fn();
+    const { container } = render(
+      <GceProxyLoadBalancerEditor command={command} data={emptyData()} onChange={onChange} />,
+    );
 
-    wrapper.find('[data-field="name"] input').simulate('change', { target: { value: 'app-main' } });
+    fireEvent.change(fieldControl(container, 'name'), { target: { value: 'app-main' } });
 
-    const updated = onChange.calls.mostRecent().args[0];
+    const updated = onChange.mock.lastCall[0];
     expect(updated.name).toBe('app-main');
     expect(updated.listeners[0].name).toBe('app-main');
     expect(updated.backendServices[0].name).toBe('app-main');
@@ -256,7 +261,7 @@ describe('GceProxyLoadBalancerEditor', () => {
         'create',
       ),
     );
-    const onChange = jasmine.createSpy('onChange');
+    const onChange = vi.fn();
     const data = {
       ...emptyData(),
       addresses: [
@@ -269,11 +274,11 @@ describe('GceProxyLoadBalancerEditor', () => {
         },
       ],
     };
-    const wrapper = shallow(<GceProxyLoadBalancerEditor command={command} data={data} onChange={onChange} />);
+    const { container } = render(<GceProxyLoadBalancerEditor command={command} data={data} onChange={onChange} />);
 
-    wrapper.find('[data-field="address"] select').simulate('change', { target: { value: 'reserved-address' } });
+    fireEvent.change(fieldControl(container, 'address'), { target: { value: 'reserved-address' } });
 
-    expect(onChange.calls.mostRecent().args[0].listeners[0].address).toEqual(data.addresses[0]);
+    expect(onChange.mock.lastCall[0].listeners[0].address).toEqual(data.addresses[0]);
   });
 
   it('replaces stale inline state with the complete normalized reader health check', () => {
@@ -290,7 +295,7 @@ describe('GceProxyLoadBalancerEditor', () => {
         'edit',
       ),
     );
-    const onChange = jasmine.createSpy('onChange');
+    const onChange = vi.fn();
     const data = {
       ...emptyData(),
       healthChecks: [
@@ -312,17 +317,17 @@ describe('GceProxyLoadBalancerEditor', () => {
         },
       ],
     };
-    const wrapper = shallow(<GceProxyLoadBalancerEditor command={command} data={data} onChange={onChange} />);
+    const { container } = render(<GceProxyLoadBalancerEditor command={command} data={data} onChange={onChange} />);
 
-    wrapper.find('[data-field="healthCheck"] select').simulate('change', { target: { value: 'new-check' } });
+    fireEvent.change(fieldControl(container, 'healthCheck'), { target: { value: 'new-check' } });
 
-    const updated = onChange.calls.mostRecent().args[0];
+    const updated = onChange.mock.lastCall[0];
     expect(updated.backendServices[0].healthCheck).toEqual({
       name: 'new-check',
       selfLink: 'projects/test/global/healthChecks/new-check',
     });
     expect(updated.healthChecks).toEqual([
-      jasmine.objectContaining({
+      expect.objectContaining({
         checkIntervalSec: 15,
         healthCheckType: 'HTTP',
         healthyThreshold: 2,
@@ -350,4 +355,16 @@ function emptyData(): any {
     regions: [],
     subnets: [],
   };
+}
+
+function field(container: HTMLElement, name: string): HTMLElement | null {
+  return container.querySelector(`[data-field="${name}"]`);
+}
+
+function fieldControl(container: HTMLElement, name: string): HTMLInputElement | HTMLSelectElement {
+  const control = field(container, name)?.querySelector('input, select');
+  if (!(control instanceof HTMLInputElement || control instanceof HTMLSelectElement)) {
+    throw new Error(`No control found for ${name}`);
+  }
+  return control;
 }

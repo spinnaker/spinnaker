@@ -17,7 +17,7 @@
 package com.netflix.spinnaker.gate.mcp.tools;
 
 import com.netflix.spinnaker.gate.mcp.support.McpAccessGuard;
-import com.netflix.spinnaker.gate.mcp.support.PipelineConfigs;
+import com.netflix.spinnaker.gate.services.PipelineConfigResolver;
 import com.netflix.spinnaker.gate.services.internal.Front50Service;
 import com.netflix.spinnaker.gate.services.internal.OrcaServiceSelector;
 import com.netflix.spinnaker.kork.retrofit.Retrofit2SyncCall;
@@ -28,7 +28,9 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import org.springaicommunity.mcp.annotation.McpTool;
+import org.springaicommunity.mcp.annotation.McpTool.McpAnnotations;
 import org.springaicommunity.mcp.annotation.McpToolParam;
+import org.springframework.security.access.prepost.PreAuthorize;
 
 /**
  * MCP tools for triggering and controlling pipeline *executions* - see {@link PipelineConfigTools}
@@ -56,6 +58,7 @@ public class PipelineTools {
       name = "trigger_pipeline",
       description =
           "Trigger (start) a pipeline execution by pipeline name or config id, optionally supplying pipeline parameters.")
+  @PreAuthorize("hasPermission(#application, 'APPLICATION', 'EXECUTE')")
   public Map<String, Object> triggerPipeline(
       @McpToolParam(description = "Application name", required = true) String application,
       @McpToolParam(description = "Pipeline name or config id", required = true)
@@ -69,7 +72,7 @@ public class PipelineTools {
 
     String user = AuthenticatedRequest.getSpinnakerUser().orElse("anonymous");
     Map<String, Object> pipelineConfig =
-        PipelineConfigs.resolve(front50Service, application, pipelineNameOrId);
+        PipelineConfigResolver.resolve(front50Service, application, pipelineNameOrId);
 
     Map<String, Object> trigger = new LinkedHashMap<>();
     trigger.put("user", user);
@@ -83,7 +86,11 @@ public class PipelineTools {
         orcaServiceSelector.select().startPipeline(pipelineConfig, user));
   }
 
-  @McpTool(name = "get_pipeline_execution", description = "Retrieve a pipeline execution by id.")
+  @McpTool(
+      name = "get_pipeline_execution",
+      description = "Retrieve a pipeline execution by id.",
+      annotations =
+          @McpAnnotations(readOnlyHint = true, destructiveHint = false, idempotentHint = true))
   public Map<String, Object> getPipelineExecution(
       @McpToolParam(description = "Pipeline execution id", required = true) String executionId) {
     return Retrofit2SyncCall.execute(orcaServiceSelector.select().getPipeline(executionId));
@@ -126,7 +133,9 @@ public class PipelineTools {
               + "context - the same evaluation Deck's expression debugger uses. If 'executionId' is omitted, "
               + "evaluates against the most recent execution for 'application' (optionally narrowed to a single "
               + "pipeline with 'pipelineName'). Pass 'stageId' to evaluate in a specific stage's context instead of "
-              + "the whole execution.")
+              + "the whole execution.",
+      annotations =
+          @McpAnnotations(readOnlyHint = true, destructiveHint = false, idempotentHint = true))
   public Map<String, Object> evaluatePipelineExpression(
       @McpToolParam(description = "SpEL expression to evaluate", required = true) String expression,
       @McpToolParam(
@@ -178,7 +187,7 @@ public class PipelineTools {
         Retrofit2SyncCall.execute(
             orcaServiceSelector
                 .select()
-                .getPipelines(application, 1, null, false, pipelineName, null));
+                .getPipelines(application, 1, null, false, pipelineName, null, false));
     Map<String, Object> mostRecent =
         executions.stream()
             .max(Comparator.comparingLong(PipelineTools::startTimeOrZero))

@@ -12,11 +12,16 @@ const docsRepo = util.getInput('docs-repo-location');
 const partitions = [
   {
     title: 'Breaking Changes',
-    pattern: /(.*?BREAKING CHANGE.*)/,
+    // Either a "BREAKING CHANGE" mention or a conventional commit with a "!" marker, e.g. "fix(gate)!: ..."
+    pattern: /(.*?BREAKING CHANGE.*|^\S+ \w+(?:\([^)]*\))?!:.*)/,
   },
   {
     title: 'Features',
     pattern: /((?:feat|feature)[(:].*)/,
+  },
+  {
+    title: 'Performance',
+    pattern: /(perf[(:].*)/,
   },
   {
     title: 'Configuration',
@@ -32,7 +37,10 @@ const partitions = [
   },
 ];
 
-const conventionalCommit = /.+\((.+)\):\s*(.+)/;
+const previewPage = 'content/en/docs/releases/next-release-preview/index.md';
+const previewHeading = /^## Coming Soon in .*$/m;
+
+const conventionalCommit = /.+\((.+)\)!?:\s*(.+)/;
 
 export async function forVersion(
   version: string,
@@ -150,6 +158,10 @@ async function generate(
 
   // Render partitions
   for (const partition of partitioned) {
+    if (!partition.commits.length) {
+      continue;
+    }
+
     markdown += `\n#### ${partition.title}\n\n`;
 
     const lines = partition.commits
@@ -209,6 +221,45 @@ export class Changelog {
     this.prUrl = '';
   }
 
+  // The first release of a train (X.Y.0) carries the hand-written notes collected in the docs
+  // repo's "next release preview" page: prepend them to the generated changelog and reset the
+  // page for the following release. Patch releases leave it alone.
+  private withPreviewNotes(changelog: string, docsCwd: string): string {
+    const parsed = Version.parse(this.version);
+    if (!parsed || parsed.patch !== 0) {
+      return changelog;
+    }
+
+    const previewPath = `${docsCwd}/${previewPage}`;
+    if (!fs.existsSync(previewPath)) {
+      core.warning(`No next release preview page at ${previewPath}`);
+      return changelog;
+    }
+
+    const preview = fs.readFileSync(previewPath).toString();
+    const heading = preview.match(previewHeading);
+    if (!heading || heading.index === undefined) {
+      core.warning(`Could not find "${previewHeading}" in ${previewPath}`);
+      return changelog;
+    }
+
+    const notes = preview.slice(heading.index + heading[0].length).trim();
+    if (!notes) {
+      return changelog;
+    }
+
+    fs.writeFileSync(
+      previewPath,
+      `${preview.slice(0, heading.index)}## Coming Soon in the Next Release\n`,
+    );
+
+    // Keep the generated changelog's front matter ahead of the notes
+    const frontMatterEnd = changelog.indexOf('---\n', 4) + '---\n'.length;
+    return `${changelog.slice(0, frontMatterEnd)}\n${notes}\n${changelog.slice(
+      frontMatterEnd,
+    )}`;
+  }
+
   async publish() {
     const { v4: uuidv4 } = await import('uuid');
     const [owner, repo] = docsRepo.split('/', 2);
@@ -233,7 +284,10 @@ export class Changelog {
     git.gitCmd(`git checkout -b ${branch}`, { cwd: docsCwd });
 
     const docsRepoPathTarget = `${docsCwd}/content/en/changelogs/${this.version}-changelog.md`;
-    fs.writeFileSync(docsRepoPathTarget, this.markdownWithHeader);
+    fs.writeFileSync(
+      docsRepoPathTarget,
+      this.withPreviewNotes(this.markdownWithHeader, docsCwd),
+    );
 
     const commitMsg = `Automatic changelog for Spinnaker ${this.version}`;
     git.gitCmd(`git add --all`, { cwd: docsCwd });

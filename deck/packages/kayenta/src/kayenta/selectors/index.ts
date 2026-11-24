@@ -39,12 +39,6 @@ export const selectedMetricConfigSelector = createSelector(
 
 export const selectedConfigSelector = (state: ICanaryState) => state.selectedConfig.config;
 
-export const configTemplatesSelector = createSelector(selectedConfigSelector, (config) =>
-  config ? config.templates : null,
-);
-
-export const editingTemplateSelector = (state: ICanaryState) => state.selectedConfig.editingTemplate;
-
 export const resolveConfigIdFromExecutionId = (state: ICanaryState, executionId: string): string => {
   const executions = get(state, ['data', 'executions', 'data'], []) as ICanaryExecutionStatusResult[];
   const execution = executions.find((ex) => ex.pipelineId === executionId);

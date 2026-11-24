@@ -3,7 +3,6 @@ package com.netflix.spinnaker.clouddriver.cloudrun.deploy.validators;
 import static org.mockito.Mockito.*;
 
 import com.google.api.services.run.v1.CloudRun;
-import com.netflix.spinnaker.clouddriver.cloudrun.CloudrunJobExecutor;
 import com.netflix.spinnaker.clouddriver.cloudrun.deploy.description.DeployCloudrunConfigDescription;
 import com.netflix.spinnaker.clouddriver.cloudrun.security.CloudrunCredentials;
 import com.netflix.spinnaker.clouddriver.cloudrun.security.CloudrunNamedAccountCredentials;
@@ -49,7 +48,7 @@ public class DeployCloudrunConfigDescriptionValidatorTest {
             .setLocalRepositoryDirectory("/localdirectory")
             .setJsonPath("/jsonpath")
             .setProject(" my project")
-            .build(mock(CloudrunJobExecutor.class));
+            .build();
 
     credentialsRepository =
         new MapBackedCredentialsRepository(
@@ -70,6 +69,9 @@ public class DeployCloudrunConfigDescriptionValidatorTest {
           e);
     }
     deployCloudrunConfigDescriptionValidator.validate(List.of(description), description, errors);
-    verify(errors, never()).rejectValue("${context}.account", "${context}.account.notFound");
+    verify(errors, never())
+        .rejectValue(
+            "deployCloudrunConfigAtomicOperationDescription.account",
+            "deployCloudrunConfigAtomicOperationDescription.account.notFound");
   }
 }

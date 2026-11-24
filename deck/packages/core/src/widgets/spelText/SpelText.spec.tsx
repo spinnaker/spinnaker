@@ -1,38 +1,70 @@
-import { mount } from 'enzyme';
-import React from 'react';
 import { UIRouterReact } from '@uirouter/react';
+import { render, screen, waitFor } from '@testing-library/react';
+import userEvent from '@testing-library/user-event';
+import React from 'react';
 
-import { SpelText } from './SpelText';
 import { createDeckRuntime } from '../../bootstrap/DeckRuntime';
 import { DeckRuntimeContext } from '../../bootstrap/DeckRuntimeContext';
+import { SpelText } from './SpelText';
 
 describe('SpelText', () => {
-  it('does not throw during mount cleanup when input setup never ran', () => {
-    const spelText = new SpelText({
-      placeholder: '',
-      value: '',
-      onChange: () => undefined,
-      pipeline: {} as any,
-      docLink: false,
-    });
+  it('unmounts safely while autocomplete setup is still pending', async () => {
+    const runtime = createDeckRuntime(new UIRouterReact());
+    let resolveExecution: (execution: any) => void;
+    vi.spyOn(runtime.services.executionService, 'getLastExecutionForApplicationByConfigId').mockReturnValue(
+      new Promise((resolve) => (resolveExecution = resolve)) as any,
+    );
+    const { unmount } = render(
+      <DeckRuntimeContext.Provider value={runtime}>
+        <SpelText
+          placeholder="Expression"
+          value=""
+          onChange={() => undefined}
+          pipeline={{ id: 'pipeline-id', application: 'app' } as any}
+          docLink={false}
+        />
+      </DeckRuntimeContext.Provider>,
+    );
 
-    expect(() => spelText.componentWillUnmount()).not.toThrow();
+    unmount();
+    resolveExecution(null);
+    await Promise.resolve();
+
+    runtime.dispose();
   });
 
-  it('uses the execution service owned by the runtime provider', () => {
+  it('uses runtime execution data for visible autocomplete suggestions', async () => {
     const runtime = createDeckRuntime(new UIRouterReact());
-    try {
-      const wrapper = mount(
+    const getLastExecution = vi
+      .spyOn(runtime.services.executionService, 'getLastExecutionForApplicationByConfigId')
+      .mockResolvedValue({
+        id: 'execution-id',
+        stages: [],
+        context: { deploymentDetails: { region: 'us-east-1' } },
+      } as any);
+    const Harness = () => {
+      const [value, setValue] = React.useState('');
+      return (
         <DeckRuntimeContext.Provider value={runtime}>
-          <SpelText placeholder="" value="" onChange={() => undefined} pipeline={{} as any} docLink={false} />
-        </DeckRuntimeContext.Provider>,
+          <SpelText
+            placeholder="Expression"
+            value={value}
+            onChange={setValue}
+            pipeline={{ id: 'pipeline-id', application: 'app', stages: [] } as any}
+            docLink={false}
+          />
+        </DeckRuntimeContext.Provider>
       );
-      const autocompleteService = (wrapper.find(SpelText).instance() as any).autocompleteService;
+    };
+    render(<Harness />);
+    const input = screen.getByPlaceholderText('Expression');
+    await waitFor(() => expect(getLastExecution).toHaveBeenCalledWith('app', 'pipeline-id'));
+    await Promise.resolve();
+    await Promise.resolve();
 
-      expect(autocompleteService.executionService).toBe(runtime.services.executionService);
-      wrapper.unmount();
-    } finally {
-      runtime.dispose();
-    }
+    await userEvent.type(input, 'deployedServerGroups');
+
+    expect(await screen.findByText(/region/)).toBeInTheDocument();
+    runtime.dispose();
   });
 });

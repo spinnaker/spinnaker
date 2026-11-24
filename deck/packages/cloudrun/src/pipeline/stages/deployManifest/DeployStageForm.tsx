@@ -6,7 +6,9 @@ import type { IAccountDetails, IArtifact, IExpectedArtifact, IFormikStageConfigI
 import {
   ArtifactTypePatterns,
   CheckboxInput,
+  isStoredManifestReference,
   RadioButtonInput,
+  resolveStoredManifests,
   StageArtifactSelectorDelegate,
   StageConfigField,
   yamlDocumentsToString,
@@ -34,6 +36,8 @@ export class DeployStageForm extends React.Component<
   IDeployManifestStageConfigFormProps & IFormikStageConfigInjectedProps,
   IDeployManifestStageConfigFormState
 > {
+  private unmounted = false;
+
   private readonly excludedManifestArtifactTypes = [
     ArtifactTypePatterns.FRONT50_PIPELINE_TEMPLATE,
     ArtifactTypePatterns.MAVEN_FILE,
@@ -50,6 +54,27 @@ export class DeployStageForm extends React.Component<
       stack: get(stage, 'stack'),
       details: get(stage, 'details'),
     };
+  }
+
+  public componentDidMount() {
+    const manifests: any[] = get(this.props.formik.values, 'manifests');
+    const isTextManifest = get(this.props.formik.values, 'source') === ManifestSource.TEXT;
+    if (isEmpty(manifests) || !isTextManifest || !manifests.some(isStoredManifestReference)) {
+      return;
+    }
+    // The entity store replaces inline manifests with references when a pipeline is saved; show the
+    // real manifests instead. Saving the stage sends them back and the backend stores them again.
+    resolveStoredManifests(manifests).then((resolved) => {
+      if (this.unmounted) {
+        return;
+      }
+      this.props.formik.setFieldValue('manifests', resolved);
+      this.setState({ rawManifest: yamlDocumentsToString(resolved) });
+    });
+  }
+
+  public componentWillUnmount() {
+    this.unmounted = true;
   }
 
   private getSourceOptions = (): Array<Option<string>> => {

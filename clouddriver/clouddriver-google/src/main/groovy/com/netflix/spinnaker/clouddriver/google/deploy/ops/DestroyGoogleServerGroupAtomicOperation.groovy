@@ -114,6 +114,16 @@ class DestroyGoogleServerGroupAtomicOperation extends GoogleAtomicOperation<Void
     destroy(destroyInternalLoadBalancerBackends(compute, project, serverGroup, googleLoadBalancerProvider), "Internal load balancer backends",
             [action: 'destroy', operation: 'destroyInternalLoadBalancerBackends', phase: BASE_PHASE, (TAG_SCOPE): SCOPE_GLOBAL])
 
+    task.updateStatus BASE_PHASE, "Checking for associated External HTTP(S) load balancer backend services..."
+
+    destroy(destroyExternalHttpLoadBalancerBackends(compute, project, serverGroup, googleLoadBalancerProvider), "External Http load balancer backends",
+            [action: 'destroy', operation: 'destroyExternalHttpLoadBalancerBackends', phase: BASE_PHASE, (TAG_SCOPE): SCOPE_REGIONAL, (TAG_REGION): region])
+
+    task.updateStatus BASE_PHASE, "Checking for associated Regional External Network load balancer backend services..."
+
+    destroy(destroyRegionalExternalNetworkLoadBalancerBackends(compute, project, serverGroup, googleLoadBalancerProvider), "Regional External Network load balancer backends",
+            [action: 'destroy', operation: 'destroyRegionalExternalNetworkLoadBalancerBackends', phase: BASE_PHASE, (TAG_SCOPE): SCOPE_REGIONAL, (TAG_REGION): region])
+
     task.updateStatus BASE_PHASE, "Checking for associated Ssl load balancer backend services..."
 
     destroy(destroySslLoadBalancerBackends(compute, project, serverGroup, googleLoadBalancerProvider), "Ssl load balancer backends",
@@ -213,6 +223,26 @@ class DestroyGoogleServerGroupAtomicOperation extends GoogleAtomicOperation<Void
                                               GoogleLoadBalancerProvider googleLoadBalancerProvider) {
     return {
       GCEUtil.destroyInternalLoadBalancerBackends(compute, project, serverGroup, googleLoadBalancerProvider, task, BASE_PHASE, googleOperationPoller, this)
+      null
+    }
+  }
+
+  Closure destroyExternalHttpLoadBalancerBackends(Compute compute,
+                                                  String project,
+                                                  GoogleServerGroup.View serverGroup,
+                                                  GoogleLoadBalancerProvider googleLoadBalancerProvider) {
+    return {
+      GCEUtil.destroyExternalHttpLoadBalancerBackends(compute, project, serverGroup, googleLoadBalancerProvider, task, BASE_PHASE, googleOperationPoller, this)
+      null
+    }
+  }
+
+  Closure destroyRegionalExternalNetworkLoadBalancerBackends(Compute compute,
+                                                             String project,
+                                                             GoogleServerGroup.View serverGroup,
+                                                             GoogleLoadBalancerProvider googleLoadBalancerProvider) {
+    return {
+      GCEUtil.destroyRegionalExternalNetworkLoadBalancerBackends(compute, project, serverGroup, googleLoadBalancerProvider, task, BASE_PHASE, googleOperationPoller, this)
       null
     }
   }

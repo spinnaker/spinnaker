@@ -6,7 +6,7 @@ import { TravisStageConfig } from './TravisStageConfig';
 describe('Travis stage registration', () => {
   it('registers Travis as a React-configured restartable CI stage', () => {
     expect(travisStage).toEqual(
-      jasmine.objectContaining({
+      expect.objectContaining({
         key: 'travis',
         label: 'Travis',
         description: 'Runs a Travis job',

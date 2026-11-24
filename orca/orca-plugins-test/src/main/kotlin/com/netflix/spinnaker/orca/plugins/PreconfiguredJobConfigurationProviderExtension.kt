@@ -19,7 +19,6 @@ import com.netflix.spinnaker.kork.plugins.api.PluginConfiguration
 import com.netflix.spinnaker.kork.plugins.api.PluginSdks
 import com.netflix.spinnaker.orca.api.preconfigured.jobs.PreconfiguredJobConfigurationProvider
 import com.netflix.spinnaker.orca.api.preconfigured.jobs.PreconfiguredJobStageProperties
-import com.netflix.spinnaker.orca.api.preconfigured.jobs.TitusPreconfiguredJobProperties
 import org.pf4j.Extension
 
 @Extension
@@ -30,15 +29,32 @@ class PreconfiguredJobConfigurationProviderExtension(
 
   override fun getJobConfigurations(): List<PreconfiguredJobStageProperties?>? {
     if (preconfiguredJobConfigProperties.enabled) {
-      val preconfiguredJobProperties: MutableList<TitusPreconfiguredJobProperties> = ArrayList()
       val yamlResourceLoader = pluginSdks.yamlResourceLoader()
-      val titusRunJobConfigProps = yamlResourceLoader.loadResource("preconfigured.yml", TitusPreconfiguredJobProperties::class.java)
-      preconfiguredJobProperties.add(titusRunJobConfigProps)
-
-      return preconfiguredJobProperties
+      return listOf(
+        yamlResourceLoader.loadResource("preconfigured.yml", ManifestPreconfiguredJobProperties::class.java)
+      )
     }
     return null
   }
+}
+
+/**
+ * Plugins provide their own [PreconfiguredJobStageProperties] subclass describing the job to run.
+ */
+class ManifestPreconfiguredJobProperties : PreconfiguredJobStageProperties() {
+  var manifest: Map<String, Any?> = emptyMap()
+
+  override fun getOverridableFields(): List<String> =
+    listOf("manifest") + super.getOverridableFields()
+
+  override fun isValid(): Boolean =
+    super.isValid() && manifest.isNotEmpty()
+
+  override fun equals(other: Any?): Boolean =
+    other is ManifestPreconfiguredJobProperties && super.equals(other) && manifest == other.manifest
+
+  override fun hashCode(): Int =
+    31 * super.hashCode() + manifest.hashCode()
 }
 
 @PluginConfiguration("preconfigured-job-config")

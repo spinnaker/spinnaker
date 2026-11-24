@@ -307,6 +307,6 @@ class DeployCloudFoundryServerGroupAtomicOperationConverterTest {
     DeployCloudFoundryServerGroupDescription.ApplicationAttributes applicationAttributes =
         converter.convertManifest(ImmutableMap.of("applications", List.of(Map.of("timeout", 60))));
 
-    assertThat(applicationAttributes.getTimeout() == 60);
+    assertThat(applicationAttributes.getTimeout()).isEqualTo(60);
   }
 }

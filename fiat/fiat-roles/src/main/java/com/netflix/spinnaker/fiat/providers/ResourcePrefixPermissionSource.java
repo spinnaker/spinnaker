@@ -19,6 +19,7 @@ package com.netflix.spinnaker.fiat.providers;
 import com.netflix.spinnaker.fiat.model.Authorization;
 import com.netflix.spinnaker.fiat.model.resources.Permissions;
 import com.netflix.spinnaker.fiat.model.resources.Resource;
+import java.util.Comparator;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -109,14 +110,14 @@ public class ResourcePrefixPermissionSource<T extends Resource.AccessControlled>
   }
 
   private Permissions getMostSpecificPermissions(List<PrefixEntry<T>> matchingPrefixes) {
+    // A full application name is more specific than any matching wildcard prefix, and among
+    // wildcards the longest prefix is the most specific. Ranking on both keys is a total order, so
+    // the winner cannot depend on the order the prefixes were configured in.
     return matchingPrefixes.stream()
-        .min(
-            (p1, p2) -> {
-              if (p1.isFullApplicationName()) {
-                return -1;
-              }
-              return p2.getPrefix().length() - p1.getPrefix().length();
-            })
+        .max(
+            Comparator.<PrefixEntry<T>, Boolean>comparing(
+                    prefixEntry -> prefixEntry.isFullApplicationName())
+                .thenComparingInt(prefixEntry -> prefixEntry.getPrefix().length()))
         .get()
         .getPermissions();
   }

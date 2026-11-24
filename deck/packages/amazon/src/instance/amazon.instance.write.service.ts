@@ -93,4 +93,27 @@ export class AmazonInstanceWriter extends InstanceWriter {
       description: `Register instance: ${instance.id}`,
     });
   }
+
+  /**
+   * Terminates the instance through its Auto Scaling group without shrinking the group, so the group runs its
+   * termination lifecycle hooks and launches a replacement instance.
+   */
+  public static terminateInstanceInServerGroup(
+    instance: IAmazonInstance,
+    application: Application,
+    params: any = {},
+  ): Promise<ITask> {
+    params.type = 'terminateInstances';
+    params.instanceIds = [instance.id];
+    params.serverGroupName = instance.serverGroup;
+    params.region = instance.region;
+    params.credentials = instance.account;
+    params.cloudProvider = instance.cloudProvider;
+    params.terminateInAutoScalingGroup = true;
+    return TaskExecutor.executeTask({
+      job: [params],
+      application,
+      description: `Terminate instance ${instance.id} in ${instance.serverGroup}`,
+    });
+  }
 }

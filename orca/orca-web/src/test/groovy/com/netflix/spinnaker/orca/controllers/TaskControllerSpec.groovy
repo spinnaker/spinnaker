@@ -30,6 +30,7 @@ import com.netflix.spinnaker.orca.pipeline.CompoundExecutionOperator
 import com.netflix.spinnaker.orca.pipeline.ExecutionRunner
 import com.netflix.spinnaker.orca.pipeline.StageDefinitionBuilderFactory
 import com.netflix.spinnaker.orca.pipeline.model.*
+import com.netflix.spinnaker.orca.pipeline.persistence.ExecutionNotFoundException
 import com.netflix.spinnaker.orca.pipeline.persistence.ExecutionRepository
 import com.netflix.spinnaker.orca.pipeline.util.ContextParameterProcessor
 import com.netflix.spinnaker.orca.util.ExpressionUtils
@@ -283,6 +284,86 @@ class TaskControllerSpec extends Specification {
     true                                  | [[id: "2"]]             | ['older2', 'older1']
   }
 
+  void '/applications/{application}/pipelines with includeDeletedPipelines unions in orca-known pipeline config ids beyond front50'() {
+    given:
+    def app = 'test'
+    def pipelines = [
+      [pipelineConfigId: "1", id: "still-exists", application: app, startTime: clock.instant().minus(1, HOURS).toEpochMilli()],
+      [pipelineConfigId: "2", id: "from-deleted-pipeline", application: app, startTime: clock.instant().minus(1, HOURS).toEpochMilli()]
+    ]
+
+    when:
+    def response = mockMvc.perform(get("/applications/$app/pipelines?includeDeletedPipelines=true")).andReturn().response
+    List results = new ObjectMapper().readValue(response.contentAsString, List)
+
+    then:
+    1 * front50Service.getPipelines(app, false, null, null, null) >> Calls.response([[id: "1"]])
+    1 * front50Service.getStrategies(app) >> Calls.response([])
+    0 * front50Service._
+
+    // pipeline config id "2" no longer exists in front50 (its pipeline was deleted) but orca still
+    // has execution history for it, so it must be unioned in when includeDeletedPipelines=true.
+    1 * executionRepository.retrievePipelineConfigIdsForApplication(app) >> ["1", "2"]
+
+    1 * executionRepository.retrievePipelinesForPipelineConfigId("1", _) >> Observable.fromIterable(pipelines.findAll {
+      it.pipelineConfigId == "1"
+    }.collect { config ->
+      pipeline {
+        id = config.id
+        application = app
+        startTime = config.startTime
+        pipelineConfigId = config.pipelineConfigId
+      }
+    })
+    1 * executionRepository.retrievePipelinesForPipelineConfigId("2", _) >> Observable.fromIterable(pipelines.findAll {
+      it.pipelineConfigId == "2"
+    }.collect { config ->
+      pipeline {
+        id = config.id
+        application = app
+        startTime = config.startTime
+        pipelineConfigId = config.pipelineConfigId
+      }
+    })
+    0 * executionRepository._
+
+    results.id as Set == ['still-exists', 'from-deleted-pipeline'] as Set
+  }
+
+  void '/applications/{application}/pipelines without includeDeletedPipelines does not query orca for extra pipeline config ids'() {
+    given:
+    def app = 'test'
+
+    when:
+    mockMvc.perform(get("/applications/$app/pipelines")).andReturn().response
+
+    then:
+    1 * front50Service.getPipelines(app, false, null, null, null) >> Calls.response([[id: "1"]])
+    1 * front50Service.getStrategies(app) >> Calls.response([])
+    0 * front50Service._
+
+    1 * executionRepository.retrievePipelinesForPipelineConfigId("1", _) >> Observable.empty()
+    0 * executionRepository.retrievePipelineConfigIdsForApplication(_)
+    0 * executionRepository._
+  }
+
+  void '/applications/{application}/pipelines ignores includeDeletedPipelines when pipelineNameFilter is set'() {
+    given:
+    def app = 'test'
+
+    when:
+    mockMvc.perform(get("/applications/$app/pipelines?includeDeletedPipelines=true&pipelineNameFilter=pipeline1")).andReturn().response
+
+    then:
+    1 * front50Service.getPipelines(app, false, null, "pipeline1", null) >> Calls.response([[id: "1"]])
+    1 * front50Service.getStrategies(app) >> Calls.response([])
+    0 * front50Service._
+
+    1 * executionRepository.retrievePipelinesForPipelineConfigId("1", _) >> Observable.empty()
+    0 * executionRepository.retrievePipelineConfigIdsForApplication(_)
+    0 * executionRepository._
+  }
+
   void '/applications/{application}/evaluateExpressions precomputes values'() {
     when:
     def response = mockMvc.perform(
@@ -350,6 +431,46 @@ class TaskControllerSpec extends Specification {
     0 * executionRepository._
 
     results.id == ['newer-2', 'newer-1']
+  }
+
+  void '/pipelines with executionIds omits missing executions instead of failing with NPE'() {
+    given:
+    def existing = pipeline {
+      id = 'found-1'
+      application = 'covfefe'
+    }
+
+    when:
+    def response = mockMvc.perform(get('/pipelines?executionIds=missing-1,found-1')).andReturn().response
+    List results = objectMapper.readValue(response.contentAsString, List)
+
+    then:
+    1 * executionRepository.retrieve(ExecutionType.PIPELINE, 'missing-1', false) >> {
+      throw new ExecutionNotFoundException('missing-1')
+    }
+    1 * executionRepository.retrieve(ExecutionType.PIPELINE, 'found-1', false) >> existing
+    0 * executionRepository._
+
+    response.status == 200
+    results*.id == ['found-1']
+  }
+
+  void '/pipelines with executionIds returns empty list when all executions are missing'() {
+    when:
+    def response = mockMvc.perform(get('/pipelines?executionIds=missing-1,missing-2')).andReturn().response
+    List results = objectMapper.readValue(response.contentAsString, List)
+
+    then:
+    1 * executionRepository.retrieve(ExecutionType.PIPELINE, 'missing-1', false) >> {
+      throw new ExecutionNotFoundException('missing-1')
+    }
+    1 * executionRepository.retrieve(ExecutionType.PIPELINE, 'missing-2', false) >> {
+      throw new ExecutionNotFoundException('missing-2')
+    }
+    0 * executionRepository._
+
+    response.status == 200
+    results == []
   }
 
   void 'should update existing stage context'() {
@@ -713,6 +834,77 @@ class TaskControllerSpec extends Specification {
     0 * executionRepository._
 
     results.id as Set == ['test-1', 'test-3'] as Set
+  }
+
+  void '/applications/{application}/pipelines/search with includeDeletedPipelines unions in orca-known pipeline config ids beyond front50'() {
+    given:
+    def app = "covfefe"
+    def pipelines = [
+      [pipelineConfigId: "1", id: "test-1", startTime: clock.instant().minus(daysOfExecutionHistory, DAYS).minus(2, HOURS).toEpochMilli(),
+       trigger: new DockerTrigger("test-account", "test-repo", "1")
+      ],
+      [pipelineConfigId: "2", id: "test-2", startTime: clock.instant().minus(daysOfExecutionHistory, DAYS).minus(2, HOURS).toEpochMilli(),
+       trigger: new DockerTrigger("test-account", "test-repo", "1")
+      ]
+    ]
+
+    when:
+    def response = mockMvc.perform(get("/applications/${app}/pipelines/search?includeDeletedPipelines=true")).andReturn().response
+    List results = new ObjectMapper().readValue(response.contentAsString, List)
+
+    then:
+    1 * front50Service.getPipelines(app, false) >> Calls.response([[id: "1"]])
+    0 * front50Service._
+
+    // pipeline config id "2" no longer exists in front50 (its pipeline was deleted) but orca still
+    // has execution history for it, so it must be unioned in when includeDeletedPipelines=true.
+    1 * executionRepository.retrievePipelineConfigIdsForApplication(app) >> ["1", "2"]
+
+    1 * executionRepository.retrievePipelinesForPipelineConfigIdsBetweenBuildTimeBoundary(["1", "2"], _, _, _) >> pipelines.collect { config ->
+      PipelineExecutionImpl pipeline = pipeline {
+        id = config.id
+        application = app
+        startTime = config.startTime
+        pipelineConfigId = config.pipelineConfigId
+      }
+      pipeline.setTrigger(config.trigger)
+      return pipeline
+    }
+    0 * executionRepository._
+
+    results.id as Set == ['test-1', 'test-2'] as Set
+  }
+
+  void '/applications/{application}/pipelines/search without includeDeletedPipelines does not query orca for extra pipeline config ids'() {
+    given:
+    def app = "covfefe"
+
+    when:
+    mockMvc.perform(get("/applications/${app}/pipelines/search")).andReturn().response
+
+    then:
+    1 * front50Service.getPipelines(app, false) >> Calls.response([[id: "1"]])
+    0 * front50Service._
+
+    1 * executionRepository.retrievePipelinesForPipelineConfigIdsBetweenBuildTimeBoundary(["1"], _, _, _) >> []
+    0 * executionRepository.retrievePipelineConfigIdsForApplication(_)
+    0 * executionRepository._
+  }
+
+  void '/applications/{application}/pipelines/search ignores includeDeletedPipelines when pipelineName is set'() {
+    given:
+    def app = "covfefe"
+
+    when:
+    mockMvc.perform(get("/applications/${app}/pipelines/search?includeDeletedPipelines=true&pipelineName=pipeline1")).andReturn().response
+
+    then:
+    1 * front50Service.getPipeline(app, 'pipeline1', false) >> Calls.response([id: "1", name: "pipeline1"])
+    0 * front50Service._
+
+    1 * executionRepository.retrievePipelinesForPipelineConfigIdsBetweenBuildTimeBoundary(["1"], _, _, _) >> []
+    0 * executionRepository.retrievePipelineConfigIdsForApplication(_)
+    0 * executionRepository._
   }
 
   void '/applications/{application}/pipelines/search with a malformed trigger param fails with an IllegalArgumentException'() {

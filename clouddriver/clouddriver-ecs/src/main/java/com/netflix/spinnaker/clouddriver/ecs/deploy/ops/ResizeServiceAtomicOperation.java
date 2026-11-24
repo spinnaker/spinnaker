@@ -36,12 +36,22 @@ public class ResizeServiceAtomicOperation
   @Autowired ContainerInformationService containerInformationService;
 
   public ResizeServiceAtomicOperation(ResizeServiceDescription description) {
-    super(description, "RESIZE_ECS_SERVER_GROUP");
+    this(description, false);
+  }
+
+  public ResizeServiceAtomicOperation(
+      ResizeServiceDescription description, boolean requireNativeServiceOwnership) {
+    super(description, "RESIZE_ECS_SERVER_GROUP", requireNativeServiceOwnership);
   }
 
   @Override
   public Void operate(List priorOutputs) {
     updateTaskStatus("Initializing Resize ECS Server Group Operation...");
+    String serviceName = description.getServerGroupName();
+    String cluster =
+        containerInformationService.getClusterName(
+            serviceName, description.getAccount(), description.getRegion());
+    requireNativeServiceOwnership(cluster, serviceName);
 
     Service service = resizeService();
     resizeAutoScalingGroup(service);

@@ -25,7 +25,7 @@ class LoadBalancerListItem extends React.Component<ILoadBalancerListItemProps> {
 
   public render(): React.ReactElement<LoadBalancerListItem> {
     return (
-      <a onClick={this.onClick}>
+      <a href="#" onClick={this.onClick}>
         <span className="name">{this.props.loadBalancer.name}</span>
         <HealthCounts container={this.props.loadBalancer.instanceCounts} />
       </a>
@@ -149,7 +149,11 @@ class LoadBalancersTagComponent extends React.Component<
             container={this.props.container}
             className="no-padding menu-load-balancers"
           >
-            <button onClick={this.handleClick} className="btn btn-link btn-multiple-load-balancers clearfix no-padding">
+            <button
+              aria-label={`${totalCount} load balancers`}
+              onClick={this.handleClick}
+              className="btn btn-link btn-multiple-load-balancers clearfix no-padding"
+            >
               <span className="badge badge-counter">
                 <span className="icon">
                   <i className="fa icon-sitemap" />

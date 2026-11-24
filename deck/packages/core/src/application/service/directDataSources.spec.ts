@@ -2,7 +2,7 @@ import { UIRouterReact } from '@uirouter/react';
 
 import { ApplicationDataSourceRegistry } from './ApplicationDataSourceRegistry';
 import { ApplicationDataSource } from './applicationDataSource';
-import { mockHttpClient } from '../../api/mock/jasmine';
+import { mockHttpClient } from '../../api/mock/mockHttpSupport';
 import { registerApplicationConfigDataSource } from '../config/appConfig.dataSource';
 import { navigationCategoryRegistry } from '../nav/navigationCategory.registry';
 import { SETTINGS } from '../../config/settings';
@@ -147,7 +147,7 @@ describe('direct application data source registration', () => {
     registerFunctionDataSource();
 
     expect(ApplicationDataSourceRegistry.getDataSources()).toEqual([
-      jasmine.objectContaining({
+      expect.objectContaining({
         key: 'functions',
         label: 'functions',
         sref: '.insight.functions',
@@ -160,16 +160,16 @@ describe('direct application data source registration', () => {
 
   it('uses the aws fallback for direct function set transformers', async () => {
     const http = mockHttpClient();
-    const normalizeFunctionSet = jasmine.createSpy('normalizeFunctionSet').and.callFake((functions) => functions);
+    const normalizeFunctionSet = vi.fn().mockImplementation((functions) => functions);
     const transformer = { normalizeFunction: (functionDef: any) => functionDef, normalizeFunctionSet };
-    const getDelegate = jasmine.createSpy('getDelegate').and.callFake((provider: string) => {
+    const getDelegate = vi.fn().mockImplementation((provider: string) => {
       if (provider !== 'aws') {
         throw new Error(`Expected aws provider, received ${provider}`);
       }
       return transformer;
     });
-    spyOn(testRuntime.services.providerServiceDelegate, 'hasDelegate').and.returnValue(true);
-    spyOn(testRuntime.services.providerServiceDelegate, 'getDelegate').and.callFake(getDelegate);
+    vi.spyOn(testRuntime.services.providerServiceDelegate, 'hasDelegate').mockReturnValue(true);
+    vi.spyOn(testRuntime.services.providerServiceDelegate, 'getDelegate').mockImplementation(getDelegate);
     SETTINGS.feature = { ...SETTINGS.feature, functions: true };
     http.expectGET('/applications/app/functions').respond(200, [{ name: 'function-with-default-provider' }]);
 
@@ -179,7 +179,7 @@ describe('direct application data source registration', () => {
     await http.flush();
     await loadPromise;
 
-    expect(getDelegate.calls.allArgs()).toContain(['aws', 'function.setTransformer']);
+    expect(getDelegate.mock.calls).toContainEqual(['aws', 'function.setTransformer']);
     expect(normalizeFunctionSet).toHaveBeenCalledTimes(1);
   });
 
@@ -201,15 +201,15 @@ describe('direct application data source registration', () => {
 
     const http = mockHttpClient();
     const setTransformers: ContextAwareTransformer[] = [];
-    const getDelegate = jasmine.createSpy('getDelegate').and.callFake((_provider: string, serviceKey: string) => {
+    const getDelegate = vi.fn().mockImplementation((_provider: string, serviceKey: string) => {
       const transformer = new ContextAwareTransformer(`transformer-${setTransformers.length + 1}`);
       if (serviceKey === 'function.setTransformer') {
         setTransformers.push(transformer);
       }
       return transformer;
     });
-    spyOn(testRuntime.services.providerServiceDelegate, 'hasDelegate').and.returnValue(true);
-    spyOn(testRuntime.services.providerServiceDelegate, 'getDelegate').and.callFake(getDelegate);
+    vi.spyOn(testRuntime.services.providerServiceDelegate, 'hasDelegate').mockReturnValue(true);
+    vi.spyOn(testRuntime.services.providerServiceDelegate, 'getDelegate').mockImplementation(getDelegate);
     SETTINGS.feature = { ...SETTINGS.feature, functions: true };
     http.expectGET('/applications/app/functions').respond(200, [
       { name: 'function-one', provider: 'aws' },
@@ -233,7 +233,7 @@ describe('direct application data source registration', () => {
     registerEntityTagsDataSource();
 
     expect(ApplicationDataSourceRegistry.getDataSources()).toEqual([
-      jasmine.objectContaining({ key: 'entityTags', visible: false }),
+      expect.objectContaining({ key: 'entityTags', visible: false }),
     ]);
   });
 
@@ -247,19 +247,19 @@ describe('direct application data source registration', () => {
   });
 
   it('registers tasks directly', () => {
-    registerTaskDataSources(undefined, { addTasksToServerGroups: jasmine.createSpy('addTasksToServerGroups') });
+    registerTaskDataSources(undefined, { addTasksToServerGroups: vi.fn() });
 
     expect(ApplicationDataSourceRegistry.getDataSources().map((dataSource) => dataSource.key)).toEqual([
       'tasks',
       'runningTasks',
     ]);
     expect(ApplicationDataSourceRegistry.getDataSources()[0]).toEqual(
-      jasmine.objectContaining({ key: 'tasks', sref: '.tasks', badge: 'runningTasks' }),
+      expect.objectContaining({ key: 'tasks', sref: '.tasks', badge: 'runningTasks' }),
     );
   });
 
   it('registers each task data source once when called repeatedly', () => {
-    const clusterService = { addTasksToServerGroups: jasmine.createSpy('addTasksToServerGroups') };
+    const clusterService = { addTasksToServerGroups: vi.fn() };
 
     registerTaskDataSources(undefined, clusterService);
     registerTaskDataSources(undefined, clusterService);
@@ -273,7 +273,7 @@ describe('direct application data source registration', () => {
     const existingRunningTasks = { key: 'runningTasks', visible: false, defaultData: ['plugin'] };
     ApplicationDataSourceRegistry.registerDataSource(existingRunningTasks);
 
-    registerTaskDataSources(undefined, { addTasksToServerGroups: jasmine.createSpy('addTasksToServerGroups') });
+    registerTaskDataSources(undefined, { addTasksToServerGroups: vi.fn() });
 
     const dataSources = ApplicationDataSourceRegistry.getDataSources();
     expect(dataSources.filter(({ key }) => key === 'tasks').length).toBe(1);
@@ -319,7 +319,7 @@ describe('direct application data source registration', () => {
 
   it('registers auto-activation hooks with the direct router', () => {
     const previousRouter = getDirectRouter();
-    const onSuccess = jasmine.createSpy('onSuccess');
+    const onSuccess = vi.fn();
 
     try {
       setDirectRouter({ transitionService: { onSuccess } } as any);
@@ -329,9 +329,9 @@ describe('direct application data source registration', () => {
         {} as any,
       );
 
-      expect(onSuccess.calls.allArgs()).toEqual([
-        [{ entering: '**.example.**' }, jasmine.any(Function)],
-        [{ exiting: '**.example.**' }, jasmine.any(Function)],
+      expect(onSuccess.mock.calls).toEqual([
+        [{ entering: '**.example.**' }, expect.any(Function)],
+        [{ exiting: '**.example.**' }, expect.any(Function)],
       ]);
     } finally {
       setDirectRouter(previousRouter);
@@ -371,7 +371,7 @@ describe('direct application data source registration', () => {
       transformExecutions: () => undefined,
       mergeRunningExecutionsIntoExecutions: () => undefined,
     };
-    const clusterService = { addExecutionsToServerGroups: jasmine.createSpy('addExecutionsToServerGroups') };
+    const clusterService = { addExecutionsToServerGroups: vi.fn() };
     registerPipelineDataSources(undefined, executionService, clusterService);
     const application = new Application('example', {} as any, ApplicationDataSourceRegistry.getDataSources());
 
@@ -390,19 +390,19 @@ describe('direct application data source registration', () => {
       transformExecutions: () => undefined,
       addExecutionsToApplication: (_application: Application, executions: any[]) => executions,
       removeCompletedExecutionsFromRunningData: () => undefined,
-      mergeRunningExecutionsIntoExecutions: jasmine
-        .createSpy('mergeRunningExecutionsIntoExecutions')
-        .and.callFake((application: Application) =>
+      mergeRunningExecutionsIntoExecutions: vi
+        .fn()
+        .mockImplementation((application: Application) =>
           application.executions.data.push(...application.runningExecutions.data),
         ),
     };
-    const clusterService = { addExecutionsToServerGroups: jasmine.createSpy('addExecutionsToServerGroups') };
+    const clusterService = { addExecutionsToServerGroups: vi.fn() };
     registerPipelineDataSources(undefined, executionService, clusterService);
     const application = new Application('example', {} as any, ApplicationDataSourceRegistry.getDataSources());
 
     application.runningExecutions.activate();
     await flushPromise(application.runningExecutions.ready());
-    executionService.mergeRunningExecutionsIntoExecutions.calls.reset();
+    executionService.mergeRunningExecutionsIntoExecutions.mockClear();
 
     application.executions.activate();
     await flushPromise(application.executions.ready());
@@ -414,14 +414,14 @@ describe('direct application data source registration', () => {
   it('notifies executions subscribers when running executions are merged', async () => {
     const runningExecution = { id: 'running', status: 'RUNNING', isActive: true, stringVal: 'running' };
     const executionService = new ExecutionService(null, null);
-    spyOn(executionService, 'getExecutions').and.returnValue(Promise.resolve([]));
-    spyOn(executionService, 'getRunningExecutions').and.returnValue(Promise.resolve([runningExecution]));
-    spyOn(executionService, 'transformExecutions').and.callFake(() => undefined);
-    spyOn(executionService, 'addExecutionsToApplication').and.callFake(
+    vi.spyOn(executionService, 'getExecutions').mockReturnValue(Promise.resolve([]));
+    vi.spyOn(executionService, 'getRunningExecutions').mockReturnValue(Promise.resolve([runningExecution]));
+    vi.spyOn(executionService, 'transformExecutions').mockImplementation(() => undefined);
+    vi.spyOn(executionService, 'addExecutionsToApplication').mockImplementation(
       (_application: Application, executions: any[]) => executions,
     );
-    spyOn(executionService, 'removeCompletedExecutionsFromRunningData').and.callFake(() => undefined);
-    const clusterService = { addExecutionsToServerGroups: jasmine.createSpy('addExecutionsToServerGroups') };
+    vi.spyOn(executionService, 'removeCompletedExecutionsFromRunningData').mockImplementation(() => undefined);
+    const clusterService = { addExecutionsToServerGroups: vi.fn() };
     registerPipelineDataSources(undefined, executionService, clusterService);
     const application = new Application('example', {} as any, ApplicationDataSourceRegistry.getDataSources());
     const refreshedExecutions: any[][] = [];
@@ -448,10 +448,10 @@ describe('load balancer direct registration', () => {
   it('registers one data source across repeated direct calls using direct defaults', () => {
     const directLoadResult = Promise.resolve([]);
     const directReader = {
-      loadLoadBalancers: jasmine.createSpy('directLoadLoadBalancers').and.returnValue(directLoadResult),
+      loadLoadBalancers: vi.fn().mockReturnValue(directLoadResult),
     };
     const resolveResult = {} as PromiseLike<any>;
-    const promiseService = { resolve: jasmine.createSpy('resolve').and.returnValue(resolveResult) } as any;
+    const promiseService = { resolve: vi.fn().mockReturnValue(resolveResult) } as any;
     loadBalancerDataSource.registerLoadBalancerDataSource(promiseService, directReader as any);
     loadBalancerDataSource.registerLoadBalancerDataSource(promiseService, directReader as any);
 
@@ -472,15 +472,15 @@ describe('security group direct registration', () => {
 
   it('registers one data source across repeated direct calls using direct defaults', () => {
     const directReader = {
-      loadSecurityGroupsByApplicationName: jasmine.createSpy('directLoadSecurityGroups'),
-      getApplicationSecurityGroups: jasmine.createSpy('directGetApplicationSecurityGroups'),
+      loadSecurityGroupsByApplicationName: vi.fn(),
+      getApplicationSecurityGroups: vi.fn(),
     } as any;
 
     securityGroupDataSource.registerSecurityGroupDataSource(directReader);
     securityGroupDataSource.registerSecurityGroupDataSource(directReader);
 
     expect(getDataSourcesByKey('securityGroups')).toEqual([
-      jasmine.objectContaining({
+      expect.objectContaining({
         key: 'securityGroups',
         label: 'Firewalls',
         sref: '.insight.firewalls',

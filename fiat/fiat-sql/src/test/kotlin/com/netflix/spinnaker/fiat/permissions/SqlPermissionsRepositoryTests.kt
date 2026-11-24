@@ -94,7 +94,7 @@ internal object SqlPermissionsRepositoryTests : JUnit5Minutests {
             objectMapper,
             jooq,
             SqlRetryProperties(),
-            listOf(Application(), Account(), BuildService(), ServiceAccount(), Role(), extensionResource),
+            listOf(Application(), Account(), ArtifactAccount(), BuildService(), ServiceAccount(), Role(), extensionResource),
             null,
             DynamicConfigService.NOOP
         )
@@ -573,6 +573,22 @@ internal object SqlPermissionsRepositoryTests : JUnit5Minutests {
                 expectThat(
                     resourceBody(jooq, "testuser", resource1.resourceType, resource1.name).get()
                 ).isEqualTo("""{"name":"resource1"}""")
+            }
+
+            test("should grant every user full access to artifact accounts that define no permissions") {
+                sqlPermissionsRepository.put(
+                    UserPermission()
+                        .setId(UNRESTRICTED_USERNAME)
+                        .setExtensionResources(setOf(ArtifactAccount().setName("open-artifacts")))
+                )
+                sqlPermissionsRepository.put(UserPermission().setId("testuser"))
+
+                val view = sqlPermissionsRepository.get("testuser").get().view
+                val artifactAccounts = view.extensionResources[ResourceType.ARTIFACT_ACCOUNT]!!
+                    .associate { it.name to it.authorizations }
+
+                // The unrestricted user's resources are merged into every user's view with full access
+                expectThat(artifactAccounts["open-artifacts"]).isEqualTo(Authorization.ALL)
             }
 
             test("should not delete the unrestricted user on put all") {

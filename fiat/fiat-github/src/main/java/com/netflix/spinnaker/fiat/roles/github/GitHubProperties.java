@@ -32,6 +32,9 @@ public class GitHubProperties {
   // GitHub App authentication (preferred)
   private String appId;
   private String privateKeyPath;
+  // TODO: make installationId optional by resolving the installation from the organization
+  // (GHApp#getInstallationByOrganization), so that reinstalling the app, which gives it a new
+  // installation ID, does not need a configuration change.
   private String installationId;
 
   public enum AuthMethod {
@@ -47,6 +50,68 @@ public class GitHubProperties {
 
   @NotNull Integer membershipCacheTTLSeconds = 60 * 10; // 10 min time to refresh
   @NotNull Integer membershipCacheTeamsSize = 1000; // 1000 github teams
+
+  /**
+   * How long GitHub refreshes may keep failing while roles are still resolved from cached data. 0
+   * (the default) disables the limit, so cached data is served for as long as GitHub fails. It
+   * counts from the first failed refresh, so data that is merely unread (refreshes start on a read)
+   * is never refused.
+   *
+   * <p>Past the limit every role resolution fails, not only GitHub's part of it: the whole role
+   * sync aborts (service accounts included), and every login fails, because login resolves the
+   * user's roles. Permissions already stored stay as they are and are not revoked. Set it only if
+   * failing closed after a long GitHub outage is preferable to serving roles GitHub no longer
+   * confirms, e.g. 86400 for a day.
+   */
+  @NotNull
+  @Min(0L)
+  Integer maxStaleRolesSeconds = 0;
+
+  /**
+   * Longest a single GitHub fetch (org members, org teams or one team's members) may take. A fetch
+   * that takes longer fails, so a hung connection cannot stall cache refreshes indefinitely.
+   */
+  @NotNull
+  @Min(1L)
+  Integer refreshTimeoutSeconds = 120;
+
+  /**
+   * Whether GitHub counts towards Fiat's health ({@code /health}). Off by default.
+   *
+   * <p>Fiat's health indicator reports DOWN only until every tracked provider has succeeded once,
+   * and UP from then on. So this mainly gates startup: a replica starting while GitHub is
+   * unreachable stays DOWN, and with readiness on {@code /health} that can take Fiat down. After
+   * that, GitHub staleness shows only in the health details and the {@code
+   * fiat.resourceProvider.healthy} gauge. For alerting on stale GitHub data, use {@code
+   * fiat.github.dataAgeSeconds} and {@code fiat.github.fetchFailures}, published either way.
+   */
+  @NotNull Boolean healthCheckEnabled = false;
+
+  /**
+   * Age of the last successful GitHub fetch after which the provider counts as unhealthy (in the
+   * health details and gauge), when {@link #healthCheckEnabled}. Defaults to three refresh
+   * intervals ({@code 3 * membershipCacheTTLSeconds}), and at least two {@link
+   * #healthWarmIntervalSeconds}, because replicas not running the sync fetch only when warming.
+   */
+  @Min(1L)
+  Integer alertStalenessSeconds;
+
+  /**
+   * How often every Fiat replica fetches the organization's members when {@link
+   * #healthCheckEnabled}, so that each replica's health reflects GitHub, not only the replica
+   * running the role sync. Costs one GitHub call per 100 members per replica per interval. 0
+   * disables it.
+   */
+  @NotNull
+  @Min(0L)
+  Integer healthWarmIntervalSeconds = 10 * 60;
+
+  /** Returns {@link #alertStalenessSeconds}, or its default (see there). */
+  public int getEffectiveAlertStalenessSeconds() {
+    return alertStalenessSeconds != null
+        ? alertStalenessSeconds
+        : Math.max(3 * membershipCacheTTLSeconds, 2 * healthWarmIntervalSeconds);
+  }
 
   /**
    * Determines if GitHub App authentication should be used based on configuration and method

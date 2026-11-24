@@ -22,6 +22,15 @@ import { Spinner } from '../../widgets';
 const MIN_SEARCH_LENGTH = 3;
 const QUERY_DEBOUNCE_MS = 300;
 
+export const getAutoNavigationHref = (
+  autoNavigateQuery: string | null,
+  query: string,
+  resultSets: ISearchResultSet[],
+): string | null => {
+  const results = resultSets.reduce((all, resultSet) => all.concat(resultSet.results), [] as ISearchResult[]);
+  return autoNavigateQuery === query && results.length === 1 ? results[0].href : null;
+};
+
 export interface ISearchV1State {
   categories: ISearchResultSet[];
   moreResults: boolean;
@@ -119,9 +128,10 @@ export class SearchV1Component extends React.Component<
       (results, resultSet) => results.concat(resultSet.results),
       [] as ISearchResult[],
     );
-    if (this.autoNavigateQuery === query && allResults.length === 1) {
+    const autoNavigationHref = getAutoNavigationHref(this.autoNavigateQuery, query, resultSets);
+    if (autoNavigationHref) {
       this.autoNavigateQuery = null;
-      this.navigateToResult(allResults[0].href);
+      this.navigateToResult(autoNavigationHref);
       return;
     }
     this.autoNavigateQuery = null;

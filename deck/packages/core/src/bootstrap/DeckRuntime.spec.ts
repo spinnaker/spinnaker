@@ -9,8 +9,12 @@ import { CloudProviderRegistry } from '../cloudProvider';
 import { SETTINGS } from '../config';
 
 describe('createDeckRuntime', () => {
-  beforeEach(() => jasmine.clock().install());
-  afterEach(() => jasmine.clock().uninstall());
+  beforeEach(() =>
+    vi.useFakeTimers({
+      toFake: ['setTimeout', 'clearTimeout', 'setInterval', 'clearInterval'],
+    }),
+  );
+  afterEach(() => vi.useRealTimers());
 
   it('assembles direct runtime dependencies', () => {
     const router = new UIRouterReact();
@@ -18,13 +22,13 @@ describe('createDeckRuntime', () => {
 
     expect(runtime.router).toBe(router);
     expect(runtime.promiseService).toEqual({
-      all: jasmine.any(Function),
-      reject: jasmine.any(Function),
-      resolve: jasmine.any(Function),
+      all: expect.any(Function),
+      reject: expect.any(Function),
+      resolve: expect.any(Function),
     });
-    expect(runtime.timeoutService).toEqual(jasmine.any(Function));
-    expect(runtime.logger.error).toEqual(jasmine.any(Function));
-    expect(runtime.interpolate).toEqual(jasmine.any(Function));
+    expect(runtime.timeoutService).toEqual(expect.any(Function));
+    expect(runtime.logger.error).toEqual(expect.any(Function));
+    expect(runtime.interpolate).toEqual(expect.any(Function));
     expect(runtime.services.providerServiceDelegate).toBeDefined();
     expect(runtime.routingState.routing).toBe(false);
     expect(DeckRuntimeContext._currentValue).toBeNull();
@@ -33,22 +37,22 @@ describe('createDeckRuntime', () => {
 
   it('cancels pending runtime work when disposed', () => {
     const runtime = createDeckRuntime();
-    const callback = jasmine.createSpy('callback');
+    const callback = vi.fn();
     const disposalOrder: string[] = [];
     const actualDisposeRoutingState = runtime.routingState.dispose.bind(runtime.routingState);
     const actualDisposeTimeoutService = runtime.timeoutService.dispose.bind(runtime.timeoutService);
-    const disposeRoutingState = spyOn(runtime.routingState, 'dispose').and.callFake(() => {
+    const disposeRoutingState = vi.spyOn(runtime.routingState, 'dispose').mockImplementation(() => {
       disposalOrder.push('routing state');
       actualDisposeRoutingState();
     });
-    spyOn(runtime.timeoutService, 'dispose').and.callFake(() => {
+    vi.spyOn(runtime.timeoutService, 'dispose').mockImplementation(() => {
       disposalOrder.push('timeout service');
       actualDisposeTimeoutService();
     });
     runtime.timeoutService(callback, 100);
 
     runtime.dispose();
-    jasmine.clock().tick(100);
+    vi.advanceTimersByTime(100);
 
     expect(callback).not.toHaveBeenCalled();
     expect(disposeRoutingState).toHaveBeenCalledTimes(1);
@@ -252,11 +256,11 @@ describe('createDeckRuntime', () => {
     });
 
     it('constructs a security group reader', () => {
-      expect(runtime.services.securityGroupReader.getAllSecurityGroups).toEqual(jasmine.any(Function));
+      expect(runtime.services.securityGroupReader.getAllSecurityGroups).toEqual(expect.any(Function));
     });
 
     it('constructs an instance type service', () => {
-      expect(runtime.services.instanceTypeService.getCategoryForMultipleInstanceTypes).toEqual(jasmine.any(Function));
+      expect(runtime.services.instanceTypeService.getCategoryForMultipleInstanceTypes).toEqual(expect.any(Function));
     });
 
     it('builds server group commands with the registered provider command builder', async () => {

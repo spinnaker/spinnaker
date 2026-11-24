@@ -1,9 +1,6 @@
-import type { ShallowWrapper } from 'enzyme';
-import { shallow } from 'enzyme';
+import { render, screen } from '@testing-library/react';
 import React from 'react';
 
-import { Artifact } from './Artifact';
-import type { IArtifactListProps } from './ArtifactList';
 import { ArtifactList } from './ArtifactList';
 import type { IArtifact } from '../../domain';
 
@@ -11,18 +8,16 @@ const ARTIFACT_TYPE = 'docker/image';
 const ARTIFACT_NAME = 'example.com/container';
 
 describe('<ArtifactList/>', () => {
-  let component: ShallowWrapper<IArtifactListProps>;
-
   it('renders null when null artifacts are passed in', function () {
     const artifacts: IArtifact[] = null;
-    component = shallow(<ArtifactList artifacts={artifacts} />);
-    expect(component.get(0)).toEqual(null);
+    const { container } = render(<ArtifactList artifacts={artifacts} />);
+    expect(container).toBeEmptyDOMElement();
   });
 
   it('renders null when 0 artifacts are passed in', function () {
     const artifacts: IArtifact[] = [];
-    component = shallow(<ArtifactList artifacts={artifacts} />);
-    expect(component.get(0)).toEqual(null);
+    const { container } = render(<ArtifactList artifacts={artifacts} />);
+    expect(container).toBeEmptyDOMElement();
   });
 
   it('renders a list when artifacts are passed in', function () {
@@ -38,7 +33,7 @@ describe('<ArtifactList/>', () => {
         name: ARTIFACT_NAME,
       },
     ];
-    component = shallow(<ArtifactList artifacts={artifacts} />);
-    expect(component.find(Artifact).length).toEqual(2);
+    render(<ArtifactList artifacts={artifacts} />);
+    expect(screen.getAllByTitle(`Name: ${ARTIFACT_NAME} Type: ${ARTIFACT_TYPE}`)).toHaveLength(2);
   });
 });

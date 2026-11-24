@@ -1,4 +1,4 @@
-import { mount } from 'enzyme';
+import { render } from '@testing-library/react';
 import React from 'react';
 
 import { TaskMonitor } from './TaskMonitor';
@@ -8,32 +8,34 @@ import type { ITask } from '../../domain';
 describe('TaskMonitorWrapper', () => {
   it('keeps an idle monitor available when its wrapper unmounts during a parent rerender', () => {
     const monitor = new TaskMonitor({ title: 'idle task monitor' });
-    const onModalClose = spyOn(monitor, 'onModalClose').and.callThrough();
-    const wrapper = mount(<TaskMonitorWrapper monitor={monitor} />);
+    const onModalClose = vi.spyOn(monitor, 'onModalClose');
+    const { unmount } = render(<TaskMonitorWrapper monitor={monitor} />);
 
-    wrapper.unmount();
+    unmount();
 
     expect(onModalClose).not.toHaveBeenCalled();
   });
 
   it('cancels monitor polling when its React owner unmounts', () => {
-    jasmine.clock().install();
+    vi.useFakeTimers({
+      toFake: ['setTimeout', 'clearTimeout', 'setInterval', 'clearInterval'],
+    });
     try {
-      const poll = jasmine.createSpy('poll');
+      const poll = vi.fn();
       const task = { poller: setTimeout(poll, 25) } as ITask;
-      const onDismiss = jasmine.createSpy('onDismiss');
+      const onDismiss = vi.fn();
       const monitor = new TaskMonitor({ title: 'owned task monitor', onDismiss });
       monitor.task = task;
-      const wrapper = mount(<TaskMonitorWrapper monitor={monitor} />);
+      const { unmount } = render(<TaskMonitorWrapper monitor={monitor} />);
 
-      wrapper.unmount();
-      jasmine.clock().tick(25);
+      unmount();
+      vi.advanceTimersByTime(25);
 
       expect(task.poller).toBeUndefined();
       expect(poll).not.toHaveBeenCalled();
       expect(onDismiss).not.toHaveBeenCalled();
     } finally {
-      jasmine.clock().uninstall();
+      vi.useRealTimers();
     }
   });
 });

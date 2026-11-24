@@ -1,4 +1,5 @@
 import 'ace-builds/src-noconflict/mode-json';
+import { isPlainObject } from 'lodash';
 import React from 'react';
 import { Modal } from 'react-bootstrap';
 
@@ -54,6 +55,13 @@ export class EditPipelineJsonModal extends React.Component<IEditPipelineJsonModa
   }
 
   private validatePipeline(pipeline: IPipeline): void {
+    ['stages', 'triggers'].forEach((field) => {
+      const items = (pipeline as any)[field];
+      if (items != null && (!Array.isArray(items) || !items.every((item) => isPlainObject(item)))) {
+        throw new Error(`The ${field} property must be a list of objects.`);
+      }
+    });
+
     const refIds = new Set<string | number>();
     const badIds = new Set<string | number>();
     if (pipeline.stages) {

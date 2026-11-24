@@ -139,6 +139,17 @@ class BasicAuthSpec extends Specification {
     notThrown(Exception)
   }
 
+  def "should post the login form back through the context path gate is served under"() {
+    when:
+    mockMvc.perform(get("/api/login").contextPath("/api"))
+      .andDo(print())
+      .andExpect(status().isOk())
+      .andExpect(content().string(containsString('<form action="/api/login" method="post"')))
+
+    then:
+    notThrown(Exception)
+  }
+
   def "should show an error message on the login page after a failed login"() {
     when:
     mockMvc.perform(get("/login?error"))

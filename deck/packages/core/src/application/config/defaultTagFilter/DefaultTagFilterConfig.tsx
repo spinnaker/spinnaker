@@ -133,7 +133,12 @@ export class DefaultTagFilterConfig extends React.Component<IDefaultTagFilterPro
                     />
                   </td>
                   <td>
-                    <button className="link default-filter-config-remove" onClick={() => this.removeFilterTag(idx)}>
+                    <button
+                      aria-label={`Remove default filter ${idx + 1}`}
+                      className="link default-filter-config-remove"
+                      onClick={() => this.removeFilterTag(idx)}
+                      type="button"
+                    >
                       <span className="glyphicon glyphicon-trash" />
                     </button>
                   </td>

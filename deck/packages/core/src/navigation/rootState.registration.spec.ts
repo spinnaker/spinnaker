@@ -11,11 +11,7 @@ describe('rootState registration', () => {
   let originalRegistrations: Array<(provider: StateConfigProvider) => void>;
 
   function createProvider(): StateConfigProvider {
-    return new StateConfigProvider(
-      {} as any,
-      { setNestedState: jasmine.createSpy('setNestedState') } as any,
-      {} as any,
-    );
+    return new StateConfigProvider({} as any, { setNestedState: vi.fn() } as any, {} as any);
   }
 
   beforeEach(() => {
@@ -27,7 +23,7 @@ describe('rootState registration', () => {
 
   it('applies queued root state registrations when the state config provider is created', () => {
     const rootState: INestedState = { name: 'queuedRootState' };
-    const registration = jasmine.createSpy('registration').and.callFake((provider: StateConfigProvider) => {
+    const registration = vi.fn().mockImplementation((provider: StateConfigProvider) => {
       provider.addToRootState(rootState);
     });
 
@@ -39,7 +35,7 @@ describe('rootState registration', () => {
   });
 
   it('does not apply queued registrations when the state helper provider is unavailable', () => {
-    const registration = jasmine.createSpy('registration');
+    const registration = vi.fn();
 
     registerRootState(registration);
 
@@ -51,10 +47,10 @@ describe('rootState registration', () => {
   it('applies late root state registrations immediately to the active state config provider', () => {
     const provider = createProvider();
     const rootState: INestedState = { name: 'lateRootState' };
-    const registration = jasmine.createSpy('registration').and.callFake((activeProvider: StateConfigProvider) => {
+    const registration = vi.fn().mockImplementation((activeProvider: StateConfigProvider) => {
       activeProvider.addToRootState(rootState);
     });
-    const addToRootState = spyOn(provider, 'addToRootState').and.callThrough();
+    const addToRootState = vi.spyOn(provider, 'addToRootState');
 
     applyRootStateRegistrations(provider);
     registerRootState(registration);

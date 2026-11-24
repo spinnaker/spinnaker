@@ -21,8 +21,12 @@ export function SpelToggle(props: ISpelToggleProps) {
       }
     >
       <button
+        aria-label={
+          props.inputMode === SpelAwareInputMode.FREEFORM ? 'Return to default input' : 'Enter SpEL in freeform input'
+        }
         className={classNames('btn btn-sm btn-default', { active: props.inputMode === SpelAwareInputMode.FREEFORM })}
         onClick={props.onClick}
+        type="button"
       >
         <span className="fa icon-spel" />
       </button>

@@ -107,6 +107,9 @@ export class ExecutionBarLabelComponent extends React.Component<
   };
 
   private getRenderableStageName(): string {
+    if (this.props.displayName !== undefined) {
+      return this.props.displayName;
+    }
     const { stage, stateParams } = this.props;
     let stageName = stage.name ? stage.name : stage.type;
     if (stage.type === 'group' && stage.groupStages && stage.index === Number(stateParams.stage)) {

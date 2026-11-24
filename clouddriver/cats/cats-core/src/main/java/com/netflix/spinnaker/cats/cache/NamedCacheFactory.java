@@ -16,15 +16,7 @@
 
 package com.netflix.spinnaker.cats.cache;
 
-import com.netflix.spinnaker.cats.provider.ProviderCacheConfiguration;
-
 /** Produces writeable caches by name. */
 public interface NamedCacheFactory {
   WriteableCache getCache(String name);
-
-  default WriteableCache getCache(
-      String name, ProviderCacheConfiguration providerCacheConfiguration) {
-    // not all caches support per-provider configuration
-    return getCache(name);
-  }
 }

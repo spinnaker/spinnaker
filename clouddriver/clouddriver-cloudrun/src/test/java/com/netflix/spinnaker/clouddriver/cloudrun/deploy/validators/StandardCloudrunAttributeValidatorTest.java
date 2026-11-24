@@ -3,9 +3,9 @@ package com.netflix.spinnaker.clouddriver.cloudrun.deploy.validators;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.verify;
 
 import com.google.api.services.run.v1.CloudRun;
-import com.netflix.spinnaker.clouddriver.cloudrun.CloudrunJobExecutor;
 import com.netflix.spinnaker.clouddriver.cloudrun.security.CloudrunCredentials;
 import com.netflix.spinnaker.clouddriver.cloudrun.security.CloudrunNamedAccountCredentials;
 import com.netflix.spinnaker.clouddriver.deploy.ValidationErrors;
@@ -40,7 +40,7 @@ public class StandardCloudrunAttributeValidatorTest {
             .setLocalRepositoryDirectory("/localdirectory")
             .setJsonPath("/jsonpath")
             .setProject(" my project")
-            .build(mock(CloudrunJobExecutor.class));
+            .build();
 
     credrepo =
         new MapBackedCredentialsRepository(
@@ -59,5 +59,26 @@ public class StandardCloudrunAttributeValidatorTest {
     assertFalse(
         standardCloudrunAttributeValidator.validateCredentials(
             "Different cloudrun account", credrepo));
+  }
+
+  @Test
+  public void validateCredentialsRejectsEmptyStringTest() {
+    // new String(..) guarantees an instance that is not the interned "" literal, like a value
+    // deserialized from a request body.
+    assertFalse(standardCloudrunAttributeValidator.validateCredentials(new String(""), credrepo));
+    verify(errors).rejectValue("new context.account", "new context.account.empty");
+  }
+
+  @Test
+  public void validateCredentialsRejectsNullTest() {
+    assertFalse(standardCloudrunAttributeValidator.validateCredentials(null, credrepo));
+    verify(errors).rejectValue("new context.account", "new context.account.empty");
+  }
+
+  @Test
+  public void validateCredentialsNotFoundUsesContextInErrorCodeTest() {
+    assertFalse(
+        standardCloudrunAttributeValidator.validateCredentials("unknown account", credrepo));
+    verify(errors).rejectValue("new context.account", "new context.account.notFound");
   }
 }

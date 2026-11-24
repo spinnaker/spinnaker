@@ -28,7 +28,9 @@ import org.slf4j.LoggerFactory
 import org.springframework.stereotype.Component
 
 @Component
-class AggregateCanaryResultsTask : Task {
+class AggregateCanaryResultsTask(
+  private val canaryReportLinks: CanaryReportLinks
+) : Task {
 
   private val log = LoggerFactory.getLogger(javaClass)
 
@@ -44,6 +46,15 @@ class AggregateCanaryResultsTask : Task {
       .map { it -> it.mapTo<Number>("/canaryScore") }
       .map(Number::toDouble)
     val finalCanaryScore = runCanaryScores[runCanaryScores.size - 1]
+    val finalRunCanaryStage = runCanaryStages.last()
+    fun failureMessage(threshold: Number, kind: CanaryReportLinks.ThresholdKind) = canaryReportLinks.scoreFailureMessage(
+      finalCanaryScore,
+      threshold,
+      kind,
+      stage.execution.application,
+      finalRunCanaryStage.context["canaryConfigId"],
+      finalRunCanaryStage.context["canaryPipelineExecutionId"]
+    )
 
     return if (canaryConfig.scoreThresholds?.marginal == null && canaryConfig.scoreThresholds?.pass == null) {
       TaskResult.builder(SUCCEEDED).context(
@@ -53,10 +64,13 @@ class AggregateCanaryResultsTask : Task {
         )
       ).build()
     } else if (canaryConfig.scoreThresholds.marginal != null && finalCanaryScore <= canaryConfig.scoreThresholds.marginal) {
+      val message = failureMessage(canaryConfig.scoreThresholds.marginal, CanaryReportLinks.ThresholdKind.MARGINAL)
+      stage.appendErrorMessage(message)
       TaskResult.builder(TERMINAL).context(
         mapOf(
           "canaryScores" to runCanaryScores,
-          "canaryScoreMessage" to "Final canary score $finalCanaryScore is not above the marginal score threshold."
+          "canaryScoreMessage" to message,
+          "exception" to stage.context["exception"]
         )
       ).build()
     } else if (canaryConfig.scoreThresholds.pass == null) {
@@ -67,10 +81,13 @@ class AggregateCanaryResultsTask : Task {
         )
       ).build()
     } else if (finalCanaryScore < canaryConfig.scoreThresholds.pass) {
+      val message = failureMessage(canaryConfig.scoreThresholds.pass, CanaryReportLinks.ThresholdKind.PASS)
+      stage.appendErrorMessage(message)
       TaskResult.builder(TERMINAL).context(
         mapOf(
           "canaryScores" to runCanaryScores,
-          "canaryScoreMessage" to "Final canary score $finalCanaryScore is below the pass score threshold."
+          "canaryScoreMessage" to message,
+          "exception" to stage.context["exception"]
         )
       ).build()
     } else {

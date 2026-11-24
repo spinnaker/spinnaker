@@ -1,4 +1,4 @@
-import { shallow } from 'enzyme';
+import { render, screen } from '@testing-library/react';
 import React from 'react';
 
 import type { Application } from '../application';
@@ -20,28 +20,33 @@ describe('StandaloneSecurityGroupDetails', () => {
   });
 
   it('renders provider React security group details when configured', () => {
-    const ReactSecurityGroupDetails = () => <div className="react-security-group-details" />;
-    const getValue = spyOn(CloudProviderRegistry, 'getValue').and.callFake((_provider: string, key: string) =>
-      key === 'securityGroup.details' ? ReactSecurityGroupDetails : null,
+    const ReactSecurityGroupDetails = ({ app: renderedApp, resolvedSecurityGroup: renderedSecurityGroup }: any) => (
+      <div>
+        {renderedApp === app && renderedSecurityGroup === resolvedSecurityGroup
+          ? renderedSecurityGroup.name
+          : 'wrong props'}
+      </div>
     );
+    const getValue = vi
+      .spyOn(CloudProviderRegistry, 'getValue')
+      .mockImplementation((_provider: string, key: string) =>
+        key === 'securityGroup.details' ? ReactSecurityGroupDetails : null,
+      );
 
-    const component = shallow(
-      <StandaloneSecurityGroupDetails app={app} resolvedSecurityGroup={resolvedSecurityGroup} />,
-    );
+    render(<StandaloneSecurityGroupDetails app={app} resolvedSecurityGroup={resolvedSecurityGroup} />);
 
-    expect(component.find(ReactSecurityGroupDetails).prop('app')).toBe(app);
-    expect(component.find(ReactSecurityGroupDetails).prop('resolvedSecurityGroup')).toBe(resolvedSecurityGroup);
-    expect(getValue.calls.allArgs()).toEqual([['kubernetes', 'securityGroup.details']]);
+    expect(screen.getByText('sg-123')).toBeInTheDocument();
+    expect(getValue.mock.calls).toEqual([['kubernetes', 'securityGroup.details']]);
   });
 
   it('renders nothing when provider security group details config is missing', () => {
-    const getValue = spyOn(CloudProviderRegistry, 'getValue').and.returnValue(null);
+    const getValue = vi.spyOn(CloudProviderRegistry, 'getValue').mockReturnValue(null);
 
-    const component = shallow(
+    const { container } = render(
       <StandaloneSecurityGroupDetails app={app} resolvedSecurityGroup={resolvedSecurityGroup} />,
     );
 
-    expect(component.isEmptyRender()).toBe(true);
-    expect(getValue.calls.allArgs()).toEqual([['kubernetes', 'securityGroup.details']]);
+    expect(container).toBeEmptyDOMElement();
+    expect(getValue.mock.calls).toEqual([['kubernetes', 'securityGroup.details']]);
   });
 });

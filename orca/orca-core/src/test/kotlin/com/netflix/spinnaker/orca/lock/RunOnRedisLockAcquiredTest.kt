@@ -105,11 +105,11 @@ class RunOnRedisLockAcquiredTest {
 
   private fun givenLockIsAcquired() {
     `when`(lockManager.acquireLock(any(LockOptions::class.java), any(Callable::class.java))).thenAnswer {
-      val call = callable.call()
+      val call = it.getArgument<Callable<*>>(1).call()
       AcquireLockResponse(null, call, LockManager.LockStatus.ACQUIRED, null, true)
     }
     `when`(lockManager.acquireLock(any(LockOptions::class.java), any(Runnable::class.java))).thenAnswer {
-      runnable.run()
+      it.getArgument<Runnable>(1).run()
       AcquireLockResponse<Void>(null, null, LockManager.LockStatus.ACQUIRED, null, true)
     }
   }

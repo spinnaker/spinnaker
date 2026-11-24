@@ -167,10 +167,14 @@ class PageNavigatorComponent extends React.Component<IPageNavigatorProps & IRout
                         data-page-navigation-link={page.key}
                         className={currentPageKey === page.key ? 'current' : ''}
                       >
-                        <a onClick={() => this.setCurrentSection(page.key)}>
+                        <button
+                          aria-current={currentPageKey === page.key ? 'location' : undefined}
+                          type="button"
+                          onClick={() => this.setCurrentSection(page.key)}
+                        >
                           {page.label}
                           {page.badge && <span> {'(' + page.badge + ')'}</span>}
-                        </a>
+                        </button>
                       </li>
                     )
                   );

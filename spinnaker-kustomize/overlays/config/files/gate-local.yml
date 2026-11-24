@@ -81,7 +81,7 @@ api-tokens:
 ## for scheduled activation windows. The active-banner cache is refreshed from
 ## Redis every refresh-interval-ms milliseconds.
 global-banner:
-  enabled: false
+  enabled: true
   ## All values below are optional — shown with their defaults. Uncomment to override.
   ## Redis namespace prefix so Gate can share a Redis instance with other services.
   #redis-key-prefix: global-banner

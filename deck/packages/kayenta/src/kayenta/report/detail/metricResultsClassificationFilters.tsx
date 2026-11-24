@@ -1,6 +1,6 @@
 import * as React from 'react';
-import type { Dispatch } from 'react-redux';
 import { connect } from 'react-redux';
+import type { Dispatch } from 'redux';
 
 import * as Creators from '../../actions/creators';
 import type { ICanaryAnalysisResult } from '../../domain';
@@ -56,7 +56,7 @@ const mapStateToProps = (state: ICanaryState): IMetricFiltersStateProps => ({
 });
 
 const mapDispatchToProps = (
-  dispatch: Dispatch<ICanaryState>,
+  dispatch: Dispatch,
   ownProps: IMetricFiltersOwnProps,
 ): IMetricFiltersOwnProps & IMetricFiltersDispatchProps => ({
   toggle: (classification: MetricClassificationLabel) =>

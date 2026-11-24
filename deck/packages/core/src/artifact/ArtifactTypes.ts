@@ -9,6 +9,7 @@ export const ArtifactTypePatterns: IArtifactTypePatterns = {
   EMBEDDED_BASE64: /embedded\/base64/,
   REMOTE_BASE64: /remote\/base64/,
   GCS_OBJECT: /gcs\/object/,
+  GITEA_FILE: /gitea\/file/,
   GITHUB_FILE: /github\/file/,
   GIT_REPO: /git\/repo/,
   GITLAB_FILE: /gitlab\/file/,

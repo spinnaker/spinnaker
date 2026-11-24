@@ -72,7 +72,7 @@ public class CachingPluginBinaryStorageService implements PluginBinaryStorageSer
   }
 
   private byte[] loadFromCache(String key) {
-    Path binaryPath = CACHE_PATH.resolve("key");
+    Path binaryPath = CACHE_PATH.resolve(key);
     if (binaryPath.toFile().exists()) {
       try {
         return Files.readAllBytes(binaryPath);

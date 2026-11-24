@@ -17,7 +17,9 @@
 package com.netflix.spinnaker.fiat.providers;
 
 import com.netflix.spinnaker.fiat.model.resources.ServiceAccount;
+import java.util.ArrayList;
 import java.util.List;
+import java.util.Set;
 import java.util.function.Predicate;
 import lombok.NonNull;
 
@@ -31,4 +33,19 @@ public interface ServiceAccountPredicateProvider {
    */
   Predicate<ServiceAccount> get(
       @NonNull String userId, @NonNull List<String> userRoles, boolean isAdmin);
+
+  /**
+   * Same as {@link #get(String, List, boolean)} but with the role names as a set, so
+   * implementations can use constant-time membership checks. The default delegates to the list
+   * variant so existing implementations keep working; implementations should override this.
+   *
+   * @param userId Identifier for the currently authenticated user
+   * @param userRoles Role names for the currently authenticated user
+   * @param isAdmin Whether the currently authenticated user is an administrator
+   * @return true if access to service account should be granted, otherwise false
+   */
+  default Predicate<ServiceAccount> get(
+      @NonNull String userId, @NonNull Set<String> userRoles, boolean isAdmin) {
+    return get(userId, new ArrayList<>(userRoles), isAdmin);
+  }
 }

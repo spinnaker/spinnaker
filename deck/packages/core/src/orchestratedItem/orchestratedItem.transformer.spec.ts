@@ -238,7 +238,7 @@ describe('orchestratedItem transformer', () => {
     });
 
     it('links to the task holding an orchestration lock', () => {
-      const href = jasmine.createSpy('href').and.returnValue('#/task');
+      const href = vi.fn().mockReturnValue('#/task');
       setDirectRouter({ stateService: { href } } as any);
 
       const message = getMessage({
@@ -260,7 +260,7 @@ describe('orchestratedItem transformer', () => {
     });
 
     it('links to the pipeline holding a pipeline lock', () => {
-      const href = jasmine.createSpy('href').and.returnValue('#/pipeline');
+      const href = vi.fn().mockReturnValue('#/pipeline');
       setDirectRouter({ stateService: { href } } as any);
 
       const message = getMessage({

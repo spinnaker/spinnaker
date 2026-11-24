@@ -41,6 +41,7 @@ import java.io.InputStream;
 import java.nio.charset.StandardCharsets;
 import java.time.Duration;
 import java.util.*;
+import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
@@ -52,6 +53,14 @@ public class GitlabCiService implements BuildOperations, BuildProperties, Stoppa
   private final GitlabCiProperties.GitlabCiHost hostConfig;
   private final Permissions permissions;
   private final RetrySupport retrySupport = new RetrySupport();
+
+  // GitLab prefixes each job-log line with an ISO-8601 timestamp and a stream code, e.g.
+  // "2026-10-27T16:13:22.166283Z 01O SPINNAKER_PROPERTY_FOO=bar". The shared PropertyParser
+  // anchors SPINNAKER_PROPERTY_/SPINNAKER_CONFIG_JSON to the start of a line, so this prefix
+  // is stripped per line before parsing. Applied with MULTILINE so ^ matches each line.
+  private static final Pattern GITLAB_LOG_LINE_PREFIX =
+      Pattern.compile(
+          "^\\d{4}-\\d{2}-\\d{2}T\\d{2}:\\d{2}:\\d{2}\\.\\d+Z\\s+\\S+\\s+", Pattern.MULTILINE);
 
   public GitlabCiService(
       GitlabCiClient client,
@@ -116,20 +125,35 @@ public class GitlabCiService implements BuildOperations, BuildProperties, Stoppa
 
   @Override
   public long triggerBuildWithParameters(String job, Map<String, String> queryParameters) {
-    String ref = queryParameters.getOrDefault("ref", "main");
+    // Default to GitLab's modern default branch ("main") when no ref is supplied.
+    // A present-but-blank ref is also treated as absent so we never trigger on "".
+    String ref = queryParameters.get("ref");
+    if (StringUtils.isBlank(ref)) {
+      ref = "main";
+    }
     String triggerToken = this.hostConfig.getTriggerToken();
-    if (triggerToken == null || triggerToken.isEmpty()) {
+    if (StringUtils.isBlank(triggerToken)) {
       throw new IllegalStateException(
           "Cannot trigger GitLab CI pipeline: triggerToken is not configured for master '"
               + this.name
               + "'");
     }
-    Pipeline pipeline = Retrofit2SyncCall.execute(client.triggerPipeline(job, triggerToken, ref));
+    // All parameters other than "ref" are forwarded to GitLab as pipeline variables,
+    // using GitLab's variables[KEY]=value trigger syntax. Null-valued parameters are
+    // skipped (an unset variable is simply not sent, and Collectors.toMap rejects nulls).
+    Map<String, String> variables =
+        queryParameters.entrySet().stream()
+            .filter(e -> !"ref".equals(e.getKey()) && e.getValue() != null)
+            .collect(Collectors.toMap(e -> "variables[" + e.getKey() + "]", Map.Entry::getValue));
+
+    Pipeline pipeline =
+        Retrofit2SyncCall.execute(client.triggerPipeline(job, triggerToken, ref, variables));
     log.info(
-        "Triggered GitLab CI pipeline {} for {} on ref {}",
+        "Triggered GitLab CI pipeline {} for {} on ref {} with {} variable(s)",
         kv("pipelineId", pipeline.getId()),
         kv("projectId", job),
-        kv("ref", ref));
+        kv("ref", ref),
+        kv("variableCount", variables.size()));
     return pipeline.getId();
   }
 
@@ -228,7 +252,11 @@ public class GitlabCiService implements BuildOperations, BuildProperties, Stoppa
                       .source()
                       .inputStream();
               String log = new String(logStream.readAllBytes(), StandardCharsets.UTF_8);
-              Map<String, Object> jobProperties = PropertyParser.extractPropertiesFromLog(log);
+              // Strip GitLab's per-line timestamp/stream prefix so the shared PropertyParser
+              // (which anchors the magic string to line start) can match.
+              String cleanedLog = GITLAB_LOG_LINE_PREFIX.matcher(log).replaceAll("");
+              Map<String, Object> jobProperties =
+                  PropertyParser.extractPropertiesFromLog(cleanedLog);
               properties.putAll(jobProperties);
             }
 

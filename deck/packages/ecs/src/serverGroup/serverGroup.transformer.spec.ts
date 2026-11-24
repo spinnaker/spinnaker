@@ -3,6 +3,8 @@ import { VpcReader } from '@spinnaker/amazon';
 
 import { EcsServerGroupTransformer } from './serverGroup.transformer';
 
+const testContext: any = {};
+
 describe('ecsServerGroupTransformer', () => {
   let transformer: EcsServerGroupTransformer;
 
@@ -12,7 +14,7 @@ describe('ecsServerGroupTransformer', () => {
 
   describe('normalize server group', () => {
     beforeEach(() => {
-      spyOn(VpcReader, 'listVpcs').and.returnValue(
+      vi.spyOn(VpcReader, 'listVpcs').mockReturnValue(
         Promise.resolve([{ account: 'test', region: 'us-east-1', id: 'vpc-1', name: 'main' } as any]),
       );
     });
@@ -58,6 +60,93 @@ describe('ecsServerGroupTransformer', () => {
       transformed = transformer.convertServerGroupCommandToDeployConfiguration(command);
       expect(transformed.subnetType).toBe('internal');
     });
+
+    it('defaults cloudProvider to ecs', () => {
+      const command: any = { viewState: { mode: 'create' }, application: { name: 'theApp' } };
+      const transformed = transformer.convertServerGroupCommandToDeployConfiguration(command);
+      expect(transformed.cloudProvider).toBe('ecs');
+    });
+
+    it('preserves cloudProvider ecs-native when the native deployment toggle is set', () => {
+      const command: any = {
+        viewState: { mode: 'create' },
+        application: { name: 'theApp' },
+        cloudProvider: 'ecs-native',
+      };
+      const transformed = transformer.convertServerGroupCommandToDeployConfiguration(command);
+      expect(transformed.cloudProvider).toBe('ecs-native');
+    });
+
+    const nativeFields = {
+      deploymentStrategy: 'BLUE_GREEN',
+      deploymentCircuitBreakerRollback: true,
+      alarmNames: ['alarm'],
+      enableDeploymentAlarms: true,
+      deploymentAlarmsRollback: true,
+      minimumHealthyPercent: 50,
+      maximumPercent: 200,
+      bakeTimeInMinutes: 5,
+      lifecyclePauseStage: 'POST_TEST_TRAFFIC_SHIFT',
+      lifecyclePauseTimeoutMinutes: 30,
+      lifecyclePauseTimeoutAction: 'ROLLBACK',
+      alternateTargetGroupArn: 'arn:alt',
+      productionListenerRule: 'arn:prod',
+      testListenerRule: 'arn:test',
+      blueGreenRoleArn: 'arn:role',
+    };
+    const blueGreenOnly = [
+      'lifecyclePauseStage',
+      'lifecyclePauseTimeoutMinutes',
+      'lifecyclePauseTimeoutAction',
+      'alternateTargetGroupArn',
+      'productionListenerRule',
+      'testListenerRule',
+      'blueGreenRoleArn',
+    ];
+
+    it('strips native-only fields from a classic ecs payload but keeps fields classic ecs supports', () => {
+      const command: any = {
+        viewState: { mode: 'create' },
+        application: { name: 'theApp' },
+        cloudProvider: 'ecs',
+        enableDeploymentCircuitBreaker: true,
+        useSourceCapacity: true,
+        ...nativeFields,
+      };
+      const transformed = transformer.convertServerGroupCommandToDeployConfiguration(command);
+      Object.keys(nativeFields).forEach((field) => expect(transformed).not.toHaveProperty(field));
+      expect(transformed.enableDeploymentCircuitBreaker).toBe(true);
+      expect(transformed.useSourceCapacity).toBe(true);
+    });
+
+    it('strips blue/green-only fields from a native payload whose strategy is rolling (any case)', () => {
+      const command: any = {
+        viewState: { mode: 'create' },
+        application: { name: 'theApp' },
+        cloudProvider: 'ecs-native',
+        ...nativeFields,
+        deploymentStrategy: 'rolling',
+      };
+      const transformed = transformer.convertServerGroupCommandToDeployConfiguration(command);
+      blueGreenOnly.forEach((field) => expect(transformed).not.toHaveProperty(field));
+      expect(transformed.bakeTimeInMinutes).toBe(5);
+      expect(transformed.deploymentStrategy).toBe('rolling');
+    });
+
+    it.each(['BLUE_GREEN', 'blue_green', '${ parameters.strategy }', undefined])(
+      'keeps blue/green-only fields on a native payload when the strategy is %p',
+      (deploymentStrategy) => {
+        const command: any = {
+          viewState: { mode: 'create' },
+          application: { name: 'theApp' },
+          cloudProvider: 'ecs-native',
+          ...nativeFields,
+          deploymentStrategy,
+        };
+        const transformed = transformer.convertServerGroupCommandToDeployConfiguration(command);
+        blueGreenOnly.forEach((field) => expect(transformed[field]).toEqual((nativeFields as any)[field]));
+      },
+    );
   });
 
   describe('normalize server group details', () => {
@@ -110,7 +199,7 @@ describe('ecsServerGroupTransformer', () => {
 
     describe('sorting step adjustments', () => {
       beforeEach(function () {
-        this.test = (steps: IStepAdjustment[], expected: any[]) => {
+        testContext.test = (steps: IStepAdjustment[], expected: any[]) => {
           const serverGroup = {
             scalingPolicies: [
               {
@@ -125,7 +214,7 @@ describe('ecsServerGroupTransformer', () => {
       });
 
       it('reverse sorts step adjustments by lower bound when none have an upper bound defined', function () {
-        this.test(
+        testContext.test(
           [
             { scalingAdjustment: 10, metricIntervalLowerBound: 3 },
             { scalingAdjustment: 0, metricIntervalLowerBound: 5 },
@@ -136,7 +225,7 @@ describe('ecsServerGroupTransformer', () => {
       });
 
       it('reverse sorts step adjustments by lower bound when some do not have an upper bound defined', function () {
-        this.test(
+        testContext.test(
           [
             { id: 1, scalingAdjustment: 10, metricIntervalLowerBound: 3, metricIntervalUpperBound: 5 },
             { id: 2, scalingAdjustment: 0, metricIntervalLowerBound: 5 },
@@ -146,7 +235,7 @@ describe('ecsServerGroupTransformer', () => {
         );
       });
       it('verify float adjustments work within the range', function () {
-        this.test(
+        testContext.test(
           [
             { id: 1, scalingAdjustment: 10, metricIntervalLowerBound: 3.5, metricIntervalUpperBound: 5.5 },
             { id: 2, scalingAdjustment: 0, metricIntervalLowerBound: 5.5 },
@@ -156,7 +245,7 @@ describe('ecsServerGroupTransformer', () => {
         );
       });
       it('reverse sorts step adjustments by upper bound when all have an upper bound defined', function () {
-        this.test(
+        testContext.test(
           [
             { id: 1, scalingAdjustment: 10, metricIntervalLowerBound: 3, metricIntervalUpperBound: 5 },
             { id: 2, scalingAdjustment: 0, metricIntervalLowerBound: 5, metricIntervalUpperBound: 9 },

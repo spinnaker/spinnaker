@@ -23,9 +23,9 @@ import com.google.common.annotations.VisibleForTesting;
 import com.netflix.spinnaker.kork.exceptions.SpinnakerException;
 import com.netflix.spinnaker.kork.retrofit.Retrofit2SyncCall;
 import com.netflix.spinnaker.kork.web.filters.ProvidedIdRequestFilterConfigurationProperties;
+import com.netflix.spinnaker.kork.web.url.UrlRestrictions;
 import com.netflix.spinnaker.orca.api.pipeline.models.StageExecution;
 import com.netflix.spinnaker.orca.clouddriver.OortService;
-import com.netflix.spinnaker.orca.config.UserConfiguredUrlRestrictions;
 import com.netflix.spinnaker.orca.webhook.config.WebhookProperties;
 import com.netflix.spinnaker.orca.webhook.pipeline.WebhookStage;
 import java.net.URI;
@@ -70,7 +70,7 @@ public class WebhookService {
 
   private final List<RestTemplateProvider> restTemplateProviders;
 
-  private final UserConfiguredUrlRestrictions userConfiguredUrlRestrictions;
+  private final UrlRestrictions userConfiguredUrlRestrictions;
 
   private final WebhookProperties webhookProperties;
 
@@ -90,7 +90,7 @@ public class WebhookService {
   @Autowired
   public WebhookService(
       List<RestTemplateProvider> restTemplateProviders,
-      UserConfiguredUrlRestrictions userConfiguredUrlRestrictions,
+      UrlRestrictions userConfiguredUrlRestrictions,
       WebhookProperties webhookProperties,
       OortService oortService,
       Optional<WebhookAccountProcessor> webhookAccountProcessor,

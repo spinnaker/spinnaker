@@ -428,6 +428,7 @@ export class GceServerGroupConfigurationService {
           command.loadBalancers,
           command.credentials,
           newLoadBalancerObjects,
+          command.region,
         );
         const matched = _.intersection(command.backingData.filtered.loadBalancers, command.loadBalancers);
         const removed = _.xor(matched, command.loadBalancers);
@@ -452,7 +453,12 @@ export class GceServerGroupConfigurationService {
       const lbIndex = command.backingData.filtered.loadBalancerIndex;
 
       const backendServices = command.loadBalancers.reduce((backendServices, lbName) => {
-        if (gceHttpLoadBalancerUtils.isHttpLoadBalancer(lbIndex[lbName])) {
+        // Clouddriver attaches every EXTERNAL_MANAGED backend service; its regional names must not
+        // enter the global backend-service-names metadata.
+        if (
+          gceHttpLoadBalancerUtils.isHttpLoadBalancer(lbIndex[lbName]) &&
+          lbIndex[lbName].loadBalancerType !== 'EXTERNAL_MANAGED'
+        ) {
           backendServices[lbName] = _.intersection(lbIndex[lbName].backendServices, backendsFromMetadata);
         }
         return backendServices;

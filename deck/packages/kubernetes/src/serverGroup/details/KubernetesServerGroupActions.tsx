@@ -19,6 +19,7 @@ export interface IKubernetesServerGroupActionsProps extends IServerGroupActionsP
 }
 
 export function KubernetesServerGroupActions({ app, serverGroup }: IKubernetesServerGroupActionsProps) {
+  const isEnabled = SETTINGS.kubernetesAdHocInfraWritesEnabled;
   const showEntityTags = SETTINGS.feature && SETTINGS.feature.entityTags;
   const entityTagTargets: IOwnerOption[] = ClusterTargetBuilder.buildClusterTargets(serverGroup);
   const { manifest } = serverGroup;
@@ -80,9 +81,11 @@ export function KubernetesServerGroupActions({ app, serverGroup }: IKubernetesSe
   return (
     <>
       <Dropdown className="dropdown" id="server-group-actions-dropdown">
-        <Dropdown.Toggle className="btn btn-sm btn-primary dropdown-toggle">
-          {robotToHuman(serverGroup.kind)} Actions
-        </Dropdown.Toggle>
+        {isEnabled && (
+          <Dropdown.Toggle className="btn btn-sm btn-primary dropdown-toggle">
+            {robotToHuman(serverGroup.kind)} Actions
+          </Dropdown.Toggle>
+        )}
         <Dropdown.Menu>
           {canEditServerGroup() && <MenuItem onClick={editServerGroup}>Edit</MenuItem>}
           {canScaleServerGroup() && (

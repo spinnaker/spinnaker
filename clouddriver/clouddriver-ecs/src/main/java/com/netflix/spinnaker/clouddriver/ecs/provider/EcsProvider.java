@@ -24,7 +24,6 @@ import static com.netflix.spinnaker.clouddriver.ecs.cache.Keys.Namespace.SERVICE
 import static com.netflix.spinnaker.clouddriver.ecs.cache.Keys.Namespace.TASKS;
 import static com.netflix.spinnaker.clouddriver.ecs.cache.Keys.Namespace.TASK_DEFINITIONS;
 
-import com.netflix.spinnaker.cats.provider.ProviderCacheConfiguration;
 import com.netflix.spinnaker.clouddriver.cache.SearchableProvider;
 import com.netflix.spinnaker.clouddriver.core.provider.agent.HealthProvidingCachingAgent;
 import com.netflix.spinnaker.clouddriver.ecs.cache.Keys;
@@ -38,8 +37,7 @@ import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
 
-public class EcsProvider extends BaseProvider
-    implements SearchableProvider, ProviderCacheConfiguration {
+public class EcsProvider extends BaseProvider implements SearchableProvider {
   public static final String NAME = EcsProvider.class.getName();
 
   private static final Set<String> defaultCaches =
@@ -95,16 +93,5 @@ public class EcsProvider extends BaseProvider
 
   public Collection<HealthProvidingCachingAgent> getHealthAgents() {
     return Collections.unmodifiableCollection(healthAgents);
-  }
-
-  /**
-   * Every ECS caching agent already reports its authoritative namespace's key unconditionally, even
-   * with zero live items, so the SQL cache's existingIds-minus-currentIds eviction diff can always
-   * run per-agent. The now-redundant manual eviction computation each agent used to do by hand has
-   * been removed in favor of that implicit per-agent diff.
-   */
-  @Override
-  public boolean supportsFullEviction() {
-    return true;
   }
 }

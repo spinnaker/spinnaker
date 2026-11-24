@@ -1,4 +1,5 @@
-import { mount, shallow } from 'enzyme';
+import { render, screen } from '@testing-library/react';
+import { setupUser } from '../../../utils/testUtils/userEvent';
 import React from 'react';
 
 import { ExecutionAction } from './ExecutionAction';
@@ -7,22 +8,22 @@ describe('<ExecutionAction />', () => {
   const exampleText = 'Click here';
 
   it('renders a link with children', () => {
-    const wrapper = shallow(
+    render(
       <ExecutionAction>
         <div>{exampleText}</div>
       </ExecutionAction>,
     );
-    const aTag = wrapper.find('a');
-    expect(aTag.text()).toEqual(exampleText);
+
+    expect(screen.getByText(exampleText).closest('a')).toBeInTheDocument();
   });
 
-  it('mouseover displayes Tooltip', () => {
+  it('mouseover displays Tooltip', async () => {
     const toolTipText = 'This is a tooltip';
-    const wrapper = mount(<ExecutionAction tooltipText={toolTipText}>{exampleText}</ExecutionAction>);
-    const aTag = wrapper.find('a');
-    aTag.simulate('mouseOver');
+    const user = setupUser();
+    render(<ExecutionAction tooltipText={toolTipText}>{exampleText}</ExecutionAction>);
 
-    const toolTip = document.getElementById(toolTipText);
-    expect(toolTip.innerText).toEqual(toolTipText);
+    await user.hover(screen.getByText(exampleText));
+
+    expect(await screen.findByText(toolTipText)).toBeVisible();
   });
 });

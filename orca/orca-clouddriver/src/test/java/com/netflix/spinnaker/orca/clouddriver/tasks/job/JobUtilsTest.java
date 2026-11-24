@@ -16,9 +16,11 @@
 
 package com.netflix.spinnaker.orca.clouddriver.tasks.job;
 
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatCode;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
 
 import com.netflix.spinnaker.kork.core.RetrySupport;
 import com.netflix.spinnaker.orca.api.pipeline.models.ExecutionType;
@@ -30,7 +32,12 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import okhttp3.MediaType;
+import okhttp3.ResponseBody;
 import org.junit.jupiter.api.Test;
+import retrofit2.Call;
+import retrofit2.Response;
+import retrofit2.mock.Calls;
 
 class JobUtilsTest {
 
@@ -59,8 +66,15 @@ class JobUtilsTest {
         new StageExecutionImpl(
             new PipelineExecutionImpl(ExecutionType.PIPELINE, APPLICATION), "test", context);
 
+    Call<ResponseBody> cancelCall =
+        Calls.response(
+            Response.success(200, ResponseBody.create(MediaType.parse("application/json"), "{}")));
+    when(katoRestService.cancelJob(APPLICATION, ACCOUNT, "default", "job my-job"))
+        .thenReturn(cancelCall);
+
     assertThatCode(() -> jobUtils.cancelWait(stage)).doesNotThrowAnyException();
 
     verify(katoRestService).cancelJob(APPLICATION, ACCOUNT, "default", "job my-job");
+    assertThat(cancelCall.isExecuted()).isTrue();
   }
 }

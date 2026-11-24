@@ -28,3 +28,23 @@ To start the JVM in debug mode, set the Java system property `DEBUG=true` (run f
 The JVM will then listen for a debugger to be attached on port 8184.  The JVM will _not_ wait for
 the debugger to be attached before starting Gate; the relevant JVM arguments can be seen and
 modified as needed in `build.gradle`.
+
+### Accepted request locales
+
+Tomcat limits the number of locales parsed from the `Accept-Language` request headers
+(default: 10 in Tomcat 11.0.27). Requests exceeding that limit can fail when Spring
+resolves the request locale, including ordinary Deck API requests.
+
+To override the limit, set `default.maxLocaleCount` in a Gate Spring profile such as
+`gate-local.yml`:
+
+```yaml
+default:
+  maxLocaleCount: 25
+```
+
+This applies to the main connector and any configured legacy HTTP or x509 API connectors.
+Leaving the property unset preserves Tomcat's default. Any negative value, such as `-1`,
+disables the locale-count limit, following
+[Tomcat's connector semantics](https://tomcat.apache.org/tomcat-11.0-doc/config/http.html).
+Other HTTP header limits still apply.

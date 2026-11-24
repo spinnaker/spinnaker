@@ -4,7 +4,7 @@ Please refer to [Contributing to Spinnaker](https://spinnaker.io/community/contr
 
 When filling out a pull request, please consider the following:
 
-* Follow the commit message conventions [found here](https://spinnaker.io/community/contributing/submitting/).
+* Follow the commit message conventions [found here](https://spinnaker.io/docs/community/contributing/code/submitting/).
 * Provide a descriptive summary for your changes.
 * If it fixes a bug or resolves a feature request, be sure to link to that issue.
 * Add inline code comments to changes that might not be obvious.

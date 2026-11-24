@@ -56,6 +56,7 @@ import com.google.api.services.compute.model.InstanceProperties;
 import com.google.api.services.compute.model.InstanceTemplate;
 import com.google.api.services.compute.model.Metadata.Items;
 import com.google.api.services.compute.model.NamedPort;
+import com.google.common.annotations.VisibleForTesting;
 import com.google.common.base.Splitter;
 import com.google.common.base.Splitter.MapSplitter;
 import com.google.common.collect.ImmutableList;
@@ -141,11 +142,14 @@ public abstract class AbstractGoogleServerGroupCachingAgent
       String.join(":", GoogleCloudProvider.getID(), OnDemandType.ServerGroup.getValue());
 
   private static final Splitter COMMA = Splitter.on(',').omitEmptyStrings().trimResults();
+  private static final String SERVER_GROUP_BUILD_FAILURES_METRIC =
+      "google.serverGroupCaching.buildFailures";
   private static final MapSplitter IMAGE_DESCRIPTION_SPLITTER =
       Splitter.on(',').withKeyValueSeparator(": ");
 
   private final GoogleNamedAccountCredentials credentials;
   private final GoogleComputeApiFactory computeApiFactory;
+  private final Registry registry;
   private final String region;
   private final OnDemandMetricsSupport onDemandMetricsSupport;
   private final ObjectMapper objectMapper;
@@ -161,6 +165,7 @@ public abstract class AbstractGoogleServerGroupCachingAgent
       ServiceClientProvider serviceClientProvider) {
     this.credentials = credentials;
     this.computeApiFactory = computeApiFactory;
+    this.registry = registry;
     this.region = region;
     this.onDemandMetricsSupport = new OnDemandMetricsSupport(registry, this, ON_DEMAND_TYPE);
     this.objectMapper = objectMapper;
@@ -582,23 +587,50 @@ public abstract class AbstractGoogleServerGroupCachingAgent
     return managers.stream()
         .map(
             manager -> {
-              ImmutableSet<GoogleInstance> ownedInstances = ImmutableSet.of();
-              if (manager.getBaseInstanceName() != null) {
-                ownedInstances =
-                    instances.stream()
-                        .filter(
-                            instance ->
-                                instance.getName().startsWith(manager.getBaseInstanceName()))
-                        .filter(instance -> instanceScopedToManager(instance, manager))
-                        .collect(toImmutableSet());
+              try {
+                ImmutableSet<GoogleInstance> ownedInstances = ImmutableSet.of();
+                if (manager.getBaseInstanceName() != null) {
+                  ownedInstances =
+                      instances.stream()
+                          .filter(
+                              instance ->
+                                  instance.getName().startsWith(manager.getBaseInstanceName()))
+                          .filter(instance -> instanceScopedToManager(instance, manager))
+                          .collect(toImmutableSet());
+                }
+                TargetAndScope key = TargetAndScope.forInstanceGroupManager(manager);
+                Autoscaler autoscaler = autoscalerMap.get(key);
+                InstanceTemplate instanceTemplate =
+                    instanceTemplatesMap.get(Utils.getLocalName(manager.getInstanceTemplate()));
+                return Optional.of(
+                    createServerGroup(
+                        manager, ownedInstances, instanceTemplate, autoscaler, providerCache));
+              } catch (Exception e) {
+                // SERVER_GROUPS is authoritative for this agent, so a server group skipped here is
+                // evicted from the cache until a later cycle builds it successfully. Skipping one
+                // broken server group keeps the rest of the region cached instead of failing the
+                // whole cycle.
+                registry
+                    .counter(
+                        SERVER_GROUP_BUILD_FAILURES_METRIC,
+                        "account",
+                        getAccountName(),
+                        "region",
+                        region)
+                    .increment();
+                log.error(
+                    "Failed to build server group {} in account {} region {}; skipping it for this"
+                        + " caching cycle, so it will be evicted from the cache until it is built"
+                        + " successfully.",
+                    manager.getName(),
+                    getAccountName(),
+                    region,
+                    e);
+                return Optional.<GoogleServerGroup>empty();
               }
-              TargetAndScope key = TargetAndScope.forInstanceGroupManager(manager);
-              Autoscaler autoscaler = autoscalerMap.get(key);
-              InstanceTemplate instanceTemplate =
-                  instanceTemplatesMap.get(Utils.getLocalName(manager.getInstanceTemplate()));
-              return createServerGroup(
-                  manager, ownedInstances, instanceTemplate, autoscaler, providerCache);
             })
+        .filter(Optional::isPresent)
+        .map(Optional::get)
         .collect(toImmutableList());
   }
 
@@ -679,15 +711,17 @@ public abstract class AbstractGoogleServerGroupCachingAgent
       serverGroup.setRegion(credentials.regionFromZone(zone));
     }
     GoogleInstanceFlexibilityPolicy flexPolicy =
-        convertInstanceFlexibilityPolicy(manager.getInstanceFlexibilityPolicy());
+        convertInstanceFlexibilityPolicy(manager.getInstanceFlexibilityPolicy(), manager.getName());
     if (flexPolicy != null) {
       serverGroup.setInstanceFlexibilityPolicy(flexPolicy);
     }
   }
 
   @Nullable
-  private static GoogleInstanceFlexibilityPolicy convertInstanceFlexibilityPolicy(
-      @Nullable InstanceGroupManagerInstanceFlexibilityPolicy gcePolicy) {
+  @VisibleForTesting
+  static GoogleInstanceFlexibilityPolicy convertInstanceFlexibilityPolicy(
+      @Nullable InstanceGroupManagerInstanceFlexibilityPolicy gcePolicy,
+      @Nullable String serverGroupName) {
     if (gcePolicy == null || gcePolicy.getInstanceSelections() == null) {
       return null;
     }
@@ -711,6 +745,8 @@ public abstract class AbstractGoogleServerGroupCachingAgent
                           new GoogleInstanceFlexibilityPolicy.InstanceSelection();
                       sel.setRank(gceSel.getRank());
                       sel.setMachineTypes(gceSel.getMachineTypes());
+                      sel.setMinCpuPlatform(gceSel.getMinCpuPlatform());
+                      sel.setDisks(convertSelectionDisks(gceSel.getDisks(), serverGroupName));
                       return sel;
                     }));
     // Keep model semantics consistent: an empty/fully filtered policy is treated as absent.
@@ -718,6 +754,65 @@ public abstract class AbstractGoogleServerGroupCachingAgent
       return null;
     }
     return new GoogleInstanceFlexibilityPolicy(selections);
+  }
+
+  /**
+   * Maps GCE selection disks back to Spinnaker disk overrides. Disks are identified by {@code boot}
+   * or by the persistent-disk index encoded in the generated device name ({@code
+   * <serverGroup>-<index>}), so clones can re-target the new server group's template disks. Disks
+   * that match neither (e.g. added outside Spinnaker) are not representable and are skipped.
+   */
+  @Nullable
+  private static List<GoogleInstanceFlexibilityPolicy.DiskOverride> convertSelectionDisks(
+      @Nullable List<AttachedDisk> disks, @Nullable String serverGroupName) {
+    if (disks == null || disks.isEmpty()) {
+      return null;
+    }
+    List<GoogleInstanceFlexibilityPolicy.DiskOverride> overrides = new ArrayList<>();
+    for (AttachedDisk disk : disks) {
+      if (disk == null) {
+        continue;
+      }
+      GoogleInstanceFlexibilityPolicy.DiskOverride override =
+          new GoogleInstanceFlexibilityPolicy.DiskOverride();
+      if (Boolean.TRUE.equals(disk.getBoot())) {
+        override.setBoot(true);
+      } else {
+        Integer index = parseDeviceIndex(disk.getDeviceName(), serverGroupName);
+        if (index == null) {
+          log.debug(
+              "Skipping instance selection disk {} of {}: not a server group template disk",
+              disk.getDeviceName(),
+              serverGroupName);
+          continue;
+        }
+        override.setIndex(index);
+      }
+      if (disk.getInitializeParams() != null) {
+        String diskType = disk.getInitializeParams().getDiskType();
+        override.setType(diskType == null ? null : Utils.getLocalName(diskType));
+        override.setSizeGb(disk.getInitializeParams().getDiskSizeGb());
+      }
+      overrides.add(override);
+    }
+    return overrides.isEmpty() ? null : overrides;
+  }
+
+  @Nullable
+  private static Integer parseDeviceIndex(
+      @Nullable String deviceName, @Nullable String serverGroupName) {
+    if (deviceName == null || serverGroupName == null) {
+      return null;
+    }
+    String prefix = serverGroupName + "-";
+    if (!deviceName.startsWith(prefix)) {
+      return null;
+    }
+    try {
+      return Integer.valueOf(deviceName.substring(prefix.length()));
+    } catch (NumberFormatException e) {
+      return null;
+    }
   }
 
   private static ImmutableList<String> getZones(@Nullable DistributionPolicy distributionPolicy) {
@@ -1088,7 +1183,7 @@ public abstract class AbstractGoogleServerGroupCachingAgent
       ScalingSchedule output = new ScalingSchedule();
       output.setScheduleName(key);
       output.setScheduleDescription(input.getDescription());
-      output.setEnabled(!input.getDisabled());
+      output.setEnabled(!Boolean.TRUE.equals(input.getDisabled()));
       output.setDuration(input.getDurationSec());
       output.setMinimumRequiredInstances(input.getMinRequiredReplicas());
       output.setScheduleCron(input.getSchedule());

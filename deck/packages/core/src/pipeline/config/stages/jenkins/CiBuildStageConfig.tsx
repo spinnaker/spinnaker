@@ -86,13 +86,15 @@ export class CiBuildStageConfig extends React.Component<ICiBuildStageConfigProps
               <p className="form-control-static">{stage.master}</p>
             ) : (
               <div className="flex-container-h middle">
-                <Select
-                  value={stage.master}
-                  placeholder={this.props.buildServicePlaceholder}
-                  options={this.state.masters.map((master) => ({ label: master, value: master }))}
-                  onChange={this.onMasterChanged}
-                  clearable={false}
-                />
+                <div className="flex-grow" style={{ minWidth: 0 }}>
+                  <Select
+                    value={stage.master}
+                    placeholder={this.props.buildServicePlaceholder}
+                    options={this.state.masters.map((master) => ({ label: master, value: master }))}
+                    onChange={this.onMasterChanged}
+                    clearable={false}
+                  />
+                </div>
                 <button
                   className="btn btn-link"
                   type="button"
@@ -174,14 +176,16 @@ export class CiBuildStageConfig extends React.Component<ICiBuildStageConfigProps
         )}
         {stage.master && !this.isParameterized(stage.master) && !jobIsParameterized && (
           <div className="flex-container-h middle">
-            <Select
-              value={stage.job}
-              placeholder={this.shouldFilter() ? 'Start typing...' : this.props.jobPlaceholder || 'Select a job...'}
-              options={this.state.jobs.map((job) => ({ label: job, value: job }))}
-              filterOptions={this.shouldFilter() ? this.filterJobOptions : undefined}
-              onChange={this.onJobChanged}
-              clearable={false}
-            />
+            <div className="flex-grow" style={{ minWidth: 0 }}>
+              <Select
+                value={stage.job}
+                placeholder={this.shouldFilter() ? 'Start typing...' : this.props.jobPlaceholder || 'Select a job...'}
+                options={this.state.jobs.map((job) => ({ label: job, value: job }))}
+                filterOptions={this.shouldFilter() ? this.filterJobOptions : undefined}
+                onChange={this.onJobChanged}
+                clearable={false}
+              />
+            </div>
             <button className="btn btn-link" type="button" onClick={this.refreshJobs} title="Refresh job list">
               <span className={`fa fa-sync-alt ${this.state.jobsRefreshing ? 'fa-spin' : ''}`} />
             </button>

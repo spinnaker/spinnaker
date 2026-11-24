@@ -24,6 +24,7 @@ import org.springframework.core.io.Resource
 import org.springframework.http.MediaType
 import org.springframework.stereotype.Controller
 import org.springframework.web.bind.annotation.GetMapping
+import org.springframework.web.util.HtmlUtils
 
 import java.nio.charset.StandardCharsets
 
@@ -62,6 +63,7 @@ class LoginController {
 
   private static final String CSS_PLACEHOLDER = '{{css}}'
   private static final String BANNER_PLACEHOLDER = '{{banner}}'
+  private static final String LOGIN_URL_PLACEHOLDER = '{{loginUrl}}'
 
   @GetMapping('/login')
   void login(HttpServletRequest request, HttpServletResponse response) throws IOException {
@@ -76,7 +78,13 @@ class LoginController {
       : showError ? errorBannerResource.getContentAsString(StandardCharsets.UTF_8)
       : ''
 
+    // Post back through the same path prefix the page was served from (the servlet context path,
+    // which ForwardedHeaderFilter derives from X-Forwarded-Prefix when gate is exposed under a path
+    // such as https://host/api). A root-relative "/login" would bypass that prefix.
+    def loginUrl = HtmlUtils.htmlEscape(request.getContextPath() + '/login')
+
     def page = pageResource.getContentAsString(StandardCharsets.UTF_8)
+      .replace(LOGIN_URL_PLACEHOLDER, loginUrl)
       .replace(CSS_PLACEHOLDER, stylesResource.getContentAsString(StandardCharsets.UTF_8))
       .replace(BANNER_PLACEHOLDER, banner)
 

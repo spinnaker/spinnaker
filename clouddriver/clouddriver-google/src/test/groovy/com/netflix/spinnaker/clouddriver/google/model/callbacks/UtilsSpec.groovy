@@ -16,7 +16,21 @@
 
 package com.netflix.spinnaker.clouddriver.google.model.callbacks
 
+import com.google.api.services.compute.model.HttpRedirectAction
+import com.google.api.services.compute.model.PathMatcher
+import com.google.api.services.compute.model.PathRule
+import com.google.api.services.compute.model.UrlMap
 import com.netflix.spinnaker.clouddriver.google.model.loadbalancing.GoogleTargetProxyType
+import com.netflix.spinnaker.clouddriver.google.deploy.GCEUtil
+import com.netflix.spinnaker.clouddriver.google.model.GoogleServerGroup
+import com.netflix.spinnaker.clouddriver.google.model.loadbalancing.GoogleBackendService
+import com.netflix.spinnaker.clouddriver.google.model.loadbalancing.GoogleExternalHttpLoadBalancer
+import com.netflix.spinnaker.clouddriver.google.model.loadbalancing.GoogleHostRule
+import com.netflix.spinnaker.clouddriver.google.model.loadbalancing.GoogleInternalLoadBalancer
+import com.netflix.spinnaker.clouddriver.google.model.loadbalancing.GoogleLoadBalancedBackend
+import com.netflix.spinnaker.clouddriver.google.model.loadbalancing.GooglePathMatcher
+import com.netflix.spinnaker.clouddriver.google.model.loadbalancing.GooglePathRule
+import com.netflix.spinnaker.clouddriver.google.model.loadbalancing.GoogleRegionalExternalNetworkLoadBalancer
 import spock.lang.Specification
 import spock.lang.Unroll
 
@@ -143,5 +157,88 @@ class UtilsSpec extends Specification {
       "my-svc-project" | "projects/my-host-project/regions/us-central1/subnetworks/some-subnet" || "my-host-project/some-subnet"
       "my-svc-project" | "projects/my-svc-project/global/networks/some-network"                 || "some-network"
       "my-svc-project" | "projects/my-svc-project/regions/us-central1/subnetworks/some-subnet"  || "some-subnet"
+  }
+
+  void "should determine regional external network disabled state from direct backend service"() {
+    given:
+      def loadBalancer = new GoogleRegionalExternalNetworkLoadBalancer(
+        name: LOAD_BALANCER_NAME,
+        backendService: new GoogleBackendService(backends: [
+          new GoogleLoadBalancedBackend(serverGroupUrl: "projects/test/regions/${REGION}/instanceGroups/other-group")
+        ])
+      )
+      def serverGroup = new GoogleServerGroup(
+        name: SERVER_GROUP_NAME,
+        region: REGION,
+        asg: [(GCEUtil.REGIONAL_LOAD_BALANCER_NAMES): LOAD_BALANCER_NAME]
+      )
+
+    expect:
+      Utils.determineRegionalExternalNetworkLoadBalancerDisabledState(loadBalancer, serverGroup)
+  }
+
+  void "should tolerate malformed regional external network load balancer disabled state"() {
+    given:
+      def loadBalancer = new GoogleRegionalExternalNetworkLoadBalancer(name: LOAD_BALANCER_NAME)
+      def serverGroup = new GoogleServerGroup(
+        name: SERVER_GROUP_NAME,
+        region: REGION,
+        asg: [(GCEUtil.REGIONAL_LOAD_BALANCER_NAMES): LOAD_BALANCER_NAME]
+      )
+
+    expect:
+      !Utils.determineRegionalExternalNetworkLoadBalancerDisabledState(loadBalancer, serverGroup)
+  }
+
+  void "should report a listed server group disabled for an internal load balancer without a backend service"() {
+    given:
+      def loadBalancer = new GoogleInternalLoadBalancer(name: LOAD_BALANCER_NAME)
+      def serverGroup = new GoogleServerGroup(
+        name: SERVER_GROUP_NAME,
+        region: REGION,
+        asg: [(GCEUtil.REGIONAL_LOAD_BALANCER_NAMES): [LOAD_BALANCER_NAME]]
+      )
+
+    expect:
+      Utils.determineInternalLoadBalancerDisabledState(loadBalancer, serverGroup)
+  }
+
+  void "getBackendServicesFromUrlMap skips redirects"() {
+    given:
+      def redirect = new HttpRedirectAction(httpsRedirect: true)
+      def urlMap = new UrlMap(
+        defaultUrlRedirect: redirect,
+        pathMatchers: [
+          new PathMatcher(defaultService: "projects/p/regions/$REGION/backendServices/backend-a"),
+          new PathMatcher(
+            defaultUrlRedirect: redirect,
+            pathRules: [
+              new PathRule(paths: ["/old/*"], urlRedirect: redirect),
+              new PathRule(paths: ["/api/*"], service: "projects/p/regions/$REGION/backendServices/backend-b")
+            ])
+        ])
+
+    expect:
+      Utils.getBackendServicesFromUrlMap(urlMap) == ["backend-a", "backend-b"]
+  }
+
+  void "getBackendServicesFromExternalHttpLoadBalancerView skips redirects"() {
+    given:
+      def backendA = new GoogleBackendService(name: "backend-a")
+      def backendB = new GoogleBackendService(name: "backend-b")
+      def loadBalancer = new GoogleExternalHttpLoadBalancer(
+        defaultService: null,
+        hostRules: [
+          new GoogleHostRule(pathMatcher: new GooglePathMatcher(defaultService: backendA, pathRules: [])),
+          new GoogleHostRule(pathMatcher: new GooglePathMatcher(
+            defaultService: null,
+            pathRules: [
+              new GooglePathRule(paths: ["/old/*"], backendService: null),
+              new GooglePathRule(paths: ["/api/*"], backendService: backendB)
+            ]))
+        ])
+
+    expect:
+      Utils.getBackendServicesFromExternalHttpLoadBalancerView(loadBalancer.view) == [backendA, backendB]
   }
 }

@@ -4,6 +4,7 @@ import dockerIcon from './icons/docker-image-artifact.svg';
 import embeddedBase64Icon from './icons/embedded-base64-artifact.svg';
 import gcsObjectIcon from './icons/gcs-file-artifact.svg';
 import gitRepoIcon from './icons/git-repo-artifact.svg';
+import giteaFileIcon from './icons/gitea-file-artifact.svg';
 import gitHubFileIcon from './icons/github-file-artifact.svg';
 import gitLabFileIcon from './icons/gitlab-file-artifact.svg';
 import helmChartIcon from './icons/helm-chart-artifact.svg';
@@ -46,6 +47,7 @@ ArtifactIconService.registerType(ArtifactTypePatterns.KUBERNETES, kubernetesIcon
 ArtifactIconService.registerType(ArtifactTypePatterns.EMBEDDED_BASE64, embeddedBase64Icon);
 ArtifactIconService.registerType(ArtifactTypePatterns.REMOTE_BASE64, embeddedBase64Icon);
 ArtifactIconService.registerType(ArtifactTypePatterns.GCS_OBJECT, gcsObjectIcon);
+ArtifactIconService.registerType(ArtifactTypePatterns.GITEA_FILE, giteaFileIcon);
 ArtifactIconService.registerType(ArtifactTypePatterns.GITHUB_FILE, gitHubFileIcon);
 ArtifactIconService.registerType(ArtifactTypePatterns.GIT_REPO, gitRepoIcon);
 ArtifactIconService.registerType(ArtifactTypePatterns.GITLAB_FILE, gitLabFileIcon);

@@ -6,6 +6,6 @@ describe('styleguide states', () => {
     const state = getStyleguideState();
     const view = state.views['main@'];
 
-    expect(view).toEqual(jasmine.objectContaining({ component: StyleguideRoute, $type: 'react' }));
+    expect(view).toEqual(expect.objectContaining({ component: StyleguideRoute, $type: 'react' }));
   });
 });

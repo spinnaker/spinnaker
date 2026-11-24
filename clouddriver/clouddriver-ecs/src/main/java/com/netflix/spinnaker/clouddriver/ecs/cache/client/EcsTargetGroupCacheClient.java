@@ -23,6 +23,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.netflix.spinnaker.cats.cache.Cache;
 import com.netflix.spinnaker.cats.cache.CacheData;
 import com.netflix.spinnaker.cats.cache.RelationshipCacheFilter;
+import com.netflix.spinnaker.clouddriver.aws.AmazonCloudProvider;
 import com.netflix.spinnaker.clouddriver.aws.data.Keys;
 import com.netflix.spinnaker.clouddriver.ecs.model.loadbalancer.EcsTargetGroup;
 import java.util.ArrayList;
@@ -61,8 +62,25 @@ public class EcsTargetGroupCacheClient {
     return targetGroups;
   }
 
+  /**
+   * @deprecated loads the identifiers of every target group in every account; use {@link
+   *     #findKeys(String, String, String)} to look up the target group you need.
+   */
+  @Deprecated
   public Collection<String> getAllKeys() {
     return cacheView.getIdentifiers(TARGET_GROUPS.ns);
+  }
+
+  /**
+   * @param awsAccount name of the AWS account that owns the target group
+   * @return the keys of the target group with this name, across target types and VPCs
+   */
+  public Collection<String> findKeys(String awsAccount, String region, String targetGroupName) {
+    String glob =
+        String.format(
+            "%s:%s:%s:%s:%s:*",
+            AmazonCloudProvider.ID, TARGET_GROUPS.getNs(), awsAccount, region, targetGroupName);
+    return cacheView.filterIdentifiers(TARGET_GROUPS.getNs(), glob);
   }
 
   private EcsTargetGroup convertToTargetGroup(Map<String, Object> targetGroupAttributes) {

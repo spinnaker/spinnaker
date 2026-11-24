@@ -10,7 +10,7 @@ describe('Preconfigured Job stage registration', () => {
     const stage = makePreconfiguredJobStage('myJob');
 
     expect(stage).toEqual(
-      jasmine.objectContaining({
+      expect.objectContaining({
         label: '',
         description: '',
         key: 'myJob',
@@ -31,19 +31,19 @@ describe('Preconfigured Job stage registration', () => {
   });
 
   it('registers only non-custom preconfigured jobs', async () => {
-    spyOn(PreconfiguredJobReader, 'list').and.returnValue(
+    vi.spyOn(PreconfiguredJobReader, 'list').mockReturnValue(
       Promise.resolve([
         { type: 'basicJob', uiType: 'BASIC', label: 'Basic', producesArtifacts: false },
         { type: 'customJob', uiType: 'CUSTOM', label: 'Custom', producesArtifacts: false },
       ]),
     );
-    const registerSpy = spyOn(Registry.pipeline, 'registerPreconfiguredJobStage').and.returnValue(
-      Promise.resolve(undefined),
-    );
+    const registerSpy = vi
+      .spyOn(Registry.pipeline, 'registerPreconfiguredJobStage')
+      .mockReturnValue(Promise.resolve(undefined));
 
     await registerPreconfiguredJobStages();
 
     expect(registerSpy).toHaveBeenCalledTimes(1);
-    expect(registerSpy.calls.mostRecent().args[0]).toEqual(jasmine.objectContaining({ key: 'basicJob' }));
+    expect(registerSpy.mock.lastCall[0]).toEqual(expect.objectContaining({ key: 'basicJob' }));
   });
 });

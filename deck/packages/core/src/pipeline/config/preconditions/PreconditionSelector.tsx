@@ -285,10 +285,13 @@ export class PreconditionSelector extends React.Component<IPreconditionSelectorP
     return (
       <>
         <div className="form-group row">
-          <div className="col-sm-3 sm-label-right">Expression</div>
+          <label className="col-sm-3 sm-label-right" htmlFor="precondition-expression">
+            Expression
+          </label>
           <div className="col-sm-9">
             <textarea
               className="form-control input-sm"
+              id="precondition-expression"
               name="expression"
               rows={4}
               value={this.props.precondition.context?.expression || ''}
@@ -297,9 +300,12 @@ export class PreconditionSelector extends React.Component<IPreconditionSelectorP
           </div>
         </div>
         <div className="form-group row">
-          <div className="col-sm-3 sm-label-right">Fail Pipeline</div>
+          <label className="col-sm-3 sm-label-right" htmlFor="expression-fail-pipeline">
+            Fail Pipeline
+          </label>
           <div className="col-sm-9">
             <input
+              id="expression-fail-pipeline"
               type="checkbox"
               name="failPipeline"
               checked={!!this.props.precondition.failPipeline}
@@ -308,10 +314,13 @@ export class PreconditionSelector extends React.Component<IPreconditionSelectorP
           </div>
         </div>
         <div className="form-group row">
-          <div className="col-sm-3 sm-label-right">Failure Message</div>
+          <label className="col-sm-3 sm-label-right" htmlFor="precondition-failure-message">
+            Failure Message
+          </label>
           <div className="col-sm-9">
             <textarea
               className="form-control input-sm"
+              id="precondition-failure-message"
               name="failureMessage"
               rows={4}
               value={this.props.precondition.context?.failureMessage || ''}
@@ -330,11 +339,17 @@ export class PreconditionSelector extends React.Component<IPreconditionSelectorP
     return (
       <div className="precondition-selector">
         <div className="form-group row">
-          <div className="col-sm-3 sm-label-right" id="type">
+          <label className="col-sm-3 sm-label-right" htmlFor="precondition-type">
             Check
-          </div>
+          </label>
           <div className="col-sm-9">
-            <select className="input-sm" name="preconditionType" value={selectedType} onChange={this.updateType}>
+            <select
+              className="input-sm"
+              id="precondition-type"
+              name="preconditionType"
+              value={selectedType}
+              onChange={this.updateType}
+            >
               {preconditionTypes.map((type) => (
                 <option key={type.key} value={type.key}>
                   {type.label}

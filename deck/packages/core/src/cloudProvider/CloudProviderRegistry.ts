@@ -1,5 +1,5 @@
 /* tslint:disable: no-console */
-import { cloneDeep, get, isNil, set } from 'lodash';
+import { cloneDeepWith, get, isFunction, isNil, set } from 'lodash';
 
 import { SETTINGS } from '../config/settings';
 
@@ -17,6 +17,12 @@ export interface IApplicationProviderField {
 export interface ICloudProviderConfig {
   name: string;
   logo?: ICloudProviderLogo;
+  /**
+   * The credential (account) type backing this provider, when it differs from the provider key.
+   * Set this for a provider identity that reuses another provider's accounts, so it isn't offered
+   * as a separate account type.
+   */
+  accountType?: string;
   applicationProviderFields?: IApplicationProviderField[];
   [attribute: string]: any;
 }
@@ -31,11 +37,28 @@ export class CloudProviderRegistry {
   }
 
   public static getProvider(cloudProvider: string): ICloudProviderConfig {
-    return this.providers.has(cloudProvider) ? cloneDeep(this.providers.get(cloudProvider)) : null;
+    // Registered config values are frequently React components (function components, or
+    // React.forwardRef/memo objects tagged with $$typeof). Deep-cloning those is never what
+    // callers want, and under React 17 dev-mode `displayName` on such objects is a
+    // non-enumerable accessor, which lodash's cloneDeep (own enumerable props only) drops -
+    // pass them through by reference and only clone plain data.
+    return this.providers.has(cloudProvider)
+      ? cloneDeepWith(this.providers.get(cloudProvider), (value) =>
+          isFunction(value) || (value && typeof value === 'object' && '$$typeof' in value) ? value : undefined,
+        )
+      : null;
   }
 
   public static listRegisteredProviders(): string[] {
     return Array.from(this.providers.keys());
+  }
+
+  /** The account types backing the registered providers (see ICloudProviderConfig.accountType). */
+  public static listRegisteredAccountTypes(): string[] {
+    const accountTypes = Array.from(this.providers.entries()).map(
+      ([cloudProvider, config]) => config.accountType || cloudProvider,
+    );
+    return Array.from(new Set(accountTypes));
   }
 
   public static overrideValue(cloudProvider: string, key: string, overrideValue: any) {

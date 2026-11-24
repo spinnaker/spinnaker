@@ -60,7 +60,7 @@ export function overridableComponent<P extends IOverridableProps, T extends Reac
     public static OriginalComponent: T = OriginalComponent;
 
     private account$ = new Subject<string>();
-    private destroy$ = new Subject();
+    private destroy$ = new Subject<void>();
 
     constructor(props: P) {
       super(props);

@@ -32,8 +32,9 @@ import com.netflix.spinnaker.gate.services.DefaultProviderLookupService;
 import com.netflix.spinnaker.gate.services.internal.EchoService;
 import com.netflix.spinnaker.kork.retrofit.Retrofit2SyncCall;
 import java.io.IOException;
-import java.util.HashMap;
 import java.util.Map;
+import okhttp3.MediaType;
+import okhttp3.RequestBody;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.RegisterExtension;
@@ -89,26 +90,27 @@ class EchoServiceTest {
   }
 
   @Test
-  void shouldNotOrderTheKeysWhenCallingEcho() throws Exception {
+  void sendsTheBodyToEchoUnchanged() throws Exception {
 
     // The response is arbitrary.  This test verifies the request body that gate
     // sends to echo.
     wmEcho.stubFor(
         post("/webhooks/git/github").willReturn(aResponse().withStatus(200).withBody("{}")));
 
-    Map<String, Object> body = new HashMap<>();
-    body.put("ref", "refs/heads/main");
-    body.put("before", "ca7376e4b730f1f2878760abaeaed6c039fc5414");
-    body.put("after", "c2420ce6e341ef0042f2e12591bdbe9eec29a032");
-    body.put("id", 105648914);
-
-    Retrofit2SyncCall.executeCall(echoService.webhooks("git", "github", body));
-
-    String expectedBody =
+    // Keys are deliberately not in alphabetical order.
+    String body =
         "{\"ref\":\"refs/heads/main\",\"before\":\"ca7376e4b730f1f2878760abaeaed6c039fc5414\",\"after\":\"c2420ce6e341ef0042f2e12591bdbe9eec29a032\",\"id\":105648914}";
+
+    Retrofit2SyncCall.executeCall(
+        echoService.webhooks(
+            "git",
+            "github",
+            RequestBody.create(body, MediaType.get("application/json")),
+            Map.of("X-Hub-Signature", "sha1=abc")));
 
     wmEcho.verify(
         postRequestedFor(urlPathEqualTo("/webhooks/git/github"))
-            .withRequestBody(equalTo(expectedBody)));
+            .withHeader("X-Hub-Signature", equalTo("sha1=abc"))
+            .withRequestBody(equalTo(body)));
   }
 }

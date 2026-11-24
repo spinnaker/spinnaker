@@ -147,7 +147,8 @@ class GoogleHealthCheckCachingAgentTest {
     GoogleHealthCheck ghc = healthCheckAgent.toGoogleHealthCheck(hc, REGION)
     assertThat(ghc.getPort()).isEqualTo(9090)
     assertThat(ghc.getRegion()).isEqualTo(REGION)
-    assertThat(ghc.getRequestPath()).isEqualTo("com.example.HealthService")
+    assertThat(ghc.getRequestPath()).isNull()
+    assertThat(ghc.getGrpcServiceName()).isEqualTo("com.example.HealthService")
     assertThat(ghc.getHealthCheckType()).isEqualTo(GoogleHealthCheck.HealthCheckType.GRPC)
   }
 

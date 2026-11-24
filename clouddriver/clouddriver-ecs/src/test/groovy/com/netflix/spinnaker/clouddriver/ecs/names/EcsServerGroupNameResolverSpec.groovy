@@ -24,6 +24,7 @@ import software.amazon.awssdk.services.ecs.model.*
 import com.netflix.spinnaker.clouddriver.data.task.DefaultTask
 import com.netflix.spinnaker.clouddriver.data.task.Task
 import com.netflix.spinnaker.clouddriver.data.task.TaskRepository
+import com.netflix.spinnaker.clouddriver.ecs.EcsNativeServiceTag
 import com.netflix.spinnaker.clouddriver.names.NamerRegistry
 import spock.lang.Specification
 
@@ -129,6 +130,38 @@ class EcsServerGroupNameResolverSpec extends Specification {
 
     then:
     nextServerGroupName.getServiceName() == "application-stack-details-v000"
+    nextServerGroupName.getFamilyName() == "application-stack-details"
+  }
+
+  void "should allocate the next versioned name next to an ecs-native fixed-name service in the same cluster"() {
+    given:
+    // Classic and native share a cluster: the native service has the unversioned family name and
+    // the ownership tag; it takes no sequence, so the classic deploy continues after the highest
+    // versioned sibling.
+    def resolver = new EcsServerGroupNameResolver(ecsClusterName, ecsClient, region, new EcsDefaultNamer())
+    def arns = ["application-stack-details", "application-stack-details-v001", "application-stack-details-v002"]
+    ecsClient.listServices(_) >> ListServicesResponse.builder().serviceArns(arns).build()
+    ecsClient.describeServices({DescribeServicesRequest request ->
+      request.cluster() == ecsClusterName
+      request.services() == arns
+    }) >> DescribeServicesResponse.builder().services(
+      Service.builder().serviceName("application-stack-details").createdAt(Instant.ofEpochMilli(1)).status("ACTIVE")
+        .tags(EcsNativeServiceTag.tag()).build(),
+      Service.builder().serviceName("application-stack-details-v001").createdAt(Instant.ofEpochMilli(1)).status("ACTIVE").build(),
+      Service.builder().serviceName("application-stack-details-v002").createdAt(Instant.ofEpochMilli(1)).status("ACTIVE").build()
+    ).build()
+    ecsClient.describeServices({DescribeServicesRequest request ->
+      request.cluster() == ecsClusterName
+      request.services() == ["application-stack-details-v003"]
+    }) >> DescribeServicesResponse.builder().failures(
+      Failure.builder().arn("application-stack-details-v003").reason("MISSING").build()
+    ).build()
+
+    when:
+    def nextServerGroupName = resolver.resolveNextName('application', 'stack', 'details')
+
+    then:
+    nextServerGroupName.getServiceName() == "application-stack-details-v003"
     nextServerGroupName.getFamilyName() == "application-stack-details"
   }
 

@@ -24,7 +24,6 @@ import static com.netflix.spinnaker.orca.api.pipeline.models.ExecutionStatus.NOT
 import static com.netflix.spinnaker.orca.api.pipeline.models.ExecutionType.ORCHESTRATION;
 import static com.netflix.spinnaker.orca.api.pipeline.models.ExecutionType.PIPELINE;
 import static com.netflix.spinnaker.orca.config.RedisConfiguration.Clients.EXECUTION_REPOSITORY;
-import static com.netflix.spinnaker.orca.pipeline.model.PipelineExecutionImpl.NO_TRIGGER;
 import static java.lang.String.format;
 import static java.lang.System.currentTimeMillis;
 import static java.util.Collections.*;
@@ -982,7 +981,7 @@ public class RedisExecutionRepository implements ExecutionRepository {
       execution.setTrigger(
           map.get("trigger") != null
               ? mapper.readValue(map.get("trigger"), Trigger.class)
-              : NO_TRIGGER);
+              : new DefaultTrigger("none"));
       if (map.get("systemNotifications") != null) {
         ((PipelineExecutionImpl) execution)
             .getSystemNotifications()

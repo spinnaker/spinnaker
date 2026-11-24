@@ -188,6 +188,14 @@ function buildServerGroupCommandFromExisting(application, serverGroup, mode = 'c
     command.ecsClusterName = serverGroup.ecsCluster;
     command.capacity = serverGroup.capacity;
     command.viewState.mode = mode;
+    // Keep the "Use native ECS deployment" toggle checked when the source is an ecs-native service.
+    // Server groups read from clouddriver are always stamped cloudProvider/type "ecs"; native
+    // ownership is the explicit isNative flag (from the spinnaker:provider=ecs-native service tag).
+    // Pipeline clusters that already carry cloudProvider "ecs-native" go through
+    // buildServerGroupCommandFromPipeline, which preserves it, not through this function.
+    if (serverGroup.isNative === true) {
+      command.cloudProvider = 'ecs-native';
+    }
     return command;
   });
 }

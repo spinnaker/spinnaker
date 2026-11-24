@@ -16,7 +16,8 @@
 
 package com.netflix.spinnaker.clouddriver.cloudrun.deploy.ops;
 
-import com.netflix.spinnaker.clouddriver.cloudrun.CloudrunJobExecutor;
+import com.netflix.spinnaker.clouddriver.cloudrun.config.CloudrunConfigurationProperties;
+import com.netflix.spinnaker.clouddriver.cloudrun.deploy.CloudrunServiceClient;
 import com.netflix.spinnaker.clouddriver.cloudrun.deploy.description.DestroyCloudrunDescription;
 import com.netflix.spinnaker.clouddriver.cloudrun.deploy.exception.CloudrunOperationException;
 import com.netflix.spinnaker.clouddriver.cloudrun.model.CloudrunServerGroup;
@@ -24,7 +25,6 @@ import com.netflix.spinnaker.clouddriver.cloudrun.provider.view.CloudrunClusterP
 import com.netflix.spinnaker.clouddriver.data.task.Task;
 import com.netflix.spinnaker.clouddriver.data.task.TaskRepository;
 import groovy.util.logging.Slf4j;
-import java.util.ArrayList;
 import java.util.List;
 import org.springframework.beans.factory.annotation.Autowired;
 
@@ -41,7 +41,10 @@ public class DestroyCloudrunAtomicOperation extends CloudrunAtomicOperation<Void
 
   @Autowired CloudrunClusterProvider cloudrunClusterProvider;
 
-  @Autowired CloudrunJobExecutor jobExecutor;
+  CloudrunServiceClient serviceClient;
+
+  @Autowired(required = false)
+  CloudrunConfigurationProperties configurationProperties;
 
   public DestroyCloudrunAtomicOperation(DestroyCloudrunDescription description) {
     this.description = description;
@@ -73,26 +76,20 @@ public class DestroyCloudrunAtomicOperation extends CloudrunAtomicOperation<Void
               + description.getServerGroupName());
     } else {
       String region = description.getRegion();
-      String project = description.getCredentials().getProject();
-      List<String> deployCommand = new ArrayList<>();
-      deployCommand.add("gcloud");
-      deployCommand.add("run");
-      deployCommand.add("revisions");
-      deployCommand.add("delete");
-      deployCommand.add(description.getServerGroupName());
-      deployCommand.add("--quiet");
-      deployCommand.add("--region=" + region);
-      deployCommand.add("--project=" + project);
       try {
-        jobExecutor.runCommand(deployCommand);
+        if (serviceClient == null) {
+          serviceClient =
+              CloudrunServiceClient.forAccount(
+                  description.getCredentials(), configurationProperties);
+        }
+        serviceClient.deleteRevision(region, description.getServerGroupName());
       } catch (Exception e) {
         throw new CloudrunOperationException(
             "Failed to delete the server group "
                 + description.getServerGroupName()
-                + " with command "
-                + deployCommand
-                + "exception "
-                + e.getMessage());
+                + ": "
+                + e.getMessage(),
+            e);
       }
     }
     getTask()

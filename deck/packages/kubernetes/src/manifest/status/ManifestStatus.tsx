@@ -7,6 +7,17 @@ export interface IKubernetesManifestStatusProps {
   status?: { [key: string]: IManifestStatus };
 }
 
+interface IStatusTooltipProps {
+  message?: string;
+  children: React.ReactNode;
+}
+
+// Status messages can come from any controller that writes the resource's status, so show them as
+// plain text rather than through Tooltip's Markdown rendering.
+function StatusTooltip({ message, children }: IStatusTooltipProps) {
+  return <Tooltip template={message ? <span>{message}</span> : undefined}>{children}</Tooltip>;
+}
+
 export function ManifestStatus({ status }: IKubernetesManifestStatusProps) {
   if (!status) {
     return (
@@ -20,19 +31,19 @@ export function ManifestStatus({ status }: IKubernetesManifestStatusProps) {
   return (
     <div>
       {!status.available.state && (
-        <Tooltip value={status.available.message}>
+        <StatusTooltip message={status.available.message}>
           <div className="band band-warning">Not Fully Available</div>
-        </Tooltip>
+        </StatusTooltip>
       )}
       {!status.stable.state && (
-        <Tooltip value={status.stable.message}>
+        <StatusTooltip message={status.stable.message}>
           <div className="band band-active">Transitioning</div>
-        </Tooltip>
+        </StatusTooltip>
       )}
       {status.paused.state && (
-        <Tooltip value={status.paused.message}>
+        <StatusTooltip message={status.paused.message}>
           <div className="band band-info">Rollout Paused</div>
-        </Tooltip>
+        </StatusTooltip>
       )}
     </div>
   );

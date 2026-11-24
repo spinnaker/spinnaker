@@ -57,61 +57,59 @@ export function DeletePipelineModal(props: IDeletePipelineModalProps) {
 
   return (
     <>
-      <Modal key="modal" show={true} onHide={() => {}}>
-        <ModalClose dismiss={dismissModal} />
-        <Modal.Header>
-          <Modal.Title>Really Delete {pipeline.strategy === true ? 'Strategy' : 'Pipeline'}?</Modal.Title>
-        </Modal.Header>
-        <Modal.Body>
-          {deleteError && (
-            <div className="alert alert-danger">
-              <p>Could not delete {pipeline.strategy === true ? 'strategy' : 'pipeline'}.</p>
+      <ModalClose dismiss={dismissModal} />
+      <Modal.Header>
+        <Modal.Title>Really Delete {pipeline.strategy === true ? 'Strategy' : 'Pipeline'}?</Modal.Title>
+      </Modal.Header>
+      <Modal.Body>
+        {deleteError && (
+          <div className="alert alert-danger">
+            <p>Could not delete {pipeline.strategy === true ? 'strategy' : 'pipeline'}.</p>
+            <p>
+              <b>Reason: </b>
+              {errorMessage}
+            </p>
+            <p>
+              <a
+                className="btn btn-link"
+                onClick={(e) => {
+                  e.preventDefault();
+                  setDeleteError(false);
+                }}
+              >
+                [dismiss]
+              </a>
+            </p>
+          </div>
+        )}
+        <form role="form" name="form" className="form-horizontal">
+          <div className="form-group">
+            <div className="col-md-12">
               <p>
-                <b>Reason: </b>
-                {errorMessage}
-              </p>
-              <p>
-                <a
-                  className="btn btn-link"
-                  onClick={(e) => {
-                    e.preventDefault();
-                    setDeleteError(false);
-                  }}
-                >
-                  [dismiss]
-                </a>
+                Are you sure you want to delete the {pipeline.strategy === true ? 'strategy: ' : 'pipeline: '}
+                {pipeline.name}?
               </p>
             </div>
+          </div>
+        </form>
+      </Modal.Body>
+      <Modal.Footer>
+        <button className="btn btn-default" onClick={dismissModal} type="button">
+          Cancel
+        </button>
+        <button className="btn btn-primary" onClick={deletePipeline}>
+          {!deleting && (
+            <span>
+              <span className="far fa-check-circle" /> Delete
+            </span>
           )}
-          <form role="form" name="form" className="form-horizontal">
-            <div className="form-group">
-              <div className="col-md-12">
-                <p>
-                  Are you sure you want to delete the {pipeline.strategy === true ? 'strategy: ' : 'pipeline: '}
-                  {pipeline.name}?
-                </p>
-              </div>
-            </div>
-          </form>
-        </Modal.Body>
-        <Modal.Footer>
-          <button className="btn btn-default" onClick={dismissModal} type="button">
-            Cancel
-          </button>
-          <button className="btn btn-primary" onClick={deletePipeline}>
-            {!deleting && (
-              <span>
-                <span className="far fa-check-circle" /> Delete
-              </span>
-            )}
-            {deleting && (
-              <span className="pulsing">
-                <span className="fa fa-cog fa-spin" /> Deleting&hellip;
-              </span>
-            )}
-          </button>
-        </Modal.Footer>
-      </Modal>
+          {deleting && (
+            <span className="pulsing">
+              <span className="fa fa-cog fa-spin" /> Deleting&hellip;
+            </span>
+          )}
+        </button>
+      </Modal.Footer>
     </>
   );
 }

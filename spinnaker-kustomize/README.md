@@ -74,6 +74,22 @@ configuration options.
 1. (Optional) add configuration to `./overlays/config/files/`
 1. (Optional) add `./components` and `./overlays`
 
+### NGINX ingress controllers
+
+This installer creates an Ingress resource but does not install or update an
+ingress controller. Both Deck runtime image variants use Apache HTTP Server.
+
+If your external ingress controller uses NGINX with HTTP/2 enabled, check its
+vendor's fixes for CVE-2026-123633 and CVE-2026-123007. The upstream NGINX fixes
+are included in 1.30.7 and 1.31.9, or a vendor release with equivalent backports;
+the controller's version number can differ from its embedded NGINX version.
+See the [NGINX security advisories](https://nginx.org/en/security_advisories.html).
+
+Until a fixed controller is deployed, disable HTTP/2 in the controller's
+configuration, reload it, and confirm the old workers have exited. Changing the
+Deck or Gate configuration does not configure the external controller. Follow
+the controller vendor's instructions and re-enable HTTP/2 after upgrading.
+
 ## Configuration
 
 Java services load default configuration from `/opt/<service>/config/<service>.yml`
@@ -131,6 +147,15 @@ behavior linked further up.
 Separating configuration across files and ConfigMap's can make development
 and troubleshooting difficult so try to put configuration directly into a
 single file where possible, such as `clouddriver-local.yml`.
+
+### Gate API rate limiting
+
+`components/rate-limit` is an opt-in demo of Gate's Redis-backed API rate limiting (it requires
+the Redis component). Uncomment `components/rate-limit` in the root `kustomization.yml` to enable it.
+It starts in learning mode (over-limit calls are logged, not rejected) and shows the default
+bucket, `anonymous-capacity`, exclusions, higher limits by role/group (`capacity-by-role`),
+per-user overrides (`capacity-by-principal`) and per-endpoint `rules`. Edit
+`components/rate-limit/files/gate.yml` for your groups and users, and set `learning: false` to enforce.
 
 ### Kustomize limitations
 

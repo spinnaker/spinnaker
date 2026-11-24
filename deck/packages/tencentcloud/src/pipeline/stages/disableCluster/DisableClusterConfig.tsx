@@ -21,6 +21,7 @@ export function DisableClusterConfig({ application, pipeline, stage, updateStage
       onChange={updateStage}
       pipeline={pipeline}
       stage={stageWithDefaults}
+      liveStage={stage}
       render={(props) => <DisableClusterStageForm {...props} />}
     />
   );

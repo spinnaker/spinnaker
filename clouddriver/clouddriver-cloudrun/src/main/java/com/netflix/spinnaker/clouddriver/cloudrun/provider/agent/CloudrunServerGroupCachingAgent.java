@@ -1,7 +1,6 @@
 package com.netflix.spinnaker.clouddriver.cloudrun.provider.agent;
 
 import static com.netflix.spinnaker.cats.agent.AgentDataType.Authority.AUTHORITATIVE;
-import static com.netflix.spinnaker.cats.agent.AgentDataType.Authority.INFORMATIVE;
 import static com.netflix.spinnaker.clouddriver.cloudrun.cache.Keys.Namespace.*;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
@@ -57,7 +56,7 @@ public class CloudrunServerGroupCachingAgent extends AbstractCloudrunCachingAgen
           AUTHORITATIVE.forType(CLUSTERS.getNs()),
           AUTHORITATIVE.forType(SERVER_GROUPS.getNs()),
           AUTHORITATIVE.forType(INSTANCES.getNs()),
-          INFORMATIVE.forType(LOAD_BALANCERS.getNs()));
+          AUTHORITATIVE.forType(LOAD_BALANCERS.getNs()));
   private String agentType = getAccountName() + "/" + getSimpleName();
 
   public CloudrunServerGroupCachingAgent(
@@ -94,7 +93,7 @@ public class CloudrunServerGroupCachingAgent extends AbstractCloudrunCachingAgen
   @Override
   public OnDemandResult handle(ProviderCache providerCache, Map<String, ?> data) {
 
-    if (!data.containsKey("serverGroupName") || data.get("account") != getAccountName()) {
+    if (!data.containsKey("serverGroupName") || !getAccountName().equals(data.get("account"))) {
       return null;
     }
     String serverGroupName = data.get("serverGroupName").toString();

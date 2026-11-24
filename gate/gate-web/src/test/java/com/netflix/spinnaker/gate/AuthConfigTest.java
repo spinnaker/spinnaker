@@ -48,7 +48,6 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.config.Customizer;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.web.SecurityFilterChain;
-import org.springframework.session.web.http.DefaultCookieSerializer;
 import org.springframework.test.context.TestPropertySource;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -177,11 +176,8 @@ class AuthConfigTest {
   }
 
   static class TestAuthConfig extends BasicAuthConfig {
-    public TestAuthConfig(
-        AuthConfig authConfig,
-        SecurityProperties securityProperties,
-        DefaultCookieSerializer defaultCookieSerializer) {
-      super(authConfig, securityProperties, defaultCookieSerializer);
+    public TestAuthConfig(AuthConfig authConfig, SecurityProperties securityProperties) {
+      super(authConfig, securityProperties);
     }
 
     @Override
@@ -192,7 +188,6 @@ class AuthConfigTest {
       // authenticationEntryPoint(new LoginUrlAuthenticationEntryPoint("/login"));
       //
       // Leaving that out makes it easier to test some behavior of AuthConfig.
-      defaultCookieSerializer.setSameSite(null);
       http.formLogin(Customizer.withDefaults()).httpBasic(Customizer.withDefaults());
       authConfig.configure(http);
       return http.build();
@@ -221,11 +216,8 @@ class AuthConfigTest {
 
     @Bean
     @Primary
-    BasicAuthConfig basicAuthConfig(
-        AuthConfig autoConfig,
-        SecurityProperties securityProperties,
-        DefaultCookieSerializer defaultCookieSerializer) {
-      return new TestAuthConfig(autoConfig, securityProperties, defaultCookieSerializer);
+    BasicAuthConfig basicAuthConfig(AuthConfig autoConfig, SecurityProperties securityProperties) {
+      return new TestAuthConfig(autoConfig, securityProperties);
     }
   }
 }

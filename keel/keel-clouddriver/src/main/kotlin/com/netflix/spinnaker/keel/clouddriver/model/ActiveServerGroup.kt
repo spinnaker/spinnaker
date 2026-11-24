@@ -14,7 +14,7 @@ data class ServerGroupCollection<T : BaseServerGroup>(
 )
 
 /**
- * Fields common to all of the different kinds of server groups (EC2, Titus)
+ * Fields common to all of the different kinds of server groups
  */
 interface BaseServerGroup {
   val name: String
@@ -163,7 +163,7 @@ data class ActiveServerGroup(
 }
 
 fun ActiveServerGroup.subnet(cloudDriverCache: CloudDriverCache): String =
-  asg.vpczoneIdentifier.substringBefore(",").let { subnetId ->
+  asg.vpcZoneIdentifier.substringBefore(",").let { subnetId ->
     cloudDriverCache
       .subnetBy(subnetId)
       .purpose ?: error("Subnet $subnetId has no purpose!")
@@ -262,7 +262,7 @@ data class AutoScalingGroup(
   val enabledMetrics: Set<String>,
   val tags: Set<Tag>,
   val terminationPolicies: Set<String>,
-  val vpczoneIdentifier: String
+  val vpcZoneIdentifier: String
 )
 
 // https://docs.aws.amazon.com/autoscaling/ec2/APIReference/API_ScalingPolicy.html

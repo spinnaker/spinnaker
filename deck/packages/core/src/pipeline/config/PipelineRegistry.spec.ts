@@ -3,6 +3,7 @@ import React from 'react';
 
 import { PipelineRegistry } from './PipelineRegistry';
 import type { IRegion } from '../../account/AccountService';
+import { CloudProviderRegistry } from '../../cloudProvider';
 import { SETTINGS } from '../../config';
 import type { IStage, IStageTypeConfig, ITriggerTypeConfig } from '../../domain';
 import { ITriggerTemplateComponentProps } from '../manualExecution/TriggerTemplate';
@@ -29,9 +30,9 @@ const awsProviderAccount = {
   cloudProvider: 'aws',
 };
 
-const titusProviderAccount = {
+const containerProviderAccount = {
   ...mockProviderAccount,
-  cloudProvider: 'titus',
+  cloudProvider: 'containerprovider',
 };
 
 const gcpProviderAccount = {
@@ -196,7 +197,7 @@ describe('PipelineRegistry: API', function () {
     };
 
     const spyOnReader = () =>
-      spyOn(PreconfiguredJobReader, 'list').and.callFake(() => Promise.resolve([makeJobMetadata()]));
+      vi.spyOn(PreconfiguredJobReader, 'list').mockImplementation(() => Promise.resolve([makeJobMetadata()]));
 
     it('registration returns a promise', async () => {
       spyOnReader();
@@ -245,11 +246,11 @@ describe('PipelineRegistry: API', function () {
       key: 'c',
       description: 'Actual stage that redirected stage aliases to, this is what orca would actually run for "zc"',
     };
-    const titusStage = {
+    const containerProviderStage = {
       key: 'd',
       provides: 'd',
-      cloudProvider: 'titus',
-      description: 'Titus implementation of "c" stage',
+      cloudProvider: 'containerprovider',
+      description: 'Container provider implementation of "c" stage',
     };
     const awsStage = {
       key: 'd',
@@ -258,7 +259,15 @@ describe('PipelineRegistry: API', function () {
       description: 'Amazon implementation of "c" stage',
     };
 
-    const slimmaker = [unmatchedStage, simpleStage, renamedStage, redirectedStage, actualStage, titusStage, awsStage];
+    const slimmaker = [
+      unmatchedStage,
+      simpleStage,
+      renamedStage,
+      redirectedStage,
+      actualStage,
+      containerProviderStage,
+      awsStage,
+    ];
 
     it('matches stage.type with stageType.key', function () {
       const pipelineRegistry = new PipelineRegistry();
@@ -326,9 +335,9 @@ describe('PipelineRegistry: API', function () {
       const pipelineRegistry = new PipelineRegistry();
       slimmaker.forEach((stage) => pipelineRegistry.registerStage(stage));
 
-      expect(pipelineRegistry.getStageConfig(({ type: 'd', cloudProvider: 'titus' } as unknown) as IStage)).toEqual(
-        titusStage,
-      );
+      expect(
+        pipelineRegistry.getStageConfig(({ type: 'd', cloudProvider: 'containerprovider' } as unknown) as IStage),
+      ).toEqual(containerProviderStage);
       expect(pipelineRegistry.getStageConfig(({ type: 'd', cloudProvider: 'aws' } as unknown) as IStage)).toEqual(
         awsStage,
       );
@@ -443,12 +452,12 @@ describe('PipelineRegistry: API', function () {
 
       it('filters out stages that do not support passed in providers', function () {
         Registry.pipeline.registerStage({ key: 'a', providesFor: ['aws', 'gcp'] } as IStageTypeConfig);
-        expect(Registry.pipeline.getConfigurableStageTypes([titusProviderAccount])).toEqual([]);
+        expect(Registry.pipeline.getConfigurableStageTypes([containerProviderAccount])).toEqual([]);
       });
 
       it('filters out stages that do not support passed in providers', function () {
         Registry.pipeline.registerStage({ key: 'a', providesFor: ['aws', 'gcp'] } as IStageTypeConfig);
-        expect(Registry.pipeline.getConfigurableStageTypes([titusProviderAccount])).toEqual([]);
+        expect(Registry.pipeline.getConfigurableStageTypes([containerProviderAccount])).toEqual([]);
       });
     });
 
@@ -485,10 +494,14 @@ describe('PipelineRegistry: API', function () {
         Registry.pipeline.registerStage({ key: 'a', useBaseProvider: true } as IStageTypeConfig);
         Registry.pipeline.registerStage({ key: 'b', provides: 'a', cloudProvider: 'aws' } as IStageTypeConfig);
         Registry.pipeline.registerStage({ key: 'c', provides: 'a', cloudProvider: 'gcp' } as IStageTypeConfig);
-        Registry.pipeline.registerStage({ key: 'd', provides: 'a', cloudProvider: 'titus' } as IStageTypeConfig);
-        const providerAccounts = [awsProviderAccount, titusProviderAccount];
+        Registry.pipeline.registerStage({
+          key: 'd',
+          provides: 'a',
+          cloudProvider: 'containerprovider',
+        } as IStageTypeConfig);
+        const providerAccounts = [awsProviderAccount, containerProviderAccount];
         expect(Registry.pipeline.getConfigurableStageTypes(providerAccounts) as any[]).toEqual([
-          { key: 'a', useBaseProvider: true, cloudProviders: ['aws', 'titus'] },
+          { key: 'a', useBaseProvider: true, cloudProviders: ['aws', 'containerprovider'] },
         ]);
       });
 
@@ -498,12 +511,60 @@ describe('PipelineRegistry: API', function () {
           key: 'b',
           provides: 'a',
           cloudProvider: 'aws',
-          providesFor: ['aws', 'gcp', 'titus'],
+          providesFor: ['aws', 'gcp', 'containerprovider'],
         } as IStageTypeConfig);
-        const providerAccounts = [awsProviderAccount, titusProviderAccount];
+        const providerAccounts = [awsProviderAccount, containerProviderAccount];
         expect(Registry.pipeline.getConfigurableStageTypes(providerAccounts) as any[]).toEqual([
-          { key: 'a', useBaseProvider: true, cloudProviders: ['aws', 'titus'] },
+          { key: 'a', useBaseProvider: true, cloudProviders: ['aws', 'containerprovider'] },
         ]);
+      });
+    });
+
+    describe('stage types excluded by providers', function () {
+      it('removes stages that every account provider excludes', function () {
+        vi.spyOn(CloudProviderRegistry, 'getProvider').mockImplementation((provider: string) => ({
+          name: provider,
+          unsupportedStageTypes: ['a'],
+        }));
+        Registry.pipeline.registerStage({ key: 'a' } as IStageTypeConfig);
+        Registry.pipeline.registerStage({ key: 'b' } as IStageTypeConfig);
+        const providerAccounts = [awsProviderAccount, gcpProviderAccount];
+        expect(Registry.pipeline.getConfigurableStageTypes(providerAccounts) as any[]).toEqual([
+          { key: 'b', cloudProviders: ['aws', 'gcp'] },
+        ]);
+      });
+
+      it('drops only the providers that exclude a stage', function () {
+        vi.spyOn(CloudProviderRegistry, 'getProvider').mockImplementation((provider: string) => ({
+          name: provider,
+          unsupportedStageTypes: provider === 'aws' ? ['a'] : [],
+        }));
+        Registry.pipeline.registerStage({ key: 'a' } as IStageTypeConfig);
+        const providerAccounts = [awsProviderAccount, gcpProviderAccount];
+        expect(Registry.pipeline.getConfigurableStageTypes(providerAccounts) as any[]).toEqual([
+          { key: 'a', cloudProviders: ['gcp'] },
+        ]);
+      });
+
+      it('looks up each provider once, however many accounts there are', function () {
+        const getProvider = vi.spyOn(CloudProviderRegistry, 'getProvider').mockImplementation((provider: string) => ({
+          name: provider,
+          unsupportedStageTypes: ['a'],
+        }));
+        Registry.pipeline.registerStage({ key: 'a', label: 'A' } as IStageTypeConfig);
+        Registry.pipeline.registerStage({ key: 'b', label: 'B', useBaseProvider: true } as IStageTypeConfig);
+        Registry.pipeline.registerStage({ key: 'c', provides: 'b', cloudProvider: 'aws' } as IStageTypeConfig);
+        Registry.pipeline.registerStage({ key: 'd', label: 'D' } as IStageTypeConfig);
+        const providerAccounts = [
+          ...Array.from({ length: 500 }, (_, i) => ({ ...awsProviderAccount, name: `aws-${i}` })),
+          ...Array.from({ length: 500 }, (_, i) => ({ ...gcpProviderAccount, name: `gcp-${i}` })),
+        ];
+
+        expect(Registry.pipeline.getConfigurableStageTypes(providerAccounts) as any[]).toEqual([
+          { key: 'b', label: 'B', useBaseProvider: true, cloudProviders: ['aws'] },
+          { key: 'd', label: 'D', cloudProviders: ['aws', 'gcp'] },
+        ]);
+        expect(getProvider.mock.calls).toEqual([['aws'], ['gcp']]);
       });
     });
   });

@@ -16,10 +16,11 @@
 
 package com.netflix.spinnaker.clouddriver.kubernetes.description.manifest;
 
-import static org.assertj.core.api.AssertionsForClassTypes.assertThat;
+import static org.assertj.core.api.Assertions.assertThat;
 
 import com.netflix.spinnaker.moniker.Moniker;
 import java.util.HashMap;
+import java.util.Map;
 import org.junit.jupiter.api.Test;
 
 public class KubernetesManifestAnnotatorTest {
@@ -104,6 +105,74 @@ public class KubernetesManifestAnnotatorTest {
     assertThat(moniker.getStack()).isNull();
     assertThat(moniker.getDetail()).isNull();
     assertThat(moniker.getSequence()).isEqualTo(3);
+  }
+
+  @Test
+  public void testAnnotateProvenanceWritesAnnotations() {
+    // when:
+    KubernetesManifest manifest = manifest("testapp-abc", KubernetesKind.DEPLOYMENT);
+    KubernetesManifestAnnotater.annotateProvenance(manifest, "user@example.com", "exec-123");
+
+    // then:
+    assertThat(manifest.getAnnotations())
+        .containsEntry("provenance.spinnaker.io/deployed-by", "user@example.com");
+    assertThat(manifest.getAnnotations())
+        .containsEntry("provenance.spinnaker.io/execution-id", "exec-123");
+  }
+
+  @Test
+  public void testAnnotateProvenanceOverwritesExistingValues() {
+    // when:
+    KubernetesManifest manifest = manifest("testapp-abc", KubernetesKind.DEPLOYMENT);
+    manifest.getAnnotations().put("provenance.spinnaker.io/execution-id", "old-exec-id");
+    KubernetesManifestAnnotater.annotateProvenance(manifest, "user@example.com", "exec-123");
+
+    // then:
+    assertThat(manifest.getAnnotations())
+        .containsEntry("provenance.spinnaker.io/execution-id", "exec-123");
+  }
+
+  @Test
+  public void testAnnotateProvenanceSkipsNullAndEmptyValues() {
+    // when:
+    KubernetesManifest manifest = manifest("testapp-abc", KubernetesKind.DEPLOYMENT);
+    KubernetesManifestAnnotater.annotateProvenance(manifest, "", "exec-123");
+
+    // then:
+    assertThat(manifest.getAnnotations()).doesNotContainKey("provenance.spinnaker.io/deployed-by");
+    assertThat(manifest.getAnnotations())
+        .containsEntry("provenance.spinnaker.io/execution-id", "exec-123");
+
+    // when:
+    manifest = manifest("testapp-abc", KubernetesKind.DEPLOYMENT);
+    KubernetesManifestAnnotater.annotateProvenance(manifest, "user@example.com", "");
+
+    // then:
+    assertThat(manifest.getAnnotations())
+        .containsEntry("provenance.spinnaker.io/deployed-by", "user@example.com");
+    assertThat(manifest.getAnnotations()).doesNotContainKey("provenance.spinnaker.io/execution-id");
+  }
+
+  @Test
+  public void testAnnotateProvenanceDoesNotWriteToSpecTemplate() {
+    // setup:
+    KubernetesManifest manifest = manifest("testapp-abc", KubernetesKind.DEPLOYMENT);
+    Map<String, Object> spec = new HashMap<>();
+    Map<String, Object> templateMetadata = new HashMap<>();
+    Map<String, String> templateAnnotations = new HashMap<>();
+    templateMetadata.put("annotations", templateAnnotations);
+    Map<String, Object> template = new HashMap<>();
+    template.put("metadata", templateMetadata);
+    spec.put("template", template);
+    manifest.put("spec", spec);
+
+    // when:
+    KubernetesManifestAnnotater.annotateProvenance(manifest, "user@example.com", "exec-123");
+
+    // then:
+    assertThat(manifest.getAnnotations())
+        .containsEntry("provenance.spinnaker.io/execution-id", "exec-123");
+    assertThat(templateAnnotations).isEmpty();
   }
 
   /** A test manifest */

@@ -1,23 +1,23 @@
-import { mount, shallow } from 'enzyme';
+import { render, screen } from '@testing-library/react';
+import userEvent from '@testing-library/user-event';
 import React from 'react';
-import { MenuItem } from 'react-bootstrap';
 
-import { ConfirmationModalService, DeckRuntimeContext, ServerGroupNamePreview } from '@spinnaker/core';
+import { ConfirmationModalService, DeckRuntimeContext } from '@spinnaker/core';
 
 import { ServerGroupBasicSettingsComponent } from './configure/wizard/BasicSettings';
 import { ServerGroupWizardComponent } from './configure/wizard/serverGroupWizard';
 import { CloudrunServerGroupActionsComponent } from './details/CloudrunServerGroupActions';
 
 describe('Cloud Run server group router consumers', () => {
-  it('opens the latest server group through the injected state service', () => {
-    const go = jasmine.createSpy('go');
-    const component = shallow(
+  it('opens the latest server group through the injected state service', async () => {
+    const go = vi.fn();
+    render(
       <ServerGroupBasicSettingsComponent
         {...({ router: {}, stateParams: {}, stateService: { go, is: () => true } } as any)}
         accounts={[]}
         app={
           {
-            clusters: [],
+            clusters: [{ name: 'app-main' }],
             name: 'app',
             serverGroups: {
               data: [{ account: 'test', cluster: 'app-main', createdTime: 1, name: 'app-main-v001', region: 'us' }],
@@ -44,7 +44,7 @@ describe('Cloud Run server group router consumers', () => {
       />,
     );
 
-    component.find(ServerGroupNamePreview).prop('navigateToLatestServerGroup')();
+    await userEvent.click(screen.getByText('Go to details for app-main-v001'));
 
     expect(go).toHaveBeenCalledWith('.serverGroup', {
       accountId: 'test',
@@ -54,10 +54,10 @@ describe('Cloud Run server group router consumers', () => {
     });
   });
 
-  it('closes destroyed server group details through the injected state service', () => {
-    const go = jasmine.createSpy('go');
-    const confirm = spyOn(ConfirmationModalService, 'confirm');
-    const component = mount(
+  it('closes destroyed server group details through the injected state service', async () => {
+    const go = vi.fn();
+    const confirm = vi.spyOn(ConfirmationModalService, 'confirm').mockReturnValue(undefined);
+    render(
       <DeckRuntimeContext.Provider value={{ services: { serverGroupWriter: {} } } as any}>
         <CloudrunServerGroupActionsComponent
           {...({ router: {}, stateParams: {}, stateService: { go, includes: () => true } } as any)}
@@ -75,14 +75,14 @@ describe('Cloud Run server group router consumers', () => {
       </DeckRuntimeContext.Provider>,
     );
 
-    component.find(MenuItem).first().prop('onClick')();
-    confirm.calls.mostRecent().args[0].taskMonitorConfig.onTaskComplete();
+    await userEvent.click(screen.getByText('Destroy'));
+    confirm.mock.lastCall[0].taskMonitorConfig.onTaskComplete();
 
     expect(go).toHaveBeenCalledWith('^');
   });
 
   it('opens a newly created server group through the injected state service', () => {
-    const go = jasmine.createSpy('go');
+    const go = vi.fn();
     const component = new ServerGroupWizardComponent({
       application: { serverGroups: {} },
       closeModal: () => undefined,
@@ -114,20 +114,20 @@ describe('Cloud Run server group router consumers', () => {
   });
 
   it('owns the server group refresh subscription across replacement and unmount', () => {
-    const firstUnsubscribe = jasmine.createSpy('firstUnsubscribe');
-    const secondUnsubscribe = jasmine.createSpy('secondUnsubscribe');
+    const firstUnsubscribe = vi.fn();
+    const secondUnsubscribe = vi.fn();
     const callbacks: Array<() => void> = [];
-    const onNextRefresh = jasmine.createSpy('onNextRefresh').and.callFake((callback: () => void) => {
+    const onNextRefresh = vi.fn().mockImplementation((callback: () => void) => {
       callbacks.push(callback);
       return callbacks.length === 1 ? firstUnsubscribe : secondUnsubscribe;
     });
-    const refresh = jasmine.createSpy('refresh');
-    const go = jasmine.createSpy('go');
+    const refresh = vi.fn();
+    const go = vi.fn();
     const component = new ServerGroupWizardComponent({
       application: { serverGroups: { onNextRefresh, refresh } },
-      closeModal: jasmine.createSpy('closeModal'),
+      closeModal: vi.fn(),
       command: { command: { credentials: 'test', region: 'us', viewState: { submitButtonLabel: 'Create' } } },
-      dismissModal: jasmine.createSpy('dismissModal'),
+      dismissModal: vi.fn(),
       router: {},
       stateParams: {},
       stateService: { go, includes: () => false },
@@ -136,7 +136,7 @@ describe('Cloud Run server group router consumers', () => {
 
     component.onTaskComplete();
 
-    expect(onNextRefresh.calls.first().invocationOrder).toBeLessThan(refresh.calls.first().invocationOrder);
+    expect(onNextRefresh.mock.invocationCallOrder[0]).toBeLessThan(refresh.mock.invocationCallOrder[0]);
 
     component.onTaskComplete();
 

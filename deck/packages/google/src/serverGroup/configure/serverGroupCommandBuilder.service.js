@@ -2,23 +2,29 @@
 
 import _ from 'lodash';
 
-import { AccountService, ExpectedArtifactService } from '@spinnaker/core';
+import { AccountService, ExpectedArtifactService, InstanceTypeService, ProviderServiceDelegate } from '@spinnaker/core';
 import { GceXpnNamingService } from '../../common/xpnNaming.gce.service';
 import { GCEProviderSettings } from '../../gce.settings';
 import { parseHealthCheckUrl } from '../../healthCheck/healthCheckUtils';
 
 import { GceCustomInstanceBuilderService } from './../../instance/custom/customInstanceBuilder.gce.service';
-import { GceInstanceTypeService } from '../../instance/gceInstanceType.service';
 import { GCE_SERVER_GROUP_HIDDEN_METADATA_KEYS } from './wizard/hiddenMetadataKeys.value';
 
 export class GceServerGroupCommandBuilder {
+  static requiresDeckRuntimeServices = true;
+
   constructor(
     promiseService,
-    instanceTypeService = new GceInstanceTypeService(promiseService),
+    runtimeServicesOrInstanceTypeService,
     gceCustomInstanceBuilderService = new GceCustomInstanceBuilderService(),
     gceXpnNamingService = new GceXpnNamingService(),
     gceServerGroupHiddenMetadataKeys = GCE_SERVER_GROUP_HIDDEN_METADATA_KEYS,
   ) {
+    const instanceTypeService =
+      runtimeServicesOrInstanceTypeService?.instanceTypeService ||
+      (typeof runtimeServicesOrInstanceTypeService?.getInstanceTypeDetails === 'function'
+        ? runtimeServicesOrInstanceTypeService
+        : new InstanceTypeService(new ProviderServiceDelegate(promiseService)));
     // Two assumptions here:
     //   1) All GCE machine types are represented in the tree of choices.
     //   2) Each machine type appears in exactly one category.
@@ -241,6 +247,21 @@ export class GceServerGroupCommandBuilder {
           ? shieldedVmConfig[field]
           : _.get(source, field, false);
       });
+    }
+
+    function populateWorkloadIdentityConfig(serverGroup, command) {
+      if (
+        serverGroup.launchConfig &&
+        serverGroup.launchConfig.instanceTemplate &&
+        serverGroup.launchConfig.instanceTemplate.properties &&
+        serverGroup.launchConfig.instanceTemplate.properties.workloadIdentityConfig
+      ) {
+        const config = serverGroup.launchConfig.instanceTemplate.properties.workloadIdentityConfig;
+        command.workloadIdentityConfig = {
+          identity: config.identity,
+          identityCertificateEnabled: !!config.identityCertificateEnabled,
+        };
+      }
     }
 
     function populateCustomMetadata(metadataItems, command) {
@@ -528,6 +549,7 @@ export class GceServerGroupCommandBuilder {
           populateTags(serverGroup.launchConfig.instanceTemplate.properties.tags, command);
           populateLabels(serverGroup.instanceTemplateLabels, command);
           populateAuthScopes(serverGroup.launchConfig.instanceTemplate.properties.serviceAccounts, command);
+          populateWorkloadIdentityConfig(serverGroup, command);
           populateResourceManagerTags(
             serverGroup.launchConfig.instanceTemplate.properties.resourceManagerTags,
             command,

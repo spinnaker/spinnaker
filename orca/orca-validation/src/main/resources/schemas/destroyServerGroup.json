@@ -6,7 +6,7 @@
       "type" : "string",
       "_meta" : {
         "condition" : {
-          "cloudProviders" : [ "aws", "titus" ]
+          "cloudProviders" : [ "aws" ]
         }
       }
     },
@@ -14,7 +14,7 @@
       "type" : "string",
       "_meta" : {
         "condition" : {
-          "cloudProviders" : [ "aws", "titus" ]
+          "cloudProviders" : [ "aws" ]
         }
       }
     },
@@ -22,7 +22,7 @@
       "type" : "string",
       "_meta" : {
         "condition" : {
-          "cloudProviders" : [ "aws", "titus" ]
+          "cloudProviders" : [ "aws" ]
         }
       }
     },
@@ -42,7 +42,7 @@
       "type" : "string",
       "_meta" : {
         "condition" : {
-          "cloudProviders" : [ "aws", "titus" ]
+          "cloudProviders" : [ "aws" ]
         }
       }
     },
@@ -68,7 +68,7 @@
       "type" : "array",
       "_meta" : {
         "condition" : {
-          "cloudProviders" : [ "aws", "titus" ]
+          "cloudProviders" : [ "aws" ]
         }
       }
     },
@@ -106,7 +106,7 @@
       "type" : "string",
       "_meta" : {
         "condition" : {
-          "cloudProviders" : [ "aws", "titus" ]
+          "cloudProviders" : [ "aws" ]
         }
       }
     }

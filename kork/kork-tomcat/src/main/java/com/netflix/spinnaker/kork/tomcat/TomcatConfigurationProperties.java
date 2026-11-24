@@ -29,6 +29,9 @@ public class TomcatConfigurationProperties {
 
   private int apiPort = -1;
 
+  // Null preserves Tomcat's default; negative values disable the locale-count limit.
+  private Integer maxLocaleCount;
+
   private String relaxedQueryCharacters = "";
   private String relaxedPathCharacters = "";
 
@@ -36,8 +39,8 @@ public class TomcatConfigurationProperties {
 
   private List<String> cipherSuites = CipherSuites.getRecommendedCiphers();
 
-  // This property maps to spring boot property server.tomcat.reject-illegal-header,
-  // which is true by default.
+  // Retained for configuration compatibility. Tomcat 11 always rejects illegal headers;
+  // setting this legacy option to false is ignored with a startup warning.
   private Boolean rejectIllegalHeader;
 
   public int getLegacyServerPort() {
@@ -54,6 +57,14 @@ public class TomcatConfigurationProperties {
 
   public void setApiPort(int apiPort) {
     this.apiPort = apiPort;
+  }
+
+  public Integer getMaxLocaleCount() {
+    return maxLocaleCount;
+  }
+
+  public void setMaxLocaleCount(Integer maxLocaleCount) {
+    this.maxLocaleCount = maxLocaleCount;
   }
 
   public String getRelaxedQueryCharacters() {

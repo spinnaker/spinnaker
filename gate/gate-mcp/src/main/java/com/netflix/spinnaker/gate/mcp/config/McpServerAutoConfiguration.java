@@ -25,6 +25,7 @@ import com.netflix.spinnaker.gate.mcp.resources.SpinnakerResources;
 import com.netflix.spinnaker.gate.mcp.support.McpAccessGuard;
 import com.netflix.spinnaker.gate.mcp.support.McpAuditLog;
 import com.netflix.spinnaker.gate.mcp.support.McpEchoAuditPublisher;
+import com.netflix.spinnaker.gate.mcp.support.McpToolAllowlist;
 import com.netflix.spinnaker.gate.mcp.support.OrchestrationJobs;
 import com.netflix.spinnaker.gate.mcp.tools.AdminTools;
 import com.netflix.spinnaker.gate.mcp.tools.ApplicationTools;
@@ -48,8 +49,10 @@ import com.netflix.spinnaker.gate.services.internal.OrcaServiceSelector;
 import java.util.Optional;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
+import org.springframework.boot.context.properties.bind.Binder;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.core.env.Environment;
 
 /**
  * Wires Gate's MCP server: a curated set of tools/resources/prompts, each backed by the same
@@ -71,6 +74,20 @@ import org.springframework.context.annotation.Configuration;
 @ConditionalOnProperty(prefix = "mcp.server", name = "enabled", havingValue = "true")
 @EnableConfigurationProperties(McpServerProperties.class)
 public class McpServerAutoConfiguration {
+
+  /**
+   * Static, and binding {@code mcp.server} directly rather than injecting {@link
+   * McpServerProperties}, because a {@code BeanPostProcessor} is instantiated before regular beans;
+   * depending on another bean here would initialize it too early to be post-processed itself.
+   */
+  @Bean
+  public static McpToolAllowlist mcpToolAllowlist(Environment environment) {
+    McpServerProperties properties =
+        Binder.get(environment)
+            .bind("mcp.server", McpServerProperties.class)
+            .orElseGet(McpServerProperties::new);
+    return new McpToolAllowlist(properties.getAllowedTools());
+  }
 
   @Bean
   public McpAuditLog mcpAuditLog(McpServerProperties properties) {

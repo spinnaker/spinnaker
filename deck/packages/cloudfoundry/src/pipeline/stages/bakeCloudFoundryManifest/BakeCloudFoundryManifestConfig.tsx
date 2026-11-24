@@ -21,6 +21,7 @@ export function BakeCloudFoundryManifestConfig({ application, pipeline, stage, u
       onChange={updateStage}
       pipeline={pipeline}
       stage={stageWithDefaults}
+      liveStage={stage}
       validate={validateBakeCloudFoundryManifestStage}
       render={(props) => <BakeCloudFoundryManifestConfigForm {...props} />}
     />

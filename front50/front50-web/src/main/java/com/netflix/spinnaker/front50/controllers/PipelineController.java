@@ -316,6 +316,7 @@ public class PipelineController {
     log.debug("Running validation before saving pipeline {}", pipeline.getName());
     long validationStartTime = System.currentTimeMillis();
     validatePipeline(pipeline, staleCheck);
+    checkPipelineIdAvailable(pipeline.getApplication(), pipeline.getId());
     checkForDuplicatePipeline(
         pipeline.getApplication(), pipeline.getName().trim(), pipeline.getId());
     log.debug(
@@ -433,6 +434,13 @@ public class PipelineController {
           format(
               "The provided id %s doesn't match the existing pipeline id %s",
               pipeline.getId(), existingPipeline.getId()));
+    }
+
+    if (!sameApplication(existingPipeline.getApplication(), pipeline.getApplication())) {
+      throw new InvalidRequestException(
+          format(
+              "The provided application %s doesn't match the application %s of the existing pipeline",
+              pipeline.getApplication(), existingPipeline.getApplication()));
     }
 
     validatePipeline(pipeline, staleCheck);
@@ -588,6 +596,33 @@ public class PipelineController {
     }
   }
 
+  private static boolean sameApplication(String a, String b) {
+    return a != null && a.equalsIgnoreCase(b);
+  }
+
+  /**
+   * Pipeline ids are global, so an id that is already used by a pipeline in another application
+   * can't be used to save a pipeline in this one.
+   */
+  private void checkPipelineIdAvailable(String application, String id) {
+    if (StringUtils.isBlank(id)) {
+      return;
+    }
+
+    Pipeline existingPipeline;
+    try {
+      existingPipeline = pipelineDAO.findById(id);
+    } catch (NotFoundException e) {
+      return;
+    }
+
+    if (existingPipeline != null
+        && !sameApplication(existingPipeline.getApplication(), application)) {
+      throw new InvalidRequestException(
+          format("The pipeline id %s is already in use by a pipeline in another application", id));
+    }
+  }
+
   @VisibleForTesting
   void checkForDuplicatePipeline(String application, String name, String id) {
     log.debug(
@@ -647,6 +682,11 @@ public class PipelineController {
       List<Pipeline> invalidPipelines) {
 
     Map<String, List<Pipeline>> pipelinesByApp = getAllPipelinesByApplication();
+    Map<String, String> applicationsById = new HashMap<>();
+    pipelinesByApp.values().stream()
+        .flatMap(List::stream)
+        .filter(existing -> existing.getId() != null)
+        .forEach(existing -> applicationsById.put(existing.getId(), existing.getApplication()));
     Map<String, Boolean> appPermissionForUser = new HashMap<>();
     Set<String> uniqueIdSet = new HashSet<>();
 
@@ -689,6 +729,19 @@ public class PipelineController {
               String.format(
                   "A pipeline with name %s already exists in the application %s",
                   pipelineName, app);
+          log.error(errorMessage);
+          pipeline.setAny("errorMsg", errorMessage);
+          invalidPipelines.add(pipeline);
+          continue;
+        }
+
+        // Pipeline ids are global, so the id can't belong to a pipeline in another application
+        String existingApp = applicationsById.get(pipeline.getId());
+        if (existingApp != null && !sameApplication(existingApp, app)) {
+          String errorMessage =
+              String.format(
+                  "The pipeline id %s is already in use by a pipeline in another application",
+                  pipeline.getId());
           log.error(errorMessage);
           pipeline.setAny("errorMsg", errorMessage);
           invalidPipelines.add(pipeline);

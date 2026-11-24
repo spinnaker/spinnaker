@@ -196,8 +196,7 @@ class CloudFoundryServerGroupCachingAgentTest {
     when(cloudFoundryClient.getApplications()).thenReturn(mockApplications);
     when(mockApplications.findServerGroupByNameAndSpaceId(any(), any())).thenReturn(null);
 
-    when(mockProviderCache.filterIdentifiers(any(), any()))
-        .thenReturn(Collections.singletonList("key"));
+    when(mockProviderCache.filterIdentifiers(any(), any())).thenReturn(Set.of("key"));
 
     OnDemandAgent.OnDemandResult result =
         cloudFoundryServerGroupCachingAgent.handle(mockProviderCache, data);
@@ -268,7 +267,7 @@ class CloudFoundryServerGroupCachingAgentTest {
     Integer processedCount = 1;
     Long processedTime = 222L;
     String serverGroupKey = Keys.getServerGroupKey(accountName, serverGroupName, region);
-    Collection<String> expectedKeys = singleton("key1");
+    Set<String> expectedKeys = singleton("key1");
     when(mockProviderCache.filterIdentifiers(any(), any())).thenReturn(expectedKeys);
     Collection<CacheData> onDemandCacheData =
         singleton(

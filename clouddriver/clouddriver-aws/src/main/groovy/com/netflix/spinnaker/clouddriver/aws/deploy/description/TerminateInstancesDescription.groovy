@@ -23,6 +23,13 @@ class TerminateInstancesDescription extends AbstractAmazonCredentialsDescription
 
   Set<String> serverGroups
 
+  /**
+   * Terminate each instance through its Auto Scaling group instead of directly in EC2, without
+   * decrementing the group's desired capacity. The group runs its termination lifecycle hooks and
+   * launches a replacement instance.
+   */
+  boolean terminateInAutoScalingGroup
+
   @Override
   Collection<String> getServerGroupNames() {
     return serverGroups

@@ -22,6 +22,7 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import org.springaicommunity.mcp.annotation.McpTool;
+import org.springaicommunity.mcp.annotation.McpTool.McpAnnotations;
 import org.springaicommunity.mcp.annotation.McpToolParam;
 
 /**
@@ -43,7 +44,9 @@ public class ExecutionTools {
       description =
           "Search for pipeline executions by application and trigger criteria (trigger type, event id, trigger field match, "
               + "time range, status). Results are sorted newest-first by trigger time. Use this to answer questions like "
-              + "'what deployments ran for this application in the last day' or 'find the execution triggered by build #123'.")
+              + "'what deployments ran for this application in the last day' or 'find the execution triggered by build #123'.",
+      annotations =
+          @McpAnnotations(readOnlyHint = true, destructiveHint = false, idempotentHint = true))
   public List<Map<String, Object>> searchExecutions(
       @McpToolParam(
               description =
@@ -79,7 +82,12 @@ public class ExecutionTools {
               required = false)
           Long triggerTimeEndBoundary,
       @McpToolParam(description = "Maximum number of executions to return", required = false)
-          Integer size) {
+          Integer size,
+      @McpToolParam(
+              description =
+                  "When true, and pipelineName is not supplied, also include executions belonging to pipelines that have since been deleted",
+              required = false)
+          Boolean includeDeletedPipelines) {
     return Retrofit2SyncCall.execute(
         orcaServiceSelector
             .select()
@@ -95,13 +103,16 @@ public class ExecutionTools {
                 0,
                 size == null ? 10 : size,
                 false,
-                false));
+                false,
+                includeDeletedPipelines != null && includeDeletedPipelines));
   }
 
   @McpTool(
       name = "get_latest_executions",
       description =
-          "Fetch the most recent execution(s) for one or more pipeline config ids, or fetch specific executions by id.")
+          "Fetch the most recent execution(s) for one or more pipeline config ids, or fetch specific executions by id.",
+      annotations =
+          @McpAnnotations(readOnlyHint = true, destructiveHint = false, idempotentHint = true))
   public List<Map<String, Object>> getLatestExecutions(
       @McpToolParam(
               description =
@@ -137,7 +148,9 @@ public class ExecutionTools {
   @McpTool(
       name = "get_failed_stages",
       description =
-          "Retrieve the stages in a failed/terminal state for a pipeline execution, traversing into nested pipeline stages.")
+          "Retrieve the stages in a failed/terminal state for a pipeline execution, traversing into nested pipeline stages.",
+      annotations =
+          @McpAnnotations(readOnlyHint = true, destructiveHint = false, idempotentHint = true))
   public List<Object> getFailedStages(
       @McpToolParam(description = "Pipeline execution id", required = true) String executionId,
       @McpToolParam(

@@ -1,3 +1,5 @@
+#!/bin/sh
+
 # Set any missing env variables used to configure deck
 
 _DECK_HOST=$DECK_HOST
@@ -29,15 +31,15 @@ then
 else
 	a2enmod ssl
 	cp docker/spinnaker.conf.ssl spinnaker.conf
-	sed -ie 's|{%DECK_CERT_PATH%}|'$_DECK_CERT_PATH'|g' spinnaker.conf
-	sed -ie 's|{%DECK_KEY_PATH%}|'$_DECK_KEY_PATH'|g' spinnaker.conf
+	sed -i 's|{%DECK_CERT_PATH%}|'$_DECK_CERT_PATH'|g' spinnaker.conf
+	sed -i 's|{%DECK_KEY_PATH%}|'$_DECK_KEY_PATH'|g' spinnaker.conf
 fi
 
 # Generate spinnaker.conf site & enable it
 
-sed -ie 's|{%DECK_HOST%}|'$_DECK_HOST'|g' spinnaker.conf
-sed -ie 's|{%DECK_PORT%}|'$_DECK_PORT'|g' spinnaker.conf
-sed -ie 's|{%API_HOST%}|'$_API_HOST'|g' spinnaker.conf
+sed -i 's|{%DECK_HOST%}|'$_DECK_HOST'|g' spinnaker.conf
+sed -i 's|{%DECK_PORT%}|'$_DECK_PORT'|g' spinnaker.conf
+sed -i 's|{%API_HOST%}|'$_API_HOST'|g' spinnaker.conf
 
 mkdir -p /etc/apache2/sites-available
 mv spinnaker.conf  /etc/apache2/sites-available
@@ -52,15 +54,15 @@ a2dissite 000-default
 
 cp docker/ports.conf.gen ports.conf
 
-sed -ie "s|{%DECK_HOST%}|$_DECK_HOST|g" ports.conf
-sed -ie "s|{%DECK_PORT%}|$_DECK_PORT|g" ports.conf 
+sed -i "s|{%DECK_HOST%}|$_DECK_HOST|g" ports.conf
+sed -i "s|{%DECK_PORT%}|$_DECK_PORT|g" ports.conf 
 mv ports.conf /etc/apache2/ports.conf
 
 # Create a passphrase file to inject the SSL passphrase into apache's startup
 
 cp docker/passphrase.gen passphrase
 
-sed -ie "s|{%PASSPHRASE%}|$_PASSPHRASE|g" passphrase
+sed -i "s|{%PASSPHRASE%}|$_PASSPHRASE|g" passphrase
 
 # Clear password from env vars 
 
@@ -87,4 +89,7 @@ then
 	cp /opt/spinnaker/config/plugin-manifest.json /opt/deck/html/plugin-manifest.json
 fi
 
-apache2ctl -D FOREGROUND 
+# apache2ctl runs apache2 as a child instead of exec'ing it, so the shell
+# would stay PID 1 and drop the container's stop signal.
+. /etc/apache2/envvars
+exec apache2 -D FOREGROUND

@@ -1,27 +1,31 @@
 import { createCancellableTimeout } from './cancellableTimeout';
 
 describe('createCancellableTimeout', () => {
-  beforeEach(() => jasmine.clock().install());
-  afterEach(() => jasmine.clock().uninstall());
+  beforeEach(() =>
+    vi.useFakeTimers({
+      toFake: ['setTimeout', 'clearTimeout', 'setInterval', 'clearInterval'],
+    }),
+  );
+  afterEach(() => vi.useRealTimers());
 
   it('completes with the callback result after the delay', async () => {
     const timeout = createCancellableTimeout();
     const result = timeout(() => 'complete', 100);
 
-    jasmine.clock().tick(100);
+    vi.advanceTimersByTime(100);
 
     await expectAsync(result as Promise<string>).toBeResolvedTo('complete');
   });
 
   it('settles a cancelled promise, suppresses its callback, and reports only the actual cancellation', async () => {
     const timeout = createCancellableTimeout();
-    const callback = jasmine.createSpy('callback');
+    const callback = vi.fn();
     const pending = timeout(callback, 100);
     const settlement = expectAsync(pending).toBeRejectedWith('canceled');
 
     expect(timeout.cancel(pending)).toBe(true);
     expect(timeout.cancel(pending)).toBe(false);
-    jasmine.clock().tick(100);
+    vi.advanceTimersByTime(100);
 
     await settlement;
     expect(callback).not.toHaveBeenCalled();
@@ -39,7 +43,7 @@ describe('createCancellableTimeout', () => {
     const timeout = createCancellableTimeout();
     const completed = timeout(() => 'complete', 100);
 
-    jasmine.clock().tick(100);
+    vi.advanceTimersByTime(100);
     await expectAsync(completed).toBeResolvedTo('complete');
 
     expect(timeout.cancel(completed)).toBe(false);
@@ -47,15 +51,15 @@ describe('createCancellableTimeout', () => {
 
   it('settles and suppresses all pending work when disposed', async () => {
     const timeout = createCancellableTimeout();
-    const firstCallback = jasmine.createSpy('firstCallback');
-    const secondCallback = jasmine.createSpy('secondCallback');
+    const firstCallback = vi.fn();
+    const secondCallback = vi.fn();
     const first = timeout(firstCallback, 100);
     const second = timeout(secondCallback, 200);
     const firstSettlement = expectAsync(first).toBeRejectedWith('canceled');
     const secondSettlement = expectAsync(second).toBeRejectedWith('canceled');
 
     timeout.dispose();
-    jasmine.clock().tick(200);
+    vi.advanceTimersByTime(200);
 
     await firstSettlement;
     await secondSettlement;
@@ -73,7 +77,7 @@ describe('createCancellableTimeout', () => {
       return originalSetTimeout(handler, delay, ...args);
     }) as typeof window.setTimeout;
     const timeout = createCancellableTimeout();
-    const callback = jasmine.createSpy('callback');
+    const callback = vi.fn();
 
     try {
       timeout.dispose();
@@ -84,7 +88,7 @@ describe('createCancellableTimeout', () => {
         timeout.cancel(rejected);
       }
       await expectAsync(rejected).toBeRejectedWith('canceled');
-      jasmine.clock().tick(100);
+      vi.advanceTimersByTime(100);
       expect(callback).not.toHaveBeenCalled();
     } finally {
       window.setTimeout = originalSetTimeout;

@@ -8,7 +8,7 @@ inputs:
     required: true
   node-version:
     description: Node version to set up
-    default: "24.13.0"
+    default: "24.21.0"
 
 runs:
   using: "composite"
@@ -22,7 +22,7 @@ runs:
       if: hashFiles(format('{0}/package.json', inputs.project)) != ''
       uses: pnpm/action-setup@v4
       with:
-        version: 11.1.1
+        version: 12.8.1
         run_install: false
 
     - name: Get pnpm store directory

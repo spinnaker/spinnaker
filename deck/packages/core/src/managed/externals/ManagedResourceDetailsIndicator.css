@@ -1,10 +1,10 @@
 .ManagedResourceDetailsIndicator {
-  background-color: var(--color-mineshaft);
+  background-color: var(--color-fill-mineshaft);
   color: var(--color-white);
 }
 
 .ManagedResourceDetailsIndicator .md-logo {
-  background-color: var(--color-black);
+  background-color: var(--color-fill-black);
   padding: 18px;
 }
 

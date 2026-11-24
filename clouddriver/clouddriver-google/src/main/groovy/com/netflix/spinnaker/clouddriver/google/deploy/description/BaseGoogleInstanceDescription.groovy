@@ -74,6 +74,13 @@ class BaseGoogleInstanceDescription extends AbstractGoogleCredentialsDescription
   // the request reaches instanceTemplates.insert because this path should not propagate
   // partner-provided payload metadata to the stable Compute v1 insert body.
   Map<String, Object> partnerMetadata
+  WorkloadIdentityConfig workloadIdentityConfig
+
+  @Canonical
+  static class WorkloadIdentityConfig {
+    String identity
+    Boolean identityCertificateEnabled
+  }
 
   // The source of the image to deploy
   // ARTIFACT: An artifact of type gce/image stored in imageArtifact

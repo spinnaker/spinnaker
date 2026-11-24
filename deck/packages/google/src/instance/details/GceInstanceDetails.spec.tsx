@@ -1,18 +1,16 @@
-import { mount, shallow } from 'enzyme';
+import { act, fireEvent, render, screen, waitFor, within } from '@testing-library/react';
 import React from 'react';
 
-import type { Action } from '@spinnaker/core';
 import {
   AccountService,
   ConfirmationModalService,
   Details,
-  InstanceActions,
   InstanceReader,
   InstanceWriter,
   RecentHistoryService,
 } from '@spinnaker/core';
 
-import { GceInstanceDetailsComponent as GceInstanceDetails } from './GceInstanceDetails';
+import { GceInstanceActionsComponent, GceInstanceDetailsComponent as GceInstanceDetails } from './GceInstanceDetails';
 
 describe('GceInstanceDetails', () => {
   function application(loadBalancers: any[] = []) {
@@ -57,35 +55,32 @@ describe('GceInstanceDetails', () => {
     };
   }
 
-  function actionsFor(
+  function renderActionsFor(
     loadedInstance: any,
     app = application([networkLoadBalancer()]),
-    stateService = { go: jasmine.createSpy('go'), includes: () => false },
-  ): Action[] {
-    const wrapper = shallow(
-      <GceInstanceDetails
+    stateService = { go: vi.fn(), includes: () => false },
+  ) {
+    return render(
+      <GceInstanceActionsComponent
         app={app}
-        initialInstance={loadedInstance}
+        instance={loadedInstance}
         router={{} as any}
         stateParams={{}}
         stateService={stateService as any}
       />,
     );
-    const renderedActions = shallow(wrapper.find(Details.Header).prop('actions') as React.ReactElement);
-    const actionMenu = renderedActions.is(InstanceActions) ? renderedActions : renderedActions.find(InstanceActions);
-    const actions = actionMenu.exists() ? actionMenu.prop('actions') : [];
-    renderedActions.unmount();
-    wrapper.unmount();
-    return actions;
   }
 
   function labelsFor(loadedInstance: any, app?: any): string[] {
-    return actionsFor(loadedInstance, app).map(({ label }) => label);
+    const rendered = renderActionsFor(loadedInstance, app);
+    const labels = Array.from(rendered.container.querySelectorAll('li a')).map((action) => action.textContent || '');
+    rendered.unmount();
+    return labels;
   }
 
   it('finds instances through disabled server groups attached to load balancers', () => {
-    spyOn(RecentHistoryService, 'addExtraDataToLatest');
-    spyOn(InstanceReader, 'getInstanceDetails').and.returnValue(
+    vi.spyOn(RecentHistoryService, 'addExtraDataToLatest').mockReturnValue(undefined);
+    vi.spyOn(InstanceReader, 'getInstanceDetails').mockReturnValue(
       Promise.resolve(
         instance({
           networkInterfaces: [{ networkIP: '10.0.0.1' }],
@@ -108,7 +103,7 @@ describe('GceInstanceDetails', () => {
       }),
     ]);
 
-    const wrapper = mount(
+    const rendered = render(
       <GceInstanceDetails
         app={app}
         instance={{ account: 'route-account', instanceId: 'instance-1', region: 'route-region' }}
@@ -119,21 +114,81 @@ describe('GceInstanceDetails', () => {
     );
 
     expect(InstanceReader.getInstanceDetails).toHaveBeenCalledWith('test-account', 'us-central1', 'instance-1');
-    wrapper.unmount();
+    rendered.unmount();
+  });
+
+  it('restores custom metadata, tags, labels, and formatted custom machine types', async () => {
+    vi.spyOn(AccountService, 'challengeDestructiveActions').mockReturnValue(Promise.resolve(false));
+    vi.spyOn(RecentHistoryService, 'addExtraDataToLatest').mockReturnValue(undefined);
+    vi.spyOn(Details, 'Header').mockImplementation(({ name }: any) => <div>{name}</div>);
+    vi.spyOn(InstanceReader, 'getInstanceDetails').mockReturnValue(
+      Promise.resolve(
+        instance({
+          instanceType: 'n2-custom-4-8192',
+          labels: { team: 'fnord' },
+          metadata: { items: [{ key: 'startup-script', value: 'echo hello' }] },
+          tags: { items: ['http-server'] },
+        }),
+      ),
+    );
+    const app = {
+      ...application(),
+      securityGroups: { data: [{ accountName: 'test-account', name: 'allow-http', targetTags: ['http-server'] }] },
+    };
+    render(
+      <GceInstanceDetails
+        app={app}
+        instance={{ account: 'test-account', instanceId: 'instance-1', region: 'us-central1' }}
+        router={{} as any}
+        stateParams={{}}
+        stateService={{} as any}
+      />,
+    );
+
+    expect(await screen.findByText('N2 4 vCPU / 8 GB RAM')).toBeInTheDocument();
+    ['Custom Metadata', 'Tags', 'Labels'].forEach(expandSection);
+
+    expect(definitionFor('startup-script')).toBe('echo hello');
+    const tag = screen.getByText('http-server', { selector: 'dd' });
+    expect(tag.querySelector('.help-field')).not.toBeNull();
+    expect(definitionFor('team')).toBe('fnord');
+  });
+
+  it('shows empty-state messages when an instance has no metadata, tags, or labels', async () => {
+    vi.spyOn(AccountService, 'challengeDestructiveActions').mockReturnValue(Promise.resolve(false));
+    vi.spyOn(RecentHistoryService, 'addExtraDataToLatest').mockReturnValue(undefined);
+    vi.spyOn(Details, 'Header').mockImplementation(({ name }: any) => <div>{name}</div>);
+    vi.spyOn(InstanceReader, 'getInstanceDetails').mockReturnValue(Promise.resolve(instance()));
+    render(
+      <GceInstanceDetails
+        app={application()}
+        instance={{ account: 'test-account', instanceId: 'instance-1', region: 'us-central1' }}
+        router={{} as any}
+        stateParams={{}}
+        stateService={{} as any}
+      />,
+    );
+
+    await screen.findByRole('heading', { name: 'Custom Metadata' });
+    ['Custom Metadata', 'Tags', 'Labels'].forEach(expandSection);
+
+    expect(screen.getByText('No custom metadata associated with this instance')).toBeInTheDocument();
+    expect(screen.getByText('No tags associated with this instance')).toBeInTheDocument();
+    expect(screen.getByText('No labels associated with this instance')).toBeInTheDocument();
   });
 
   it('clears actions on instance identity changes and ignores stale responses', async () => {
-    spyOn(AccountService, 'challengeDestructiveActions').and.returnValue(Promise.resolve(false));
+    vi.spyOn(AccountService, 'challengeDestructiveActions').mockReturnValue(Promise.resolve(false));
     const oldRequest = deferred<any>();
     const newRequest = deferred<any>();
-    spyOn(RecentHistoryService, 'addExtraDataToLatest');
-    spyOn(Details, 'Header').and.callFake(({ actions, name }: any) => (
+    vi.spyOn(RecentHistoryService, 'addExtraDataToLatest').mockReturnValue(undefined);
+    vi.spyOn(Details, 'Header').mockImplementation(({ actions, name }: any) => (
       <div className="test-instance-header">
         {name}
         {actions}
       </div>
     ));
-    spyOn(InstanceReader, 'getInstanceDetails').and.callFake(
+    vi.spyOn(InstanceReader, 'getInstanceDetails').mockImplementation(
       (_account: string, _region: string, instanceId: string) => {
         if (instanceId === 'instance-1') {
           return Promise.resolve(instance());
@@ -152,39 +207,39 @@ describe('GceInstanceDetails', () => {
         stateService={{} as any}
       />
     );
-    const wrapper = mount(
+    const rendered = render(
       <RoutedDetails routedInstance={{ account: 'test-account', instanceId: 'instance-1', region: 'us-central1' }} />,
     );
-    await settle();
-    wrapper.update();
-    expect(wrapper.find('.test-instance-header').text()).toContain('instance-1');
-    expect(wrapper.find(InstanceActions).exists()).toBe(true);
+    await waitFor(() =>
+      expect(rendered.container.querySelector('.test-instance-header')).toHaveTextContent('instance-1'),
+    );
+    expect(within(rendered.container).getByText('Instance Actions')).toBeInTheDocument();
 
-    wrapper.setProps({
-      routedInstance: { account: 'test-account', instanceId: 'instance-2', region: 'us-central1' },
-    });
-    wrapper.update();
-    expect(wrapper.find('.test-instance-header').exists()).toBe(false);
-    expect(wrapper.find(InstanceActions).exists()).toBe(false);
+    rendered.rerender(
+      <RoutedDetails routedInstance={{ account: 'test-account', instanceId: 'instance-2', region: 'us-central1' }} />,
+    );
+    expect(rendered.container.querySelector('.test-instance-header')).not.toBeInTheDocument();
+    expect(within(rendered.container).queryByText('Instance Actions')).not.toBeInTheDocument();
 
-    wrapper.setProps({
-      routedInstance: { account: 'test-account', instanceId: 'instance-3', region: 'us-central1' },
-    });
-    wrapper.update();
-    expect(wrapper.find('.test-instance-header').exists()).toBe(false);
-    expect(wrapper.find(InstanceActions).exists()).toBe(false);
+    rendered.rerender(
+      <RoutedDetails routedInstance={{ account: 'test-account', instanceId: 'instance-3', region: 'us-central1' }} />,
+    );
+    expect(rendered.container.querySelector('.test-instance-header')).not.toBeInTheDocument();
+    expect(within(rendered.container).queryByText('Instance Actions')).not.toBeInTheDocument();
 
-    oldRequest.resolve(instance({ id: 'instance-2', instanceId: 'instance-2', name: 'instance-2' }));
-    await settle();
-    wrapper.update();
-    expect(wrapper.find('.test-instance-header').exists()).toBe(false);
-    expect(wrapper.find(InstanceActions).exists()).toBe(false);
+    await act(async () =>
+      oldRequest.resolve(instance({ id: 'instance-2', instanceId: 'instance-2', name: 'instance-2' })),
+    );
+    expect(rendered.container.querySelector('.test-instance-header')).not.toBeInTheDocument();
+    expect(within(rendered.container).queryByText('Instance Actions')).not.toBeInTheDocument();
 
-    newRequest.resolve(instance({ id: 'instance-3', instanceId: 'instance-3', name: 'instance-3' }));
-    await settle();
-    wrapper.update();
-    expect(wrapper.find('.test-instance-header').text()).toContain('instance-3');
-    wrapper.unmount();
+    await act(async () =>
+      newRequest.resolve(instance({ id: 'instance-3', instanceId: 'instance-3', name: 'instance-3' })),
+    );
+    await waitFor(() =>
+      expect(rendered.container.querySelector('.test-instance-header')).toHaveTextContent('instance-3'),
+    );
+    rendered.unmount();
   });
 
   it('shows discovery actions only for their historical health states', () => {
@@ -233,13 +288,13 @@ describe('GceInstanceDetails', () => {
   });
 
   it('passes only eligible network load balancer names to registration writers', () => {
-    const confirmation = spyOn(ConfirmationModalService, 'confirm');
-    const register = spyOn(InstanceWriter, 'registerInstanceWithLoadBalancer').and.returnValue(
-      Promise.resolve({} as any),
-    );
-    const deregister = spyOn(InstanceWriter, 'deregisterInstanceFromLoadBalancer').and.returnValue(
-      Promise.resolve({} as any),
-    );
+    const confirmation = vi.spyOn(ConfirmationModalService, 'confirm').mockReturnValue(undefined);
+    const register = vi
+      .spyOn(InstanceWriter, 'registerInstanceWithLoadBalancer')
+      .mockReturnValue(Promise.resolve({} as any));
+    const deregister = vi
+      .spyOn(InstanceWriter, 'deregisterInstanceFromLoadBalancer')
+      .mockReturnValue(Promise.resolve({} as any));
     const app = application([
       networkLoadBalancer(),
       networkLoadBalancer({ loadBalancerType: 'HTTP', name: 'http-lb' }),
@@ -250,11 +305,17 @@ describe('GceInstanceDetails', () => {
       loadBalancers: ['network-lb', 'http-lb', 'other-network-lb'],
     });
 
-    const actions = actionsFor(loadedInstance, app);
-    actions.find(({ label }) => label === 'Register with Load Balancer')!.triggerAction();
-    actions.find(({ label }) => label === 'Deregister from Load Balancer')!.triggerAction();
+    const rendered = renderActionsFor(loadedInstance, app);
+    fireEvent.click(within(rendered.container).getByText('Register with Load Balancer'));
+    fireEvent.click(within(rendered.container).getByText('Deregister from Load Balancer'));
     const reason = { reason: 'operator requested' };
-    confirmation.calls.all().forEach(({ args }) => args[0].submitMethod(reason));
+    confirmation.mock.calls
+      .map((args, __i) => ({
+        args,
+        returnValue: confirmation.mock.results[__i].value,
+        invocationOrder: confirmation.mock.invocationCallOrder[__i],
+      }))
+      .forEach(({ args }) => args[0].submitMethod(reason));
 
     const eligibleInstance = { ...loadedInstance, loadBalancers: ['network-lb'] };
     expect(register).toHaveBeenCalledWith(eligibleInstance, app, reason);
@@ -271,15 +332,15 @@ describe('GceInstanceDetails', () => {
   });
 
   it('uses confirmation, account verification, task monitors, and exact GCE writer contracts', () => {
-    const confirmation = spyOn(ConfirmationModalService, 'confirm');
-    spyOn(InstanceWriter, 'terminateInstance').and.returnValue(Promise.resolve({} as any));
-    spyOn(InstanceWriter, 'terminateInstanceAndShrinkServerGroup').and.returnValue(Promise.resolve({} as any));
-    spyOn(InstanceWriter, 'rebootInstance').and.returnValue(Promise.resolve({} as any));
-    spyOn(InstanceWriter, 'registerInstanceWithLoadBalancer').and.returnValue(Promise.resolve({} as any));
-    spyOn(InstanceWriter, 'deregisterInstanceFromLoadBalancer').and.returnValue(Promise.resolve({} as any));
-    spyOn(InstanceWriter, 'enableInstanceInDiscovery').and.returnValue(Promise.resolve({} as any));
-    spyOn(InstanceWriter, 'disableInstanceInDiscovery').and.returnValue(Promise.resolve({} as any));
-    const $state = { go: jasmine.createSpy('go'), includes: jasmine.createSpy('includes').and.returnValue(true) };
+    const confirmation = vi.spyOn(ConfirmationModalService, 'confirm').mockReturnValue(undefined);
+    vi.spyOn(InstanceWriter, 'terminateInstance').mockReturnValue(Promise.resolve({} as any));
+    vi.spyOn(InstanceWriter, 'terminateInstanceAndShrinkServerGroup').mockReturnValue(Promise.resolve({} as any));
+    vi.spyOn(InstanceWriter, 'rebootInstance').mockReturnValue(Promise.resolve({} as any));
+    vi.spyOn(InstanceWriter, 'registerInstanceWithLoadBalancer').mockReturnValue(Promise.resolve({} as any));
+    vi.spyOn(InstanceWriter, 'deregisterInstanceFromLoadBalancer').mockReturnValue(Promise.resolve({} as any));
+    vi.spyOn(InstanceWriter, 'enableInstanceInDiscovery').mockReturnValue(Promise.resolve({} as any));
+    vi.spyOn(InstanceWriter, 'disableInstanceInDiscovery').mockReturnValue(Promise.resolve({} as any));
+    const $state = { go: vi.fn(), includes: vi.fn().mockReturnValue(true) };
     const app = application([networkLoadBalancer()]);
     const loadedInstance = instance({
       health: [
@@ -289,15 +350,19 @@ describe('GceInstanceDetails', () => {
       ],
     });
 
-    const actions = actionsFor(loadedInstance, app, $state);
-    expect(actions.length).toBe(7);
-    if (!actions.length) {
-      return;
-    }
-    actions.forEach(({ triggerAction }) => triggerAction());
+    const rendered = renderActionsFor(loadedInstance, app, $state);
+    const actions = Array.from(rendered.container.querySelectorAll('li a'));
+    expect(actions).toHaveLength(7);
+    actions.forEach((action) => fireEvent.click(action));
 
     expect(confirmation).toHaveBeenCalledTimes(7);
-    const confirmations = confirmation.calls.all().map(({ args }) => args[0]);
+    const confirmations = confirmation.mock.calls
+      .map((args, __i) => ({
+        args,
+        returnValue: confirmation.mock.results[__i].value,
+        invocationOrder: confirmation.mock.invocationCallOrder[__i],
+      }))
+      .map(({ args }) => args[0]);
     confirmations.forEach((params) => {
       expect(params.account).toBe('test-account');
       expect(params.askForReason).toBe(true);
@@ -341,8 +406,6 @@ describe('GceInstanceDetails', () => {
   });
 });
 
-const settle = () => new Promise((resolve) => setTimeout(resolve));
-
 function deferred<T>() {
   let resolve!: (value: T | PromiseLike<T>) => void;
   let reject!: (reason?: any) => void;
@@ -351,4 +414,16 @@ function deferred<T>() {
     reject = rejectPromise;
   });
   return { promise, reject, resolve };
+}
+
+function expandSection(name: string): void {
+  const heading = screen.getByRole('heading', { name });
+  const section = heading.closest('.collapsible-section');
+  if (!section?.querySelector('.content-body')) {
+    fireEvent.click(heading.parentElement as HTMLElement);
+  }
+}
+
+function definitionFor(term: string): string | undefined {
+  return screen.getByText(term, { selector: 'dt' }).nextElementSibling?.textContent ?? undefined;
 }

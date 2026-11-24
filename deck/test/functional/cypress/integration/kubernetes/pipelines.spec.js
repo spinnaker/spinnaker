@@ -3,9 +3,12 @@ import { registerDefaultFixtures } from '../../support';
 describe('kubernetes: Pipelines', () => {
   beforeEach(() => {
     registerDefaultFixtures();
-    cy.intercept({ pathname: '/applications/kubernetesapp/pipelines' }, {
-      fixture: 'kubernetes/pipelines/pipelines.json',
-    });
+    cy.intercept(
+      { pathname: '/applications/kubernetesapp/pipelines' },
+      {
+        fixture: 'kubernetes/pipelines/pipelines.json',
+      },
+    );
 
     cy.fixture('kubernetes/pipelines/01JSDR9Q2VBK2PTRZWKG0F5452.succeeded.json').then((execution) => {
       cy.intercept('/applications/kubernetesapp/pipelines?*expand=true*', [execution]);
@@ -88,11 +91,19 @@ describe('kubernetes: Pipelines', () => {
 
     cy.get('ul.nav.nav-pills li').first().contains('Delete Manifest').should('contain.text', 'Delete Manifest');
 
-    cy.get('.step-section-details dl').within(() => {
-      cy.contains('dt', 'Account').next('dd').should('contain.text', 'k8s-local');
-      cy.contains('dt', 'Manifest').next('dd').should('contain.text', 'service dev-p01-nginx');
-      cy.contains('dt', 'Namespace').next('dd').should('contain.text', 'spinnaker-dev');
-    });
+    cy.get('.step-section-details dl')
+      .first()
+      .within(() => {
+        cy.contains('dt', 'Account').next('dd').should('contain.text', 'k8s-local');
+        cy.contains('dt', 'Manifest').next('dd').should('contain.text', 'service dev-p01-nginx');
+        cy.contains('dt', 'Namespace').next('dd').should('contain.text', 'spinnaker-dev');
+      });
+
+    cy.get('.step-section-details dl')
+      .eq(1)
+      .within(() => {
+        cy.contains('dt', 'Deleted').next('dd').should('contain.text', 'service dev-p01-nginx');
+      });
   });
 
   it('displays step-section-details tab content for Bake (Manifest)', () => {
@@ -109,7 +120,7 @@ describe('kubernetes: Pipelines', () => {
       .should('exist')
       .within(() => {
         cy.contains('Baked Manifest').should('exist');
-        cy.get('textarea').contains('# Source: nginx/templates/configmap.yaml').should('exist');
+        cy.get('.ace_content').contains('# Source: nginx/templates/configmap.yaml').should('exist');
         cy.get('button.btn').contains('Close').click();
       });
   });
@@ -146,7 +157,7 @@ describe('kubernetes: Pipelines', () => {
       .should('exist')
       .within(() => {
         cy.contains('dev-p01-nginx-v000').should('exist');
-        cy.get('textarea').contains('kind: ConfigMap').should('exist');
+        cy.get('.ace_content').contains('kind: ConfigMap').should('exist');
         cy.get('button.btn').contains('Close').click();
       });
   });

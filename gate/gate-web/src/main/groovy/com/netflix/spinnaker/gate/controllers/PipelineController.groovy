@@ -37,7 +37,6 @@ import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 
 import org.springframework.beans.factory.annotation.Autowired
-import org.springframework.http.HttpEntity
 import org.springframework.http.HttpStatus
 import org.springframework.http.ResponseEntity
 import org.springframework.security.access.prepost.PreAuthorize
@@ -294,7 +293,12 @@ class PipelineController {
     })
   }
 
-  @Operation(summary = "Trigger a pipeline execution")
+  @Deprecated
+  @Operation(
+    summary = "Trigger a pipeline execution",
+    description = "Deprecated: use POST /pipelines/v2/{application}/{pipelineNameOrId} instead.",
+    deprecated = true)
+  @PreAuthorize("hasPermission(#application, 'APPLICATION', 'EXECUTE')")
   @PostMapping("/{application}/{pipelineNameOrId:.+}")
   @ResponseBody
   @ResponseStatus(HttpStatus.ACCEPTED)
@@ -302,7 +306,8 @@ class PipelineController {
                            @PathVariable("pipelineNameOrId") String pipelineNameOrId,
                            @RequestBody(required = false) Map trigger) {
     trigger = trigger ?: [:]
-    trigger.user = trigger.user ?: AuthenticatedRequest.getSpinnakerUser().orElse('anonymous')
+    // never trust a caller-supplied user: orca uses trigger.user for some authorization decisions
+    trigger.user = AuthenticatedRequest.getSpinnakerUser().orElse('anonymous')
     trigger.notifications = trigger.notifications ?: [];
 
     AuthenticatedRequest.setApplication(application)
@@ -321,11 +326,15 @@ class PipelineController {
   @Operation(summary = "Trigger a pipeline execution")
   @PreAuthorize("hasPermission(#application, 'APPLICATION', 'EXECUTE')")
   @PostMapping("/v2/{application}/{pipelineNameOrId:.+}")
-  HttpEntity invokePipelineConfigViaEcho(@PathVariable("application") String application,
-                                         @PathVariable("pipelineNameOrId") String pipelineNameOrId,
-                                         @RequestBody(required = false) Map trigger) {
+  ResponseEntity<Map<String, Object>> invokePipelineConfigViaEcho(
+    @PathVariable("application") String application,
+    @PathVariable("pipelineNameOrId") String pipelineNameOrId,
+    @RequestBody(required = false) Map trigger) {
     trigger = trigger ?: [:]
     AuthenticatedRequest.setApplication(application)
+    if (pipelineControllerConfigProperties.isCheckRequiredParametersOnExecution()) {
+      pipelineService.validateRequiredParameters(application, pipelineNameOrId, trigger)
+    }
     try {
       def body = pipelineService.triggerViaEcho(application, pipelineNameOrId, trigger)
       return new ResponseEntity(body, HttpStatus.ACCEPTED)

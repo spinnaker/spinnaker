@@ -18,7 +18,9 @@ package com.netflix.spinnaker.clouddriver.google.deploy.converters
 
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.netflix.spinnaker.clouddriver.google.deploy.description.DeleteGoogleLoadBalancerDescription
+import com.netflix.spinnaker.clouddriver.google.deploy.ops.loadbalancer.DeleteGoogleExternalHttpLoadBalancerAtomicOperation
 import com.netflix.spinnaker.clouddriver.google.deploy.ops.loadbalancer.DeleteGoogleLoadBalancerAtomicOperation
+import com.netflix.spinnaker.clouddriver.google.deploy.ops.loadbalancer.DeleteGoogleRegionalExternalNetworkLoadBalancerAtomicOperation
 import com.netflix.spinnaker.clouddriver.google.security.GoogleNamedAccountCredentials
 import com.netflix.spinnaker.clouddriver.security.AccountCredentialsProvider
 import com.netflix.spinnaker.credentials.CredentialsRepository
@@ -65,5 +67,41 @@ class DeleteGoogleLoadBalancerAtomicOperationConverterUnitSpec extends Specifica
 
     then:
       operation instanceof DeleteGoogleLoadBalancerAtomicOperation
+  }
+
+  void "external managed type returns DeleteGoogleExternalHttpLoadBalancerAtomicOperation"() {
+    setup:
+      def input = [deleteOperationTimeoutSeconds: TIMEOUT_SECONDS,
+                   loadBalancerName: LOAD_BALANCER_NAME,
+                   loadBalancerType: "EXTERNAL_MANAGED",
+                   region: REGION,
+                   accountName: ACCOUNT_NAME]
+
+    when:
+      def description = converter.convertDescription(input)
+      def operation = converter.convertOperation(input)
+
+    then:
+      description instanceof DeleteGoogleLoadBalancerDescription
+      description.loadBalancerName == LOAD_BALANCER_NAME
+      operation instanceof DeleteGoogleExternalHttpLoadBalancerAtomicOperation
+  }
+
+  void "regional external network type returns DeleteGoogleRegionalExternalNetworkLoadBalancerAtomicOperation"() {
+    setup:
+      def input = [deleteOperationTimeoutSeconds: TIMEOUT_SECONDS,
+                   loadBalancerName: LOAD_BALANCER_NAME,
+                   loadBalancerType: "REGIONAL_EXTERNAL_NETWORK",
+                   region: REGION,
+                   accountName: ACCOUNT_NAME]
+
+    when:
+      def description = converter.convertDescription(input)
+      def operation = converter.convertOperation(input)
+
+    then:
+      description instanceof DeleteGoogleLoadBalancerDescription
+      description.loadBalancerName == LOAD_BALANCER_NAME
+      operation instanceof DeleteGoogleRegionalExternalNetworkLoadBalancerAtomicOperation
   }
 }

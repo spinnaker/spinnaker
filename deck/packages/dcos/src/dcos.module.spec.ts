@@ -1,4 +1,4 @@
-import { mount, shallow } from 'enzyme';
+import { fireEvent, render, screen, waitFor } from '@testing-library/react';
 import React from 'react';
 
 import {
@@ -49,14 +49,7 @@ async function importDcosEntrypoint() {
   return entrypoint;
 }
 
-function setStateSynchronously(component: React.Component<any, any>) {
-  spyOn(component, 'setState').and.callFake((updater: any) => {
-    const nextState = typeof updater === 'function' ? updater(component.state, component.props) : updater;
-    component.state = { ...component.state, ...nextState };
-  });
-}
-
-function buildLoadedDataSource(data: any[], refresh = jasmine.createSpy('refresh')) {
+function buildLoadedDataSource(data: any[], refresh = vi.fn()) {
   return {
     refresh,
     status$: {
@@ -131,9 +124,9 @@ describe('DC/OS provider registration', () => {
     } as any);
 
     expect(config.validators).toEqual(
-      jasmine.arrayContaining([
-        jasmine.objectContaining({ type: 'targetImpedance' }),
-        jasmine.objectContaining({ type: 'requiredField', fieldName: 'target' }),
+      expect.arrayContaining([
+        expect.objectContaining({ type: 'targetImpedance' }),
+        expect.objectContaining({ type: 'requiredField', fieldName: 'target' }),
       ]),
     );
   });
@@ -196,10 +189,10 @@ describe('DC/OS provider registration', () => {
     });
   });
 
-  it('does not overwrite DC/OS label values when renaming a key to an existing key', () => {
-    spyOn(AccountService, 'getCredentialsKeyedByAccount').and.returnValue(new Promise(() => null) as any);
-    const updateStage = jasmine.createSpy('updateStage');
-    const wrapper = mount(
+  it('does not overwrite DC/OS label values when renaming a key to an existing key', async () => {
+    vi.spyOn(AccountService, 'getCredentialsKeyedByAccount').mockReturnValue(new Promise(() => null) as any);
+    const updateStage = vi.fn();
+    render(
       React.createElement(DcosRunJobStageConfig, {
         application: {},
         stage: {
@@ -211,14 +204,9 @@ describe('DC/OS provider registration', () => {
       } as any),
     );
 
-    wrapper
-      .find('input')
-      .filterWhere((input) => input.prop('value') === 'keyA')
-      .first()
-      .simulate('change', { target: { value: 'keyB' } });
+    fireEvent.change(await screen.findByDisplayValue('keyA'), { target: { value: 'keyB' } });
 
     expect(updateStage).not.toHaveBeenCalled();
-    wrapper.unmount();
   });
 
   it('adds DC/OS key/value entries without overwriting an existing key placeholder', () => {
@@ -242,14 +230,14 @@ describe('DC/OS provider registration', () => {
 
   it('initializes async DC/OS stage defaults against the latest stage props', async () => {
     let resolveCredentials: (credentials: any) => void;
-    spyOn(AccountService, 'getCredentialsKeyedByAccount').and.returnValue(
+    vi.spyOn(AccountService, 'getCredentialsKeyedByAccount').mockReturnValue(
       new Promise((resolve) => {
         resolveCredentials = resolve;
       }) as any,
     );
-    const updateStage = jasmine.createSpy('updateStage');
+    const updateStage = vi.fn();
     const application = { name: 'dcosapp', defaultCredentials: { dcos: 'test-account' } } as any;
-    const wrapper = mount(
+    const rendered = render(
       React.createElement(DcosRunJobStageConfig, {
         application,
         stage: { propertyFile: 'initial' },
@@ -257,28 +245,32 @@ describe('DC/OS provider registration', () => {
       } as any),
     );
 
-    wrapper.setProps({ stage: { propertyFile: 'edited', customField: 'preserved' } });
+    rendered.rerender(
+      React.createElement(DcosRunJobStageConfig, {
+        application,
+        stage: { propertyFile: 'edited', customField: 'preserved' },
+        updateStage,
+      } as any),
+    );
     resolveCredentials({
       'test-account': {
         dcosClusters: [{ name: 'test-cluster' }],
         dockerRegistries: [{ accountName: 'docker-registry' }],
       },
     });
-    await Promise.resolve();
-    await Promise.resolve();
+    await waitFor(() => expect(updateStage).toHaveBeenCalled());
 
-    const initializedStage = updateStage.calls.mostRecent().args[0];
+    const initializedStage = updateStage.mock.lastCall[0];
     expect(initializedStage.propertyFile).toBe('edited');
     expect(initializedStage.customField).toBe('preserved');
     expect(initializedStage.cloudProvider).toBe('dcos');
     expect(initializedStage.account).toBe('test-account');
-    wrapper.unmount();
   });
 
   it('initializes DC/OS stage defaults without mutating stage props', async () => {
     const stage = { type: 'resizeServerGroup', cluster: 'test-cluster' } as any;
-    const updateStage = jasmine.createSpy('updateStage');
-    const wrapper = mount(
+    const updateStage = vi.fn();
+    render(
       React.createElement(DcosStageConfig, {
         application: { defaultCredentials: { dcos: 'test-account' }, defaultRegions: { dcos: 'test-region' } },
         stage,
@@ -286,12 +278,12 @@ describe('DC/OS provider registration', () => {
       } as any),
     );
 
-    await Promise.resolve();
+    await waitFor(() => expect(updateStage).toHaveBeenCalled());
 
-    const initializedStage = updateStage.calls.mostRecent().args[0];
+    const initializedStage = updateStage.mock.lastCall[0];
     expect(initializedStage).not.toBe(stage);
     expect(initializedStage).toEqual(
-      jasmine.objectContaining({
+      expect.objectContaining({
         action: 'scale_up',
         capacity: {},
         cloudProvider: 'dcos',
@@ -301,62 +293,62 @@ describe('DC/OS provider registration', () => {
     );
     expect(initializedStage.regions).toEqual(['test-region']);
     expect(stage).toEqual({ type: 'resizeServerGroup', cluster: 'test-cluster' });
-    wrapper.unmount();
   });
 
   it('confirms before terminating a DC/OS instance', async () => {
-    const confirmSpy = spyOn(ConfirmationModalService, 'confirm');
-    spyOn(InstanceWriter, 'terminateInstance').and.returnValue(Promise.resolve() as any);
-    const refresh = jasmine.createSpy('refresh');
+    vi.spyOn(AccountService, 'challengeDestructiveActions').mockReturnValue(Promise.resolve(false));
+    const confirmSpy = vi.spyOn(ConfirmationModalService, 'confirm').mockReturnValue(undefined);
+    vi.spyOn(InstanceWriter, 'terminateInstance').mockReturnValue(Promise.resolve() as any);
+    const refresh = vi.fn();
     const dataSource = buildLoadedDataSource(
       [{ id: 'instance-1', account: 'test-account', region: 'test-cluster' }],
       refresh,
     );
-    const app = { getDataSource: jasmine.createSpy('getDataSource').and.returnValue(dataSource) } as any;
-    const wrapper = shallow(
+    const app = { getDataSource: vi.fn().mockReturnValue(dataSource) } as any;
+    render(
       React.createElement(DcosInstanceDetails, {
         app,
         instance: { instanceId: 'instance-1', account: 'test-account', region: 'test-cluster' },
       }),
     );
 
-    wrapper.find('button').simulate('click');
+    fireEvent.click(screen.getByRole('button', { name: 'Terminate' }));
 
     expect(confirmSpy).toHaveBeenCalledWith(
-      jasmine.objectContaining({
+      expect.objectContaining({
         account: 'test-account',
         buttonText: 'Terminate',
         header: 'Really terminate instance-1?',
-        submitMethod: jasmine.any(Function),
+        submitMethod: expect.any(Function),
       }),
     );
 
-    await confirmSpy.calls.mostRecent().args[0].submitMethod();
-    expect(InstanceWriter.terminateInstance).toHaveBeenCalledWith(jasmine.objectContaining({ id: 'instance-1' }), app);
+    await confirmSpy.mock.lastCall[0].submitMethod();
+    expect(InstanceWriter.terminateInstance).toHaveBeenCalledWith(expect.objectContaining({ id: 'instance-1' }), app);
     expect(refresh).toHaveBeenCalled();
   });
 
   it('confirms before deleting a DC/OS load balancer', async () => {
-    const confirmSpy = spyOn(ConfirmationModalService, 'confirm');
-    spyOn(LoadBalancerWriter, 'deleteLoadBalancer').and.returnValue(Promise.resolve() as any);
-    const app = { loadBalancers: { refresh: jasmine.createSpy('refresh') } } as any;
+    const confirmSpy = vi.spyOn(ConfirmationModalService, 'confirm').mockReturnValue(undefined);
+    vi.spyOn(LoadBalancerWriter, 'deleteLoadBalancer').mockReturnValue(Promise.resolve() as any);
+    const app = { loadBalancers: { refresh: vi.fn() } } as any;
     const loadBalancer = { name: 'lb-1', account: 'test-account', region: 'test-cluster' } as any;
-    const wrapper = shallow(React.createElement(DcosLoadBalancerActions, { app, loadBalancer } as any));
+    render(React.createElement(DcosLoadBalancerActions, { app, loadBalancer } as any));
 
-    wrapper.find('a').at(1).simulate('click');
+    fireEvent.click(screen.getByText('Delete'));
 
     expect(confirmSpy).toHaveBeenCalledWith(
-      jasmine.objectContaining({
+      expect.objectContaining({
         account: 'test-account',
         buttonText: 'Delete lb-1',
         header: 'Really delete lb-1?',
-        submitMethod: jasmine.any(Function),
+        submitMethod: expect.any(Function),
       }),
     );
 
-    await confirmSpy.calls.mostRecent().args[0].submitMethod();
+    await confirmSpy.mock.lastCall[0].submitMethod();
     expect(LoadBalancerWriter.deleteLoadBalancer).toHaveBeenCalledWith(
-      jasmine.objectContaining({
+      expect.objectContaining({
         cloudProvider: 'dcos',
         credentials: 'test-account',
         loadBalancerName: 'lb-1',
@@ -368,22 +360,27 @@ describe('DC/OS provider registration', () => {
   });
 
   it('ignores invalid DC/OS load balancer ports from free text input', () => {
-    const modal = new DcosCreateLoadBalancerModal({} as any);
-    setStateSynchronously(modal);
+    const closeModal = vi.fn();
+    render(React.createElement(DcosCreateLoadBalancerModal, { closeModal } as any));
 
-    (modal as any).updatePorts('80, abc, 443');
+    const ports = screen.getByText('Ports', { selector: 'label' }).parentElement.querySelector('input');
+    fireEvent.change(ports, { target: { value: '80, abc, 443' } });
+    fireEvent.click(screen.getByRole('button', { name: 'Create' }));
 
-    expect(modal.state.command.ports).toEqual([80, 443]);
+    expect(closeModal).toHaveBeenCalledWith(expect.objectContaining({ ports: [80, 443] }));
   });
 
   it('adds DC/OS load balancer map entries without overwriting sparse placeholder keys', () => {
-    const modal = new DcosCreateLoadBalancerModal({ loadBalancer: { labels: { key2: 'prod' } } } as any);
-    setStateSynchronously(modal);
-    const wrapper = shallow((modal as any).renderMap('Labels', 'labels'));
+    render(
+      React.createElement(DcosCreateLoadBalancerModal, {
+        loadBalancer: { labels: { key2: 'prod' } },
+      } as any),
+    );
 
-    wrapper.find('button').simulate('click');
+    fireEvent.click(screen.getByRole('button', { name: 'Add Labels' }));
 
-    expect(modal.state.command.labels).toEqual({ key2: 'prod', key: '' });
+    expect(screen.getByDisplayValue('key2')).toBeInTheDocument();
+    expect(screen.getByDisplayValue('key')).toBeInTheDocument();
   });
 
   it('keeps the DC/OS load balancer modal open until upsert and refresh complete', async () => {
@@ -391,15 +388,17 @@ describe('DC/OS provider registration', () => {
     const upsert = new Promise<void>((resolve) => {
       resolveUpsert = resolve;
     });
-    const refresh = jasmine.createSpy('refresh').and.returnValue(Promise.resolve());
-    spyOn(LoadBalancerWriter, 'upsertLoadBalancer').and.returnValue(upsert as any);
-    const closeModal = jasmine.createSpy('closeModal');
-    const modal = new DcosCreateLoadBalancerModal({
-      app: { loadBalancers: { refresh } },
-      closeModal,
-    } as any);
+    const refresh = vi.fn().mockReturnValue(Promise.resolve());
+    vi.spyOn(LoadBalancerWriter, 'upsertLoadBalancer').mockReturnValue(upsert as any);
+    const closeModal = vi.fn();
+    render(
+      React.createElement(DcosCreateLoadBalancerModal, {
+        app: { loadBalancers: { refresh } },
+        closeModal,
+      } as any),
+    );
 
-    (modal as any).submit();
+    fireEvent.click(screen.getByRole('button', { name: 'Create' }));
 
     expect(closeModal).not.toHaveBeenCalled();
 
@@ -408,21 +407,23 @@ describe('DC/OS provider registration', () => {
     await Promise.resolve();
 
     expect(refresh).toHaveBeenCalled();
-    await refresh.calls.mostRecent().returnValue;
+    await refresh.mock.results.at(-1).value;
     await Promise.resolve();
-    expect(closeModal).toHaveBeenCalledWith(jasmine.objectContaining({ cloudProvider: 'dcos', provider: 'dcos' }));
+    expect(closeModal).toHaveBeenCalledWith(expect.objectContaining({ cloudProvider: 'dcos', provider: 'dcos' }));
   });
 
   it('keeps the DC/OS load balancer modal open when upsert fails', async () => {
     const upsert = Promise.reject(new Error('upsert failed'));
-    spyOn(LoadBalancerWriter, 'upsertLoadBalancer').and.returnValue(upsert as any);
-    const closeModal = jasmine.createSpy('closeModal');
-    const modal = new DcosCreateLoadBalancerModal({
-      app: { loadBalancers: { refresh: jasmine.createSpy('refresh') } },
-      closeModal,
-    } as any);
+    vi.spyOn(LoadBalancerWriter, 'upsertLoadBalancer').mockReturnValue(upsert as any);
+    const closeModal = vi.fn();
+    render(
+      React.createElement(DcosCreateLoadBalancerModal, {
+        app: { loadBalancers: { refresh: vi.fn() } },
+        closeModal,
+      } as any),
+    );
 
-    (modal as any).submit();
+    fireEvent.click(screen.getByRole('button', { name: 'Create' }));
     await upsert.catch(() => undefined);
     await Promise.resolve();
 
@@ -430,12 +431,18 @@ describe('DC/OS provider registration', () => {
   });
 
   it('adds DC/OS clone server group map entries without overwriting sparse placeholder keys', () => {
-    const modal = new DcosCloneServerGroupModal({ command: { labels: { key2: 'prod' } } } as any);
-    setStateSynchronously(modal);
-    const wrapper = shallow((modal as any).renderMap('Labels', 'labels'));
+    render(
+      React.createElement(DcosCloneServerGroupModal, {
+        application: {},
+        closeModal: vi.fn(),
+        command: { labels: { key2: 'prod' } },
+        dismissModal: vi.fn(),
+      } as any),
+    );
 
-    wrapper.find('button').simulate('click');
+    fireEvent.click(screen.getByRole('button', { name: 'Add Labels' }));
 
-    expect(modal.state.command.labels).toEqual({ key2: 'prod', key: '' });
+    expect(screen.getByDisplayValue('key2')).toBeInTheDocument();
+    expect(screen.getByDisplayValue('key')).toBeInTheDocument();
   });
 });

@@ -53,7 +53,7 @@ class CaptureParentInterestingHealthProviderNamesTaskSpec extends Specification 
     where:
     parentContext                               || expectedStageOutputs
     [:]                                         || [:]
-    [interestingHealthProviderNames: ["Titus"]] || [interestingHealthProviderNames: ["Titus"]]
+    [interestingHealthProviderNames: ["Amazon"]] || [interestingHealthProviderNames: ["Amazon"]]
     [interestingHealthProviderNames: []]        || [interestingHealthProviderNames: []]
   }
 

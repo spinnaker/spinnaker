@@ -61,6 +61,8 @@ public class PrometheusMetricsService implements MetricsService {
 
   @Autowired private final PrometheusMetricDescriptorsCache metricDescriptorsCache;
 
+  private static final String PROMQL_PREFIX = "PromQL:";
+
   @Override
   public String getType() {
     return "prometheus";
@@ -71,6 +73,7 @@ public class PrometheusMetricsService implements MetricsService {
     return accountNames.contains(accountName);
   }
 
+  @SuppressWarnings("deprecation")
   private StringBuilder addScopeFilter(
       StringBuilder queryBuilder,
       PrometheusCanaryScope prometheusCanaryScope,
@@ -163,6 +166,7 @@ public class PrometheusMetricsService implements MetricsService {
     return queryBuilder.insert(0, "avg(").append(")");
   }
 
+  @SuppressWarnings("deprecation")
   private static StringBuilder addGroupByQuery(
       StringBuilder queryBuilder, PrometheusCanaryMetricSetQueryConfig queryConfig) {
     List<String> groupByFields = queryConfig.getGroupByFields();
@@ -181,6 +185,7 @@ public class PrometheusMetricsService implements MetricsService {
   }
 
   @Override
+  @SuppressWarnings("deprecation")
   public String buildQuery(
       String metricsAccountName,
       CanaryConfig canaryConfig,
@@ -201,28 +206,40 @@ public class PrometheusMetricsService implements MetricsService {
             prometheusCanaryScope,
             new String[] {"project", "resourceType", "scope", "location"});
 
-    if (!StringUtils.isEmpty(customFilter) && customFilter.startsWith("PromQL:")) {
-      String promQlExpr = customFilter.substring(7);
+    // A template is a complete PromQL expression, used verbatim. A leading "PromQL:" marker is
+    // still accepted (and stripped) for configs written before the marker became unnecessary.
+    //
+    // The one exception is a legacy config that has a guided metricName AND a template without the
+    // marker: that template is a comma-separated list of label matchers which gets combined with
+    // the guided fields below, exactly as it did before.
+    if (!StringUtils.isEmpty(customFilter)) {
+      boolean hasMarker = customFilter.startsWith(PROMQL_PREFIX);
+      boolean legacyLabelMatchers = !hasMarker && !StringUtils.isEmpty(queryConfig.getMetricName());
 
-      log.debug("Detected complete PromQL expression: {}", promQlExpr);
+      if (!legacyLabelMatchers) {
+        String promQlExpr =
+            hasMarker ? customFilter.substring(PROMQL_PREFIX.length()) : customFilter;
 
-      return promQlExpr;
-    } else {
-      if (StringUtils.isEmpty(queryConfig.getMetricName())) {
-        throw new IllegalArgumentException("Metric Name is required when query type is Default.");
+        log.debug("Detected complete PromQL expression: {}", promQlExpr);
+
+        return promQlExpr;
       }
-      StringBuilder queryBuilder = new StringBuilder(queryConfig.getMetricName());
-
-      queryBuilder =
-          addScopeFilter(
-              queryBuilder, prometheusCanaryScope, resourceType, queryConfig, customFilter);
-      queryBuilder = addAvgQuery(queryBuilder);
-      queryBuilder = addGroupByQuery(queryBuilder, queryConfig);
-
-      log.debug("query={}", queryBuilder);
-
-      return queryBuilder.toString();
     }
+
+    if (StringUtils.isEmpty(queryConfig.getMetricName())) {
+      throw new IllegalArgumentException("Metric Name is required when query type is Default.");
+    }
+    StringBuilder queryBuilder = new StringBuilder(queryConfig.getMetricName());
+
+    queryBuilder =
+        addScopeFilter(
+            queryBuilder, prometheusCanaryScope, resourceType, queryConfig, customFilter);
+    queryBuilder = addAvgQuery(queryBuilder);
+    queryBuilder = addGroupByQuery(queryBuilder, queryConfig);
+
+    log.debug("query={}", queryBuilder);
+
+    return queryBuilder.toString();
   }
 
   @Override

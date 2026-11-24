@@ -17,7 +17,6 @@
 package com.netflix.spinnaker.clouddriver.cache;
 
 import com.netflix.spectator.api.Registry;
-import com.netflix.spinnaker.cats.agent.AgentLock;
 import com.netflix.spinnaker.cats.agent.AgentScheduler;
 import com.netflix.spinnaker.cats.agent.DefaultAgentScheduler;
 import com.netflix.spinnaker.cats.agent.ExecutionInstrumentation;
@@ -102,11 +101,8 @@ public class CacheConfig {
   }
 
   @Bean
-  OnDemandCacheUpdater catsOnDemandCacheUpdater(
-      List<Provider> providers,
-      CatsModule catsModule,
-      AgentScheduler<? extends AgentLock> agentScheduler) {
-    return new CatsOnDemandCacheUpdater(providers, catsModule, agentScheduler);
+  OnDemandCacheUpdater catsOnDemandCacheUpdater(List<Provider> providers, CatsModule catsModule) {
+    return new CatsOnDemandCacheUpdater(providers, catsModule);
   }
 
   @Bean

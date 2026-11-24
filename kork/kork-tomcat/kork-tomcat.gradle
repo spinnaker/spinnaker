@@ -12,6 +12,7 @@ dependencies {
   implementation(project(":kork-core"))
   implementation(project(":kork-crypto"))
 
+  testImplementation(testFixtures(project(":kork-crypto")))
   testImplementation "org.springframework.boot:spring-boot-starter-test"
   testImplementation "org.springframework.boot:spring-boot-starter-webmvc-test"
   testImplementation "org.springframework.boot:spring-boot-starter-restclient"

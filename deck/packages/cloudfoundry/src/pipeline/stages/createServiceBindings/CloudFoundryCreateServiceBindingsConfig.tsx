@@ -34,6 +34,7 @@ export function CloudFoundryCreateServiceBindingsConfig({
       onChange={updateStage}
       pipeline={pipeline}
       stage={stageWithDefaults}
+      liveStage={stage}
       validate={validateCloudFoundryCreateServiceBindingsStage}
       render={(props) => <CloudFoundryCreateServiceBindingsStageConfigForm {...props} />}
     />

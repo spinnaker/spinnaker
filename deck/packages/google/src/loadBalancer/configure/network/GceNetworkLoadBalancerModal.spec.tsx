@@ -1,7 +1,6 @@
 import React from 'react';
-import { shallow } from 'enzyme';
+import { render, screen } from '@testing-library/react';
 
-import { GceNetworkLoadBalancerEditor } from './GceNetworkLoadBalancerEditor';
 import {
   GceNetworkLoadBalancerModal,
   normalizeGceNetworkLoadBalancerCommand,
@@ -39,7 +38,7 @@ describe('GceNetworkLoadBalancerModal', () => {
     );
 
     expect(command).toEqual(
-      jasmine.objectContaining({
+      expect.objectContaining({
         credentials: 'account-a',
         loadBalancerType: 'NETWORK',
         mode: 'edit',
@@ -65,7 +64,7 @@ describe('GceNetworkLoadBalancerModal', () => {
       },
     ]);
     expect(command.healthChecks).toEqual([
-      jasmine.objectContaining({
+      expect.objectContaining({
         checkIntervalSec: 15,
         healthyThreshold: 3,
         name: 'app-main-hc',
@@ -102,7 +101,7 @@ describe('GceNetworkLoadBalancerModal', () => {
       portRange: '53',
       protocol: 'UDP',
     });
-    expect(command.healthChecks[0]).toEqual(jasmine.objectContaining({ port: 53, requestPath: '/health' }));
+    expect(command.healthChecks[0]).toEqual(expect.objectContaining({ port: 53, requestPath: '/health' }));
     expect(command.sessionAffinity).toBe('CLIENT_IP');
   });
 
@@ -113,7 +112,7 @@ describe('GceNetworkLoadBalancerModal', () => {
     });
 
     expect(command).toEqual(
-      jasmine.objectContaining({
+      expect.objectContaining({
         credentials: 'account-a',
         loadBalancerType: 'NETWORK',
         mode: 'create',
@@ -140,31 +139,28 @@ describe('GceNetworkLoadBalancerModal', () => {
 
   ([null, undefined] as const).forEach((loadBalancer) => {
     it(`initializes infrastructure create when the persisted load balancer is ${String(loadBalancer)}`, () => {
-      const wrapper = shallow(
+      const { container } = render(
         <GceNetworkLoadBalancerModal
           app={application}
-          closeModal={jasmine.createSpy('closeModal')}
+          closeModal={vi.fn()}
           data={emptyData()}
-          dismissModal={jasmine.createSpy('dismissModal')}
+          dismissModal={vi.fn()}
           loadBalancer={loadBalancer as any}
           mode="create"
         />,
       );
 
-      const command = wrapper.find(GceNetworkLoadBalancerEditor).prop('command');
-      expect(command.mode).toBe('create');
-      expect(command.listeners).toEqual([{ name: 'app', portRange: '8080', protocol: 'TCP' }]);
-      expect(command.healthChecks).toEqual([
-        {
-          checkIntervalSec: 10,
-          healthCheckType: 'HTTP',
-          healthyThreshold: 10,
-          port: 80,
-          requestPath: '/',
-          timeoutSec: 5,
-          unhealthyThreshold: 2,
-        },
-      ]);
+      expect(screen.getByRole('heading', { name: 'Create Network Load Balancer' })).toBeInTheDocument();
+      expect(fieldControl(container, 'name')).toHaveValue('app');
+      expect(fieldControl(container, 'protocol')).toHaveValue('TCP');
+      expect(fieldControl(container, 'portRange')).toHaveValue('8080');
+      expect(fieldControl(container, 'healthCheckEnabled')).toBeChecked();
+      expect(fieldControl(container, 'healthCheckPort')).toHaveValue(80);
+      expect(fieldControl(container, 'requestPath')).toHaveValue('/');
+      expect(fieldControl(container, 'timeoutSec')).toHaveValue(5);
+      expect(fieldControl(container, 'checkIntervalSec')).toHaveValue(10);
+      expect(fieldControl(container, 'healthyThreshold')).toHaveValue(10);
+      expect(fieldControl(container, 'unhealthyThreshold')).toHaveValue(2);
     });
   });
 
@@ -227,7 +223,7 @@ describe('GceNetworkLoadBalancerModal', () => {
   });
 
   it('returns only the normalized command in pipeline mode', () => {
-    const executeTask = jasmine.createSpy('executeTask');
+    const executeTask = vi.fn();
     const command = validCommand('pipeline');
 
     const result = submitGceNetworkLoadBalancerCommand(command, { application, executeTask });
@@ -239,13 +235,13 @@ describe('GceNetworkLoadBalancerModal', () => {
   (['create', 'edit'] as const).forEach((mode) => {
     it(`executes the direct normalized job in infrastructure ${mode} mode`, () => {
       const task = Promise.resolve({ id: 'task' });
-      const executeTask = jasmine.createSpy('executeTask').and.returnValue(task);
+      const executeTask = vi.fn().mockReturnValue(task);
       const command = validCommand(mode);
 
       const result = submitGceNetworkLoadBalancerCommand(command, { application, executeTask });
 
       expect(result).toBe(task);
-      expect(executeTask).toHaveBeenCalledOnceWith({
+      expect(executeTask).toHaveBeenCalledExactlyOnceWith({
         application,
         description: `${mode === 'edit' ? 'Update' : 'Create'} Load Balancer: app-main`,
         job: [serializeGceNetworkLoadBalancerCommand(command)],
@@ -256,18 +252,19 @@ describe('GceNetworkLoadBalancerModal', () => {
   it('exposes pipeline support and passes edit mode to the editor', () => {
     expect(GceNetworkLoadBalancerModal.supportsPipelineConfig).toBe(true);
     expect(typeof GceNetworkLoadBalancerModal.show).toBe('function');
-    const wrapper = shallow(
+    const { container } = render(
       <GceNetworkLoadBalancerModal
         app={application}
-        closeModal={jasmine.createSpy('closeModal')}
+        closeModal={vi.fn()}
         data={emptyData()}
-        dismissModal={jasmine.createSpy('dismissModal')}
+        dismissModal={vi.fn()}
         isNew={false}
         loadBalancer={{ account: 'account-a', name: 'app-main', region: 'europe-west1' } as any}
       />,
     );
 
-    expect(wrapper.find(GceNetworkLoadBalancerEditor).prop('command').mode).toBe('edit');
+    expect(screen.getByRole('heading', { name: 'Edit app-main' })).toBeInTheDocument();
+    expect(fieldControl(container, 'name')).toBeDisabled();
   });
 });
 
@@ -300,4 +297,12 @@ function emptyData(): any {
     regions: [],
     subnets: [],
   };
+}
+
+function fieldControl(container: HTMLElement, name: string): HTMLInputElement | HTMLSelectElement {
+  const control = container.querySelector(`[data-field="${name}"] input, [data-field="${name}"] select`);
+  if (!(control instanceof HTMLInputElement || control instanceof HTMLSelectElement)) {
+    throw new Error(`No control found for ${name}`);
+  }
+  return control;
 }

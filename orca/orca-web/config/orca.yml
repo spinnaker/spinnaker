@@ -1,6 +1,14 @@
 server:
   port: 8083
 
+spring:
+  # OrcaObjectMapper's mixins, (de)serializers and NON_NULL inclusion, and the artifact store
+  # entity serializer, are Jackson 2 only, so HTTP bodies have to go through it until they move
+  # to Jackson 3.
+  http:
+    converters:
+      preferred-json-mapper: jackson2
+
 default:
   bake:
     account: default
@@ -111,22 +119,32 @@ resilience4j.retry:
 # Properties that are set here will not be displayed in the GUI
 # job:
 #  preconfigured:
+#    kubernetes:
 #    - label: Some runJob
 #      description: This is a runJob stage, but it appears as a native stage in Spinnaker
 #      type: customRunJob # Should be unique
-#      cloudProvider: titus
-#      cluster:
-#        imageId: alpine:latest
-#      credentials: test
-#      region: us-east-1
+#      cloudProvider: kubernetes
+#      account: my-k8s-account
+#      application: myapp
 #      enabled: true # default true
 #      waitForCompletion: true
+#      manifest:
+#        apiVersion: batch/v1
+#        kind: Job
+#        metadata:
+#          name: custom-run-job
+#        spec:
+#          template:
+#            spec:
+#              restartPolicy: Never
+#              containers:
+#              - name: main
+#                image: alpine:latest
+#                env:
+#                - name: SOURCE
+#                  value: mysource
 #      parameters:
 #      - name: source
-#        mapping: cluster.env.source
+#        mapping: manifest.spec.template.spec.containers[0].env[0].value
 #        defaultValue: mysource
 #        order: 0
-#      - name: destination
-#        mapping: cluster.env.destination
-#        defaultValue: final
-#        order: 1

@@ -16,6 +16,7 @@
 
 package com.netflix.spinnaker.orca.kayenta.tasks
 import com.fasterxml.jackson.databind.ObjectMapper
+import com.netflix.spinnaker.orca.kayenta.config.KayentaCanaryReportProperties
 import com.netflix.spinnaker.orca.api.pipeline.models.ExecutionStatus
 import com.netflix.spinnaker.orca.api.test.pipeline
 import com.netflix.spinnaker.orca.api.test.stage
@@ -54,7 +55,7 @@ object MonitorKayentaCanaryTaskSpec : Spek({
   val kayentaService: KayentaService = Mockito.mock(KayentaService::class.java)
   `when`(kayentaService.getCanaryResults(Mockito.anyString(), Mockito.anyString())).thenAnswer{Calls.response(canaryResults)}
   `when`(kayentaService.getCredentials()).thenAnswer{Calls.response(listOf( KayentaCredential("foo", "bar")))}
-  val subject: MonitorKayentaCanaryTask = MonitorKayentaCanaryTask(kayentaService)
+  val subject: MonitorKayentaCanaryTask = MonitorKayentaCanaryTask(kayentaService, CanaryReportLinks(KayentaCanaryReportProperties()))
 
   describe("aggregating canary scores") {
     val objectMapper = ObjectMapper()

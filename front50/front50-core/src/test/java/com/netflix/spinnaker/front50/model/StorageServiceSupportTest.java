@@ -18,6 +18,7 @@ package com.netflix.spinnaker.front50.model;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.anyLong;
 import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.Mockito.doAnswer;
 import static org.mockito.Mockito.doReturn;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
@@ -33,6 +34,9 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicInteger;
 import org.junit.jupiter.api.Test;
 
 class StorageServiceSupportTest {
@@ -99,5 +103,67 @@ class StorageServiceSupportTest {
     assertThat(resultingItems).isEmpty();
 
     verify(storageService).loadObjectsNewerThan(eq(ObjectType.PIPELINE), anyLong());
+  }
+
+  @Test
+  void concurrentRefreshDoesNotOverwritePopulatedCacheWithStaleSnapshot() throws Exception {
+    Pipeline pipeline = new Pipeline();
+    pipeline.setId("p1");
+    pipeline.setName("pipeline1");
+
+    StorageService service = mock(StorageService.class);
+    doReturn(true).when(service).supportsVersioning();
+    // Anything modified after time 0 is the one pipeline; after that there is nothing newer.
+    doAnswer(
+            invocation ->
+                (Long) invocation.getArgument(1) < 1000L
+                    ? Map.of("not_deleted", List.of(pipeline), "deleted", List.<Pipeline>of())
+                    : Map.of("not_deleted", List.<Pipeline>of(), "deleted", List.<Pipeline>of()))
+        .when(service)
+        .loadObjectsNewerThan(eq(ObjectType.PIPELINE), anyLong());
+
+    // The first refresher stalls after it has taken its (empty) cache snapshot but before it
+    // reads lastSeenStorageTime.
+    CountDownLatch firstRefresherReady = new CountDownLatch(1);
+    CountDownLatch releaseFirstRefresher = new CountDownLatch(1);
+    AtomicInteger lastModifiedCalls = new AtomicInteger();
+    doAnswer(
+            invocation -> {
+              if (lastModifiedCalls.getAndIncrement() == 0) {
+                firstRefresherReady.countDown();
+                releaseFirstRefresher.await(10, TimeUnit.SECONDS);
+              }
+              return 1000L;
+            })
+        .when(service)
+        .getLastModified(ObjectType.PIPELINE);
+
+    StorageServiceConfigurationProperties.PerObjectType properties =
+        new StorageServiceConfigurationProperties.PerObjectType();
+    properties.setOptimizeCacheRefreshes(true);
+    TestDAO dao =
+        new TestDAO(
+            service,
+            scheduler,
+            new DefaultObjectKeyLoader(service),
+            properties,
+            new NoopRegistry(),
+            CircuitBreakerRegistry.ofDefaults());
+
+    Thread first = new Thread(dao::refresh);
+    first.start();
+    assertThat(firstRefresherReady.await(10, TimeUnit.SECONDS)).isTrue();
+
+    // Without serialization this completes and advances lastSeenStorageTime; with it, it waits
+    // for the first refresher.
+    Thread second = new Thread(dao::refresh);
+    second.start();
+    second.join(500);
+
+    releaseFirstRefresher.countDown();
+    first.join(10_000);
+    second.join(10_000);
+
+    assertThat(dao.allItemsCache.get()).containsExactly(pipeline);
   }
 }

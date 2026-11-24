@@ -3,14 +3,14 @@ import { getPreconditionType, getPreconditionTypeLabel, listPreconditionTypes } 
 describe('preconditionTypes', () => {
   it('lists the built-in precondition types in the legacy selector order', () => {
     expect(listPreconditionTypes()).toEqual([
-      jasmine.objectContaining({ key: 'clusterSize', label: 'Cluster Size' }),
-      jasmine.objectContaining({ key: 'expression', label: 'Expression' }),
-      jasmine.objectContaining({ key: 'stageStatus', label: 'Stage Status' }),
+      expect.objectContaining({ key: 'clusterSize', label: 'Cluster Size' }),
+      expect.objectContaining({ key: 'expression', label: 'Expression' }),
+      expect.objectContaining({ key: 'stageStatus', label: 'Stage Status' }),
     ]);
   });
 
   it('returns registered precondition types by key', () => {
-    expect(getPreconditionType('expression')).toEqual(jasmine.objectContaining({ label: 'Expression' }));
+    expect(getPreconditionType('expression')).toEqual(expect.objectContaining({ label: 'Expression' }));
     expect(getPreconditionType('missing')).toBeUndefined();
   });
 

@@ -1,13 +1,10 @@
-import type { ShallowWrapper } from 'enzyme';
-import { shallow } from 'enzyme';
+import { fireEvent, render, screen, waitFor } from '@testing-library/react';
 import React from 'react';
-import { act } from 'react-dom/test-utils';
 
-import type { IAccountSelectInputProps, IAccountSelectInputState } from './AccountSelectInput';
 import { AccountSelectInput } from './AccountSelectInput';
 import type { IAccountDetails } from './AccountService';
 import { AccountService } from './AccountService';
-import Spy = jasmine.Spy;
+import { ReactSelectInput } from '../presentation/forms/inputs/ReactSelectInput';
 
 const makeAccount = (name: string, cloudProvider: string, primaryAccount: boolean): IAccountDetails => {
   return {
@@ -26,110 +23,82 @@ const makeAccount = (name: string, cloudProvider: string, primaryAccount: boolea
 };
 
 describe('<AccountSelectInput/>', () => {
-  let component: ShallowWrapper<IAccountSelectInputProps, IAccountSelectInputState>;
-  let AccountServiceSpy: Spy;
+  let AccountServiceSpy: ReturnType<typeof vi.spyOn>;
 
   const allAccounts: { [provider: string]: IAccountDetails[] } = {
     aws: [makeAccount('prod', 'aws', true), makeAccount('backup', 'aws', false)],
-    titus: [makeAccount('titusprod', 'titus', true), makeAccount('titusbackup', 'titus', false)],
+    kubernetes: [makeAccount('prodk8s', 'kubernetes', true), makeAccount('backupk8s', 'kubernetes', false)],
   };
 
   beforeEach(() => {
-    AccountServiceSpy = spyOn(AccountService, 'getAllAccountDetailsForProvider').and.callFake((provider: string) => {
-      return Promise.resolve(allAccounts[provider]);
-    });
+    AccountServiceSpy = vi
+      .spyOn(AccountService, 'getAllAccountDetailsForProvider')
+      .mockImplementation((provider: string) => {
+        return Promise.resolve(allAccounts[provider]);
+      });
   });
 
-  async function settleComponent(): Promise<void> {
-    await act(async () => {
-      await Promise.resolve();
-    });
-    component.update();
-  }
+  const optionValues = () => screen.getAllByRole('option').map((option) => (option as HTMLOptionElement).value);
 
   it('groups accounts by primary field when provider not specified', async () => {
-    const accounts = allAccounts.aws.concat(allAccounts.titus);
-    component = shallow(<AccountSelectInput accounts={accounts} provider={null} value="prod" />);
-    await settleComponent();
+    const accounts = allAccounts.aws.concat(allAccounts.kubernetes);
+    render(<AccountSelectInput accounts={accounts} provider={null} value="prod" />);
 
-    expect(component.state().primaryAccounts).toEqual(['prod', 'titusprod']);
-    expect(component.state().secondaryAccounts).toEqual(['backup', 'titusbackup']);
+    await waitFor(() => expect(optionValues()).toEqual(['', 'prod', 'prodk8s', '-', 'backup', 'backupk8s']));
   });
 
   it('groups accounts by primary field when only one provider available', async () => {
-    component = shallow(<AccountSelectInput accounts={allAccounts.aws} provider={null} value="prod" />);
-    await settleComponent();
+    render(<AccountSelectInput accounts={allAccounts.aws} provider={null} value="prod" />);
 
-    expect(component.state().primaryAccounts).toEqual(['prod']);
-    expect(component.state().secondaryAccounts).toEqual(['backup']);
-    expect(AccountServiceSpy.calls.count()).toBe(1);
+    await waitFor(() => expect(optionValues()).toEqual(['', 'prod', '-', 'backup']));
+    expect(AccountServiceSpy.mock.calls.length).toBe(1);
   });
 
   it('groups accounts by primary field when only names and provider supplied', async () => {
     const accounts = allAccounts.aws.map((acct) => acct.name);
-    component = shallow(<AccountSelectInput accounts={accounts} provider={'aws'} value="prod" />);
-    await settleComponent();
+    render(<AccountSelectInput accounts={accounts} provider="aws" value="prod" />);
 
-    expect(component.state().primaryAccounts).toEqual(['prod']);
-    expect(component.state().secondaryAccounts).toEqual(['backup']);
-    expect(AccountServiceSpy.calls.count()).toBe(1);
+    await waitFor(() => expect(optionValues()).toEqual(['', 'prod', '-', 'backup']));
+    expect(AccountServiceSpy.mock.calls.length).toBe(1);
   });
 
   it('sets mergedAccounts only if there are no accounts supplied', () => {
-    component = shallow(<AccountSelectInput accounts={null} provider={null} value="" />);
-    const state = component.state();
+    render(<AccountSelectInput accounts={null} provider={null} value="" />);
 
-    expect(state.mergedAccounts).toEqual([]);
-    expect(state.primaryAccounts).toEqual([]);
-    expect(state.secondaryAccounts).toEqual([]);
-    expect(AccountServiceSpy.calls.count()).toBe(0);
+    expect(optionValues()).toEqual(['']);
+    expect(AccountServiceSpy.mock.calls.length).toBe(0);
   });
 
   it('sets all accounts as primary when only names are supplied and provider is not set', async () => {
-    component = shallow(<AccountSelectInput accounts={['prod', 'test']} provider={null} value="prod" />);
-    await settleComponent();
-    const state = component.state();
+    render(<AccountSelectInput accounts={['prod', 'test']} provider={null} value="prod" />);
 
-    expect(state.mergedAccounts).toEqual(['prod', 'test']);
-    expect(state.primaryAccounts).toEqual(['prod', 'test']);
-    expect(state.secondaryAccounts).toEqual([]);
-    expect(AccountServiceSpy.calls.count()).toBe(0);
+    await waitFor(() => expect(optionValues()).toEqual(['', 'prod', 'test']));
+    expect(AccountServiceSpy.mock.calls.length).toBe(0);
   });
 
   it('re-groups accounts when they change', async () => {
-    component = shallow(<AccountSelectInput accounts={['prod', 'test']} provider={null} value="prod" />);
-    await settleComponent();
-    let state = component.state();
+    const { rerender } = render(<AccountSelectInput accounts={['prod', 'test']} provider={null} value="prod" />);
 
-    expect(state.mergedAccounts).toEqual(['prod', 'test']);
-    expect(state.primaryAccounts).toEqual(['prod', 'test']);
-    expect(state.secondaryAccounts).toEqual([]);
-    expect(AccountServiceSpy.calls.count()).toBe(0);
+    await waitFor(() => expect(optionValues()).toEqual(['', 'prod', 'test']));
+    expect(AccountServiceSpy.mock.calls.length).toBe(0);
 
-    component.setProps({ accounts: ['prod', 'test', 'staging'] });
-    await settleComponent();
-    state = component.state();
+    rerender(<AccountSelectInput accounts={['prod', 'test', 'staging']} provider={null} value="prod" />);
 
-    expect(state.mergedAccounts).toEqual(['prod', 'staging', 'test']);
-    expect(state.primaryAccounts).toEqual(['prod', 'staging', 'test']);
-    expect(state.secondaryAccounts).toEqual([]);
-    expect(AccountServiceSpy.calls.count()).toBe(0);
+    await waitFor(() => expect(optionValues()).toEqual(['', 'prod', 'staging', 'test']));
+    expect(AccountServiceSpy.mock.calls.length).toBe(0);
   });
 
   it('unselects nonexistent account', async function () {
     let updatedVal: string = null;
     const onChange = (evt: React.ChangeEvent<any>) => (updatedVal = evt.target.value);
-    component = shallow(
-      <AccountSelectInput accounts={['prod', 'test']} provider={null} value="nonexistent" onChange={onChange} />,
-    );
-    await settleComponent();
-    expect(updatedVal).toBe('');
+    render(<AccountSelectInput accounts={['prod', 'test']} provider={null} value="nonexistent" onChange={onChange} />);
+    await waitFor(() => expect(updatedVal).toBe(''));
   });
 
   it('does not unselect account if account is an expression', () => {
     let updatedVal: string = null;
     const onChange = (evt: React.ChangeEvent<any>) => (updatedVal = evt.target.value);
-    component = shallow(
+    render(
       <AccountSelectInput
         accounts={['prod', 'test']}
         provider={null}
@@ -142,9 +111,58 @@ describe('<AccountSelectInput/>', () => {
 
   it('shows the runtime resolution notice when the account is an expression', () => {
     const text = 'Resolved at runtime from expression';
-    component = shallow(
-      <AccountSelectInput accounts={['prod', 'test']} provider={null} value="${parameters.account}" />,
+    render(<AccountSelectInput accounts={['prod', 'test']} provider={null} value="${parameters.account}" />);
+    expect(screen.getByText((content) => content.includes(text))).toBeInTheDocument();
+  });
+
+  it("checks each account's details once, not once per account", async () => {
+    let nameReads = 0;
+    const details = Array.from({ length: 200 }, (_, i) => {
+      const account = makeAccount(`account-${String(i).padStart(3, '0')}`, 'kubernetes', i % 50 === 0);
+      const { name } = account;
+      Object.defineProperty(account, 'name', {
+        get: () => {
+          nameReads++;
+          return name;
+        },
+      });
+      return account;
+    });
+    AccountServiceSpy.mockImplementation(() => Promise.resolve(details));
+    const accounts = details.map((detail) => detail.name);
+    nameReads = 0;
+
+    render(
+      <AccountSelectInput
+        accounts={accounts}
+        provider="kubernetes"
+        value="account-000"
+        renderFilterableSelectThreshold={1000}
+      />,
     );
-    expect(component.text()).toContain(text);
+
+    await waitFor(() =>
+      expect(optionValues().slice(0, 6)).toEqual(['', 'account-000', 'account-050', 'account-100', 'account-150', '-']),
+    );
+    expect(optionValues().length).toBe(202);
+    expect(nameReads).toBeLessThanOrEqual(details.length);
+  });
+
+  it('renders a virtualized select with primary accounts first when there are many accounts', async () => {
+    vi.spyOn(HTMLElement.prototype, 'offsetWidth', 'get').mockReturnValue(320);
+    const accounts = ['prod', 'prod2', 'backup', 'staging', 'test', 'dev'];
+    AccountServiceSpy.mockImplementation(() =>
+      Promise.resolve(accounts.map((name) => makeAccount(name, 'aws', name.startsWith('prod')))),
+    );
+    const { container } = render(<AccountSelectInput accounts={accounts} provider="aws" value="prod" />);
+    await waitFor(() => expect(AccountServiceSpy).toHaveBeenCalled());
+
+    fireEvent.mouseDown(container.querySelector('.Select-control'));
+
+    await waitFor(() =>
+      expect(
+        Array.from(container.querySelectorAll('.VirtualizedSelectOption')).map((option) => option.textContent),
+      ).toEqual(['Select...', 'prod', 'prod2', '---------------', 'backup', 'dev', 'staging', 'test']),
+    );
   });
 });

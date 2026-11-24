@@ -39,7 +39,7 @@ jobs:
     steps:
       # delete untagged images older than 48 hours
       - name: Clean images
-        uses: ghcr-manager/ghcr-cleanup-manager@v1.1.12
+        uses: ghcr-manager/ghcr-cleanup-manager@v1.1.15
         with:
           command: cleanup
           token: ${{ secrets.GITHUB_TOKEN }}
@@ -62,7 +62,7 @@ jobs:
 
 
       - name: Set up Go
-        uses: actions/setup-go@v5
+        uses: actions/setup-go@v7
         with:
           go-version: 'stable'
 

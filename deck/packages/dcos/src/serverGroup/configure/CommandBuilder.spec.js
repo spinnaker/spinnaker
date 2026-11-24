@@ -4,7 +4,7 @@ import { dcosServerGroupCommandBuilder } from './CommandBuilder';
 
 describe('dcosServerGroupCommandBuilder', function () {
   beforeEach(function () {
-    spyOn(AccountService, 'getCredentialsKeyedByAccount').and.returnValue(Promise.resolve({ test: {} }));
+    vi.spyOn(AccountService, 'getCredentialsKeyedByAccount').mockReturnValue(Promise.resolve({ test: {} }));
   });
 
   describe('buildNewServerGroupCommand', function () {

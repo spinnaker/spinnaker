@@ -25,8 +25,8 @@ describe('Kubernetes resource state registration', () => {
 
   function makeApplicationStateProvider(): ApplicationStateProvider {
     return {
-      addInsightState: jasmine.createSpy('addInsightState'),
-      addInsightDetailState: jasmine.createSpy('addInsightDetailState'),
+      addInsightState: vi.fn(),
+      addInsightDetailState: vi.fn(),
     } as any;
   }
 
@@ -48,7 +48,7 @@ describe('Kubernetes resource state registration', () => {
     applicationStateProvider.addInsightDetailState(KUBERNETES_RESOURCE_DETAILS_STATE);
 
     expect(applicationStateProvider.addInsightDetailState).toHaveBeenCalledWith(
-      jasmine.objectContaining<INestedState>({
+      expect.objectContaining<INestedState>({
         name: 'kubernetesResource',
         url: '/manifest/:provider/:accountId/:region/:kubernetesResource',
       }),
@@ -58,7 +58,7 @@ describe('Kubernetes resource state registration', () => {
 
   it('defines raw resource insight and detail states as React states', () => {
     expect(KUBERNETES_RAW_RESOURCE_INSIGHT_STATE).toEqual(
-      jasmine.objectContaining<INestedState>({
+      expect.objectContaining<INestedState>({
         name: 'k8s',
         url: '/kubernetes',
       }),
@@ -67,7 +67,7 @@ describe('Kubernetes resource state registration', () => {
     expect(KUBERNETES_RAW_RESOURCE_INSIGHT_STATE.views.master.$type).toBe('react');
 
     expect(KUBERNETES_RAW_RESOURCE_DETAILS_STATE).toEqual(
-      jasmine.objectContaining<INestedState>({
+      expect.objectContaining<INestedState>({
         name: 'rawResourceDetails',
         url: '/rawResourceDetails/:account/:region/:name',
       }),
@@ -82,13 +82,13 @@ describe('Kubernetes resource state registration', () => {
     getApplicationStateRegistrationsForTests().forEach((registration) => registration(applicationStateProvider));
 
     expect(applicationStateProvider.addInsightState).toHaveBeenCalledWith(
-      jasmine.objectContaining<INestedState>({
+      expect.objectContaining<INestedState>({
         name: 'k8s',
         url: '/kubernetes',
       }),
     );
     expect(applicationStateProvider.addInsightDetailState).toHaveBeenCalledWith(
-      jasmine.objectContaining<INestedState>({
+      expect.objectContaining<INestedState>({
         name: 'rawResourceDetails',
         url: '/rawResourceDetails/:account/:region/:name',
       }),
@@ -103,7 +103,7 @@ describe('Kubernetes resource state registration', () => {
     );
 
     expect(rawResourceDataSource).toEqual(
-      jasmine.objectContaining({
+      expect.objectContaining({
         key: KUBERNETS_RAW_RESOURCE_DATA_SOURCE_KEY,
         label: 'Kubernetes',
         category: INFRASTRUCTURE_KEY,

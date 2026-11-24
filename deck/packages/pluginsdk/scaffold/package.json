@@ -10,16 +10,18 @@
   "scripts": {
     "clean": "npx shx rm -rf build",
     "develop": "npm run clean && run-p watch proxy",
-    "build": "npm run clean && NODE_ENV=production rollup -c --bundleConfigAsCjs",
+    "build": "NODE_ENV=production spinnaker-scripts build",
     "lint": "eslint --ext js,jsx,ts,tsx src",
     "postinstall": "check-plugin && check-peer-dependencies || true",
     "prepare": "husky-install",
     "prettier": "prettier --write 'src/**/*.{js,jsx,ts,tsx,html,css,less,json}'",
     "proxy": "dev-proxy",
-    "watch": "rollup -c -w --no-watch.clearScreen --bundleConfigAsCjs"
+    "watch": "spinnaker-scripts start"
   },
   "dependencies": {
-    "@spinnaker/pluginsdk": "latest"
+    "@spinnaker/pluginsdk": "latest",
+    "@spinnaker/pluginsdk-peerdeps": "latest",
+    "@spinnaker/scripts": "latest"
   },
   "devDependencies": {}
 }

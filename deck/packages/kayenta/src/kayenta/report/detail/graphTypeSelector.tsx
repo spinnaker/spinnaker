@@ -1,6 +1,6 @@
 import * as React from 'react';
-import type { Dispatch } from 'react-redux';
 import { connect } from 'react-redux';
+import type { Dispatch } from 'redux';
 
 import * as Creators from '../../actions/creators';
 import { GraphType } from './graph/metricSetPairGraph.service';
@@ -44,7 +44,7 @@ const mapStateToProps = (state: ICanaryState): IGraphTypeSelectorStateProps => (
   selected: state.selectedRun.graphType,
 });
 
-const mapDispatchToProps = (dispatch: Dispatch<ICanaryState>): IGraphTypeSelectorDispatchProps => ({
+const mapDispatchToProps = (dispatch: Dispatch): IGraphTypeSelectorDispatchProps => ({
   selectGraphType: (type: GraphType) => dispatch(Creators.selectGraphType({ type })),
 });
 

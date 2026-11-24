@@ -49,7 +49,6 @@ public class JobService {
   public List<PreconfiguredJobStageProperties> getPreconfiguredStages() {
 
     List<PreconfiguredJobStageProperties> preconfiguredJobStageProperties = new ArrayList<>();
-    preconfiguredJobStageProperties.addAll(jobConfigurationProperties.getTitus());
     preconfiguredJobStageProperties.addAll(jobConfigurationProperties.getKubernetes());
 
     List<PreconfiguredJobConfigurationProvider> providers =

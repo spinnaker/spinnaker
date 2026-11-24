@@ -17,8 +17,10 @@
 package com.netflix.spinnaker.orca.lock;
 
 import com.netflix.spinnaker.kork.core.RetrySupport;
-import com.netflix.spinnaker.kork.lock.LockManager.LockOptions;
+import com.netflix.spinnaker.kork.lock.LockManager.LockCallbackException;
+import com.netflix.spinnaker.kork.lock.LockManager.LockCleanupException;
 import java.time.Duration;
+import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.function.Supplier;
 import lombok.*;
 import lombok.extern.slf4j.Slf4j;
@@ -44,13 +46,17 @@ public class RetriableLock {
    * RunOnLockAcquired. If the lock cannot be acquired, this method will try a number of times
    * specified by the user in the {@code options.maxRetries} object. If the lock cannot be obtained
    * within the specified number of attempts, either an exception will be thrown (if {@code
-   * options.throwOnAcquireFailure} is true) or false will be returned.
+   * options.throwOnAcquireFailure} is true) or false will be returned. Callback and cleanup
+   * failures are not retried, regardless of {@code options.throwOnAcquireFailure}.
    *
    * @param rlOptions aggregates all the parameters that influence the process of obtaining a lock.
    * @param action action to execute once lock is acquired
    * @return true, if lock was acquired and action was executed correctly; false if not obtained
    * @throws FailedToGetLockException if lock was not obtained and {@code
    *     options.throwOnAcquireFailure} is true
+   * @throws LockCallbackException if the callback fails or an acquired lock does not execute it
+   * @throws LockCleanupException if the callback completed but lock cleanup or ownership
+   *     verification failed; callers must not repeat the completed action
    */
   public Boolean lock(RetriableLockOptions rlOptions, Runnable action) {
     try {
@@ -76,6 +82,10 @@ public class RetriableLock {
   public static class FailedToGetLockException extends RuntimeException {
     public FailedToGetLockException(String lockName) {
       super("Failed to acquire lock: " + lockName);
+    }
+
+    public FailedToGetLockException(String lockName, Throwable cause) {
+      super("Failed to acquire lock: " + lockName, cause);
     }
   }
 
@@ -103,8 +113,6 @@ public class RetriableLock {
   @RequiredArgsConstructor
   private static final class LockAndRun implements Supplier<Boolean> {
 
-    private static final Duration MAX_LOCK_DURATION = Duration.ofSeconds(2L);
-
     private final RetriableLockOptions options;
     private final Runnable action;
     private final RunOnLockAcquired lockManager;
@@ -119,14 +127,48 @@ public class RetriableLock {
      */
     @Override
     public Boolean get() {
-      var options =
-          new LockOptions()
-              .withLockName(this.options.getLockName())
-              .withMaximumLockDuration(MAX_LOCK_DURATION);
-
       var lockName = options.getLockName();
-      var response = lockManager.execute(action, lockName);
-      if (response.getLockAcquired()) {
+      AtomicBoolean actionStarted = new AtomicBoolean();
+      AtomicBoolean actionCompleted = new AtomicBoolean();
+      RunOnLockResult<Void> response;
+      try {
+        response =
+            lockManager.execute(
+                () -> {
+                  actionStarted.set(true);
+                  action.run();
+                  actionCompleted.set(true);
+                },
+                lockName);
+      } catch (Exception e) {
+        if (!actionStarted.get()) {
+          throw e;
+        }
+        // Adapters can throw during unlock instead of returning their failure result.
+        response = new RunOnLockResult<>(true, actionCompleted.get(), e, null);
+      }
+      boolean completed = actionCompleted.get() || response.getActionExecuted();
+      boolean acquired = actionStarted.get() || response.getLockAcquired() || completed;
+      if (response.getException() != null) {
+        if (completed) {
+          throw new LockCleanupException(
+                  "Lock cleanup failed after action completed: " + lockName,
+                  response.getException())
+              .setRetryable(false);
+        }
+        if (acquired) {
+          // Acquisition retries must never re-run a callback with potentially completed effects.
+          throw new LockCallbackException(
+                  "Failed executing action with lock: " + lockName, response.getException())
+              .setRetryable(false);
+        }
+        throw new FailedToGetLockException(lockName, response.getException());
+      }
+      if (acquired) {
+        if (!completed) {
+          throw new LockCallbackException("Lock acquired without executing action: " + lockName)
+              .setRetryable(false);
+        }
         log.debug("Successfully acquired lock: {}", lockName);
         // The result of this method is nowhere used - we need it to satisfy RetrySupport contract
         return true;

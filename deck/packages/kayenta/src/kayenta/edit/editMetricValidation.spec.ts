@@ -1,5 +1,10 @@
 import { ICanaryMetricConfig } from '../domain';
-import { ICanaryMetricValidationErrors, validateMetric, validateMetricName } from './editMetricValidation';
+import {
+  ICanaryMetricValidationErrors,
+  validateMetric,
+  validateMetricName,
+  validateMetricQuery,
+} from './editMetricValidation';
 
 describe('Canary metric validation', () => {
   let errors: ICanaryMetricValidationErrors;
@@ -31,6 +36,31 @@ describe('Canary metric validation', () => {
     });
   });
 
+  describe('validateMetricQuery', () => {
+    it('accepts a metric with a template', () => {
+      editingMetric.query = { type: 'prometheus', serviceType: 'prometheus', template: 'up' } as any;
+      expect(validateMetricQuery(errors, editingMetric).query).toBeNull();
+    });
+    it('accepts a metric with guided fields', () => {
+      editingMetric.query = { type: 'prometheus', serviceType: 'prometheus', metricName: 'cpu' } as any;
+      expect(validateMetricQuery(errors, editingMetric).query).toBeNull();
+    });
+    it('rejects a metric whose query only has the provider type markers', () => {
+      editingMetric.query = { type: 'prometheus', serviceType: 'prometheus' } as any;
+      expect(validateMetricQuery(errors, editingMetric).query).toEqual({
+        message: 'A query template or query fields are required',
+      });
+    });
+    it('rejects a metric whose template was cleared to an empty string', () => {
+      editingMetric.query = { type: 'prometheus', serviceType: 'prometheus', template: '' } as any;
+      expect(validateMetricQuery(errors, editingMetric).query).not.toBeNull();
+    });
+    it('rejects a metric with no query at all', () => {
+      delete editingMetric.query;
+      expect(validateMetricQuery(errors, editingMetric).query).not.toBeNull();
+    });
+  });
+
   describe('validateMetric', () => {
     it('Does not update errors when all fields are valid', () => {
       expect(validateMetric(editingMetric, metricList)).toEqual(errors);
@@ -39,6 +69,7 @@ describe('Canary metric validation', () => {
       editingMetric.name = '';
       expect(validateMetric(editingMetric, metricList)).toEqual({
         name: { message: 'Name is required' },
+        query: null,
       });
     });
   });
@@ -47,6 +78,7 @@ describe('Canary metric validation', () => {
 function createErrors(): ICanaryMetricValidationErrors {
   return {
     name: null,
+    query: null,
   };
 }
 
@@ -55,6 +87,7 @@ function createEditingMetric(name: string, id: string): ICanaryMetricConfig {
     name,
     id,
     scopeName: 'default',
+    query: { type: 'prometheus', serviceType: 'prometheus', template: 'up' },
   } as ICanaryMetricConfig;
 }
 

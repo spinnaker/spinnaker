@@ -39,14 +39,10 @@ import com.netflix.spinnaker.keel.api.plugins.SimpleResourceHandler
 import com.netflix.spinnaker.keel.api.plugins.SupportedKind
 import com.netflix.spinnaker.keel.api.plugins.kind
 import com.netflix.spinnaker.keel.api.support.EventPublisher
-import com.netflix.spinnaker.keel.api.titus.TITUS_CLUSTER_V1
-import com.netflix.spinnaker.keel.api.titus.TitusClusterSpec
-import com.netflix.spinnaker.keel.api.titus.TitusServerGroupSpec
 import com.netflix.spinnaker.keel.api.toSimpleLocations
 import com.netflix.spinnaker.keel.artifacts.DebianArtifact
 import com.netflix.spinnaker.keel.artifacts.DockerArtifact
 import com.netflix.spinnaker.keel.core.api.SubmittedResource
-import com.netflix.spinnaker.keel.docker.ReferenceProvider
 import com.netflix.spinnaker.keel.resources.ResourceFactory
 import com.netflix.spinnaker.keel.resources.ResourceSpecIdentifier
 import com.netflix.spinnaker.keel.resources.SpecMigrator
@@ -398,38 +394,6 @@ fun ec2Cluster(
   spec = ec2ClusterSpec.copy(
     moniker = moniker,
     artifactReference = artifact.reference
-  )
-)
-
-private val titusClusterSpec = TitusClusterSpec(
-  moniker = Moniker(
-    app = "fnord",
-    stack = "test"
-  ),
-  locations = SimpleLocations(
-    account = "account",
-    regions = setOf(
-      SimpleRegionSpec("us-east-1"),
-      SimpleRegionSpec("us-west-2")
-    )
-  ),
-  container = ReferenceProvider(reference = "fnord"),
-  _defaults = TitusServerGroupSpec(
-    dependencies = ClusterDependencies(
-      loadBalancerNames = setOf("fnord-internal"),
-      securityGroupNames = setOf("fnord", "fnord-elb")
-    )
-  )
-)
-
-fun titusCluster(
-  moniker: Moniker = Moniker("fnord", "test"),
-  artifact: DockerArtifact = dockerArtifact()
-) = resource(
-  kind = TITUS_CLUSTER_V1.kind,
-  spec = titusClusterSpec.copy(
-    moniker = moniker,
-    container = ReferenceProvider(reference = artifact.reference)
   )
 )
 

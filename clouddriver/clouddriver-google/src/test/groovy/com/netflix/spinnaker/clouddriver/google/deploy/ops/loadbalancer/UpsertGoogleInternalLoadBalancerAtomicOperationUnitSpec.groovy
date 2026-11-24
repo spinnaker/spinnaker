@@ -307,7 +307,7 @@ class UpsertGoogleInternalLoadBalancerAtomicOperationUnitSpec extends Specificat
 
       2 * computeMock.regionBackendServices() >> backendServices
       1 * backendServices.get(PROJECT_NAME, REGION, DEFAULT_SERVICE) >> backendServicesGet
-      1 * backendServicesGet.execute() >> new BackendService(name: DEFAULT_SERVICE, healthChecks: [], sessionAffinity: 'NONE')
+      1 * backendServicesGet.execute() >> new BackendService(name: DEFAULT_SERVICE, loadBalancingScheme: 'INTERNAL', healthChecks: [], sessionAffinity: 'NONE')
       1 * backendServices.update(PROJECT_NAME, REGION, DEFAULT_SERVICE, _) >> backendServicesUpdate
       1 * backendServicesUpdate.execute() >> backendServicesInsertOp
 
@@ -433,7 +433,7 @@ class UpsertGoogleInternalLoadBalancerAtomicOperationUnitSpec extends Specificat
 
       2 * computeMock.regionBackendServices() >> backendServices
       1 * backendServices.get(PROJECT_NAME, REGION, DEFAULT_SERVICE) >> backendServicesGet
-      1 * backendServicesGet.execute() >> new BackendService(name: DEFAULT_SERVICE, healthChecks: [], sessionAffinity: 'NONE')
+      1 * backendServicesGet.execute() >> new BackendService(name: DEFAULT_SERVICE, loadBalancingScheme: 'INTERNAL', healthChecks: [], sessionAffinity: 'NONE')
       1 * backendServices.update(PROJECT_NAME, REGION, DEFAULT_SERVICE, _) >> backendServicesUpdate
       1 * backendServicesUpdate.execute() >> backendServicesInsertOp
 

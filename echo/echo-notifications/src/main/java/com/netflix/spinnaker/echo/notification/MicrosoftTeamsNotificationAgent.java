@@ -80,7 +80,7 @@ public class MicrosoftTeamsNotificationAgent extends AbstractEventNotificationAg
             "%s/#/applications/%s/%s/%s",
             getSpinnakerUrl(),
             application,
-            configType == "stage" ? "executions/details" : configLink,
+            "stage".equals(configType) ? "executions/details" : configLink,
             executionId);
 
     String executionDescription =
@@ -105,7 +105,7 @@ public class MicrosoftTeamsNotificationAgent extends AbstractEventNotificationAg
     String summary;
     String eventNameLabel = "Event Name";
 
-    if (configType == "stage") {
+    if ("stage".equals(configType)) {
       eventName = Optional.ofNullable(event.content).map(e -> (String) e.get("name")).orElse(null);
 
       String stageName =
@@ -118,7 +118,7 @@ public class MicrosoftTeamsNotificationAgent extends AbstractEventNotificationAg
       eventNameLabel = "Stage Name";
       summary =
           String.format("Stage %s for %s's %s pipeline ", eventName, application, executionName);
-    } else if (configType == "pipeline") {
+    } else if ("pipeline".equals(configType)) {
       eventNameLabel = "Pipeline Name";
       summary = String.format("%s's %s pipeline ", application, executionName);
     } else {

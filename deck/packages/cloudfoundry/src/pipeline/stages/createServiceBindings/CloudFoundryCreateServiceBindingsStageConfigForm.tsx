@@ -38,7 +38,7 @@ export class CloudFoundryCreateServiceBindingsStageConfigForm extends React.Comp
     ArtifactTypePatterns.ORACLE_OBJECT,
   );
 
-  private destroy$ = new Subject();
+  private destroy$ = new Subject<void>();
 
   constructor(props: IFormikStageConfigInjectedProps, context: any) {
     super(props, context);

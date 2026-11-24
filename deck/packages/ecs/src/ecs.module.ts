@@ -11,6 +11,7 @@ import { EcsLoadBalancerTransformer } from './loadBalancer/loadBalancer.transfor
 import './loadBalancer/targetGroup.states';
 import ecsLogo from './logo/ecs.logo.svg';
 import { registerEcsCloneServerGroupStage } from './pipeline/stages/cloneServerGroup/ecsCloneServerGroupStage';
+import { registerEcsNativeContinueServiceDeploymentStage } from './pipeline/stages/continueNativeServiceDeployment/ecsContinueNativeServiceDeploymentStage';
 import { registerEcsDestroyServerGroupStage } from './pipeline/stages/destroyAsg/ecsDestroyAsgStage';
 import { registerEcsDisableServerGroupStage } from './pipeline/stages/disableAsg/ecsDisableAsgStage';
 import { registerEcsDisableClusterStage } from './pipeline/stages/disableCluster/ecsDisableClusterStage';
@@ -19,9 +20,11 @@ import { registerEcsFindImageFromTagsStage } from './pipeline/stages/findImageFr
 import { registerEcsResizeServerGroupStage } from './pipeline/stages/resizeAsg/ecsResizeAsgStage';
 import { registerEcsScaleDownClusterStage } from './pipeline/stages/scaleDownCluster/ecsScaleDownClusterStage';
 import { registerEcsShrinkClusterStage } from './pipeline/stages/shrinkCluster/ecsShrinkClusterStage';
+import { registerEcsNativeStopServiceDeploymentStage } from './pipeline/stages/stopNativeServiceDeployment/ecsStopNativeServiceDeploymentStage';
 import { EcsSecurityGroupDetails } from './securityGroup/details/EcsSecurityGroupDetails';
 import { EcsSecurityGroupReader } from './securityGroup/securityGroup.reader';
 import { EcsSecurityGroupTransformer } from './securityGroup/securityGroup.transformer';
+import { registerEcsServerGroupHeader } from './serverGroup/EcsServerGroupHeader';
 import { EcsServerGroupCommandBuilder } from './serverGroup/configure/serverGroupCommandBuilder.service';
 import { EcsCloneServerGroupModal } from './serverGroup/configure/wizard/EcsCloneServerGroupModal';
 import { EcsServerGroupActions } from './serverGroup/details/EcsServerGroupActions';
@@ -29,6 +32,7 @@ import { ecsServerGroupDetailsGetter } from './serverGroup/details/ecsServerGrou
 import {
   EcsBuildInfoSection,
   EcsCapacitySection,
+  EcsDeploymentSection,
   EcsEnvironmentVariablesSection,
   EcsFirewallsSection,
   EcsHealthSection,
@@ -40,6 +44,7 @@ import { EcsServerGroupInformationSection } from './serverGroup/details/sections
 import { EcsServerGroupTransformer } from './serverGroup/serverGroup.transformer';
 
 import './logo/ecs.logo.less';
+import './serverGroup/ecsServerGroup.less';
 
 export function registerEcsProvider(): void {
   CloudProviderRegistry.registerProvider('ecs', {
@@ -52,6 +57,7 @@ export function registerEcsProvider(): void {
       detailsGetter: ecsServerGroupDetailsGetter,
       detailsSections: [
         EcsServerGroupInformationSection,
+        EcsDeploymentSection,
         EcsTaskDefinitionSection,
         EcsEnvironmentVariablesSection,
         EcsHealthSection,
@@ -85,6 +91,7 @@ export function registerEcsProvider(): void {
 
 export function registerEcsPipelineStages(): void {
   registerEcsCloneServerGroupStage();
+  registerEcsNativeContinueServiceDeploymentStage();
   registerEcsDestroyServerGroupStage();
   registerEcsDisableServerGroupStage();
   registerEcsDisableClusterStage();
@@ -93,8 +100,10 @@ export function registerEcsPipelineStages(): void {
   registerEcsResizeServerGroupStage();
   registerEcsScaleDownClusterStage();
   registerEcsShrinkClusterStage();
+  registerEcsNativeStopServiceDeploymentStage();
 }
 
 registerEcsProvider();
+registerEcsServerGroupHeader('ecs');
 registerEcsPipelineStages();
 DeploymentStrategyRegistry.registerProvider('ecs', ['redblack']);

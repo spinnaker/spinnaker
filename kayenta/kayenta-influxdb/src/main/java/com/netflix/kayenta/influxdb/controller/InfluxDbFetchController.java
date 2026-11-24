@@ -61,6 +61,7 @@ public class InfluxDbFetchController {
   }
 
   @RequestMapping(value = "/query", method = RequestMethod.POST)
+  @SuppressWarnings("deprecation")
   public Map<String, String> queryMetrics(
       @RequestParam(required = false) final String metricsAccountName,
       @RequestParam(required = false) final String storageAccountName,

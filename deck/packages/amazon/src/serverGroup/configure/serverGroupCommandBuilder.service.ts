@@ -4,6 +4,7 @@ import type { Application, DeckRuntimeServices, InstanceTypeService } from '@spi
 import { AccountService, DeploymentStrategyRegistry, NameUtils, SubnetReader } from '@spinnaker/core';
 
 import { AWSProviderSettings } from '../../aws.settings';
+import { getVpcZoneIdentifier } from '../../common/awsSdkFieldNames';
 import type { IAmazonLaunchTemplateOverrides, ILaunchTemplateData } from '../../domain';
 import type { IAmazonServerGroup, IAmazonServerGroupView, INetworkInterface } from '../../domain';
 import type { AwsServerGroupConfigurationService } from './serverGroupConfiguration.service';
@@ -338,8 +339,8 @@ export function createAwsServerGroupCommandBuilder(
           command.suspendedProcesses = [];
         }
 
-        const vpcZoneIdentifier = serverGroup.asg.vpczoneIdentifier;
-        if (vpcZoneIdentifier !== '') {
+        const vpcZoneIdentifier = getVpcZoneIdentifier(serverGroup.asg);
+        if (vpcZoneIdentifier) {
           const subnetId = vpcZoneIdentifier.split(',')[0];
           const subnet = subnets.find((x) => x.id === subnetId);
           command.subnetType = subnet.purpose;
@@ -353,7 +354,8 @@ export function createAwsServerGroupCommandBuilder(
           Object.assign(command, {
             instanceType: serverGroup.launchConfig.instanceType,
             iamRole: serverGroup.launchConfig.iamInstanceProfile,
-            keyPair: serverGroup.launchConfig.keyName,
+            // a source without a key pair keeps launching instances without one, rather than using the account default
+            keyPair: serverGroup.launchConfig.keyName || '',
             associatePublicIpAddress: serverGroup.launchConfig.associatePublicIpAddress,
             ramdiskId: serverGroup.launchConfig.ramdiskId,
             instanceMonitoring:
@@ -409,19 +411,23 @@ export function createAwsServerGroupCommandBuilder(
           const networkInterfaces = _.get(launchTemplateData, 'networkInterfaces[0]');
           const ipv6AddressCount = (networkInterfaces as INetworkInterface)?.ipv6AddressCount ?? 0;
 
+          // Leave the option unset when the source doesn't set it, so the AWS default keeps applying
+          const instanceMetadataTags = launchTemplateData.metadataOptions?.instanceMetadataTags;
+
           const asgSettings = AWSProviderSettings.serverGroups;
           const isTestEnv = serverGroup.accountDetails && serverGroup.accountDetails.environment === 'test';
           const shouldAutoEnableIPv6 = asgSettings && asgSettings.enableIPv6 && asgSettings.setIPv6InTest && isTestEnv;
 
           Object.assign(command, {
             iamRole: launchTemplateData.iamInstanceProfile.name,
-            keyPair: launchTemplateData.keyName,
+            keyPair: launchTemplateData.keyName || '',
             associateIPv6Address: shouldAutoEnableIPv6 || Boolean(ipv6AddressCount),
             ramdiskId: launchTemplateData.ramdiskId,
             instanceMonitoring: launchTemplateData.monitoring && launchTemplateData.monitoring.enabled,
             ebsOptimized: launchTemplateData.ebsOptimized,
             spotPrice: spotMaxPrice || undefined,
             requireIMDSv2: Boolean(launchTemplateData.metadataOptions?.httpTokens === 'required'),
+            enableInstanceMetadataTags: instanceMetadataTags ? instanceMetadataTags === 'enabled' : undefined,
             unlimitedCpuCredits: launchTemplateData.creditSpecification
               ? launchTemplateData.creditSpecification.cpuCredits === 'unlimited'
               : undefined,

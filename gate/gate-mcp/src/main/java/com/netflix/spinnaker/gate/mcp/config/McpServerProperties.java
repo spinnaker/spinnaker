@@ -16,6 +16,7 @@
 
 package com.netflix.spinnaker.gate.mcp.config;
 
+import java.util.List;
 import lombok.Data;
 import org.springframework.boot.context.properties.ConfigurationProperties;
 
@@ -47,4 +48,12 @@ public class McpServerProperties {
    * while still recording them locally.
    */
   private boolean auditEchoEvents = true;
+
+  /**
+   * Names of the MCP tools to expose (e.g. {@code get_application}, {@code trigger_pipeline}). When
+   * unset (the default), every tool is exposed. When set, only the listed tools are registered with
+   * the MCP server; all others are absent from {@code tools/list} and cannot be called. Applies on
+   * top of {@link #readOnly}, which still blocks any allowlisted mutating tool.
+   */
+  private List<String> allowedTools;
 }

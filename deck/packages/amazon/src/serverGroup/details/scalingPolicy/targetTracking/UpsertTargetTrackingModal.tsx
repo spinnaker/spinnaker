@@ -66,7 +66,6 @@ export const UpsertTargetTrackingModal = ({
           <h4 className="section-heading">Additional Settings</h4>
           <TargetTrackingAdditionalSettings
             command={command}
-            cooldowns={false}
             policyName={policy.policyName}
             updateCommand={setCommand}
           />

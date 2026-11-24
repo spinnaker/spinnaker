@@ -54,14 +54,17 @@ describe('Docker image selectors', () => {
     it(`aborts replaced and unmounted ${name} loads without applying late state`, async () => {
       const firstRequest = deferred<any[]>();
       const secondRequest = deferred<any[]>();
-      const findImages = spyOn(Reader, 'findImages').and.returnValues(firstRequest.promise, secondRequest.promise);
+      const findImages = vi
+        .spyOn(Reader, 'findImages')
+        .mockReturnValueOnce(firstRequest.promise)
+        .mockReturnValueOnce(secondRequest.promise);
       const component = new Selector(props);
-      const setState = spyOn(component, 'setState');
+      const setState = vi.spyOn(component, 'setState').mockReturnValue(undefined);
 
       component.refreshImages(props);
       component.refreshImages({ ...props, account: 'replacement' });
-      const firstSignal = findImages.calls.argsFor(0)[1] as AbortSignal;
-      const secondSignal = findImages.calls.argsFor(1)[1] as AbortSignal;
+      const firstSignal = findImages.mock.calls[0][1] as AbortSignal;
+      const secondSignal = findImages.mock.calls[1][1] as AbortSignal;
 
       expect(firstSignal.aborted).toBe(true);
       expect(secondSignal.aborted).toBe(false);
@@ -73,50 +76,53 @@ describe('Docker image selectors', () => {
       await Promise.all([firstRequest.promise, secondRequest.promise]);
       await Promise.resolve();
 
-      expect(setState.calls.allArgs()).toEqual([[{ imagesLoading: true }], [{ imagesLoading: true }]]);
+      expect(setState.mock.calls).toEqual([[{ imagesLoading: true }], [{ imagesLoading: true }]]);
     });
 
     it(`preserves a pending ${name} load across unrelated prop updates`, async () => {
       const request = deferred<any[]>();
-      const findImages = spyOn(Reader, 'findImages').and.returnValue(request.promise);
+      const findImages = vi.spyOn(Reader, 'findImages').mockReturnValue(request.promise);
       const component = new Selector(props);
-      spyOn(component, 'setState');
-      const updateThings = spyOn(component as any, 'updateThings').and.callThrough();
+      vi.spyOn(component, 'setState').mockReturnValue(undefined);
+      const updateThings = vi.spyOn(component as any, 'updateThings');
       const replacementProps = { ...props, repository: 'replacement' };
 
       component.refreshImages(props);
       component.componentWillReceiveProps(replacementProps);
       (component as any).props = replacementProps;
-      const signal = findImages.calls.argsFor(0)[1] as AbortSignal;
+      const signal = findImages.mock.calls[0][1] as AbortSignal;
 
       expect(findImages).toHaveBeenCalledTimes(1);
       expect(signal.aborted).toBe(false);
 
-      updateThings.calls.reset();
+      updateThings.mockClear();
       request.resolve([]);
       await request.promise;
       await Promise.resolve();
 
-      expect(updateThings).toHaveBeenCalledOnceWith(replacementProps, true);
+      expect(updateThings).toHaveBeenCalledExactlyOnceWith(replacementProps, true);
       component.componentWillUnmount();
     });
 
     it(`replaces a pending ${name} load when its effective registry account changes`, async () => {
       const firstRequest = deferred<any[]>();
       const secondRequest = deferred<any[]>();
-      const findImages = spyOn(Reader, 'findImages').and.returnValues(firstRequest.promise, secondRequest.promise);
+      const findImages = vi
+        .spyOn(Reader, 'findImages')
+        .mockReturnValueOnce(firstRequest.promise)
+        .mockReturnValueOnce(secondRequest.promise);
       const initialProps = { ...props, registry: 'initial', showRegistry: false };
       const replacementProps = { ...initialProps, registry: 'replacement' };
       const component = new Selector(initialProps);
-      spyOn(component, 'setState');
+      vi.spyOn(component, 'setState').mockReturnValue(undefined);
 
       component.refreshImages(initialProps);
       component.componentWillReceiveProps(replacementProps);
       (component as any).props = replacementProps;
-      const firstSignal = findImages.calls.argsFor(0)[1] as AbortSignal;
-      const secondSignal = findImages.calls.argsFor(1)[1] as AbortSignal;
+      const firstSignal = findImages.mock.calls[0][1] as AbortSignal;
+      const secondSignal = findImages.mock.calls[1][1] as AbortSignal;
 
-      expect(findImages.calls.argsFor(1)[0].account).toBe('replacement');
+      expect(findImages.mock.calls[1][0].account).toBe('replacement');
       expect(firstSignal.aborted).toBe(true);
       expect(secondSignal.aborted).toBe(false);
 
@@ -130,15 +136,15 @@ describe('Docker image selectors', () => {
       const accountsRequest = deferred<any[]>();
       const firstImageRequest = deferred<any[]>();
       const secondImageRequest = deferred<any[]>();
-      spyOn(AccountService, 'listAccounts').and.returnValue(accountsRequest.promise);
-      const findImages = spyOn(Reader, 'findImages').and.returnValues(
-        firstImageRequest.promise,
-        secondImageRequest.promise,
-      );
+      vi.spyOn(AccountService, 'listAccounts').mockReturnValue(accountsRequest.promise);
+      const findImages = vi
+        .spyOn(Reader, 'findImages')
+        .mockReturnValueOnce(firstImageRequest.promise)
+        .mockReturnValueOnce(secondImageRequest.promise);
       const initialProps = { ...props, account: 'initial', showRegistry: true };
       const replacementProps = { ...initialProps, account: 'replacement' };
       const component = new Selector(initialProps);
-      spyOn(component, 'setState');
+      vi.spyOn(component, 'setState').mockReturnValue(undefined);
 
       (component as any).initializeAccounts(initialProps);
       (component as any).props = replacementProps;
@@ -147,8 +153,8 @@ describe('Docker image selectors', () => {
       await accountsRequest.promise;
       await Promise.resolve();
 
-      expect(findImages.calls.argsFor(0)[0].account).toBe('replacement');
-      expect(findImages.calls.argsFor(1)[0].account).toBe('replacement');
+      expect(findImages.mock.calls[0][0].account).toBe('replacement');
+      expect(findImages.mock.calls[1][0].account).toBe('replacement');
 
       component.componentWillUnmount();
       firstImageRequest.resolve([]);

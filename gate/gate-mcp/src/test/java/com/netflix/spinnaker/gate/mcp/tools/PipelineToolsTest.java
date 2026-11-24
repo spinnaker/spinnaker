@@ -22,6 +22,7 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.ArgumentMatchers.isNull;
 import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.when;
 
 import com.netflix.spinnaker.gate.mcp.config.McpServerProperties;
@@ -82,7 +83,8 @@ class PipelineToolsTest {
   void evaluatePipelineExpressionFindsMostRecentExecutionWhenExecutionIdOmitted() {
     Map<String, Object> older = Map.of("id", "exec-old", "startTime", 1000L);
     Map<String, Object> newer = Map.of("id", "exec-new", "startTime", 2000L);
-    when(orcaService.getPipelines(eq("myapp"), eq(1), isNull(), eq(false), isNull(), isNull()))
+    when(orcaService.getPipelines(
+            eq("myapp"), eq(1), isNull(), eq(false), isNull(), isNull(), eq(false)))
         .thenReturn(Calls.response(List.of(older, newer)));
     when(orcaService.evaluateExpressionForExecution(eq("exec-new"), any()))
         .thenReturn(Calls.response(Map.of("result", "ok")));
@@ -95,7 +97,7 @@ class PipelineToolsTest {
   @Test
   void evaluatePipelineExpressionPassesPipelineNameFilterThrough() {
     when(orcaService.getPipelines(
-            eq("myapp"), eq(1), isNull(), eq(false), eq("my-pipeline"), isNull()))
+            eq("myapp"), eq(1), isNull(), eq(false), eq("my-pipeline"), isNull(), eq(false)))
         .thenReturn(Calls.response(List.of(Map.of("id", "exec-1", "startTime", 1000L))));
     when(orcaService.evaluateExpressionForExecution(eq("exec-1"), any()))
         .thenReturn(Calls.response(Map.of("result", "ok")));
@@ -103,7 +105,8 @@ class PipelineToolsTest {
     pipelineTools.evaluatePipelineExpression("${foo}", null, null, "myapp", "my-pipeline");
 
     verify(orcaService)
-        .getPipelines(eq("myapp"), eq(1), isNull(), eq(false), eq("my-pipeline"), isNull());
+        .getPipelines(
+            eq("myapp"), eq(1), isNull(), eq(false), eq("my-pipeline"), isNull(), eq(false));
   }
 
   @Test
@@ -115,11 +118,38 @@ class PipelineToolsTest {
 
   @Test
   void evaluatePipelineExpressionThrowsWhenApplicationHasNoExecutions() {
-    when(orcaService.getPipelines(eq("myapp"), eq(1), isNull(), eq(false), isNull(), isNull()))
+    when(orcaService.getPipelines(
+            eq("myapp"), eq(1), isNull(), eq(false), isNull(), isNull(), eq(false)))
         .thenReturn(Calls.response(List.of()));
 
     assertThatThrownBy(
             () -> pipelineTools.evaluatePipelineExpression("${foo}", null, null, "myapp", null))
         .isInstanceOf(NotFoundException.class);
+  }
+
+  @Test
+  void triggerPipelineRejectsPipelineIdBelongingToAnotherApplication() {
+    when(front50Service.getPipelineConfigByApplicationAndName("myapp", "other-id", true))
+        .thenReturn(Calls.response(Map.of("name", "something-else")));
+    when(front50Service.getPipelineConfigById("other-id"))
+        .thenReturn(Calls.response(Map.of("id", "other-id", "application", "otherapp")));
+
+    assertThatThrownBy(() -> pipelineTools.triggerPipeline("myapp", "other-id", null))
+        .isInstanceOf(NotFoundException.class);
+    verifyNoInteractions(orcaService);
+  }
+
+  @Test
+  void triggerPipelineAcceptsPipelineIdInTheRequestedApplication() {
+    when(front50Service.getPipelineConfigByApplicationAndName("myapp", "p-id", true))
+        .thenReturn(Calls.response(Map.of("name", "something-else")));
+    when(front50Service.getPipelineConfigById("p-id"))
+        .thenReturn(
+            Calls.response(new java.util.HashMap<>(Map.of("id", "p-id", "application", "MyApp"))));
+    when(orcaService.startPipeline(any(), any()))
+        .thenReturn(Calls.response(Map.of("ref", "/pipelines/01")));
+
+    assertThat(pipelineTools.triggerPipeline("myapp", "p-id", null))
+        .containsEntry("ref", "/pipelines/01");
   }
 }

@@ -12,7 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-import { mockHttpClient } from '../../api/mock/jasmine';
+import { mockHttpClient } from '../../api/mock/mockHttpSupport';
 import type { IBannerRecord } from './GlobalBannerService';
 import { GlobalBannerService } from './GlobalBannerService';
 

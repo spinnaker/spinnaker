@@ -40,10 +40,11 @@ import com.github.tomakehurst.wiremock.junit5.WireMockExtension;
 import com.github.tomakehurst.wiremock.matching.MatchResult;
 import com.github.tomakehurst.wiremock.matching.RequestPatternBuilder;
 import com.netflix.spinnaker.kork.web.filters.ProvidedIdRequestFilterConfigurationProperties;
+import com.netflix.spinnaker.kork.web.url.UrlRestrictions;
+import com.netflix.spinnaker.kork.web.url.UrlRestrictionsProperties;
 import com.netflix.spinnaker.okhttp.OkHttpClientConfigurationProperties;
 import com.netflix.spinnaker.orca.api.pipeline.models.StageExecution;
 import com.netflix.spinnaker.orca.clouddriver.OortService;
-import com.netflix.spinnaker.orca.config.UserConfiguredUrlRestrictions;
 import com.netflix.spinnaker.orca.pipeline.model.StageExecutionImpl;
 import com.netflix.spinnaker.orca.webhook.config.WebhookConfiguration;
 import com.netflix.spinnaker.orca.webhook.config.WebhookProperties;
@@ -88,11 +89,12 @@ class WebhookServiceTest {
 
   private WebhookConfiguration webhookConfiguration = new WebhookConfiguration(webhookProperties);
 
-  private UserConfiguredUrlRestrictions userConfiguredUrlRestrictions =
-      new UserConfiguredUrlRestrictions.Builder()
-          .withRejectLocalhost(false)
-          .withAllowedHostnamesRegex(".*")
-          .build();
+  private UrlRestrictions userConfiguredUrlRestrictions =
+      UrlRestrictionsProperties.builder()
+          .rejectLocalhost(false)
+          .allowedHostnamesRegex(".*")
+          .build()
+          .toUrlRestrictions();
 
   private RestTemplateProvider restTemplateProvider;
 

@@ -28,6 +28,7 @@ export function CloudFoundryDestroyServiceStageConfig({
       onChange={updateStage}
       pipeline={pipeline}
       stage={stageWithDefaults}
+      liveStage={stage}
       validate={validateCloudFoundryDestroyServiceStage}
       render={(props) => <CloudFoundryDestroyServiceStageConfigForm {...props} />}
     />

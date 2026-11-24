@@ -54,6 +54,39 @@ class CachingPluginBinaryStorageServiceSpec extends Specification {
     getCacheFile("hello.zip") == "mom"
   }
 
+  def "serves a stored binary from the local cache instead of the delegate"() {
+    given:
+    def key = "netflix.hello/1.0.0.zip"
+    subject.store(key, "world".bytes)
+
+    when:
+    def loaded = subject.load(key)
+
+    then:
+    0 * delegate.load(_)
+    new String(loaded) == "world"
+  }
+
+  def "falls back to the delegate once the cached binary is deleted"() {
+    given:
+    def key = "netflix.hello/1.0.0.zip"
+    subject.store(key, "world".bytes)
+
+    when:
+    subject.delete(key)
+
+    then:
+    1 * delegate.delete(key)
+
+    when:
+    def loaded = subject.load(key)
+
+    then:
+    1 * delegate.load(key) >> "fresh".bytes
+    new String(loaded) == "fresh"
+    getCacheFile(key) == "fresh"
+  }
+
   private Path getCachePath(String key) {
     return subject.CACHE_PATH.resolve(key)
   }

@@ -1,2 +1,27 @@
 # Overrides for clouddriver default configuration:
 # https://github.com/spinnaker/clouddriver/blob/master/clouddriver-web/config/clouddriver.yml
+
+## ---------------------------------------------------------------------------
+## Custom resource health status
+## ---------------------------------------------------------------------------
+## By default Clouddriver reports every custom resource (and any other kind
+## without a dedicated handler) as healthy, so "Wait for manifest to stabilize"
+## continues as soon as the resource is applied. When enabled, health comes from
+## the resource's own status, following the kstatus conventions used by Flux,
+## kpt and `kubectl wait`:
+##   - no status block: stable
+##   - numeric status.observedGeneration behind metadata.generation: unstable
+##   - Stalled=True: failed
+##   - Reconciling=True: unstable
+##   - Ready=True: stable; Ready=False or Unknown: unstable
+##   - otherwise status.phase: Failed/Degraded fail, Pending/Progressing are
+##     unstable, Paused is paused
+## Applies to CRDs discovered from the cluster and to kinds listed under an
+## account's customResources. Once enabled, pipelines that deploy these
+## resources wait for them and can fail on Stalled or failed phases.
+#kubernetes:
+#  custom-resource-status:
+#    enabled: true
+#    ## Condition messages shown in the UI and in stage failures are truncated
+#    ## to this many characters. Zero or less disables truncation.
+#    max-message-length: 1024

@@ -9,6 +9,7 @@ import { diagnosticLogger } from '../utils/diagnosticLogger';
 import { yamlStringToDocuments } from './yamlEditorUtils';
 
 export interface IYamlEditorProps {
+  ariaLabel?: string;
   value: string;
   onChange(raw: string, obj: any): void;
 }
@@ -53,7 +54,7 @@ export class YamlEditor extends React.Component<IYamlEditorProps> {
   };
 
   public render = () => {
-    const { value } = this.props;
+    const { ariaLabel = 'YAML editor', value } = this.props;
     return (
       <AceEditor
         mode="yaml"
@@ -61,6 +62,7 @@ export class YamlEditor extends React.Component<IYamlEditorProps> {
         name="yaml-editor"
         style={{ width: 'auto' }}
         onChange={this.handleChange}
+        onLoad={(editor) => (editor as any).textInput.getElement().setAttribute('aria-label', ariaLabel)}
         fontSize={12}
         showGutter={true}
         cursorStart={0}

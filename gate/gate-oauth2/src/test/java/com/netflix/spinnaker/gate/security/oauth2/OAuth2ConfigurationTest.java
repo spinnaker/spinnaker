@@ -35,7 +35,6 @@ import org.springframework.boot.test.context.runner.ApplicationContextRunner;
 import org.springframework.context.annotation.Bean;
 import org.springframework.security.oauth2.client.endpoint.OAuth2AccessTokenResponseClient;
 import org.springframework.security.oauth2.client.registration.ClientRegistrationRepository;
-import org.springframework.session.web.http.DefaultCookieSerializer;
 
 /** Verify that OAuth2SsoConfig is valid */
 class OAuth2ConfigurationTest {
@@ -49,7 +48,6 @@ class OAuth2ConfigurationTest {
               UserConfigurations.of(
                   TestConfiguration.class,
                   FiatClientConfigurationProperties.class,
-                  DefaultCookieSerializer.class,
                   PermissionRevokingLogoutSuccessHandler.class,
                   AuthConfig.class,
                   OAuth2BeanConfiguration.class,

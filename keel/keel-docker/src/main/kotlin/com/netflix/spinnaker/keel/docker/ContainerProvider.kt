@@ -33,7 +33,7 @@ data class ReferenceProvider(
 @JsonDeserialize(using = JsonDeserializer.None::class)
 data class MultiReferenceContainerProvider(val references : Set<String> = HashSet()) : ContainerProvider()
 
-// used in titus handler as a way to represent a fully specified container
+// represents a fully specified container image (by digest)
 @JsonDeserialize(using = JsonDeserializer.None::class)
 data class DigestProvider(
   val organization: String, // todo eb: should this be name = org/image instead, for consistency?

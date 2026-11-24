@@ -17,6 +17,7 @@
 package com.netflix.spinnaker.fiat.model;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 import com.netflix.spinnaker.fiat.model.resources.*;
 import java.util.*;
 import java.util.function.Function;
@@ -118,7 +119,10 @@ public class UserPermission {
     Set<ServiceAccount.View> serviceAccounts;
     Set<Role.View> roles;
     Set<BuildService.View> buildServices;
+
+    @JsonDeserialize(contentUsing = AuthorizableSetDeserializer.class)
     HashMap<ResourceType, Set<Authorizable>> extensionResources;
+
     boolean admin;
     boolean accountManager;
     boolean legacyFallback = false;

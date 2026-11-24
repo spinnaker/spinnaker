@@ -137,7 +137,7 @@ export class DeployStatus extends React.Component<IExecutionDetailsSectionProps,
                       {label && <span>{label} </span>}
                       <ManifestYaml
                         linkName="Load Manifest Details"
-                        modalTitle="Manifest"
+                        modalTitle={label ? `Manifest: ${label}` : 'Manifest'}
                         manifestUri={ref.reference.replace(/^ref?:\/\//, '')}
                       />
                     </div>

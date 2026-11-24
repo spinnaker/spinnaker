@@ -21,6 +21,7 @@ export function RollbackClusterConfig({ application, pipeline, stage, updateStag
       onChange={updateStage}
       pipeline={pipeline}
       stage={stageWithDefaults}
+      liveStage={stage}
       render={(props) => <RollbackClusterStageForm {...props} />}
     />
   );

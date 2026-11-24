@@ -10,7 +10,6 @@ import com.netflix.spinnaker.keel.test.classicLoadBalancer
 import com.netflix.spinnaker.keel.test.ec2Cluster
 import com.netflix.spinnaker.keel.test.randomString
 import com.netflix.spinnaker.keel.test.securityGroup
-import com.netflix.spinnaker.keel.test.titusCluster
 import org.junit.jupiter.api.Test
 import strikt.api.expectThat
 import strikt.assertions.all
@@ -42,7 +41,6 @@ internal class ResourceRenamingTests {
   }
 
   private val classicLoadBalancer = classicLoadBalancer()
-  private val titusCluster = titusCluster()
   private val ec2Cluster = ec2Cluster()
 
   @Test
@@ -92,16 +90,6 @@ internal class ResourceRenamingTests {
   @Test
   fun `deep renaming a CLB renames the CLB`() {
     expectThat(classicLoadBalancer.deepRename("suffix"))
-      .run {
-        get { name }.endsWith("-suffix")
-        get { id }.endsWith("-suffix")
-        get { metadata["id"] as String }.endsWith("-suffix")
-      }
-  }
-
-  @Test
-  fun `deep renaming a Titus cluster renames the cluster`() {
-    expectThat(titusCluster.deepRename("suffix"))
       .run {
         get { name }.endsWith("-suffix")
         get { id }.endsWith("-suffix")

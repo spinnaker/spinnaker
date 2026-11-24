@@ -70,9 +70,9 @@ export function ChecklistInput(props: IChecklistInputProps) {
 
         {showSelectAll && checkListOptions.length > 1 && (
           <li key={'select_all_button'}>
-            <a type="button" onClick={allSelected ? selectNone : selectAll}>
+            <button className="ChecklistInput_bulkToggle" type="button" onClick={allSelected ? selectNone : selectAll}>
               {allSelected ? 'Deselect All' : 'Select All'}
-            </a>
+            </button>
           </li>
         )}
       </ul>

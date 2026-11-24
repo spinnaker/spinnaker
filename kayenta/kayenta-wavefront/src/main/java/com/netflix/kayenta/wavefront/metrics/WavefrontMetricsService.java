@@ -18,6 +18,7 @@ package com.netflix.kayenta.wavefront.metrics;
 import com.netflix.kayenta.canary.CanaryConfig;
 import com.netflix.kayenta.canary.CanaryMetricConfig;
 import com.netflix.kayenta.canary.CanaryScope;
+import com.netflix.kayenta.canary.providers.metrics.QueryConfigUtils;
 import com.netflix.kayenta.canary.providers.metrics.WavefrontCanaryMetricSetQueryConfig;
 import com.netflix.kayenta.metrics.MetricSet;
 import com.netflix.kayenta.metrics.MetricsService;
@@ -63,6 +64,7 @@ public class WavefrontMetricsService implements MetricsService {
   }
 
   @Override
+  @SuppressWarnings("deprecation")
   public String buildQuery(
       String metricsAccountName,
       CanaryConfig canaryConfig,
@@ -70,6 +72,15 @@ public class WavefrontMetricsService implements MetricsService {
       CanaryScope canaryScope) {
     WavefrontCanaryMetricSetQueryConfig queryConfig =
         (WavefrontCanaryMetricSetQueryConfig) canaryMetricConfig.getQuery();
+    String[] baseScopeAttributes = new String[] {"scope", "location", "granularity"};
+
+    String customFilter =
+        QueryConfigUtils.expandCustomFilter(
+            canaryConfig, queryConfig, canaryScope, baseScopeAttributes);
+
+    if (customFilter != null && !customFilter.isEmpty()) {
+      return customFilter;
+    }
 
     String query = queryConfig.getMetricName();
     if (canaryScope.getScope() != null && !canaryScope.getScope().equals("")) {
@@ -77,14 +88,16 @@ public class WavefrontMetricsService implements MetricsService {
     }
 
     query = "ts(" + query + ")";
-    if (queryConfig.getAggregate() != null && !queryConfig.getAggregate().equals("")) {
-      query = queryConfig.getAggregate() + "(" + query + ")";
+    String aggregate = queryConfig.getAggregate();
+    if (aggregate != null && !aggregate.equals("")) {
+      query = aggregate + "(" + query + ")";
     }
 
     return query;
   }
 
   @Override
+  @SuppressWarnings("deprecation")
   public List<MetricSet> queryMetrics(
       String accountName,
       CanaryConfig canaryConfig,

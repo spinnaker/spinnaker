@@ -26,9 +26,9 @@ function fakeAccount(provider: string): IAccountDetails {
 describe('ProviderSelectionService: API', () => {
   let hasValue: boolean, accounts: IAccountDetails[];
   beforeEach(() => {
-    spyOn(AccountService, 'applicationAccounts').and.callFake(() => Promise.resolve(accounts));
-    spyOn(CloudProviderRegistry, 'hasValue').and.callFake(() => hasValue);
-    spyOn(ProviderSelectionModal, 'show').and.returnValue(Promise.resolve('modalProvider'));
+    vi.spyOn(AccountService, 'applicationAccounts').mockImplementation(() => Promise.resolve(accounts));
+    vi.spyOn(CloudProviderRegistry, 'hasValue').mockImplementation(() => hasValue);
+    vi.spyOn(ProviderSelectionModal, 'show').mockReturnValue(Promise.resolve('modalProvider'));
   });
 
   beforeEach(() => {
@@ -36,6 +36,11 @@ describe('ProviderSelectionService: API', () => {
       defaults: {
         account: 'testProviderAccount',
         region: 'testProviderRegion',
+      },
+    };
+    SETTINGS.providers.containerprovider = {
+      defaults: {
+        account: 'containerProviderAccount',
       },
     };
   });
@@ -92,13 +97,13 @@ describe('ProviderSelectionService: API', () => {
     let provider = '';
     hasValue = true;
     accounts = [fakeAccount('testProvider')];
-    config.securityGroup.useProvider = 'titus';
+    config.securityGroup.useProvider = 'containerprovider';
     CloudProviderRegistry.registerProvider('testProvider', config);
-    CloudProviderRegistry.registerProvider('titus', { securityGroup: {} } as any);
+    CloudProviderRegistry.registerProvider('containerprovider', { securityGroup: {} } as any);
     await ProviderSelectionService.selectProvider(application, 'securityGroup').then((_provider) => {
       provider = _provider;
     });
-    expect(provider).toBe('titus');
+    expect(provider).toBe('containerprovider');
   });
 
   it('rejects filtered useProvider options when the effective provider is not registered', async () => {
@@ -121,9 +126,9 @@ describe('ProviderSelectionService: API', () => {
   it('should use the specified provider from the configuration', async () => {
     let provider = '';
     hasValue = true;
-    accounts = [fakeAccount('aws'), fakeAccount('titus')];
+    accounts = [fakeAccount('aws'), fakeAccount('containerprovider')];
     CloudProviderRegistry.registerProvider('aws', { securityGroup: {} } as any);
-    CloudProviderRegistry.registerProvider('titus', { securityGroup: { useProvider: 'aws' } } as any);
+    CloudProviderRegistry.registerProvider('containerprovider', { securityGroup: { useProvider: 'aws' } } as any);
 
     await ProviderSelectionService.selectProvider(application, 'securityGroup').then((_provider) => {
       provider = _provider;
@@ -134,9 +139,9 @@ describe('ProviderSelectionService: API', () => {
   it('should use the provider "selected" from the "modal"', async () => {
     let provider = '';
     hasValue = true;
-    accounts = [fakeAccount('aws'), fakeAccount('titus'), fakeAccount('testProvider')];
+    accounts = [fakeAccount('aws'), fakeAccount('containerprovider'), fakeAccount('testProvider')];
     CloudProviderRegistry.registerProvider('aws', { securityGroup: {} } as any);
-    CloudProviderRegistry.registerProvider('titus', { securityGroup: { useProvider: 'aws' } } as any);
+    CloudProviderRegistry.registerProvider('containerprovider', { securityGroup: { useProvider: 'aws' } } as any);
     CloudProviderRegistry.registerProvider('testProvider', config);
 
     await ProviderSelectionService.selectProvider(application, 'securityGroup').then((_provider) => {
@@ -148,9 +153,9 @@ describe('ProviderSelectionService: API', () => {
   it('filters against the effective provider when useProvider is configured', async () => {
     let provider = '';
     hasValue = true;
-    accounts = [fakeAccount('titus')];
+    accounts = [fakeAccount('containerprovider')];
     CloudProviderRegistry.registerProvider('aws', { securityGroup: { CreateSecurityGroupModal: {} } } as any);
-    CloudProviderRegistry.registerProvider('titus', { securityGroup: { useProvider: 'aws' } } as any);
+    CloudProviderRegistry.registerProvider('containerprovider', { securityGroup: { useProvider: 'aws' } } as any);
 
     const filterFn = (_app: Application, _acc: IAccountDetails, prov: any) =>
       Boolean(prov.securityGroup.CreateSecurityGroupModal);
@@ -180,15 +185,15 @@ describe('ProviderSelectionService: API', () => {
     let provider = '';
     hasValue = true;
     const k8s = fakeAccount('kubernetes');
-    accounts = [k8s, fakeAccount('titus')];
-    CloudProviderRegistry.registerProvider('titus', config);
+    accounts = [k8s, fakeAccount('containerprovider')];
+    CloudProviderRegistry.registerProvider('containerprovider', config);
     CloudProviderRegistry.registerProvider('kubernetes', config);
 
     const filterFn = (_app: Application, acc: IAccountDetails) => acc.cloudProvider !== 'kubernetes';
     await ProviderSelectionService.selectProvider(application, 'securityGroup', filterFn).then((_provider) => {
       provider = _provider;
     });
-    expect(provider).toBe('titus');
+    expect(provider).toBe('containerprovider');
   });
 
   it('should return k8s provider in case the adHocInfrastructureWritesEnabled is set to true and is the only provider configured', async () => {

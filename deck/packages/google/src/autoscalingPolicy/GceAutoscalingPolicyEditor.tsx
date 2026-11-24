@@ -9,7 +9,7 @@ import type {
   IGceScalingSchedule,
 } from './IGceAutoscalingPolicy';
 import { GcePredictiveMethod } from './IGceAutoscalingPolicy';
-// @ts-ignore JSON imports are bundled by Rollup's JSON plugin.
+// @ts-ignore JSON imports are bundled by Vite.
 import timezoneData from './components/scalingSchedules/standardTimezone.json';
 import { GCEProviderSettings } from '../gce.settings';
 

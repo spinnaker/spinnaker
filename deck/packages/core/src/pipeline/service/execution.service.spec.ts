@@ -1,6 +1,6 @@
 import type { StateService } from '@uirouter/core';
 
-import { mockHttpClient } from '../../api/mock/jasmine';
+import { mockHttpClient } from '../../api/mock/mockHttpSupport';
 import type { Application } from '../../application';
 import type { IExecution } from '../../domain';
 import { ExecutionService } from './execution.service';

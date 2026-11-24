@@ -1,4 +1,4 @@
-import { shallow } from 'enzyme';
+import { render, screen, waitFor } from '@testing-library/react';
 import React from 'react';
 
 import {
@@ -8,8 +8,9 @@ import {
   ExecutionDetailsTasks,
   Registry,
   SETTINGS,
-  Spinner,
 } from '@spinnaker/core';
+
+import { renderWithRouter } from '../../../../../core/src/utils/testUtils/rtl';
 
 import {
   applyDockerBakeStageDefaults,
@@ -88,91 +89,90 @@ describe('Docker bake stage', () => {
   });
 
   it('persists Docker bake defaults after loading options', async () => {
-    spyOn(AuthenticationService, 'getAuthenticatedUser').and.returnValue({ name: 'user@example.com' } as any);
-    spyOn(BakeryReader, 'getBaseOsOptions').and.returnValue(Promise.resolve({ baseImages: [{ id: 'ubuntu' }] } as any));
-    spyOn(BakeryReader, 'getBaseLabelOptions').and.returnValue(Promise.resolve(['release']));
+    vi.spyOn(AuthenticationService, 'getAuthenticatedUser').mockReturnValue({ name: 'user@example.com' } as any);
+    vi.spyOn(BakeryReader, 'getBaseOsOptions').mockReturnValue(
+      Promise.resolve({ baseImages: [{ id: 'ubuntu' }] } as any),
+    );
+    vi.spyOn(BakeryReader, 'getBaseLabelOptions').mockReturnValue(Promise.resolve(['release']));
 
-    const updateStage = jasmine.createSpy('updateStage');
+    const updateStage = vi.fn();
 
-    shallow(
+    render(
       <DockerBakeStageConfig
         application={{} as any}
         pipeline={{} as any}
         stage={{ package: 'my-package', organization: '' } as any}
-        stageFieldUpdated={jasmine.createSpy('stageFieldUpdated')}
+        stageFieldUpdated={vi.fn()}
         updateStage={updateStage}
-        updateStageField={jasmine.createSpy('updateStageField')}
+        updateStageField={vi.fn()}
       />,
     );
 
-    await new Promise((resolve) => setTimeout(resolve, 0));
-
-    expect(updateStage).toHaveBeenCalledWith({
-      package: 'my-package',
-      region: 'global',
-      user: 'user@example.com',
-      baseOs: 'ubuntu',
-      baseLabel: 'release',
-    });
+    await waitFor(() =>
+      expect(updateStage).toHaveBeenCalledWith({
+        package: 'my-package',
+        region: 'global',
+        user: 'user@example.com',
+        baseOs: 'ubuntu',
+        baseLabel: 'release',
+      }),
+    );
   });
 
   it('shows an error instead of a permanent spinner when bake options fail to load', async () => {
-    spyOn(BakeryReader, 'getBaseOsOptions').and.returnValue(Promise.reject(new Error('boom')));
-    spyOn(BakeryReader, 'getBaseLabelOptions').and.returnValue(Promise.resolve(['release']));
+    vi.spyOn(BakeryReader, 'getBaseOsOptions').mockReturnValue(Promise.reject(new Error('boom')));
+    vi.spyOn(BakeryReader, 'getBaseLabelOptions').mockReturnValue(Promise.resolve(['release']));
 
-    const wrapper = shallow(
+    render(
       <DockerBakeStageConfig
         application={{} as any}
         pipeline={{} as any}
         stage={{ package: 'my-package' } as any}
-        stageFieldUpdated={jasmine.createSpy('stageFieldUpdated')}
-        updateStage={jasmine.createSpy('updateStage')}
-        updateStageField={jasmine.createSpy('updateStageField')}
+        stageFieldUpdated={vi.fn()}
+        updateStage={vi.fn()}
+        updateStageField={vi.fn()}
       />,
     );
 
-    await new Promise((resolve) => setTimeout(resolve, 0));
-    wrapper.update();
-
-    expect(wrapper.find(Spinner).exists()).toBe(false);
-    expect(wrapper.text()).toContain('Unable to load Docker bake options');
+    expect(await screen.findByText('Unable to load Docker bake options.')).toBeInTheDocument();
   });
 
   it('does not update state after unmounting before bake options load', async () => {
     let resolveBaseOsOptions: (value: any) => void;
     let resolveBaseLabelOptions: (value: string[]) => void;
-    spyOn(BakeryReader, 'getBaseOsOptions').and.returnValue(new Promise((resolve) => (resolveBaseOsOptions = resolve)));
-    spyOn(BakeryReader, 'getBaseLabelOptions').and.returnValue(
+    vi.spyOn(BakeryReader, 'getBaseOsOptions').mockReturnValue(
+      new Promise((resolve) => (resolveBaseOsOptions = resolve)),
+    );
+    vi.spyOn(BakeryReader, 'getBaseLabelOptions').mockReturnValue(
       new Promise((resolve) => (resolveBaseLabelOptions = resolve)),
     );
 
-    const wrapper = shallow(
+    const updateStage = vi.fn();
+    const rendered = render(
       <DockerBakeStageConfig
         application={{} as any}
         pipeline={{} as any}
         stage={{ package: 'my-package' } as any}
-        stageFieldUpdated={jasmine.createSpy('stageFieldUpdated')}
-        updateStage={jasmine.createSpy('updateStage')}
-        updateStageField={jasmine.createSpy('updateStageField')}
+        stageFieldUpdated={vi.fn()}
+        updateStage={updateStage}
+        updateStageField={vi.fn()}
       />,
     );
-    const setState = spyOn(wrapper.instance() as DockerBakeStageConfig, 'setState');
-
-    wrapper.unmount();
+    rendered.unmount();
     resolveBaseOsOptions!({ baseImages: [{ id: 'ubuntu' }] });
     resolveBaseLabelOptions!(['release']);
     await new Promise((resolve) => setTimeout(resolve, 0));
 
-    expect(setState).not.toHaveBeenCalled();
+    expect(updateStage).not.toHaveBeenCalled();
   });
 
   it('replaces every bakery detail URL placeholder occurrence', () => {
     SETTINGS.bakeryDetailUrl =
       '/bakery/{{context.region}}/{{context.region}}/{{context.status.resourceId}}/{{context.status.resourceId}}';
 
-    const wrapper = shallow(
+    renderWithRouter(
       <DockerBakeExecutionDetails
-        current={true}
+        current="bakeConfig"
         name="bakeConfig"
         stage={
           {
@@ -182,6 +182,9 @@ describe('Docker bake stage', () => {
       />,
     );
 
-    expect(wrapper.find('a').prop('href')).toBe('/bakery/us-west-2/us-west-2/image-123/image-123');
+    expect(screen.getByRole('link', { name: 'View Bakery Details' })).toHaveAttribute(
+      'href',
+      '/bakery/us-west-2/us-west-2/image-123/image-123',
+    );
   });
 });

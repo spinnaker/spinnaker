@@ -530,43 +530,11 @@ class GoogleHttpLoadBalancerCachingAgent extends AbstractGoogleLoadBalancerCachi
   }
 
   private static void handleHealthCheck(HealthCheck healthCheck, List<GoogleBackendService> googleBackendServices) {
-    if (!healthCheck) {
-      return
-    }
-    def port = null
-    def hcType = null
-    def requestPath = null
-    if (healthCheck.tcpHealthCheck) {
-      port = healthCheck.tcpHealthCheck.port
-      hcType = GoogleHealthCheck.HealthCheckType.TCP
-    } else if (healthCheck.sslHealthCheck) {
-      port = healthCheck.sslHealthCheck.port
-      hcType = GoogleHealthCheck.HealthCheckType.SSL
-    } else if (healthCheck.httpHealthCheck) {
-      port = healthCheck.httpHealthCheck.port
-      requestPath = healthCheck.httpHealthCheck.requestPath
-      hcType = GoogleHealthCheck.HealthCheckType.HTTP
-    } else if (healthCheck.httpsHealthCheck) {
-      port = healthCheck.httpsHealthCheck.port
-      requestPath = healthCheck.httpsHealthCheck.requestPath
-      hcType = GoogleHealthCheck.HealthCheckType.HTTPS
-    } else if (healthCheck.udpHealthCheck) {
-      port = healthCheck.udpHealthCheck.port
-      hcType = GoogleHealthCheck.HealthCheckType.UDP
-    }
-
-    if (port && hcType) {
-      googleBackendServices?.each { googleBackendService ->
-        googleBackendService.healthCheck = new GoogleHealthCheck(
-          name: healthCheck.name,
-          healthCheckType: hcType,
-          port: port,
-          requestPath: requestPath ?: "",
-          checkIntervalSec: healthCheck.checkIntervalSec,
-          timeoutSec: healthCheck.timeoutSec,
-          unhealthyThreshold: healthCheck.unhealthyThreshold,
-          healthyThreshold: healthCheck.healthyThreshold,
-        )
+    googleBackendServices?.each { googleBackendService ->
+      // Each backend service gets its own copy, as before.
+      def googleHealthCheck = GoogleLoadBalancerHealthCheckSupport.fromHealthCheckWithEmptyDefaults(healthCheck)
+      if (googleHealthCheck) {
+        googleBackendService.healthCheck = googleHealthCheck
       }
     }
   }

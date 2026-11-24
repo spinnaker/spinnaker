@@ -54,6 +54,28 @@ class ParallelDeployStageSpec extends Specification {
   }
 
   @Unroll
+  def "cluster providerType #providerType (#providerType.class.simpleName) resolves stage type #expectedType"() {
+    given:
+    def pipeline = pipeline {
+      application = "orca"
+    }
+    def deployStage = new StageExecutionImpl(pipeline, "deploy", "Deploy!", [:])
+    def cluster = [region: "us-west-2", providerType: providerType]
+
+    expect:
+    new ParallelDeployStage().clusterContext(deployStage, [:], cluster).type == expectedType
+
+    where:
+    providerType       || expectedType
+    "aws"              || "createServerGroup"
+    "kubernetes"       || "createServerGroup_kubernetes"
+    "titus"            || "createServerGroup_titus"
+    // `in` uses List.contains (Java equals), so a GString "aws" is not treated as aws. This pins the
+    // long-standing behavior; changing it should be a deliberate, separate change.
+    "${'aw'}s"         || "createServerGroup_aws"
+  }
+
+  @Unroll
   def "pipeline strategy should #data.scenario"() {
     given:
     def parentPipeline = pipeline {

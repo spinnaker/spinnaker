@@ -58,7 +58,7 @@ export class CloudFoundryMapLoadBalancerModal extends React.Component<
     dismissModal: noop,
   };
 
-  private destroy$ = new Subject();
+  private destroy$ = new Subject<void>();
   private formikRef = React.createRef<Formik<ICloudFoundryLoadBalancerModalValues>>();
 
   constructor(props: ICloudFoundryLoadBalancerModalProps) {

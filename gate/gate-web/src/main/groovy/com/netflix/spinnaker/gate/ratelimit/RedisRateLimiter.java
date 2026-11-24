@@ -15,19 +15,46 @@
  */
 package com.netflix.spinnaker.gate.ratelimit;
 
-import java.util.Calendar;
-import java.util.Date;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import java.util.List;
+import lombok.extern.slf4j.Slf4j;
 import redis.clients.jedis.Jedis;
 import redis.clients.jedis.JedisPool;
 import redis.clients.jedis.exceptions.JedisException;
 
+/**
+ * Fixed-window rate limiter backed by Redis, shared by every Gate instance that uses the same
+ * Redis.
+ *
+ * <p>The count and the window expiry are managed by a single Lua script so concurrent requests from
+ * different Gate instances cannot race, and so a bucket can never be left without an expiry (which
+ * would throttle its principal forever).
+ */
+@Slf4j
 public class RedisRateLimiter implements RateLimiter {
 
-  private static final Logger log = LoggerFactory.getLogger(RedisRateLimiter.class);
+  private static final String PRINCIPAL_KEY_PREFIX = "rateLimit:";
 
-  JedisPool jedisPool;
+  // Distinct from the principal prefix so a principal named "rule:..." can't alias a rule bucket.
+  private static final String RULE_KEY_PREFIX = "rateLimitRule:";
+
+  /**
+   * KEYS[1] = bucket key, ARGV[1] = window length in milliseconds.
+   *
+   * <p>Returns {count, ttlMillis}. The expiry is (re)applied whenever the bucket is new or has
+   * somehow lost its TTL; otherwise the existing window is left untouched.
+   */
+  private static final String INCREMENT_SCRIPT =
+      """
+      local count = redis.call('INCR', KEYS[1])
+      local ttl = redis.call('PTTL', KEYS[1])
+      if count == 1 or ttl < 0 then
+        redis.call('PEXPIRE', KEYS[1], ARGV[1])
+        ttl = tonumber(ARGV[1])
+      end
+      return {count, ttl}
+      """;
+
+  private final JedisPool jedisPool;
 
   public RedisRateLimiter(JedisPool jedisPool) {
     this.jedisPool = jedisPool;
@@ -35,28 +62,32 @@ public class RedisRateLimiter implements RateLimiter {
 
   @Override
   public Rate incrementAndGetRate(RateLimitPrincipal principal) {
-    String key = getRedisKey(principal.getName());
+    return increment(PRINCIPAL_KEY_PREFIX + principal.getName(), principal);
+  }
+
+  @Override
+  public Rate incrementAndGetRate(String ruleName, RateLimitPrincipal principal) {
+    return increment(RULE_KEY_PREFIX + ruleName + ":" + principal.getName(), principal);
+  }
+
+  private Rate increment(String key, RateLimitPrincipal principal) {
+    long windowMillis = principal.getRateSeconds() * 1000L;
 
     try (Jedis jedis = jedisPool.getResource()) {
-      String count = jedis.get(key);
+      List<?> result =
+          (List<?>)
+              jedis.eval(INCREMENT_SCRIPT, List.of(key), List.of(Long.toString(windowMillis)));
 
-      Bucket bucket;
-      if (count == null) {
-        bucket = Bucket.buildNew(key, principal.getCapacity(), principal.getRateSeconds());
-      } else {
-        Long ttl = jedis.pttl(key);
-        bucket =
-            Bucket.buildExisting(
-                key,
-                principal.getCapacity(),
-                principal.getRateSeconds(),
-                Integer.parseInt(count),
-                ttl.intValue());
-      }
+      long count = (Long) result.get(0);
+      long ttlMillis = (Long) result.get(1);
 
-      bucket.increment(jedis);
-
-      return bucket.toRate();
+      Rate rate = new Rate();
+      rate.capacity = principal.getCapacity();
+      rate.rateSeconds = principal.getRateSeconds();
+      rate.remaining = (int) Math.max(principal.getCapacity() - count, 0);
+      rate.reset = System.currentTimeMillis() + ttlMillis;
+      rate.throttled = count > principal.getCapacity();
+      return rate;
     } catch (JedisException e) {
       log.error("failed getting rate limit, disabling for request", e);
       Rate rate = new Rate();
@@ -64,73 +95,7 @@ public class RedisRateLimiter implements RateLimiter {
       rate.rateSeconds = principal.getRateSeconds();
       rate.capacity = 0;
       rate.remaining = 0;
-      rate.reset = new Date().getTime();
-      return rate;
-    }
-  }
-
-  private static String getRedisKey(String name) {
-    return "rateLimit:" + name;
-  }
-
-  private static class Bucket {
-    String key;
-    Integer capacity;
-    Integer remaining;
-    Date reset;
-    int rate;
-
-    static Bucket buildNew(String key, Integer capacity, Integer rate) {
-      Bucket bucket = new Bucket();
-      bucket.key = key;
-      bucket.capacity = capacity;
-      bucket.remaining = capacity;
-
-      Calendar calendar = Calendar.getInstance();
-      calendar.add(Calendar.SECOND, rate);
-
-      bucket.reset = calendar.getTime();
-      bucket.rate = rate;
-
-      return bucket;
-    }
-
-    static Bucket buildExisting(
-        String key, Integer capacity, Integer rate, Integer count, Integer ttl) {
-      Bucket bucket = new Bucket();
-      bucket.key = key;
-      bucket.capacity = capacity;
-      bucket.remaining = capacity - Math.min(capacity, count);
-
-      Calendar calendar = Calendar.getInstance();
-      calendar.add(Calendar.MILLISECOND, ttl);
-
-      bucket.reset = calendar.getTime();
-      bucket.rate = rate;
-
-      return bucket;
-    }
-
-    void increment(Jedis jedis) {
-      Long newCount = jedis.incr(key);
-      if (newCount == 1) {
-        remaining = capacity - 1;
-        jedis.pexpire(key, reset.getTime() - new Date().getTime());
-        return;
-      }
-
-      remaining = capacity - newCount.intValue();
-    }
-
-    Rate toRate() {
-      Rate rate = new Rate();
-      rate.capacity = capacity;
-      rate.rateSeconds = this.rate;
-      rate.remaining = Math.max(remaining, 0);
-
-      // 5 seconds are added here to allow for a degree of time drift between server and client.
-      rate.reset = reset.getTime() + 5;
-      rate.throttled = remaining < 0;
+      rate.reset = System.currentTimeMillis();
       return rate;
     }
   }

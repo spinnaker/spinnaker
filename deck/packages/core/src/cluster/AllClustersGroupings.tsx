@@ -1,3 +1,4 @@
+import type { RawParams } from '@uirouter/core';
 import React from 'react';
 import type { ListRowProps } from 'react-virtualized';
 import { AutoSizer, CellMeasurer, CellMeasurerCache, List } from 'react-virtualized';
@@ -21,6 +22,18 @@ export interface IAllClustersGroupingsState {
   groups: IClusterSubgroup[];
   sortFilter: ISortFilter;
 }
+
+export const findServerGroupRowIndex = (groups: IClusterSubgroup[], stateParams: RawParams): number =>
+  groups.findIndex((group) =>
+    group.subgroups.some((subgroup) =>
+      subgroup.serverGroups.some(
+        (serverGroup) =>
+          serverGroup.account === stateParams.accountId &&
+          serverGroup.name === stateParams.serverGroup &&
+          serverGroup.region === stateParams.region,
+      ),
+    ),
+  );
 
 export class AllClustersGroupingsComponent extends React.Component<
   IAllClustersGroupingsProps & IRouterInjectedProps,
@@ -112,16 +125,7 @@ export class AllClustersGroupingsComponent extends React.Component<
     const { stateParams } = this.props;
     // Automatically scroll server group into view if deep linkedif (stateParams.serverGroup) {
     this.clusterFilterService.groupsUpdatedStream.pipe(take(1)).subscribe(() => {
-      const scrollToRow = this.state.groups.findIndex((group) =>
-        group.subgroups.some((subgroup) =>
-          subgroup.serverGroups.some(
-            (sg) =>
-              sg.account === stateParams.accountId &&
-              sg.name === stateParams.serverGroup &&
-              sg.region === stateParams.region,
-          ),
-        ),
-      );
+      const scrollToRow = findServerGroupRowIndex(this.state.groups, stateParams);
 
       if (scrollToRow >= 0) {
         this.listRef.scrollToRow(scrollToRow);

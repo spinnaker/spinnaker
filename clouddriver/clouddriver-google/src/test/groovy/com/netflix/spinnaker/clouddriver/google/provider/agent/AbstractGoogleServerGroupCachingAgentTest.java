@@ -34,6 +34,7 @@ import com.google.api.services.compute.model.AutoscalingPolicyCpuUtilization;
 import com.google.api.services.compute.model.AutoscalingPolicyCustomMetricUtilization;
 import com.google.api.services.compute.model.AutoscalingPolicyLoadBalancingUtilization;
 import com.google.api.services.compute.model.AutoscalingPolicyScaleInControl;
+import com.google.api.services.compute.model.AutoscalingPolicyScalingSchedule;
 import com.google.api.services.compute.model.DistributionPolicy;
 import com.google.api.services.compute.model.DistributionPolicyZoneConfiguration;
 import com.google.api.services.compute.model.FixedOrPercent;
@@ -1090,6 +1091,49 @@ class AbstractGoogleServerGroupCachingAgentTest {
     GoogleAutoscalingPolicy converted = serverGroup.getAutoscalingPolicy();
 
     assertThat(converted.getCpuUtilization().getPredictiveMethod()).isNull();
+  }
+
+  @Test
+  void serverGroupAutoscalingPolicy_scalingSchedulesWithUnsetDisabledAreEnabled() {
+
+    InstanceGroupManager instanceGroupManager =
+        new InstanceGroupManager().setName("myServerGroup").setZone(ZONE_URL);
+    Autoscaler autoscaler =
+        new Autoscaler()
+            .setZone(ZONE_URL)
+            .setTarget("myServerGroup")
+            .setAutoscalingPolicy(
+                new AutoscalingPolicy()
+                    .setScalingSchedules(
+                        ImmutableMap.of(
+                            "unsetDisabled",
+                            new AutoscalingPolicyScalingSchedule()
+                                .setSchedule("0 9 * * *")
+                                .setMinRequiredReplicas(3),
+                            "explicitlyDisabled",
+                            new AutoscalingPolicyScalingSchedule()
+                                .setSchedule("0 18 * * *")
+                                .setDisabled(true))));
+
+    Compute compute =
+        new StubComputeFactory()
+            .setInstanceGroupManagers(instanceGroupManager)
+            .setAutoscalers(autoscaler)
+            .create();
+    AbstractGoogleServerGroupCachingAgent cachingAgent =
+        createCachingAgent(
+            compute, ImmutableList.of(instanceGroupManager), ImmutableList.of(autoscaler));
+
+    CacheResult cacheResult = cachingAgent.loadData(inMemoryProviderCache());
+    GoogleServerGroup serverGroup = getOnlyServerGroup(cacheResult);
+    Map<String, Boolean> enabledByName = new HashMap<>();
+    serverGroup
+        .getAutoscalingPolicy()
+        .getScalingSchedules()
+        .forEach(schedule -> enabledByName.put(schedule.getScheduleName(), schedule.getEnabled()));
+
+    assertThat(enabledByName)
+        .containsOnly(entry("unsetDisabled", true), entry("explicitlyDisabled", false));
   }
 
   public static AbstractGoogleServerGroupCachingAgent createCachingAgent(

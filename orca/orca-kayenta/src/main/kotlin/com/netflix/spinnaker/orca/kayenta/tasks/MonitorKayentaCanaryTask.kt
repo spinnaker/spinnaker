@@ -34,7 +34,8 @@ import org.springframework.stereotype.Component
 
 @Component
 class MonitorKayentaCanaryTask(
-  private val kayentaService: KayentaService
+  private val kayentaService: KayentaService,
+  private val canaryReportLinks: CanaryReportLinks
 ) : OverridableTimeoutRetryableTask {
 
   override fun getBackoffPeriod() = 1000L
@@ -59,6 +60,16 @@ class MonitorKayentaCanaryTask(
 
       return if (canaryScore <= context.scoreThresholds.marginal) {
         val resultStatus = if (stage.context["continuePipeline"] == true) FAILED_CONTINUE else TERMINAL
+        val message = canaryReportLinks.scoreFailureMessage(
+          canaryScore,
+          context.scoreThresholds.marginal,
+          CanaryReportLinks.ThresholdKind.MARGINAL,
+          stage.execution.application,
+          stage.context["canaryConfigId"],
+          stage.context["canaryPipelineExecutionId"]
+        )
+        // Records the message at context.exception.details.errors, which Deck shows as the stage failure message.
+        stage.appendErrorMessage(message)
         TaskResult.builder(resultStatus).context(
           mapOf(
             "canaryPipelineStatus" to SUCCEEDED,
@@ -66,7 +77,8 @@ class MonitorKayentaCanaryTask(
             "lastUpdatedIso" to canaryResults.endTimeIso.toString(),
             "durationString" to canaryResults.result.canaryDuration?.toString(),
             "canaryScore" to canaryScore,
-            "canaryScoreMessage" to "Canary score is not above the marginal score threshold.",
+            "canaryScoreMessage" to message,
+            "exception" to stage.context["exception"],
             "warnings" to warnings
           )
         ).build()

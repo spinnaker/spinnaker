@@ -25,6 +25,7 @@ import java.util.Map;
 import java.util.stream.Collectors;
 import org.springaicommunity.mcp.annotation.McpArg;
 import org.springaicommunity.mcp.annotation.McpResource;
+import org.springframework.security.access.prepost.PreAuthorize;
 
 /**
  * Read-only view over {@link McpAuditLog}: the mutating tool calls this MCP server itself has made
@@ -32,6 +33,9 @@ import org.springaicommunity.mcp.annotation.McpResource;
  * Delivery writes, ...), most recent first. Lets an MCP client - or an operator inspecting it
  * through one - answer "what has this MCP server actually done" without cross-referencing Gate's
  * general request logs.
+ *
+ * <p>Admin-only: the log spans every application and records which user did what, so both resources
+ * require Fiat admin through {@code @PreAuthorize}, enforced by the Spring AOP proxy.
  *
  * <p>Entries are process-local and in-memory only (bounded by {@code mcp.server.audit-log-size});
  * see {@link McpAuditLog} for what "recorded" does and doesn't guarantee.
@@ -54,8 +58,9 @@ public class McpAuditLogResource {
       uri = "spinnaker://mcp/audit-log",
       name = "MCP audit log",
       description =
-          "Recent mutating actions taken through this MCP server, most recent first, across all applications.",
+          "Admin-only: recent mutating actions taken through this MCP server, most recent first, across all applications.",
       mimeType = "application/json")
+  @PreAuthorize("@fiatPermissionEvaluator.isAdmin()")
   public String auditLog() {
     return writeValueAsString(toResponse(auditLog.recent(null)));
   }
@@ -64,9 +69,10 @@ public class McpAuditLogResource {
       uri = "spinnaker://mcp/audit-log/{application}",
       name = "MCP audit log for an application",
       description =
-          "Recent mutating actions taken through this MCP server whose target matched this application/resource "
+          "Admin-only: recent mutating actions taken through this MCP server whose target matched this application/resource "
               + "name, most recent first.",
       mimeType = "application/json")
+  @PreAuthorize("@fiatPermissionEvaluator.isAdmin()")
   public String auditLogForApplication(
       @McpArg(name = "application", description = "Application name", required = true)
           String application) {

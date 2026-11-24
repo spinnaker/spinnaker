@@ -32,6 +32,7 @@ import io.github.resilience4j.circuitbreaker.CallNotPermittedException;
 import io.github.resilience4j.circuitbreaker.CircuitBreaker;
 import io.github.resilience4j.circuitbreaker.CircuitBreakerConfig;
 import io.github.resilience4j.circuitbreaker.CircuitBreakerRegistry;
+import java.time.Duration;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -248,6 +249,7 @@ class RestEventListenerTest {
         new RestProperties.RestEndpointConfiguration();
     config.setWrap(false);
     config.setRetryCount(3);
+    config.setRetryBackoff(Duration.ofMillis(10));
 
     RestUrls.Service service1 =
         RestUrls.Service.builder().client(restService).config(config).build();

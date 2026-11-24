@@ -1,3 +1,4 @@
+import type { Mock } from 'vitest';
 import { UIRouterReact } from '@uirouter/react';
 
 import type { IHttpClientImplementation } from '../api';
@@ -35,7 +36,7 @@ describe('runtime initializers', () => {
   let originalPipeline: typeof Registry.pipeline;
   let originalSearchFilterTypes: IFilterType[];
   let originalUrlBuilder: typeof Registry.urlBuilder;
-  let metadataGet: jasmine.Spy;
+  let metadataGet: Mock;
   let runtime: DeckRuntime;
   const enabledKeys = [
     'serverGroups',
@@ -70,7 +71,7 @@ describe('runtime initializers', () => {
     };
     SETTINGS.hiddenStages = [];
     (SETTINGS as any).notifications = undefined;
-    metadataGet = jasmine.createSpy('metadataGet').and.returnValue(Promise.resolve([]));
+    metadataGet = vi.fn().mockReturnValue(Promise.resolve([]));
     RequestBuilder.defaultHttpClient = { get: metadataGet } as IHttpClientImplementation;
     runtime = createDeckRuntime(new UIRouterReact());
   });
@@ -91,14 +92,14 @@ describe('runtime initializers', () => {
   });
 
   it('registers each enabled data source once in stable registration order', () => {
-    const registerDataSource = spyOn(ApplicationDataSourceRegistry, 'registerDataSource').and.callThrough();
+    const registerDataSource = vi.spyOn(ApplicationDataSourceRegistry, 'registerDataSource');
 
     registerRuntimeDataSources(runtime);
     registerRuntimeDataSources(runtime);
 
     const keys = ApplicationDataSourceRegistry.getDataSources().map(({ key }) => key);
     enabledKeys.forEach((key) => expect(keys.filter((registeredKey) => registeredKey === key).length).toBe(1));
-    expect(registerDataSource.calls.allArgs().map(([config]) => config.key)).toEqual(enabledKeys);
+    expect(registerDataSource.mock.calls.map(([config]) => config.key)).toEqual(enabledKeys);
   });
 
   it('omits gated data sources while retaining standard data sources', () => {
@@ -113,7 +114,9 @@ describe('runtime initializers', () => {
   });
 
   it('registers synchronous runtime metadata exactly once without loading dynamic metadata', () => {
-    const getNotificationTypeMetadata = spyOn(NotificationService, 'getNotificationTypeMetadata');
+    const getNotificationTypeMetadata = vi
+      .spyOn(NotificationService, 'getNotificationTypeMetadata')
+      .mockReturnValue(undefined);
 
     initializeRuntimeMetadata(runtime);
     initializeRuntimeMetadata(runtime);
@@ -172,13 +175,13 @@ describe('runtime initializers', () => {
   });
 
   it('registers supported dynamic metadata exactly once', async () => {
-    spyOn(NotificationService, 'getNotificationTypeMetadata').and.returnValue(
+    vi.spyOn(NotificationService, 'getNotificationTypeMetadata').mockReturnValue(
       Promise.resolve([
         { notificationType: 'runtime-basic', uiType: 'BASIC', parameters: [] },
         { notificationType: 'runtime-custom', uiType: 'CUSTOM', parameters: [] },
       ]),
     );
-    metadataGet.and.callFake(({ url }) => {
+    metadataGet.mockImplementation(({ url }) => {
       if (url.endsWith('/jobs/preconfigured')) {
         return Promise.resolve([
           { type: 'runtime-job', uiType: 'BASIC', label: 'Runtime job', producesArtifacts: false },
@@ -213,7 +216,7 @@ describe('runtime initializers', () => {
       cdevents: { enabled: false },
     } as INotificationSettings;
     initializeRuntimeMetadata(runtime);
-    spyOn(NotificationService, 'getNotificationTypeMetadata').and.returnValue(
+    vi.spyOn(NotificationService, 'getNotificationTypeMetadata').mockReturnValue(
       Promise.resolve([
         { notificationType: 'SLACK', uiType: 'BASIC', parameters: [] },
         { notificationType: 'runtime-basic', uiType: 'BASIC', parameters: [] },
@@ -224,14 +227,14 @@ describe('runtime initializers', () => {
     await initializeDynamicRuntimeMetadata();
 
     const notificationKeys = Registry.pipeline.getNotificationTypes().map(({ key }) => key);
-    expect(notificationKeys.some((key) => key.toLowerCase() === 'slack')).toBeFalse();
+    expect(notificationKeys.some((key) => key.toLowerCase() === 'slack')).toBe(false);
     expect(notificationKeys.filter((key) => key === 'runtime-basic').length).toBe(1);
   });
 
   it('logs a dynamic metadata failure once and resolves', async () => {
     const failure = new Error('metadata unavailable');
-    spyOn(NotificationService, 'getNotificationTypeMetadata').and.returnValue(Promise.reject(failure));
-    const consoleError = spyOn(console, 'error').and.stub();
+    vi.spyOn(NotificationService, 'getNotificationTypeMetadata').mockReturnValue(Promise.reject(failure));
+    const consoleError = vi.spyOn(console, 'error').mockReturnValue(undefined);
 
     await initializeDynamicRuntimeMetadata();
 
@@ -240,21 +243,18 @@ describe('runtime initializers', () => {
   });
 
   it('logs preconfigured metadata failures independently and resolves', async () => {
-    spyOn(NotificationService, 'getNotificationTypeMetadata').and.returnValue(Promise.resolve([]));
-    metadataGet.and.callFake(({ url }) =>
+    vi.spyOn(NotificationService, 'getNotificationTypeMetadata').mockReturnValue(Promise.resolve([]));
+    metadataGet.mockImplementation(({ url }) =>
       url.endsWith('/jobs/preconfigured') || url.endsWith('/webhooks/preconfigured')
         ? Promise.reject(new Error(url))
         : Promise.resolve([]),
     );
-    const consoleError = spyOn(console, 'error').and.stub();
+    const consoleError = vi.spyOn(console, 'error').mockReturnValue(undefined);
 
     await initializeDynamicRuntimeMetadata();
 
     expect(consoleError).toHaveBeenCalledTimes(2);
-    expect(consoleError).toHaveBeenCalledWith('Failed to load preconfigured job stage metadata', jasmine.any(Error));
-    expect(consoleError).toHaveBeenCalledWith(
-      'Failed to load preconfigured webhook stage metadata',
-      jasmine.any(Error),
-    );
+    expect(consoleError).toHaveBeenCalledWith('Failed to load preconfigured job stage metadata', expect.any(Error));
+    expect(consoleError).toHaveBeenCalledWith('Failed to load preconfigured webhook stage metadata', expect.any(Error));
   });
 });

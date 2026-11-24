@@ -21,9 +21,13 @@ import com.netflix.spinnaker.gate.services.internal.OrcaServiceSelector
 import com.netflix.spinnaker.kork.retrofit.Retrofit2SyncCall
 import com.netflix.spinnaker.security.AuthenticatedRequest
 import org.springframework.beans.factory.annotation.Autowired
+import okhttp3.MediaType
+import okhttp3.RequestBody
 import org.springframework.http.HttpHeaders
 import org.springframework.stereotype.Component
 import io.cloudevents.CloudEvent
+
+import java.nio.charset.StandardCharsets
 
 @Component
 class WebhookService {
@@ -34,25 +38,47 @@ class WebhookService {
   @Autowired
   OrcaServiceSelector orcaServiceSelector
 
-  Map webhooks(String type, String source, Map event) {
-    if (event == null) {
-      // Need this since Retrofit.Body does not work with null as Body
-      event = new HashMap()
-    }
+  /**
+   * The headers a sender attaches to a webhook that echo reads, matched case-insensitively. This is
+   * an allowlist on purpose: it keeps the caller's credentials (Authorization, Cookie) and
+   * Spinnaker's own identity headers from being copied from an anonymous request.
+   *
+   * <ul>
+   *   <li>X-Hub-Signature, X-Hub-Signature-256: HMAC of the body (GitHub, Bitbucket, Gitea)
+   *   <li>X-Event-Key: event type (Bitbucket)
+   *   <li>X-GitHub-Event: event type (GitHub)
+   *   <li>X-Gitea-Signature, X-Gitea-Event: HMAC of the body and event type (Gitea)
+   * </ul>
+   */
+  static final List<String> FORWARDED_WEBHOOK_HEADERS = [
+    'X-Hub-Signature',
+    'X-Hub-Signature-256',
+    'X-Event-Key',
+    'X-GitHub-Event',
+    'X-Gitea-Signature',
+    'X-Gitea-Event'
+  ].asImmutable()
 
-    return AuthenticatedRequest.allowAnonymous( {
-      Retrofit2SyncCall.execute(echoService.webhooks(type, source, event))
-    })
-  }
+  private static final MediaType JSON = MediaType.get('application/json; charset=utf-8')
 
-  Map webhooks(String type, String source, Map event, String gitHubSignature, String bitBucketEventType) {
-    if (event == null) {
-      // Need this since Retrofit.Body does not work with null as Body
-      event = new HashMap()
+  /**
+   * @param body the request body exactly as the sender sent it; may be null or empty
+   * @param senderHeaders the sender's headers; only {@link #FORWARDED_WEBHOOK_HEADERS} are passed on
+   */
+  Map webhooks(String type, String source, byte[] body, HttpHeaders senderHeaders) {
+    // An empty body used to arrive as an empty Map, which was sent to echo as "{}".
+    RequestBody requestBody = RequestBody.create(body ? body : '{}'.getBytes(StandardCharsets.UTF_8), JSON)
+
+    Map<String, String> headers = [:]
+    FORWARDED_WEBHOOK_HEADERS.each { String name ->
+      String value = senderHeaders.getFirst(name)
+      if (value != null) {
+        headers[name] = value
+      }
     }
 
     return AuthenticatedRequest.allowAnonymous({
-      Retrofit2SyncCall.execute(echoService.webhooks(type, source, event, gitHubSignature, bitBucketEventType))
+      Retrofit2SyncCall.execute(echoService.webhooks(type, source, requestBody, headers))
     })
   }
 

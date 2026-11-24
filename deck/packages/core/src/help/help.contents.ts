@@ -152,6 +152,18 @@ const helpContents: { [key: string]: string } = {
       <p>The GitHub organization or user that owns the repository.</p>`,
   'pipeline.config.expectedArtifact.defaultGithub.repo': `
       <p>The name of the GitHub repository.</p>`,
+  'pipeline.config.expectedArtifact.defaultGitea.version': `
+      <p>The commit, tag, or branch to read the file from. When left empty, Gitea serves the file from the repository's default branch.</p>`,
+  'pipeline.config.expectedArtifact.defaultGitea.reference': `
+      <p>The Gitea API raw file url the artifact lives under. The domain name is that of your Gitea server.</p>
+      <p>An example is <code>https://gitea.example.com/api/v1/repos/$ORG/$REPO/raw/path/to/file.yml</code>.</p>`,
+  'pipeline.config.expectedArtifact.defaultGitea.baseUrl': `
+      <p>The Gitea API base URL, i.e. everything before <code>/repos/$ORG/$REPO/raw/$FILEPATH</code>.</p>
+      <p>This is typically <code>https://gitea.domain.com/api/v1</code>.</p>`,
+  'pipeline.config.expectedArtifact.defaultGitea.org': `
+      <p>The Gitea organization or user that owns the repository.</p>`,
+  'pipeline.config.expectedArtifact.defaultGitea.repo': `
+      <p>The name of the Gitea repository.</p>`,
   'pipeline.config.expectedArtifact.defaultGitlab.version': `
       <p>Either the commit or branch to checkout.</p>`,
   'pipeline.config.expectedArtifact.defaultGitlab.reference': `
@@ -438,6 +450,8 @@ const helpContents: { [key: string]: string } = {
     '<p>(Optional) If specified, only pushes to the branches that match this Java Regular Expression will be triggered. Leave empty to trigger builds for every branch.</p>',
   'pipeline.config.git.trigger.githubSecret':
     '<p>(Optional, but recommended) If specified, verifies GitHub as the sender of this trigger. See <a target="_blank" href="https://developer.github.com/webhooks/securing/">GitHub docs</a> for more information.</p>',
+  'pipeline.config.git.trigger.giteaSecret':
+    '<p>(Optional, but recommended) The secret configured on the Gitea webhook. If specified, the trigger only fires for payloads whose <code>X-Gitea-Signature</code> (HMAC-SHA256) matches.</p>',
   'serverGroup.ipv6': `<p>Associating an IPv6 address to nodes allows for ingress and egress communication over IPv6. Most modern software supports IPv6 and enablement is transparent. This is an incremental addition to IPv4 and will not remove the ability for connectivity over IPv4.</p>`,
   'serverGroupCapacity.useSourceCapacityTrue': `
       <p>Spinnaker will use the current capacity of the existing server group when deploying a new server group.</p>

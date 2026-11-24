@@ -21,25 +21,31 @@ export interface IViewChangesLinkProps {
   viewType?: string;
 }
 
+const LOCAL_CHANGE_SOURCE = 'local';
+
 export const ViewChangesLink = ({ changeConfig, linkText, nameItem, viewType }: IViewChangesLinkProps) => {
   const { executionService } = useDeckRuntimeServices();
   const changeConfigValue = changeConfig?.metadata?.value || ({} as ICreationMetadata);
+  const executionType = changeConfigValue.executionType || LOCAL_CHANGE_SOURCE;
+  const isExecution = executionType === 'pipeline';
+  const executionId = isExecution ? changeConfigValue.executionId : LOCAL_CHANGE_SOURCE;
+  const stageId = isExecution ? changeConfigValue.stageId : LOCAL_CHANGE_SOURCE;
 
   const fetchExecution = () => {
-    const isExecution = changeConfigValue.executionType === 'pipeline';
-    if (isExecution) {
-      return executionService.getExecution(changeConfigValue.executionId);
+    if (isExecution && executionId && stageId) {
+      return executionService.getExecution(executionId);
     }
     /** A noop promise so `useData` can be utilized */
     return Promise.resolve({} as IExecution);
   };
 
   const { result: executionDetails, status } = useData(fetchExecution, {} as IExecution, [
-    changeConfigValue.executionId,
-    changeConfigValue.stageId,
+    executionType,
+    executionId,
+    stageId,
   ]);
 
-  const stage = (executionDetails.stages || []).find((s: IExecutionStage) => s.id === changeConfigValue.stageId);
+  const stage = (executionDetails.stages || []).find((s: IExecutionStage) => s.id === stageId);
   const commits = stage?.context?.commits || changeConfig.commits || [];
   const jarDiffs = stage?.context?.jarDiffs || changeConfig.jarDiffs;
   const buildInfo = stage
@@ -49,7 +55,8 @@ export const ViewChangesLink = ({ changeConfig, linkText, nameItem, viewType }: 
       }
     : changeConfig.buildInfo;
 
-  const isLoaded = status === 'RESOLVED';
+  const hasRequiredExecutionMetadata = !isExecution || Boolean(executionId && stageId);
+  const isLoaded = status === 'RESOLVED' && hasRequiredExecutionMetadata;
   const hasJarDiffs = Object.keys(jarDiffs || {}).some((key: string) => jarDiffs[key].length > 0);
   const hasChanges = hasJarDiffs || commits.length;
 

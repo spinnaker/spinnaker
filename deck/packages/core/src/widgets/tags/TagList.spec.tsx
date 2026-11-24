@@ -1,28 +1,17 @@
-import type { ReactWrapper } from 'enzyme';
-import { mount } from 'enzyme';
+import { render, screen } from '@testing-library/react';
 import React from 'react';
 
 import type { ITag } from './Tag';
-import type { ITagListProps } from './TagList';
 import { TagList } from './TagList';
 
 describe('<TagList/>', () => {
-  let component: ReactWrapper<ITagListProps, any>;
+  it('displays a tag list', () => {
+    const tags: ITag[] = [1, 2, 3].map((seed) => ({ key: 'key', text: `some_text${seed}` }));
 
-  function getNewTag(seed: number): ITag {
-    return {
-      key: 'key',
-      text: `some_text${seed}`,
-    };
-  }
+    const { container } = render(<TagList tags={tags} />);
 
-  function getNewTagList(): ReactWrapper<ITagListProps, any> {
-    return mount(<TagList tags={[1, 2, 3].map((seed: number) => getNewTag(seed))} />);
-  }
-
-  it('should display a tag list', () => {
-    component = getNewTagList();
-    expect(component.render().hasClass('tag-list')).toBeTruthy();
-    expect(component.find('div.tag').length).toBe(3);
+    expect(container.firstElementChild).toHaveClass('tag-list');
+    expect(screen.getAllByText('KEY')).toHaveLength(3);
+    tags.forEach(({ text }) => expect(screen.getByText(text)).toBeInTheDocument());
   });
 });

@@ -37,6 +37,11 @@ auth:
       - scope1
       - scope2
 
+    # spin sends prompt=consent with the login request unless this is false.
+    # Set it to false for Microsoft Entra ID when an admin has granted consent
+    # for the tenant, otherwise users get an "Approval required" screen.
+    # forceConsent: false
+
     # To set a cached token, follow the following format:
     # note that these yaml keys must match the golang struct tags exactly because of yaml.UnmarshalStrict
     cachedToken:

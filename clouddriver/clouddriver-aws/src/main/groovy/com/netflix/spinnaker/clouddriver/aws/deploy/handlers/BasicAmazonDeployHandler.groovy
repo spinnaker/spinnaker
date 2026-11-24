@@ -270,7 +270,7 @@ class BasicAmazonDeployHandler implements DeployHandler<BasicAmazonDeployDescrip
         .desiredInstances(capacity.desired)
         .securityGroups(description.securityGroups)
         .iamRole(iamRole(description, deployDefaults))
-        .keyPair(description.keyPair ?: account?.defaultKeyPair)
+        .keyPair(keyPair(description, account))
         .sequence(description.sequence)
         .ignoreSequence(description.ignoreSequence)
         .startDisabled(description.startDisabled)
@@ -303,7 +303,11 @@ class BasicAmazonDeployHandler implements DeployHandler<BasicAmazonDeployDescrip
         .lifecycleHooks(getLifecycleHooks(account, description))
         .setLaunchTemplate(description.setLaunchTemplate)
         .requireIMDSv2(description.requireIMDSv2)
+        .enableInstanceMetadataTags(description.enableInstanceMetadataTags)
         .enableEnclave(description.enableEnclave)
+        .tcpEstablishedTimeout(description.tcpEstablishedTimeout)
+        .udpStreamTimeout(description.udpStreamTimeout)
+        .udpTimeout(description.udpTimeout)
         .associateIPv6Address(description.associateIPv6Address)
         .unlimitedCpuCredits(description.unlimitedCpuCredits != null
           ? description.unlimitedCpuCredits
@@ -509,6 +513,15 @@ class BasicAmazonDeployHandler implements DeployHandler<BasicAmazonDeployDescrip
   static String iamRole(BasicAmazonDeployDescription description, DeployDefaults deployDefaults) {
     def iamRole = description.iamRole ?: deployDefaults.iamRole
     return description.application ? iamRole.replaceAll(Pattern.quote('{{application}}'), description.application) : iamRole
+  }
+
+  /**
+   * An empty key pair launches instances without a key pair, while an unset one falls back to the
+   * account's default key pair, if it has one.
+   */
+  static String keyPair(BasicAmazonDeployDescription description, NetflixAmazonCredentials account) {
+    def keyPair = description.keyPair != null ? description.keyPair : account?.defaultKeyPair
+    return keyPair ?: null
   }
 
   @VisibleForTesting

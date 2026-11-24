@@ -1,4 +1,4 @@
-import { shallow } from 'enzyme';
+import { render, screen } from '@testing-library/react';
 import React from 'react';
 
 import { AccountService } from '@spinnaker/core';
@@ -7,11 +7,11 @@ import { ManifestDetailsLinkComponent } from './ManifestDetailsLink';
 
 describe('Cloud Run ManifestDetailsLink', () => {
   it('builds its link through the injected state service', async () => {
-    spyOn(AccountService, 'getAccountDetails').and.returnValue(
+    vi.spyOn(AccountService, 'getAccountDetails').mockReturnValue(
       Promise.resolve({ spinnakerKindMap: { Service: 'unclassified' } } as any) as any,
     );
-    const href = jasmine.createSpy('href').and.returnValue('#/manifest');
-    const component = shallow(
+    const href = vi.fn().mockReturnValue('#/manifest');
+    render(
       <ManifestDetailsLinkComponent
         {...({ router: {}, stateParams: {}, stateService: { href } } as any)}
         accountId="test-account"
@@ -20,8 +20,7 @@ describe('Cloud Run ManifestDetailsLink', () => {
       />,
     );
 
-    await Promise.resolve();
-    component.update();
+    const link = await screen.findByRole('link', { name: 'Manifest' });
 
     expect(href).toHaveBeenCalledWith('home.applications.application.insight.clusters.cloudrunResource', {
       accountId: 'test-account',
@@ -30,6 +29,6 @@ describe('Cloud Run ManifestDetailsLink', () => {
       reg: '',
       region: '_',
     });
-    expect(component.find('a').prop('href')).toBe('#/manifest');
+    expect(link).toHaveAttribute('href', '#/manifest');
   });
 });

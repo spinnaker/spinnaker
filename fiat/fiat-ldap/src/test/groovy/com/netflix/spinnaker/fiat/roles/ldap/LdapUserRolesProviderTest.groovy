@@ -19,8 +19,11 @@ package com.netflix.spinnaker.fiat.roles.ldap
 import com.netflix.spinnaker.fiat.config.LdapConfig
 import com.netflix.spinnaker.fiat.model.resources.Role
 import com.netflix.spinnaker.fiat.permissions.ExternalUser
+import com.netflix.spinnaker.fiat.providers.ProviderException
 import org.apache.commons.lang3.tuple.Pair
 import org.springframework.dao.IncorrectResultSizeDataAccessException
+import org.springframework.ldap.CommunicationException
+import org.springframework.ldap.PartialResultException
 import org.springframework.ldap.control.PagedResultsDirContextProcessor
 import org.springframework.security.ldap.SpringSecurityLdapTemplate
 import spock.lang.Specification
@@ -370,6 +373,66 @@ class LdapUserRolesProviderTest extends Specification {
 
     then:
     roles.sort() == [role1, role2].sort()
+  }
+
+  void "loadRolesForUsers should not fail the batch when a user cannot be found in LDAP"() {
+    given:
+    def configProps = baseConfigProps()
+    configProps.groupSearchBase = "notEmpty"
+    configProps.userSearchFilter = "notEmpty"
+    configProps.thresholdToUseGroupMembership = 100
+    def users = [externalUser('present'), externalUser('missing')]
+
+    def provider = Spy(LdapUserRolesProvider)
+    provider.configProps = configProps
+    provider.ldapTemplate = Mock(SpringSecurityLdapTemplate)
+
+    when:
+    def result = provider.loadRolesForUsers(users)
+
+    then:
+    1 * provider.loadRoles(users[0]) >> [new Role('group1')]
+    1 * provider.loadRoles(users[1]) >> {
+      throw new ProviderException(LdapUserRolesProvider, new PartialResultException(new javax.naming.PartialResultException('referral')))
+    }
+    result.keySet() == ['present', 'missing'] as Set
+    result['present'] == [new Role('group1')]
+    result['missing'] == []
+  }
+
+  void "loadRolesForUsers should fail the batch when LDAP is unavailable"() {
+    given:
+    def configProps = baseConfigProps()
+    configProps.groupSearchBase = "notEmpty"
+    def users = [externalUser('present'), externalUser('other')]
+
+    def provider = Spy(LdapUserRolesProvider)
+    provider.configProps = configProps
+    provider.ldapTemplate = Mock(SpringSecurityLdapTemplate)
+    provider.loadRoles(users[0]) >> {
+      throw new ProviderException(LdapUserRolesProvider,
+          new CommunicationException(new javax.naming.CommunicationException('down')))
+    }
+
+    when:
+    provider.loadRolesForUsers(users)
+
+    then:
+    thrown(ProviderException)
+  }
+
+  void "getPartialUserDn returns null when the user is absent from LDAP"() {
+    given:
+    def configProps = baseConfigProps()
+    configProps.userSearchFilter = "notEmpty"
+    def provider = new LdapUserRolesProvider()
+    provider.configProps = configProps
+    provider.ldapTemplate = Mock(SpringSecurityLdapTemplate) {
+      1 * searchForSingleEntry(*_) >> { throw new IncorrectResultSizeDataAccessException(1, 0) }
+    }
+
+    expect:
+    provider.getPartialUserDn('gone') == null
   }
 
   private static ExternalUser externalUser(String id) {

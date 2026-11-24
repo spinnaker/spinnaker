@@ -218,6 +218,3 @@ swagger:
 spring:
   liquibase:
     change-log: classpath:db/changelog-master.yml
-  autoconfigure:
-    exclude: >
-      org.springframework.boot.jdbc.autoconfigure.DataSourceAutoConfiguration,

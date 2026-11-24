@@ -17,11 +17,14 @@ package com.netflix.spinnaker.config
 
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.netflix.spectator.api.Registry
+import com.netflix.spinnaker.cats.cluster.DefaultNodeIdentity
+import com.netflix.spinnaker.clouddriver.cache.MaintenanceLock
 import com.netflix.spinnaker.clouddriver.data.task.TaskRepository
 import com.netflix.spinnaker.clouddriver.event.persistence.EventRepository
 import com.netflix.spinnaker.clouddriver.security.AccountDefinitionMapper
 import com.netflix.spinnaker.clouddriver.security.AccountDefinitionRepository
-import com.netflix.spinnaker.clouddriver.sql.SqlProvider
+import com.netflix.spinnaker.clouddriver.sql.SqlMaintenanceLock
+import com.netflix.spinnaker.clouddriver.sql.SqlRetries
 import com.netflix.spinnaker.clouddriver.sql.SqlTaskCleanupAgent
 import com.netflix.spinnaker.clouddriver.sql.SqlTaskRepository
 import com.netflix.spinnaker.clouddriver.sql.event.SqlEventCleanupAgent
@@ -51,14 +54,19 @@ import java.time.Clock
 @EnableConfigurationProperties(SqlTaskCleanupAgentProperties::class, SqlEventCleanupAgentConfigProperties::class)
 class SqlConfiguration {
 
+  /** Retries shared by the clouddriver-sql repositories, configured by `sql.retries`. */
+  @Bean
+  fun sqlRetries(sqlProperties: SqlProperties): SqlRetries = SqlRetries(sqlProperties.retries)
+
   @Bean
   @ConditionalOnProperty("sql.task-repository.enabled")
   fun sqlTaskRepository(
     jooq: DSLContext,
     clock: Clock,
-    objectMapper: ObjectMapper
+    objectMapper: ObjectMapper,
+    sqlRetries: SqlRetries
   ): TaskRepository =
-    SqlTaskRepository(jooq, objectMapper, clock, ConnectionPools.TASKS.value)
+    SqlTaskRepository(jooq, objectMapper, clock, ConnectionPools.TASKS.value, sqlRetries)
 
   @Bean
   @ConditionalOnProperty("sql.task-repository.enabled", "sql.task-repository.secondary.enabled")
@@ -66,10 +74,10 @@ class SqlConfiguration {
     jooq: DSLContext,
     clock: Clock,
     objectMapper: ObjectMapper,
-    @Value("\${sql.task-repository.secondary.pool-name}") poolName: String
-
+    @Value("\${sql.task-repository.secondary.pool-name}") poolName: String,
+    sqlRetries: SqlRetries
   ): TaskRepository =
-    SqlTaskRepository(jooq, objectMapper, clock, poolName)
+    SqlTaskRepository(jooq, objectMapper, clock, poolName, sqlRetries)
 
   @Bean
   @ConditionalOnProperty("sql.task-repository.enabled")
@@ -78,20 +86,10 @@ class SqlConfiguration {
     jooq: DSLContext,
     clock: Clock,
     registry: Registry,
-    properties: SqlTaskCleanupAgentProperties
+    properties: SqlTaskCleanupAgentProperties,
+    sqlRetries: SqlRetries
   ): SqlTaskCleanupAgent =
-    SqlTaskCleanupAgent(jooq, clock, registry, properties)
-
-  /**
-   * TODO(rz): When enabled, clouddriver gets wired up with two SqlProviders (one here, another in cats-sql).
-   *  This should get cleaned up such that only one sqlProvider is ever created (register agents via an interface, say
-   *  `SqlAgent`?)
-   */
-  @Bean
-  @ConditionalOnProperty("sql.task-repository.enabled")
-  @ConditionalOnExpression("\${sql.read-only:false} == false")
-  fun sqlProvider(sqlTaskCleanupAgent: SqlTaskCleanupAgent): SqlProvider =
-    SqlProvider(mutableListOf(sqlTaskCleanupAgent))
+    SqlTaskCleanupAgent(jooq, clock, registry, properties, sqlRetries)
 
   @Bean
   fun sqlEventRepository(
@@ -101,7 +99,8 @@ class SqlConfiguration {
     objectMapper: ObjectMapper,
     applicationEventPublisher: ApplicationEventPublisher,
     registry: Registry,
-    subtypeLocators: List<SubtypeLocator>
+    subtypeLocators: List<SubtypeLocator>,
+    sqlRetries: SqlRetries
   ): EventRepository {
     // TODO(rz): ObjectMapperSubtypeConfigurer should become a standard kork feature. This is pretty gross.
     ObjectMapperSubtypeConfigurer(true).registerSubtypes(objectMapper, subtypeLocators)
@@ -110,7 +109,8 @@ class SqlConfiguration {
       serviceVersion,
       objectMapper,
       applicationEventPublisher,
-      registry
+      registry,
+      sqlRetries
     ).let {
       InstrumentedProxy.proxy(registry, it, "eventRepository", mapOf("backend" to "sql"))
     }
@@ -127,12 +127,31 @@ class SqlConfiguration {
     return SqlEventCleanupAgent(jooq, registry, properties, dynamicConfigService)
   }
 
+  /**
+   * Lock for [com.netflix.spinnaker.clouddriver.cache.MaintenanceAgent]s, backed by the same
+   * `cats_agent_locks` table (and `sql.table-namespace`) the CATS SQL scheduler uses. When a
+   * namespace is set, the namespaced table is created if missing.
+   *
+   * Only created on writable pods with maintenance agents enabled: read-only or
+   * maintenance-disabled pods have no maintenance work and may lack DDL rights for that table.
+   */
+  @Bean
+  @ConditionalOnExpression("\${sql.read-only:false} == false")
+  @ConditionalOnProperty(value = ["maintenance-agents.enabled"], matchIfMissing = true)
+  fun sqlMaintenanceLock(
+    jooq: DSLContext,
+    @Value("\${sql.table-namespace:#{null}}") tableNamespace: String?
+  ): MaintenanceLock =
+    SqlMaintenanceLock(jooq, DefaultNodeIdentity(), tableNamespace)
+
   @Bean
   @ConditionalOnProperty("account.storage.enabled", matchIfMissing = true)
   fun sqlAccountDefinitionRepository(
     jooq: DSLContext,
     clock: Clock,
-    mapper: AccountDefinitionMapper
-  ): AccountDefinitionRepository = SqlAccountDefinitionRepository(jooq, mapper, clock, ConnectionPools.ACCOUNTS.value)
+    mapper: AccountDefinitionMapper,
+    sqlRetries: SqlRetries
+  ): AccountDefinitionRepository =
+    SqlAccountDefinitionRepository(jooq, mapper, clock, ConnectionPools.ACCOUNTS.value, sqlRetries)
 
 }

@@ -19,13 +19,13 @@ package com.netflix.spinnaker.clouddriver.cloudrun.security;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.google.api.services.run.v1.CloudRun;
 import com.netflix.spinnaker.clouddriver.cloudrun.CloudrunCloudProvider;
-import com.netflix.spinnaker.clouddriver.cloudrun.CloudrunJobExecutor;
 import com.netflix.spinnaker.clouddriver.security.AbstractAccountCredentials;
 import com.netflix.spinnaker.fiat.model.resources.Permissions;
 import java.util.ArrayList;
 import java.util.List;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
+import org.apache.commons.lang3.StringUtils;
 
 @Data
 @EqualsAndHashCode(callSuper = false)
@@ -65,6 +65,8 @@ public class CloudrunNamedAccountCredentials
     String jsonKey;
     String jsonPath;
     String serviceAccountEmail;
+    String serviceAccountId;
+    String serviceAccountProject;
     String localRepositoryDirectory;
     String applicationName;
     boolean sshTrustUnknownHosts;
@@ -156,15 +158,37 @@ public class CloudrunNamedAccountCredentials
       return this;
     }
 
-    public CloudrunNamedAccountCredentials build(CloudrunJobExecutor jobExecutor) {
-
+    /**
+     * Picks the credentials in the same order as the Google provider: explicit credentials, a JSON
+     * key, an impersonated service account, then application default credentials.
+     */
+    CloudrunCredentials resolveCredentials() {
       if (credentials != null) {
-        credentials = credentials;
-      } else if (jsonKey != null) {
-        credentials = new CloudrunJsonCredentials(project, jsonKey);
-      } else {
-        credentials = new CloudrunCredentials(project);
+        return credentials;
       }
+      if (jsonKey != null) {
+        return new CloudrunJsonCredentials(project, jsonKey);
+      }
+      boolean hasId = !StringUtils.isEmpty(serviceAccountId);
+      boolean hasProject = !StringUtils.isEmpty(serviceAccountProject);
+      if (hasId && hasProject) {
+        return new CloudrunImpersonatedServiceAccountCredentials(
+            project, serviceAccountId, serviceAccountProject);
+      }
+      if (hasId || hasProject) {
+        // Falling back to clouddriver's own identity here would silently deploy as the wrong
+        // service account.
+        throw new IllegalArgumentException(
+            String.format(
+                "Cloud Run account %s needs both serviceAccountId and serviceAccountProject to"
+                    + " impersonate a service account",
+                name));
+      }
+      return new CloudrunCredentials(project);
+    }
+
+    public CloudrunNamedAccountCredentials build() {
+      credentials = resolveCredentials();
 
       cloudRun = credentials.getCloudrun(applicationName);
       // To do code

@@ -15,12 +15,21 @@ import {
 import type { Application } from '@spinnaker/core';
 
 import { GceInstanceFlexibilityPolicyDetails } from './GceInstanceFlexibilityPolicyDetails';
+import { GceServerGroupDiskDescriptions } from './GceServerGroupDiskDescriptions';
 import { GceAutoHealingPolicyDetails } from './autoHealingPolicy';
 import { GceAutoscalingPolicyWriter } from '../../autoscalingPolicy';
 import { GceAutoscalingPolicyDetails } from './autoscalingPolicy';
+import {
+  buildGceTagHelpMap,
+  GceCustomMetadataList,
+  GceLabelsList,
+  GceOptionalHelpField,
+  GceTagsList,
+} from '../../common/GceResourceMetadata';
 import { GceXpnNamingService } from '../../common/xpnNaming.gce.service';
 import { GceCloneServerGroupModal } from '../configure/wizard/GceCloneServerGroupModal';
 import type { IGceServerGroup } from '../../domain';
+import { formatGceInstanceType } from '../../instance/custom/customInstanceFormatter';
 import { GceResizeServerGroupModal } from './resize/GceResizeServerGroupModal';
 import { GceRollbackServerGroupModal, getGceRollbackCandidates } from './rollback/GceRollbackServerGroupModal';
 
@@ -72,6 +81,7 @@ function decorateServerGroup(serverGroup: any): any {
       : undefined,
     network: xpnNaming.decorateXpnResourceIfNecessary(project, networkInterface.network),
     subnet: xpnNaming.decorateXpnResourceIfNecessary(project, networkInterface.subnetwork),
+    workloadIdentityConfig: instanceTemplate?.properties?.workloadIdentityConfig,
     zones: [...(serverGroup.zones || [])].sort(),
   };
 }
@@ -287,8 +297,36 @@ function shieldedValue(serverGroup: any, field: ShieldedField): boolean | undefi
   return serverGroup[field];
 }
 
-export function GceServerGroupLaunchConfigSection({ serverGroup }: { app: any; serverGroup: any }): JSX.Element {
+const AUTH_SCOPE_PREFIX = 'https://www.googleapis.com/auth/';
+
+function displayValue(value: unknown): string {
+  return value === undefined || value === null || value === '' ? '-' : String(value);
+}
+
+/** Derives the Launch Configuration fields that the pre-React GCE server group details controller computed. */
+export function getGceLaunchConfigDetails(serverGroup: any): any {
+  const launchConfig = serverGroup.launchConfig || {};
+  const properties = launchConfig.instanceTemplate?.properties || {};
+  const networkInterface = properties.networkInterfaces?.[0] || {};
+  const serviceAccount = properties.serviceAccounts?.[0];
+  const startupScriptItem = (properties.metadata?.items || []).find((item: any) => item.key === 'startup-script');
+  return {
+    associatePublicIPAddress: Object.prototype.hasOwnProperty.call(networkInterface, 'accessConfigs'),
+    authScopes: (serviceAccount?.scopes || []).map((scope: string) => scope.replace(AUTH_SCOPE_PREFIX, '')),
+    canIpForward: serverGroup.canIpForward ?? properties.canIpForward,
+    imageId: launchConfig.imageId,
+    instanceType: formatGceInstanceType(launchConfig.instanceType || properties.machineType),
+    minCpuPlatform: launchConfig.minCpuPlatform || properties.minCpuPlatform,
+    name: launchConfig.launchConfigurationName,
+    serviceAccountEmail: serviceAccount?.email,
+    startupScript: startupScriptItem?.value,
+  };
+}
+
+export function GceServerGroupLaunchConfigSection({ app, serverGroup }: { app: any; serverGroup: any }): JSX.Element {
+  const [startupScriptExpanded, setStartupScriptExpanded] = React.useState(false);
   const template = serverGroup.launchConfig?.instanceTemplate;
+  const launchConfigDetails = getGceLaunchConfigDetails(serverGroup);
   const shieldedSettings: Array<[string, boolean | undefined]> = [
     ['Secure Boot', shieldedValue(serverGroup, 'enableSecureBoot')],
     ['vTPM', shieldedValue(serverGroup, 'enableVtpm')],
@@ -299,6 +337,58 @@ export function GceServerGroupLaunchConfigSection({ serverGroup }: { app: any; s
       <dl className="dl-horizontal dl-narrow">
         <dt>Instance Template</dt>
         <dd>{template?.name || '-'}</dd>
+        {launchConfigDetails.name && launchConfigDetails.name !== template?.name && (
+          <>
+            <dt>Name</dt>
+            <dd>{launchConfigDetails.name}</dd>
+          </>
+        )}
+        <dt>Image</dt>
+        <dd>{displayValue(launchConfigDetails.imageId)}</dd>
+        <dt>Instance Type</dt>
+        <dd>{displayValue(launchConfigDetails.instanceType)}</dd>
+        <dt>Minimum CPU Platform</dt>
+        <dd>{launchConfigDetails.minCpuPlatform || '(Automatic)'}</dd>
+        <GceServerGroupDiskDescriptions application={app} serverGroup={serverGroup} />
+        {launchConfigDetails.serviceAccountEmail && (
+          <>
+            <dt>Service Account</dt>
+            <dd>{launchConfigDetails.serviceAccountEmail}</dd>
+          </>
+        )}
+        {launchConfigDetails.authScopes.length > 0 && (
+          <>
+            <dt>Auth Scopes</dt>
+            {launchConfigDetails.authScopes.map((authScope: string) => (
+              <dd key={authScope}>
+                {authScope} <GceOptionalHelpField id={`gce.instance.authScopes.${authScope}`} />
+              </dd>
+            ))}
+          </>
+        )}
+        <dt>Network</dt>
+        <dd>{displayValue(serverGroup.network)}</dd>
+        {serverGroup.subnet && (
+          <>
+            <dt>Subnet</dt>
+            <dd>{serverGroup.subnet}</dd>
+          </>
+        )}
+        <dt>Associate Public IP Address</dt>
+        <dd>{String(launchConfigDetails.associatePublicIPAddress)}</dd>
+        <dt>Can IP Forward</dt>
+        <dd>{displayValue(launchConfigDetails.canIpForward)}</dd>
+        <dt>Startup Script</dt>
+        {launchConfigDetails.startupScript ? (
+          <dd>
+            <a className="clickable" onClick={() => setStartupScriptExpanded(!startupScriptExpanded)}>
+              {startupScriptExpanded ? 'Hide Startup Script' : 'Show Startup Script'}
+            </a>
+            {startupScriptExpanded && <pre className="small">{launchConfigDetails.startupScript}</pre>}
+          </dd>
+        ) : (
+          <dd>[none]</dd>
+        )}
         <dt>Zones</dt>
         <dd>{(serverGroup.zones || []).join(', ') || '-'}</dd>
         <dt>Target shape</dt>
@@ -363,10 +453,69 @@ export function GceAutoHealingPolicySection({
   );
 }
 
+export function GceWorkloadIdentitySection({ serverGroup }: { app: any; serverGroup: any }): JSX.Element {
+  const workloadIdentityConfig = serverGroup.launchConfig?.instanceTemplate?.properties?.workloadIdentityConfig;
+  return (
+    <CollapsibleSection heading="Workload Identity">
+      {!workloadIdentityConfig ? (
+        <div>No Workload Identity configuration</div>
+      ) : (
+        <dl className="dl-horizontal dl-narrow">
+          <dt>Identity</dt>
+          <dd>{workloadIdentityConfig.identity || 'None'}</dd>
+          <dt>Identity Certificate Enabled</dt>
+          <dd>{workloadIdentityConfig.identityCertificateEnabled ? 'Yes' : 'No'}</dd>
+        </dl>
+      )}
+    </CollapsibleSection>
+  );
+}
+
+export function GceServerGroupCustomMetadataSection({ serverGroup }: { app: any; serverGroup: any }): JSX.Element {
+  return (
+    <CollapsibleSection heading="Custom Metadata">
+      <GceCustomMetadataList
+        items={serverGroup.launchConfig?.instanceTemplate?.properties?.metadata?.items}
+        helpKeyPrefix="gce.serverGroup.customMetadata"
+        emptyMessage="No custom metadata associated with this server group"
+      />
+    </CollapsibleSection>
+  );
+}
+
+export function GceServerGroupTagsSection({ app, serverGroup }: { app: any; serverGroup: any }): JSX.Element {
+  const tags: string[] = serverGroup.launchConfig?.instanceTemplate?.properties?.tags?.items || [];
+  return (
+    <CollapsibleSection heading="Tags">
+      <GceTagsList
+        tags={tags}
+        helpMap={buildGceTagHelpMap(app, serverGroup.account || serverGroup.accountId, tags)}
+        emptyMessage="No tags associated with this server group"
+      />
+    </CollapsibleSection>
+  );
+}
+
+export function GceServerGroupLabelsSection({ serverGroup }: { app: any; serverGroup: any }): JSX.Element {
+  return (
+    <CollapsibleSection heading="Labels">
+      <GceLabelsList
+        labels={serverGroup.instanceTemplateLabels || serverGroup.launchConfig?.instanceTemplate?.properties?.labels}
+        helpKeyPrefix="gce.serverGroup.labels"
+        emptyMessage="No labels associated with this server group"
+      />
+    </CollapsibleSection>
+  );
+}
+
 export const gceServerGroupDetailsSections = [
   GceServerGroupInformationSection,
   GceServerGroupCapacitySection,
   GceServerGroupLaunchConfigSection,
+  GceWorkloadIdentitySection,
   GceAutoscalingPolicySection,
   GceAutoHealingPolicySection,
+  GceServerGroupCustomMetadataSection,
+  GceServerGroupTagsSection,
+  GceServerGroupLabelsSection,
 ];

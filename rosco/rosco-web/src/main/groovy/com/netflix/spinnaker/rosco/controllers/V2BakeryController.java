@@ -33,14 +33,20 @@ public class V2BakeryController {
         bakeManifestServices.stream()
             .filter(s -> s.handles(type))
             .findFirst()
-            .orElseThrow(
-                () ->
-                    new IllegalArgumentException(
-                        "Cannot bake manifest with template renderer type: " + type));
+            .orElseThrow(() -> new IllegalArgumentException(unsupportedRendererMessage(type)));
 
     BakeManifestRequest bakeManifestRequest =
         (BakeManifestRequest) objectMapper.convertValue(request, service.requestType());
 
     return service.bake(bakeManifestRequest);
+  }
+
+  private static String unsupportedRendererMessage(String type) {
+    if ("KUSTOMIZE".equalsIgnoreCase(type) || "KUSTOMIZE3".equalsIgnoreCase(type)) {
+      return "Template renderer type "
+          + type
+          + " (Kustomize 3) is no longer supported. Use KUSTOMIZE4 or KUSTOMIZE5.";
+    }
+    return "Cannot bake manifest with template renderer type: " + type;
   }
 }

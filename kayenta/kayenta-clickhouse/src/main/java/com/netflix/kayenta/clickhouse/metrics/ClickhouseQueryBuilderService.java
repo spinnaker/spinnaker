@@ -12,7 +12,7 @@ import org.springframework.util.StringUtils;
 /**
  * Resolves the SQL statement for a Clickhouse canary metric. There is no structured/programmatic
  * query builder here - {@link QueryConfigUtils#expandCustomFilter} is the only mechanism used, so a
- * {@code customInlineTemplate} or {@code customFilterTemplate} is required.
+ * {@code template} or {@code customFilterTemplate} is required.
  */
 @Component
 public class ClickhouseQueryBuilderService {
@@ -50,7 +50,7 @@ public class ClickhouseQueryBuilderService {
 
     if (!StringUtils.hasText(query)) {
       throw new IllegalArgumentException(
-          "Clickhouse canary metrics must define either customInlineTemplate or "
+          "Clickhouse canary metrics must define either template or "
               + "customFilterTemplate containing the SQL query to execute.");
     }
 

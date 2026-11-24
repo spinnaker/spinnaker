@@ -17,6 +17,7 @@
 package com.netflix.spinnaker.clouddriver.lambda.provider.agent;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.netflix.spectator.api.Registry;
 import com.netflix.spinnaker.cats.agent.Agent;
 import com.netflix.spinnaker.cats.agent.AgentProvider;
 import com.netflix.spinnaker.clouddriver.aws.jackson.AwsObjectMapperFactory;
@@ -40,12 +41,14 @@ public class LambdaAgentProvider implements AgentProvider {
   private final AmazonClientProvider amazonClientProvider;
   private final LambdaServiceConfig lambdaServiceConfig;
   private final ServiceLimitConfiguration serviceLimitConfiguration;
+  private final Registry registry;
 
   @Autowired
   public LambdaAgentProvider(
       AmazonClientProvider amazonClientProvider,
       LambdaServiceConfig lambdaServiceConfig,
-      ServiceLimitConfiguration serviceLimitConfiguration) {
+      ServiceLimitConfiguration serviceLimitConfiguration,
+      Registry registry) {
     // Register the v2 SdkPojo serializer so caching-path conversions of AWS SDK v2 model objects
     // (e.g. FunctionConfiguration, AliasConfiguration) produce the expected JSON. v2 models are
     // not standard Jackson beans, so without this the default mapper emits empty/incorrect output.
@@ -54,6 +57,7 @@ public class LambdaAgentProvider implements AgentProvider {
     this.amazonClientProvider = amazonClientProvider;
     this.lambdaServiceConfig = lambdaServiceConfig;
     this.serviceLimitConfiguration = serviceLimitConfiguration;
+    this.registry = registry;
   }
 
   @Override
@@ -77,7 +81,8 @@ public class LambdaAgentProvider implements AgentProvider {
                 netflixAmazonCredentials,
                 region.getName(),
                 lambdaServiceConfig,
-                serviceLimitConfiguration));
+                serviceLimitConfiguration,
+                registry));
       }
     }
     return agents;

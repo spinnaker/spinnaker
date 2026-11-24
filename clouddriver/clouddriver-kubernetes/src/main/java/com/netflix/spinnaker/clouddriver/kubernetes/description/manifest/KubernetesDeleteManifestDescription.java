@@ -22,7 +22,6 @@ import com.google.common.base.Strings;
 import com.netflix.spinnaker.clouddriver.kubernetes.description.KubernetesAtomicOperationDescription;
 import com.netflix.spinnaker.clouddriver.kubernetes.description.KubernetesCoordinates;
 import com.netflix.spinnaker.clouddriver.kubernetes.security.KubernetesCredentials;
-import com.netflix.spinnaker.clouddriver.kubernetes.security.KubernetesSelectorList;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
@@ -37,7 +36,6 @@ public class KubernetesDeleteManifestDescription extends KubernetesAtomicOperati
   private String manifestName;
   private String location;
   private List<String> kinds = new ArrayList<>();
-  private KubernetesSelectorList labelSelectors = new KubernetesSelectorList();
 
   @JsonIgnore
   public boolean isDynamic() {

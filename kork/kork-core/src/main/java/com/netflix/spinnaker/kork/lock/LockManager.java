@@ -21,8 +21,7 @@ import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.netflix.spinnaker.kork.exceptions.ConstraintViolationException;
 import com.netflix.spinnaker.kork.exceptions.SystemException;
-import java.net.InetAddress;
-import java.net.UnknownHostException;
+import com.netflix.spinnaker.kork.instance.InstanceIdentity;
 import java.time.Duration;
 import java.util.*;
 import java.util.concurrent.Callable;
@@ -50,15 +49,9 @@ public interface LockManager {
   // VisibleForTesting
   Lock tryCreateLock(final LockOptions lockOptions);
 
-  String NAME_FALLBACK = UUID.randomUUID().toString();
-
   /** Used only if an ownerName is not provided in the constructor. */
   default String getOwnerName() {
-    try {
-      return InetAddress.getLocalHost().getHostName();
-    } catch (UnknownHostException e) {
-      return NAME_FALLBACK;
-    }
+    return InstanceIdentity.getLocalInstanceId();
   }
 
   default String lockKey(String name) {
@@ -244,6 +237,7 @@ public interface LockManager {
   class LockOptions {
     private String lockName;
     private Duration maximumLockDuration;
+    private boolean heartbeatsUntilReleased;
     private Duration successInterval = Duration.ZERO;
     private Duration failureInterval = Duration.ZERO;
     private long version;
@@ -256,8 +250,23 @@ public interface LockManager {
       return this;
     }
 
+    /**
+     * Set a renewal budget, replacing any prior {@link #withHeartbeatsUntilReleased()} selection.
+     */
     public LockOptions withMaximumLockDuration(Duration maximumLockDuration) {
       this.maximumLockDuration = maximumLockDuration;
+      this.heartbeatsUntilReleased = false;
+      return this;
+    }
+
+    /**
+     * Keep renewing a refreshable lock until its callback returns, rather than stopping after a
+     * fixed duration. The Redis lease still expires if the process stops renewing it. This does not
+     * fence a callback that continues running after loss of ownership.
+     */
+    public LockOptions withHeartbeatsUntilReleased() {
+      this.maximumLockDuration = Duration.ZERO;
+      this.heartbeatsUntilReleased = true;
       return this;
     }
 
@@ -288,6 +297,10 @@ public interface LockManager {
 
     public Duration getMaximumLockDuration() {
       return maximumLockDuration;
+    }
+
+    public boolean isHeartbeatsUntilReleased() {
+      return heartbeatsUntilReleased;
     }
 
     public Duration getSuccessInterval() {
@@ -331,6 +344,8 @@ public interface LockManager {
           + '\''
           + ", maximumLockDuration="
           + maximumLockDuration
+          + ", heartbeatsUntilReleased="
+          + heartbeatsUntilReleased
           + ", version="
           + version
           + ", attributes="
@@ -364,6 +379,16 @@ public interface LockManager {
 
     public LockCallbackException(Throwable cause) {
       super(cause);
+    }
+  }
+
+  /**
+   * The callback completed, but lock cleanup or ownership verification failed. Callers can report
+   * the lock failure without repeating the completed callback's effects.
+   */
+  class LockCleanupException extends LockCallbackException {
+    public LockCleanupException(String message, Throwable cause) {
+      super(message, cause);
     }
   }
 

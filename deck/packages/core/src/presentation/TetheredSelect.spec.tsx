@@ -6,7 +6,7 @@ import { TetheredSelect } from './TetheredSelect';
 describe('TetheredSelect', () => {
   [false, true].forEach((multi) => {
     it(`anchors the ${multi ? 'multi' : 'single'} select menu below the control at the control width`, () => {
-      spyOn(Select.prototype as any, 'renderOuter').and.returnValue(<div className="Select-menu-outer" />);
+      vi.spyOn(Select.prototype as any, 'renderOuter').mockReturnValue(<div className="Select-menu-outer" />);
       const select = new TetheredSelect({ multi, options: [] } as any);
       (select as any).wrapper = { offsetWidth: 320 };
 

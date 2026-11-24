@@ -19,6 +19,7 @@ package com.netflix.spinnaker.fiat.config;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.netflix.spinnaker.fiat.model.resources.Account;
 import com.netflix.spinnaker.fiat.model.resources.Application;
+import com.netflix.spinnaker.fiat.model.resources.ArtifactAccount;
 import com.netflix.spinnaker.fiat.model.resources.BuildService;
 import com.netflix.spinnaker.fiat.providers.*;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
@@ -67,6 +68,25 @@ class DefaultResourcePermissionConfig {
   public ResourcePermissionProvider<Application> defaultApplicationPermissionProvider(
       ResourcePermissionSource<Application> applicationResourcePermissionSource) {
     return new DefaultResourcePermissionProvider<>(applicationResourcePermissionSource);
+  }
+
+  @Bean
+  @ConditionalOnProperty(
+      value = "auth.permissions.source.artifact-account.resource.enabled",
+      matchIfMissing = true)
+  @Order(Ordered.HIGHEST_PRECEDENCE + 100)
+  ResourcePermissionSource<ArtifactAccount> artifactAccountResourcePermissionSource() {
+    return new AccessControlledResourcePermissionSource<>();
+  }
+
+  @Bean
+  @ConditionalOnProperty(
+      value = "auth.permissions.provider.artifact-account",
+      havingValue = "default",
+      matchIfMissing = true)
+  public ResourcePermissionProvider<ArtifactAccount> defaultArtifactAccountPermissionProvider(
+      ResourcePermissionSource<ArtifactAccount> artifactAccountResourcePermissionSource) {
+    return new DefaultResourcePermissionProvider<>(artifactAccountResourcePermissionSource);
   }
 
   @Bean

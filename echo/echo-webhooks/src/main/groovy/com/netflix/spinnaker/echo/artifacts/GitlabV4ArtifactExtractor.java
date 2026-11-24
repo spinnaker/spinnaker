@@ -16,6 +16,10 @@
 
 package com.netflix.spinnaker.echo.artifacts;
 
+import static com.netflix.spinnaker.echo.artifacts.GitWebhookArtifactReferences.GROUPS_AND_PROJECT;
+import static com.netflix.spinnaker.echo.artifacts.GitWebhookArtifactReferences.hasDotSegment;
+import static com.netflix.spinnaker.echo.artifacts.GitWebhookArtifactReferences.isPlainHttpUrl;
+
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.netflix.spinnaker.kork.artifacts.model.Artifact;
@@ -27,11 +31,13 @@ import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
 import lombok.Data;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 // GitlabV4ArtifactExtractor supports V4 of the Gitlab REST API
 @Component
+@Slf4j
 public class GitlabV4ArtifactExtractor implements WebhookArtifactExtractor {
   private final ObjectMapper objectMapper;
 
@@ -45,10 +51,27 @@ public class GitlabV4ArtifactExtractor implements WebhookArtifactExtractor {
     PushEvent pushEvent = objectMapper.convertValue(payload, PushEvent.class);
     String sha = pushEvent.after;
     Project project = pushEvent.project;
+    if (project == null || project.homepage == null || project.pathWithNamespace == null) {
+      return new ArrayList<>();
+    }
+
+    // The payload is not trusted until the trigger verifies its signature, and these values end up
+    // in the URL that clouddriver fetches, so only accept the shape GitLab produces:
+    // <base url>/<group>[/<subgroup>...]/<project>
+    String homepageSuffix = "/" + project.pathWithNamespace;
+    if (!GROUPS_AND_PROJECT.matcher(project.pathWithNamespace).matches()
+        || hasDotSegment(project.pathWithNamespace)
+        || !project.homepage.endsWith(homepageSuffix)
+        || !isPlainHttpUrl(
+            project.homepage.substring(0, project.homepage.length() - homepageSuffix.length()))) {
+      log.warn("Ignoring GitLab push with an invalid project homepage or path_with_namespace");
+      return new ArrayList<>();
+    }
+
     // since gitlab doesn't provide us with explicit API urls we have to assume the baseUrl from
-    // other
-    // urls that are provided
-    String gitlabBaseUrl = extractBaseUrlFromHomepage(project.homepage, project.pathWithNamespace);
+    // other urls that are provided, e.g. http://example.com/test/repo -> http://example.com
+    String gitlabBaseUrl =
+        project.homepage.substring(0, project.homepage.length() - homepageSuffix.length());
     String apiBaseUrl =
         String.format(
             "%s/api/v4/projects/%s/repository/files",
@@ -64,6 +87,7 @@ public class GitlabV4ArtifactExtractor implements WebhookArtifactExtractor {
                   return fs;
                 })
             .flatMap(Collection::stream)
+            .filter(GitWebhookArtifactReferences::isSafeFilePath)
             .collect(Collectors.toSet());
 
     return affectedFiles.stream()
@@ -80,11 +104,6 @@ public class GitlabV4ArtifactExtractor implements WebhookArtifactExtractor {
 
   public boolean handles(String type, String source) {
     return type.equals("git") && source.equals("gitlab");
-  }
-
-  private String extractBaseUrlFromHomepage(String url, String projectName) {
-    // given http://example.com/test/repo -> http://example.com
-    return url.replace("/" + projectName, "");
   }
 
   @Data

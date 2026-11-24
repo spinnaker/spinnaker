@@ -33,7 +33,7 @@ export function SelectInput(props: ISelectInputProps) {
     }
   }, [value, defaultValue, options]);
 
-  const SelectElement = ({ opts }: { opts: Array<Option<string>> }) => (
+  const renderSelectElement = (opts: Array<Option<string>>) => (
     <select className={className} value={orEmptyString(value)} {...otherProps}>
       {opts.map((option) => (
         <option key={option.value} value={option.value} disabled={option.disabled}>
@@ -44,8 +44,8 @@ export function SelectInput(props: ISelectInputProps) {
   );
 
   if (isStringArray(options)) {
-    return <StringsAsOptions strings={options}>{(opts) => <SelectElement opts={opts} />}</StringsAsOptions>;
+    return <StringsAsOptions strings={options}>{(opts) => renderSelectElement(opts)}</StringsAsOptions>;
   } else {
-    return <SelectElement opts={options as Array<Option<string>>} />;
+    return renderSelectElement(options as Array<Option<string>>);
   }
 }

@@ -40,11 +40,11 @@ describe('Task Data Source', function () {
 
   describe('loading tasks', function () {
     beforeEach(function () {
-      spyOn(TaskReader, 'getRunningTasks').and.returnValue(Promise.resolve([]));
+      vi.spyOn(TaskReader, 'getRunningTasks').mockReturnValue(Promise.resolve([]));
     });
 
     it('loads tasks and sets appropriate flags', async function () {
-      spyOn(TaskReader, 'getTasks').and.returnValue(Promise.resolve([]));
+      vi.spyOn(TaskReader, 'getTasks').mockReturnValue(Promise.resolve([]));
       await configureApplication();
       expect(application.getDataSource('tasks').loaded).toBe(true);
       expect(application.getDataSource('tasks').loading).toBe(false);
@@ -52,7 +52,7 @@ describe('Task Data Source', function () {
     });
 
     it('sets appropriate flags when task load fails', async function () {
-      spyOn(TaskReader, 'getTasks').and.returnValue(Promise.reject(null));
+      vi.spyOn(TaskReader, 'getTasks').mockReturnValue(Promise.reject(null));
       await configureApplication();
       expect(application.getDataSource('tasks').loaded).toBe(false);
       expect(application.getDataSource('tasks').loading).toBe(false);
@@ -62,12 +62,12 @@ describe('Task Data Source', function () {
 
   describe('reload tasks', function () {
     beforeEach(function () {
-      spyOn(TaskReader, 'getRunningTasks').and.returnValue(Promise.resolve([]));
+      vi.spyOn(TaskReader, 'getRunningTasks').mockReturnValue(Promise.resolve([]));
     });
 
     it('reloads tasks and sets appropriate flags', async function () {
       let nextCalls = 0;
-      spyOn(TaskReader, 'getTasks').and.returnValue(Promise.resolve([]));
+      vi.spyOn(TaskReader, 'getTasks').mockReturnValue(Promise.resolve([]));
       await configureApplication();
       application.getDataSource('tasks').onRefresh(() => nextCalls++);
       expect(application.getDataSource('tasks').loaded).toBe(true);
@@ -87,7 +87,7 @@ describe('Task Data Source', function () {
     });
 
     it('sets appropriate flags when task reload fails; subscriber is responsible for error checking', async function () {
-      spyOn(TaskReader, 'getTasks').and.returnValue(Promise.reject(null));
+      vi.spyOn(TaskReader, 'getTasks').mockReturnValue(Promise.reject(null));
       let errorsHandled = 0;
       let successesHandled = 0;
       await configureApplication();

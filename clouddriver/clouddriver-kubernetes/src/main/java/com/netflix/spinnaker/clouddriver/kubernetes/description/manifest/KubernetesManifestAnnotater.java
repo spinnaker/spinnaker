@@ -42,6 +42,7 @@ public class KubernetesManifestAnnotater {
   private static final String ARTIFACT_ANNOTATION_PREFIX = "artifact." + SPINNAKER_ANNOTATION;
   private static final String MONIKER_ANNOTATION_PREFIX = "moniker." + SPINNAKER_ANNOTATION;
   private static final String CACHING_ANNOTATION_PREFIX = "caching." + SPINNAKER_ANNOTATION;
+  private static final String PROVENANCE_ANNOTATION_PREFIX = "provenance." + SPINNAKER_ANNOTATION;
   private static final String CLUSTER = MONIKER_ANNOTATION_PREFIX + "/cluster";
   private static final String APPLICATION = MONIKER_ANNOTATION_PREFIX + "/application";
   private static final String STACK = MONIKER_ANNOTATION_PREFIX + "/stack";
@@ -53,6 +54,8 @@ public class KubernetesManifestAnnotater {
   private static final String VERSION = ARTIFACT_ANNOTATION_PREFIX + "/version";
   private static final String IGNORE_CACHING = CACHING_ANNOTATION_PREFIX + "/ignore";
   private static final String LOAD_BALANCERS = TRAFFIC_ANNOTATION_PREFIX + "/load-balancers";
+  private static final String DEPLOYED_BY = PROVENANCE_ANNOTATION_PREFIX + "/deployed-by";
+  private static final String EXECUTION_ID = PROVENANCE_ANNOTATION_PREFIX + "/execution-id";
 
   private static final String KUBERNETES_ANNOTATION = "kubernetes.io";
   private static final String KUBECTL_ANNOTATION_PREFIX = "kubectl." + KUBERNETES_ANNOTATION;
@@ -69,6 +72,28 @@ public class KubernetesManifestAnnotater {
     }
 
     if (annotations.containsKey(key)) {
+      return;
+    }
+
+    try {
+      if (value instanceof String) {
+        // The "write value as string" method will attach quotes which are ugly to read
+        annotations.put(key, (String) value);
+      } else {
+        annotations.put(key, objectMapper.writeValueAsString(value));
+      }
+    } catch (JsonProcessingException e) {
+      throw new IllegalArgumentException("Illegal annotation value for '" + key + "': " + e);
+    }
+  }
+
+  private static void storeAnnotationAndOverwrite(
+      Map<String, String> annotations, String key, Object value) {
+    if (value == null) {
+      return;
+    }
+
+    if (value instanceof String && ((String) value).isEmpty()) {
       return;
     }
 
@@ -141,6 +166,13 @@ public class KubernetesManifestAnnotater {
     storeAnnotations(annotations, artifact);
 
     manifest.getSpecTemplateAnnotations().ifPresent(a -> storeAnnotations(a, artifact));
+  }
+
+  public static void annotateProvenance(
+      KubernetesManifest manifest, String deployedBy, String executionId) {
+    Map<String, String> annotations = manifest.getAnnotations();
+    storeAnnotationAndOverwrite(annotations, DEPLOYED_BY, deployedBy);
+    storeAnnotationAndOverwrite(annotations, EXECUTION_ID, executionId);
   }
 
   private static void storeAnnotations(Map<String, String> annotations, Moniker moniker) {

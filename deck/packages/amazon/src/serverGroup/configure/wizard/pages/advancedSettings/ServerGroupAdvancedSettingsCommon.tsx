@@ -9,13 +9,16 @@ import type { IServerGroupAdvancedSettingsProps } from './ServerGroupAdvancedSet
 import { AWSProviderSettings } from '../../../../../aws.settings';
 import type { IAmazonServerGroupCommand } from '../../../serverGroupConfiguration.service';
 
+const NO_KEY_PAIR_LABEL = 'None (launch instances without a key pair)';
+
 export class ServerGroupAdvancedSettingsCommon extends React.Component<IServerGroupAdvancedSettingsProps> {
   private duplicateKeys = false;
 
   public validate = (values: IAmazonServerGroupCommand) => {
     const errors = {} as any;
 
-    if (!values.keyPair) {
+    // An empty key name launches instances without a key pair; an unset one has to be chosen explicitly
+    if (values.keyPair === undefined || values.keyPair === null) {
       errors.keyPair = 'Key Name is required';
     }
     if (this.duplicateKeys) {
@@ -62,7 +65,13 @@ export class ServerGroupAdvancedSettingsCommon extends React.Component<IServerGr
             <b>Cooldown</b>
           </div>
           <div className="col-md-2">
-            <Field type="text" required={true} name="cooldown" className="form-control input-sm no-spel" />
+            <Field
+              type="text"
+              required={true}
+              name="cooldown"
+              aria-label="Cooldown"
+              className="form-control input-sm no-spel"
+            />
           </div>{' '}
           seconds
         </div>
@@ -142,7 +151,7 @@ export class ServerGroupAdvancedSettingsCommon extends React.Component<IServerGr
               value={values.keyPair}
               required={true}
               clearable={false}
-              options={keyPairs.map((t) => ({ label: t, value: t }))}
+              options={[{ label: NO_KEY_PAIR_LABEL, value: '' }, ...keyPairs.map((t) => ({ label: t, value: t }))]}
               onChange={(option: Option) => setFieldValue('keyPair', option.value)}
             />
           </div>
@@ -218,6 +227,24 @@ export class ServerGroupAdvancedSettingsCommon extends React.Component<IServerGr
                   onChange={(e) => setFieldValue('requireIMDSv2', e.target.checked)}
                 />{' '}
                 Require IMDSv2{' '}
+              </label>
+            </div>
+          </div>
+        )}
+        {asgSettings?.enableLaunchTemplates && (
+          <div className="form-group">
+            <div className="col-md-3 sm-label-right">
+              <b>Instance Metadata Tags </b>
+              <HelpField id="aws.serverGroup.instanceMetadataTags" />
+            </div>
+            <div className="col-md-7 checkbox">
+              <label>
+                <input
+                  type="checkbox"
+                  checked={values.enableInstanceMetadataTags === true}
+                  onChange={(e) => setFieldValue('enableInstanceMetadataTags', e.target.checked)}
+                />{' '}
+                Allow access to instance tags from instance metadata{' '}
               </label>
             </div>
           </div>

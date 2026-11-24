@@ -105,6 +105,10 @@ class StandaloneContainerTest {
         WireMock.get(urlPathEqualTo("/credentials"))
             .willReturn(aResponse().withStatus(200).withBody("[]")));
 
+    wmClouddriver.stubFor(
+        WireMock.get(urlPathEqualTo("/artifacts/credentials/all"))
+            .willReturn(aResponse().withStatus(200).withBody("[]")));
+
     String fullDockerImageName = System.getenv("FULL_DOCKER_IMAGE_NAME");
 
     // Skip the tests if there's no docker image.  This allows gradlew build to work.

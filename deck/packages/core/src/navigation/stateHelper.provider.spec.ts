@@ -2,7 +2,7 @@ import { StateHelper } from './stateHelper.provider';
 
 describe('StateHelper', () => {
   it('registers nested states with fully qualified child names', () => {
-    const stateRegistry = { register: jasmine.createSpy('register') };
+    const stateRegistry = { register: vi.fn() };
     const helper = new StateHelper(stateRegistry as any);
 
     helper.setNestedState({
@@ -10,7 +10,7 @@ describe('StateHelper', () => {
       children: [{ name: 'applications', children: [{ name: 'application' }] }],
     } as any);
 
-    expect(stateRegistry.register.calls.allArgs().map(([state]) => state.name)).toEqual([
+    expect(stateRegistry.register.mock.calls.map(([state]) => state.name)).toEqual([
       'home',
       'home.applications',
       'home.applications.application',
@@ -18,7 +18,7 @@ describe('StateHelper', () => {
   });
 
   it('does not register the same state name more than once', () => {
-    const stateRegistry = { register: jasmine.createSpy('register') };
+    const stateRegistry = { register: vi.fn() };
     const helper = new StateHelper(stateRegistry as any);
 
     helper.setNestedState({ name: 'home' } as any);
@@ -28,7 +28,7 @@ describe('StateHelper', () => {
   });
 
   it('rewrites relative view names against the parent state name', () => {
-    const stateRegistry = { register: jasmine.createSpy('register') };
+    const stateRegistry = { register: vi.fn() };
     const helper = new StateHelper(stateRegistry as any);
 
     helper.setNestedState({
@@ -41,13 +41,13 @@ describe('StateHelper', () => {
       ],
     } as any);
 
-    const applicationState = stateRegistry.register.calls.mostRecent().args[0];
+    const applicationState = stateRegistry.register.mock.lastCall[0];
     expect(applicationState.views['home.main@']).toEqual({ component: 'Application' });
     expect(applicationState.views['../main@']).toBeUndefined();
   });
 
   it('rewrites relative view targets against the parent state name', () => {
-    const stateRegistry = { register: jasmine.createSpy('register') };
+    const stateRegistry = { register: vi.fn() };
     const helper = new StateHelper(stateRegistry as any);
 
     helper.setNestedState({
@@ -75,7 +75,7 @@ describe('StateHelper', () => {
       ],
     } as any);
 
-    const instanceDetailsState = stateRegistry.register.calls.mostRecent().args[0];
+    const instanceDetailsState = stateRegistry.register.mock.lastCall[0];
     expect(instanceDetailsState.views['detail@home.applications.application.insight']).toEqual({
       component: 'Details',
     });

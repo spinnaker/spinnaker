@@ -36,7 +36,6 @@ import org.springframework.security.saml2.provider.service.authentication.OpenSa
 import org.springframework.security.saml2.provider.service.registration.RelyingPartyRegistrationRepository;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.savedrequest.HttpSessionRequestCache;
-import org.springframework.session.web.http.DefaultCookieSerializer;
 import org.springframework.util.StringUtils;
 
 /**
@@ -65,14 +64,6 @@ public class SAMLConfiguration {
     private final ObjectProvider<UserRolesExtractor> userRolesExtractorProvider;
     private final ObjectFactory<AuthenticationService> authenticationServiceFactory;
     private final ObjectFactory<AllowedAccountsSupport> allowedAccountsSupportFactory;
-
-    /** Disables the same-site requirement for cookies as configured in other SSO modules. */
-    @Bean
-    public DefaultCookieSerializer defaultCookieSerializer() {
-      DefaultCookieSerializer serializer = new DefaultCookieSerializer();
-      serializer.setSameSite(null);
-      return serializer;
-    }
 
     @Bean
     public ResponseAuthenticationConverter responseAuthenticationConverter() {

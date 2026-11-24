@@ -19,6 +19,7 @@ package com.netflix.spinnaker.clouddriver.artifacts.github;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.netflix.spinnaker.credentials.CredentialsTypeProperties;
+import com.netflix.spinnaker.credentials.definition.InvalidCredentialsConfigurationException;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import okhttp3.OkHttpClient;
@@ -52,6 +53,8 @@ class GitHubArtifactConfiguration {
             a -> {
               try {
                 return new GitHubArtifactCredentials(a, gitHubOkHttpClient, objectMapper);
+              } catch (InvalidCredentialsConfigurationException e) {
+                throw e;
               } catch (Exception e) {
                 log.warn("Failure instantiating GitHub artifact account {}: ", a, e);
                 return null;

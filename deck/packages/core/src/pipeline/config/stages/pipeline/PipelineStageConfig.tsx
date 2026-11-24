@@ -131,7 +131,7 @@ export function PipelineStageConfig({ application, pipeline, stage, updateStageF
     } else {
       applyPipelineConfigParameters(selectedPipeline as any);
     }
-  }, [stage.pipeline, stage.application, pipelines]);
+  }, [stage.refId, stage.pipeline, stage.application, pipelines]);
 
   const clearParams = () => {
     setPipelineParameters([]);

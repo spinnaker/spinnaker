@@ -8,8 +8,8 @@ import { AmazonCloneServerGroupModalComponent } from './serverGroup/configure/wi
 describe('Amazon routed modal consumers', () => {
   function stateService(includedState: string) {
     return {
-      go: jasmine.createSpy('go'),
-      includes: jasmine.createSpy('includes').and.callFake((state: string) => state === includedState),
+      go: vi.fn(),
+      includes: vi.fn().mockImplementation((state: string) => state === includedState),
     };
   }
 
@@ -21,9 +21,9 @@ describe('Amazon routed modal consumers', () => {
     it(`navigates from the ${type} load balancer modal through its injected state service`, () => {
       const state = stateService('**.loadBalancerDetails');
       const modal = Object.create(Component.prototype) as any;
-      modal.props = { dismissModal: jasmine.createSpy('dismissModal'), stateService: state };
+      modal.props = { dismissModal: vi.fn(), stateService: state };
       modal.state = {};
-      modal.setState = jasmine.createSpy('setState');
+      modal.setState = vi.fn();
 
       modal.onApplicationRefresh({
         credentials: 'test-account',
@@ -49,27 +49,27 @@ describe('Amazon routed modal consumers', () => {
     ['Lambda function', CreateLambdaFunctionComponent, 'functions'],
   ].forEach(([type, Component, dataSourceName]: [string, any, string]) => {
     it(`owns the ${type} refresh subscription across replacement and unmount`, () => {
-      const firstUnsubscribe = jasmine.createSpy('firstUnsubscribe');
-      const secondUnsubscribe = jasmine.createSpy('secondUnsubscribe');
+      const firstUnsubscribe = vi.fn();
+      const secondUnsubscribe = vi.fn();
       const callbacks: Array<() => void> = [];
-      const onNextRefresh = jasmine.createSpy('onNextRefresh').and.callFake((callback: () => void) => {
+      const onNextRefresh = vi.fn().mockImplementation((callback: () => void) => {
         callbacks.push(callback);
         return callbacks.length === 1 ? firstUnsubscribe : secondUnsubscribe;
       });
-      const refresh = jasmine.createSpy('refresh');
+      const refresh = vi.fn();
       const state = stateService('');
       const modal = Object.create(Component.prototype) as any;
       modal.props = {
         app: { [dataSourceName]: { onNextRefresh, refresh } },
-        dismissModal: jasmine.createSpy('dismissModal'),
+        dismissModal: vi.fn(),
         stateService: state,
       };
       modal.state = {};
-      modal.setState = jasmine.createSpy('setState');
+      modal.setState = vi.fn();
 
       modal.onTaskComplete({});
 
-      expect(onNextRefresh.calls.first().invocationOrder).toBeLessThan(refresh.calls.first().invocationOrder);
+      expect(onNextRefresh.mock.invocationCallOrder[0]).toBeLessThan(refresh.mock.invocationCallOrder[0]);
 
       modal.onTaskComplete({});
 
@@ -87,9 +87,9 @@ describe('Amazon routed modal consumers', () => {
   it('navigates from the function modal through its injected state service', () => {
     const state = stateService('');
     const modal = Object.create(CreateLambdaFunctionComponent.prototype) as any;
-    modal.props = { dismissModal: jasmine.createSpy('dismissModal'), stateService: state };
+    modal.props = { dismissModal: vi.fn(), stateService: state };
     modal.state = {};
-    modal.setState = jasmine.createSpy('setState');
+    modal.setState = vi.fn();
 
     modal.onApplicationRefresh({ credentials: 'test-account', name: 'fnord', region: 'eu-west-1', vpcId: 'vpc-1' });
 
@@ -104,12 +104,12 @@ describe('Amazon routed modal consumers', () => {
 
   it('navigates from the security group modal through its injected state service', () => {
     const state = stateService('**.firewallDetails');
-    const refresh = jasmine.createSpy('refresh');
-    const closeModal = jasmine.createSpy('closeModal');
+    const refresh = vi.fn();
+    const closeModal = vi.fn();
     const modal = new AmazonSecurityGroupModalComponent({
       app: { securityGroups: { refresh } },
       closeModal,
-      dismissModal: jasmine.createSpy('dismissModal'),
+      dismissModal: vi.fn(),
       mode: 'clone',
       stateService: state,
     } as any) as any;
@@ -144,7 +144,7 @@ describe('Amazon routed modal consumers', () => {
         region: 'eu-west-1',
         viewState: { requiresTemplateSelection: true },
       },
-      dismissModal: jasmine.createSpy('dismissModal'),
+      dismissModal: vi.fn(),
       stateService: state,
     } as any) as any;
     modal.state = {
@@ -173,25 +173,25 @@ describe('Amazon routed modal consumers', () => {
   });
 
   it('owns the clone server group refresh subscription across replacement and unmount', () => {
-    const firstUnsubscribe = jasmine.createSpy('firstUnsubscribe');
-    const secondUnsubscribe = jasmine.createSpy('secondUnsubscribe');
+    const firstUnsubscribe = vi.fn();
+    const secondUnsubscribe = vi.fn();
     const callbacks: Array<() => void> = [];
-    const onNextRefresh = jasmine.createSpy('onNextRefresh').and.callFake((callback: () => void) => {
+    const onNextRefresh = vi.fn().mockImplementation((callback: () => void) => {
       callbacks.push(callback);
       return callbacks.length === 1 ? firstUnsubscribe : secondUnsubscribe;
     });
-    const refresh = jasmine.createSpy('refresh');
+    const refresh = vi.fn();
     const state = stateService('**.clusters');
     const modal = new AmazonCloneServerGroupModalComponent({
       application: { name: 'fnord', serverGroups: { onNextRefresh, refresh } },
       command: { credentials: 'test-account', region: 'eu-west-1', viewState: { requiresTemplateSelection: true } },
-      dismissModal: jasmine.createSpy('dismissModal'),
+      dismissModal: vi.fn(),
       stateService: state,
     } as any) as any;
 
     modal.onTaskComplete();
 
-    expect(onNextRefresh.calls.first().invocationOrder).toBeLessThan(refresh.calls.first().invocationOrder);
+    expect(onNextRefresh.mock.invocationCallOrder[0]).toBeLessThan(refresh.mock.invocationCallOrder[0]);
 
     modal.onTaskComplete();
 

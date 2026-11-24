@@ -1,4 +1,5 @@
-import { mount } from 'enzyme';
+import { render, screen } from '@testing-library/react';
+import { setupUser } from '../../utils/testUtils/userEvent';
 import React from 'react';
 
 import { UserVerification } from './UserVerification';
@@ -19,28 +20,29 @@ describe('UserVerification', () => {
     document.documentElement.style.setProperty('--color-danger', previousDangerColor);
   });
 
-  it('loads its verification styles', () => {
+  it('loads its verification styles', async () => {
     const host = document.createElement('div');
     document.body.appendChild(host);
-    const wrapper = mount(<UserVerification expectedValue="production" onValidChange={() => undefined} />, {
-      attachTo: host,
-    });
+    const user = setupUser();
+    const { container, unmount } = render(
+      <UserVerification expectedValue="production" onValidChange={() => undefined} />,
+      { container: host },
+    );
 
-    const verification = wrapper.find('.user-verification').getDOMNode() as HTMLElement;
-    const verificationText = wrapper.find('.verification-text').getDOMNode() as HTMLElement;
-    const input = wrapper.find('input');
+    const verification = container.querySelector('.user-verification') as HTMLElement;
+    const verificationText = screen.getByText('production');
+    const input = screen.getByRole('textbox', { name: 'Confirm production' });
 
     expect(window.getComputedStyle(verification).textAlign).toBe('right');
     expect(window.getComputedStyle(verificationText).fontWeight).toBe('600');
-    expect(input.hasClass('invalid')).toBe(true);
-    expect(input.hasClass('highlight-pristine')).toBe(true);
-    expect(window.getComputedStyle(input.getDOMNode()).borderColor).toBe(dangerBorderColor);
+    expect(input).toHaveClass('invalid', 'highlight-pristine');
+    expect(window.getComputedStyle(input).borderColor).toBe(dangerBorderColor);
 
-    input.simulate('change', { target: { value: 'production' } });
+    await user.type(input, 'production');
 
-    expect(wrapper.find('input').hasClass('invalid')).toBe(false);
+    expect(input).not.toHaveClass('invalid');
 
-    wrapper.unmount();
+    unmount();
     host.remove();
   });
 });

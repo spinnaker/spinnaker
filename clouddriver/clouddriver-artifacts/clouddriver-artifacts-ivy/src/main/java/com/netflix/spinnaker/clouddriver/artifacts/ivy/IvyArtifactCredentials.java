@@ -17,7 +17,7 @@
 package com.netflix.spinnaker.clouddriver.artifacts.ivy;
 
 import com.google.common.collect.ImmutableList;
-import com.netflix.spinnaker.clouddriver.artifacts.config.ArtifactCredentials;
+import com.netflix.spinnaker.clouddriver.artifacts.config.AbstractArtifactCredentials;
 import com.netflix.spinnaker.kork.annotations.NonnullByDefault;
 import com.netflix.spinnaker.kork.artifacts.model.Artifact;
 import java.io.*;
@@ -41,7 +41,7 @@ import org.slf4j.LoggerFactory;
 
 @NonnullByDefault
 @Slf4j
-public class IvyArtifactCredentials implements ArtifactCredentials {
+public class IvyArtifactCredentials extends AbstractArtifactCredentials {
   public static final String CREDENTIALS_TYPE = "artifacts-ivy";
   @Getter private final ImmutableList<String> types = ImmutableList.of("ivy/file");
   private final IvyArtifactAccount account;
@@ -54,6 +54,7 @@ public class IvyArtifactCredentials implements ArtifactCredentials {
   }
 
   public IvyArtifactCredentials(IvyArtifactAccount account, Supplier<Path> cacheBuilder) {
+    super(account);
     this.cacheBuilder = cacheBuilder;
     redirectIvyLogsToSlf4j();
     this.account = account;

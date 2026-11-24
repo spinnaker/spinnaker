@@ -28,6 +28,7 @@ import { configureRouter, startRouter } from '../navigation/router';
 import { initializePlugins } from '../plugins/plugin.module';
 import { domPurifyOpenLinksInNewWindow } from '../presentation/domPurifyOpenLinksInNewWindow';
 import { ReactModal } from '../presentation/ReactModal';
+import { initializeTheme } from '../presentation/theme';
 import {
   disposeRuntimeMetadata,
   initializeDynamicRuntimeMetadata,
@@ -40,9 +41,11 @@ import '../presentation/details.less';
 import '../presentation/flex-layout.less';
 import '../presentation/main.less';
 import '../presentation/navPopover.less';
+import '../presentation/theme/theme.less';
 import '../search/global/globalSearch.less';
 import '../search/infrastructure/infrastructure.less';
 
+initializeTheme();
 domPurifyOpenLinksInNewWindow();
 initGoogleAnalytics();
 

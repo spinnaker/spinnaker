@@ -13,6 +13,7 @@ import { LoadBalancersTagWrapper } from '../loadBalancer';
 import { NameUtils } from '../naming';
 import { Overridable } from '../overrideRegistry';
 import { RunningTasksTag } from './pod/RunningTasksTag';
+import { CopyToClipboard } from '../utils';
 
 export interface IServerGroupHeaderProps {
   application: Application;
@@ -83,7 +84,10 @@ export class ImageList extends React.Component<IServerGroupHeaderProps, IImageLi
       <>
         {collapsed && (
           <>
-            <span>{images[0]}</span>
+            <span>
+              {images[0]}
+              <CopyToClipboard text={images[0]} toolTip="Copy to clipboard"></CopyToClipboard>
+            </span>
             &nbsp;
             {images.length > 1 && (
               <button className="link" onClick={this.toggle} style={buttonStyle}>
@@ -96,9 +100,10 @@ export class ImageList extends React.Component<IServerGroupHeaderProps, IImageLi
           <>
             {images.map((image, index) => (
               <span key={image}>
-                {index > 0 && <br />}
+                {index > 0 && <span className="padded-images-span"> </span>}
                 {image}
-                {index < images.length - 1 ? ',' : ''}
+                <CopyToClipboard text={image} toolTip="Copy to clipboard"></CopyToClipboard>
+                {index < images.length - 1 ? <br /> : ''}
               </span>
             ))}
             <br />

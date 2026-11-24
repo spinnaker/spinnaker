@@ -79,7 +79,7 @@ public interface Instance {
   }
 
   /**
-   * Cloud-provider key, e.g. "aws", "titus"
+   * Cloud-provider key, e.g. "aws", "kubernetes"
    *
    * @return
    */

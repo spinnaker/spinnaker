@@ -5,4 +5,5 @@ metricStoreConfigStore.register({
   name: 'atlas',
   metricConfigurer: AtlasMetricConfigurer,
   queryFinder,
+  useTemplates: true,
 });

@@ -1,0 +1,5 @@
+dependencies {
+  implementation "com.squareup.okhttp3:okhttp"
+
+  testImplementation "commons-io:commons-io"
+}

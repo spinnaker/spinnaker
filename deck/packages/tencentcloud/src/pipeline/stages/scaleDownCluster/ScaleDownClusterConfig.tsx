@@ -21,6 +21,7 @@ export function ScaleDownClusterConfig({ application, pipeline, stage, updateSta
       onChange={updateStage}
       pipeline={pipeline}
       stage={stageWithDefaults}
+      liveStage={stage}
       render={(props) => <ScaleDownClusterStageForm {...props} />}
     />
   );

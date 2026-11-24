@@ -21,6 +21,7 @@ import software.amazon.awssdk.services.ecs.model.PlacementStrategy
 import software.amazon.awssdk.services.ecs.model.PlacementStrategyType
 import com.netflix.spinnaker.clouddriver.deploy.DescriptionValidator
 import com.netflix.spinnaker.clouddriver.deploy.ValidationErrors
+import com.netflix.spinnaker.clouddriver.ecs.EcsNativeServiceTag
 import com.netflix.spinnaker.clouddriver.ecs.TestCredential
 import com.netflix.spinnaker.clouddriver.ecs.deploy.description.AbstractECSDescription
 import com.netflix.spinnaker.clouddriver.ecs.deploy.description.CreateServerGroupDescription
@@ -111,6 +112,32 @@ class EcsCreateServergroupDescriptionValidatorSpec extends AbstractValidatorSpec
     given:
     def description = getDescription()
     description.environmentVariables = ['TAG_1':'valid_tag_1', 'TAG_2':'valid_tag_2']
+    def errors = Mock(ValidationErrors)
+
+    when:
+    validator.validate([], description, errors)
+
+    then:
+    0 * errors.rejectValue(_, _)
+  }
+
+  void 'should fail when tags contain the reserved ecs-native ownership key on a classic deploy'() {
+    given:
+    def description = (CreateServerGroupDescription) getDescription()
+    description.tags = [(EcsNativeServiceTag.KEY): 'ecs-native', 'team': 'x']
+    def errors = Mock(ValidationErrors)
+
+    when:
+    validator.validate([], description, errors)
+
+    then:
+    1 * errors.rejectValue('tags', "${getDescriptionName()}.tags.reserved")
+  }
+
+  void 'should pass with unrelated tags on a classic deploy'() {
+    given:
+    def description = (CreateServerGroupDescription) getDescription()
+    description.tags = ['team': 'x']
     def errors = Mock(ValidationErrors)
 
     when:

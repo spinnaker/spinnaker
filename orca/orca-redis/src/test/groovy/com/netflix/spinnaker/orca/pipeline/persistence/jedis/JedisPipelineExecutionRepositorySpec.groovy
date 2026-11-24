@@ -795,4 +795,29 @@ class JedisPipelineExecutionRepositorySpec extends PipelineExecutionRepositoryTc
     expect:
     repository.retrieve(PIPELINE, "ancient")
   }
+
+  def "executions loaded without a stored trigger do not share a Trigger instance"() {
+    given:
+    def first = pipeline {
+      application = "someApp"
+    }
+    def second = pipeline {
+      application = "someApp"
+    }
+    repository.store(first)
+    repository.store(second)
+
+    and: "the stored trigger is removed so the repository falls back to its default"
+    jedis.hdel(repository.pipelineKey(first.id), "trigger")
+    jedis.hdel(repository.pipelineKey(second.id), "trigger")
+
+    when:
+    def retrievedFirst = repository.retrieve(PIPELINE, first.id)
+    def retrievedSecond = repository.retrieve(PIPELINE, second.id)
+
+    then:
+    retrievedFirst.trigger != null
+    retrievedSecond.trigger != null
+    !retrievedFirst.trigger.is(retrievedSecond.trigger)
+  }
 }

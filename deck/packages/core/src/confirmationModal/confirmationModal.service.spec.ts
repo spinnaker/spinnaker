@@ -19,7 +19,7 @@ const createDeferred = <T>() => {
 describe('ConfirmationModalService', () => {
   it('resolves the direct modal result', async () => {
     const modalPromise = Promise.resolve('confirmed');
-    spyOn(ReactModal, 'show').and.returnValue(modalPromise);
+    vi.spyOn(ReactModal, 'show').mockReturnValue(modalPromise);
 
     const confirmation = ConfirmationModalService.confirm({ header: 'Rollout restart' });
 
@@ -30,14 +30,14 @@ describe('ConfirmationModalService', () => {
 
   it('cleans task polling when the native modal resolves and returns the same promise', async () => {
     const modal = createDeferred<string>();
-    const show = spyOn(ReactModal, 'show').and.returnValue(modal.promise);
+    const show = vi.spyOn(ReactModal, 'show').mockReturnValue(modal.promise);
 
     const confirmation = ConfirmationModalService.confirm({
       header: 'Rollout restart',
       taskMonitorConfig: { title: 'Restarting instances' },
     });
-    const taskMonitor = (show.calls.mostRecent().args[1] as IConfirmModalProps).taskMonitor as TaskMonitor;
-    const onModalClose = spyOn(taskMonitor, 'onModalClose');
+    const taskMonitor = (show.mock.lastCall[1] as IConfirmModalProps).taskMonitor as TaskMonitor;
+    const onModalClose = vi.spyOn(taskMonitor, 'onModalClose').mockReturnValue(undefined);
 
     expect(confirmation).toBe(modal.promise);
     modal.resolve('confirmed');
@@ -52,15 +52,15 @@ describe('ConfirmationModalService', () => {
 
   it('cleans task polling when the native modal rejects and preserves the rejection', async () => {
     const modal = createDeferred<string>();
-    const show = spyOn(ReactModal, 'show').and.returnValue(modal.promise);
+    const show = vi.spyOn(ReactModal, 'show').mockReturnValue(modal.promise);
     const dismissal = new Error('dismissed');
 
     const confirmation = ConfirmationModalService.confirm({
       header: 'Rollout restart',
       taskMonitorConfig: { title: 'Restarting instances' },
     });
-    const taskMonitor = (show.calls.mostRecent().args[1] as IConfirmModalProps).taskMonitor as TaskMonitor;
-    const onModalClose = spyOn(taskMonitor, 'onModalClose');
+    const taskMonitor = (show.mock.lastCall[1] as IConfirmModalProps).taskMonitor as TaskMonitor;
+    const onModalClose = vi.spyOn(taskMonitor, 'onModalClose').mockReturnValue(undefined);
     const rejection = confirmation.then(
       () => Promise.reject(new Error('Expected confirmation to reject')),
       (reason) => reason,
@@ -76,16 +76,16 @@ describe('ConfirmationModalService', () => {
   it('does not start polling when a pending submission resolves after native modal dismissal', async () => {
     const modal = createDeferred<string>();
     const submission = createDeferred<ITask>();
-    const show = spyOn(ReactModal, 'show').and.returnValue(modal.promise);
-    const waitUntilTaskCompletes = spyOn(TaskReader, 'waitUntilTaskCompletes').and.returnValue(
-      new Promise(() => undefined),
-    );
+    const show = vi.spyOn(ReactModal, 'show').mockReturnValue(modal.promise);
+    const waitUntilTaskCompletes = vi
+      .spyOn(TaskReader, 'waitUntilTaskCompletes')
+      .mockReturnValue(new Promise(() => undefined));
 
     const confirmation = ConfirmationModalService.confirm({
       header: 'Rollout restart',
       taskMonitorConfig: { title: 'Restarting instances' },
     });
-    const taskMonitor = (show.calls.mostRecent().args[1] as IConfirmModalProps).taskMonitor as TaskMonitor;
+    const taskMonitor = (show.mock.lastCall[1] as IConfirmModalProps).taskMonitor as TaskMonitor;
     taskMonitor.submit(() => submission.promise);
     const dismissal = confirmation.then(
       () => Promise.reject(new Error('Expected confirmation to reject')),

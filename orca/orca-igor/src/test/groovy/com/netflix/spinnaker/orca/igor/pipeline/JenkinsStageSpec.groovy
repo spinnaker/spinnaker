@@ -1,6 +1,6 @@
 package com.netflix.spinnaker.orca.igor.pipeline
 
-import com.netflix.spinnaker.orca.igor.tasks.MonitorJenkinsJobTask
+import com.netflix.spinnaker.orca.igor.tasks.MonitorBuildJobTask
 import com.netflix.spinnaker.orca.pipeline.tasks.artifacts.BindProducedArtifactsTask
 import spock.lang.Specification
 import spock.lang.Unroll
@@ -82,7 +82,7 @@ class JenkinsStageSpec extends Specification {
     when:
     def tasks = jenkinsStage.buildTaskGraph(stage)
     def result = tasks.findAll {
-      it.implementingClass == MonitorJenkinsJobTask
+      it.implementingClass == MonitorBuildJobTask
     }.size() == 1
 
     then:
@@ -115,7 +115,7 @@ class JenkinsStageSpec extends Specification {
 
     then:
     tasks.findAll {
-      it.implementingClass == MonitorJenkinsJobTask
+      it.implementingClass == MonitorBuildJobTask
     }.size() == 1
   }
 

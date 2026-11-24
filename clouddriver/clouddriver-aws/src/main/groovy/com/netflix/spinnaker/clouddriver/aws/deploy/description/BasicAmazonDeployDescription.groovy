@@ -124,6 +124,16 @@ class BasicAmazonDeployDescription extends AbstractAmazonCredentialsDescription 
   Boolean requireIMDSv2 = false
 
   /**
+   * Access to the instance tags from the instance metadata service (IMDS):
+   * * enabled, when set to true
+   * * disabled, when set to false
+   * * not set in the launch template when null (default), so the AWS default applies
+   * This is a Launch Template only feature
+   * * https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/work-with-tags-in-IMDS.html
+   */
+  Boolean enableInstanceMetadataTags
+
+  /**
    * Associate an IPv6 address
    * This is a Launch Template only feature
    */
@@ -148,6 +158,30 @@ class BasicAmazonDeployDescription extends AbstractAmazonCredentialsDescription 
    * * https://docs.aws.amazon.com/enclaves/latest/user/nitro-enclave.html
    */
   Boolean enableEnclave
+
+  /**
+   * Idle timeout (seconds) for tracked TCP connections in an established state on the primary
+   * network interface. Valid range: 60 - 432000. When null, the AWS default applies: 350 seconds
+   * on Nitro v6 instance types (excluding P6e-GB200), 432000 seconds on all other instance types.
+   * This is a Launch Template only feature.
+   * * https://docs.aws.amazon.com/AWSEC2/latest/APIReference/API_ConnectionTrackingSpecificationRequest.html
+   */
+  Integer tcpEstablishedTimeout
+
+  /**
+   * Idle timeout (seconds) for tracked UDP flows classified as streams on the primary network
+   * interface. Valid range: 60 - 180. When null, the AWS default (180 seconds) applies.
+   * This is a Launch Template only feature.
+   */
+  Integer udpStreamTimeout
+
+  /**
+   * Idle timeout (seconds) for tracked UDP flows that have seen traffic in a single direction or a
+   * single request-response transaction. Valid range: 30 - 60. When null, the AWS default
+   * (30 seconds) applies.
+   * This is a Launch Template only feature.
+   */
+  Integer udpTimeout
 
   /**
    * Launch template placement details, see {@link software.amazon.awssdk.services.ec2.model.LaunchTemplatePlacementRequest}.
@@ -212,7 +246,8 @@ class BasicAmazonDeployDescription extends AbstractAmazonCredentialsDescription 
     return ["requireIMDSv2", "associateIPv6Address", "unlimitedCpuCredits",
             "placement", "licenseSpecifications", "onDemandAllocationStrategy",
             "onDemandBaseCapacity", "onDemandPercentageAboveBaseCapacity", "spotAllocationStrategy",
-            "spotInstancePools", "launchTemplateOverridesForInstanceType", "enableEnclave"].toSet()
+            "spotInstancePools", "launchTemplateOverridesForInstanceType", "enableEnclave",
+            "tcpEstablishedTimeout", "udpStreamTimeout", "udpTimeout", "enableInstanceMetadataTags"].toSet()
   }
 
   static Set<String> getMixedInstancesPolicyFieldNames() {

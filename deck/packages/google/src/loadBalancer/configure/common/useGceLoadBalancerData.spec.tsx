@@ -1,68 +1,59 @@
-import React from 'react';
-import { mount } from 'enzyme';
+import type { Mocked } from 'vitest';
+import { act } from '@testing-library/react';
 
-import type { IGceLoadBalancerDataReaders, IGceLoadBalancerDataState } from './gceLoadBalancerData';
+import { renderHookHarness } from '../../../../../core/src/utils/testUtils/hookHarness';
+import type { IGceLoadBalancerDataReaders } from './gceLoadBalancerData';
 import { useGceLoadBalancerData } from './useGceLoadBalancerData';
 
 describe('useGceLoadBalancerData', () => {
   it('reloads data when the account changes', async () => {
     const readers = testReaders();
-    const states: IGceLoadBalancerDataState[] = [];
-    const wrapper = mount(<Harness account="first" readers={readers} onState={(state) => states.push(state)} />);
+    const hook = renderHookHarness(
+      ({ account, dataReaders }: { account: string; dataReaders: IGceLoadBalancerDataReaders }) =>
+        useGceLoadBalancerData(account, dataReaders),
+      { account: 'first', dataReaders: readers },
+    );
 
-    await settle();
-    wrapper.setProps({ account: 'second' });
-    await settle();
+    await act(settle);
+    hook.rerenderHook({ account: 'second', dataReaders: readers });
+    await act(settle);
 
-    expect(readers.regions.calls.allArgs()).toEqual([['first'], ['second']]);
-    expect(states[states.length - 1].status).toBe('ready');
-    wrapper.unmount();
+    expect(readers.regions.mock.calls).toEqual([['first'], ['second']]);
+    expect(hook.result.current.status).toBe('ready');
+    hook.unmount();
   });
 
   it('does not publish a request result after unmount', async () => {
     const regions = deferred<unknown[]>();
     const readers = testReaders();
-    readers.regions.and.returnValue(regions.promise);
-    const onState = jasmine.createSpy('onState');
-    const wrapper = mount(<Harness account="test-account" readers={readers} onState={onState} />);
-    await settle();
-    const callsBeforeUnmount = onState.calls.count();
+    readers.regions.mockReturnValue(regions.promise);
+    const hook = renderHookHarness(
+      ({ account, dataReaders }: { account: string; dataReaders: IGceLoadBalancerDataReaders }) =>
+        useGceLoadBalancerData(account, dataReaders),
+      { account: 'test-account', dataReaders: readers },
+    );
+    await act(settle);
+    const stateBeforeUnmount = hook.result.current;
 
-    wrapper.unmount();
+    hook.unmount();
     regions.resolve([{ name: 'late-region' }]);
-    await settle();
+    await act(settle);
 
-    expect(onState.calls.count()).toBe(callsBeforeUnmount);
+    expect(hook.result.current).toBe(stateBeforeUnmount);
   });
 });
 
-function Harness({
-  account,
-  readers,
-  onState,
-}: {
-  account: string;
-  readers: IGceLoadBalancerDataReaders;
-  onState: (state: IGceLoadBalancerDataState) => void;
-}) {
-  const state = useGceLoadBalancerData(account, readers);
-  React.useEffect(() => {
-    onState(state);
-  }, [state.status, state.data, state.error]);
-  return null;
-}
-
-function testReaders(): jasmine.SpyObj<IGceLoadBalancerDataReaders> {
-  return jasmine.createSpyObj<IGceLoadBalancerDataReaders>('readers', {
-    accounts: Promise.resolve([]),
-    addresses: Promise.resolve([]),
-    backendServices: Promise.resolve([]),
-    certificates: Promise.resolve([]),
-    healthChecks: Promise.resolve([]),
-    networks: Promise.resolve([]),
-    regions: Promise.resolve([]),
-    subnets: Promise.resolve([]),
-  });
+function testReaders(): Mocked<IGceLoadBalancerDataReaders> {
+  return {
+    accounts: vi.fn().mockReturnValue(Promise.resolve([])),
+    addresses: vi.fn().mockReturnValue(Promise.resolve([])),
+    backendServices: vi.fn().mockReturnValue(Promise.resolve([])),
+    certificates: vi.fn().mockReturnValue(Promise.resolve([])),
+    healthChecks: vi.fn().mockReturnValue(Promise.resolve([])),
+    networks: vi.fn().mockReturnValue(Promise.resolve([])),
+    regions: vi.fn().mockReturnValue(Promise.resolve([])),
+    subnets: vi.fn().mockReturnValue(Promise.resolve([])),
+  };
 }
 
 function deferred<T>() {

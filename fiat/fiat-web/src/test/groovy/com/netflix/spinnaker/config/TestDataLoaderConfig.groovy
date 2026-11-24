@@ -18,6 +18,7 @@ package com.netflix.spinnaker.config
 
 import com.netflix.spinnaker.fiat.providers.internal.ClouddriverAccountLoader
 import com.netflix.spinnaker.fiat.providers.internal.ClouddriverApplicationLoader
+import com.netflix.spinnaker.fiat.providers.internal.ClouddriverArtifactAccountLoader
 import com.netflix.spinnaker.fiat.providers.internal.Front50ApplicationLoader
 import com.netflix.spinnaker.fiat.providers.internal.Front50ServiceAccountLoader
 import com.netflix.spinnaker.fiat.providers.internal.IgorBuildServiceLoader
@@ -43,6 +44,12 @@ class TestDataLoaderConfig {
   @Primary
   ClouddriverAccountLoader clouddriverAccountLoader() {
     return detachedMockFactory.Stub(ClouddriverAccountLoader)
+  }
+
+  @Bean
+  @Primary
+  ClouddriverArtifactAccountLoader clouddriverArtifactAccountLoader() {
+    return detachedMockFactory.Stub(ClouddriverArtifactAccountLoader)
   }
 
   @Bean

@@ -20,7 +20,7 @@ describe('DeployExecutionDetails helpers', () => {
   beforeEach(() => {
     const params = { project: 'facade-project' };
     setDirectRouter({ globals: { params }, stateService: { params, href: () => 'facade-config' } } as any);
-    spyOn(UrlBuilder, 'buildFromMetadata').and.returnValue('#/server-group');
+    vi.spyOn(UrlBuilder, 'buildFromMetadata').mockReturnValue('#/server-group');
   });
 
   afterEach(() => setDirectRouter(null));
@@ -95,7 +95,7 @@ describe('DeployExecutionDetails helpers', () => {
     });
 
     it('uses the injected state service for the application config link', () => {
-      const href = jasmine.createSpy().and.returnValue('injected-config');
+      const href = vi.fn().mockReturnValue('injected-config');
       const component = new DeployExecutionDetailsComponent({
         application: { name: 'fnord' },
         stage: createStage(),

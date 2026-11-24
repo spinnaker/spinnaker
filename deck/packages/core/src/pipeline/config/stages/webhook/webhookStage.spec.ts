@@ -11,7 +11,7 @@ describe('Webhook stage registration', () => {
     const { WebhookStageConfig, webhookStage } = webhookStageModule as any;
 
     expect(webhookStage).toEqual(
-      jasmine.objectContaining({
+      expect.objectContaining({
         label: 'Webhook',
         description: 'Runs a Webhook job',
         key: 'webhook',
@@ -42,7 +42,7 @@ describe('Webhook stage registration', () => {
     });
 
     expect(stage).toEqual(
-      jasmine.objectContaining({
+      expect.objectContaining({
         label: 'Preconfigured Webhook',
         description: 'From Gate',
         key: 'preconfiguredWebhookType',
@@ -66,7 +66,7 @@ describe('Webhook stage registration', () => {
   it('fetches and registers preconfigured webhooks', async () => {
     const { WebhookStageConfig, registerPreconfiguredWebhookStages } = webhookStageModule as any;
     const originalHttpClient = RequestBuilder.defaultHttpClient;
-    const get = jasmine.createSpy('get').and.returnValue(
+    const get = vi.fn().mockReturnValue(
       Promise.resolve([
         {
           type: 'dynamicWebhook',
@@ -76,16 +76,16 @@ describe('Webhook stage registration', () => {
       ]),
     );
     RequestBuilder.defaultHttpClient = { get } as IHttpClientImplementation;
-    const registerSpy = spyOn(Registry.pipeline, 'registerStage').and.callThrough();
+    const registerSpy = vi.spyOn(Registry.pipeline, 'registerStage');
 
     try {
       await registerPreconfiguredWebhookStages();
 
       expect(get).toHaveBeenCalledWith(
-        jasmine.objectContaining({ url: jasmine.stringMatching(/webhooks\/preconfigured$/) }),
+        expect.objectContaining({ url: expect.stringMatching(/webhooks\/preconfigured$/) }),
       );
       expect(registerSpy).toHaveBeenCalledWith(
-        jasmine.objectContaining({
+        expect.objectContaining({
           key: 'dynamicWebhook',
           component: WebhookStageConfig,
           alias: 'preconfiguredWebhook',

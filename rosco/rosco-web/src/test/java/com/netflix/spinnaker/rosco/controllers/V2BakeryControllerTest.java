@@ -15,6 +15,7 @@
  */
 package com.netflix.spinnaker.rosco.controllers;
 
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
@@ -37,6 +38,8 @@ import okhttp3.ResponseBody;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.TestInfo;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.ValueSource;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.http.MediaType;
@@ -103,6 +106,42 @@ class V2BakeryControllerTest {
                 .content(objectMapper.writeValueAsString(bakeManifestRequest)))
         .andDo(print())
         .andExpect(status().isNotFound());
+  }
+
+  @ParameterizedTest
+  @ValueSource(strings = {"KUSTOMIZE", "KUSTOMIZE3", "kustomize"})
+  void removedKustomize3RendererIsABadRequestWithHelpfulMessage(String type) throws Exception {
+    webAppMockMvc
+        .perform(
+            post("/api/v2/manifest/bake/" + type)
+                .contentType(MediaType.APPLICATION_JSON_VALUE)
+                .characterEncoding(StandardCharsets.UTF_8.toString())
+                .content("{}"))
+        .andDo(print())
+        .andExpect(status().isBadRequest())
+        .andExpect(
+            result ->
+                assertThat(result.getResponse().getErrorMessage())
+                    .isEqualTo(
+                        "Template renderer type "
+                            + type
+                            + " (Kustomize 3) is no longer supported. Use KUSTOMIZE4 or KUSTOMIZE5."));
+  }
+
+  @Test
+  void unknownRendererTypeIsABadRequest() throws Exception {
+    webAppMockMvc
+        .perform(
+            post("/api/v2/manifest/bake/IDONOTEXIST")
+                .contentType(MediaType.APPLICATION_JSON_VALUE)
+                .characterEncoding(StandardCharsets.UTF_8.toString())
+                .content("{}"))
+        .andDo(print())
+        .andExpect(status().isBadRequest())
+        .andExpect(
+            result ->
+                assertThat(result.getResponse().getErrorMessage())
+                    .isEqualTo("Cannot bake manifest with template renderer type: IDONOTEXIST"));
   }
 
   private static SpinnakerHttpException makeSpinnakerHttpException(int status) {

@@ -84,7 +84,7 @@ class BakeryServiceSpec extends Specification {
 
   def "should receive specific BakeManifestRequest when baking a manifest"() {
     given:
-    def type = "KUSTOMIZE"
+    def type = "KUSTOMIZE4"
     def bakeManifestPath = "/api/v2/manifest/bake/$type"
     def inputArtifactPassed = Artifact.builder().name("my-manifest").type("embedded/base64").reference("ZGF0YQ==").build()
     def outputArtifactNamePassed = "baked-manifest"
@@ -127,7 +127,7 @@ class BakeryServiceSpec extends Specification {
             "type": "createBakeManifest",
             "environment": "prod",
             "includeCRDs": "true",
-            "templateRenderer": "KUSTOMIZE",
+            "templateRenderer": "KUSTOMIZE4",
             "namespace": "test"
           }
           """

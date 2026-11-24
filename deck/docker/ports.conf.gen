@@ -1,5 +1,7 @@
 Listen {%DECK_HOST%}:{%DECK_PORT%}
 
+ErrorLog /dev/stderr
+
 <IfModule ssl_module>
         SSLPassPhraseDialog exec:/etc/apache2/passphrase
 </IfModule>

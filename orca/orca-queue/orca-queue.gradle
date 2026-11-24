@@ -41,6 +41,7 @@ dependencies {
   testImplementation(project(":orca-retrofit"))
   testImplementation(project(":orca-test-kotlin"))
   testImplementation(project(":orca-queue-tck"))
+  testImplementation(project(":keiko-mem"))
   testImplementation(project(":orca-queue-redis"))
   testImplementation(project(":orca-echo"))
   testImplementation(project(":orca-webhook"))

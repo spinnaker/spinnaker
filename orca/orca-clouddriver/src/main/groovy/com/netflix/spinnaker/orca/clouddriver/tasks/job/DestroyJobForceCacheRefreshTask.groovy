@@ -16,6 +16,7 @@
 
 package com.netflix.spinnaker.orca.clouddriver.tasks.job
 
+import com.netflix.spinnaker.kork.retrofit.Retrofit2SyncCall
 import com.netflix.spinnaker.orca.api.pipeline.models.ExecutionStatus
 import com.netflix.spinnaker.orca.api.pipeline.Task
 import com.netflix.spinnaker.orca.api.pipeline.models.StageExecution
@@ -23,11 +24,13 @@ import com.netflix.spinnaker.orca.api.pipeline.TaskResult
 import com.netflix.spinnaker.orca.clouddriver.CloudDriverCacheService
 import com.netflix.spinnaker.orca.clouddriver.utils.CloudProviderAware
 
+import groovy.util.logging.Slf4j
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Component
 
 import javax.annotation.Nonnull
 
+@Slf4j
 @Component
 class DestroyJobForceCacheRefreshTask implements CloudProviderAware, Task {
   static final String REFRESH_TYPE = "Job"
@@ -45,7 +48,14 @@ class DestroyJobForceCacheRefreshTask implements CloudProviderAware, Task {
     String region = stage.context.region
 
     def model = [jobName: name, region: region, account: account, evict: true] as Map
-    cacheService.forceCacheUpdate(cloudProvider, REFRESH_TYPE, model)
+    try {
+      Retrofit2SyncCall.executeCall(cacheService.forceCacheUpdate(cloudProvider, REFRESH_TYPE, model))
+    } catch (Exception e) {
+      log.warn("Failed to force cache refresh (cloudProvider: {}, type: {}, model: {})", cloudProvider, REFRESH_TYPE, model, e)
+      return TaskResult.builder(ExecutionStatus.SUCCEEDED)
+        .context(["force.cache.refresh.errors": ["Failed to refresh ${name} in ${region}: ${e.message}".toString()]])
+        .build()
+    }
     TaskResult.ofStatus(ExecutionStatus.SUCCEEDED)
   }
 }

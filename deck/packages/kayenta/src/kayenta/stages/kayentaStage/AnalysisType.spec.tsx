@@ -1,5 +1,4 @@
-import type { ReactWrapper } from 'enzyme';
-import { mount } from 'enzyme';
+import { render, screen } from '@testing-library/react';
 import { KayentaAnalysisType } from '../../domain';
 import * as React from 'react';
 
@@ -7,8 +6,6 @@ import type { IAnalysisTypeProps } from './AnalysisType';
 import { AnalysisType, AnalysisTypeWarning } from './AnalysisType';
 
 describe('<AnalysisType />', () => {
-  const component = (props: IAnalysisTypeProps) => mount((<AnalysisType {...props} />) as any);
-
   const tests = [
     {
       it: 'only includes one radio button if only one analysis type is provided',
@@ -16,8 +13,8 @@ describe('<AnalysisType />', () => {
         analysisTypes: [KayentaAnalysisType.Retrospective],
         selectedType: KayentaAnalysisType.Retrospective,
       },
-      assertion: (wrapper: ReactWrapper) => {
-        expect(wrapper.find('input[type="radio"]').length).toEqual(1);
+      assertion: () => {
+        expect(screen.getAllByRole('radio')).toHaveLength(1);
       },
     },
     {
@@ -26,8 +23,8 @@ describe('<AnalysisType />', () => {
         analysisTypes: [KayentaAnalysisType.Retrospective, KayentaAnalysisType.RealTime],
         selectedType: KayentaAnalysisType.Retrospective,
       },
-      assertion: (wrapper: ReactWrapper) => {
-        expect(wrapper.find('input[type="radio"]').length).toEqual(2);
+      assertion: () => {
+        expect(screen.getAllByRole('radio')).toHaveLength(2);
       },
     },
     {
@@ -36,14 +33,21 @@ describe('<AnalysisType />', () => {
         analysisTypes: [KayentaAnalysisType.Retrospective, KayentaAnalysisType.RealTime],
         selectedType: KayentaAnalysisType.RealTimeAutomatic,
       },
-      assertion: (wrapper: ReactWrapper) => {
-        expect(wrapper.find('input[type="radio"]').length).toEqual(2);
-        expect(wrapper.find(AnalysisTypeWarning).exists()).toBeTruthy();
+      assertion: () => {
+        expect(screen.getAllByRole('radio')).toHaveLength(2);
+        expect(
+          screen.getByText(
+            /the analysis type you've selected isn't supported by any of this application's cloud providers/i,
+          ),
+        ).toBeVisible();
       },
     },
   ];
 
   tests.forEach((test) => {
-    it(test.it, () => test.assertion(component(test.props)));
+    it(test.it, () => {
+      render(<AnalysisType {...test.props} />);
+      test.assertion();
+    });
   });
 });

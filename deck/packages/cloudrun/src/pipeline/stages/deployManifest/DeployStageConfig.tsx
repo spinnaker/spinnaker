@@ -15,7 +15,7 @@ interface IDeployManifestStageConfigState {
 
 export class DeployStageConfig extends React.Component<IStageConfigProps, IDeployManifestStageConfigState> {
   private stage: IStage;
-  private destroy$ = new Subject();
+  private destroy$ = new Subject<void>();
 
   public constructor(props: IStageConfigProps) {
     super(props);
@@ -65,6 +65,7 @@ export class DeployStageConfig extends React.Component<IStageConfigProps, IDeplo
       <FormikStageConfig
         {...this.props}
         stage={this.stage}
+        liveStage={this.props.stage}
         onChange={this.props.updateStage}
         render={(props) => <DeployStageForm {...props} accounts={this.state.accounts} />}
       />

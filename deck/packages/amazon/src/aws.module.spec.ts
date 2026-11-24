@@ -32,22 +32,20 @@ import { AwsServerGroupTransformer } from './serverGroup/serverGroup.transformer
 
 describe('Amazon package registration', () => {
   function expectRegistered(path: string): void {
-    expect(CloudProviderRegistry.getValue('aws', path)).withContext(path).not.toBeNull();
+    expect(CloudProviderRegistry.getValue('aws', path), path).not.toBeNull();
   }
 
   function expectNonEmptyRegistration(path: string): void {
     const value = CloudProviderRegistry.getValue('aws', path);
     const entries = Array.isArray(value) ? value : [];
-    expect(Array.isArray(value)).withContext(path).toBe(true);
-    expect(entries.length).withContext(path).toBeGreaterThan(0);
+    expect(Array.isArray(value), path).toBe(true);
+    expect(entries.length, path).toBeGreaterThan(0);
   }
 
-  it('does not register function details as a provider override', () => {
-    const overrideValue = spyOn(CloudProviderRegistry, 'overrideValue');
-    const functionDetailsModule = require.resolve('./function/details/AmazonFunctionDetails');
-    delete require.cache[functionDetailsModule];
+  it('does not register function details as a provider override', async () => {
+    const overrideValue = vi.spyOn(CloudProviderRegistry, 'overrideValue').mockReturnValue(undefined);
 
-    require('./function/details/AmazonFunctionDetails');
+    await import('./function/details/AmazonFunctionDetails');
 
     expect(overrideValue).not.toHaveBeenCalled();
   });
@@ -102,9 +100,9 @@ describe('Amazon package registration', () => {
   });
 
   it('constructs the server group configuration service with explicit dependencies', () => {
-    const securityGroupReader = { getAllSecurityGroups: jasmine.createSpy('getAllSecurityGroups') };
+    const securityGroupReader = { getAllSecurityGroups: vi.fn() };
     const cacheInitializer = {
-      refreshCache: jasmine.createSpy('refreshCache'),
+      refreshCache: vi.fn(),
     };
 
     const service = new AwsServerGroupConfigurationService(
@@ -172,8 +170,8 @@ describe('Amazon package registration', () => {
 
       expectedStages.forEach((provides) => {
         const stage = awsStages.find((candidate) => (candidate.provides || candidate.key) === provides);
-        expect(stage).withContext(`aws ${provides} stage`).toBeDefined();
-        expect(stage?.component).withContext(`aws ${provides} stage component`).toBeDefined();
+        expect(stage, `aws ${provides} stage`).toBeDefined();
+        expect(stage?.component, `aws ${provides} stage component`).toBeDefined();
       });
 
       const structuredStages: Array<{
@@ -236,20 +234,21 @@ describe('Amazon package registration', () => {
 
       structuredStages.forEach(({ component, key }) => {
         const stage = awsStages.find((candidate) => (candidate.key || candidate.provides) === key);
-        expect(stage).withContext(`aws ${key} structured stage`).toBeDefined();
-        expect(stage?.key).withContext(`aws ${key} stage key`).toBe(key);
-        expect(stage?.cloudProvider).withContext(`aws ${key} cloud provider`).toBe('aws');
-        expect(stage?.component).withContext(`aws ${key} config component`).toBe(component);
+        expect(stage, `aws ${key} structured stage`).toBeDefined();
+        expect(stage?.key, `aws ${key} stage key`).toBe(key);
+        expect(stage?.cloudProvider, `aws ${key} cloud provider`).toBe('aws');
+        expect(stage?.component, `aws ${key} config component`).toBe(component);
       });
 
       const deployCloudFormation = awsStages.find((stage) => stage.key === 'deployCloudFormation');
-      expect(deployCloudFormation?.executionDetailsSections?.length)
-        .withContext('aws deployCloudFormation React execution details')
-        .toBeGreaterThan(0);
+      expect(
+        deployCloudFormation?.executionDetailsSections?.length,
+        'aws deployCloudFormation React execution details',
+      ).toBeGreaterThan(0);
 
       ['destroyServerGroup', 'findImage'].forEach((key) => {
         const stage = awsStages.find((candidate) => (candidate.key || candidate.provides) === key);
-        expect(stage?.component).withContext(`aws ${key} generic stage component`).toBe(AmazonStageConfig);
+        expect(stage?.component, `aws ${key} generic stage component`).toBe(AmazonStageConfig);
       });
     } finally {
       Registry.pipeline = previousPipeline;
@@ -279,7 +278,7 @@ describe('Amazon package registration', () => {
 
     expectedStages.forEach((provides) => {
       const registrations = awsStages.filter((stage) => (stage.provides || stage.key) === provides);
-      expect(registrations.length).withContext(`aws ${provides} registration count`).toBe(1);
+      expect(registrations.length, `aws ${provides} registration count`).toBe(1);
     });
   });
 

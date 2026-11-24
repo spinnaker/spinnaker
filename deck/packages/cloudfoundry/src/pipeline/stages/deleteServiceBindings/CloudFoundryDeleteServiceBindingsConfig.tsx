@@ -34,6 +34,7 @@ export function CloudFoundryDeleteServiceBindingsConfig({
       onChange={updateStage}
       pipeline={pipeline}
       stage={stageWithDefaults}
+      liveStage={stage}
       validate={validateCloudFoundryDeleteServiceBindingsStage}
       render={(props) => <CloudFoundryDeleteServiceBindingsStageConfigForm {...props} />}
     />

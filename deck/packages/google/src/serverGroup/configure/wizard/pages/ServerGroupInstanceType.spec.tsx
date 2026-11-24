@@ -1,6 +1,8 @@
-import { mount as enzymeMount } from 'enzyme';
+import type { Mock } from 'vitest';
 import type { FormikProps } from 'formik';
 import React from 'react';
+import { fireEvent, render } from '@testing-library/react';
+import type { RenderResult } from '@testing-library/react';
 
 import { DeckRuntimeContext } from '@spinnaker/core';
 
@@ -9,21 +11,16 @@ import type {
   IGceServerGroupWizardAdapter,
   IGceServerGroupWizardPageProps,
 } from '../GceServerGroupWizard.types';
-import { ServerGroupInstanceType } from './ServerGroupInstanceType';
+import { ServerGroupInstanceType, validateGceServerGroupInstanceType } from './ServerGroupInstanceType';
 
 describe('ServerGroupInstanceType', () => {
   let runtimeServices: any;
-  const RuntimeWrapper = ({ children }: React.PropsWithChildren<{}>) => (
-    <DeckRuntimeContext.Provider value={{ services: runtimeServices } as any}>{children}</DeckRuntimeContext.Provider>
-  );
-  const shallow = (component: React.ReactElement) => enzymeMount(component, { wrappingComponent: RuntimeWrapper });
+  const renderPage = (component: React.ReactElement) => renderWithRuntime(component, runtimeServices);
 
   beforeEach(() => {
     runtimeServices = {
       instanceTypeService: {
-        getInstanceTypeDetails: jasmine
-          .createSpy('getInstanceTypeDetails')
-          .and.returnValue(new Promise(() => undefined)),
+        getInstanceTypeDetails: vi.fn().mockReturnValue(new Promise(() => undefined)),
       },
     };
   });
@@ -35,9 +32,9 @@ describe('ServerGroupInstanceType', () => {
       acceleratorConfigs: [{ acceleratorType: 'retired-gpu', acceleratorCount: 3 }],
     });
 
-    const wrapper = shallow(<ServerGroupInstanceType {...props(values)} />);
+    const wrapper = renderPage(<ServerGroupInstanceType {...props(values)} />);
 
-    expect(wrapper.find('label[htmlFor="gce-machine-type"]').text()).toContain('Machine type');
+    expect(wrapper.getByText(/Machine type/, { selector: 'label' })).toHaveAttribute('for', 'gce-machine-type');
     expect(optionText(wrapper, '#gce-machine-type')).toContain('retired-machine (Unavailable)');
     expect(optionText(wrapper, '#gce-min-cpu-platform')).toContain('Retired CPU (Unavailable)');
     expect(optionText(wrapper, '#gce-accelerator-type-0')).toContain('retired-gpu (Unavailable)');
@@ -46,19 +43,19 @@ describe('ServerGroupInstanceType', () => {
 
   it('selects standard machine types without mutating current Formik values', () => {
     runtimeServices.instanceTypeService = {
-      getInstanceTypeDetails: jasmine.createSpy('getInstanceTypeDetails').and.returnValue(new Promise(() => undefined)),
+      getInstanceTypeDetails: vi.fn().mockReturnValue(new Promise(() => undefined)),
     };
     const values = command({ instanceType: 'n1-standard-1' });
     const testProps = props(values);
-    const wrapper = shallow(<ServerGroupInstanceType {...testProps} />);
+    const wrapper = renderPage(<ServerGroupInstanceType {...testProps} />);
 
-    wrapper.find('#gce-machine-type').simulate('change', { target: { value: 'n2-standard-2' } });
+    fireEvent.change(control(wrapper, '#gce-machine-type'), { target: { value: 'n2-standard-2' } });
 
     expect(values.instanceType).toBe('n1-standard-1');
     expect(testProps.formik.setValues).toHaveBeenCalledWith(
-      jasmine.objectContaining({
+      expect.objectContaining({
         instanceType: 'n2-standard-2',
-        viewState: jasmine.objectContaining({ instanceProfile: 'custom' }),
+        viewState: expect.objectContaining({ instanceProfile: 'custom' }),
       }),
     );
   });
@@ -70,7 +67,7 @@ describe('ServerGroupInstanceType', () => {
   ].forEach(({ description, instanceType }) => {
     it(`publishes pipeline ${description} machine types without concrete type reconciliation`, () => {
       const instanceTypeService = {
-        getInstanceTypeDetails: jasmine.createSpy('getInstanceTypeDetails'),
+        getInstanceTypeDetails: vi.fn(),
       };
       runtimeServices.instanceTypeService = instanceTypeService;
       const values = command({
@@ -78,11 +75,11 @@ describe('ServerGroupInstanceType', () => {
       });
       const adapter = adapterForHandlers();
       const testProps = props(values, adapter);
-      const wrapper = shallow(<ServerGroupInstanceType {...testProps} />);
+      const wrapper = renderPage(<ServerGroupInstanceType {...testProps} />);
 
-      wrapper.find('#gce-machine-type').simulate('change', { target: { value: instanceType } });
+      fireEvent.change(control(wrapper, '#gce-machine-type'), { target: { value: instanceType } });
 
-      expect(testProps.formik.setValues).toHaveBeenCalledWith(jasmine.objectContaining({ instanceType }));
+      expect(testProps.formik.setValues).toHaveBeenCalledWith(expect.objectContaining({ instanceType }));
       expect(instanceTypeService.getInstanceTypeDetails).not.toHaveBeenCalled();
       expect(adapter.applyCommandHandler).not.toHaveBeenCalled();
     });
@@ -91,7 +88,7 @@ describe('ServerGroupInstanceType', () => {
   it('loads standard machine type details and reconciles storage and accelerator capabilities', async () => {
     const detailsRequest = deferred<any>();
     const instanceTypeService = {
-      getInstanceTypeDetails: jasmine.createSpy('getInstanceTypeDetails').and.returnValue(detailsRequest.promise),
+      getInstanceTypeDetails: vi.fn().mockReturnValue(detailsRequest.promise),
     };
     runtimeServices.instanceTypeService = instanceTypeService;
     const values = command({
@@ -108,7 +105,7 @@ describe('ServerGroupInstanceType', () => {
       },
     });
     const adapter = adapterForHandlers();
-    (adapter.applyCommandHandler as jasmine.Spy).and.callFake(async (next, handler) => ({
+    (adapter.applyCommandHandler as Mock).mockImplementation(async (next, handler) => ({
       command: {
         ...next,
         acceleratorConfigs: [],
@@ -121,9 +118,9 @@ describe('ServerGroupInstanceType', () => {
       result: { dirty: {} },
     }));
     const testProps = props(values, adapter);
-    const wrapper = shallow(<ServerGroupInstanceType {...testProps} />);
+    const wrapper = renderPage(<ServerGroupInstanceType {...testProps} />);
 
-    wrapper.find('#gce-machine-type').simulate('change', { target: { value: 'n2-standard-2' } });
+    fireEvent.change(control(wrapper, '#gce-machine-type'), { target: { value: 'n2-standard-2' } });
 
     expect(instanceTypeService.getInstanceTypeDetails).toHaveBeenCalledWith('gce', 'n2-standard-2');
     detailsRequest.resolve({
@@ -136,16 +133,16 @@ describe('ServerGroupInstanceType', () => {
     await settle();
 
     expect(adapter.applyCommandHandler).toHaveBeenCalledWith(
-      jasmine.objectContaining({
+      expect.objectContaining({
         instanceType: 'n2-standard-2',
         disks: [{ type: 'pd-ssd', sizeGb: 20 }],
-        viewState: jasmine.objectContaining({
-          instanceTypeDetails: jasmine.objectContaining({ name: 'n2-standard-2' }),
+        viewState: expect.objectContaining({
+          instanceTypeDetails: expect.objectContaining({ name: 'n2-standard-2' }),
         }),
       }),
       'zoneChanged',
     );
-    const published = (testProps.formik.setValues as jasmine.Spy).calls.mostRecent().args[0];
+    const published = (testProps.formik.setValues as Mock).mock.lastCall[0];
     expect(published.disks).toEqual([{ type: 'pd-ssd', sizeGb: 20 }]);
     expect(published.viewState.overriddenStorageDescription).toBeUndefined();
     expect(published.viewState.instanceTypeDetails.storage.localSSDSupported).toBe(false);
@@ -157,9 +154,9 @@ describe('ServerGroupInstanceType', () => {
     const oldRequest = deferred<any>();
     const newRequest = deferred<any>();
     const instanceTypeService = {
-      getInstanceTypeDetails: jasmine
-        .createSpy('getInstanceTypeDetails')
-        .and.callFake((_provider, instanceType) =>
+      getInstanceTypeDetails: vi
+        .fn()
+        .mockImplementation((_provider, instanceType) =>
           instanceType === 'n2-standard-2' ? oldRequest.promise : newRequest.promise,
         ),
     };
@@ -167,18 +164,18 @@ describe('ServerGroupInstanceType', () => {
     const values = command();
     const adapter = adapterForHandlers();
     const testProps = props(values, adapter);
-    const wrapper = shallow(<ServerGroupInstanceType {...testProps} />);
+    const wrapper = renderPage(<ServerGroupInstanceType {...testProps} />);
 
-    wrapper.find('#gce-machine-type').simulate('change', { target: { value: 'n2-standard-2' } });
-    setFormikValues(wrapper, testProps, (testProps.formik.setValues as jasmine.Spy).calls.mostRecent().args[0]);
-    wrapper.find('#gce-machine-type').simulate('change', { target: { value: 'n1-standard-1' } });
+    fireEvent.change(control(wrapper, '#gce-machine-type'), { target: { value: 'n2-standard-2' } });
+    setFormikValues(wrapper, testProps, (testProps.formik.setValues as Mock).mock.lastCall[0], runtimeServices);
+    fireEvent.change(control(wrapper, '#gce-machine-type'), { target: { value: 'n1-standard-1' } });
 
     newRequest.resolve(instanceTypeDetails('n1-standard-1', 30));
     await settle();
     oldRequest.resolve(instanceTypeDetails('n2-standard-2', 40));
     await settle();
 
-    const published = (testProps.formik.setValues as jasmine.Spy).calls.mostRecent().args[0];
+    const published = (testProps.formik.setValues as Mock).mock.lastCall[0];
     expect(published.instanceType).toBe('n1-standard-1');
     expect(published.viewState.instanceTypeDetails.name).toBe('n1-standard-1');
     expect(published.disks).toEqual([{ type: 'pd-ssd', sizeGb: 30 }]);
@@ -188,48 +185,51 @@ describe('ServerGroupInstanceType', () => {
   it('ignores standard machine type details after the user switches to a custom type', async () => {
     const detailsRequest = deferred<any>();
     runtimeServices.instanceTypeService = {
-      getInstanceTypeDetails: jasmine.createSpy('getInstanceTypeDetails').and.returnValue(detailsRequest.promise),
+      getInstanceTypeDetails: vi.fn().mockReturnValue(detailsRequest.promise),
     };
     const values = command();
     const adapter = adapterForHandlers();
     const testProps = props(values, adapter);
-    const wrapper = shallow(<ServerGroupInstanceType {...testProps} />);
+    const wrapper = renderPage(<ServerGroupInstanceType {...testProps} />);
 
-    wrapper.find('#gce-machine-type').simulate('change', { target: { value: 'n2-standard-2' } });
-    setFormikValues(wrapper, testProps, (testProps.formik.setValues as jasmine.Spy).calls.mostRecent().args[0]);
-    wrapper.find('#gce-machine-type-custom').simulate('change');
+    fireEvent.change(control(wrapper, '#gce-machine-type'), { target: { value: 'n2-standard-2' } });
+    setFormikValues(wrapper, testProps, (testProps.formik.setValues as Mock).mock.lastCall[0], runtimeServices);
+    fireEvent.click(control(wrapper, '#gce-machine-type-custom'));
     await settle();
     detailsRequest.resolve(instanceTypeDetails('n2-standard-2', 40));
     await settle();
 
-    const published = (testProps.formik.setValues as jasmine.Spy).calls.mostRecent().args[0];
+    const published = (testProps.formik.setValues as Mock).mock.lastCall[0];
     expect(published.instanceType).toContain('custom-');
     expect(published.viewState.instanceTypeDetails).toBeUndefined();
     expect(published.disks).toEqual([{ type: 'pd-ssd', sizeGb: 20 }]);
-    expect((adapter.applyCommandHandler as jasmine.Spy).calls.allArgs().map((args) => args[1])).toEqual([
-      'customInstanceChanged',
-    ]);
+    expect((adapter.applyCommandHandler as Mock).mock.calls.map((args) => args[1])).toEqual(['customInstanceChanged']);
   });
 
   it('preserves a disk edit made while machine type details are loading', async () => {
     const detailsRequest = deferred<any>();
     runtimeServices.instanceTypeService = {
-      getInstanceTypeDetails: jasmine.createSpy('getInstanceTypeDetails').and.returnValue(detailsRequest.promise),
+      getInstanceTypeDetails: vi.fn().mockReturnValue(detailsRequest.promise),
     };
     const values = command();
     const testProps = props(values);
-    const wrapper = shallow(<ServerGroupInstanceType {...testProps} />);
+    const wrapper = renderPage(<ServerGroupInstanceType {...testProps} />);
 
-    wrapper.find('#gce-machine-type').simulate('change', { target: { value: 'n2-standard-2' } });
-    const selectedValues = (testProps.formik.setValues as jasmine.Spy).calls.mostRecent().args[0];
-    setFormikValues(wrapper, testProps, {
-      ...selectedValues,
-      disks: [{ type: 'pd-standard', sizeGb: 500 }],
-    });
+    fireEvent.change(control(wrapper, '#gce-machine-type'), { target: { value: 'n2-standard-2' } });
+    const selectedValues = (testProps.formik.setValues as Mock).mock.lastCall[0];
+    setFormikValues(
+      wrapper,
+      testProps,
+      {
+        ...selectedValues,
+        disks: [{ type: 'pd-standard', sizeGb: 500 }],
+      },
+      runtimeServices,
+    );
     detailsRequest.resolve(instanceTypeDetails('n2-standard-2', 40));
     await settle();
 
-    const published = (testProps.formik.setValues as jasmine.Spy).calls.mostRecent().args[0];
+    const published = (testProps.formik.setValues as Mock).mock.lastCall[0];
     expect(published.instanceType).toBe('n2-standard-2');
     expect(published.viewState.instanceTypeDetails.name).toBe('n2-standard-2');
     expect(published.disks).toEqual([{ type: 'pd-standard', sizeGb: 500 }]);
@@ -247,22 +247,22 @@ describe('ServerGroupInstanceType', () => {
     });
     const adapter = adapterForHandlers();
     const testProps = props(values, adapter);
-    const wrapper = shallow(<ServerGroupInstanceType {...testProps} />);
+    const wrapper = renderPage(<ServerGroupInstanceType {...testProps} />);
 
-    wrapper.find('#gce-custom-cpu').simulate('change', { target: { value: '8' } });
+    fireEvent.change(control(wrapper, '#gce-custom-cpu'), { target: { value: '8' } });
     await settle();
 
     expect(adapter.applyCommandHandler).toHaveBeenCalledWith(
-      jasmine.objectContaining({
+      expect.objectContaining({
         instanceType: 'n2-custom-8-16384',
-        viewState: jasmine.objectContaining({
-          customInstance: jasmine.objectContaining({ vCpuCount: 8, memory: 16 }),
+        viewState: expect.objectContaining({
+          customInstance: expect.objectContaining({ vCpuCount: 8, memory: 16 }),
         }),
       }),
       'customInstanceChanged',
     );
     expect(testProps.formik.setValues).toHaveBeenCalledWith(
-      jasmine.objectContaining({ instanceType: 'n2-custom-8-16384', handledBy: 'customInstanceChanged' }),
+      expect.objectContaining({ instanceType: 'n2-custom-8-16384', handledBy: 'customInstanceChanged' }),
     );
     expect(values.instanceType).toBe('n2-custom-4-16384');
   });
@@ -270,12 +270,12 @@ describe('ServerGroupInstanceType', () => {
   it('keeps spot scheduling fields compatible when preemptibility changes', () => {
     const values = command({ preemptible: false, automaticRestart: true, onHostMaintenance: 'MIGRATE' });
     const testProps = props(values);
-    const wrapper = shallow(<ServerGroupInstanceType {...testProps} />);
+    const wrapper = renderPage(<ServerGroupInstanceType {...testProps} />);
 
-    wrapper.find('#gce-preemptible').simulate('change', { target: { checked: true } });
+    fireEvent.click(control(wrapper, '#gce-preemptible'));
 
     expect(testProps.formik.setValues).toHaveBeenCalledWith(
-      jasmine.objectContaining({ preemptible: true, automaticRestart: false, onHostMaintenance: 'TERMINATE' }),
+      expect.objectContaining({ preemptible: true, automaticRestart: false, onHostMaintenance: 'TERMINATE' }),
     );
     expect(values.preemptible).toBe(false);
   });
@@ -288,12 +288,12 @@ describe('ServerGroupInstanceType', () => {
       ],
     });
     const testProps = props(values);
-    const wrapper = shallow(<ServerGroupInstanceType {...testProps} />);
+    const wrapper = renderPage(<ServerGroupInstanceType {...testProps} />);
 
-    wrapper.find('#gce-accelerator-type-0').simulate('change', { target: { value: 'nvidia-tesla-v100' } });
+    fireEvent.change(control(wrapper, '#gce-accelerator-type-0'), { target: { value: 'nvidia-tesla-v100' } });
 
     expect(testProps.formik.setValues).toHaveBeenCalledWith(
-      jasmine.objectContaining({
+      expect.objectContaining({
         acceleratorConfigs: [
           { acceleratorType: 'nvidia-tesla-v100', acceleratorCount: 2 },
           { acceleratorType: 'retired-gpu', acceleratorCount: 3 },
@@ -312,14 +312,14 @@ describe('ServerGroupInstanceType', () => {
       ],
     });
     const testProps = props(values);
-    const wrapper = shallow(<ServerGroupInstanceType {...testProps} />);
+    const wrapper = renderPage(<ServerGroupInstanceType {...testProps} />);
 
-    expect(wrapper.find('#gce-boot-disk-size').prop('min')).toBe(10);
-    expect(wrapper.find('#gce-boot-disk-size').prop('max')).toBe(65536);
-    wrapper.find('#gce-boot-disk-type').simulate('change', { target: { value: 'pd-standard' } });
+    expect(control(wrapper, '#gce-boot-disk-size')).toHaveAttribute('min', '10');
+    expect(control(wrapper, '#gce-boot-disk-size')).toHaveAttribute('max', '65536');
+    fireEvent.change(control(wrapper, '#gce-boot-disk-type'), { target: { value: 'pd-standard' } });
 
     expect(testProps.formik.setValues).toHaveBeenCalledWith(
-      jasmine.objectContaining({
+      expect.objectContaining({
         disks: [
           { type: 'pd-standard', sizeGb: 20 },
           { type: 'local-ssd', sizeGb: 375 },
@@ -331,14 +331,13 @@ describe('ServerGroupInstanceType', () => {
   });
 
   it('accepts pipeline expressions but validates finite concrete disk and accelerator values', () => {
-    const page = shallow(<ServerGroupInstanceType {...props(command())} />).instance() as ServerGroupInstanceType;
     const invalid = command({
       instanceType: '',
       disks: [{ type: 'pd-ssd', sizeGb: Infinity }],
       acceleratorConfigs: [{ acceleratorType: 'nvidia-tesla-t4', acceleratorCount: 3 }],
     });
 
-    expect(page.validate(invalid)).toEqual({
+    expect(validateGceServerGroupInstanceType(invalid)).toEqual({
       instanceType: 'Machine type required.',
       disks: 'Boot disk size must be between 10 and 65536 GB.',
       acceleratorConfigs: 'Accelerator count is unavailable for the selected type.',
@@ -349,10 +348,10 @@ describe('ServerGroupInstanceType', () => {
       disks: [{ type: 'pd-ssd', sizeGb: '${ parameters.diskSize }' }],
       acceleratorConfigs: [{ acceleratorType: 'retired-gpu', acceleratorCount: '${ parameters.gpuCount }' }],
     });
-    expect(page.validate(expressionValues)).toEqual({});
-    const expressionWrapper = shallow(<ServerGroupInstanceType {...props(expressionValues)} />);
-    expect(expressionWrapper.find('#gce-boot-disk-size').prop('type')).toBe('text');
-    expect(expressionWrapper.find('#gce-accelerator-count-0').prop('type')).toBe('text');
+    expect(validateGceServerGroupInstanceType(expressionValues)).toEqual({});
+    const expressionWrapper = renderPage(<ServerGroupInstanceType {...props(expressionValues)} />);
+    expect(control(expressionWrapper, '#gce-boot-disk-size')).toHaveAttribute('type', 'text');
+    expect(control(expressionWrapper, '#gce-accelerator-count-0')).toHaveAttribute('type', 'text');
   });
 
   it('renders and associates instance type, boot disk, and accelerator validation errors', () => {
@@ -367,7 +366,7 @@ describe('ServerGroupInstanceType', () => {
       acceleratorConfigs: 'Accelerator count is unavailable for the selected type.',
     };
     const testProps = props(values, adapterForHandlers(), errors);
-    const wrapper = shallow(<ServerGroupInstanceType {...testProps} />);
+    const wrapper = renderPage(<ServerGroupInstanceType {...testProps} />);
 
     [
       ['#gce-machine-type', 'gce-machine-type-error'],
@@ -389,7 +388,11 @@ describe('ServerGroupInstanceType', () => {
         acceleratorTypes: [],
       },
     });
-    wrapper.setProps({ formik: { ...testProps.formik, errors, values: customValues } });
+    rerenderInstanceType(
+      wrapper,
+      { ...testProps, formik: { ...testProps.formik, errors, values: customValues } },
+      runtimeServices,
+    );
 
     expectAssociatedError(wrapper, '#gce-custom-cpu', 'gce-machine-type-error');
     expectAssociatedError(wrapper, '#gce-custom-memory', 'gce-machine-type-error');
@@ -397,24 +400,52 @@ describe('ServerGroupInstanceType', () => {
   });
 });
 
-function expectAssociatedError(wrapper: any, selector: string, errorId: string): void {
-  const control = wrapper.find(selector);
-  expect(control.prop('aria-invalid')).withContext(selector).toBe(true);
-  expect(control.prop('aria-describedby')).withContext(selector).toBe(errorId);
+function expectAssociatedError(wrapper: RenderResult, selector: string, errorId: string): void {
+  const element = control(wrapper, selector);
+  expect(element, selector).toHaveAttribute('aria-invalid', 'true');
+  expect(element, selector).toHaveAttribute('aria-describedby', errorId);
 }
 
-function expectValidationAlert(wrapper: any, id: string, message: string): void {
-  const alert = wrapper.find(`#${id}`);
-  expect(alert.prop('role')).withContext(id).toBe('alert');
-  expect(alert.text()).withContext(id).toContain(message);
+function expectValidationAlert(wrapper: RenderResult, id: string, message: string): void {
+  const alert = control(wrapper, `#${id}`);
+  expect(alert, id).toHaveAttribute('role', 'alert');
+  expect(alert, id).toHaveTextContent(message);
 }
 
-function optionText(wrapper: any, selector: string): string[] {
-  return wrapper.find(`${selector} option`).map((option: any) => option.text());
+function optionText(wrapper: RenderResult, selector: string): string[] {
+  return Array.from(control(wrapper, selector).querySelectorAll('option')).map((option) => option.textContent || '');
 }
 
-function optionValues(wrapper: any, selector: string): string[] {
-  return wrapper.find(`${selector} option`).map((option: any) => String(option.prop('value')));
+function optionValues(wrapper: RenderResult, selector: string): string[] {
+  return Array.from(control(wrapper, selector).querySelectorAll('option')).map((option) => option.value);
+}
+
+function control(wrapper: RenderResult, selector: string): HTMLElement {
+  const element = wrapper.container.querySelector<HTMLElement>(selector);
+  if (!element) {
+    throw new Error(`Missing control: ${selector}`);
+  }
+  return element;
+}
+
+function renderWithRuntime(component: React.ReactElement, runtimeServices: any): RenderResult {
+  const container = document.body.appendChild(document.createElement('div'));
+  return render(
+    <DeckRuntimeContext.Provider value={{ services: runtimeServices } as any}>{component}</DeckRuntimeContext.Provider>,
+    { baseElement: container, container },
+  );
+}
+
+function rerenderInstanceType(
+  rendered: RenderResult,
+  pageProps: IGceServerGroupWizardPageProps,
+  runtimeServices: any,
+): void {
+  rendered.rerender(
+    <DeckRuntimeContext.Provider value={{ services: runtimeServices } as any}>
+      <ServerGroupInstanceType {...pageProps} />
+    </DeckRuntimeContext.Provider>,
+  );
 }
 
 function props(
@@ -425,24 +456,22 @@ function props(
   return {
     app: { name: 'app' } as any,
     adapter,
-    formik: ({ errors, values, setValues: jasmine.createSpy('setValues') } as unknown) as FormikProps<
-      IGceServerGroupCommand
-    >,
+    formik: ({ errors, values, setValues: vi.fn() } as unknown) as FormikProps<IGceServerGroupCommand>,
   };
 }
 
 function adapterForHandlers(): IGceServerGroupWizardAdapter {
   return {
-    configureCommand: jasmine.createSpy('configureCommand').and.callFake(async (_app, next) => next),
-    applyCommandHandler: jasmine.createSpy('applyCommandHandler').and.callFake(async (next, handler) => ({
+    configureCommand: vi.fn().mockImplementation(async (_app, next) => next),
+    applyCommandHandler: vi.fn().mockImplementation(async (next, handler) => ({
       command: { ...next, handledBy: handler },
       result: { dirty: {} },
     })),
-    applyConfigurationUpdate: jasmine.createSpy('applyConfigurationUpdate').and.callFake(async (next) => ({
+    applyConfigurationUpdate: vi.fn().mockImplementation(async (next) => ({
       command: next,
       result: { dirty: {} },
     })),
-    applyConfigurationRefresh: jasmine.createSpy('applyConfigurationRefresh').and.callFake(async (next) => ({
+    applyConfigurationRefresh: vi.fn().mockImplementation(async (next) => ({
       command: next,
       result: { dirty: {} },
     })),
@@ -527,10 +556,11 @@ function instanceTypeDetails(name: string, diskSize: number): any {
 }
 
 function setFormikValues(
-  wrapper: any,
+  wrapper: RenderResult,
   testProps: IGceServerGroupWizardPageProps,
   values: IGceServerGroupCommand,
+  runtimeServices: any,
 ): void {
   const formik = ({ ...testProps.formik, values } as unknown) as FormikProps<IGceServerGroupCommand>;
-  wrapper.setProps({ formik });
+  rerenderInstanceType(wrapper, { ...testProps, formik }, runtimeServices);
 }

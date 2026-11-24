@@ -1,8 +1,8 @@
-import { shallow } from 'enzyme';
+import { render, screen } from '@testing-library/react';
 import React from 'react';
 
 import type { Application, IStage } from '@spinnaker/core';
-import { AccountService, StageConfigField } from '@spinnaker/core';
+import { AccountService } from '@spinnaker/core';
 
 import { CloudFoundryDeleteServiceBindingsStageConfigForm } from './CloudFoundryDeleteServiceBindingsStageConfigForm';
 
@@ -13,8 +13,8 @@ describe('<CloudFoundryDeleteServiceBindingsStageConfigForm/>', function () {
   } as Application;
 
   beforeEach(() => {
-    spyOn(AccountService, 'listAccounts').and.returnValue(Promise.resolve([]));
-    spyOn(AccountService, 'getRegionsForAccount').and.returnValue(Promise.resolve([]));
+    vi.spyOn(AccountService, 'listAccounts').mockReturnValue(Promise.resolve([]));
+    vi.spyOn(AccountService, 'getRegionsForAccount').mockReturnValue(Promise.resolve([]));
   });
 
   const getProps = () => {
@@ -39,16 +39,14 @@ describe('<CloudFoundryDeleteServiceBindingsStageConfigForm/>', function () {
     } as unknown) as IStage;
     const formik = {
       values: stage,
-      setFieldValue: jasmine.createSpy('setFieldValue'),
+      setFieldValue: vi.fn(),
     } as any;
 
     const props = getProps();
 
-    const component = shallow(<CloudFoundryDeleteServiceBindingsStageConfigForm {...props} formik={formik} />);
+    render(<CloudFoundryDeleteServiceBindingsStageConfigForm {...props} formik={formik} />);
 
-    expect(component.find(StageConfigField).filterWhere((x) => x.prop('label') === 'Target').length).toBe(1);
-    expect(
-      component.find(StageConfigField).filterWhere((x) => x.prop('label') === 'Service Instance Name').length,
-    ).toBe(2);
+    expect(screen.getAllByText('Target', { selector: '.label-text' })).toHaveLength(1);
+    expect(screen.getAllByText('Service Instance Name', { selector: '.label-text' })).toHaveLength(2);
   });
 });

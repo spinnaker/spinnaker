@@ -4,7 +4,7 @@ spring:
 
 kubernetes:
   kubectl:
-    executable: ${IT_BUILD_HOME}/kubectl
+    executable: ${IT_BUILD_HOME}/kubectl-${KUBECTL_VERSION}
   enabled: true
   primaryAccount: account1
   accounts:

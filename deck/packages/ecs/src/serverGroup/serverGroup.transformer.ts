@@ -12,6 +12,13 @@ import type {
 import { VpcReader } from '@spinnaker/amazon';
 import type { IInstance, IVpc } from '@spinnaker/core';
 
+import {
+  ECS_NATIVE_BLUE_GREEN_ONLY_FIELDS,
+  ECS_NATIVE_ONLY_FIELDS,
+  isEcsNativeBlueGreenStrategy,
+  isEcsNativeStrategyDecidedInDeck,
+} from './configure/serverGroupConfiguration.service';
+
 export class EcsServerGroupTransformer {
   private addComparator(alarm: IScalingPolicyAlarmView): void {
     if (!alarm.comparisonOperator) {
@@ -89,7 +96,24 @@ export class EcsServerGroupTransformer {
   public convertServerGroupCommandToDeployConfiguration(base: any): any {
     // use _.defaults to avoid copying the backingData, which is huge and expensive to copy over
     const command = defaults({ backingData: [], viewState: [] }, base);
-    command.cloudProvider = 'ecs';
+    // The "Use native ECS deployment" toggle (Native ECS Deployment wizard page) sets
+    // base.cloudProvider to 'ecs-native' directly; everything else about the account,
+    // cluster, and networking is identical, so preserve that choice here rather than
+    // always forcing 'ecs'.
+    command.cloudProvider = base.cloudProvider === 'ecs-native' ? 'ecs-native' : 'ecs';
+    // This runs when the wizard serializes its command; it is not a filter for hand-edited or
+    // API-authored pipelines (clouddriver validates those). A classic payload must not carry
+    // native-only fields, and a native payload must not carry blue/green-only fields when the
+    // strategy is known here and is not blue/green. An omitted strategy (clouddriver keeps the
+    // service's stored one) or a SpEL expression leaves them untouched.
+    if (command.cloudProvider !== 'ecs-native') {
+      ECS_NATIVE_ONLY_FIELDS.forEach((field) => delete command[field]);
+    } else if (
+      isEcsNativeStrategyDecidedInDeck(command.deploymentStrategy) &&
+      !isEcsNativeBlueGreenStrategy(command.deploymentStrategy)
+    ) {
+      ECS_NATIVE_BLUE_GREEN_ONLY_FIELDS.forEach((field) => delete command[field]);
+    }
     command.availabilityZones = {};
     command.availabilityZones[command.region] = base.availabilityZones;
     command.loadBalancers = (base.loadBalancers || []).concat(base.vpcLoadBalancers || []);

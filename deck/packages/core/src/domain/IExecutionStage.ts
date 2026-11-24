@@ -29,6 +29,7 @@ export interface IExecutionStage extends IOrchestratedItem, IStage {
 
 export interface IExecutionStageLabelProps {
   application?: Application;
+  displayName?: string;
   execution?: IExecution;
   executionMarker?: boolean;
   stage: IExecutionStageSummary;

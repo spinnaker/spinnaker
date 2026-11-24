@@ -150,7 +150,12 @@ public class ExecutionsController {
               description =
                   "Expands each execution object in the resulting list. If this value is missing, it is defaulted to false.")
           @RequestParam(value = "expand", defaultValue = "false")
-          boolean expand) {
+          boolean expand,
+      @Parameter(
+              description =
+                  "When true, and pipelineName is not supplied, also includes executions belonging to pipelines that have since been deleted. If this value is missing, it is defaulted to false.")
+          @RequestParam(value = "includeDeletedPipelines", defaultValue = "false")
+          boolean includeDeletedPipelines) {
     return Retrofit2SyncCall.execute(
         orcaServiceSelector
             .select()
@@ -166,7 +171,8 @@ public class ExecutionsController {
                 startIndex,
                 size,
                 reverse,
-                expand));
+                expand,
+                includeDeletedPipelines));
   }
 
   @Operation(

@@ -35,7 +35,7 @@ class DatadogMetricsServiceSpec extends Specification {
     DatadogCanaryMetricSetQueryConfig queryConfig =
       DatadogCanaryMetricSetQueryConfig.builder()
         .metricName(metricName)
-        .customInlineTemplate(customInlineTemplate)
+        .template(customInlineTemplate)
         .build()
     CanaryMetricConfig canaryMetricConfig =
       CanaryMetricConfig.builder()
@@ -59,5 +59,20 @@ class DatadogMetricsServiceSpec extends Specification {
     metricName         | customInlineTemplate                                     | scope          | extendedScopeParams || expectedQuery
     "sum:app.errors"   | null                                                     | "tag:some-tag" | null                || 'sum:app.errors{tag:some-tag}'
     null               | 'sum:app.errors{${scope}}/sum:app.requests{${scope}}'    | "tag:some-tag" | null                || 'sum:app.errors{tag:some-tag}/sum:app.requests{tag:some-tag}'
+  }
+
+  void "Deck starter example expands"() {
+    given:
+    // Must match the example in deck/packages/kayenta/src/kayenta/edit/templateProviderVariables.ts
+    String example = 'avg:trace.express.request.duration{service:${scope},env:${location}}'
+    CanaryMetricConfig canaryMetricConfig =
+      CanaryMetricConfig.builder()
+        .query(DatadogCanaryMetricSetQueryConfig.builder().template(example).build())
+        .build()
+    DatadogCanaryScope scope = new DatadogCanaryScope().setScope("myapp-prod-v002").setLocation("us-east-1")
+
+    expect:
+    datadogMetricsService.buildQuery(null, CanaryConfig.builder().build(), canaryMetricConfig, scope) ==
+      'avg:trace.express.request.duration{service:myapp-prod-v002,env:us-east-1}'
   }
 }

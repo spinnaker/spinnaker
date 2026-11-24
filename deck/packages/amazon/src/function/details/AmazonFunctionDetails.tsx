@@ -22,7 +22,7 @@ export interface IAmazonFunctionDetailsProps extends IOverridableProps {
 }
 
 export class AmazonFunctionDetails extends React.Component<IAmazonFunctionDetailsProps, any> {
-  private destroy$ = new Subject();
+  private destroy$ = new Subject<void>();
   constructor(props: IAmazonFunctionDetailsProps) {
     super(props);
     this.state = {

@@ -21,6 +21,10 @@ executionRepository:
 spring:
   application:
     name: orcaTest
+  # Mirrors config/orca.yml: OrcaObjectMapper is Jackson 2 only.
+  http:
+    converters:
+      preferred-json-mapper: jackson2
 
 services:
   fiat:

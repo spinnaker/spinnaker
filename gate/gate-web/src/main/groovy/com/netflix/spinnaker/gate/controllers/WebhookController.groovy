@@ -41,15 +41,12 @@ class WebhookController {
   @RequestMapping(value = "/{type}/{source}", method = RequestMethod.POST)
   Map webhooks(@PathVariable("type") String type,
                @PathVariable("source") String source,
-               @RequestBody(required = false) Map event,
-               @RequestHeader(value = "X-Hub-Signature", required = false) String gitHubSignature,
-               @RequestHeader(value = "X-Event-Key", required = false) String bitBucketEventType)
+               @RequestBody(required = false) byte[] event,
+               @RequestHeader HttpHeaders headers)
   {
-    if (gitHubSignature || bitBucketEventType) {
-      webhookService.webhooks(type, source, event, gitHubSignature, bitBucketEventType)
-    } else {
-      webhookService.webhooks(type, source, event)
-    }
+    // The body is deliberately not bound to a Map: echo checks the sender's signature against the
+    // original bytes, which a parse and re-serialize does not reproduce.
+    webhookService.webhooks(type, source, event, headers)
   }
 
   @Operation(summary = "Endpoint for posting webhooks to Spinnaker's CDEvents webhook service")

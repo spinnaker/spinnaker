@@ -18,7 +18,7 @@
 package com.netflix.spinnaker.clouddriver.artifacts.docker;
 
 import com.google.common.collect.ImmutableList;
-import com.netflix.spinnaker.clouddriver.artifacts.config.ArtifactCredentials;
+import com.netflix.spinnaker.clouddriver.artifacts.config.AbstractArtifactCredentials;
 import com.netflix.spinnaker.kork.annotations.NonnullByDefault;
 import com.netflix.spinnaker.kork.artifacts.model.Artifact;
 import java.io.InputStream;
@@ -28,7 +28,7 @@ import lombok.extern.slf4j.Slf4j;
 @Slf4j
 @NonnullByDefault
 @Value
-final class DockerArtifactCredentials implements ArtifactCredentials {
+final class DockerArtifactCredentials extends AbstractArtifactCredentials {
   public static final String CREDENTIALS_TYPE = "artifacts-docker";
   public static final String TYPE = "docker/image";
 
@@ -36,6 +36,7 @@ final class DockerArtifactCredentials implements ArtifactCredentials {
   private final ImmutableList<String> types = ImmutableList.of(TYPE);
 
   DockerArtifactCredentials(DockerArtifactAccount account) {
+    super(account);
     this.name = account.getName();
   }
 

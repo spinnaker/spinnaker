@@ -21,6 +21,7 @@ import software.amazon.awssdk.services.autoscaling.model.DescribeAutoScalingGrou
 import software.amazon.awssdk.services.autoscaling.model.DescribeLifecycleHooksRequest
 import software.amazon.awssdk.services.autoscaling.model.LaunchTemplateSpecification
 import software.amazon.awssdk.services.ec2.model.DescribeSubnetsRequest
+import software.amazon.awssdk.services.ec2.model.LaunchTemplateInstanceMetadataTagsState
 import software.amazon.awssdk.services.ec2.model.LaunchTemplateVersion
 import software.amazon.awssdk.services.ec2.model.ResponseLaunchTemplateData
 import software.amazon.awssdk.services.elasticloadbalancingv2.model.DescribeTargetGroupsRequest
@@ -190,6 +191,15 @@ class CopyLastAsgAtomicOperation implements AtomicOperation<DeploymentResult> {
           newDescription.setLaunchTemplate = true
           newDescription.enableEnclave = description.enableEnclave != null ? description.enableEnclave :  ancestorLtData.enclaveOptions()?.enabled()
           newDescription.requireIMDSv2 = description.requireIMDSv2 != null ? description.requireIMDSv2 : ancestorLtData.metadataOptions()?.httpTokensAsString() == "required"
+          if (description.enableInstanceMetadataTags == null) {
+            // Carry forward the ancestor's access to instance tags in IMDS only when it was set explicitly,
+            // so a clone neither turns it off nor overrides the AWS default when the ancestor left it unset.
+            String ancestorInstanceMetadataTags = ancestorLtData.metadataOptions()?.instanceMetadataTagsAsString()
+            if (ancestorInstanceMetadataTags != null) {
+              newDescription.enableInstanceMetadataTags =
+                ancestorInstanceMetadataTags == LaunchTemplateInstanceMetadataTagsState.ENABLED.toString()
+            }
+          }
           newDescription.associateIPv6Address = description.associateIPv6Address
           newDescription.unlimitedCpuCredits = description.unlimitedCpuCredits != null
             ? description.unlimitedCpuCredits
@@ -205,6 +215,20 @@ class CopyLastAsgAtomicOperation implements AtomicOperation<DeploymentResult> {
               securityGroups = networkInterface.groups
               if (description.associateIPv6Address == null) {
                 newDescription.associateIPv6Address = networkInterface.ipv6AddressCount() > 0 ? true : false
+              }
+              // Carry forward connection tracking timeouts not explicitly requested, so a clone does not
+              // silently revert the ancestor to the AWS default (350s on Nitro v6 instance types).
+              def ancestorConnectionTracking = networkInterface.connectionTrackingSpecification()
+              if (ancestorConnectionTracking != null) {
+                if (description.tcpEstablishedTimeout == null) {
+                  newDescription.tcpEstablishedTimeout = ancestorConnectionTracking.tcpEstablishedTimeout()
+                }
+                if (description.udpStreamTimeout == null) {
+                  newDescription.udpStreamTimeout = ancestorConnectionTracking.udpStreamTimeout()
+                }
+                if (description.udpTimeout == null) {
+                  newDescription.udpTimeout = ancestorConnectionTracking.udpTimeout()
+                }
               }
             }
           }
@@ -265,7 +289,8 @@ class CopyLastAsgAtomicOperation implements AtomicOperation<DeploymentResult> {
         newDescription.capacity.min = description.capacity?.min != null ? description.capacity.min : ancestorAsg.minSize()
         newDescription.capacity.max = description.capacity?.max != null ? description.capacity.max : ancestorAsg.maxSize()
         newDescription.capacity.desired = description.capacity?.desired != null ? description.capacity.desired : ancestorAsg.desiredCapacity()
-        newDescription.keyPair = description.keyPair ?: (sourceIsTarget ? keyName : description.credentials.defaultKeyPair)
+        // an empty key pair is kept so that the new server group launches instances without a key pair
+        newDescription.keyPair = description.keyPair != null ? description.keyPair : (sourceIsTarget ? keyName : description.credentials.defaultKeyPair)
         newDescription.associatePublicIpAddress = description.associatePublicIpAddress != null ? description.associatePublicIpAddress : associatePublicIpAddress
         newDescription.cooldown = description.cooldown != null ? description.cooldown : ancestorAsg.defaultCooldown()
         newDescription.enabledMetrics = description.enabledMetrics != null ? description.enabledMetrics : ancestorAsg.enabledMetrics()*.metric

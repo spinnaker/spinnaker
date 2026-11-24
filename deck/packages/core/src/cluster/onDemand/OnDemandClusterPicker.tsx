@@ -37,7 +37,7 @@ export function getAvailableClusters(
     .filter((cluster) => !selectedClusters?.[makeClusterFilterKey(cluster)])
     .map((cluster) => ({
       account: cluster.account,
-      label: cluster.name,
+      label: `${cluster.account} ${cluster.name}`,
       name: cluster.name,
       value: makeClusterFilterKey(cluster),
     }));
@@ -99,6 +99,7 @@ export function OnDemandClusterPicker({ application }: IOnDemandClusterPickerPro
         <strong>Not all clusters are shown.</strong> Select or enter a cluster name below to view:
       </p>
       <ReactSelectInput
+        aria-label="Cluster"
         mode="PLAIN"
         name="cluster"
         value={null}

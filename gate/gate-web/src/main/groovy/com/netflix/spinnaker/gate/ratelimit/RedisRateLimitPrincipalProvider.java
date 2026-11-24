@@ -19,40 +19,40 @@ import static net.logstash.logback.argument.StructuredArguments.value;
 
 import com.netflix.spinnaker.gate.config.RateLimiterConfiguration;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.List;
 import java.util.Optional;
+import java.util.function.Supplier;
 import javax.annotation.Nullable;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-import org.springframework.scheduling.annotation.Scheduled;
+import lombok.extern.slf4j.Slf4j;
 import redis.clients.jedis.Jedis;
 import redis.clients.jedis.JedisPool;
 import redis.clients.jedis.exceptions.JedisException;
 
+@Slf4j
 public class RedisRateLimitPrincipalProvider extends AbstractRateLimitPrincipalProvider {
-
-  private static final Logger log = LoggerFactory.getLogger(RedisRateLimitPrincipalProvider.class);
 
   private JedisPool jedisPool;
   private RateLimiterConfiguration rateLimiterConfiguration;
-
-  private boolean supportsDeckSourceApp;
 
   public RedisRateLimitPrincipalProvider(
       JedisPool jedisPool, RateLimiterConfiguration rateLimiterConfiguration) {
     this.jedisPool = jedisPool;
     this.rateLimiterConfiguration = rateLimiterConfiguration;
-
-    refreshSupportsDeckSourceApp();
   }
 
   @Override
   public RateLimitPrincipal getPrincipal(String name, @Nullable String sourceApp) {
-    String configName = normalizeAnonymousNameForConfig(name);
+    return getPrincipal(name, sourceApp, List::of);
+  }
+
+  @Override
+  public RateLimitPrincipal getPrincipal(
+      String name, @Nullable String sourceApp, Supplier<Collection<String>> roles) {
     try (Jedis jedis = jedisPool.getResource()) {
-      int capacity = getCapacity(jedis, configName, sourceApp);
-      int rateSeconds = getRateSeconds(jedis, configName);
-      boolean learning = getLearningFlag(jedis, configName, sourceApp);
+      int capacity = getCapacity(jedis, name, sourceApp, roles);
+      int rateSeconds = getRateSeconds(jedis, name);
+      boolean learning = getLearningFlag(jedis, name, sourceApp);
 
       return new RateLimitPrincipal(name, rateSeconds, capacity, learning);
     } catch (JedisException e) {
@@ -65,18 +65,8 @@ public class RedisRateLimitPrincipalProvider extends AbstractRateLimitPrincipalP
     }
   }
 
-  @Override
-  public boolean supports(@Nullable String sourceApp) {
-    if (DECK_APP.equalsIgnoreCase(sourceApp)) {
-      // normally rate limits apply to _all_ principals but those originating from 'deck' were
-      // historically excluded
-      return supportsDeckSourceApp;
-    }
-
-    return true;
-  }
-
-  private int getCapacity(Jedis jedis, String name, @Nullable String sourceApp) {
+  private int getCapacity(
+      Jedis jedis, String name, @Nullable String sourceApp, Supplier<Collection<String>> roles) {
     String capacity = jedis.get(getCapacityKey(name));
     if (capacity != null) {
       try {
@@ -89,10 +79,16 @@ public class RedisRateLimitPrincipalProvider extends AbstractRateLimitPrincipalP
       }
     }
 
+    // the source app is client-supplied, so it never influences the shared anonymous bucket
+    int defaultCapacity =
+        ANONYMOUS.equals(name)
+            ? rateLimiterConfiguration.getAnonymousCapacity()
+            : getCapacityForRoles(roles)
+                .or(() -> getCapacityForSourceApp(jedis, sourceApp))
+                .orElse(rateLimiterConfiguration.getCapacity());
+
     return overrideOrDefault(
-        name,
-        rateLimiterConfiguration.getCapacityByPrincipal(),
-        getCapacityForSourceApp(jedis, sourceApp).orElse(rateLimiterConfiguration.getCapacity()));
+        name, rateLimiterConfiguration.getCapacityByPrincipal(), defaultCapacity);
   }
 
   private int getRateSeconds(Jedis jedis, String name) {
@@ -170,11 +166,20 @@ public class RedisRateLimitPrincipalProvider extends AbstractRateLimitPrincipalP
     return "rateLimit:learning";
   }
 
-  private static String normalizeAnonymousNameForConfig(String name) {
-    if (name.startsWith("anonymous")) {
-      return "anonymous";
+  private Optional<Integer> getCapacityForRoles(Supplier<Collection<String>> rolesSupplier) {
+    if (rateLimiterConfiguration.getCapacityByRole().isEmpty()) {
+      return Optional.empty();
     }
-    return name;
+
+    Collection<String> roles = rolesSupplier.get();
+    if (roles == null || roles.isEmpty()) {
+      return Optional.empty();
+    }
+
+    return rateLimiterConfiguration.getCapacityByRole().stream()
+        .filter(o -> o.getRole() != null && o.getOverride() != null && roles.contains(o.getRole()))
+        .map(RateLimiterConfiguration.RoleOverride::getOverride)
+        .max(Integer::compare);
   }
 
   private Optional<Integer> getCapacityForSourceApp(Jedis jedis, @Nullable String sourceApp) {
@@ -198,18 +203,5 @@ public class RedisRateLimitPrincipalProvider extends AbstractRateLimitPrincipalP
         .filter(o -> o.getSourceApp().equalsIgnoreCase(sourceApp))
         .map(RateLimiterConfiguration.SourceAppOverride::getOverride)
         .findFirst();
-  }
-
-  @Scheduled(fixedDelay = 60000L)
-  void refreshSupportsDeckSourceApp() {
-    log.debug(
-        "Refreshing 'supportsDeckSourceApp' (supportsDeckSourceApp: {})", supportsDeckSourceApp);
-
-    try (Jedis jedis = jedisPool.getResource()) {
-      supportsDeckSourceApp = jedis.sismember(getEnforcingKey(), "app:deck");
-    }
-
-    log.debug(
-        "Refreshed 'supportsDeckSourceApp' (supportsDeckSourceApp: {})", supportsDeckSourceApp);
   }
 }
