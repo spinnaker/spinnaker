@@ -19,6 +19,10 @@ package com.netflix.spinnaker.clouddriver.google.deploy
   import com.fasterxml.jackson.databind.ObjectMapper
   import com.google.api.client.googleapis.auth.oauth2.GoogleCredential
   import com.google.api.client.googleapis.javanet.GoogleNetHttpTransport
+  import com.google.api.client.googleapis.json.GoogleJsonError
+  import com.google.api.client.googleapis.json.GoogleJsonResponseException
+  import com.google.api.client.http.HttpHeaders
+  import com.google.api.client.http.HttpResponseException
   import com.google.api.client.http.HttpRequest
   import com.google.api.client.http.HttpRequestFactory
   import com.google.api.client.http.HttpResponse
@@ -2050,5 +2054,178 @@ package com.netflix.spinnaker.clouddriver.google.deploy
         networkInterfaces: [
           new NetworkInterface(network: "projects/${PROJECT_NAME}/global/networks/default")
         ]))
+  }
+
+  private static final String GLOBAL_URL_PREFIX = "https://compute.googleapis.com/compute/v1/projects/$PROJECT_NAME/global"
+
+  private static UrlMap urlMap(String name, String backendService) {
+    return new UrlMap(name: name, defaultService: "$GLOBAL_URL_PREFIX/backendServices/$backendService")
+  }
+
+  private static ForwardingRule forwardingRule(String name, String proxyCollection, String proxyName) {
+    return new ForwardingRule(name: name, target: "$GLOBAL_URL_PREFIX/$proxyCollection/$proxyName")
+  }
+
+  private static GoogleJsonResponseException jsonException(int code, String reason) {
+    def errorInfo = new GoogleJsonError.ErrorInfo(domain: "global", message: reason, reason: reason)
+    def details = new GoogleJsonError(code: code, errors: [errorInfo], message: reason)
+    def builder = new HttpResponseException.Builder(code, reason, new HttpHeaders()).setMessage("$code $reason")
+    return new GoogleJsonResponseException(builder, details)
+  }
+
+  void "resolveHttpLoadBalancerNamesMetadata lists target proxies instead of getting one per forwarding rule"() {
+    setup:
+      def computeMock = Mock(Compute)
+      def urlMaps = Mock(Compute.UrlMaps)
+      def urlMapsList = Mock(Compute.UrlMaps.List)
+      def forwardingRules = Mock(Compute.GlobalForwardingRules)
+      def forwardingRulesList = Mock(Compute.GlobalForwardingRules.List)
+      def httpProxies = Mock(Compute.TargetHttpProxies)
+      def httpProxiesList = Mock(Compute.TargetHttpProxies.List)
+      def httpsProxies = Mock(Compute.TargetHttpsProxies)
+      def httpsProxiesList = Mock(Compute.TargetHttpsProxies.List)
+
+      computeMock.urlMaps() >> urlMaps
+      urlMaps.list(PROJECT_NAME) >> urlMapsList
+      urlMapsList.execute() >> new UrlMapList(items: [urlMap("um-a", "bs-a"), urlMap("um-b", "bs-b")])
+      computeMock.globalForwardingRules() >> forwardingRules
+      forwardingRules.list(PROJECT_NAME) >> forwardingRulesList
+      forwardingRulesList.execute() >> new ForwardingRuleList(items: [
+        forwardingRule("fr-a", "targetHttpProxies", "proxy-a"),
+        forwardingRule("fr-b", "targetHttpsProxies", "proxy-b"),
+        forwardingRule("fr-c", "targetHttpProxies", "proxy-c"),
+        forwardingRule("fr-ssl", "targetSslProxies", "proxy-ssl"),
+      ])
+      computeMock.targetHttpProxies() >> httpProxies
+      httpProxies.list(PROJECT_NAME) >> httpProxiesList
+      computeMock.targetHttpsProxies() >> httpsProxies
+      httpsProxies.list(PROJECT_NAME) >> httpsProxiesList
+
+    when:
+      def names = GCEUtil.resolveHttpLoadBalancerNamesMetadata(
+        ["bs-a"], computeMock, PROJECT_NAME, PHASE, SafeRetry.withoutDelay(), executor)
+
+    then:
+      1 * httpProxiesList.execute() >> new TargetHttpProxyList(items: [
+        new TargetHttpProxy(name: "proxy-a", urlMap: "$GLOBAL_URL_PREFIX/urlMaps/um-a"),
+        new TargetHttpProxy(name: "proxy-c", urlMap: "$GLOBAL_URL_PREFIX/urlMaps/um-b"),
+      ])
+      1 * httpsProxiesList.execute() >> new TargetHttpsProxyList(items: [
+        new TargetHttpsProxy(name: "proxy-b", urlMap: "$GLOBAL_URL_PREFIX/urlMaps/um-a"),
+      ])
+      0 * httpProxies.get(*_)
+      0 * httpsProxies.get(*_)
+      names == ["fr-a", "fr-b"]
+  }
+
+  void "resolveHttpLoadBalancerNamesMetadata retries transient 503 errors"() {
+    setup:
+      def computeMock = Mock(Compute)
+      def urlMaps = Mock(Compute.UrlMaps)
+      def urlMapsList = Mock(Compute.UrlMaps.List)
+      def forwardingRules = Mock(Compute.GlobalForwardingRules)
+      def forwardingRulesList = Mock(Compute.GlobalForwardingRules.List)
+      def httpProxies = Mock(Compute.TargetHttpProxies)
+      def httpProxiesList = Mock(Compute.TargetHttpProxies.List)
+
+      computeMock.urlMaps() >> urlMaps
+      urlMaps.list(PROJECT_NAME) >> urlMapsList
+      computeMock.globalForwardingRules() >> forwardingRules
+      forwardingRules.list(PROJECT_NAME) >> forwardingRulesList
+      computeMock.targetHttpProxies() >> httpProxies
+      httpProxies.list(PROJECT_NAME) >> httpProxiesList
+
+    when:
+      def names = GCEUtil.resolveHttpLoadBalancerNamesMetadata(
+        ["bs-a"], computeMock, PROJECT_NAME, PHASE, SafeRetry.withoutDelay(), executor)
+
+    then:
+      2 * urlMapsList.execute() >>
+        { throw jsonException(503, "backendError") } >>
+        new UrlMapList(items: [urlMap("um-a", "bs-a")])
+      2 * forwardingRulesList.execute() >>
+        { throw jsonException(500, "backendError") } >>
+        new ForwardingRuleList(items: [forwardingRule("fr-a", "targetHttpProxies", "proxy-a")])
+      3 * httpProxiesList.execute() >>
+        { throw jsonException(503, "backendError") } >>
+        { throw jsonException(503, "backendError") } >>
+        new TargetHttpProxyList(items: [new TargetHttpProxy(name: "proxy-a", urlMap: "$GLOBAL_URL_PREFIX/urlMaps/um-a")])
+      names == ["fr-a"]
+  }
+
+  void "resolveHttpLoadBalancerNamesMetadata does not retry non-transient errors"() {
+    setup:
+      def computeMock = Mock(Compute)
+      def urlMaps = Mock(Compute.UrlMaps)
+      def urlMapsList = Mock(Compute.UrlMaps.List)
+
+      computeMock.urlMaps() >> urlMaps
+      urlMaps.list(PROJECT_NAME) >> urlMapsList
+
+    when:
+      GCEUtil.resolveHttpLoadBalancerNamesMetadata(
+        ["bs-a"], computeMock, PROJECT_NAME, PHASE, SafeRetry.withoutDelay(), executor)
+
+    then:
+      1 * urlMapsList.execute() >> { throw jsonException(403, "forbidden") }
+      thrown(GoogleOperationException)
+  }
+
+  void "resolveHttpLoadBalancerNamesMetadata follows list pagination"() {
+    setup:
+      def computeMock = Mock(Compute)
+      def urlMaps = Mock(Compute.UrlMaps)
+      def urlMapsList = Mock(Compute.UrlMaps.List)
+      def forwardingRules = Mock(Compute.GlobalForwardingRules)
+      def forwardingRulesList = Mock(Compute.GlobalForwardingRules.List)
+      def httpProxies = Mock(Compute.TargetHttpProxies)
+      def httpProxiesList = Mock(Compute.TargetHttpProxies.List)
+
+      computeMock.urlMaps() >> urlMaps
+      urlMaps.list(PROJECT_NAME) >> urlMapsList
+      urlMapsList.execute() >> new UrlMapList(items: [urlMap("um-a", "bs-a")])
+      computeMock.globalForwardingRules() >> forwardingRules
+      forwardingRules.list(PROJECT_NAME) >> forwardingRulesList
+      forwardingRulesList.execute() >> new ForwardingRuleList(items: [
+        forwardingRule("fr-1", "targetHttpProxies", "proxy-1"),
+        forwardingRule("fr-2", "targetHttpProxies", "proxy-2"),
+      ])
+      computeMock.targetHttpProxies() >> httpProxies
+      httpProxies.list(PROJECT_NAME) >> httpProxiesList
+
+    when:
+      def names = GCEUtil.resolveHttpLoadBalancerNamesMetadata(
+        ["bs-a"], computeMock, PROJECT_NAME, PHASE, SafeRetry.withoutDelay(), executor)
+
+    then:
+      2 * httpProxiesList.execute() >>
+        new TargetHttpProxyList(
+          items: [new TargetHttpProxy(name: "proxy-1", urlMap: "$GLOBAL_URL_PREFIX/urlMaps/um-a")],
+          nextPageToken: "page-2") >>
+        new TargetHttpProxyList(
+          items: [new TargetHttpProxy(name: "proxy-2", urlMap: "$GLOBAL_URL_PREFIX/urlMaps/um-a")])
+      1 * httpProxiesList.setPageToken("page-2")
+      names == ["fr-1", "fr-2"]
+  }
+
+  void "resolveHttpLoadBalancerNamesMetadata skips forwarding rule and proxy lookups when no URL map uses the backend services"() {
+    setup:
+      def computeMock = Mock(Compute)
+      def urlMaps = Mock(Compute.UrlMaps)
+      def urlMapsList = Mock(Compute.UrlMaps.List)
+
+      computeMock.urlMaps() >> urlMaps
+      urlMaps.list(PROJECT_NAME) >> urlMapsList
+      urlMapsList.execute() >> new UrlMapList(items: [urlMap("um-b", "bs-b")])
+
+    when:
+      def names = GCEUtil.resolveHttpLoadBalancerNamesMetadata(
+        ["bs-a"], computeMock, PROJECT_NAME, PHASE, SafeRetry.withoutDelay(), executor)
+
+    then:
+      0 * computeMock.globalForwardingRules()
+      0 * computeMock.targetHttpProxies()
+      0 * computeMock.targetHttpsProxies()
+      names == []
   }
 }
