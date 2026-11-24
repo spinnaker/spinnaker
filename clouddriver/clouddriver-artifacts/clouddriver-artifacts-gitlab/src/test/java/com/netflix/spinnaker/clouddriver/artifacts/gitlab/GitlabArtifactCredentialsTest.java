@@ -19,9 +19,13 @@ package com.netflix.spinnaker.clouddriver.artifacts.gitlab;
 import static com.github.tomakehurst.wiremock.client.WireMock.*;
 import static org.assertj.core.api.Assertions.assertThat;
 
+import ch.qos.logback.classic.Logger;
+import ch.qos.logback.classic.spi.ILoggingEvent;
+import ch.qos.logback.core.read.ListAppender;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.github.tomakehurst.wiremock.WireMockServer;
 import com.github.tomakehurst.wiremock.client.MappingBuilder;
+import com.netflix.spinnaker.clouddriver.artifacts.config.BaseHttpArtifactCredentials;
 import com.netflix.spinnaker.kork.artifacts.model.Artifact;
 import com.netflix.spinnaker.kork.web.url.UrlRestrictionsProperties;
 import java.io.ByteArrayInputStream;
@@ -36,6 +40,7 @@ import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.junitpioneer.jupiter.TempDirectory;
+import org.slf4j.LoggerFactory;
 import ru.lanwen.wiremock.ext.WiremockResolver;
 
 @ExtendWith({WiremockResolver.class, TempDirectory.class})
@@ -60,6 +65,36 @@ class GitlabArtifactCredentialsTest {
             .build();
 
     runTestCase(server, account, m -> m.withHeader("Private-Token", equalTo("abc")));
+  }
+
+  @Test
+  void downloadWithTokenLogsCredentials(@WiremockResolver.Wiremock WireMockServer server)
+      throws IOException {
+    GitlabArtifactAccount account =
+        GitlabArtifactAccount.builder()
+            .urlRestrictions(
+                UrlRestrictionsProperties.builder()
+                    .rejectLocalhost(false)
+                    .allowedDomains(List.of("localhost"))
+                    .build())
+            .name("my-gitlab-account")
+            .token("abc")
+            .build();
+
+    Logger logger = (Logger) LoggerFactory.getLogger(BaseHttpArtifactCredentials.class);
+    ListAppender<ILoggingEvent> appender = new ListAppender<>();
+    appender.start();
+    logger.addAppender(appender);
+    try {
+      runTestCase(server, account, m -> m.withHeader("Private-Token", equalTo("abc")));
+    } finally {
+      logger.detachAppender(appender);
+    }
+
+    assertThat(appender.list)
+        .extracting(ILoggingEvent::getFormattedMessage)
+        .filteredOn(m -> m.contains("credentials"))
+        .containsExactly("Loaded credentials for artifact account my-gitlab-account");
   }
 
   @Test
