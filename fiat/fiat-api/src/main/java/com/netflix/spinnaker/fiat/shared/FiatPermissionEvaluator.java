@@ -51,7 +51,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
-import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.stereotype.Component;
 import org.springframework.util.backoff.BackOffExecution;
 import org.springframework.util.backoff.ExponentialBackOff;
@@ -357,11 +356,9 @@ public class FiatPermissionEvaluator implements UserPermissionEvaluator {
     if (authentication != null
         && authentication.isAuthenticated()
         && authentication.getPrincipal() != null) {
-      Object principal = authentication.getPrincipal();
-      if (principal instanceof UserDetails) {
-        username = ((UserDetails) principal).getUsername();
-      } else if (StringUtils.isNotEmpty(principal.toString())) {
-        username = principal.toString();
+      String name = authentication.getName();
+      if (StringUtils.isNotEmpty(name)) {
+        username = name;
       }
     }
     return username;

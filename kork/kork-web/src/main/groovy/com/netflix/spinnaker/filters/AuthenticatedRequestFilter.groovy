@@ -18,10 +18,11 @@ package com.netflix.spinnaker.filters
 
 import com.netflix.spinnaker.kork.common.Header
 import com.netflix.spinnaker.security.AuthenticatedRequest
+import com.netflix.spinnaker.security.SpinnakerAuthorities
 import groovy.util.logging.Slf4j
+import org.springframework.security.core.Authentication
+import org.springframework.security.core.context.SecurityContext
 import org.springframework.security.core.context.SecurityContextHolder
-import org.springframework.security.core.context.SecurityContextImpl
-import org.springframework.security.core.userdetails.UserDetails
 
 import jakarta.servlet.Filter
 import jakarta.servlet.FilterChain
@@ -74,14 +75,14 @@ class AuthenticatedRequestFilter implements Filter {
 
     try {
       def session = ((HttpServletRequest) request).getSession(false)
-      def securityContext = (SecurityContextImpl) session?.getAttribute("SPRING_SECURITY_CONTEXT")
-      if (!securityContext) {
+      def securityContext = session?.getAttribute("SPRING_SECURITY_CONTEXT")
+      if (!(securityContext instanceof SecurityContext)) {
         securityContext = SecurityContextHolder.getContext()
       }
 
-      def principal = securityContext?.authentication?.principal
-      if (principal && principal instanceof UserDetails) {
-        spinnakerUser = principal.username
+      Authentication authentication = securityContext?.authentication
+      if (SpinnakerAuthorities.hasIdentity(authentication)) {
+        spinnakerUser = authentication.name
       }
     } catch (Exception e) {
       log.error("Unable to extract spinnaker user and account information", e)
