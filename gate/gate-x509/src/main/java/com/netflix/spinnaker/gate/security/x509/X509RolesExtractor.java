@@ -6,11 +6,10 @@ import java.util.Collection;
 public interface X509RolesExtractor {
 
   /**
-   * Loads the roles assigned to the {@link com.netflix.spinnaker.security.User User}, extracted
-   * from the X509 certificate.
+   * Loads the roles assigned to the user, extracted from the X509 certificate.
    *
    * @param cert
-   * @return Roles assigned to the {@link com.netflix.spinnaker.security.User User}
+   * @return Roles assigned to the user
    */
   Collection<String> fromCertificate(X509Certificate cert);
 }
