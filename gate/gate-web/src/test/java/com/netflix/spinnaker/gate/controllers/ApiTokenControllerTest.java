@@ -33,7 +33,6 @@ import com.netflix.spinnaker.gate.security.apitoken.RedisApiTokenRepository.Toke
 import com.netflix.spinnaker.gate.security.apitoken.TokenRecord;
 import com.netflix.spinnaker.gate.services.PermissionService;
 import com.netflix.spinnaker.gate.services.internal.Front50Service;
-import com.netflix.spinnaker.security.User;
 import java.time.Instant;
 import java.time.temporal.ChronoUnit;
 import java.util.List;
@@ -53,7 +52,7 @@ import org.springframework.http.MediaType;
 import org.springframework.security.access.AccessDeniedException;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.context.SecurityContextHolder;
-import org.springframework.security.web.method.annotation.AuthenticationPrincipalArgumentResolver;
+import org.springframework.security.web.method.annotation.CurrentSecurityContextArgumentResolver;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.setup.MockMvcBuilders;
 import org.springframework.web.bind.annotation.ControllerAdvice;
@@ -96,7 +95,7 @@ class ApiTokenControllerTest {
             redisRepo, permissionService, properties, front50Service, apiTokenService);
     mockMvc =
         MockMvcBuilders.standaloneSetup(controller)
-            .setCustomArgumentResolvers(new AuthenticationPrincipalArgumentResolver())
+            .setCustomArgumentResolvers(new CurrentSecurityContextArgumentResolver())
             // standaloneSetup omits Spring Security's ExceptionTranslationFilter (which maps
             // AccessDeniedException → 403), so we add a tiny ControllerAdvice instead.
             .setControllerAdvice(new AccessDeniedTo403Advice())
@@ -120,10 +119,8 @@ class ApiTokenControllerTest {
   // ---------------------------------------------------------------------------
 
   private void setCurrentUser(String username) {
-    User user = new User();
-    user.setUsername(username);
     UsernamePasswordAuthenticationToken auth =
-        new UsernamePasswordAuthenticationToken(user, null, List.of());
+        new UsernamePasswordAuthenticationToken(username, null, List.of());
     SecurityContextHolder.getContext().setAuthentication(auth);
   }
 
