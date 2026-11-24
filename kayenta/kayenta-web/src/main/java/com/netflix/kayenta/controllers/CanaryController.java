@@ -217,10 +217,10 @@ public class CanaryController {
       application = AD_HOC;
     }
 
-    String canaryPipelineConfigId = application + "-standard-canary-pipeline";
     List<PipelineExecution> executions =
         executionRepository
-            .retrievePipelinesForPipelineConfigId(canaryPipelineConfigId, executionCriteria)
+            .retrievePipelinesForApplicationAndName(
+                application, ExecutionMapper.PIPELINE_NAME, executionCriteria)
             .toList()
             .blockingGet();
 

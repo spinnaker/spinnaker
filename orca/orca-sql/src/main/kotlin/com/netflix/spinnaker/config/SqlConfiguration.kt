@@ -32,7 +32,6 @@ import com.netflix.spinnaker.orca.pipeline.model.support.CustomTriggerDeserializ
 import com.netflix.spinnaker.orca.pipeline.model.support.TriggerDeserializer
 import com.netflix.spinnaker.orca.pipeline.persistence.ExecutionRepository
 import com.netflix.spinnaker.orca.sql.PipelineRefTriggerDeserializerSupplier
-import com.netflix.spinnaker.orca.sql.SpringLiquibaseProxy
 import com.netflix.spinnaker.orca.sql.SqlHealthIndicator
 import com.netflix.spinnaker.orca.sql.SqlHealthcheckActivator
 import com.netflix.spinnaker.orca.sql.pipeline.persistence.ExecutionStatisticsRepository
@@ -41,7 +40,6 @@ import com.netflix.spinnaker.orca.sql.telemetry.SqlActiveExecutionsMonitor
 import java.time.Clock
 import java.util.Optional
 import javax.sql.DataSource
-import liquibase.integration.spring.SpringLiquibase
 import net.javacrumbs.shedlock.core.LockProvider
 import net.javacrumbs.shedlock.provider.jdbctemplate.JdbcTemplateLockProvider
 import org.jooq.DSLContext
@@ -67,9 +65,6 @@ import org.springframework.context.annotation.Primary
 class SqlConfiguration {
 
   private val log: Logger = LoggerFactory.getLogger(SqlConfiguration::class.java)
-  @Bean
-  fun liquibase(properties: SqlProperties): SpringLiquibase =
-    SpringLiquibaseProxy(properties)
 
   @ConditionalOnProperty("execution-repository.sql.enabled")
   @Bean
