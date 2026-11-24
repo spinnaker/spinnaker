@@ -175,6 +175,14 @@ class BakeControllerWiremockTest {
   }
 
   @Test
+  void loggedOutIsPlainText() throws Exception {
+    webAppMockMvc
+        .perform(get("/auth/loggedOut"))
+        .andExpect(status().isOk())
+        .andExpect(content().contentTypeCompatibleWith("text/plain"));
+  }
+
+  @Test
   void lookupLogsEscapesHtml() throws Exception {
     wmRosco.stubFor(
         WireMock.get(urlPathEqualTo("/api/v1/us-east-1/logs/some-status-id"))
