@@ -10,13 +10,13 @@ importers:
     devDependencies:
       '@cypress/code-coverage':
         specifier: ^3.14.0
-        version: 3.14.7(@babel/core@7.29.0(supports-color@8.1.1))(@babel/preset-env@7.29.5(@babel/core@7.29.0(supports-color@8.1.1))(supports-color@8.1.1))(babel-loader@10.1.1(@babel/core@7.29.0(supports-color@8.1.1))(webpack@5.106.2(esbuild@0.28.2)(postcss@8.5.14)))(cypress@12.17.4)(supports-color@8.1.1)(webpack@5.106.2(esbuild@0.28.2)(postcss@8.5.14))
+        version: 3.14.7(@babel/core@7.29.0(supports-color@8.1.1))(@babel/preset-env@7.29.5(@babel/core@7.29.0(supports-color@8.1.1))(supports-color@8.1.1))(babel-loader@10.1.1(@babel/core@7.29.0(supports-color@8.1.1))(webpack@5.106.2(esbuild@0.28.2)(postcss@8.5.23)))(cypress@12.17.4)(supports-color@8.1.1)(webpack@5.106.2(esbuild@0.28.2)(postcss@8.5.23))
       '@dotenvx/dotenvx':
         specifier: ^1.49.0
         version: 1.65.0
       autoprefixer:
         specifier: ^10.4.8
-        version: 10.5.0(postcss@8.5.14)
+        version: 10.5.0(postcss@8.5.23)
       concurrently:
         specifier: 8.2.2
         version: 8.2.2
@@ -24,8 +24,8 @@ importers:
         specifier: 12.17.4
         version: 12.17.4
       postcss:
-        specifier: ^8.4.14
-        version: 8.5.14
+        specifier: ^8.5.23
+        version: 8.5.23
       start-server-and-test:
         specifier: 2.0.0
         version: 2.0.0(supports-color@8.1.1)
@@ -1901,8 +1901,8 @@ packages:
   ms@2.1.3:
     resolution: {integrity: sha512-6FlzubTLZG3J2a/NVCAleEhjzq5oxgHyaCU9yYXvcLsvoVaHJq/s5xXI6/XXP6tz7R9xAOtHnSO/tXtF3WRTlA==}
 
-  nanoid@3.3.12:
-    resolution: {integrity: sha512-ZB9RH/39qpq5Vu6Y+NmUaFhQR6pp+M2Xt76XBnEwDaGcVAqhlvxrl3B2bKS5D3NH3QR76v3aSrKaF/Kiy7lEtQ==}
+  nanoid@3.3.20:
+    resolution: {integrity: sha512-uKdg2G3GNCKQn9byYOpxbGqrT2fGO5KRt5J/8b3pok8rT6qxGWF6hxMyJiEYtAf+FVyYuD9hRaDqX5uPFYJ4ZQ==}
     engines: {node: ^10 || ^12 || ^13.7 || ^14 || >=15.0.1}
     hasBin: true
 
@@ -2017,8 +2017,8 @@ packages:
   postcss-value-parser@4.2.0:
     resolution: {integrity: sha512-1NNCs6uurfkVbeXG4S8JFT9t19m45ICnif8zWLd5oPSZ50QnwMfK+H3jv408d4jw/7Bttv5axS5IiHoLaVNHeQ==}
 
-  postcss@8.5.14:
-    resolution: {integrity: sha512-SoSL4+OSEtR99LHFZQiJLkT59C5B1amGO1NzTwj7TT1qCUgUO6hxOvzkOYxD+vMrXBM3XJIKzokoERdqQq/Zmg==}
+  postcss@8.5.23:
+    resolution: {integrity: sha512-g50586zr4bZmwFiTlflMu8E0bDTb5I5gertgwAKmsdUlTQIhZtunzUlD1WSzwcVWPoAVpsrA6vlfCD7oXvRwgg==}
     engines: {node: ^10 || ^12 || >=14}
 
   pretty-bytes@5.6.0:
@@ -3203,12 +3203,12 @@ snapshots:
   '@colors/colors@1.5.0':
     optional: true
 
-  '@cypress/code-coverage@3.14.7(@babel/core@7.29.0(supports-color@8.1.1))(@babel/preset-env@7.29.5(@babel/core@7.29.0(supports-color@8.1.1))(supports-color@8.1.1))(babel-loader@10.1.1(@babel/core@7.29.0(supports-color@8.1.1))(webpack@5.106.2(esbuild@0.28.2)(postcss@8.5.14)))(cypress@12.17.4)(supports-color@8.1.1)(webpack@5.106.2(esbuild@0.28.2)(postcss@8.5.14))':
+  '@cypress/code-coverage@3.14.7(@babel/core@7.29.0(supports-color@8.1.1))(@babel/preset-env@7.29.5(@babel/core@7.29.0(supports-color@8.1.1))(supports-color@8.1.1))(babel-loader@10.1.1(@babel/core@7.29.0(supports-color@8.1.1))(webpack@5.106.2(esbuild@0.28.2)(postcss@8.5.23)))(cypress@12.17.4)(supports-color@8.1.1)(webpack@5.106.2(esbuild@0.28.2)(postcss@8.5.23))':
     dependencies:
       '@babel/core': 7.29.0(supports-color@8.1.1)
       '@babel/preset-env': 7.29.5(@babel/core@7.29.0(supports-color@8.1.1))(supports-color@8.1.1)
-      '@cypress/webpack-preprocessor': 6.0.4(@babel/core@7.29.0(supports-color@8.1.1))(@babel/preset-env@7.29.5(@babel/core@7.29.0(supports-color@8.1.1))(supports-color@8.1.1))(babel-loader@10.1.1(@babel/core@7.29.0(supports-color@8.1.1))(webpack@5.106.2(esbuild@0.28.2)(postcss@8.5.14)))(supports-color@8.1.1)(webpack@5.106.2(esbuild@0.28.2)(postcss@8.5.14))
-      babel-loader: 10.1.1(@babel/core@7.29.0(supports-color@8.1.1))(webpack@5.106.2(esbuild@0.28.2)(postcss@8.5.14))
+      '@cypress/webpack-preprocessor': 6.0.4(@babel/core@7.29.0(supports-color@8.1.1))(@babel/preset-env@7.29.5(@babel/core@7.29.0(supports-color@8.1.1))(supports-color@8.1.1))(babel-loader@10.1.1(@babel/core@7.29.0(supports-color@8.1.1))(webpack@5.106.2(esbuild@0.28.2)(postcss@8.5.23)))(supports-color@8.1.1)(webpack@5.106.2(esbuild@0.28.2)(postcss@8.5.23))
+      babel-loader: 10.1.1(@babel/core@7.29.0(supports-color@8.1.1))(webpack@5.106.2(esbuild@0.28.2)(postcss@8.5.23))
       chalk: 4.1.2
       cypress: 12.17.4
       dayjs: 1.11.13
@@ -3218,7 +3218,7 @@ snapshots:
       js-yaml: 4.1.0
       nyc: 15.1.0(supports-color@8.1.1)
       tinyglobby: 0.2.16
-      webpack: 5.106.2(esbuild@0.28.2)(postcss@8.5.14)
+      webpack: 5.106.2(esbuild@0.28.2)(postcss@8.5.23)
     transitivePeerDependencies:
       - supports-color
 
@@ -3243,16 +3243,16 @@ snapshots:
       tunnel-agent: 0.6.0
       uuid: 8.3.2
 
-  '@cypress/webpack-preprocessor@6.0.4(@babel/core@7.29.0(supports-color@8.1.1))(@babel/preset-env@7.29.5(@babel/core@7.29.0(supports-color@8.1.1))(supports-color@8.1.1))(babel-loader@10.1.1(@babel/core@7.29.0(supports-color@8.1.1))(webpack@5.106.2(esbuild@0.28.2)(postcss@8.5.14)))(supports-color@8.1.1)(webpack@5.106.2(esbuild@0.28.2)(postcss@8.5.14))':
+  '@cypress/webpack-preprocessor@6.0.4(@babel/core@7.29.0(supports-color@8.1.1))(@babel/preset-env@7.29.5(@babel/core@7.29.0(supports-color@8.1.1))(supports-color@8.1.1))(babel-loader@10.1.1(@babel/core@7.29.0(supports-color@8.1.1))(webpack@5.106.2(esbuild@0.28.2)(postcss@8.5.23)))(supports-color@8.1.1)(webpack@5.106.2(esbuild@0.28.2)(postcss@8.5.23))':
     dependencies:
       '@babel/core': 7.29.0(supports-color@8.1.1)
       '@babel/preset-env': 7.29.5(@babel/core@7.29.0(supports-color@8.1.1))(supports-color@8.1.1)
-      babel-loader: 10.1.1(@babel/core@7.29.0(supports-color@8.1.1))(webpack@5.106.2(esbuild@0.28.2)(postcss@8.5.14))
+      babel-loader: 10.1.1(@babel/core@7.29.0(supports-color@8.1.1))(webpack@5.106.2(esbuild@0.28.2)(postcss@8.5.23))
       bluebird: 3.7.1
       debug: 4.4.0(supports-color@8.1.1)
       lodash: 4.18.1
       semver: 7.8.0
-      webpack: 5.106.2(esbuild@0.28.2)(postcss@8.5.14)
+      webpack: 5.106.2(esbuild@0.28.2)(postcss@8.5.23)
     transitivePeerDependencies:
       - supports-color
 
@@ -3670,13 +3670,13 @@ snapshots:
 
   at-least-node@1.0.0: {}
 
-  autoprefixer@10.5.0(postcss@8.5.14):
+  autoprefixer@10.5.0(postcss@8.5.23):
     dependencies:
       browserslist: 4.28.2
       caniuse-lite: 1.0.30001792
       fraction.js: 5.3.4
       picocolors: 1.1.1
-      postcss: 8.5.14
+      postcss: 8.5.23
       postcss-value-parser: 4.2.0
 
   aws-sign2@0.7.0: {}
@@ -3690,12 +3690,12 @@ snapshots:
     transitivePeerDependencies:
       - debug
 
-  babel-loader@10.1.1(@babel/core@7.29.0(supports-color@8.1.1))(webpack@5.106.2(esbuild@0.28.2)(postcss@8.5.14)):
+  babel-loader@10.1.1(@babel/core@7.29.0(supports-color@8.1.1))(webpack@5.106.2(esbuild@0.28.2)(postcss@8.5.23)):
     dependencies:
       '@babel/core': 7.29.0(supports-color@8.1.1)
       find-up: 5.0.0
     optionalDependencies:
-      webpack: 5.106.2(esbuild@0.28.2)(postcss@8.5.14)
+      webpack: 5.106.2(esbuild@0.28.2)(postcss@8.5.23)
 
   babel-plugin-polyfill-corejs2@0.4.17(@babel/core@7.29.0(supports-color@8.1.1))(supports-color@8.1.1):
     dependencies:
@@ -4518,7 +4518,7 @@ snapshots:
 
   ms@2.1.3: {}
 
-  nanoid@3.3.12: {}
+  nanoid@3.3.20: {}
 
   neo-async@2.6.2: {}
 
@@ -4639,9 +4639,9 @@ snapshots:
 
   postcss-value-parser@4.2.0: {}
 
-  postcss@8.5.14:
+  postcss@8.5.23:
     dependencies:
-      nanoid: 3.3.12
+      nanoid: 3.3.20
       picocolors: 1.1.1
       source-map-js: 1.2.4
 
@@ -4917,16 +4917,16 @@ snapshots:
 
   tapable@2.3.3: {}
 
-  terser-webpack-plugin@5.6.0(esbuild@0.28.2)(postcss@8.5.14)(webpack@5.106.2(esbuild@0.28.2)(postcss@8.5.14)):
+  terser-webpack-plugin@5.6.0(esbuild@0.28.2)(postcss@8.5.23)(webpack@5.106.2(esbuild@0.28.2)(postcss@8.5.23)):
     dependencies:
       '@jridgewell/trace-mapping': 0.3.31
       jest-worker: 27.5.1
       schema-utils: 4.3.3
       terser: 5.47.1
-      webpack: 5.106.2(esbuild@0.28.2)(postcss@8.5.14)
+      webpack: 5.106.2(esbuild@0.28.2)(postcss@8.5.23)
     optionalDependencies:
       esbuild: 0.28.2
-      postcss: 8.5.14
+      postcss: 8.5.23
 
   terser@5.47.1:
     dependencies:
@@ -5022,7 +5022,7 @@ snapshots:
       esbuild: 0.28.2
       fdir: 6.5.0(picomatch@4.0.4)
       picomatch: 4.0.4
-      postcss: 8.5.14
+      postcss: 8.5.23
       rollup: 4.63.5
       tinyglobby: 0.2.16
     optionalDependencies:
@@ -5047,7 +5047,7 @@ snapshots:
 
   webpack-sources@3.4.1: {}
 
-  webpack@5.106.2(esbuild@0.28.2)(postcss@8.5.14):
+  webpack@5.106.2(esbuild@0.28.2)(postcss@8.5.23):
     dependencies:
       '@types/eslint-scope': 3.7.7
       '@types/estree': 1.0.9
@@ -5070,7 +5070,7 @@ snapshots:
       neo-async: 2.6.2
       schema-utils: 4.3.3
       tapable: 2.3.3
-      terser-webpack-plugin: 5.6.0(esbuild@0.28.2)(postcss@8.5.14)(webpack@5.106.2(esbuild@0.28.2)(postcss@8.5.14))
+      terser-webpack-plugin: 5.6.0(esbuild@0.28.2)(postcss@8.5.23)(webpack@5.106.2(esbuild@0.28.2)(postcss@8.5.23))
       watchpack: 2.5.1
       webpack-sources: 3.4.1
     transitivePeerDependencies:
