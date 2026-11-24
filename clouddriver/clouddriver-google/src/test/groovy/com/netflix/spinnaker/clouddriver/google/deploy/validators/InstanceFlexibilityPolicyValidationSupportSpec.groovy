@@ -178,6 +178,60 @@ class InstanceFlexibilityPolicyValidationSupportSpec extends Specification {
       InstanceFlexibilityPolicyValidationSupport.validate(description).isEmpty()
   }
 
+  void "accepts selection minCpuPlatform and boot or index disk overrides"() {
+    given:
+      def description = validDescription()
+      def preferred = description.instanceFlexibilityPolicy.instanceSelections.preferred
+      preferred.minCpuPlatform = "Intel Ice Lake"
+      preferred.disks = [
+        new GoogleInstanceFlexibilityPolicy.DiskOverride(boot: true, type: "hyperdisk-balanced"),
+        new GoogleInstanceFlexibilityPolicy.DiskOverride(index: 1, sizeGb: 100L),
+      ]
+
+    expect:
+      InstanceFlexibilityPolicyValidationSupport.validate(description).isEmpty()
+  }
+
+  void "rejects blank selection minCpuPlatform"() {
+    given:
+      def description = validDescription()
+      description.instanceFlexibilityPolicy.instanceSelections.preferred.minCpuPlatform = "  "
+
+    when:
+      def issues = InstanceFlexibilityPolicyValidationSupport.validate(description)
+
+    then:
+      issues*.codeSuffix == [InstanceFlexibilityPolicyValidationSupport.BLANK_MIN_CPU_PLATFORM_CODE]
+  }
+
+  @Unroll
+  void "rejects disk override with #scenario"() {
+    given:
+      def description = validDescription()
+      description.instanceFlexibilityPolicy.instanceSelections.preferred.disks = disks
+
+    when:
+      def issues = InstanceFlexibilityPolicyValidationSupport.validate(description)
+
+    then:
+      issues*.codeSuffix == [expectedCode]
+
+    where:
+      scenario                 | disks                                                                   | expectedCode
+      "null entry"             | [null]                                                                  | InstanceFlexibilityPolicyValidationSupport.INVALID_DISK_OVERRIDE_TARGET_CODE
+      "no target"              | [override(null, null, "hyperdisk-balanced", null)]                      | InstanceFlexibilityPolicyValidationSupport.INVALID_DISK_OVERRIDE_TARGET_CODE
+      "negative index"         | [override(null, -1, "hyperdisk-balanced", null)]                        | InstanceFlexibilityPolicyValidationSupport.INVALID_DISK_OVERRIDE_TARGET_CODE
+      "boot with index 1"      | [override(true, 1, "hyperdisk-balanced", null)]                         | InstanceFlexibilityPolicyValidationSupport.INVALID_DISK_OVERRIDE_TARGET_CODE
+      "nothing to override"    | [override(true, null, " ", null)]                                       | InstanceFlexibilityPolicyValidationSupport.EMPTY_DISK_OVERRIDE_CODE
+      "non-positive size"      | [override(null, 1, null, 0L)]                                           | InstanceFlexibilityPolicyValidationSupport.INVALID_DISK_OVERRIDE_SIZE_CODE
+      "boot targeted twice"    | [override(true, null, "pd-ssd", null), override(null, 0, null, 20L)]    | InstanceFlexibilityPolicyValidationSupport.DUPLICATE_DISK_OVERRIDE_CODE
+  }
+
+  private static GoogleInstanceFlexibilityPolicy.DiskOverride override(
+    Boolean boot, Integer index, String type, Long sizeGb) {
+    return new GoogleInstanceFlexibilityPolicy.DiskOverride(boot, index, type, sizeGb)
+  }
+
   private static BasicGoogleDeployDescription validDescription(
     List<String> machineTypes = ["e2-standard-2"]) {
     def selection = new GoogleInstanceFlexibilityPolicy.InstanceSelection()
