@@ -48,6 +48,15 @@ class MessageConvertersWiringTest {
 
   @Autowired private RequestMappingHandlerAdapter adapter;
 
+  @Autowired
+  private java.util.Optional<com.netflix.spinnaker.gate.filters.LegacyYamlMediaTypeFilter>
+      legacyYamlFilter;
+
+  @Test
+  void legacyYamlFilterIsRegistered() {
+    assertThat(legacyYamlFilter).isPresent();
+  }
+
   @Test
   void readsAndWritesYaml() {
     List<HttpMessageConverter<?>> converters = adapter.getMessageConverters();
