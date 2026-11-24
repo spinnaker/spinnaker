@@ -226,7 +226,6 @@ public class OAuthUserInfoServiceHelperTest {
                 front50Service,
                 allowedAccountsSupport,
                 null,
-                null,
                 Optional.empty()));
     Map<String, Object> details =
         Map.of("login", "jdoe", "mail", "jdoe@example.com", "first", "Jane", "last", "Doe");
