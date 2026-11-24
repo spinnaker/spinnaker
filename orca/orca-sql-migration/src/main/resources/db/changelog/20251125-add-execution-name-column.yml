@@ -1,0 +1,61 @@
+databaseChangeLog:
+- removeChangeSetProperty:
+    change: addColumn
+    dbms: postgresql
+    remove: afterColumn
+- changeSet:
+    id: add-execution-name-column
+    author: stevenlandry
+    changes:
+    - addColumn:
+        tableName: pipelines
+        columns:
+        - column:
+            name: name
+            type: varchar(255)
+            afterColumn: application
+    - addColumn:
+        tableName: orchestrations
+        columns:
+        - column:
+            name: name
+            type: varchar(255)
+            afterColumn: application
+    rollback:
+    - dropColumn:
+        tableName: pipelines
+        columnName: name
+    - dropColumn:
+        tableName: orchestrations
+        columnName: name
+- changeSet:
+    id: add-execution-name-index
+    author: stevenlandry
+    changes:
+    - createIndex:
+        indexName: pipelines_execution_name_idx
+        tableName: pipelines
+        columns:
+        - column:
+            name: application
+        - column:
+            name: name
+        - column:
+            name: start_time
+    - createIndex:
+        indexName: orchestrations_execution_name_idx
+        tableName: orchestrations
+        columns:
+        - column:
+            name: application
+        - column:
+            name: name
+        - column:
+            name: start_time
+    rollback:
+    - dropIndex:
+        indexName: pipelines_execution_name_idx
+        tableName: pipelines
+    - dropIndex:
+        indexName: orchestrations_execution_name_idx
+        tableName: orchestrations
