@@ -84,6 +84,7 @@ import com.netflix.spinnaker.clouddriver.google.provider.view.GoogleLoadBalancer
 import com.netflix.spinnaker.clouddriver.google.provider.view.GoogleNetworkProvider;
 import com.netflix.spinnaker.clouddriver.google.provider.view.GoogleSubnetProvider;
 import com.netflix.spinnaker.clouddriver.google.security.GoogleNamedAccountCredentials;
+import com.netflix.spinnaker.clouddriver.googlecommon.deploy.GoogleApiException;
 import com.netflix.spinnaker.clouddriver.names.NamerRegistry;
 import com.netflix.spinnaker.config.GoogleConfiguration;
 import com.netflix.spinnaker.kork.exceptions.SpinnakerException;
@@ -587,6 +588,8 @@ public class BasicGoogleDeployHandler
               backendServices,
               description.getCredentials().getCompute(),
               description.getCredentials().getProject(),
+              BASE_PHASE,
+              safeRetry,
               this));
       instanceMetadata.put(GLOBAL_LOAD_BALANCER_NAMES, String.join(",", globalLbNames));
 
@@ -616,7 +619,9 @@ public class BasicGoogleDeployHandler
               backendService.getBackends().add(backendToAdd);
               backendServicesToUpdate.add(backendService);
             } catch (IOException e) {
-              log.error(e.getMessage());
+              // Only a missing (404) backend service reaches here; transient errors are retried
+              // and anything else fails the deploy rather than silently skipping the backend.
+              log.warn("Skipping backend service {}: {}", backendServiceName, e.getMessage());
             }
           });
       return backendServicesToUpdate;
@@ -767,7 +772,9 @@ public class BasicGoogleDeployHandler
               backendService.getBackends().add(backendToAdd);
               regionBackendServicesToUpdate.add(backendService);
             } catch (IOException e) {
-              log.error(e.getMessage());
+              // Only a missing (404) backend service reaches here; transient errors are retried
+              // and anything else fails the deploy rather than silently skipping the backend.
+              log.warn("Skipping backend service {}: {}", backendServiceName, e.getMessage());
             }
           });
       return regionBackendServicesToUpdate;
@@ -1622,31 +1629,106 @@ public class BasicGoogleDeployHandler
     }
   }
 
+  /**
+   * Retrieves a global backend service, retrying transient GCE errors (e.g. 503 backendError).
+   *
+   * @throws IOException if the backend service does not exist (404), so callers can skip it
+   * @throws GoogleOperationException if the request still fails after retries, or fails with a
+   *     non-retryable error other than 404
+   */
   protected BackendService getBackendServiceFromProvider(
       GoogleNamedAccountCredentials credentials, String backendServiceName) throws IOException {
-    return timeExecute(
-        credentials
-            .getCompute()
-            .backendServices()
-            .get(credentials.getProject(), backendServiceName),
-        "compute.backendServices.get",
-        TAG_SCOPE,
-        SCOPE_GLOBAL);
+    return getBackendServiceWithRetry(
+        "Backend service " + backendServiceName,
+        Map.of(
+            "action",
+            "get",
+            "phase",
+            BASE_PHASE,
+            "operation",
+            "compute.backendServices.get",
+            TAG_SCOPE,
+            SCOPE_GLOBAL),
+        () ->
+            timeExecute(
+                credentials
+                    .getCompute()
+                    .backendServices()
+                    .get(credentials.getProject(), backendServiceName),
+                "compute.backendServices.get",
+                TAG_SCOPE,
+                SCOPE_GLOBAL));
   }
 
+  /**
+   * Retrieves a regional backend service, retrying transient GCE errors (e.g. 503 backendError).
+   *
+   * @throws IOException if the backend service does not exist (404), so callers can skip it
+   * @throws GoogleOperationException if the request still fails after retries, or fails with a
+   *     non-retryable error other than 404
+   */
   protected BackendService getRegionBackendServiceFromProvider(
       GoogleNamedAccountCredentials credentials, String region, String backendServiceName)
       throws IOException {
-    return timeExecute(
-        credentials
-            .getCompute()
-            .regionBackendServices()
-            .get(credentials.getProject(), region, backendServiceName),
-        "compute.regionBackendServices.get",
-        TAG_SCOPE,
-        SCOPE_REGIONAL,
-        TAG_REGION,
-        region);
+    return getBackendServiceWithRetry(
+        "Region backend service " + backendServiceName,
+        Map.of(
+            "action",
+            "get",
+            "phase",
+            BASE_PHASE,
+            "operation",
+            "compute.regionBackendServices.get",
+            TAG_SCOPE,
+            SCOPE_REGIONAL,
+            TAG_REGION,
+            region),
+        () ->
+            timeExecute(
+                credentials
+                    .getCompute()
+                    .regionBackendServices()
+                    .get(credentials.getProject(), region, backendServiceName),
+                "compute.regionBackendServices.get",
+                TAG_SCOPE,
+                SCOPE_REGIONAL,
+                TAG_REGION,
+                region));
+  }
+
+  @FunctionalInterface
+  private interface BackendServiceRequest {
+    BackendService execute() throws IOException;
+  }
+
+  private BackendService getBackendServiceWithRetry(
+      String resource, Map<String, String> tags, BackendServiceRequest request) throws IOException {
+    try {
+      return safeRetry.doRetry(
+          new Closure<BackendService>(this, this) {
+            @Override
+            public BackendService call() {
+              try {
+                return request.execute();
+              } catch (IOException e) {
+                // SafeRetry unwraps UncheckedIOException, so retry codes still apply.
+                throw new UncheckedIOException(e);
+              }
+            }
+          },
+          resource,
+          null,
+          GCEUtil.TRANSIENT_READ_RETRY_ERROR_CODES,
+          Collections.emptyList(),
+          tags,
+          registry);
+    } catch (GoogleOperationException e) {
+      if (e.getCause() instanceof GoogleApiException.NotFoundException) {
+        // Keep the existing behavior for missing backend services: the caller logs and skips them.
+        throw (IOException) e.getCause();
+      }
+      throw e;
+    }
   }
 
   private String createInstanceTemplateAndWait(
