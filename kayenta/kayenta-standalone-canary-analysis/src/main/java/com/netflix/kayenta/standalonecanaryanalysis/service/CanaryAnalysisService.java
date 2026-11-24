@@ -44,6 +44,7 @@ import com.netflix.spinnaker.orca.pipeline.persistence.ExecutionNotFoundExceptio
 import com.netflix.spinnaker.orca.pipeline.persistence.ExecutionRepository;
 import java.time.Instant;
 import java.util.Optional;
+import java.util.UUID;
 import java.util.stream.Collectors;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -108,7 +109,7 @@ public class CanaryAnalysisService {
     PipelineBuilder pipelineBuilder =
         new PipelineBuilder(application)
             .withName(CANARY_ANALYSIS_PIPELINE_NAME)
-            .withPipelineConfigId(application + "-canary-analysis-referee-pipeline")
+            .withPipelineConfigId(UUID.randomUUID().toString())
             .withStage(
                 SetupAndExecuteCanariesStage.STAGE_TYPE,
                 SetupAndExecuteCanariesStage.STAGE_DESCRIPTION,
