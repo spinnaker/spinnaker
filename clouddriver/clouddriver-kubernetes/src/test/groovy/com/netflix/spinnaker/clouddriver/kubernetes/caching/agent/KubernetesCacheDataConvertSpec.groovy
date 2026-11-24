@@ -92,18 +92,18 @@ metadata:
     if (application == null) {
       true
     } else {
-      optional.isPresent()
+      assert optional.isPresent()
       def cacheData = optional.get()
-      cacheData.relationships.get(Keys.LogicalKind.APPLICATIONS.toString()) == [Keys.ApplicationCacheKey.createKey(application)]
+      assert cacheData.relationships.get(Keys.LogicalKind.APPLICATIONS.toString()) == [Keys.ApplicationCacheKey.createKey(application)] as Set
       if (cluster) {
-        cacheData.relationships.get(Keys.LogicalKind.CLUSTERS.toString()) == [Keys.ClusterCacheKey.createKey(account, application, cluster)]
+        assert cacheData.relationships.get(Keys.LogicalKind.CLUSTERS.toString()) == [Keys.ClusterCacheKey.createKey(account, application, cluster)] as Set
       } else {
-        cacheData.relationships.get(Keys.LogicalKind.CLUSTERS.toString()) == null
+        assert cacheData.relationships.get(Keys.LogicalKind.CLUSTERS.toString()) == null
       }
-      cacheData.attributes.get("name") == name
-      cacheData.attributes.get("namespace") == namespace
-      cacheData.attributes.get("kind") == kind
-      cacheData.id == Keys.InfrastructureCacheKey.createKey(kind, account, namespace, name)
+      assert cacheData.attributes.get("name") == name
+      assert cacheData.attributes.get("namespace") == namespace
+      assert cacheData.attributes.get("kind") == kind
+      assert cacheData.id == Keys.InfrastructureCacheKey.createKey(kind, account, namespace, name)
     }
 
     where:

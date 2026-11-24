@@ -67,7 +67,7 @@ class HighlanderStrategySpec extends Specification {
       afterStages.last().type == shrinkClusterStage.type
 
       if (interestingHealthProviderNames) {
-        afterStages.last().context == [
+        assert afterStages.last().context == [
           credentials                   : "testAccount",
           (locationType)                : locationValue,
           cluster                       : "unit-tests",
@@ -75,10 +75,11 @@ class HighlanderStrategySpec extends Specification {
           shrinkToSize                  : 1,
           retainLargerOverNewer         : false,
           allowDeleteActive             : true,
+          moniker                       : null,
           interestingHealthProviderNames: propagatedInterestingHealthProviderNames
         ]
       } else {
-        afterStages.last().context == [
+        assert afterStages.last().context == [
           credentials                   : "testAccount",
           (locationType)                : locationValue,
           cluster                       : "unit-tests",
@@ -86,6 +87,7 @@ class HighlanderStrategySpec extends Specification {
           shrinkToSize                  : 1,
           retainLargerOverNewer         : false,
           allowDeleteActive             : true,
+          moniker                       : null,
         ]
       }
 
