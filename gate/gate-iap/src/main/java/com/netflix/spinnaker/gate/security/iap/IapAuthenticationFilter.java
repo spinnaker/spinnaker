@@ -24,7 +24,6 @@ import com.netflix.spinnaker.gate.services.PermissionService;
 import com.netflix.spinnaker.gate.services.internal.Front50Service;
 import com.netflix.spinnaker.kork.retrofit.Retrofit2SyncCall;
 import com.netflix.spinnaker.kork.retrofit.exceptions.SpinnakerServerException;
-import com.netflix.spinnaker.security.User;
 import com.nimbusds.jose.JWSHeader;
 import com.nimbusds.jose.JWSVerifier;
 import com.nimbusds.jose.crypto.ECDSAVerifier;
@@ -51,6 +50,7 @@ import java.util.Map;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.security.core.userdetails.User;
 import org.springframework.security.web.authentication.preauth.PreAuthenticatedAuthenticationToken;
 import org.springframework.web.filter.OncePerRequestFilter;
 
@@ -98,7 +98,7 @@ public class IapAuthenticationFilter extends OncePerRequestFilter {
 
       Base64URL signatureInSession = (Base64URL) session.getAttribute(SIGNATURE_ATTRIBUTE);
 
-      User verifiedUser;
+      String verifiedEmail;
       boolean isNewAuthentication = true;
 
       if (signatureInSession != null && signatureInSession.equals(jwt.getSignature())) {
@@ -106,25 +106,24 @@ public class IapAuthenticationFilter extends OncePerRequestFilter {
         // need to set authentication in SecurityContext
         JWTClaimsSet claims = jwt.getJWTClaimsSet();
         String email = (String) claims.getClaim("email");
-        verifiedUser = new User();
-        verifiedUser.setEmail(email);
+        verifiedEmail = email;
         isNewAuthentication = false;
       } else {
         // New JWT or different signature, perform full validation
-        verifiedUser = verifyJWTAndGetUser(jwt);
+        verifiedEmail = verifyJWTAndGetEmail(jwt);
       }
 
       PreAuthenticatedAuthenticationToken authentication =
           new PreAuthenticatedAuthenticationToken(
-              verifiedUser,
+              new User(verifiedEmail, "", List.of()),
               null /* credentials */,
               // Need to set authorities list even if empty to get a valid authentication.
-              verifiedUser.getAuthorities());
+              List.of());
 
       // Service accounts are already logged in.
       // Only call login on new authentication to avoid redundant calls
-      if (isNewAuthentication && !isServiceAccount(verifiedUser.getEmail())) {
-        permissionService.login(verifiedUser.getEmail());
+      if (isNewAuthentication && !isServiceAccount(verifiedEmail)) {
+        permissionService.login(verifiedEmail);
       }
 
       SecurityContextHolder.getContext().setAuthentication(authentication);
@@ -160,7 +159,7 @@ public class IapAuthenticationFilter extends OncePerRequestFilter {
     return false;
   }
 
-  private User verifyJWTAndGetUser(SignedJWT jwt) throws Exception {
+  private String verifyJWTAndGetEmail(SignedJWT jwt) throws Exception {
     JWSHeader jwsHeader = jwt.getHeader();
 
     Preconditions.checkNotNull(jwsHeader.getAlgorithm(), "JWT header is missing algorithm (alg)");
@@ -209,10 +208,7 @@ public class IapAuthenticationFilter extends OncePerRequestFilter {
     JWSVerifier jwsVerifier = new ECDSAVerifier(publicKey);
     Preconditions.checkState(jwt.verify(jwsVerifier), "EC public key failed verification");
 
-    User verifiedUser = new User();
-    verifiedUser.setEmail(email);
-
-    return verifiedUser;
+    return email;
   }
 
   private ECPublicKey getKey(String kid, String alg) throws Exception {
