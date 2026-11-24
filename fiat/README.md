@@ -49,6 +49,30 @@ providers, use the `includeProviders` flag (run from the monorepo root):
 ```
  You can view the list of all providers in `gradle.properties`.
 
+### Authorization client libraries
+
+Authorization clients and shared permission models are published by Kork:
+
+| Library | Artifact | Compatibility artifact |
+| --- | --- | --- |
+| Spring authorization integration and Fiat client | `io.spinnaker.kork:kork-authz` | `io.spinnaker.fiat:fiat-api` |
+| Permission and resource models | `io.spinnaker.kork:kork-authz-api` | `io.spinnaker.fiat:fiat-core` |
+
+Both Kork artifacts are managed by `kork-bom` and have no Fiat artifact dependencies.
+The compatibility artifacts re-export the Kork libraries and contain no duplicate classes.
+Java packages remain under `com.netflix.spinnaker.fiat`, and `services.fiat` configuration
+and authorization behavior are unchanged.
+
+Run the authorization and server tests from the monorepo root:
+
+```sh
+./gradlew :kork:kork-authz:test :kork:kork-authz-api:test :fiat:test
+```
+
+Fiat's `fiat-api:test` also compiles and runs an external consumer with each dependency
+pair, verifies that the compatibility jars contain no classes, and checks that the Kork
+consumer's resolved dependencies contain no Fiat artifacts. The server tests require Docker.
+
 ### Debugging
 
 To start the JVM in debug mode, set the Java system property `DEBUG=true` (run from the monorepo root):

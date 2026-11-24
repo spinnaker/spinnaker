@@ -31,7 +31,7 @@ dependencies {
 
   testImplementation(project(":orca-test-groovy"))
   testImplementation("org.springframework:spring-test")
-  testImplementation("io.spinnaker.fiat:fiat-core")
+  testImplementation("io.spinnaker.kork:kork-authz-api")
   testImplementation("org.wiremock:wiremock")
   testRuntimeOnly("net.bytebuddy:byte-buddy")
   testImplementation("com.squareup.retrofit2:converter-jackson")

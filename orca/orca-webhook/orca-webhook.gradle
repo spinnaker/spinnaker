@@ -47,8 +47,8 @@ dependencies {
   testImplementation("org.apache.groovy:groovy-json")
   testRuntimeOnly("net.bytebuddy:byte-buddy")
 
-  implementation("io.spinnaker.fiat:fiat-api")
-  implementation("io.spinnaker.fiat:fiat-core")
+  implementation("io.spinnaker.kork:kork-authz")
+  implementation("io.spinnaker.kork:kork-authz-api")
   implementation("org.apache.httpcomponents.client5:httpclient5")
   implementation("org.springframework.security:spring-security-config")
   implementation("org.springframework.security:spring-security-core")
