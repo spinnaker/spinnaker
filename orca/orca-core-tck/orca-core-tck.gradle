@@ -4,6 +4,7 @@ dependencies {
   api("org.spockframework:spock-core")
   implementation(project(":orca-core"))
   compileOnly(project(":orca-sql"))
+  compileOnly(project(":orca-sql-migration"))
   implementation("junit:junit")
   implementation(project(":orca-test"))
   implementation(project(":orca-test-groovy"))

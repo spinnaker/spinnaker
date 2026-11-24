@@ -731,6 +731,31 @@ class SqlExecutionRepository(
     }
   }
 
+  override fun retrievePipelinesForApplicationAndName(
+    application: String,
+    pipelineName: String,
+    criteria: ExecutionCriteria
+  ): Observable<PipelineExecution> {
+    withPool(readPoolName) {
+      val select = jooq.selectExecutions(
+        PIPELINE,
+        usingIndex = "pipelines_execution_name_idx",
+        conditions = {
+          it.where(field("application").eq(application))
+            .and(field("name").eq(pipelineName))
+            .statusIn(criteria.statuses)
+        },
+        seek = {
+          it.orderBy(field("start_time").desc())
+            .limit(criteria.pageSize)
+            .offset((criteria.page - 1) * criteria.pageSize)
+        }
+      )
+
+      return Observable.fromIterable(select.fetchExecutions())
+    }
+  }
+
   override fun retrieveOrchestrationsForApplication(
     application: String,
     criteria: ExecutionCriteria
@@ -1098,12 +1123,15 @@ class SqlExecutionRepository(
         field("updated_at") to currentTimeMillis()
       )
 
-      // Set startTime only if it is not null
-      // jooq has some issues casting nulls when updating in the Postgres dialect
+      // Skip nulls. jOOQ mis-casts them when updating in the Postgres dialect.
       val startTime = execution.startTime
       if (startTime != null) {
         insertPairs[field("start_time")] = startTime
         updatePairs[field("start_time")] = startTime
+      }
+      execution.name?.let { executionName ->
+        insertPairs[field("name")] = executionName
+        updatePairs[field("name")] = executionName
       }
 
       when (execution.type) {
