@@ -17,6 +17,9 @@
 package com.netflix.spinnaker.gate.converters;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import java.util.List;
@@ -24,10 +27,17 @@ import java.util.Map;
 import org.junit.jupiter.api.Test;
 import org.springframework.core.ParameterizedTypeReference;
 import org.springframework.http.MediaType;
+import org.springframework.http.ResponseEntity;
 import org.springframework.http.converter.HttpMessageConverter;
 import org.springframework.http.converter.StringHttpMessageConverter;
 import org.springframework.mock.web.MockHttpServletRequest;
+import org.springframework.mock.web.MockHttpServletResponse;
+import org.springframework.test.web.servlet.MockMvc;
+import org.springframework.test.web.servlet.setup.MockMvcBuilders;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.servlet.function.ServerRequest;
+import org.springframework.web.servlet.function.ServerResponse;
 
 /**
  * Gate registers {@link JsonHttpMessageConverter} ahead of {@link StringHttpMessageConverter}. It
@@ -74,8 +84,52 @@ class JsonHttpMessageConverterTest {
   }
 
   @Test
-  void stillWritesString() {
-    assertThat(converter.canWrite(String.class, MediaType.APPLICATION_JSON)).isTrue();
+  void leavesStringsToTheStringConverter() {
+    assertThat(converter.canWrite(String.class, MediaType.APPLICATION_JSON)).isFalse();
+  }
+
+  @Test
+  void stillWritesMapsAndPojos() {
+    assertThat(converter.canWrite(Map.class, MediaType.APPLICATION_JSON)).isTrue();
+    assertThat(converter.canWrite(Foo.class, MediaType.APPLICATION_JSON)).isTrue();
+  }
+
+  @Test
+  void routerFunctionWritesAnAlreadySerializedStringAsIsWhenJsonConverterIsFirst()
+      throws Exception {
+    List<HttpMessageConverter<?>> converters = List.of(converter, new StringHttpMessageConverter());
+    MockHttpServletRequest request = new MockHttpServletRequest("POST", "/mcp");
+    MockHttpServletResponse response = new MockHttpServletResponse();
+
+    ServerResponse.ok()
+        .contentType(MediaType.APPLICATION_JSON)
+        .body(JSON_BODY)
+        .writeTo(request, response, () -> converters);
+
+    assertThat(response.getContentAsString()).isEqualTo(JSON_BODY);
+  }
+
+  @Test
+  void responseEntityStringIsWrittenAsIsWhenJsonConverterIsFirst() throws Exception {
+    MockMvc mockMvc =
+        MockMvcBuilders.standaloneSetup(new StringController())
+            .setMessageConverters(converter, new StringHttpMessageConverter())
+            .build();
+
+    mockMvc
+        .perform(get("/string"))
+        .andExpect(status().isOk())
+        .andExpect(content().string(JSON_BODY));
+  }
+
+  @Test
+  void mapsAreStillWrittenAsJson() throws Exception {
+    MockMvc mockMvc =
+        MockMvcBuilders.standaloneSetup(new StringController())
+            .setMessageConverters(converter, new StringHttpMessageConverter())
+            .build();
+
+    mockMvc.perform(get("/map")).andExpect(status().isOk()).andExpect(content().json("{\"a\":1}"));
   }
 
   @Test
@@ -106,5 +160,18 @@ class JsonHttpMessageConverterTest {
 
   static class Foo {
     public String name;
+  }
+
+  @RestController
+  static class StringController {
+    @GetMapping(path = "/string", produces = MediaType.APPLICATION_JSON_VALUE)
+    ResponseEntity<String> string() {
+      return ResponseEntity.ok(JSON_BODY);
+    }
+
+    @GetMapping(path = "/map", produces = MediaType.APPLICATION_JSON_VALUE)
+    Map<String, Object> map() {
+      return Map.of("a", 1);
+    }
   }
 }

@@ -39,6 +39,21 @@ public class JsonHttpMessageConverter extends AbstractJackson2HttpMessageConvert
   }
 
   /**
+   * Leaves {@code String} bodies to the {@code StringHttpMessageConverter}, like Spring's own
+   * converter order does.
+   *
+   * <p>This converter is registered ahead of the {@code StringHttpMessageConverter}, and Jackson
+   * writes a {@code String} as a JSON string literal. A handler that returns a {@code String} it
+   * has already serialized, such as the MCP SDK's stateless transport, would otherwise get that
+   * text wrapped in quotes and escaped a second time, and clients that expect a JSON object reject
+   * it.
+   */
+  @Override
+  public boolean canWrite(Class<?> clazz, MediaType mediaType) {
+    return !String.class.equals(clazz) && super.canWrite(clazz, mediaType);
+  }
+
+  /**
    * This converter is registered ahead of {@code StringHttpMessageConverter}, so it is asked to
    * read {@code String} bodies first. Jackson can only bind a JSON string literal (e.g. {@code
    * "abc"}) to a {@code String}; a JSON object or array fails with "Cannot deserialize value of
