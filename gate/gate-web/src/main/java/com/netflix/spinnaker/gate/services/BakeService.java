@@ -29,6 +29,7 @@ import lombok.Setter;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.stereotype.Component;
+import org.springframework.web.util.HtmlUtils;
 
 @Getter
 @Setter
@@ -79,7 +80,10 @@ public class BakeService {
               roscoServiceSelector.withLocation(region).lookupLogs(region, statusId));
 
       if (logsMap != null && logsMap.get("logsContent") != null) {
-        return "<pre>" + logsMap.get("logsContent") + "</pre>";
+        // served as text/html, so escape the bake output (it is not trusted)
+        return "<pre>"
+            + HtmlUtils.htmlEscape(String.valueOf(logsMap.get("logsContent")))
+            + "</pre>";
       } else {
         throw new NotFoundException("Bake logs not found.");
       }

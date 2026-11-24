@@ -175,6 +175,25 @@ class BakeControllerWiremockTest {
   }
 
   @Test
+  void lookupLogsEscapesHtml() throws Exception {
+    wmRosco.stubFor(
+        WireMock.get(urlPathEqualTo("/api/v1/us-east-1/logs/some-status-id"))
+            .willReturn(
+                aResponse()
+                    .withStatus(HttpStatus.OK.value())
+                    .withHeader("Content-Type", "application/json")
+                    .withBody("{\"logsContent\":\"<script>alert(1)</script> & more\"}")));
+
+    webAppMockMvc
+        .perform(
+            get("/bakery/logs/us-east-1/some-status-id")
+                .header(USER.getHeader(), USERNAME)
+                .header(ACCOUNTS.getHeader(), ACCOUNT))
+        .andExpect(status().isOk())
+        .andExpect(content().string("<pre>&lt;script&gt;alert(1)&lt;/script&gt; &amp; more</pre>"));
+  }
+
+  @Test
   void bakeOptionsRoscoHttpError() throws Exception {
     wmRosco.stubFor(
         WireMock.get(urlPathEqualTo("/bakeOptions"))
