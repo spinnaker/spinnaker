@@ -304,8 +304,7 @@ public class ExternalAuthTokenFilter extends OncePerRequestFilter {
         new ExternalOAuth2UserRequest(clientRegistration, oAuth2AccessToken);
 
     OAuth2User oauth2User =
-        userInfoServiceHelper.getSpinnakerOAuth2User(
-            new SimpleOAuth2User(userAttributes), userRequest);
+        userInfoServiceHelper.toOAuth2User(new SimpleOAuth2User(userAttributes), userRequest);
 
     return new OAuth2AuthenticationToken(oauth2User, oauth2User.getAuthorities(), registrationId);
   }

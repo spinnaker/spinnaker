@@ -52,6 +52,6 @@ public class SpinnakerOAuth2UserInfoService extends DefaultOAuth2UserService {
   @Override
   public OAuth2User loadUser(OAuth2UserRequest userRequest) throws OAuth2AuthenticationException {
     OAuth2User oAuth2User = super.loadUser(userRequest);
-    return userInfoService.getSpinnakerOAuth2User(oAuth2User, userRequest);
+    return userInfoService.toOAuth2User(oAuth2User, userRequest);
   }
 }
