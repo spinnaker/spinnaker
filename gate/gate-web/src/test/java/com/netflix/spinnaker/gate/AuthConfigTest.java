@@ -158,10 +158,10 @@ class AuthConfigTest {
   public void whenAuthEnabledForWebhookWithCredentials() throws Exception {
     String body = "new message";
     HttpEntity<String> entity = new HttpEntity<>(body);
-    final ResponseEntity<Object> response =
+    final ResponseEntity<String> response =
         restTemplate
             .withBasicAuth(TEST_USER, TEST_PASSWORD)
-            .exchange("/webhooks/sample", HttpMethod.POST, entity, Object.class);
+            .exchange("/webhooks/sample", HttpMethod.POST, entity, String.class);
     assertThat(response.getStatusCode()).isEqualTo(HttpStatus.CREATED);
     assertThat(response.getBody()).isEqualTo(body);
   }
