@@ -17,6 +17,7 @@
 
 package com.netflix.spinnaker.gate.security.saml;
 
+import com.netflix.spinnaker.gate.security.UserProfileMapping;
 import com.netflix.spinnaker.kork.annotations.NullableByDefault;
 import jakarta.annotation.Nonnull;
 import jakarta.validation.constraints.NotEmpty;
@@ -62,12 +63,14 @@ public class SecuritySamlProperties {
   @Getter
   @Setter
   @Validated
-  public static class UserAttributeMapping {
-    @NotEmpty private String firstName = "User.FirstName";
-    @NotEmpty private String lastName = "User.LastName";
+  public static class UserAttributeMapping extends UserProfileMapping {
+    public UserAttributeMapping() {
+      setFirstName("User.FirstName");
+      setLastName("User.LastName");
+    }
+
     @NotEmpty private String roles = "memberOf";
     @NotEmpty private String rolesDelimiter = ";";
     private String username;
-    private String email;
   }
 }
