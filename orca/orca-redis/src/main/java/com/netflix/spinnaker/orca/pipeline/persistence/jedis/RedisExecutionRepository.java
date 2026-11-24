@@ -516,6 +516,39 @@ public class RedisExecutionRepository implements ExecutionRepository {
     return currentObservable;
   }
 
+  @Override
+  public @Nonnull Observable<PipelineExecution> retrievePipelinesForApplicationAndName(
+      @Nonnull String application,
+      @Nonnull String pipelineName,
+      @Nonnull ExecutionCriteria criteria) {
+    int offset = Math.max(0, (criteria.getPage() - 1) * criteria.getPageSize());
+    // Redis stores executions by id, not by name, so filter and sort in memory.
+    return retrievePipelinesForApplication(application)
+        .filter(execution -> pipelineName.equals(execution.getName()))
+        .filter(
+            execution ->
+                criteria.getStatuses().isEmpty()
+                    || criteria.getStatuses().contains(execution.getStatus()))
+        .toSortedList(
+            (a, b) -> {
+              Long aTime = a.getStartTime() != null ? a.getStartTime() : a.getBuildTime();
+              Long bTime = b.getStartTime() != null ? b.getStartTime() : b.getBuildTime();
+              if (aTime == null && bTime == null) {
+                return 0;
+              }
+              if (aTime == null) {
+                return 1;
+              }
+              if (bTime == null) {
+                return -1;
+              }
+              return bTime.compareTo(aTime);
+            })
+        .flatMapObservable(Observable::fromIterable)
+        .skip(offset)
+        .take(criteria.getPageSize());
+  }
+
   private static List<String> paginate(List<String> ids, int offset, int pageSize) {
     int from = Math.min(offset, ids.size());
     int to = Math.min(offset + pageSize, ids.size());
