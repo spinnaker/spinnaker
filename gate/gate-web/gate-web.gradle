@@ -35,6 +35,8 @@ dependencies {
   implementation "commons-io:commons-io"
   implementation "org.apache.groovy:groovy-templates"
   implementation "org.springframework.boot:spring-boot-starter-session-data-redis"
+  implementation "org.springframework.security:spring-security-oauth2-core"
+  implementation "org.springframework.security:spring-security-ldap"
   implementation "de.huxhorn.sulky:de.huxhorn.sulky.ulid"
   implementation "org.apache.commons:commons-lang3"
 
@@ -59,7 +61,6 @@ dependencies {
   testImplementation "org.springframework.ai:spring-ai-starter-mcp-server-webmvc"
   testImplementation project(":gate-ldap") // TODO: Move system tests to own module
   testImplementation project(":gate-basic")
-  testImplementation project(":gate-header")
   testImplementation project(":gate-oauth2")
   testImplementation project(":gate-iap")
   testImplementation project(":gate-saml")
@@ -68,7 +69,6 @@ dependencies {
   testImplementation "com.squareup.okhttp3:mockwebserver"
 
   testImplementation "org.springframework.security:spring-security-test"
-  testImplementation "org.springframework.security:spring-security-ldap"
   testImplementation "org.springframework.security:spring-security-oauth2-jose"
   testImplementation "com.unboundid:unboundid-ldapsdk"
   testImplementation "io.spinnaker.kork:kork-jedis-test"
