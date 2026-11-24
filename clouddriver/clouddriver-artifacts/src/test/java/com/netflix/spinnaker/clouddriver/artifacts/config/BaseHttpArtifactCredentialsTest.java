@@ -18,6 +18,9 @@ package com.netflix.spinnaker.clouddriver.artifacts.config;
 
 import static org.junit.jupiter.api.Assertions.*;
 
+import ch.qos.logback.classic.Logger;
+import ch.qos.logback.classic.spi.ILoggingEvent;
+import ch.qos.logback.core.read.ListAppender;
 import com.netflix.spinnaker.fiat.model.resources.Permissions;
 import com.netflix.spinnaker.kork.artifacts.model.Artifact;
 import com.netflix.spinnaker.kork.web.url.UrlRestrictions;
@@ -35,6 +38,7 @@ import okhttp3.mockwebserver.RecordedRequest;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.slf4j.LoggerFactory;
 
 class BaseHttpArtifactCredentialsTest {
 
@@ -274,6 +278,81 @@ class BaseHttpArtifactCredentialsTest {
         BaseHttpArtifactCredentials.rateLimitDetail(retry, Instant.now()));
   }
 
+  @Test
+  void credentialsAreLoggedOnceAcrossRedirects() throws Exception {
+    TestArtifactAccount account = new TestArtifactAccount();
+    credentials =
+        new TestArtifactCredentials(
+            new OkHttpClient(), account, Headers.of("Authorization", "token abc"));
+
+    // Same host first, then a cross-host hop (127.0.0.1) that is sent without credentials.
+    String otherHost =
+        maliciousServer.url("/final").newBuilder().host("127.0.0.1").build().toString();
+    mockServer.enqueue(new MockResponse().setResponseCode(302).setHeader("Location", "/next"));
+    mockServer.enqueue(new MockResponse().setResponseCode(302).setHeader("Location", otherHost));
+    maliciousServer.enqueue(new MockResponse().setBody("content"));
+
+    List<String> logs =
+        credentialLogs(
+            () ->
+                credentials.fetchUrl(
+                    mockServer.url("/start").newBuilder().host("localhost").build()));
+
+    assertEquals(List.of("Loaded credentials for artifact account test-account"), logs);
+    assertEquals("token abc", mockServer.takeRequest().getHeader("Authorization"));
+    assertNull(maliciousServer.takeRequest().getHeader("Authorization"));
+  }
+
+  @Test
+  void downloadWithoutCredentialsIsLogged() throws Exception {
+    TestArtifactAccount account = new TestArtifactAccount();
+    credentials = new TestArtifactCredentials(new OkHttpClient(), account);
+    mockServer.enqueue(new MockResponse().setBody("content"));
+
+    List<String> logs = credentialLogs(() -> credentials.fetchUrl(mockServer.url("/file")));
+
+    assertEquals(List.of("No credentials included for artifact account test-account"), logs);
+  }
+
+  @Test
+  void subclassesDecideWhichHeaderCarriesCredentials() throws Exception {
+    TestArtifactAccount account = new TestArtifactAccount();
+    credentials =
+        new TestArtifactCredentials(
+            new OkHttpClient(), account, Headers.of("Private-Token", "abc")) {
+          @Override
+          protected boolean sendsCredentials(Headers headers) {
+            return headers.get("Private-Token") != null;
+          }
+        };
+    mockServer.enqueue(new MockResponse().setBody("content"));
+
+    List<String> logs = credentialLogs(() -> credentials.fetchUrl(mockServer.url("/file")));
+
+    assertEquals(List.of("Loaded credentials for artifact account test-account"), logs);
+  }
+
+  interface Fetch {
+    void run() throws IOException;
+  }
+
+  /** Runs the fetch and returns the credentials log lines it wrote. */
+  private static List<String> credentialLogs(Fetch fetch) throws IOException {
+    Logger logger = (Logger) LoggerFactory.getLogger(BaseHttpArtifactCredentials.class);
+    ListAppender<ILoggingEvent> appender = new ListAppender<>();
+    appender.start();
+    logger.addAppender(appender);
+    try {
+      fetch.run();
+    } finally {
+      logger.detachAppender(appender);
+    }
+    return appender.list.stream()
+        .map(ILoggingEvent::getFormattedMessage)
+        .filter(m -> m.contains("credentials"))
+        .toList();
+  }
+
   static class TestArtifactAccount extends UserInputValidatedArtifactAccount {
     private UrlRestrictions mutableRestrictions;
 
@@ -292,8 +371,21 @@ class BaseHttpArtifactCredentialsTest {
   }
 
   static class TestArtifactCredentials extends BaseHttpArtifactCredentials<TestArtifactAccount> {
+    private final Headers headers;
+
     protected TestArtifactCredentials(OkHttpClient okHttpClient, TestArtifactAccount account) {
+      this(okHttpClient, account, new Headers.Builder().build());
+    }
+
+    protected TestArtifactCredentials(
+        OkHttpClient okHttpClient, TestArtifactAccount account, Headers headers) {
       super(okHttpClient, account);
+      this.headers = headers;
+    }
+
+    @Override
+    protected Headers getHeaders(TestArtifactAccount account) {
+      return headers;
     }
 
     @Override

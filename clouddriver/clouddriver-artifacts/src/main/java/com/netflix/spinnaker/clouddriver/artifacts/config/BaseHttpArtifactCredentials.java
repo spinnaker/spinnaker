@@ -106,6 +106,15 @@ public abstract class BaseHttpArtifactCredentials<T extends UserInputValidatedAr
     return getHeaders(account);
   }
 
+  /**
+   * Whether the headers built by {@link #getHeaders(ArtifactAccount, HttpUrl)} carry credentials,
+   * for the log line written once per download. Override when the account authenticates with a
+   * header other than {@code Authorization}.
+   */
+  protected boolean sendsCredentials(Headers headers) {
+    return headers.get("Authorization") != null;
+  }
+
   protected HttpUrl parseUrl(String stringUrl) {
     HttpUrl httpUrl = HttpUrl.parse(stringUrl);
     if (httpUrl == null) {
@@ -137,12 +146,15 @@ public abstract class BaseHttpArtifactCredentials<T extends UserInputValidatedAr
           currentUrl.host().equals(originalHost.host())
               ? getHeaders(account, currentUrl)
               : new Headers.Builder().build();
-      // Logged from the headers actually sent, so credentials that subclasses add on top of
-      // getHeaders(account) (e.g. GitHub App installation tokens) are reported correctly.
-      if (headers.get("Authorization") != null) {
-        log.info("Loaded credentials for artifact account {}", account.getName());
-      } else {
-        log.info("No credentials included for artifact account {}", account.getName());
+      // Logged once per download, from the headers of the first request, so credentials that
+      // subclasses add in getHeaders(account, url) (e.g. GitHub App installation tokens) count.
+      // Redirects to other hosts are sent without credentials on purpose and are not logged.
+      if (redirectCount == 0) {
+        if (sendsCredentials(headers)) {
+          log.info("Loaded credentials for artifact account {}", account.getName());
+        } else {
+          log.info("No credentials included for artifact account {}", account.getName());
+        }
       }
       Request request = new Request.Builder().headers(headers).url(currentUrl).build();
       Response response = okHttpClient.newCall(request).execute();
