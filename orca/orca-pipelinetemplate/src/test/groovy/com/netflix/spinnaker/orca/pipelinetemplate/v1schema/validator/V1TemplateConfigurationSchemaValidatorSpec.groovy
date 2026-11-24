@@ -61,10 +61,10 @@ class V1TemplateConfigurationSchemaValidatorSpec extends Specification {
 
     then:
     if (hasErrors) {
-      errors.errors[0].message == "Missing 'application' pipeline configuration"
-      errors.errors[0].location == 'configuration:pipeline.application'
+      assert errors.errors[0].message == "Missing 'application' pipeline configuration"
+      assert errors.errors[0].location == 'configuration:pipeline.application'
     } else {
-      !errors.hasErrors(true)
+      assert !errors.hasErrors(true)
     }
 
     where:
@@ -87,7 +87,9 @@ class V1TemplateConfigurationSchemaValidatorSpec extends Specification {
         new StageDefinition(
           id: 'foo',
           type: 'foo',
-          config: [:]
+          config: [:],
+          dependsOn: dependsOn,
+          inject: injectFirst ? [first: true] : null
         )
       ]
     )
@@ -97,11 +99,11 @@ class V1TemplateConfigurationSchemaValidatorSpec extends Specification {
 
     then:
     if (hasErrors) {
-      errors.hasErrors(true)
-      errors.errors[0].message == "A configuration-defined stage should have either dependsOn or an inject rule defined"
-      errors.errors[0].location == 'configuration:stages.foo'
+      assert errors.hasErrors(true)
+      assert errors.errors[0].message == "A configuration-defined stage should have either dependsOn or an inject rule defined"
+      assert errors.errors[0].location == 'configuration:stages.foo'
     } else {
-      !errors.hasErrors(true)
+      assert !errors.hasErrors(true)
     }
 
     where:
