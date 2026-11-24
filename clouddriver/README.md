@@ -13,8 +13,10 @@ at `/usr/local/bin/kubectl-1.<minor>`, for Linux amd64 and arm64. The unversione
 uses the default selected in [kubectl-versions.json](kubectl-versions.json), currently minor
 **1.36**, replacing the previous 1.30 default.
 
-The packaged versions cover all minors in [Amazon EKS standard or extended support](https://docs.aws.amazon.com/eks/latest/userguide/kubernetes-versions.html)
-as of October 9, 2026. Version 1.30 is retained as an explicit compatibility option for existing deployments.
+The packaged versions are 1.33 through 1.37. Minors 1.30–1.32 were removed: they are out of
+upstream support, and their final kubectl releases are built with end-of-life Go toolchains that
+image scanners flag. Under the skew policy below, the bundled 1.33 client still covers 1.32 servers.
+For older clusters, add a matching kubectl binary to a custom image and point `kubectlExecutable` at it.
 
 The shared JSON file drives both image builds and the Kubernetes integration tests:
 
@@ -40,8 +42,8 @@ kubernetes:
   kubectl:
     executable: /usr/local/bin/kubectl-1.36
   accounts:
-    - name: eks-1-31
-      kubectlExecutable: /usr/local/bin/kubectl-1.31
+    - name: k8s-1-33
+      kubectlExecutable: /usr/local/bin/kubectl-1.33
       # Add the account's existing context, credentials, and other settings here.
 ```
 
