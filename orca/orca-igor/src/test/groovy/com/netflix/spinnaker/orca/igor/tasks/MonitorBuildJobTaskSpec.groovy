@@ -172,9 +172,9 @@ class MonitorBuildJobTaskSpec extends Specification {
 
     then:
     if (expectedErrorMessage) {
-      stage.context.exception.details.errors.contains(expectedErrorMessage)
+      assert stage.context.exception.details.errors == [expectedErrorMessage + " (see the build on master=builds)"]
     } else {
-      stage.context.exception == null
+      assert stage.context.exception == null
     }
 
     where:
