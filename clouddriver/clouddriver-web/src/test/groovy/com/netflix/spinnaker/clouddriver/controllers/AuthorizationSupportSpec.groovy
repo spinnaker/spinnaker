@@ -21,7 +21,6 @@ import com.netflix.spinnaker.clouddriver.model.LoadBalancerProvider
 import com.netflix.spinnaker.clouddriver.security.AccountCredentials
 import com.netflix.spinnaker.clouddriver.security.AccountCredentialsProvider
 import com.netflix.spinnaker.fiat.shared.FiatPermissionEvaluator
-import com.netflix.spinnaker.security.User
 import org.springframework.security.authentication.TestingAuthenticationToken
 import org.springframework.security.core.context.SecurityContextHolder
 import spock.lang.Specification
@@ -34,7 +33,7 @@ class AuthorizationSupportSpec extends Specification {
 
   def setup() {
     def ctx = SecurityContextHolder.createEmptyContext()
-    ctx.setAuthentication(new TestingAuthenticationToken(new User(email: "testUser"), null))
+    ctx.setAuthentication(new TestingAuthenticationToken("testUser", null))
     SecurityContextHolder.setContext(ctx)
 
     permissionEvaluator = Mock(FiatPermissionEvaluator)

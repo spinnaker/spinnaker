@@ -29,13 +29,14 @@ import com.netflix.spinnaker.gate.services.PermissionService
 import com.netflix.spinnaker.kork.core.RetrySupport
 import com.netflix.spinnaker.kork.dynamicconfig.DynamicConfigService
 import com.netflix.spinnaker.security.AuthenticatedRequest
-import com.netflix.spinnaker.security.User
+import com.netflix.spinnaker.security.SpinnakerAuthorities
 import groovy.transform.PackageScope
 import groovy.util.logging.Slf4j
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.beans.factory.annotation.Value
 import org.springframework.security.authentication.BadCredentialsException
 import org.springframework.security.core.userdetails.AuthenticationUserDetailsService
+import org.springframework.security.core.userdetails.User
 import org.springframework.security.core.userdetails.UserDetails
 import org.springframework.security.core.userdetails.UsernameNotFoundException
 import org.springframework.security.web.authentication.preauth.PreAuthenticatedAuthenticationToken
@@ -131,9 +132,9 @@ class X509AuthenticationUserDetailsService implements AuthenticationUserDetailsS
 
     log.debug("Roles for user {}: {}", email, roles)
     return new User(
-        email: email,
-        allowedAccounts: allowedAccountsSupport.filterAllowedAccounts(email, roles),
-        roles: roles
+        email,
+        "",
+        SpinnakerAuthorities.forRolesAndAccounts(roles, allowedAccountsSupport.filterAllowedAccounts(email, roles))
     )
   }
 
