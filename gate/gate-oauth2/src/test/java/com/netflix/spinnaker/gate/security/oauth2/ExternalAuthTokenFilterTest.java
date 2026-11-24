@@ -164,7 +164,7 @@ class ExternalAuthTokenFilterTest {
 
     OAuth2User spinnakerUser = mock(OAuth2User.class);
     when(spinnakerUser.getAuthorities()).thenReturn(List.of());
-    when(userInfoServiceHelper.getSpinnakerOAuth2User(any(OAuth2User.class), any()))
+    when(userInfoServiceHelper.toOAuth2User(any(OAuth2User.class), any()))
         .thenReturn(spinnakerUser);
 
     filter.doFilterInternal(request, response, filterChain);
@@ -240,8 +240,7 @@ class ExternalAuthTokenFilterTest {
     ArgumentCaptor<OAuth2User> providerUser = ArgumentCaptor.forClass(OAuth2User.class);
     ArgumentCaptor<OAuth2UserRequest> userRequest =
         ArgumentCaptor.forClass(OAuth2UserRequest.class);
-    when(userInfoServiceHelper.getSpinnakerOAuth2User(
-            providerUser.capture(), userRequest.capture()))
+    when(userInfoServiceHelper.toOAuth2User(providerUser.capture(), userRequest.capture()))
         .thenReturn(spinnakerUser);
 
     jwtFilter.doFilterInternal(request, response, filterChain);
@@ -274,7 +273,7 @@ class ExternalAuthTokenFilterTest {
         .thenReturn(ResponseEntity.ok(Map.<String, Object>of("login", "testuser")));
     OAuth2User spinnakerUser = mock(OAuth2User.class);
     when(spinnakerUser.getAuthorities()).thenReturn(List.of());
-    when(userInfoServiceHelper.getSpinnakerOAuth2User(any(OAuth2User.class), any()))
+    when(userInfoServiceHelper.toOAuth2User(any(OAuth2User.class), any()))
         .thenReturn(spinnakerUser);
 
     jwtFilter.doFilterInternal(request, response, filterChain);
@@ -300,7 +299,7 @@ class ExternalAuthTokenFilterTest {
             any(HttpMethod.class),
             any(HttpEntity.class),
             any(ParameterizedTypeReference.class));
-    verify(userInfoServiceHelper, never()).getSpinnakerOAuth2User(any(), any());
+    verify(userInfoServiceHelper, never()).toOAuth2User(any(), any());
   }
 
   @Test
@@ -324,7 +323,7 @@ class ExternalAuthTokenFilterTest {
         .thenReturn(ResponseEntity.ok(Map.<String, Object>of("login", "testuser")));
     OAuth2User spinnakerUser = mock(OAuth2User.class);
     when(spinnakerUser.getAuthorities()).thenReturn(List.of());
-    when(userInfoServiceHelper.getSpinnakerOAuth2User(any(OAuth2User.class), any()))
+    when(userInfoServiceHelper.toOAuth2User(any(OAuth2User.class), any()))
         .thenReturn(spinnakerUser);
 
     jwtFilter.doFilterInternal(request, response, filterChain);
@@ -353,7 +352,7 @@ class ExternalAuthTokenFilterTest {
             any(HttpMethod.class),
             any(HttpEntity.class),
             any(ParameterizedTypeReference.class));
-    verify(userInfoServiceHelper, never()).getSpinnakerOAuth2User(any(), any());
+    verify(userInfoServiceHelper, never()).toOAuth2User(any(), any());
   }
 
   @Test
@@ -384,7 +383,7 @@ class ExternalAuthTokenFilterTest {
             any(HttpMethod.class),
             any(HttpEntity.class),
             any(ParameterizedTypeReference.class));
-    verify(userInfoServiceHelper, never()).getSpinnakerOAuth2User(any(), any());
+    verify(userInfoServiceHelper, never()).toOAuth2User(any(), any());
   }
 
   @Test
@@ -409,7 +408,7 @@ class ExternalAuthTokenFilterTest {
         .thenReturn(ResponseEntity.ok(Map.<String, Object>of("login", "testuser")));
     OAuth2User spinnakerUser = mock(OAuth2User.class);
     when(spinnakerUser.getAuthorities()).thenReturn(List.of());
-    when(userInfoServiceHelper.getSpinnakerOAuth2User(any(OAuth2User.class), any()))
+    when(userInfoServiceHelper.toOAuth2User(any(OAuth2User.class), any()))
         .thenReturn(spinnakerUser);
 
     jwtFilter.doFilterInternal(request, response, filterChain);
@@ -434,7 +433,7 @@ class ExternalAuthTokenFilterTest {
     when(jwtDecoder.decode("header.payload.signature")).thenReturn(jwt);
     OAuth2User spinnakerUser = mock(OAuth2User.class);
     when(spinnakerUser.getAuthorities()).thenReturn(List.of());
-    when(userInfoServiceHelper.getSpinnakerOAuth2User(any(OAuth2User.class), any()))
+    when(userInfoServiceHelper.toOAuth2User(any(OAuth2User.class), any()))
         .thenReturn(spinnakerUser);
 
     jwtFilter.doFilterInternal(request, response, filterChain);

@@ -16,7 +16,6 @@
 
 package com.netflix.spinnaker.gate.controllers;
 
-import com.netflix.spinnaker.gate.security.SpinnakerUser;
 import com.netflix.spinnaker.gate.security.apitoken.ApiTokenHashing;
 import com.netflix.spinnaker.gate.security.apitoken.ApiTokenProperties;
 import com.netflix.spinnaker.gate.security.apitoken.ApiTokenService;
@@ -27,7 +26,7 @@ import com.netflix.spinnaker.gate.security.apitoken.TokenRecord;
 import com.netflix.spinnaker.gate.services.PermissionService;
 import com.netflix.spinnaker.gate.services.internal.Front50Service;
 import com.netflix.spinnaker.kork.retrofit.Retrofit2SyncCall;
-import com.netflix.spinnaker.security.User;
+import com.netflix.spinnaker.security.SpinnakerAuthorities;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import java.security.SecureRandom;
@@ -47,6 +46,8 @@ import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.AccessDeniedException;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.annotation.CurrentSecurityContext;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -86,11 +87,13 @@ public class ApiTokenController {
 
   @Operation(summary = "List API tokens visible to the caller")
   @GetMapping
-  public List<Map<String, Object>> list(@Parameter(hidden = true) @SpinnakerUser User user) {
-    requireAuthenticated(user);
-    boolean isAdmin = permissionService.isAdmin(user.getUsername());
+  public List<Map<String, Object>> list(
+      @Parameter(hidden = true) @CurrentSecurityContext(expression = "authentication")
+          Authentication authentication) {
+    requireAuthenticated(authentication);
+    boolean isAdmin = permissionService.isAdmin(authentication.getName());
 
-    List<TokenRecord> userTokens = redisRepo.findByPrincipal("USER", user.getUsername());
+    List<TokenRecord> userTokens = redisRepo.findByPrincipal("USER", authentication.getName());
 
     // Admins also see all service-account tokens so they can manage and revoke them.
     if (isAdmin) {
@@ -110,9 +113,10 @@ public class ApiTokenController {
   @Operation(summary = "List all user tokens across all principals (admin only)")
   @GetMapping("/admin/users")
   public List<Map<String, Object>> listAllUserTokens(
-      @Parameter(hidden = true) @SpinnakerUser User user) {
-    requireAuthenticated(user);
-    if (!permissionService.isAdmin(user.getUsername())) {
+      @Parameter(hidden = true) @CurrentSecurityContext(expression = "authentication")
+          Authentication authentication) {
+    requireAuthenticated(authentication);
+    if (!permissionService.isAdmin(authentication.getName())) {
       throw new AccessDeniedException("Only admins may list all user tokens");
     }
     return redisRepo.findAllByPrincipalType("USER").stream()
@@ -128,11 +132,12 @@ public class ApiTokenController {
   @PostMapping
   @ResponseStatus(HttpStatus.CREATED)
   public Map<String, Object> create(
-      @Parameter(hidden = true) @SpinnakerUser User user,
+      @Parameter(hidden = true) @CurrentSecurityContext(expression = "authentication")
+          Authentication authentication,
       @RequestBody CreateApiTokenRequest request) {
-    requireAuthenticated(user);
+    requireAuthenticated(authentication);
 
-    boolean isAdmin = permissionService.isAdmin(user.getUsername());
+    boolean isAdmin = permissionService.isAdmin(authentication.getName());
     String principalType = request.principalType() == null ? "USER" : request.principalType();
 
     String effectivePrincipalId;
@@ -143,8 +148,8 @@ public class ApiTokenController {
       effectivePrincipalId = request.principalId();
       validateServiceAccountPrincipal(effectivePrincipalId);
     } else {
-      requireMintingRole(user);
-      effectivePrincipalId = user.getUsername();
+      requireMintingRole(authentication);
+      effectivePrincipalId = authentication.getName();
       principalType = "USER";
     }
 
@@ -162,7 +167,7 @@ public class ApiTokenController {
     record.setName(tokenName);
     record.setPrincipalId(effectivePrincipalId);
     record.setPrincipalType(principalType.toUpperCase());
-    record.setCreatedByUserId(user.getUsername());
+    record.setCreatedByUserId(authentication.getName());
     record.setCreatedAt(Instant.now().toString());
     record.setExpiresAt(resolvedExpiry);
 
@@ -193,8 +198,11 @@ public class ApiTokenController {
   @Operation(summary = "Revoke an API token")
   @DeleteMapping("/{id}")
   @ResponseStatus(HttpStatus.NO_CONTENT)
-  public void revoke(@Parameter(hidden = true) @SpinnakerUser User user, @PathVariable String id) {
-    requireAuthenticated(user);
+  public void revoke(
+      @Parameter(hidden = true) @CurrentSecurityContext(expression = "authentication")
+          Authentication authentication,
+      @PathVariable String id) {
+    requireAuthenticated(authentication);
 
     Optional<TokenRecord> opt = redisRepo.findById(id);
     if (opt.isEmpty()) {
@@ -202,11 +210,11 @@ public class ApiTokenController {
     }
 
     TokenRecord record = opt.get();
-    boolean isAdmin = permissionService.isAdmin(user.getUsername());
+    boolean isAdmin = permissionService.isAdmin(authentication.getName());
 
     if (!isAdmin
         && !("USER".equalsIgnoreCase(record.getPrincipalType())
-            && user.getUsername().equals(record.getPrincipalId()))) {
+            && authentication.getName().equals(record.getPrincipalId()))) {
       throw new AccessDeniedException("You do not own this token");
     }
 
@@ -241,9 +249,11 @@ public class ApiTokenController {
 
   @Operation(summary = "List token-eligible service accounts (admin only)")
   @GetMapping("/serviceAccounts")
-  public List<Map> getApiServiceAccounts(@Parameter(hidden = true) @SpinnakerUser User user) {
-    requireAuthenticated(user);
-    if (!permissionService.isAdmin(user.getUsername())) {
+  public List<Map> getApiServiceAccounts(
+      @Parameter(hidden = true) @CurrentSecurityContext(expression = "authentication")
+          Authentication authentication) {
+    requireAuthenticated(authentication);
+    if (!permissionService.isAdmin(authentication.getName())) {
       throw new AccessDeniedException("Only admins may list token-eligible service accounts");
     }
     List<Map> result = Retrofit2SyncCall.execute(front50Service.getTokenEligibleServiceAccounts());
@@ -254,14 +264,14 @@ public class ApiTokenController {
   // Helpers
   // ---------------------------------------------------------------------------
 
-  private void requireAuthenticated(User user) {
-    if (user == null) {
+  private void requireAuthenticated(Authentication authentication) {
+    if (!SpinnakerAuthorities.hasIdentity(authentication)) {
       throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, "Not authenticated");
     }
   }
 
-  private void requireMintingRole(User user) {
-    if (apiTokenService.canMintApiTokens(user.getUsername())) {
+  private void requireMintingRole(Authentication authentication) {
+    if (apiTokenService.canMintApiTokens(authentication.getName())) {
       return;
     }
     // Distinguish "no roles configured" from "user not in any configured role" for a useful error.
