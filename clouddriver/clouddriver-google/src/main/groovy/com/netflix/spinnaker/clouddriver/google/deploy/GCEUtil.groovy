@@ -69,6 +69,12 @@ class GCEUtil {
   private static final String CERTIFICATE_MANAGER_API_PREFIX = "//certificatemanager.googleapis.com/projects/"
   private static final List<Integer> RETRY_ERROR_CODES = [400, 403, 412, 429, 503]
 
+  /**
+   * Transient GCE API status codes that are safe to retry for read-only (get/list) requests,
+   * e.g. 503 backendError returned when a GCE control-plane backend sheds load.
+   */
+  public static final List<Integer> TRANSIENT_READ_RETRY_ERROR_CODES = [429, 500, 502, 503, 504]
+
   public static final String TARGET_POOL_NAME_PREFIX = "tp"
   public static final String REGIONAL_LOAD_BALANCER_NAMES = "load-balancer-names"
   // Subset of REGIONAL_LOAD_BALANCER_NAMES that are EXTERNAL_MANAGED or REGIONAL_EXTERNAL_NETWORK.
@@ -2237,18 +2243,29 @@ class GCEUtil {
   /**
    * Resolve the L7 load balancer names that need added to the instance metadata.
    *
+   * <p>Target proxies are fetched with project-wide list calls instead of one get per global
+   * forwarding rule, so the number of GCE requests no longer grows with the number of load
+   * balancers in the project. Every request is wrapped in {@link SafeRetry} so that transient
+   * errors (e.g. 503 backendError) are retried instead of failing the deploy.
+   *
    * @param backendServiceNames - Backend service names explicitly included in the request.
    * @param compute
    * @param project
+   * @param phase - Task phase used for retry metric tags.
+   * @param safeRetry
+   * @param executor
    * @return List of L7 load balancer names to put into the instance metadata.
    */
-  static List<String> resolveHttpLoadBalancerNamesMetadata(List<String> backendServiceNames, Compute compute, String project, GoogleExecutorTraits executor) {
+  static List<String> resolveHttpLoadBalancerNamesMetadata(List<String> backendServiceNames,
+                                                           Compute compute,
+                                                           String project,
+                                                           String phase,
+                                                           SafeRetry safeRetry,
+                                                           GoogleExecutorTraits executor) {
     def loadBalancerNames = []
-    def projectUrlMaps = executor.timeExecute(
-      compute.urlMaps().list(project),
-      "compute.urlMaps.list",
-      executor.TAG_SCOPE, executor.SCOPE_GLOBAL
-    ).getItems() ?: []
+    List<UrlMap> projectUrlMaps = listAllGlobalPages(
+      { String pageToken -> withPageToken(compute.urlMaps().list(project), pageToken) },
+      "UrlMaps", "compute.urlMaps.list", phase, safeRetry, executor)
     def servicesByUrlMap = projectUrlMaps.collectEntries { UrlMap urlMap ->
       [(urlMap.name): Utils.getBackendServicesFromUrlMap(urlMap)]
     }
@@ -2262,33 +2279,93 @@ class GCEUtil {
       }
     }
 
-    def globalForwardingRules = executor.timeExecute(
-      compute.globalForwardingRules().list(project),
-      "compute.globalForwardingRules",
-      executor.TAG_SCOPE, executor.SCOPE_GLOBAL
-    ).getItems()
+    if (!urlMapsInUse) {
+      // No URL map routes to the requested backend services, so no HTTP(S) load balancer can match.
+      return loadBalancerNames
+    }
+
+    List<ForwardingRule> globalForwardingRules = listAllGlobalPages(
+      { String pageToken -> withPageToken(compute.globalForwardingRules().list(project), pageToken) },
+      "GlobalForwardingRules", "compute.globalForwardingRules.list", phase, safeRetry, executor)
+
+    def httpRules = globalForwardingRules.findAll { Utils.getTargetProxyType(it.target) == GoogleTargetProxyType.HTTP }
+    def httpsRules = globalForwardingRules.findAll { Utils.getTargetProxyType(it.target) == GoogleTargetProxyType.HTTPS }
+
+    Map<String, String> urlMapByHttpProxy = [:]
+    if (httpRules) {
+      List<TargetHttpProxy> httpProxies = listAllGlobalPages(
+        { String pageToken -> withPageToken(compute.targetHttpProxies().list(project), pageToken) },
+        "TargetHttpProxies", "compute.targetHttpProxies.list", phase, safeRetry, executor)
+      urlMapByHttpProxy = httpProxies.collectEntries { [(it.name): it.urlMap] }
+    }
+
+    Map<String, String> urlMapByHttpsProxy = [:]
+    if (httpsRules) {
+      List<TargetHttpsProxy> httpsProxies = listAllGlobalPages(
+        { String pageToken -> withPageToken(compute.targetHttpsProxies().list(project), pageToken) },
+        "TargetHttpsProxies", "compute.targetHttpsProxies.list", phase, safeRetry, executor)
+      urlMapByHttpsProxy = httpsProxies.collectEntries { [(it.name): it.urlMap] }
+    }
+
     globalForwardingRules.each { ForwardingRule fr ->
-      GoogleTargetProxyType proxyType = Utils.getTargetProxyType(fr.target)
-      def proxy = null
-      switch (proxyType) {
+      String proxyUrlMap = null
+      switch (Utils.getTargetProxyType(fr.target)) {
         case GoogleTargetProxyType.HTTP:
-          proxy = executor.timeExecute(compute.targetHttpProxies().get(project, getLocalName(fr.target)),
-            "compute.targetHttpProxies.get",
-            executor.TAG_SCOPE, executor.SCOPE_GLOBAL)
+          proxyUrlMap = urlMapByHttpProxy[getLocalName(fr.target)]
           break
         case GoogleTargetProxyType.HTTPS:
-          proxy = executor.timeExecute(compute.targetHttpsProxies().get(project, getLocalName(fr.target)),
-            "compute.targetHttpsProxies.get",
-            executor.TAG_SCOPE, executor.SCOPE_GLOBAL)
+          proxyUrlMap = urlMapByHttpsProxy[getLocalName(fr.target)]
           break
         default:
           break
       }
-      if (proxy && getLocalName(proxy.urlMap) in urlMapsInUse) {
+      if (proxyUrlMap && getLocalName(proxyUrlMap) in urlMapsInUse) {
         loadBalancerNames << fr.name
       }
     }
     return loadBalancerNames
+  }
+
+  private static <R> R withPageToken(R listRequest, String pageToken) {
+    // Only touch the request when paging, so the first request is sent exactly as built.
+    if (pageToken) {
+      listRequest.setPageToken(pageToken)
+    }
+    return listRequest
+  }
+
+  /**
+   * Fetches every page of a global GCE list request, retrying each page request on transient
+   * errors via {@link SafeRetry}.
+   *
+   * @param requestForPage - Closure that builds the list request for the given page token (null
+   *     for the first page).
+   */
+  private static List listAllGlobalPages(Closure requestForPage,
+                                         String resource,
+                                         String operation,
+                                         String phase,
+                                         SafeRetry safeRetry,
+                                         GoogleExecutorTraits executor) {
+    def items = []
+    String pageToken = null
+    while (true) {
+      String currentPageToken = pageToken
+      def page = safeRetry.doRetry(
+        { executor.timeExecute(requestForPage(currentPageToken), operation, executor.TAG_SCOPE, executor.SCOPE_GLOBAL) },
+        resource,
+        null,
+        TRANSIENT_READ_RETRY_ERROR_CODES,
+        [],
+        [action: "list", phase: phase, operation: operation, (executor.TAG_SCOPE): executor.SCOPE_GLOBAL],
+        executor.registry
+      )
+      items.addAll(page?.items ?: [])
+      pageToken = page?.nextPageToken
+      if (!pageToken) {
+        return items
+      }
+    }
   }
 
   def static getTargetProxyFromRule(Compute compute, String project, ForwardingRule forwardingRule, String phase, SafeRetry safeRetry, GoogleExecutorTraits executor) {
