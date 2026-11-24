@@ -78,7 +78,7 @@ class GoogleSecurityGroupProviderSpec extends Specification {
     then:
       result.size() == 6
       result.each {
-        it.region == region
+        assert it.region == region
       }
 
     where:
@@ -93,7 +93,7 @@ class GoogleSecurityGroupProviderSpec extends Specification {
     then:
       result.size() == count
       result.each {
-        it.accountName == account
+        assert it.accountName == account
       }
 
     where:
@@ -109,8 +109,8 @@ class GoogleSecurityGroupProviderSpec extends Specification {
     then:
       result.size() == 3
       result.each {
-        it.accountName == account
-        it.region == region
+        assert it.accountName == account
+        assert it.region == region
       }
 
     where:
@@ -125,8 +125,8 @@ class GoogleSecurityGroupProviderSpec extends Specification {
     then:
       result.size() == 1
       result.each {
-        it.accountName == account
-        it.name == name
+        assert it.accountName == account
+        assert it.name == name
       }
 
     where:
