@@ -23,6 +23,7 @@ dependencies {
   implementation "com.squareup.retrofit2:converter-jackson"
   implementation "io.spinnaker.kork:kork-core"
   implementation "io.spinnaker.kork:kork-artifacts"
+  implementation "io.spinnaker.kork:kork-github"
   implementation "io.spinnaker.kork:kork-retrofit"
   implementation "io.spinnaker.kork:kork-web"
   implementation "commons-codec:commons-codec"
@@ -47,6 +48,7 @@ dependencies {
     exclude group: "io.opentelemetry", module: "opentelemetry-exporter-sender-okhttp"
   }
   testImplementation project(":echo-test")
+  testImplementation testFixtures("io.spinnaker.kork:kork-github")
   testImplementation("com.icegreen:greenmail:2.1.8")
   testImplementation "org.apache.httpcomponents.client5:httpclient5"
   testImplementation "org.spockframework:spock-spring"
