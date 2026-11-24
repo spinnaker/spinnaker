@@ -31,7 +31,9 @@ import org.springframework.web.filter.OncePerRequestFilter;
 /**
  * Backwards compatibility: Gate used to speak {@code application/x-yaml}; it now uses the standard
  * {@code application/yaml}. This rewrites the {@code Content-Type} and {@code Accept} request
- * headers of existing clients so they keep working. Delete this class once clients have moved.
+ * headers of existing clients so they keep working.
+ *
+ * <p>TODO: remove this class and {@code LegacyYamlMediaTypeFilterTest} after the 2027.0.0 release.
  */
 @Component
 public class LegacyYamlMediaTypeFilter extends OncePerRequestFilter {

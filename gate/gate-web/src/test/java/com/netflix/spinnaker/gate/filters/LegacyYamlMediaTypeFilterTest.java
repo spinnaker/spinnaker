@@ -26,6 +26,10 @@ import org.springframework.mock.web.MockFilterChain;
 import org.springframework.mock.web.MockHttpServletRequest;
 import org.springframework.mock.web.MockHttpServletResponse;
 
+/**
+ * TODO: remove this test together with {@link LegacyYamlMediaTypeFilter} after the 2027.0.0
+ * release.
+ */
 class LegacyYamlMediaTypeFilterTest {
 
   private HttpServletRequest run(MockHttpServletRequest request) throws Exception {

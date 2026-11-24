@@ -48,6 +48,8 @@ class MessageConvertersWiringTest {
 
   @Autowired private RequestMappingHandlerAdapter adapter;
 
+  // TODO: remove this field and legacyYamlFilterIsRegistered() with LegacyYamlMediaTypeFilter after
+  // the 2027.0.0 release.
   @Autowired
   private java.util.Optional<com.netflix.spinnaker.gate.filters.LegacyYamlMediaTypeFilter>
       legacyYamlFilter;
