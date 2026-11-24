@@ -83,7 +83,7 @@ class AmazonSecurityGroupProviderSpec extends Specification {
     then:
     result.size() == 4
     result.each {
-      it.region == region
+      assert it.region == region
     }
 
     where:
@@ -97,7 +97,7 @@ class AmazonSecurityGroupProviderSpec extends Specification {
     then:
     result.size() == 4
     result.each {
-      it.accountName == account
+      assert it.accountName == account
     }
 
     where:
@@ -111,8 +111,8 @@ class AmazonSecurityGroupProviderSpec extends Specification {
     then:
     result.size() == 2
     result.each {
-      it.accountName == account
-      it.region == region
+      assert it.accountName == account
+      assert it.region == region
     }
 
     where:
@@ -127,8 +127,8 @@ class AmazonSecurityGroupProviderSpec extends Specification {
     then:
     result.size() == 2
     result.each {
-      it.accountName == account
-      it.name == name
+      assert it.accountName == account
+      assert it.name == name
     }
 
     where:
