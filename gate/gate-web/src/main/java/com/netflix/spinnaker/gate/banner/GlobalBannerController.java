@@ -16,9 +16,8 @@
 
 package com.netflix.spinnaker.gate.banner;
 
-import com.netflix.spinnaker.gate.security.SpinnakerUser;
 import com.netflix.spinnaker.gate.services.PermissionService;
-import com.netflix.spinnaker.security.User;
+import com.netflix.spinnaker.security.SpinnakerAuthorities;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import java.util.List;
@@ -30,6 +29,8 @@ import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.AccessDeniedException;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.annotation.CurrentSecurityContext;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -74,17 +75,19 @@ public class GlobalBannerController {
   @Operation(summary = "Get all banners (admin)")
   @GetMapping("/all")
   public ResponseEntity<List<BannerRecord>> getAllBanners(
-      @Parameter(hidden = true) @SpinnakerUser User user) {
-    requireAdmin(user);
+      @Parameter(hidden = true) @CurrentSecurityContext(expression = "authentication")
+          Authentication authentication) {
+    requireAdmin(authentication);
     return ResponseEntity.ok(globalBannerService.getAllBanners());
   }
 
   @Operation(summary = "Get banner by id (admin)")
   @GetMapping("/{id}")
   public ResponseEntity<BannerRecord> getBannerById(
-      @Parameter(hidden = true) @SpinnakerUser User user,
+      @Parameter(hidden = true) @CurrentSecurityContext(expression = "authentication")
+          Authentication authentication,
       @Parameter(description = "Banner id") @PathVariable String id) {
-    requireAdmin(user);
+    requireAdmin(authentication);
     Optional<BannerRecord> banner = globalBannerService.getBannerById(id);
     return banner.map(ResponseEntity::ok).orElseGet(() -> ResponseEntity.notFound().build());
   }
@@ -96,8 +99,10 @@ public class GlobalBannerController {
   @Operation(summary = "Create or update a banner (admin)")
   @PutMapping
   public ResponseEntity<BannerRecord> saveBanner(
-      @Parameter(hidden = true) @SpinnakerUser User user, @RequestBody BannerRecord bannerRecord) {
-    requireAdmin(user);
+      @Parameter(hidden = true) @CurrentSecurityContext(expression = "authentication")
+          Authentication authentication,
+      @RequestBody BannerRecord bannerRecord) {
+    requireAdmin(authentication);
     if (bannerRecord.getId() == null || bannerRecord.getId().isBlank()) {
       log.warn("Attempt to save banner with missing id");
       return ResponseEntity.badRequest().build();
@@ -119,10 +124,11 @@ public class GlobalBannerController {
   @Operation(summary = "Update a banner by id (admin)")
   @PostMapping("/{id}")
   public ResponseEntity<BannerRecord> updateBanner(
-      @Parameter(hidden = true) @SpinnakerUser User user,
+      @Parameter(hidden = true) @CurrentSecurityContext(expression = "authentication")
+          Authentication authentication,
       @Parameter(description = "Banner id") @PathVariable String id,
       @RequestBody BannerRecord bannerRecord) {
-    requireAdmin(user);
+    requireAdmin(authentication);
     Optional<BannerRecord> existing = globalBannerService.getBannerById(id);
     if (existing.isEmpty()) {
       log.warn("Attempt to update non-existent banner id='{}'", id);
@@ -147,17 +153,20 @@ public class GlobalBannerController {
   @Operation(summary = "Delete a banner by id (admin)")
   @DeleteMapping("/{id}")
   public ResponseEntity<Void> deleteBanner(
-      @Parameter(hidden = true) @SpinnakerUser User user,
+      @Parameter(hidden = true) @CurrentSecurityContext(expression = "authentication")
+          Authentication authentication,
       @Parameter(description = "Banner id") @PathVariable String id) {
-    requireAdmin(user);
+    requireAdmin(authentication);
     boolean deleted = globalBannerService.delete(id);
     return deleted ? ResponseEntity.noContent().build() : ResponseEntity.notFound().build();
   }
 
   @Operation(summary = "Delete all banners (admin)")
   @DeleteMapping
-  public ResponseEntity<Void> deleteAllBanners(@Parameter(hidden = true) @SpinnakerUser User user) {
-    requireAdmin(user);
+  public ResponseEntity<Void> deleteAllBanners(
+      @Parameter(hidden = true) @CurrentSecurityContext(expression = "authentication")
+          Authentication authentication) {
+    requireAdmin(authentication);
     int count = globalBannerService.deleteAll();
     return ResponseEntity.noContent().header("X-Deleted-Count", String.valueOf(count)).build();
   }
@@ -165,8 +174,9 @@ public class GlobalBannerController {
   @Operation(summary = "Force cache refresh (admin)")
   @PostMapping("/refresh")
   public ResponseEntity<Map<String, String>> forceRefresh(
-      @Parameter(hidden = true) @SpinnakerUser User user) {
-    requireAdmin(user);
+      @Parameter(hidden = true) @CurrentSecurityContext(expression = "authentication")
+          Authentication authentication) {
+    requireAdmin(authentication);
     globalBannerService.forceRefresh();
     return ResponseEntity.ok(Map.of("status", "ok", "message", "Banner cache refreshed"));
   }
@@ -175,11 +185,11 @@ public class GlobalBannerController {
   // Helpers
   // ---------------------------------------------------------------------------
 
-  private void requireAdmin(User user) {
-    if (user == null) {
+  private void requireAdmin(Authentication authentication) {
+    if (!SpinnakerAuthorities.hasIdentity(authentication)) {
       throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, "Not authenticated");
     }
-    if (!permissionService.isAdmin(user.getUsername())) {
+    if (!permissionService.isAdmin(authentication.getName())) {
       throw new AccessDeniedException("Only admins may manage global banners");
     }
   }
