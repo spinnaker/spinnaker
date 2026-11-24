@@ -58,9 +58,9 @@ class PrepareUpdateAutoScalingGroupSpec extends Specification {
     ((UpdateAutoScalingGroup.UpdateAutoScalingGroupCommand) result.nextCommand).newLaunchTemplateVersionNumber == prepareCommand.newLaunchTemplateVersionNumber
 
     if (descOverrides) {
-      ((UpdateAutoScalingGroup.UpdateAutoScalingGroupCommand) result.nextCommand).launchTemplateOverrides == [LaunchTemplateOverrides.builder().weightedCapacity("2").instanceType("m5.xlarge").build()]
+      assert ((UpdateAutoScalingGroup.UpdateAutoScalingGroupCommand) result.nextCommand).launchTemplateOverrides == [LaunchTemplateOverrides.builder().weightedCapacity("2").instanceType("m5.xlarge").build()]
     } else {
-      ((UpdateAutoScalingGroup.UpdateAutoScalingGroupCommand) result.nextCommand).launchTemplateOverrides == null
+      assert ((UpdateAutoScalingGroup.UpdateAutoScalingGroupCommand) result.nextCommand).launchTemplateOverrides == null
     }
 
     where:

@@ -95,7 +95,7 @@ class StartPipelineTaskSpec extends Specification {
       }
     }
     if (strategyValue) {
-      gotContext == [
+      assert gotContext == [
         strategy         : strategyValue,
         zone             : "north-pole-1",
         amiName          : "testAMI",
@@ -110,11 +110,9 @@ class StartPipelineTaskSpec extends Specification {
         ]
       ]
     } else {
-      gotContext == [
+      assert gotContext == [
         strategy         : strategyValue,
-        zone             : "north-pole-1",
-        amiName          : "testAMI",
-        imageId          : "testImageId"
+        zone             : "north-pole-1"
       ]
     }
     parentPipelineStageId == stage.id
