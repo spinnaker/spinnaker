@@ -2,19 +2,6 @@
   "defaultMinor": "1.36",
   "kindVersion": "0.33.0",
   "versions": {
-    "1.30": {
-      "kubectl": "1.30.14"
-    },
-    "1.31": {
-      "kubectl": "1.31.14",
-      "kindVersion": "0.31.0",
-      "kubernetesImage": "kindest/node:v1.31.14@sha256:6f86cf509dbb42767b6e79debc3f2c32e4ee01386f0489b3b2be24b0a55aac2b"
-    },
-    "1.32": {
-      "kubectl": "1.32.13",
-      "kindVersion": "0.31.0",
-      "kubernetesImage": "kindest/node:v1.32.11@sha256:5fc52d52a7b9574015299724bd68f183702956aa4a2116ae75a63cb574b35af8"
-    },
     "1.33": {
       "kubectl": "1.33.13",
       "kindVersion": "0.31.0",
