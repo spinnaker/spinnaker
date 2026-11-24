@@ -18,9 +18,11 @@ package com.netflix.spinnaker.gate.security.oauth2;
 
 import com.netflix.spinnaker.gate.config.AuthConfig;
 import com.netflix.spinnaker.gate.security.SpinnakerAuthConfig;
+import com.netflix.spinnaker.gate.security.UserProfileMapping;
 import java.time.Duration;
 import java.util.HashMap;
 import lombok.Data;
+import lombok.EqualsAndHashCode;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.context.properties.ConfigurationProperties;
@@ -169,10 +171,14 @@ public class OAuth2SsoConfig {
   @Component
   @ConfigurationProperties("spring.security.oauth2.client.registration.user-info-mapping")
   @Data
-  public static class UserInfoMapping {
-    private String email = "email";
-    private String firstName = "given_name";
-    private String lastName = "family_name";
+  @EqualsAndHashCode(callSuper = true)
+  public static class UserInfoMapping extends UserProfileMapping {
+    public UserInfoMapping() {
+      setEmail("email");
+      setFirstName("given_name");
+      setLastName("family_name");
+    }
+
     private String username = "email";
     private String serviceAccountEmail = "client_email";
     private String roles = null;
