@@ -49,7 +49,7 @@ class GithubConfigLogLevelBasicSpec extends Specification {
         .withHeader("Content-Type", "application/json")
         .withBody("{\"message\": \"response\", \"code\": 200}")));
 
-    GithubConfig config = new GithubConfig(wireMockServer.baseUrl())
+    GithubConfig config = new GithubConfig(new GithubStatusProperties(endpoint: wireMockServer.baseUrl()))
     ghService = config.githubService(okHttpClientConfig)
 
   }
@@ -103,7 +103,7 @@ class GithubConfigLogLevelNoneSpec extends Specification {
         .withHeader("Content-Type", "application/json")
         .withBody("{\"message\": \"response\", \"code\": 200}")));
 
-    GithubConfig config = new GithubConfig(wireMockServer.baseUrl())
+    GithubConfig config = new GithubConfig(new GithubStatusProperties(endpoint: wireMockServer.baseUrl()))
     ghService = config.githubService(okHttpClientConfig)
   }
 
@@ -149,7 +149,7 @@ class GithubConfigLogLevelHeadersSpec extends Specification {
         .withHeader("Content-Type", "application/json")
         .withBody("{\"message\": \"response\", \"code\": 200}")));
 
-    GithubConfig config = new GithubConfig(wireMockServer.baseUrl())
+    GithubConfig config = new GithubConfig(new GithubStatusProperties(endpoint: wireMockServer.baseUrl()))
     ghService = config.githubService(okHttpClientConfig)
 
   }
