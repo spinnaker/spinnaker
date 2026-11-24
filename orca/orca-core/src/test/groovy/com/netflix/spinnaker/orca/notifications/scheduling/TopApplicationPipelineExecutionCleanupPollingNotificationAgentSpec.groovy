@@ -34,7 +34,7 @@ import static com.netflix.spinnaker.orca.test.model.ExecutionBuilder.stage
 
 class TopApplicationPipelineExecutionCleanupPollingNotificationAgentSpec extends Specification {
   @Unroll
-  void "filter should only consider SUCCEEDED executions"() {
+  void "filter should only consider complete executions"() {
     given:
     def filter = new TopApplicationExecutionCleanupPollingNotificationAgent(
       Mock(NotificationClusterLock),
@@ -54,7 +54,7 @@ class TopApplicationPipelineExecutionCleanupPollingNotificationAgentSpec extends
         status = s
       }
 
-      filter.test(pipeline) == (s == ExecutionStatus.SUCCEEDED)
+      assert filter.test(pipeline) == s.isComplete()
     }
   }
 
