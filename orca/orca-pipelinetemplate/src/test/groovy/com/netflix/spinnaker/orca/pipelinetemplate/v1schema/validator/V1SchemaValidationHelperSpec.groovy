@@ -32,9 +32,10 @@ class V1SchemaValidationHelperSpec extends Specification {
 
     then:
     if (expectedError) {
-      errors.errors[0] == expectedError
+      assert errors.errors[0].message == expectedError.message
+      assert errors.errors[0].location == expectedError.location
     } else {
-      !errors.hasErrors(true)
+      assert !errors.hasErrors(true)
     }
 
     where:
