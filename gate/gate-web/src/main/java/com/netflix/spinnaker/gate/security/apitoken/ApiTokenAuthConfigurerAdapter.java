@@ -53,7 +53,7 @@ public class ApiTokenAuthConfigurerAdapter {
   @Autowired ApiTokenProperties properties;
 
   @Bean
-  // Run before HeaderAuthConfigurerAdapter (@Order(2)) and X509Config (@Order(3)) so
+  // Run before the other auth configurers (@Order(2)) and X509Config (@Order(3)) so
   // token-bearing requests are claimed by this chain in mixed-mode deployments.
   @Order(0)
   SecurityFilterChain apiTokenSecurityFilterChain(HttpSecurity http) throws Exception {

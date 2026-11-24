@@ -19,12 +19,15 @@ package com.netflix.spinnaker.gate.security.anonymous;
 import com.netflix.spinnaker.fiat.shared.FiatStatus;
 import com.netflix.spinnaker.gate.security.SpinnakerAuthConfig;
 import com.netflix.spinnaker.gate.services.CredentialsService;
-import com.netflix.spinnaker.security.User;
+import com.netflix.spinnaker.security.AllowedAccountsAuthorities;
+import com.netflix.spinnaker.security.SpinnakerAuthorities;
+import jakarta.servlet.http.HttpServletRequest;
 import java.util.Collection;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 import java.util.concurrent.CopyOnWriteArrayList;
+import java.util.stream.Stream;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.log4j.Log4j2;
@@ -34,9 +37,14 @@ import org.springframework.context.annotation.Configuration;
 import org.springframework.core.Ordered;
 import org.springframework.core.annotation.Order;
 import org.springframework.scheduling.annotation.Scheduled;
+import org.springframework.security.authentication.AnonymousAuthenticationToken;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.GrantedAuthority;
+import org.springframework.security.core.userdetails.User;
 import org.springframework.security.web.SecurityFilterChain;
+import org.springframework.security.web.authentication.AnonymousAuthenticationFilter;
 import org.springframework.util.CollectionUtils;
 
 /**
@@ -52,7 +60,7 @@ import org.springframework.util.CollectionUtils;
 @RequiredArgsConstructor
 public class AnonymousConfig {
   private static final String key = "spinnaker-anonymous";
-  private static final String defaultEmail = "anonymous";
+  private static final String defaultUsername = "anonymous";
 
   private final CredentialsService credentialsService;
   private final FiatStatus fiatStatus;
@@ -61,12 +69,24 @@ public class AnonymousConfig {
   @Bean
   public SecurityFilterChain anonymousSecurityFilterChain(HttpSecurity http) throws Exception {
     updateAnonymousAccounts();
-    // Not using the ImmutableUser version in order to update allowedAccounts.
-    User principal = new User();
-    principal.setEmail(defaultEmail);
-    principal.setAllowedAccounts(anonymousAllowedAccounts);
+    // The accounts change over time, so the principal is built for every request.
+    var filter =
+        new AnonymousAuthenticationFilter(
+            key, defaultUsername, List.of(SpinnakerAuthorities.ANONYMOUS_AUTHORITY)) {
+          @Override
+          protected Authentication createAuthentication(HttpServletRequest request) {
+            List<GrantedAuthority> authorities =
+                Stream.concat(
+                        Stream.of(SpinnakerAuthorities.ANONYMOUS_AUTHORITY),
+                        AllowedAccountsAuthorities.buildAllowedAccounts(anonymousAllowedAccounts)
+                            .stream())
+                    .toList();
+            return new AnonymousAuthenticationToken(
+                key, new User(defaultUsername, "", authorities), authorities);
+          }
+        };
 
-    return http.anonymous(anonymous -> anonymous.key(key).principal(principal))
+    return http.anonymous(anonymous -> anonymous.key(key).authenticationFilter(filter))
         .csrf(csrf -> csrf.disable())
         .build();
   }
