@@ -8969,8 +8969,8 @@ packages:
     resolution: {integrity: sha512-g7EMS6xhc8TOO5W6xlm3oXyjdtzvyFY4LokI5f/UURu+xjeq9vli5NRBYH+FUNR7nP+yMcSrD0+Rao9GQrwG5Q==}
     hasBin: true
 
-  svgo@2.8.2:
-    resolution: {integrity: sha512-TyzE4NVGLUFy+H/Uy4N6c3G0HEeprsVfge6Lmq+0FdQQ/zqoVYB62IsBZORsiL+o96s6ff/V6/3UQo/C0cgCAA==}
+  svgo@2.8.4:
+    resolution: {integrity: sha512-2GJ4h3rl13qYTdwllaK6QlL8tG+UrM8626V2Ylcd/yBUv2Y/EwLsYisVV6UDCRmlk+C74G8nMpxJCk0RWPdDCw==}
     engines: {node: '>=10.13.0'}
     hasBin: true
 
@@ -12458,7 +12458,7 @@ snapshots:
       '@svgr/core': 6.5.1(supports-color@8.1.1)
       cosmiconfig: 7.1.0
       deepmerge: 4.3.1
-      svgo: 2.8.2
+      svgo: 2.8.4
 
   '@svgr/rollup@6.5.1(supports-color@8.1.1)':
     dependencies:
@@ -18855,7 +18855,7 @@ snapshots:
     dependencies:
       svgpath: 2.6.0
 
-  svgo@2.8.2:
+  svgo@2.8.4:
     dependencies:
       commander: 7.2.0
       css-select: 4.3.0
