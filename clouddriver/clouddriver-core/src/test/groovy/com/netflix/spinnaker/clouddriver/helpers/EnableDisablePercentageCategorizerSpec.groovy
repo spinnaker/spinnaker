@@ -28,9 +28,9 @@ class EnableDisablePercentageCategorizerSpec extends Specification {
 
     then:
     if (modified.size() + unmodified.size() == 0) {
-      output.size() == 0
+      assert output.size() == 0
     } else {
-      (output.size() + modified.size()) / (modified.size() + unmodified.size()) >= (float) percent / 1000
+      assert (output.size() + modified.size()) / (modified.size() + unmodified.size()) >= (float) percent / 1000
     }
 
     output.size() == expectedInstancesToDisableCount

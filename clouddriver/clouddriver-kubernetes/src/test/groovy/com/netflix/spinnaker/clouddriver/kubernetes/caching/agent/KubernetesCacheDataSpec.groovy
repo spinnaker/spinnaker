@@ -60,7 +60,7 @@ class KubernetesCacheDataSpec extends Specification {
     // Ensure that we have explicitly added an empty list of relationships for "sticky" kinds
     def relationships = optionalData.get().getRelationships()
     KubernetesCacheDataConverter.getStickyKinds().forEach({kind ->
-      relationships.get(kind.toString()) == []
+      assert relationships.get(kind.toString()) == [] as Set
     })
   }
 
