@@ -16,6 +16,10 @@
 
 package com.netflix.spinnaker.clouddriver.google.deploy.handlers
 
+import com.google.api.client.googleapis.json.GoogleJsonError
+import com.google.api.client.googleapis.json.GoogleJsonResponseException
+import com.google.api.client.http.HttpHeaders
+import com.google.api.client.http.HttpResponseException
 import com.google.api.services.compute.Compute
 import com.google.api.services.compute.ComputeRequest
 import com.google.api.services.compute.model.Autoscaler
@@ -32,6 +36,7 @@ import com.google.api.services.compute.model.NetworkList
 import com.google.api.services.compute.model.Operation
 import com.netflix.spectator.api.Clock
 import com.netflix.spectator.api.Id
+import com.netflix.spectator.api.NoopRegistry
 import com.netflix.spectator.api.Registry
 import com.netflix.spectator.api.Timer
 import com.netflix.spinnaker.clouddriver.data.task.Task
@@ -39,6 +44,7 @@ import com.netflix.spinnaker.clouddriver.data.task.TaskRepository
 import com.netflix.spinnaker.clouddriver.google.deploy.GoogleOperationPoller
 import com.netflix.spinnaker.clouddriver.google.deploy.SafeRetry
 import com.netflix.spinnaker.clouddriver.google.deploy.description.BasicGoogleDeployDescription
+import com.netflix.spinnaker.clouddriver.google.deploy.exception.GoogleOperationException
 import com.netflix.spinnaker.clouddriver.google.model.GoogleAutoscalingPolicy
 import com.netflix.spinnaker.clouddriver.google.model.loadbalancing.GoogleHttpLoadBalancingPolicy
 import com.netflix.spinnaker.clouddriver.google.model.loadbalancing.GoogleLoadBalancingPolicy
@@ -186,7 +192,7 @@ class BasicGoogleDeployHandlerSpec extends Specification {
     mockRegionAutoscalers.insert(_, _, _) >> mockRegAutoscalerInsert
     mockRegAutoscalerInsert.execute() >> regionalOperation
     
-    def handler = new BasicGoogleDeployHandler(registry: mockRegistry)
+    def handler = new BasicGoogleDeployHandler(registry: mockRegistry, safeRetry: SafeRetry.withoutDelay())
     
     when:
     def zonalResult = handler.timeExecute(mockAutoscalerInsert, "compute.autoscalers.insert", "TAG_SCOPE", "SCOPE_ZONAL")
@@ -335,7 +341,7 @@ class BasicGoogleDeployHandlerSpec extends Specification {
     mockRegistry.timer(_) >> mockTimer
     mockClock.monotonicTime() >> 1000L
     
-    def handler = new BasicGoogleDeployHandler(registry: mockRegistry)
+    def handler = new BasicGoogleDeployHandler(registry: mockRegistry, safeRetry: SafeRetry.withoutDelay())
     
     // Create real credentials with mocked compute
     def credentials = new GoogleNamedAccountCredentials.Builder()
@@ -356,7 +362,7 @@ class BasicGoogleDeployHandlerSpec extends Specification {
     result.name == "test-backend-service"
   }
   
-  def "getBackendServiceFromProvider propagates IOException"() {
+  def "getBackendServiceFromProvider propagates 404 as IOException so callers can skip it"() {
     given:
     def mockCompute = Mock(Compute)
     def mockBackendServices = Mock(Compute.BackendServices)
@@ -373,7 +379,7 @@ class BasicGoogleDeployHandlerSpec extends Specification {
     mockRegistry.timer(_) >> mockTimer
     mockClock.monotonicTime() >> 1000L
     
-    def handler = new BasicGoogleDeployHandler(registry: mockRegistry)
+    def handler = new BasicGoogleDeployHandler(registry: mockRegistry, safeRetry: SafeRetry.withoutDelay())
     
     // Create real credentials with mocked compute
     def credentials = new GoogleNamedAccountCredentials.Builder()
@@ -384,7 +390,7 @@ class BasicGoogleDeployHandlerSpec extends Specification {
     
     mockCompute.backendServices() >> mockBackendServices
     mockBackendServices.get("test-project", "test-backend-service") >> mockGet
-    mockGet.execute() >> { throw new IOException("Network error") }
+    mockGet.execute() >> { throw jsonException(404, "notFound") }
     
     when:
     handler.getBackendServiceFromProvider(credentials, "test-backend-service")
@@ -411,7 +417,7 @@ class BasicGoogleDeployHandlerSpec extends Specification {
     mockRegistry.timer(_) >> mockTimer
     mockClock.monotonicTime() >> 1000L
     
-    def handler = new BasicGoogleDeployHandler(registry: mockRegistry)
+    def handler = new BasicGoogleDeployHandler(registry: mockRegistry, safeRetry: SafeRetry.withoutDelay())
     
     // Create real credentials with mocked compute
     def credentials = new GoogleNamedAccountCredentials.Builder()
@@ -432,7 +438,7 @@ class BasicGoogleDeployHandlerSpec extends Specification {
     result.name == "test-regional-backend-service"
   }
   
-  def "getRegionBackendServiceFromProvider propagates IOException"() {
+  def "getRegionBackendServiceFromProvider propagates 404 as IOException so callers can skip it"() {
     given:
     def mockCompute = Mock(Compute)
     def mockRegionBackendServices = Mock(Compute.RegionBackendServices)
@@ -449,7 +455,7 @@ class BasicGoogleDeployHandlerSpec extends Specification {
     mockRegistry.timer(_) >> mockTimer
     mockClock.monotonicTime() >> 1000L
     
-    def handler = new BasicGoogleDeployHandler(registry: mockRegistry)
+    def handler = new BasicGoogleDeployHandler(registry: mockRegistry, safeRetry: SafeRetry.withoutDelay())
     
     // Create real credentials with mocked compute
     def credentials = new GoogleNamedAccountCredentials.Builder()
@@ -460,7 +466,7 @@ class BasicGoogleDeployHandlerSpec extends Specification {
     
     mockCompute.regionBackendServices() >> mockRegionBackendServices
     mockRegionBackendServices.get("test-project", "us-central1", "test-regional-backend-service") >> mockGet
-    mockGet.execute() >> { throw new IOException("Network error") }
+    mockGet.execute() >> { throw jsonException(404, "notFound") }
     
     when:
     handler.getRegionBackendServiceFromProvider(credentials, "us-central1", "test-regional-backend-service")
@@ -488,7 +494,7 @@ class BasicGoogleDeployHandlerSpec extends Specification {
     result.isEmpty()
   }
 
-  def "getBackendServiceToUpdate handles IOException by logging error and returning empty list"() {
+  def "getBackendServiceToUpdate skips backend services that no longer exist"() {
     given:
     def mockDescription = Mock(BasicGoogleDeployDescription)
     def mockCompute = Mock(Compute)
@@ -509,7 +515,7 @@ class BasicGoogleDeployHandlerSpec extends Specification {
     mockRegistry.timer(_) >> mockTimer
     mockClock.monotonicTime() >> 1000L
     
-    def handler = new BasicGoogleDeployHandler(registry: mockRegistry)
+    def handler = new BasicGoogleDeployHandler(registry: mockRegistry, safeRetry: SafeRetry.withoutDelay())
     
     // Create real credentials with mocked compute
     def credentials = new GoogleNamedAccountCredentials.Builder()
@@ -543,16 +549,16 @@ class BasicGoogleDeployHandlerSpec extends Specification {
     mockGlobalForwardingRules.list("test-project") >> mockGlobalForwardingRulesList
     mockGlobalForwardingRulesList.execute() >> [items: []]
     
-    // Mock backend service API to throw IOException
+    // Mock backend service API to return 404
     mockCompute.backendServices() >> mockBackendServices
     mockBackendServices.get("test-project", "test-backend-service") >> mockGet
-    mockGet.execute() >> { throw new IOException("GCP API error") }
+    mockGet.execute() >> { throw jsonException(404, "notFound") }
     
     when:
     def result = handler.getBackendServiceToUpdate(mockDescription, "server-group", lbInfo, lbPolicy, "us-central1")
     
     then:
-    // Should not throw exception, should return empty list instead
+    // A missing backend service is logged and skipped
     result.isEmpty()
   }
   
@@ -582,7 +588,7 @@ class BasicGoogleDeployHandlerSpec extends Specification {
     result.isEmpty()
   }
   
-  def "getRegionBackendServicesToUpdate handles IOException by logging error and returning empty list"() {
+  def "getRegionBackendServicesToUpdate skips backend services that no longer exist"() {
     given:
     def mockDescription = Mock(BasicGoogleDeployDescription)
     def mockCompute = Mock(Compute)
@@ -602,7 +608,7 @@ class BasicGoogleDeployHandlerSpec extends Specification {
     mockRegistry.timer(_) >> mockTimer
     mockClock.monotonicTime() >> 1000L
     
-    def handler = new BasicGoogleDeployHandler(registry: mockRegistry)
+    def handler = new BasicGoogleDeployHandler(registry: mockRegistry, safeRetry: SafeRetry.withoutDelay())
     
     // Create real credentials with mocked compute
     def credentials = new GoogleNamedAccountCredentials.Builder()
@@ -624,16 +630,109 @@ class BasicGoogleDeployHandlerSpec extends Specification {
     lbInfo.getInternalLoadBalancers() >> [mockInternalLB]
     lbInfo.getInternalHttpLoadBalancers() >> []
     
-    // Mock regional backend service API to throw IOException
+    // Mock regional backend service API to return 404
     mockCompute.regionBackendServices() >> mockRegionBackendServices
     mockRegionBackendServices.get("test-project", "us-central1", "test-regional-backend-service") >> mockGet
-    mockGet.execute() >> { throw new IOException("GCP API error") }
+    mockGet.execute() >> { throw jsonException(404, "notFound") }
     
     when:
     def result = handler.getRegionBackendServicesToUpdate(mockDescription, "server-group", lbInfo, lbPolicy, "us-central1")
     
     then:
-    // Should not throw exception, should return empty list instead
+    // A missing backend service is logged and skipped
     result.isEmpty()
+  }
+
+  def "getBackendServiceFromProvider retries transient 503 errors"() {
+    given:
+    def mockCompute = Mock(Compute)
+    def mockBackendServices = Mock(Compute.BackendServices)
+    def mockGet = Mock(Compute.BackendServices.Get)
+    def expectedBackendService = new BackendService(name: "test-backend-service")
+    def handler = new BasicGoogleDeployHandler(registry: new NoopRegistry(), safeRetry: SafeRetry.withoutDelay())
+    def credentials = new GoogleNamedAccountCredentials.Builder()
+        .name("test-account")
+        .project("test-project")
+        .compute(mockCompute)
+        .build()
+    mockCompute.backendServices() >> mockBackendServices
+    mockBackendServices.get("test-project", "test-backend-service") >> mockGet
+
+    when:
+    def result = handler.getBackendServiceFromProvider(credentials, "test-backend-service")
+
+    then:
+    3 * mockGet.execute() >>
+        { throw jsonException(503, "backendError") } >>
+        { throw jsonException(503, "backendError") } >>
+        expectedBackendService
+    result == expectedBackendService
+  }
+
+  def "getRegionBackendServiceFromProvider retries transient 503 errors"() {
+    given:
+    def mockCompute = Mock(Compute)
+    def mockRegionBackendServices = Mock(Compute.RegionBackendServices)
+    def mockGet = Mock(Compute.RegionBackendServices.Get)
+    def expectedBackendService = new BackendService(name: "test-regional-backend-service")
+    def handler = new BasicGoogleDeployHandler(registry: new NoopRegistry(), safeRetry: SafeRetry.withoutDelay())
+    def credentials = new GoogleNamedAccountCredentials.Builder()
+        .name("test-account")
+        .project("test-project")
+        .compute(mockCompute)
+        .build()
+    mockCompute.regionBackendServices() >> mockRegionBackendServices
+    mockRegionBackendServices.get("test-project", "us-central1", "test-regional-backend-service") >> mockGet
+
+    when:
+    def result = handler.getRegionBackendServiceFromProvider(credentials, "us-central1", "test-regional-backend-service")
+
+    then:
+    2 * mockGet.execute() >> { throw jsonException(503, "backendError") } >> expectedBackendService
+    result == expectedBackendService
+  }
+
+  def "getBackendServiceToUpdate fails instead of silently skipping a backend service on a non-404 error"() {
+    given:
+    def mockDescription = Mock(BasicGoogleDeployDescription)
+    def mockCompute = Mock(Compute)
+    def mockBackendServices = Mock(Compute.BackendServices)
+    def mockGet = Mock(Compute.BackendServices.Get)
+    def mockUrlMaps = Mock(Compute.UrlMaps)
+    def mockUrlMapsList = Mock(Compute.UrlMaps.List)
+    def lbInfo = Mock(BasicGoogleDeployHandler.LoadBalancerInfo)
+    def lbPolicy = new GoogleHttpLoadBalancingPolicy()
+    def handler = new BasicGoogleDeployHandler(registry: new NoopRegistry(), safeRetry: SafeRetry.withoutDelay())
+    def credentials = new GoogleNamedAccountCredentials.Builder()
+        .name("test-account")
+        .project("test-project")
+        .compute(mockCompute)
+        .build()
+    mockDescription.getCredentials() >> credentials
+    mockDescription.getInstanceMetadata() >> ["backend-service-names": "test-backend-service"]
+    lbInfo.getSslLoadBalancers() >> []
+    lbInfo.getTcpLoadBalancers() >> []
+    lbInfo.getHttpLoadBalancers() >> []
+    lbInfo.getInternalLoadBalancers() >> []
+    lbInfo.getInternalHttpLoadBalancers() >> []
+    mockCompute.urlMaps() >> mockUrlMaps
+    mockUrlMaps.list("test-project") >> mockUrlMapsList
+    mockUrlMapsList.execute() >> [items: []]
+    mockCompute.backendServices() >> mockBackendServices
+    mockBackendServices.get("test-project", "test-backend-service") >> mockGet
+    mockGet.execute() >> { throw jsonException(403, "forbidden") }
+
+    when:
+    handler.getBackendServiceToUpdate(mockDescription, "server-group", lbInfo, lbPolicy, "us-central1")
+
+    then:
+    thrown(GoogleOperationException)
+  }
+
+  private static GoogleJsonResponseException jsonException(int code, String reason) {
+    def errorInfo = new GoogleJsonError.ErrorInfo(domain: "global", message: reason, reason: reason)
+    def details = new GoogleJsonError(code: code, errors: [errorInfo], message: reason)
+    def builder = new HttpResponseException.Builder(code, reason, new HttpHeaders()).setMessage("$code $reason")
+    return new GoogleJsonResponseException(builder, details)
   }
 }
