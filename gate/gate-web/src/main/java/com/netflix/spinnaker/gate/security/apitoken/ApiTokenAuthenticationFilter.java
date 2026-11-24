@@ -23,23 +23,26 @@ import com.netflix.spinnaker.gate.filters.AuthRequestAttributes;
 import com.netflix.spinnaker.gate.filters.AuthTypeResolver;
 import com.netflix.spinnaker.gate.security.AllowedAccountsSupport;
 import com.netflix.spinnaker.gate.services.PermissionService;
-import com.netflix.spinnaker.security.User;
+import com.netflix.spinnaker.security.SpinnakerAuthorities;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletRequestWrapper;
 import jakarta.servlet.http.HttpServletResponse;
 import java.io.IOException;
-import java.util.Collection;
 import java.util.Collections;
 import java.util.Enumeration;
+import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Locale;
 import java.util.Optional;
+import java.util.Set;
 import java.util.stream.Collectors;
 import lombok.extern.slf4j.Slf4j;
 import org.slf4j.MDC;
+import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.security.core.userdetails.User;
 import org.springframework.security.web.authentication.preauth.PreAuthenticatedAuthenticationToken;
 import org.springframework.web.filter.OncePerRequestFilter;
 
@@ -148,14 +151,16 @@ public class ApiTokenAuthenticationFilter extends OncePerRequestFilter {
         chain.doFilter(request, response);
         return;
       }
-      User user = buildUserPrincipal(principalId, view);
+      Set<GrantedAuthority> authorities = buildAuthorities(principalId, view);
       authentication =
-          new PreAuthenticatedAuthenticationToken(user, "N/A", view.toGrantedAuthorities());
+          new PreAuthenticatedAuthenticationToken(
+              new User(principalId, "", authorities), "N/A", authorities);
     } else {
-      // Fiat disabled: still produce a User principal so /auth/user has a body and @SpinnakerUser
-      // resolves; roles/allowedAccounts are empty.
-      User user = buildUserPrincipal(principalId, null);
-      authentication = new PreAuthenticatedAuthenticationToken(user, "N/A", List.of());
+      // Fiat disabled: still produce a UserDetails principal so /auth/user has a body; roles and
+      // allowed accounts are empty.
+      authentication =
+          new PreAuthenticatedAuthenticationToken(
+              new User(principalId, "", List.of()), "N/A", List.of());
     }
     SecurityContextHolder.getContext().setAuthentication(authentication);
 
@@ -168,21 +173,15 @@ public class ApiTokenAuthenticationFilter extends OncePerRequestFilter {
     chain.doFilter(request, response);
   }
 
-  /**
-   * Build the {@link User} principal so the {@code @SpinnakerUser} argument resolver populates
-   * controller params correctly. (A raw String principal would silently resolve to {@code null}.)
-   */
-  private User buildUserPrincipal(String principalId, UserPermission.View view) {
-    User user = new User();
-    user.setUsername(principalId);
-    user.setEmail(principalId);
-    Collection<String> roleNames =
-        view == null
-            ? List.of()
-            : view.getRoles().stream().map(Role.View::getName).collect(Collectors.toList());
-    user.setRoles(roleNames);
-    user.setAllowedAccounts(allowedAccountsSupport.filterAllowedAccounts(principalId, roleNames));
-    return user;
+  /** Fiat's view of the principal plus its roles and allowed accounts as granted authorities. */
+  private Set<GrantedAuthority> buildAuthorities(String principalId, UserPermission.View view) {
+    List<String> roleNames =
+        view.getRoles().stream().map(Role.View::getName).collect(Collectors.toList());
+    Set<GrantedAuthority> authorities = new LinkedHashSet<>(view.toGrantedAuthorities());
+    authorities.addAll(
+        SpinnakerAuthorities.forRolesAndAccounts(
+            roleNames, allowedAccountsSupport.filterAllowedAccounts(principalId, roleNames)));
+    return authorities;
   }
 
   /**
