@@ -52,7 +52,6 @@ public class BitbucketArtifactCredentials
     if (token.isPresent()) {
       headers.set(AUTHORIZATION, "Bearer " + token.get());
       headers.set(ACCEPT, MediaType.APPLICATION_JSON_VALUE);
-      log.info("Loaded credentials for Bitbucket Artifact Account {}", account.getName());
       return headers.build();
     }
     return super.getHeaders(account);
