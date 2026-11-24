@@ -485,7 +485,7 @@ public class ExecutionMapper {
                 .put("orchestratorScoreThresholds", orchestratorScoreThresholds)
                 .build());
 
-    String canaryPipelineConfigId = application + "-standard-canary-pipeline";
+    String canaryPipelineConfigId = UUID.randomUUID().toString();
     PipelineBuilder pipelineBuilder =
         new PipelineBuilder(application)
             .withName(PIPELINE_NAME)
@@ -621,7 +621,7 @@ public class ExecutionMapper {
                     "${ #stage('Perform Analysis with Judge 2')['context']['result']}")
                 .build());
 
-    String canaryPipelineConfigId = application + "-standard-canary-pipeline";
+    String canaryPipelineConfigId = UUID.randomUUID().toString();
     PipelineBuilder pipelineBuilder =
         new PipelineBuilder(application)
             .withName("Standard Canary Pipeline")

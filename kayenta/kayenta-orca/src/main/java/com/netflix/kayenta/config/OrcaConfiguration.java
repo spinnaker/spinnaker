@@ -31,6 +31,7 @@ import org.springframework.context.annotation.*;
 @Configuration
 @Import({
   com.netflix.spinnaker.orca.config.OrcaConfiguration.class,
+  KayentaLiquibaseConfiguration.class,
   PropertyPlaceholderAutoConfiguration.class,
   QueueConfiguration.class,
   RedisConfiguration.class,
