@@ -36,6 +36,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
+import java.util.LinkedHashMap;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
@@ -50,6 +51,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.oauth2.client.userinfo.OAuth2UserRequest;
+import org.springframework.security.oauth2.core.oidc.OidcUserInfo;
 import org.springframework.security.oauth2.core.oidc.user.DefaultOidcUser;
 import org.springframework.security.oauth2.core.oidc.user.OidcUser;
 import org.springframework.security.oauth2.core.user.DefaultOAuth2User;
@@ -123,8 +125,13 @@ public class OAuthUserInfoServiceHelper {
 
     ResolvedUserInfo userInfo = getUserInfo(details, userRequest);
 
+    Map<String, Object> attributes = new LinkedHashMap<>(details);
+    attributes.putAll(userInfoMapping.standardClaims(details::get));
+
     return new DefaultOAuth2User(
-        authorities(oAuth2User.getAuthorities(), userInfo), details, userInfoMapping.getUsername());
+        authorities(oAuth2User.getAuthorities(), userInfo),
+        attributes,
+        userInfoMapping.getUsername());
   }
 
   /**
@@ -144,10 +151,21 @@ public class OAuthUserInfoServiceHelper {
   OidcUser toOidcUser(OidcUser oidcUser, OAuth2UserRequest userRequest) {
     ResolvedUserInfo userInfo = getUserInfo(oidcUser.getAttributes(), userRequest);
 
+    Map<String, Object> profile = userInfoMapping.standardClaims(oidcUser.getAttributes()::get);
+    OidcUserInfo oidcUserInfo = oidcUser.getUserInfo();
+    if (!profile.isEmpty()) {
+      Map<String, Object> claims = new LinkedHashMap<>();
+      if (oidcUserInfo != null) {
+        claims.putAll(oidcUserInfo.getClaims());
+      }
+      claims.putAll(profile);
+      oidcUserInfo = new OidcUserInfo(claims);
+    }
+
     return new DefaultOidcUser(
         authorities(oidcUser.getAuthorities(), userInfo),
         oidcUser.getIdToken(),
-        oidcUser.getUserInfo(),
+        oidcUserInfo,
         userInfoMapping.getUsername());
   }
 

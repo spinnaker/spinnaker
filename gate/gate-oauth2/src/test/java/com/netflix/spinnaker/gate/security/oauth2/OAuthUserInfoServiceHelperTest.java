@@ -211,6 +211,42 @@ public class OAuthUserInfoServiceHelperTest {
     assertThat(helper.toOAuth2User(fakeUser, request).getAttributes().get("firstName")).isNull();
   }
 
+  @Test
+  public void shouldExposeConfiguredProfileAttributesUnderStandardClaimNames() {
+    OAuth2SsoConfig.UserInfoMapping mapping = new OAuth2SsoConfig.UserInfoMapping();
+    mapping.setUsername("login");
+    mapping.setEmail("mail");
+    mapping.setFirstName("first");
+    mapping.setLastName("last");
+    AllowedAccountsSupport allowedAccountsSupport = mock(AllowedAccountsSupport.class);
+    OAuthUserInfoServiceHelper helper =
+        spy(
+            new OAuthUserInfoServiceHelper(
+                mapping,
+                userInfoRequirements,
+                permissionService,
+                front50Service,
+                allowedAccountsSupport,
+                null,
+                null,
+                Optional.empty()));
+    Map<String, Object> details =
+        Map.of("login", "jdoe", "mail", "jdoe@example.com", "first", "Jane", "last", "Doe");
+    OAuth2User provider = mock(OAuth2User.class);
+    when(provider.getAttributes()).thenReturn(details);
+    OAuth2UserRequest request = mock(OAuth2UserRequest.class);
+    doReturn(new OAuthUserInfoServiceHelper.ResolvedUserInfo("jdoe", List.of()))
+        .when(helper)
+        .getUserInfo(details, request);
+
+    OAuth2User user = helper.toOAuth2User(provider, request);
+
+    assertThat(user.getName()).isEqualTo("jdoe");
+    assertThat(user.<String>getAttribute("email")).isEqualTo("jdoe@example.com");
+    assertThat(user.<String>getAttribute("given_name")).isEqualTo("Jane");
+    assertThat(user.<String>getAttribute("family_name")).isEqualTo("Doe");
+  }
+
   @ParameterizedTest
   @MethodSource("provideRoleData")
   public void shouldExtractRolesFromDetails(Object rolesValue, List<String> expectedRoles) {

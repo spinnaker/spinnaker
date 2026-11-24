@@ -6,8 +6,8 @@ import com.netflix.spinnaker.security.AllowedAccountsAuthorities
 import com.netflix.spinnaker.security.SpinnakerAuthorities
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken
 import org.springframework.security.core.Authentication
-import org.springframework.security.core.userdetails.User
 import org.springframework.security.core.userdetails.UserDetails
+import org.springframework.security.ldap.userdetails.InetOrgPerson
 import org.springframework.ldap.core.DirContextAdapter
 import org.springframework.ldap.core.DirContextOperations
 import org.springframework.security.core.authority.SimpleGrantedAuthority
@@ -44,10 +44,27 @@ class LdapUserContextMapperSpec extends Specification {
     1 * allowedAccountsSupport.filterAllowedAccounts("joe", ["admin", "dev", "viewer"] as Set) >> (["acc1", "acc2"] as Set)
 
     and:
-    details instanceof User
+    details instanceof InetOrgPerson
     details.username == "joe"
+    details.mail == "joe.dohn@test.com"
+    details.givenName == "Joe"
+    details.sn == "Dohn"
     (SpinnakerAuthorities.getRoleNames(auth(details)) as Set) == (["admin", "dev", "viewer"] as Set)
     AllowedAccountsAuthorities.getAllowedAccountNames(auth(details)) == ["acc1", "acc2"]
+  }
+
+  def "mapUserFromContext tolerates a directory entry without cn and sn"() {
+    given:
+    DirContextOperations ctx = new DirContextAdapter()
+    allowedAccountsSupport.filterAllowedAccounts("joe", _) >> ([] as Set)
+
+    when:
+    def details = subject.mapUserFromContext(ctx, "joe", [new SimpleGrantedAuthority("dev")])
+
+    then:
+    details instanceof InetOrgPerson
+    details.username == "joe"
+    details.mail == null
   }
 
   def "sanitizeRoles should remove ROLE_ prefix and lower-case; empty string is preserved"() {

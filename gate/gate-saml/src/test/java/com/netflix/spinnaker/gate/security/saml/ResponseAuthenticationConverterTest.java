@@ -28,8 +28,6 @@ import com.netflix.spinnaker.gate.services.AuthenticationService;
 import com.netflix.spinnaker.security.AllowedAccountsAuthorities;
 import com.netflix.spinnaker.security.SpinnakerAuthorities;
 import java.util.Collection;
-import java.util.Collections;
-import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -39,7 +37,7 @@ import org.springframework.beans.factory.ObjectFactory;
 import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
-import org.springframework.security.core.userdetails.User;
+import org.springframework.security.oauth2.core.OAuth2AuthenticatedPrincipal;
 import org.springframework.security.saml2.provider.service.authentication.OpenSaml5AuthenticationProvider.ResponseToken;
 import org.springframework.security.saml2.provider.service.authentication.Saml2AuthenticatedPrincipal;
 import org.springframework.security.saml2.provider.service.authentication.Saml2Authentication;
@@ -94,6 +92,11 @@ class ResponseAuthenticationConverterTest {
         converter.convert(Mockito.mock(ResponseToken.class));
 
     assertThat(token.getName()).isEqualTo("extractedUserId");
+    assertThat(token.getPrincipal()).isInstanceOf(OAuth2AuthenticatedPrincipal.class);
+    OAuth2AuthenticatedPrincipal user = (OAuth2AuthenticatedPrincipal) token.getPrincipal();
+    assertThat(user.<String>getAttribute("email")).isEqualTo("john.doe@test.com");
+    assertThat(user.<String>getAttribute("given_name")).isEqualTo("John");
+    assertThat(user.<String>getAttribute("family_name")).isEqualTo("Doe");
     assertThat(SpinnakerAuthorities.getRoleNames(token)).contains("roleA", "roleB");
     assertThat(AllowedAccountsAuthorities.getAllowedAccountNames(token))
         .containsExactlyInAnyOrder("develop", "production", "staging");
@@ -153,11 +156,6 @@ class ResponseAuthenticationConverterTest {
 
   static final class TestableResponseAuthenticationConverter
       extends ResponseAuthenticationConverter {
-    private final SecuritySamlProperties properties;
-    private final ObjectFactory<AllowedAccountsSupport> allowedAccountsSupport;
-    private final ObjectFactory<UserIdentifierExtractor> userIdentifierExtractorFactory;
-    private final ObjectFactory<UserRolesExtractor> userRolesExtractorFactory;
-    private final ObjectFactory<AuthenticationService> authenticationServiceFactory;
     private final Saml2Authentication authentication;
 
     TestableResponseAuthenticationConverter(
@@ -173,45 +171,12 @@ class ResponseAuthenticationConverterTest {
           userRolesExtractorFactory,
           authenticationServiceFactory,
           allowedAccountsSupport);
-      this.properties = properties;
-      this.allowedAccountsSupport = allowedAccountsSupport;
-      this.userIdentifierExtractorFactory = userIdentifierExtractorFactory;
-      this.userRolesExtractorFactory = userRolesExtractorFactory;
-      this.authenticationServiceFactory = authenticationServiceFactory;
       this.authentication = authentication;
     }
 
     @Override
-    public PreAuthenticatedAuthenticationToken convert(ResponseToken source) {
-      UserIdentifierExtractor userIdentifierExtractor = userIdentifierExtractorFactory.getObject();
-      UserRolesExtractor userRolesExtractor = userRolesExtractorFactory.getObject();
-      AuthenticationService loginService = authenticationServiceFactory.getObject();
-
-      Saml2AuthenticatedPrincipal principal =
-          (Saml2AuthenticatedPrincipal) authentication.getPrincipal();
-      String email = principal.getFirstAttribute(properties.getUserAttributeMapping().getEmail());
-      if (email == null) {
-        email = principal.getName();
-      }
-
-      String userid = userIdentifierExtractor.fromPrincipal(principal);
-      Set<String> roles = userRolesExtractor.getRoles(principal);
-
-      if (!org.springframework.util.CollectionUtils.isEmpty(properties.getRequiredRoles())) {
-        var requiredRoles = Set.copyOf(properties.getRequiredRoles());
-        if (Collections.disjoint(roles, requiredRoles)) {
-          throw new BadCredentialsException(
-              String.format("User %s is not in any required role from %s", email, requiredRoles));
-        }
-      }
-
-      Set<GrantedAuthority> authorities = new LinkedHashSet<>();
-      authorities.addAll(loginService.loginWithRoles(userid, roles));
-      authorities.addAll(
-          SpinnakerAuthorities.forRolesAndAccounts(
-              roles, allowedAccountsSupport.getObject().filterAllowedAccounts(userid, roles)));
-      return new PreAuthenticatedAuthenticationToken(
-          new User(userid, "", authorities), principal, authorities);
+    Saml2Authentication convertToken(ResponseToken source) {
+      return authentication;
     }
   }
 }

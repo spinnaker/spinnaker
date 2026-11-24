@@ -36,7 +36,6 @@ import org.springframework.security.core.userdetails.UserDetails;
  */
 public class SpinnakerAuthorities {
   private static final String ROLE_PREFIX = "ROLE_";
-  private static final String SPINNAKER_PREFIX = "SPINNAKER_";
   private static final String SCOPE_PREFIX = "SCOPE_";
 
   /** Authorities Spring Security's OAuth2 and OIDC user services grant to every user. */
@@ -104,8 +103,10 @@ public class SpinnakerAuthorities {
   /**
    * Gets the names of the roles of the given user as they are known to the identity provider and to
    * Fiat: bare role authorities and {@code ROLE_}-prefixed authorities, without the prefix.
-   * Authorities that do not represent a role (allowed accounts, {@code SPINNAKER_}, OAuth2 scopes
-   * and the default OAuth2/OIDC user authorities) are excluded.
+   * Authorities that do not represent a role (allowed accounts, the {@code SPINNAKER_ADMIN} marker,
+   * OAuth2 scopes and the default OAuth2/OIDC user authorities) are excluded. Other {@code
+   * SPINNAKER_}-prefixed names are ordinary roles. A provider role literally named {@code
+   * SPINNAKER_ADMIN} is indistinguishable from the marker until roles get a {@code ROLE_} prefix.
    */
   @Nonnull
   public static List<String> getRoleNames(@Nullable Authentication authentication) {
@@ -116,7 +117,7 @@ public class SpinnakerAuthorities {
         .map(GrantedAuthority::getAuthority)
         .filter(a -> a != null && !a.isEmpty())
         .filter(a -> !a.startsWith(AllowedAccountsAuthorities.PREFIX))
-        .filter(a -> !a.startsWith(SPINNAKER_PREFIX))
+        .filter(a -> !a.equals(ADMIN))
         .filter(a -> !a.startsWith(SCOPE_PREFIX))
         .filter(a -> !PROVIDER_AUTHORITIES.contains(a))
         .filter(a -> !a.equals(ANONYMOUS_AUTHORITY.getAuthority()))

@@ -18,10 +18,12 @@
 package com.netflix.spinnaker.gate.security.saml;
 
 import com.netflix.spinnaker.gate.security.AllowedAccountsSupport;
+import com.netflix.spinnaker.gate.security.UserProfileMapping;
 import com.netflix.spinnaker.gate.services.AuthenticationService;
 import com.netflix.spinnaker.security.SpinnakerAuthorities;
 import java.util.Collections;
 import java.util.LinkedHashSet;
+import java.util.Map;
 import java.util.Set;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.log4j.Log4j2;
@@ -29,7 +31,7 @@ import org.springframework.beans.factory.ObjectFactory;
 import org.springframework.core.convert.converter.Converter;
 import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.core.GrantedAuthority;
-import org.springframework.security.core.userdetails.User;
+import org.springframework.security.oauth2.core.DefaultOAuth2AuthenticatedPrincipal;
 import org.springframework.security.saml2.provider.service.authentication.OpenSaml5AuthenticationProvider;
 import org.springframework.security.saml2.provider.service.authentication.OpenSaml5AuthenticationProvider.ResponseToken;
 import org.springframework.security.saml2.provider.service.authentication.Saml2AuthenticatedPrincipal;
@@ -37,7 +39,11 @@ import org.springframework.security.saml2.provider.service.authentication.Saml2A
 import org.springframework.security.web.authentication.preauth.PreAuthenticatedAuthenticationToken;
 import org.springframework.util.CollectionUtils;
 
-/** Handles conversion of an authenticated SAML user into a Spinnaker user and populating Fiat. */
+/**
+ * Handles conversion of an authenticated SAML user into a Spring principal and populating Fiat. The
+ * principal's attributes carry the user's email and name under the standard claim names, as mapped
+ * by {@link SecuritySamlProperties.UserAttributeMapping}.
+ */
 @Log4j2
 @RequiredArgsConstructor
 public class ResponseAuthenticationConverter
@@ -61,10 +67,10 @@ public class ResponseAuthenticationConverter
         (Saml2AuthenticatedPrincipal) authentication.getPrincipal();
     String principalName = principal.getName();
     var userAttributeMapping = properties.getUserAttributeMapping();
-    String email = principal.getFirstAttribute(userAttributeMapping.getEmail());
-    if (email == null) {
-      email = principalName;
-    }
+    Map<String, Object> profile =
+        userAttributeMapping.standardClaims(name -> principal.getFirstAttribute(name));
+    // The email attribute is optional: identify the user by the SAML name when it is missing.
+    String email = (String) profile.computeIfAbsent(UserProfileMapping.EMAIL, k -> principalName);
     String userid = userIdentifierExtractor.fromPrincipal(principal);
 
     Set<String> roles = userRolesExtractor.getRoles(principal);
@@ -84,13 +90,16 @@ public class ResponseAuthenticationConverter
         SpinnakerAuthorities.forRolesAndAccounts(
             roles, allowedAccountsSupport.filterAllowedAccounts(userid, roles)));
     return new PreAuthenticatedAuthenticationToken(
-        new User(userid, "", authorities), principal, authorities);
+        new DefaultOAuth2AuthenticatedPrincipal(userid, profile, authorities),
+        principal,
+        authorities);
   }
 
   private static final Converter<ResponseToken, Saml2Authentication> DEFAULT_CONVERTER =
       OpenSaml5AuthenticationProvider.createDefaultResponseAuthenticationConverter();
 
-  private static Saml2Authentication convertToken(ResponseToken token) {
+  // Overridable so tests can supply the SAML authentication without a real response.
+  Saml2Authentication convertToken(ResponseToken token) {
     Saml2Authentication authentication = DEFAULT_CONVERTER.convert(token);
     if (authentication == null) {
       throw new IllegalArgumentException("Response token could not be converted");

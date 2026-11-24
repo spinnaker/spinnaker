@@ -35,8 +35,8 @@ import org.springframework.security.config.annotation.authentication.configurati
 import org.springframework.security.config.annotation.web.builders.HttpSecurity
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity
 import org.springframework.security.core.GrantedAuthority
-import org.springframework.security.core.userdetails.User
 import org.springframework.security.core.userdetails.UserDetails
+import org.springframework.security.ldap.userdetails.InetOrgPerson
 import org.springframework.security.ldap.userdetails.UserDetailsContextMapper
 import org.springframework.security.web.SecurityFilterChain
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter
@@ -123,10 +123,19 @@ class LdapSsoConfig {
       def roles = sanitizeRoles(authorities)
       permissionService.loginWithRoles(username, roles)
 
-      return new User(
-        username,
-        "",
-        SpinnakerAuthorities.forRolesAndAccounts(roles, allowedAccountsSupport.filterAllowedAccounts(username, roles)))
+      // InetOrgPerson carries the profile attributes. Its context constructor requires a uid
+      // attribute, which not every directory has (e.g. Active Directory), so set the fields here.
+      def essence = new InetOrgPerson.Essence()
+      essence.dn = ctx.dn.toString()
+      essence.username = username
+      essence.mail = ctx.getStringAttribute("mail")
+      essence.givenName = ctx.getStringAttribute("givenName")
+      // Person requires cn and sn, but not every directory entry has them: don't fail the login
+      essence.sn = ctx.getStringAttribute("sn") ?: ""
+      essence.cn = [ctx.getStringAttribute("cn") ?: username] as String[]
+      essence.password = ""
+      essence.authorities = SpinnakerAuthorities.forRolesAndAccounts(roles, allowedAccountsSupport.filterAllowedAccounts(username, roles))
+      return essence.createUserDetails()
     }
 
     @Override
