@@ -74,6 +74,8 @@ func newGateTaskServer(ref string, statuses ...string) *gateTaskServer {
 
 func submitTaskAgainst(t *testing.T, url string, out io.Writer, extraArgs ...string) error {
 	t.Helper()
+	prevInterval := pollInterval
+	t.Cleanup(func() { pollInterval = prevInterval })
 	pollInterval = time.Millisecond
 	rootCmd, rootOpts := cmd.NewCmdRoot(out, io.Discard)
 	rootCmd.AddCommand(NewTaskCmd(rootOpts))
