@@ -128,7 +128,7 @@ class OAuth2SsoSessionPersistenceTest {
               // Stub the helper from the context: the filter needs it to turn the
               // user-info attributes into a Spinnaker user.
               OAuthUserInfoServiceHelper helper = ctx.getBean(OAuthUserInfoServiceHelper.class);
-              when(helper.getSpinnakerOAuth2User(any(), any()))
+              when(helper.toOAuth2User(any(), any()))
                   .thenAnswer(
                       invocation ->
                           new SimpleOAuth2User(
@@ -193,7 +193,7 @@ class OAuth2SsoSessionPersistenceTest {
               FilterChainProxy proxy = new FilterChainProxy(ctx.getBean(SecurityFilterChain.class));
 
               OAuthUserInfoServiceHelper helper = ctx.getBean(OAuthUserInfoServiceHelper.class);
-              when(helper.getSpinnakerOAuth2User(any(), any()))
+              when(helper.toOAuth2User(any(), any()))
                   .thenAnswer(
                       invocation ->
                           new SimpleOAuth2User(

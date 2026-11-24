@@ -84,8 +84,9 @@ class DataController {
   }
 
   private static void verifyAccessToAccount(String account) {
-    def allowedAccounts = (AuthenticatedRequest.getSpinnakerAccounts().orElse(null)?.split(",") ?: []) as Set<String>
-    if (!allowedAccounts.contains(account)) {
+    // Allowed accounts are lowercased wherever they are derived from the user's authorities.
+    def allowedAccounts = (AuthenticatedRequest.getSpinnakerAccounts().orElse(null)?.toLowerCase()?.split(",") ?: []) as Set<String>
+    if (account == null || !allowedAccounts.contains(account.toLowerCase())) {
       throw new AccessDeniedException("Access denied (account: ${account})")
     }
   }
