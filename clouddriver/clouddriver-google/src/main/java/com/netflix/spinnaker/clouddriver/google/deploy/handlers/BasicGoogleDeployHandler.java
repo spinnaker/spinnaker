@@ -115,6 +115,9 @@ public class BasicGoogleDeployHandler
   private static final String ACCESS_CONFIG_TYPE = "ONE_TO_ONE_NAT";
   private static final Integer MAX_NAME_SIZE = 64;
   private static final Integer TEMPLATE_UUID_SIZE = 8;
+  // AttachedDisk.type is a String in the Java client; the API enum values are PERSISTENT/SCRATCH.
+  // https://cloud.google.com/compute/docs/reference/rest/v1/instances (disks[].type)
+  private static final String SCRATCH_DISK_TYPE = "SCRATCH";
 
   @Autowired private GoogleConfigurationProperties googleConfigurationProperties;
 
@@ -1447,7 +1450,7 @@ public class BasicGoogleDeployHandler
       List<AttachedDisk> templateDisks) {
     List<AttachedDisk> persistentDisks =
         templateDisks.stream()
-            .filter(disk -> !"SCRATCH".equals(disk.getType()))
+            .filter(disk -> !SCRATCH_DISK_TYPE.equalsIgnoreCase(disk.getType()))
             .collect(Collectors.toList());
     AttachedDisk target;
     if (Boolean.TRUE.equals(override.getBoot())) {

@@ -114,6 +114,26 @@ class BasicGoogleDeployHandlerSelectionOverridesTest {
   }
 
   @Test
+  void indexOverrideIgnoresScratchDiskTypeCase() {
+    InstanceSelection n4 = new InstanceSelection(0, List.of("n4-standard-4"));
+    n4.setDisks(List.of(new DiskOverride(null, 1, "hyperdisk-balanced", null)));
+    BasicGoogleDeployDescription description = regionalDescription(Map.of("n4", n4));
+    InstanceGroupManager igm = new InstanceGroupManager();
+    List<AttachedDisk> templateDisks =
+        List.of(
+            new AttachedDisk().setBoot(false).setType("scratch").setDeviceName("local-ssd"),
+            templateDisks().get(0),
+            templateDisks().get(1));
+
+    handler.setInstanceFlexibilityPolicyToInstanceGroup(description, igm);
+    handler.applyInstanceSelectionDiskOverrides(description, igm, templateDisks);
+
+    assertThat(igm.getInstanceFlexibilityPolicy().getInstanceSelections().get("n4").getDisks())
+        .extracting(AttachedDisk::getDeviceName)
+        .containsExactly("myapp-v001-1");
+  }
+
+  @Test
   void rejectsOverrideIndexOutsideTemplateDisks() {
     InstanceSelection n4 = new InstanceSelection(0, List.of("n4-standard-4"));
     n4.setDisks(List.of(new DiskOverride(null, 2, "hyperdisk-balanced", null)));
