@@ -4,7 +4,7 @@ kind: Namespace
 metadata:
   name: '${ namespace }'
 ---
-apiVersion: apps/v1beta2
+apiVersion: apps/v1
 kind: Deployment
 metadata:
   name: 'backend-${ canary ? "canary" : "primary" }'
