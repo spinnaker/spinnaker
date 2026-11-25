@@ -1,5 +1,0 @@
-logging:
-  level:
-    org:
-      springframework:
-        data: DEBUG
