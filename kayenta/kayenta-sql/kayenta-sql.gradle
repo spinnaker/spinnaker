@@ -4,4 +4,8 @@ dependencies {
     implementation "org.liquibase:liquibase-core"
     runtimeOnly "com.mysql:mysql-connector-j"
     runtimeOnly "org.postgresql:postgresql"
+
+    testImplementation "io.spinnaker.kork:kork-sql"
+    testImplementation "org.springframework.boot:spring-boot-starter-test"
+    testRuntimeOnly "com.h2database:h2"
 }
