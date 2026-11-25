@@ -16,7 +16,7 @@ metadata:
 data:
   BACKEND_ENDPOINT: 'http://backend.staging'
 ---
-apiVersion: apps/v1beta2
+apiVersion: apps/v1
 kind: Deployment
 metadata:
   name: frontend-primary
@@ -75,7 +75,7 @@ spec:
     port: 80
     targetPort: 8000
 ---
-apiVersion: apps/v1beta2
+apiVersion: apps/v1
 kind: Deployment
 metadata:
   name: backend-primary
@@ -148,7 +148,7 @@ metadata:
 data:
   BACKEND_ENDPOINT: 'http://backend.production'
 ---
-apiVersion: apps/v1beta2
+apiVersion: apps/v1
 kind: Deployment
 metadata:
   name: frontend-primary
@@ -208,7 +208,7 @@ spec:
     port: 80
     targetPort: 8000
 ---
-apiVersion: apps/v1beta2
+apiVersion: apps/v1
 kind: Deployment
 metadata:
   name: backend-primary
