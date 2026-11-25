@@ -2,6 +2,7 @@ package com.netflix.spinnaker.gate.security.oauth.config;
 
 import com.netflix.spinnaker.gate.security.oauth.TestAuthorizationCodeTokenResponseClient;
 import java.io.IOException;
+import java.util.concurrent.Callable;
 import org.apache.hc.client5.http.impl.DefaultRedirectStrategy;
 import org.apache.hc.client5.http.impl.classic.CloseableHttpClient;
 import org.apache.hc.client5.http.impl.classic.HttpClients;
@@ -62,6 +63,15 @@ public class OAuth2TestConfiguration {
     @GetMapping(value = "/testOAuth2Api")
     public String testOAuth2Api() throws IOException {
       return "authenticated";
+    }
+
+    /**
+     * Answered through an async dispatch, like the streaming /mcp responses. Spring Security
+     * authorizes that dispatch again, so this only succeeds if the authentication survives it.
+     */
+    @GetMapping(value = "/testOAuth2AsyncApi")
+    public Callable<String> testOAuth2AsyncApi() {
+      return () -> "authenticated-async";
     }
   }
 

@@ -40,11 +40,20 @@ import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpMethod;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContext;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.oauth2.client.registration.ClientRegistration;
 import org.springframework.security.oauth2.client.registration.ClientRegistrationRepository;
 import org.springframework.security.oauth2.core.AuthorizationGrantType;
 import org.springframework.security.oauth2.core.user.OAuth2User;
+<<<<<<< HEAD
+=======
+import org.springframework.security.oauth2.jwt.BadJwtException;
+import org.springframework.security.oauth2.jwt.Jwt;
+import org.springframework.security.oauth2.jwt.JwtDecoder;
+import org.springframework.security.oauth2.jwt.JwtDecoderInitializationException;
+import org.springframework.security.web.context.RequestAttributeSecurityContextRepository;
+>>>>>>> 24b34d7 (fix(gate-mcp): let OAuth MCP clients discover, authenticate and stream (#8394))
 import org.springframework.web.client.RestClientException;
 import org.springframework.web.client.RestTemplate;
 
@@ -161,6 +170,15 @@ class ExternalAuthTokenFilterTest {
     verify(filterChain).doFilter(request, response);
     assertThat(SecurityContextHolder.getContext().getAuthentication()).isNotNull();
     assertThat(SecurityContextHolder.getContext().getAuthentication().isAuthenticated()).isTrue();
+
+    // Saved on the request, so async and error dispatches (which skip this filter) still see it
+    ArgumentCaptor<SecurityContext> savedContext = ArgumentCaptor.forClass(SecurityContext.class);
+    verify(request)
+        .setAttribute(
+            eq(RequestAttributeSecurityContextRepository.DEFAULT_REQUEST_ATTR_NAME),
+            savedContext.capture());
+    assertThat(savedContext.getValue().getAuthentication())
+        .isSameAs(SecurityContextHolder.getContext().getAuthentication());
   }
 
   @Test
@@ -178,6 +196,9 @@ class ExternalAuthTokenFilterTest {
 
     verify(filterChain).doFilter(request, response);
     assertThat(SecurityContextHolder.getContext().getAuthentication()).isNull();
+    verify(request, never())
+        .setAttribute(
+            eq(RequestAttributeSecurityContextRepository.DEFAULT_REQUEST_ATTR_NAME), any());
   }
 
   @Test

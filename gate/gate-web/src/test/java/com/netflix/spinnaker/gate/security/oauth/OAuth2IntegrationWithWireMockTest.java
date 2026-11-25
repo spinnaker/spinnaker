@@ -205,6 +205,45 @@ public class OAuth2IntegrationWithWireMockTest {
   }
 
   /**
+   * Verifies that a Bearer token authentication survives the async dispatch of an asynchronously
+   * answered request (for example a streaming /mcp response). ExternalAuthTokenFilter only runs on
+   * the initial dispatch, while Spring Security authorizes the async dispatch again.
+   */
+  @Test
+  void bearerTokenAuthenticatesAsyncRequest() {
+    githubMockServer.stubFor(
+        WireMock.get(urlPathEqualTo("/login/oauth/user"))
+            .willReturn(
+                WireMock.aResponse()
+                    .withHeader("Content-Type", "application/json")
+                    .withBody(
+                        "{"
+                            + "\"email\": \"test@example.com\","
+                            + "\"login\": \"testuser\","
+                            + "\"name\": \"Test User\","
+                            + "\"type\": \"User\","
+                            + "\"id\": 12345"
+                            + "}")));
+
+    HttpHeaders headers = new HttpHeaders();
+    headers.set(HttpHeaders.AUTHORIZATION, "Bearer my-personal-access-token");
+
+    CloseableHttpClient httpClient = HttpClients.custom().disableRedirectHandling().build();
+    RestTemplate noRedirectRestTemplate =
+        new RestTemplate(new HttpComponentsClientHttpRequestFactory(httpClient));
+
+    ResponseEntity<String> response =
+        noRedirectRestTemplate.exchange(
+            "http://localhost:" + appPort + "/testOAuth2AsyncApi",
+            HttpMethod.GET,
+            new HttpEntity<>(headers),
+            String.class);
+
+    assertThat(response.getStatusCode().value()).isEqualTo(200);
+    assertThat(response.getBody()).isEqualTo("authenticated-async");
+  }
+
+  /**
    * Verifies that a Bearer token sent to /login authenticates the user via the user-info endpoint
    * and redirects to the base URL.
    */
