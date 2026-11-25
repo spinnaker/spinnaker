@@ -42,6 +42,8 @@ import com.netflix.spinnaker.orca.sql.PipelineRefTriggerDeserializerSupplier;
 import com.netflix.spinnaker.orca.sql.pipeline.persistence.PipelineRefTrigger;
 import com.netflix.spinnaker.orca.test.YamlFileApplicationContextInitializer;
 import java.time.Clock;
+import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
@@ -49,6 +51,8 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.ValueSource;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.slf4j.MDC;
@@ -131,6 +135,56 @@ public class ExecutionLauncherConfigurationTest extends YamlFileApplicationConte
             pipelineExecution.getId(),
             "system",
             "Failed on startup: ad-hoc execution of type: deployManifest has been explicitly disabled");
+  }
+
+  @ParameterizedTest
+  @ValueSource(strings = {"updateApplication", "saveApplication"})
+  public void testAllowedFirstStageDoesNotBypassBlockedStage(String firstStageType)
+      throws Exception {
+    Map<String, Object> config =
+        getConfigWithFirstStage("ad-hoc/deploy-manifest.json", firstStageType);
+
+    PipelineExecution execution = executionLauncher.start(ExecutionType.ORCHESTRATION, config);
+
+    verifyNoInteractions(executionRunner);
+    verify(executionRepository)
+        .cancel(
+            ExecutionType.ORCHESTRATION,
+            execution.getId(),
+            "system",
+            "Failed on startup: ad-hoc execution of type: deployManifest has been explicitly disabled");
+  }
+
+  @ParameterizedTest
+  @ValueSource(strings = {"updateApplication", "saveApplication"})
+  public void testAllowedFirstStageDoesNotBypassUserRestriction(String firstStageType)
+      throws Exception {
+    Map<String, Object> config =
+        getConfigWithFirstStage("ad-hoc/save-pipeline-blocked-user.json", firstStageType);
+
+    PipelineExecution execution = executionLauncher.start(ExecutionType.ORCHESTRATION, config);
+
+    verifyNoInteractions(executionRunner);
+    verify(executionRepository)
+        .cancel(
+            ExecutionType.ORCHESTRATION,
+            execution.getId(),
+            "system",
+            "Failed on startup: ad-hoc execution of type: savePipeline has been"
+                + " disabled for user: not-explicitly-permitted-user@abc.com");
+  }
+
+  @ParameterizedTest
+  @ValueSource(strings = {"updateApplication", "saveApplication"})
+  public void testAllowedFirstStageCanBeFollowedByPermittedStage(String firstStageType)
+      throws Exception {
+    Map<String, Object> config =
+        getConfigWithFirstStage("ad-hoc/save-pipeline-permitted-user.json", firstStageType);
+
+    PipelineExecution execution = executionLauncher.start(ExecutionType.ORCHESTRATION, config);
+
+    verify(executionRunner).start(execution);
+    verify(executionRepository, never()).cancel(any(), anyString(), anyString(), anyString());
   }
 
   @DisplayName(
@@ -512,6 +566,15 @@ public class ExecutionLauncherConfigurationTest extends YamlFileApplicationConte
     // verify that no errors were thrown such as the explicitly disabled ones
     verify(executionRepository, never()).updateStatus(any(), anyString(), any());
     verify(executionRepository, never()).cancel(any(), anyString(), anyString(), anyString());
+  }
+
+  @SuppressWarnings("unchecked")
+  private Map<String, Object> getConfigWithFirstStage(String resource, String firstStageType)
+      throws Exception {
+    Map<String, Object> config = getConfigJson(resource);
+    List<Map<String, Object>> stages = (List<Map<String, Object>>) config.get("stages");
+    stages.add(0, new HashMap<>(Map.of("type", firstStageType, "refId", "allowed-first")));
+    return config;
   }
 
   private Map<String, Object> getConfigJson(String resource) throws Exception {
