@@ -12,7 +12,7 @@ metadata:
 data:
   BACKEND_ENDPOINT: 'http://backend.${ namespace }'
 ---
-apiVersion: apps/v1beta2
+apiVersion: apps/v1
 kind: Deployment
 metadata:
   name: 'frontend-${ canary ? "canary" : "primary" }'
