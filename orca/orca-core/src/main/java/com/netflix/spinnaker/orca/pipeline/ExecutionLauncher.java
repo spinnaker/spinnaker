@@ -404,9 +404,9 @@ public class ExecutionLauncher {
               "ad-hoc execution of type: " + stage.getType() + " has been explicitly disabled");
         }
 
-        // if all users are allowed to execute this orchestration task, then check is complete
+        // If all users are allowed to execute this stage, continue validating the remaining stages.
         if (orchestrationType.get().isAllowAllUsers()) {
-          return;
+          continue;
         }
 
         // get user info to check if the user is permitted to perform this orchestration action
