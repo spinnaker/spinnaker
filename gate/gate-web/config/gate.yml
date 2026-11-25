@@ -130,6 +130,15 @@ mcp:
     # allowed-tools:
     #   - get_application
     #   - trigger_pipeline
+    # Public base URL MCP clients use to reach Gate; set it behind a TLS-terminating proxy.
+    # external-url: https://gate.example.com
+    # Authorization server issuer URLs whose bearer tokens Gate accepts; advertised to clients.
+    # authorization-servers:
+    #   - https://login.example.com/oauth2/default
+    # Scopes advertised to MCP clients for the authorization server.
+    # scopes-supported:
+    #   - openid
+    #   - profile
 
 spring:
   jackson:
