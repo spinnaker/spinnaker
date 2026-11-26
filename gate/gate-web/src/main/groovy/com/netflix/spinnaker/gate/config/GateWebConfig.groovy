@@ -17,7 +17,6 @@
 package com.netflix.spinnaker.gate.config
 
 import com.netflix.spectator.api.Registry
-import com.netflix.spinnaker.gate.filters.ContentCachingFilter
 import com.netflix.spinnaker.gate.interceptors.RequestContextInterceptor
 import com.netflix.spinnaker.gate.interceptors.ResponseHeaderInterceptor
 import com.netflix.spinnaker.gate.interceptors.ResponseHeaderInterceptorConfigurationProperties
@@ -28,7 +27,6 @@ import com.netflix.spinnaker.kork.web.interceptors.MetricsInterceptor
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.beans.factory.annotation.Qualifier
 import org.springframework.beans.factory.annotation.Value
-import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty
 import org.springframework.boot.context.properties.EnableConfigurationProperties
 import org.springframework.context.ApplicationContext
 import org.springframework.context.annotation.Bean
@@ -45,7 +43,6 @@ import org.springframework.web.servlet.config.annotation.InterceptorRegistry
 import org.springframework.web.servlet.config.annotation.WebMvcConfigurer
 import org.springframework.web.servlet.handler.HandlerMappingIntrospector
 
-import jakarta.servlet.Filter
 import jakarta.servlet.http.HttpServletResponse
 
 @Configuration
@@ -88,14 +85,6 @@ public class GateWebConfig implements WebMvcConfigurer {
     return new HandlerMappingIntrospector(context)
   }
 
-
-  // Add the ability to disable as this breaks numerous integration patterns
-  @Bean
-  @ConditionalOnProperty(value = "content.cachingFilter.enabled", matchIfMissing = true)
-  Filter contentCachingFilter() {
-    // This filter simply buffers the response so that Content-Length header can be set
-    return new ContentCachingFilter()
-  }
 
   @Bean
   UpstreamBadRequestExceptionHandler upstreamBadRequestExceptionHandler() {
