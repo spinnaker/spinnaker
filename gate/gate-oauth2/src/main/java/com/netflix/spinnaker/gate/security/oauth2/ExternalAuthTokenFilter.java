@@ -32,6 +32,7 @@ import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpMethod;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.context.SecurityContext;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.oauth2.client.authentication.OAuth2AuthenticationToken;
 import org.springframework.security.oauth2.client.registration.ClientRegistration;
@@ -42,6 +43,8 @@ import org.springframework.security.oauth2.jwt.Jwt;
 import org.springframework.security.oauth2.jwt.JwtDecoder;
 import org.springframework.security.oauth2.jwt.JwtDecoderInitializationException;
 import org.springframework.security.oauth2.jwt.JwtException;
+import org.springframework.security.web.context.RequestAttributeSecurityContextRepository;
+import org.springframework.security.web.context.SecurityContextRepository;
 import org.springframework.web.client.RestClientException;
 import org.springframework.web.client.RestTemplate;
 import org.springframework.web.filter.OncePerRequestFilter;
@@ -73,6 +76,16 @@ public class ExternalAuthTokenFilter extends OncePerRequestFilter {
   private final JwtDecoder jwtDecoder;
   private final boolean userInfoFallback;
   private final String usernameClaim;
+
+  /**
+   * Keeps the authentication for the rest of the request, including async and error dispatches.
+   * This filter only runs on the initial dispatch, and Spring Security authorizes every dispatch
+   * again, so without it an async response (for example a streaming /mcp response) is denied
+   * halfway through. Request attributes rather than the HTTP session: bearer callers must not get a
+   * session.
+   */
+  private final SecurityContextRepository securityContextRepository =
+      new RequestAttributeSecurityContextRepository();
 
   /**
    * Constructs a new ExternalAuthTokenFilter that validates bearer tokens at the user-info endpoint
@@ -206,7 +219,9 @@ public class ExternalAuthTokenFilter extends OncePerRequestFilter {
         try {
           OAuth2AuthenticationToken authentication = authenticateWithToken(token);
           if (authentication != null) {
-            SecurityContextHolder.getContext().setAuthentication(authentication);
+            SecurityContext context = SecurityContextHolder.getContext();
+            context.setAuthentication(authentication);
+            securityContextRepository.saveContext(context, request, response);
             log.debug("Successfully authenticated user via external bearer token");
 
             // /login has no controller on the oauth2Login() stack, so redirect

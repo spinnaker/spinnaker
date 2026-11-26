@@ -1,0 +1,2 @@
+org.springframework.security.config.annotation.web.configurers.AbstractHttpConfigurer=\
+com.netflix.spinnaker.gate.mcp.config.McpBearerChallengeConfigurer
