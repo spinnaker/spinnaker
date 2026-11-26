@@ -16,8 +16,6 @@
 
 package com.netflix.spinnaker.gate.mcp.config;
 
-import com.netflix.spinnaker.gate.mcp.security.McpBearerChallengeEntryPoint;
-import com.netflix.spinnaker.gate.mcp.security.McpBearerChallengeFilter;
 import com.netflix.spinnaker.gate.mcp.security.McpResourceUrls;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
@@ -26,10 +24,8 @@ import org.springframework.boot.context.properties.EnableConfigurationProperties
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.core.annotation.Order;
-import org.springframework.security.config.Customizer;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.web.SecurityFilterChain;
-import org.springframework.security.web.access.ExceptionTranslationFilter;
 import org.springframework.security.web.servlet.util.matcher.PathPatternRequestMatcher;
 import org.springframework.security.web.util.matcher.OrRequestMatcher;
 
@@ -61,21 +57,6 @@ public class McpOAuthConfiguration {
       McpServerProperties properties,
       @Value("${spring.ai.mcp.server.streamable-http.mcp-endpoint:/mcp}") String mcpEndpoint) {
     return new McpResourceUrls(properties.getExternalUrl(), mcpEndpoint);
-  }
-
-  /**
-   * Applied by Spring Security to every {@link HttpSecurity} it creates, so the MCP challenge is in
-   * place in whichever chain (OAuth2, SAML, x509, API token, ...) ends up handling an MCP request.
-   * See {@link McpBearerChallengeFilter} for why this is a filter rather than an entry-point
-   * mapping.
-   */
-  @Bean
-  public Customizer<HttpSecurity> mcpBearerChallengeCustomizer(McpResourceUrls urls) {
-    McpBearerChallengeFilter filter =
-        new McpBearerChallengeFilter(
-            PathPatternRequestMatcher.withDefaults().matcher(urls.mcpEndpoint()),
-            new McpBearerChallengeEntryPoint(urls));
-    return http -> http.addFilterAfter(filter, ExceptionTranslationFilter.class);
   }
 
   /**
