@@ -282,7 +282,8 @@ class Utils {
   static List<GoogleBackendService> getBackendServicesFromInternalHttpLoadBalancerView(InternalHttpLbView googleLoadBalancer) {
     List<GoogleBackendService> backendServices = [googleLoadBalancer.defaultService]
     collectBackendServicesFromHostRules(googleLoadBalancer?.hostRules, backendServices)
-    return backendServices
+    // The caching agent leaves redirect entries null.
+    return backendServices.findAll { it != null }
   }
 
   static List<GoogleBackendService> getBackendServicesFromExternalHttpLoadBalancerView(ExternalHttpLbView googleLoadBalancer) {
@@ -293,13 +294,13 @@ class Utils {
   }
 
   static void collectBackendServicesFromHostRules(List<GoogleHostRule> hostRules, List<GoogleBackendService> backendServices) {
-    List<GooglePathMatcher> pathMatchers = hostRules.collect { GoogleHostRule hostRule -> hostRule.pathMatcher }
+    List<GooglePathMatcher> pathMatchers = hostRules.collect { GoogleHostRule hostRule -> hostRule?.pathMatcher }
     pathMatchers?.each { GooglePathMatcher pathMatcher ->
-      backendServices << pathMatcher.defaultService
+      backendServices << pathMatcher?.defaultService
       pathMatcher?.pathRules?.each { GooglePathRule googlePathRule ->
-        backendServices << googlePathRule.backendService
+        backendServices << googlePathRule?.backendService
       }
-    }?.findAll { it != null }
+    }
   }
 
   static List<String> getBackendServicesFromUrlMap(UrlMap urlMap) {

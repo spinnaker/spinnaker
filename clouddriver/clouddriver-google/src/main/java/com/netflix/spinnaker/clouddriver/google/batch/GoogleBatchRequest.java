@@ -25,6 +25,7 @@ import com.google.api.services.compute.ComputeRequest;
 import com.google.common.collect.Lists;
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ExecutorService;
@@ -50,7 +51,8 @@ public class GoogleBatchRequest {
   public GoogleBatchRequest(Compute compute, String clouddriverUserAgentApplicationName) {
     this.compute = compute;
     this.clouddriverUserAgentApplicationName = clouddriverUserAgentApplicationName;
-    this.queuedRequests = new ArrayList<>();
+    // Callbacks of a stage's parallel batches queue the next stage's reads here.
+    this.queuedRequests = Collections.synchronizedList(new ArrayList<>());
   }
 
   public void execute() {
