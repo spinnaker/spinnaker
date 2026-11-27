@@ -8,16 +8,7 @@ import { AccountService } from '../../../../account';
 import { StageArtifactSelector } from '../../../../artifact';
 import { StageConfigField } from '../common';
 import type { IArtifact, IExpectedArtifact } from '../../../../domain';
-import { HelpField } from '../../../../help';
-import type { IFormInputProps } from '../../../../presentation';
-import {
-  CheckboxInput,
-  FormikFormField,
-  FormikSpelContextProvider,
-  ReactSelectInput,
-  TextInput,
-  useData,
-} from '../../../../presentation';
+import { CheckboxInput, ReactSelectInput, TextInput, useData } from '../../../../presentation';
 
 interface ICloudProviderOption {
   label: string;
@@ -53,7 +44,7 @@ export function UploadArtifactToObjectStorageStageForm(props: IFormikStageConfig
         props.formik.setFieldValue('region', '');
       }
     }
-  }, [stage.cloudProvider, stage.credentials, accountsStatus, accounts, props.formik.setFieldValue]);
+  }, [stage.cloudProvider, accountsStatus, accounts, props.formik.setFieldValue]);
 
   // Clear region when account changes
   React.useEffect(() => {
@@ -63,7 +54,7 @@ export function UploadArtifactToObjectStorageStageForm(props: IFormikStageConfig
         props.formik.setFieldValue('region', '');
       }
     }
-  }, [stage.credentials, stage.region, regionsStatus, regions, props.formik.setFieldValue]);
+  }, [stage.credentials, regionsStatus, regions, props.formik.setFieldValue]);
 
   const accountOptions: Array<Option<string>> = [
     { label: 'Select an account...', value: '', disabled: true },
@@ -88,130 +79,134 @@ export function UploadArtifactToObjectStorageStageForm(props: IFormikStageConfig
     props.formik.setFieldValue('expectedArtifactId', null);
   };
 
+  const onSelectChange = (fieldName: string) => (e: React.ChangeEvent<HTMLSelectElement>) => {
+    props.formik.setFieldValue(fieldName, e.target.value);
+  };
+
+  const onTextChange = (fieldName: string) => (e: React.ChangeEvent<HTMLInputElement>) => {
+    props.formik.setFieldValue(fieldName, e.target.value);
+  };
+
+  const onCheckboxChange = (fieldName: string) => (e: React.ChangeEvent<HTMLInputElement>) => {
+    props.formik.setFieldValue(fieldName, e.target.checked);
+  };
+
   return (
-    <FormikSpelContextProvider value={true}>
-      <div className="form-horizontal">
-        <h4>Destination Configuration</h4>
-        <FormikFormField
-          name="cloudProvider"
-          label="Cloud Provider"
-          required={true}
-          input={(inputProps: IFormInputProps) => (
-            <ReactSelectInput {...inputProps} clearable={false} options={CLOUD_PROVIDER_OPTIONS} />
-          )}
+    <div className="form-horizontal">
+      <h4>Destination Configuration</h4>
+      <StageConfigField label="Cloud Provider" fieldColumns={6}>
+        <ReactSelectInput
+          clearable={false}
+          options={CLOUD_PROVIDER_OPTIONS}
+          value={stage.cloudProvider || ''}
+          onChange={onSelectChange('cloudProvider')}
         />
+      </StageConfigField>
 
-        <FormikFormField
-          name="credentials"
-          label="Account"
-          required={true}
-          input={(inputProps: IFormInputProps) => (
-            <ReactSelectInput
-              {...inputProps}
-              clearable={false}
-              isLoading={accountsStatus === 'PENDING'}
-              options={accountOptions}
-              disabled={!stage.cloudProvider}
-            />
-          )}
+      <StageConfigField label="Account" fieldColumns={6}>
+        <ReactSelectInput
+          clearable={false}
+          isLoading={accountsStatus === 'PENDING'}
+          options={accountOptions}
+          value={stage.credentials || ''}
+          onChange={onSelectChange('credentials')}
+          disabled={!stage.cloudProvider}
         />
+      </StageConfigField>
 
-        <FormikFormField
-          name="region"
-          label="Region"
-          required={true}
-          input={(inputProps: IFormInputProps) => (
-            <ReactSelectInput
-              {...inputProps}
-              clearable={false}
-              isLoading={regionsStatus === 'PENDING'}
-              options={regionOptions}
-              disabled={!stage.credentials}
-            />
-          )}
+      <StageConfigField label="Region" fieldColumns={6}>
+        <ReactSelectInput
+          clearable={false}
+          isLoading={regionsStatus === 'PENDING'}
+          options={regionOptions}
+          value={stage.region || ''}
+          onChange={onSelectChange('region')}
+          disabled={!stage.credentials}
         />
+      </StageConfigField>
 
-        <FormikFormField
+      <StageConfigField label="Bucket" fieldColumns={6} helpKey="pipeline.config.uploadArtifactToObjectStorage.bucket">
+        <TextInput
           name="bucket"
-          label="Bucket"
-          required={true}
-          help={<HelpField content="The name of the bucket to upload to. SpEL expressions are supported." />}
-          input={(inputProps: IFormInputProps) => <TextInput {...inputProps} placeholder="my-bucket-name" />}
+          value={stage.bucket || ''}
+          onChange={onTextChange('bucket')}
+          placeholder="my-bucket-name"
         />
+      </StageConfigField>
 
-        <FormikFormField
+      <StageConfigField
+        label="Object Key Prefix"
+        fieldColumns={6}
+        helpKey="pipeline.config.uploadArtifactToObjectStorage.objectKeyPrefix"
+      >
+        <TextInput
           name="objectKeyPrefix"
-          label="Object Key Prefix"
-          required={true}
-          help={<HelpField content="The key prefix (path) for uploaded files. SpEL expressions are supported." />}
-          input={(inputProps: IFormInputProps) => <TextInput {...inputProps} placeholder="releases/latest" />}
+          value={stage.objectKeyPrefix || ''}
+          onChange={onTextChange('objectKeyPrefix')}
+          placeholder="releases/latest"
         />
+      </StageConfigField>
 
-        <FormikFormField
-          name="extractArchive"
-          label="Extract Archive"
-          help={
-            <HelpField content="Enable if the artifact is an archive that should be extracted before uploading its contents. Disable for single-file artifacts." />
-          }
-          input={(inputProps: IFormInputProps) => (
-            <CheckboxInput
-              {...inputProps}
-              text="Artifact is an archive (ZIP, TAR, TAR.GZ) — extract before upload"
-              onChange={(e: React.ChangeEvent<HTMLInputElement>) => {
-                inputProps.onChange(e);
-                if (!e.target.checked) {
-                  props.formik.setFieldValue('deleteStaleFiles', false);
-                }
-              }}
-            />
-          )}
-        />
-
-        {stage.extractArchive !== false && (
-          <FormikFormField
-            name="deleteStaleFiles"
-            label="Delete Stale Files"
-            help={
-              <HelpField content="When enabled, files in the destination that are not present in the uploaded artifact will be deleted." />
+      <StageConfigField label="Extract Archive" fieldColumns={6}>
+        <CheckboxInput
+          checked={stage.extractArchive !== false}
+          text="Artifact is an archive (ZIP, TAR, TAR.GZ) — extract before upload"
+          onChange={(e: React.ChangeEvent<HTMLInputElement>) => {
+            props.formik.setFieldValue('extractArchive', e.target.checked);
+            if (!e.target.checked) {
+              props.formik.setFieldValue('deleteStaleFiles', false);
             }
-            input={(inputProps: IFormInputProps) => (
-              <CheckboxInput {...inputProps} text="Delete stale files from destination" />
-            )}
-          />
-        )}
-
-        <FormikFormField
-          name="cacheControl"
-          label="Cache-Control"
-          help={
-            <HelpField content="Optional Cache-Control header for uploaded objects (e.g., 'max-age=31536000, public'). Applied to all files. SpEL expressions are supported." />
-          }
-          input={(inputProps: IFormInputProps) => <TextInput {...inputProps} placeholder="max-age=31536000, public" />}
+          }}
         />
+      </StageConfigField>
 
-        {stage.extractArchive === false && (
-          <FormikFormField
-            name="contentType"
-            label="Content-Type"
-            help={
-              <HelpField content="Optional Content-Type override for the uploaded file. When set, overrides auto-detection (useful for extensionless files like 'current' or 'Dockerfile'). SpEL expressions are supported." />
-            }
-            input={(inputProps: IFormInputProps) => <TextInput {...inputProps} placeholder="text/plain" />}
-          />
-        )}
-
-        <h4>Source Artifact</h4>
-        <StageConfigField label="Artifact">
-          <StageArtifactSelector
-            artifact={get(stage, 'artifact')}
-            expectedArtifactId={get(stage, 'expectedArtifactId')}
-            onArtifactEdited={setArtifact}
-            onExpectedArtifactSelected={(artifact: IExpectedArtifact) => setArtifactId(artifact.id)}
-            pipeline={props.pipeline}
-            stage={stage}
+      {stage.extractArchive !== false && (
+        <StageConfigField
+          label="Delete Stale"
+          fieldColumns={6}
+          helpKey="pipeline.config.uploadArtifactToObjectStorage.deleteStaleFiles"
+        >
+          <CheckboxInput
+            checked={!!stage.deleteStaleFiles}
+            text="Delete stale files from destination"
+            onChange={onCheckboxChange('deleteStaleFiles')}
           />
         </StageConfigField>
-      </div>
-    </FormikSpelContextProvider>
+      )}
+
+      <StageConfigField
+        label="Cache-Control"
+        fieldColumns={6}
+        helpKey="pipeline.config.uploadArtifactToObjectStorage.cacheControl"
+      >
+        <TextInput
+          value={stage.cacheControl || ''}
+          onChange={onTextChange('cacheControl')}
+          placeholder="max-age=31536000, public"
+        />
+      </StageConfigField>
+
+      {stage.extractArchive === false && (
+        <StageConfigField
+          label="Content-Type"
+          fieldColumns={6}
+          helpKey="pipeline.config.uploadArtifactToObjectStorage.contentType"
+        >
+          <TextInput value={stage.contentType || ''} onChange={onTextChange('contentType')} placeholder="text/plain" />
+        </StageConfigField>
+      )}
+
+      <h4>Source Artifact</h4>
+      <StageConfigField label="Artifact" fieldColumns={6}>
+        <StageArtifactSelector
+          artifact={get(stage, 'artifact')}
+          expectedArtifactId={get(stage, 'expectedArtifactId')}
+          onArtifactEdited={setArtifact}
+          onExpectedArtifactSelected={(artifact: IExpectedArtifact) => setArtifactId(artifact.id)}
+          pipeline={props.pipeline}
+          stage={stage}
+        />
+      </StageConfigField>
+    </div>
   );
 }

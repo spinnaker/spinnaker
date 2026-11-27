@@ -17,10 +17,19 @@ describe('<UploadArtifactToObjectStorageExecutionDetails />', () => {
     endTime: Date.now(),
     tasks: [],
     context: {
-      destinationUri: 's3://my-bucket/releases/latest/',
-      fileCount: 47,
-      totalSizeBytes: 2516582,
-      ...resultOverrides,
+      'kato.tasks': [
+        {
+          id: 'kato-task-id',
+          resultObjects: [
+            {
+              destinationUri: 's3://my-bucket/releases/latest/',
+              fileCount: 47,
+              totalSizeBytes: 2516582,
+              ...resultOverrides,
+            },
+          ],
+        },
+      ],
     },
   });
 
@@ -48,7 +57,7 @@ describe('<UploadArtifactToObjectStorageExecutionDetails />', () => {
     const props = createProps(stage);
     const { container } = render(<UploadArtifactToObjectStorageExecutionDetails {...props} />);
 
-    expect(container).toHaveTextContent('Files');
+    expect(container).toHaveTextContent('Total Files');
     expect(container).toHaveTextContent('47');
   });
 
@@ -106,8 +115,8 @@ describe('<UploadArtifactToObjectStorageExecutionDetails />', () => {
     const props = createProps(stage);
     const { container } = render(<UploadArtifactToObjectStorageExecutionDetails {...props} />);
 
-    expect(container).toHaveTextContent('Delete Stale Files');
-    expect(container).toHaveTextContent('Enabled');
+    expect(container).toHaveTextContent('Delete Stale');
+    expect(container).toHaveTextContent('Yes');
     expect(container).toHaveTextContent('Deleted');
     expect(container).toHaveTextContent('5');
   });
@@ -117,20 +126,40 @@ describe('<UploadArtifactToObjectStorageExecutionDetails />', () => {
     const props = createProps(stage);
     const { container } = render(<UploadArtifactToObjectStorageExecutionDetails {...props} />);
 
-    expect(container).toHaveTextContent('Delete Stale Files');
-    expect(container).toHaveTextContent('Disabled');
+    expect(container).toHaveTextContent('Delete Stale');
+    expect(container).toHaveTextContent('No');
   });
 
   it('should handle missing deleteStaleFiles and deletedCount gracefully', () => {
-    const stage = createStage({
-      deleteStaleFiles: undefined,
-      deletedCount: undefined,
-    });
+    const stage: IExecutionStage = {
+      id: 'stage-id',
+      name: 'Upload Artifact',
+      type: 'uploadArtifactToObjectStorage',
+      refId: '1',
+      requisiteStageRefIds: [],
+      status: 'SUCCEEDED',
+      startTime: Date.now() - 10000,
+      endTime: Date.now(),
+      tasks: [],
+      context: {
+        'kato.tasks': [
+          {
+            id: 'kato-task-id',
+            resultObjects: [
+              {
+                destinationUri: 's3://my-bucket/releases/latest/',
+                fileCount: 10,
+              },
+            ],
+          },
+        ],
+      },
+    };
     const props = createProps(stage);
     const { container } = render(<UploadArtifactToObjectStorageExecutionDetails {...props} />);
 
     expect(container).not.toBeEmptyDOMElement();
-    expect(container).not.toHaveTextContent('Delete Stale Files');
+    expect(container).not.toHaveTextContent('Delete Stale');
     expect(container).not.toHaveTextContent('Deleted');
   });
 
@@ -143,11 +172,11 @@ describe('<UploadArtifactToObjectStorageExecutionDetails />', () => {
     const { container } = render(<UploadArtifactToObjectStorageExecutionDetails {...props} />);
 
     expect(container).not.toBeEmptyDOMElement();
-    expect(container).not.toHaveTextContent('Delete Stale Files');
+    expect(container).not.toHaveTextContent('Delete Stale');
     expect(container).not.toHaveTextContent('Deleted');
   });
 
   it('should have the correct title', () => {
-    expect(UploadArtifactToObjectStorageExecutionDetails.title).toBe('uploadArtifactToObjectStorageStatus');
+    expect(UploadArtifactToObjectStorageExecutionDetails.title).toBe('uploadArtifactToObjectStorageConfig');
   });
 });

@@ -30,12 +30,8 @@ describe('core: Upload Artifact to Object Storage Stage', () => {
     cy.visit('#/applications/compute/executions/configure/upload-artifact-pipeline-id');
     cy.get('a:contains("Upload to S3")').click({ force: true });
 
-    // Verify form fields exist
-    cy.get('input[name="bucket"]').should('exist');
-    cy.get('input[name="objectKeyPrefix"]').should('exist');
-
-    // Verify pre-populated values from fixture
-    cy.get('input[name="bucket"]').should('have.value', 'my-bucket');
-    cy.get('input[name="objectKeyPrefix"]').should('have.value', 'releases/latest');
+    // Verify form fields exist with pre-populated values from fixture
+    cy.contains('.form-group', 'Bucket').find('input').should('have.value', 'my-bucket');
+    cy.contains('.form-group', 'Object Key Prefix').find('input').should('have.value', 'releases/latest');
   });
 });

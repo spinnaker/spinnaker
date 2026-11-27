@@ -600,6 +600,11 @@ const helpContents: { [key: string]: string } = {
   'pipeline.config.codebuild.secondarySourceVersion': `Version of secondary source identifier to use. Required if specifying a source identifier.`,
   'pipeline.config.codebuild.image': `(Optional) Image in which the build will run. It can be overridden by specifying the name of the image. If not specified, image configured in CodeBuild project will be used.`,
   'pipeline.config.codebuild.envVar': `(Optional) Environment variables that will be propagated into the build.`,
+  'pipeline.config.uploadArtifactToObjectStorage.bucket': `The name of the bucket to upload to. SpEL expressions are supported.`,
+  'pipeline.config.uploadArtifactToObjectStorage.objectKeyPrefix': `The key prefix (path) for uploaded files. SpEL expressions are supported.`,
+  'pipeline.config.uploadArtifactToObjectStorage.deleteStaleFiles': `When enabled, files in the destination that are not present in the uploaded artifact will be deleted.`,
+  'pipeline.config.uploadArtifactToObjectStorage.cacheControl': `Optional Cache-Control header for uploaded objects (e.g., 'max-age=31536000, public'). Applied to all files. SpEL expressions are supported.`,
+  'pipeline.config.uploadArtifactToObjectStorage.contentType': `Optional Content-Type override for the uploaded file. When set, overrides auto-detection (useful for extensionless files like 'current' or 'Dockerfile'). SpEL expressions are supported.`,
 };
 
 Object.keys(helpContents).forEach((key) => HelpContentsRegistry.register(key, helpContents[key]));
