@@ -72,4 +72,10 @@ public class UploadArtifactToS3Description extends AbstractAmazonCredentialsDesc
    * is used.
    */
   private String contentType;
+
+  /** Uploads are restricted by account; S3 keys do not identify a Spinnaker application. */
+  @Override
+  public boolean requiresApplicationRestriction() {
+    return false;
+  }
 }
