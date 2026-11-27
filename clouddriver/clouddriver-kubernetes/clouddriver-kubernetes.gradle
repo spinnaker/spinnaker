@@ -109,6 +109,14 @@ dependencies {
   testImplementation "org.apache.groovy:groovy-templates"
   testImplementation "com.squareup.retrofit2:retrofit-mock"
 
+  // ManifestControllerAuthorizationTest: runs ManifestController through Spring MVC and method
+  // security with a real Fiat permission evaluator.
+  testImplementation "io.spinnaker.fiat:fiat-api"
+  testImplementation "io.spinnaker.kork:kork-web"
+  testImplementation "org.springframework.boot:spring-boot-starter-test"
+  testImplementation "org.springframework.boot:spring-boot-starter-webmvc-test"
+  testImplementation "org.springframework.security:spring-security-test"
+
   // Real-SQL-cache-backed test coverage (KubernetesCachingAgentSqlIntegrationTest): runs the
   // caching agent against a real SqlCache/SqlProviderCache backed by a MySQL testcontainer, the
   // same way cats-sql's own MySqlCacheSpec/MySqlProviderCacheSpec do.

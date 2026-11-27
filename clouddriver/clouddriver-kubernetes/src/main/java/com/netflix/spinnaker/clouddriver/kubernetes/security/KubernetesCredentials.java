@@ -453,38 +453,38 @@ public class KubernetesCredentials {
         () -> jobExecutor.get(this, coords.getKind(), coords.getNamespace(), coords.getName()));
   }
 
+  /**
+   * List resources of the given kinds in the given namespace, filtered by the given selectors.
+   *
+   * @param kinds list of Kubernetes kinds
+   * @param namespace kubernetes namespace
+   * @param selectors label selectors
+   * @return list of KubernetesManifest
+   */
+  @Nonnull
+  public ImmutableList<KubernetesManifest> list(
+      List<KubernetesKind> kinds, String namespace, KubernetesSelectorList selectors) {
+    if (kinds.isEmpty()) {
+      return ImmutableList.of();
+    }
+    return runAndRecordMetrics(
+        "list", kinds, namespace, () -> jobExecutor.list(this, kinds, namespace, selectors));
+  }
+
   @Nonnull
   public ImmutableList<KubernetesManifest> list(KubernetesKind kind, String namespace) {
-    return runAndRecordMetrics(
-        "list",
-        kind,
-        namespace,
-        () ->
-            jobExecutor.list(
-                this, ImmutableList.of(kind), namespace, new KubernetesSelectorList()));
+    return list(ImmutableList.of(kind), namespace, new KubernetesSelectorList());
   }
 
   @Nonnull
   public ImmutableList<KubernetesManifest> list(
       KubernetesKind kind, String namespace, KubernetesSelectorList selectors) {
-    return runAndRecordMetrics(
-        "list",
-        kind,
-        namespace,
-        () -> jobExecutor.list(this, ImmutableList.of(kind), namespace, selectors));
+    return list(ImmutableList.of(kind), namespace, selectors);
   }
 
   @Nonnull
   public ImmutableList<KubernetesManifest> list(List<KubernetesKind> kinds, String namespace) {
-    if (kinds.isEmpty()) {
-      return ImmutableList.of();
-    } else {
-      return runAndRecordMetrics(
-          "list",
-          kinds,
-          namespace,
-          () -> jobExecutor.list(this, kinds, namespace, new KubernetesSelectorList()));
-    }
+    return list(kinds, namespace, new KubernetesSelectorList());
   }
 
   /**
