@@ -56,11 +56,12 @@ describe('<UploadArtifactToObjectStorageExecutionDetails />', () => {
     expect(component.find('code').text()).toContain('s3://my-bucket/releases/latest/');
   });
 
-  it('should display the file count', () => {
+  it('should display the total file count', () => {
     const stage = createStage();
     const props = createProps(stage);
     const component = mount(<UploadArtifactToObjectStorageExecutionDetails {...props} />);
 
+    expect(component.text()).toContain('Total Files');
     expect(component.text()).toContain('47');
   });
 
@@ -176,6 +177,44 @@ describe('<UploadArtifactToObjectStorageExecutionDetails />', () => {
     expect(component.exists()).toBe(true);
     expect(component.text()).not.toContain('Delete Stale');
     expect(component.text()).not.toContain('Deleted');
+  });
+
+  it('should display uploaded and skipped counts when sync data is present', () => {
+    const stage = createStage({ uploadCount: 12, skippedCount: 35, fileCount: 47 });
+    const props = createProps(stage);
+    const component = mount(<UploadArtifactToObjectStorageExecutionDetails {...props} />);
+
+    expect(component.text()).toContain('Uploaded');
+    expect(component.text()).toContain('12');
+    expect(component.text()).toContain('Skipped');
+    expect(component.text()).toContain('35');
+    expect(component.text()).toContain('Total Files');
+    expect(component.text()).toContain('47');
+  });
+
+  it('should display uploaded count without skipped when skippedCount is absent', () => {
+    const stage = createStage({ uploadCount: 47, fileCount: 47 });
+    const props = createProps(stage);
+    const component = mount(<UploadArtifactToObjectStorageExecutionDetails {...props} />);
+
+    expect(component.text()).toContain('Uploaded');
+    expect(component.text()).toContain('47');
+    expect(component.text()).not.toContain('Skipped');
+  });
+
+  it('should display zero uploaded and all skipped when nothing changed', () => {
+    const stage = createStage({ uploadCount: 0, skippedCount: 100, fileCount: 100 });
+    const props = createProps(stage);
+    const component = mount(<UploadArtifactToObjectStorageExecutionDetails {...props} />);
+
+    const text = component.text();
+    expect(text).toContain('Uploaded');
+    expect(text).toContain('Skipped');
+
+    const dts = component.find('dt');
+    const dds = component.find('dd');
+    const uploadedIndex = dts.map((dt) => dt.text()).indexOf('Uploaded');
+    expect(dds.at(uploadedIndex).text()).toBe('0');
   });
 
   it('should have the correct title', () => {

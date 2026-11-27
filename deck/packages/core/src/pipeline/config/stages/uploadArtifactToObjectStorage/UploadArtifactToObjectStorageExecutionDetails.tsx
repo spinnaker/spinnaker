@@ -37,6 +37,8 @@ export class UploadArtifactToObjectStorageExecutionDetails extends React.Compone
     const result = this.getResultObject();
     const destinationUri: string = result.destinationUri;
     const fileCount: number = result.fileCount;
+    const uploadCount: number | undefined = result.uploadCount;
+    const skippedCount: number | undefined = result.skippedCount;
     const totalSizeBytes: number = result.totalSizeBytes;
     const extractArchive: boolean = get(stage, 'context.extractArchive', true);
     const deleteStaleFiles: boolean | undefined = result.deleteStaleFiles;
@@ -77,9 +79,21 @@ export class UploadArtifactToObjectStorageExecutionDetails extends React.Compone
                   <dd>{deletedCount}</dd>
                 </>
               )}
+              {uploadCount !== undefined && uploadCount !== null && (
+                <>
+                  <dt>Uploaded</dt>
+                  <dd>{uploadCount}</dd>
+                </>
+              )}
+              {skippedCount !== undefined && skippedCount !== null && (
+                <>
+                  <dt>Skipped</dt>
+                  <dd>{skippedCount}</dd>
+                </>
+              )}
               {fileCount !== undefined && fileCount !== null && (
                 <>
-                  <dt>Files</dt>
+                  <dt>Total Files</dt>
                   <dd>{fileCount}</dd>
                 </>
               )}
