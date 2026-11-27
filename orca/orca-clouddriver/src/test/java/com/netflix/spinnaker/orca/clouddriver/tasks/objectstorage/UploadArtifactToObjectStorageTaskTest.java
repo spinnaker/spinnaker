@@ -292,6 +292,142 @@ class UploadArtifactToObjectStorageTaskTest {
     assertThat(operationDetails.get("extractArchive")).isEqualTo(true);
   }
 
+  @Test
+  void shouldPassCacheControlWhenPresentInContext() {
+    // Given
+    Artifact resolvedArtifact = Artifact.builder().name("app.zip").build();
+
+    when(artifactUtils.getBoundArtifactForStage(any(), eq(ARTIFACT_ID), any()))
+        .thenReturn(resolvedArtifact);
+    when(katoService.requestOperations(anyString(), any())).thenReturn(new TaskId("kato-task-123"));
+
+    Map<String, Object> context = createStageContext();
+    context.put("cacheControl", "max-age=31536000, public");
+    StageExecutionImpl stage = createStage(context);
+
+    // When
+    TaskResult result = task.execute(stage);
+
+    // Then
+    AssertionsForClassTypes.assertThat(result.getStatus()).isEqualTo(ExecutionStatus.SUCCEEDED);
+
+    Map<String, Object> operationDetails = captureOperationDetails(CLOUD_PROVIDER);
+    assertThat(operationDetails.get("cacheControl")).isEqualTo("max-age=31536000, public");
+  }
+
+  @Test
+  void shouldNotIncludeCacheControlWhenAbsentFromContext() {
+    // Given
+    Artifact resolvedArtifact = Artifact.builder().name("app.zip").build();
+
+    when(artifactUtils.getBoundArtifactForStage(any(), eq(ARTIFACT_ID), any()))
+        .thenReturn(resolvedArtifact);
+    when(katoService.requestOperations(anyString(), any())).thenReturn(new TaskId("kato-task-123"));
+
+    Map<String, Object> context = createStageContext();
+    StageExecutionImpl stage = createStage(context);
+
+    // When
+    TaskResult result = task.execute(stage);
+
+    // Then
+    AssertionsForClassTypes.assertThat(result.getStatus()).isEqualTo(ExecutionStatus.SUCCEEDED);
+
+    Map<String, Object> operationDetails = captureOperationDetails(CLOUD_PROVIDER);
+    assertThat(operationDetails).doesNotContainKey("cacheControl");
+  }
+
+  @Test
+  void shouldNotIncludeCacheControlWhenBlankInContext() {
+    // Given
+    Artifact resolvedArtifact = Artifact.builder().name("app.zip").build();
+
+    when(artifactUtils.getBoundArtifactForStage(any(), eq(ARTIFACT_ID), any()))
+        .thenReturn(resolvedArtifact);
+    when(katoService.requestOperations(anyString(), any())).thenReturn(new TaskId("kato-task-123"));
+
+    Map<String, Object> context = createStageContext();
+    context.put("cacheControl", "   ");
+    StageExecutionImpl stage = createStage(context);
+
+    // When
+    TaskResult result = task.execute(stage);
+
+    // Then
+    AssertionsForClassTypes.assertThat(result.getStatus()).isEqualTo(ExecutionStatus.SUCCEEDED);
+
+    Map<String, Object> operationDetails = captureOperationDetails(CLOUD_PROVIDER);
+    assertThat(operationDetails).doesNotContainKey("cacheControl");
+  }
+
+  @Test
+  void shouldPassContentTypeWhenPresentInContext() {
+    // Given
+    Artifact resolvedArtifact = Artifact.builder().name("current").build();
+
+    when(artifactUtils.getBoundArtifactForStage(any(), eq(ARTIFACT_ID), any()))
+        .thenReturn(resolvedArtifact);
+    when(katoService.requestOperations(anyString(), any())).thenReturn(new TaskId("kato-task-123"));
+
+    Map<String, Object> context = createStageContext();
+    context.put("contentType", "text/plain");
+    StageExecutionImpl stage = createStage(context);
+
+    // When
+    TaskResult result = task.execute(stage);
+
+    // Then
+    AssertionsForClassTypes.assertThat(result.getStatus()).isEqualTo(ExecutionStatus.SUCCEEDED);
+
+    Map<String, Object> operationDetails = captureOperationDetails(CLOUD_PROVIDER);
+    assertThat(operationDetails.get("contentType")).isEqualTo("text/plain");
+  }
+
+  @Test
+  void shouldNotIncludeContentTypeWhenAbsentFromContext() {
+    // Given
+    Artifact resolvedArtifact = Artifact.builder().name("app.zip").build();
+
+    when(artifactUtils.getBoundArtifactForStage(any(), eq(ARTIFACT_ID), any()))
+        .thenReturn(resolvedArtifact);
+    when(katoService.requestOperations(anyString(), any())).thenReturn(new TaskId("kato-task-123"));
+
+    Map<String, Object> context = createStageContext();
+    StageExecutionImpl stage = createStage(context);
+
+    // When
+    TaskResult result = task.execute(stage);
+
+    // Then
+    AssertionsForClassTypes.assertThat(result.getStatus()).isEqualTo(ExecutionStatus.SUCCEEDED);
+
+    Map<String, Object> operationDetails = captureOperationDetails(CLOUD_PROVIDER);
+    assertThat(operationDetails).doesNotContainKey("contentType");
+  }
+
+  @Test
+  void shouldNotIncludeContentTypeWhenBlankInContext() {
+    // Given
+    Artifact resolvedArtifact = Artifact.builder().name("app.zip").build();
+
+    when(artifactUtils.getBoundArtifactForStage(any(), eq(ARTIFACT_ID), any()))
+        .thenReturn(resolvedArtifact);
+    when(katoService.requestOperations(anyString(), any())).thenReturn(new TaskId("kato-task-123"));
+
+    Map<String, Object> context = createStageContext();
+    context.put("contentType", "   ");
+    StageExecutionImpl stage = createStage(context);
+
+    // When
+    TaskResult result = task.execute(stage);
+
+    // Then
+    AssertionsForClassTypes.assertThat(result.getStatus()).isEqualTo(ExecutionStatus.SUCCEEDED);
+
+    Map<String, Object> operationDetails = captureOperationDetails(CLOUD_PROVIDER);
+    assertThat(operationDetails).doesNotContainKey("contentType");
+  }
+
   private Map<String, Object> createStageContext() {
     Map<String, Object> context = new HashMap<>();
     context.put("cloudProvider", CLOUD_PROVIDER);

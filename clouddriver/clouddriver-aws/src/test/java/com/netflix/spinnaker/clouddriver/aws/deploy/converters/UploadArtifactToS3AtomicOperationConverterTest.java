@@ -125,4 +125,58 @@ class UploadArtifactToS3AtomicOperationConverterTest {
 
     assertTrue(description.isDeleteStaleFiles());
   }
+
+  @Test
+  void shouldConvertCacheControlField() {
+    Map<String, Object> input = new HashMap<>();
+    input.put("region", "us-west-2");
+    input.put("bucket", "my-bucket");
+    input.put("credentials", "test-account");
+    input.put("cacheControl", "max-age=31536000, public");
+    input.put("artifact", Map.of("type", "http/file", "reference", "https://example.com/test.zip"));
+
+    UploadArtifactToS3Description description = converter.convertDescription(input);
+
+    assertEquals("max-age=31536000, public", description.getCacheControl());
+  }
+
+  @Test
+  void shouldDefaultCacheControlToNull() {
+    Map<String, Object> input = new HashMap<>();
+    input.put("region", "us-west-2");
+    input.put("bucket", "my-bucket");
+    input.put("credentials", "test-account");
+    input.put("artifact", Map.of("type", "http/file", "reference", "https://example.com/test.zip"));
+
+    UploadArtifactToS3Description description = converter.convertDescription(input);
+
+    assertNull(description.getCacheControl());
+  }
+
+  @Test
+  void shouldConvertContentTypeField() {
+    Map<String, Object> input = new HashMap<>();
+    input.put("region", "us-west-2");
+    input.put("bucket", "my-bucket");
+    input.put("credentials", "test-account");
+    input.put("contentType", "text/plain");
+    input.put("artifact", Map.of("type", "http/file", "reference", "https://example.com/current"));
+
+    UploadArtifactToS3Description description = converter.convertDescription(input);
+
+    assertEquals("text/plain", description.getContentType());
+  }
+
+  @Test
+  void shouldDefaultContentTypeToNull() {
+    Map<String, Object> input = new HashMap<>();
+    input.put("region", "us-west-2");
+    input.put("bucket", "my-bucket");
+    input.put("credentials", "test-account");
+    input.put("artifact", Map.of("type", "http/file", "reference", "https://example.com/test.zip"));
+
+    UploadArtifactToS3Description description = converter.convertDescription(input);
+
+    assertNull(description.getContentType());
+  }
 }

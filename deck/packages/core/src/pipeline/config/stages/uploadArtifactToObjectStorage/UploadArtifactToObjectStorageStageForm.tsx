@@ -180,6 +180,26 @@ export function UploadArtifactToObjectStorageStageForm(props: IFormikStageConfig
           />
         )}
 
+        <FormikFormField
+          name="cacheControl"
+          label="Cache-Control"
+          help={
+            <HelpField content="Optional Cache-Control header for uploaded objects (e.g., 'max-age=31536000, public'). Applied to all files. SpEL expressions are supported." />
+          }
+          input={(inputProps: IFormInputProps) => <TextInput {...inputProps} placeholder="max-age=31536000, public" />}
+        />
+
+        {stage.extractArchive === false && (
+          <FormikFormField
+            name="contentType"
+            label="Content-Type"
+            help={
+              <HelpField content="Optional Content-Type override for the uploaded file. When set, overrides auto-detection (useful for extensionless files like 'current' or 'Dockerfile'). SpEL expressions are supported." />
+            }
+            input={(inputProps: IFormInputProps) => <TextInput {...inputProps} placeholder="text/plain" />}
+          />
+        )}
+
         <h4>Source Artifact</h4>
         <StageConfigField label="Artifact">
           <StageArtifactSelector

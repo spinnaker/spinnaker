@@ -486,6 +486,168 @@ class UploadArtifactToS3IT {
     assertEquals(fileContent, actualContent);
   }
 
+  @Test
+  void shouldSetContentTypeOnUploadedFiles() throws Exception {
+    byte[] zipContent =
+        createTestZip(
+            new String[] {"index.html", "style.css", "app.js", "data.unknown"},
+            new String[] {"<html/>", "body{}", "var x=1;", "binary"});
+
+    Artifact artifact =
+        Artifact.builder().type("embedded/base64").name("site.zip").reference("site.zip").build();
+
+    ArtifactDownloader artifactDownloader = Mockito.mock(ArtifactDownloader.class);
+    Mockito.when(artifactDownloader.download(Mockito.any(Artifact.class)))
+        .thenReturn(new ByteArrayInputStream(zipContent));
+
+    AmazonClientProvider amazonClientProvider = Mockito.mock(AmazonClientProvider.class);
+    Mockito.when(
+            amazonClientProvider.getAmazonS3V2(
+                Mockito.any(NetflixAmazonCredentials.class), Mockito.anyString()))
+        .thenReturn(amazonS3);
+
+    UploadArtifactToS3Description description = new UploadArtifactToS3Description();
+    description.setRegion("us-east-1");
+    description.setBucket(BUCKET_NAME);
+    description.setObjectKeyPrefix("site");
+    description.setArtifact(artifact);
+    description.setCredentials(TestCredential.named("test"));
+
+    UploadArtifactToS3AtomicOperation operation =
+        new UploadArtifactToS3AtomicOperation(
+            description, amazonClientProvider, artifactDownloader);
+
+    operation.operate(Collections.emptyList());
+
+    var htmlMeta = amazonS3.headObject(b -> b.bucket(BUCKET_NAME).key("site/index.html"));
+    assertEquals("text/html", htmlMeta.contentType());
+
+    var unknownMeta = amazonS3.headObject(b -> b.bucket(BUCKET_NAME).key("site/data.unknown"));
+    assertEquals("application/octet-stream", unknownMeta.contentType());
+  }
+
+  @Test
+  void shouldSetCacheControlOnUploadedFiles() throws Exception {
+    byte[] zipContent =
+        createTestZip(new String[] {"index.html", "app.js"}, new String[] {"<html/>", "var x=1;"});
+
+    Artifact artifact =
+        Artifact.builder().type("embedded/base64").name("site.zip").reference("site.zip").build();
+
+    ArtifactDownloader artifactDownloader = Mockito.mock(ArtifactDownloader.class);
+    Mockito.when(artifactDownloader.download(Mockito.any(Artifact.class)))
+        .thenReturn(new ByteArrayInputStream(zipContent));
+
+    AmazonClientProvider amazonClientProvider = Mockito.mock(AmazonClientProvider.class);
+    Mockito.when(
+            amazonClientProvider.getAmazonS3V2(
+                Mockito.any(NetflixAmazonCredentials.class), Mockito.anyString()))
+        .thenReturn(amazonS3);
+
+    UploadArtifactToS3Description description = new UploadArtifactToS3Description();
+    description.setRegion("us-east-1");
+    description.setBucket(BUCKET_NAME);
+    description.setObjectKeyPrefix("site");
+    description.setArtifact(artifact);
+    description.setCacheControl("max-age=31536000, public");
+    description.setCredentials(TestCredential.named("test"));
+
+    UploadArtifactToS3AtomicOperation operation =
+        new UploadArtifactToS3AtomicOperation(
+            description, amazonClientProvider, artifactDownloader);
+
+    operation.operate(Collections.emptyList());
+
+    var htmlMeta = amazonS3.headObject(b -> b.bucket(BUCKET_NAME).key("site/index.html"));
+    assertEquals("max-age=31536000, public", htmlMeta.cacheControl());
+
+    var jsMeta = amazonS3.headObject(b -> b.bucket(BUCKET_NAME).key("site/app.js"));
+    assertEquals("max-age=31536000, public", jsMeta.cacheControl());
+  }
+
+  @Test
+  void shouldSetContentTypeOnSingleFileUpload() throws Exception {
+    String fileContent = "<html><body>Hello</body></html>";
+
+    Artifact artifact =
+        Artifact.builder()
+            .type("embedded/base64")
+            .name("index.html")
+            .reference("index.html")
+            .build();
+
+    ArtifactDownloader artifactDownloader = Mockito.mock(ArtifactDownloader.class);
+    Mockito.when(artifactDownloader.download(Mockito.any(Artifact.class)))
+        .thenReturn(new ByteArrayInputStream(fileContent.getBytes(StandardCharsets.UTF_8)));
+
+    AmazonClientProvider amazonClientProvider = Mockito.mock(AmazonClientProvider.class);
+    Mockito.when(
+            amazonClientProvider.getAmazonS3V2(
+                Mockito.any(NetflixAmazonCredentials.class), Mockito.anyString()))
+        .thenReturn(amazonS3);
+
+    UploadArtifactToS3Description description = new UploadArtifactToS3Description();
+    description.setRegion("us-east-1");
+    description.setBucket(BUCKET_NAME);
+    description.setObjectKeyPrefix("pages");
+    description.setArtifact(artifact);
+    description.setExtractArchive(false);
+    description.setCacheControl("no-cache");
+    description.setCredentials(TestCredential.named("test"));
+
+    UploadArtifactToS3AtomicOperation operation =
+        new UploadArtifactToS3AtomicOperation(
+            description, amazonClientProvider, artifactDownloader);
+
+    operation.operate(Collections.emptyList());
+
+    var meta = amazonS3.headObject(b -> b.bucket(BUCKET_NAME).key("pages/index.html"));
+    assertEquals("text/html", meta.contentType());
+    assertEquals("no-cache", meta.cacheControl());
+  }
+
+  @Test
+  void shouldUseContentTypeOverrideOnSingleFileUpload() throws Exception {
+    String fileContent = "v1.2.3";
+
+    Artifact artifact =
+        Artifact.builder().type("embedded/base64").name("current").reference("current").build();
+
+    ArtifactDownloader artifactDownloader = Mockito.mock(ArtifactDownloader.class);
+    Mockito.when(artifactDownloader.download(Mockito.any(Artifact.class)))
+        .thenReturn(new ByteArrayInputStream(fileContent.getBytes(StandardCharsets.UTF_8)));
+
+    AmazonClientProvider amazonClientProvider = Mockito.mock(AmazonClientProvider.class);
+    Mockito.when(
+            amazonClientProvider.getAmazonS3V2(
+                Mockito.any(NetflixAmazonCredentials.class), Mockito.anyString()))
+        .thenReturn(amazonS3);
+
+    UploadArtifactToS3Description description = new UploadArtifactToS3Description();
+    description.setRegion("us-east-1");
+    description.setBucket(BUCKET_NAME);
+    description.setObjectKeyPrefix("versions");
+    description.setArtifact(artifact);
+    description.setExtractArchive(false);
+    description.setContentType("text/plain");
+    description.setCredentials(TestCredential.named("test"));
+
+    UploadArtifactToS3AtomicOperation operation =
+        new UploadArtifactToS3AtomicOperation(
+            description, amazonClientProvider, artifactDownloader);
+
+    Map<String, Object> result = operation.operate(Collections.emptyList());
+
+    assertEquals("s3://test-upload-bucket/versions/current", result.get("destinationUri"));
+    assertEquals(1, result.get("fileCount"));
+
+    var meta = amazonS3.headObject(b -> b.bucket(BUCKET_NAME).key("versions/current"));
+    assertEquals("text/plain", meta.contentType());
+
+    String actualContent = getObjectAsString("versions/current");
+    assertEquals(fileContent, actualContent);
+  }
+
   private byte[] createTestZip(String[] paths, String[] contents) throws IOException {
     ByteArrayOutputStream baos = new ByteArrayOutputStream();
     try (ZipOutputStream zos = new ZipOutputStream(baos)) {

@@ -58,4 +58,34 @@ class UploadArtifactToS3DescriptionTest {
 
     assertTrue(description.isDeleteStaleFiles());
   }
+
+  @Test
+  void shouldHaveDefaultCacheControlNull() {
+    UploadArtifactToS3Description description = new UploadArtifactToS3Description();
+
+    assertNull(description.getCacheControl());
+  }
+
+  @Test
+  void shouldSetCacheControl() {
+    UploadArtifactToS3Description description = new UploadArtifactToS3Description();
+    description.setCacheControl("max-age=31536000, public");
+
+    assertEquals("max-age=31536000, public", description.getCacheControl());
+  }
+
+  @Test
+  void shouldHaveDefaultContentTypeNull() {
+    UploadArtifactToS3Description description = new UploadArtifactToS3Description();
+
+    assertNull(description.getContentType());
+  }
+
+  @Test
+  void shouldSetContentType() {
+    UploadArtifactToS3Description description = new UploadArtifactToS3Description();
+    description.setContentType("text/plain");
+
+    assertEquals("text/plain", description.getContentType());
+  }
 }
