@@ -114,6 +114,9 @@ public final class AtomicOperations {
   public static final String DELETE_CLOUDFORMATION_CHANGESET = "deleteCloudFormationChangeSet";
   public static final String EXECUTE_CLOUDFORMATION_CHANGESET = "executeCloudFormationChangeSet";
 
+  // Object storage operations
+  public static final String UPLOAD_ARTIFACT_TO_OBJECT_STORAGE = "uploadArtifactToObjectStorage";
+
   // Launch Config operations
   public static final String DELETE_LAUNCH_CONFIGURATION = "deleteLaunchConfiguration";
 
