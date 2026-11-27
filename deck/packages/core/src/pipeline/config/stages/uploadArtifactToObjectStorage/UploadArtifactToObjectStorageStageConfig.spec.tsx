@@ -1,19 +1,14 @@
-import { mock } from 'angular';
-import { mount } from 'enzyme';
+import { render, screen } from '@testing-library/react';
 import React from 'react';
 
 import { ApplicationModelBuilder } from '../../../../application';
 import { AccountService } from '../../../../account';
 import type { IPipeline, IStage } from '../../../../domain';
-import { REACT_MODULE } from '../../../../reactShims';
 import { UploadArtifactToObjectStorageStageConfig } from './UploadArtifactToObjectStorageStageConfig';
 
 describe('<UploadArtifactToObjectStorageStageConfig />', () => {
-  beforeEach(mock.module(REACT_MODULE));
-  beforeEach(mock.inject());
-
   beforeEach(() => {
-    spyOn(AccountService, 'getAllAccountDetailsForProvider').and.returnValue(
+    vi.spyOn(AccountService, 'getAllAccountDetailsForProvider').mockReturnValue(
       Promise.resolve([
         {
           name: 'my-aws-account',
@@ -23,10 +18,10 @@ describe('<UploadArtifactToObjectStorageStageConfig />', () => {
         },
       ]),
     );
-    spyOn(AccountService, 'getRegionsForAccount').and.returnValue(
+    vi.spyOn(AccountService, 'getRegionsForAccount').mockReturnValue(
       Promise.resolve([{ name: 'us-east-1' }, { name: 'us-west-2' }]),
     );
-    spyOn(AccountService, 'getArtifactAccounts').and.returnValue(Promise.resolve([]));
+    vi.spyOn(AccountService, 'getArtifactAccounts').mockReturnValue(Promise.resolve([]));
   });
 
   const createProps = (stageOverrides: Partial<IStage> = {}) => {
@@ -53,27 +48,22 @@ describe('<UploadArtifactToObjectStorageStageConfig />', () => {
       application: ApplicationModelBuilder.createApplicationForTests('my-application'),
       pipeline,
       stage,
-      stageFieldUpdated: jasmine.createSpy('stageFieldUpdated'),
-      updateStage: jasmine.createSpy('updateStage'),
-      updateStageField: jasmine.createSpy('updateStageField'),
+      stageFieldUpdated: vi.fn(),
+      updateStage: vi.fn(),
+      updateStageField: vi.fn(),
     };
   };
 
   it('should render the form', () => {
     const props = createProps();
-    const component = mount(<UploadArtifactToObjectStorageStageConfig {...props} />);
-    expect(component.find('.form-horizontal').length).toBeGreaterThanOrEqual(0);
+    const { container } = render(<UploadArtifactToObjectStorageStageConfig {...props} />);
+    expect(container.querySelector('.form-horizontal')).toBeInTheDocument();
   });
 
   it('should default cloudProvider to aws', async () => {
     const props = createProps();
-    const component = mount(<UploadArtifactToObjectStorageStageConfig {...props} />);
-
-    await new Promise((resolve) => setTimeout(resolve));
-    component.update();
-
-    const formikValues = component.find('UploadArtifactToObjectStorageStageForm').props();
-    expect(formikValues).toBeDefined();
+    render(<UploadArtifactToObjectStorageStageConfig {...props} />);
+    expect(await screen.findByText('AWS S3')).toBeVisible();
   });
 
   it('should preserve existing stage values', async () => {
@@ -82,13 +72,13 @@ describe('<UploadArtifactToObjectStorageStageConfig />', () => {
       credentials: 'my-aws-account',
       region: 'us-east-1',
       bucket: 'my-bucket',
-      objectKey: 'releases/latest',
+      objectKeyPrefix: 'releases/latest',
     });
-    const component = mount(<UploadArtifactToObjectStorageStageConfig {...props} />);
-
-    await new Promise((resolve) => setTimeout(resolve));
-    component.update();
-
-    expect(component.find('.form-horizontal').length).toBeGreaterThanOrEqual(0);
+    const { container } = render(<UploadArtifactToObjectStorageStageConfig {...props} />);
+    expect(container.querySelector('input[name="bucket"]')).toHaveValue('my-bucket');
+    expect(container.querySelector('input[name="objectKeyPrefix"]')).toHaveValue('releases/latest');
+    expect(await screen.findByText('my-aws-account')).toBeVisible();
+    expect(await screen.findByText('us-east-1')).toBeVisible();
   });
+
 });
