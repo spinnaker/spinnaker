@@ -10,7 +10,7 @@ describe('<UploadArtifactToObjectStorageExecutionDetails />', () => {
   beforeEach(mock.module(REACT_MODULE));
   beforeEach(mock.inject());
 
-  const createStage = (contextOverrides: Record<string, any> = {}): IExecutionStage => ({
+  const createStage = (resultOverrides: Record<string, any> = {}): IExecutionStage => ({
     id: 'stage-id',
     name: 'Upload Artifact',
     type: 'uploadArtifactToObjectStorage',
@@ -21,10 +21,19 @@ describe('<UploadArtifactToObjectStorageExecutionDetails />', () => {
     endTime: Date.now(),
     tasks: [],
     context: {
-      destinationUri: 's3://my-bucket/releases/latest/',
-      fileCount: 47,
-      totalSizeBytes: 2516582,
-      ...contextOverrides,
+      'kato.tasks': [
+        {
+          id: 'kato-task-id',
+          resultObjects: [
+            {
+              destinationUri: 's3://my-bucket/releases/latest/',
+              fileCount: 47,
+              totalSizeBytes: 2516582,
+              ...resultOverrides,
+            },
+          ],
+        },
+      ],
     },
   });
 
@@ -72,11 +81,18 @@ describe('<UploadArtifactToObjectStorageExecutionDetails />', () => {
   });
 
   it('should handle missing data gracefully', () => {
-    const stage = createStage({
-      destinationUri: undefined,
-      fileCount: undefined,
-      totalSizeBytes: undefined,
-    });
+    const stage: IExecutionStage = {
+      id: 'stage-id',
+      name: 'Upload Artifact',
+      type: 'uploadArtifactToObjectStorage',
+      refId: '1',
+      requisiteStageRefIds: [],
+      status: 'RUNNING',
+      startTime: Date.now() - 10000,
+      endTime: Date.now(),
+      tasks: [],
+      context: {},
+    };
     const props = createProps(stage);
     const component = mount(<UploadArtifactToObjectStorageExecutionDetails {...props} />);
 
@@ -101,8 +117,8 @@ describe('<UploadArtifactToObjectStorageExecutionDetails />', () => {
     const props = createProps(stage);
     const component = mount(<UploadArtifactToObjectStorageExecutionDetails {...props} />);
 
-    expect(component.text()).toContain('Delete Stale Files');
-    expect(component.text()).toContain('Enabled');
+    expect(component.text()).toContain('Delete Stale');
+    expect(component.text()).toContain('Yes');
     expect(component.text()).toContain('Deleted');
     expect(component.text()).toContain('5');
   });
@@ -112,20 +128,40 @@ describe('<UploadArtifactToObjectStorageExecutionDetails />', () => {
     const props = createProps(stage);
     const component = mount(<UploadArtifactToObjectStorageExecutionDetails {...props} />);
 
-    expect(component.text()).toContain('Delete Stale Files');
-    expect(component.text()).toContain('Disabled');
+    expect(component.text()).toContain('Delete Stale');
+    expect(component.text()).toContain('No');
   });
 
   it('should handle missing deleteStaleFiles and deletedCount gracefully', () => {
-    const stage = createStage({
-      deleteStaleFiles: undefined,
-      deletedCount: undefined,
-    });
+    const stage: IExecutionStage = {
+      id: 'stage-id',
+      name: 'Upload Artifact',
+      type: 'uploadArtifactToObjectStorage',
+      refId: '1',
+      requisiteStageRefIds: [],
+      status: 'SUCCEEDED',
+      startTime: Date.now() - 10000,
+      endTime: Date.now(),
+      tasks: [],
+      context: {
+        'kato.tasks': [
+          {
+            id: 'kato-task-id',
+            resultObjects: [
+              {
+                destinationUri: 's3://my-bucket/releases/latest/',
+                fileCount: 10,
+              },
+            ],
+          },
+        ],
+      },
+    };
     const props = createProps(stage);
     const component = mount(<UploadArtifactToObjectStorageExecutionDetails {...props} />);
 
     expect(component.exists()).toBe(true);
-    expect(component.text()).not.toContain('Delete Stale Files');
+    expect(component.text()).not.toContain('Delete Stale');
     expect(component.text()).not.toContain('Deleted');
   });
 
@@ -138,11 +174,11 @@ describe('<UploadArtifactToObjectStorageExecutionDetails />', () => {
     const component = mount(<UploadArtifactToObjectStorageExecutionDetails {...props} />);
 
     expect(component.exists()).toBe(true);
-    expect(component.text()).not.toContain('Delete Stale Files');
+    expect(component.text()).not.toContain('Delete Stale');
     expect(component.text()).not.toContain('Deleted');
   });
 
   it('should have the correct title', () => {
-    expect(UploadArtifactToObjectStorageExecutionDetails.title).toBe('uploadArtifactToObjectStorageStatus');
+    expect(UploadArtifactToObjectStorageExecutionDetails.title).toBe('uploadArtifactToObjectStorageConfig');
   });
 });

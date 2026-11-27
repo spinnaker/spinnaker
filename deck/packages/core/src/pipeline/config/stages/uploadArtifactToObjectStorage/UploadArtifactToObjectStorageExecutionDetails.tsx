@@ -20,22 +20,33 @@ function formatBytes(bytes: number): string {
 }
 
 export class UploadArtifactToObjectStorageExecutionDetails extends React.Component<IExecutionDetailsSectionProps> {
-  public static title = 'uploadArtifactToObjectStorageStatus';
+  public static title = 'uploadArtifactToObjectStorageConfig';
+
+  private getResultObject(): Record<string, any> {
+    const katoTasks: any[] = get(this.props.stage, ['context', 'kato.tasks'], []);
+    if (katoTasks.length > 0) {
+      const resultObjects = katoTasks[katoTasks.length - 1].resultObjects || [];
+      return resultObjects.find((r: any) => r.destinationUri) || {};
+    }
+    return {};
+  }
 
   public render() {
     const { current, name, stage } = this.props;
 
-    const destinationUri: string = get(stage, 'context.destinationUri');
-    const fileCount: number = get(stage, 'context.fileCount');
-    const totalSizeBytes: number = get(stage, 'context.totalSizeBytes');
-    const deleteStaleFiles: boolean | undefined = get(stage, 'context.deleteStaleFiles');
-    const deletedCount: number | undefined = get(stage, 'context.deletedCount');
+    const result = this.getResultObject();
+    const destinationUri: string = result.destinationUri;
+    const fileCount: number = result.fileCount;
+    const totalSizeBytes: number = result.totalSizeBytes;
+    const extractArchive: boolean = get(stage, 'context.extractArchive', true);
+    const deleteStaleFiles: boolean | undefined = result.deleteStaleFiles;
+    const deletedCount: number | undefined = result.deletedCount;
 
     return (
       <ExecutionDetailsSection name={name} current={current}>
         <div className="row">
-          <div className="col-md-12">
-            <dl className="dl-horizontal dl-narrow">
+          <div className="col-md-9">
+            <dl className="dl-narrow dl-horizontal">
               {destinationUri && (
                 <>
                   <dt>Destination</dt>
@@ -44,28 +55,32 @@ export class UploadArtifactToObjectStorageExecutionDetails extends React.Compone
                   </dd>
                 </>
               )}
-              {fileCount !== undefined && fileCount !== null && (
-                <>
-                  <dt>Files</dt>
-                  <dd>{fileCount}</dd>
-                </>
-              )}
               {totalSizeBytes !== undefined && totalSizeBytes !== null && (
                 <>
                   <dt>Total Size</dt>
                   <dd>{formatBytes(totalSizeBytes)}</dd>
                 </>
               )}
+              <>
+                <dt>Extract</dt>
+                <dd>{extractArchive ? 'Yes' : 'No'}</dd>
+              </>
               {deleteStaleFiles !== undefined && deleteStaleFiles !== null && (
                 <>
-                  <dt>Delete Stale Files</dt>
-                  <dd>{deleteStaleFiles ? 'Enabled' : 'Disabled'}</dd>
+                  <dt>Delete Stale</dt>
+                  <dd>{deleteStaleFiles ? 'Yes' : 'No'}</dd>
                 </>
               )}
               {deleteStaleFiles && deletedCount !== undefined && deletedCount !== null && (
                 <>
                   <dt>Deleted</dt>
                   <dd>{deletedCount}</dd>
+                </>
+              )}
+              {fileCount !== undefined && fileCount !== null && (
+                <>
+                  <dt>Files</dt>
+                  <dd>{fileCount}</dd>
                 </>
               )}
             </dl>
