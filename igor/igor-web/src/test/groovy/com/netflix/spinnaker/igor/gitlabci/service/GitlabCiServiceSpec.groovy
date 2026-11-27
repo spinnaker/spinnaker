@@ -69,6 +69,35 @@ class GitlabCiServiceSpec extends Specification {
         projects.size() == 2
     }
 
+    def "projects with a missing or non-enabled builds_access_level are skipped without throwing"() {
+        given:
+        client.getProjects(_, _, 1, _) >> Calls.response([
+            new Project(pathWithNamespace: "enabled-project", buildsAccessLevel: "enabled"),
+            new Project(pathWithNamespace: "missing-level", buildsAccessLevel: null),
+            new Project(pathWithNamespace: "private-level", buildsAccessLevel: "private"),
+            new Project(pathWithNamespace: "disabled-level", buildsAccessLevel: "disabled")
+        ])
+        client.getProjects(_, _, 2, _) >> Calls.response([])
+
+        when:
+        def projects = service.getProjects()
+
+        then:
+        notThrown(NullPointerException)
+        projects*.pathWithNamespace == ["enabled-project"]
+    }
+
+    def "live project listing is on by default and can be turned off per master"() {
+        expect:
+        service.isListProjectsLive()
+
+        when:
+        hostConfig.setListProjectsLive(false)
+
+        then:
+        !service.isListProjectsLive()
+    }
+
     def "verify retrieving of pipelines"() {
         given:
         final int PROJECT_ID = 13
