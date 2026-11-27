@@ -38,12 +38,22 @@ import org.springframework.stereotype.Component;
 public final class DeployCloudrunManifestTask implements CloudProviderAware, Task {
 
   public static final String TASK_NAME = "deployCloudrunManifest";
+  public static final String CLOUD_PROVIDER = "cloudrun";
 
   private final KatoService katoService;
 
   @Autowired
   public DeployCloudrunManifestTask(KatoService katoService) {
     this.katoService = katoService;
+  }
+
+  /**
+   * Stages saved without a cloudProvider would otherwise fall back to "aws" and send the operation
+   * to a provider that can't handle it.
+   */
+  @Override
+  public String getDefaultCloudProvider() {
+    return CLOUD_PROVIDER;
   }
 
   @Nonnull
@@ -83,6 +93,8 @@ public final class DeployCloudrunManifestTask implements CloudProviderAware, Tas
     return new ImmutableMap.Builder<String, Object>()
         .put("kato.result.expected", true)
         .put("kato.last.task.id", taskId)
+        // Later tasks in the stage (e.g. cache refresh) resolve the provider from the context
+        .put("cloudProvider", getCloudProvider(stage))
         .put("deploy.account.name", Objects.requireNonNull(getCredentials(stage)))
         .build();
   }
