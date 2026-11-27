@@ -105,12 +105,16 @@ class InfoController {
             recursiveGetJobs(jenkinsService.jobs.list)
 
             return jobList
-        } else if (buildService instanceof GitlabCiService) {
+        } else if (buildService instanceof GitlabCiService
+                && ((GitlabCiService) buildService).isListProjectsLive()) {
             // GitLab CI projects are listed live from GitLab (like Jenkins' job tree), so a newly
             // integrated instance's projects appear in the dropdown immediately. The shared
             // buildCache path below only contains projects that have had a successful pipeline
             // (cached for cachedJobTTLDays, default 60), which would otherwise hide valid projects
-            // and retain stale ones after membership changes.
+            // and retain stale ones after membership changes. Can be turned off per master with
+            // gitlab-ci.masters[].listProjectsLive=false, which falls through to the cache below.
+            // TODO: a short-lived (about 60s) cache around getProjects() would avoid a GitLab call
+            // on every dropdown open. Deferred from the review of #8461; no tracking issue yet.
             GitlabCiService gitlabCiService = (GitlabCiService) buildService
             return gitlabCiService.getProjects().collect { String.valueOf(it.id) }
         } else {
