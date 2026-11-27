@@ -31,6 +31,7 @@ import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
+import java.security.MessageDigest;
 import java.time.Clock;
 import java.time.Instant;
 import java.time.ZoneOffset;
@@ -68,6 +69,12 @@ class UploadArtifactToS3AtomicOperationTest {
 
     TaskRepository.threadLocalTask.set(task);
     when(amazonClientProvider.getAmazonS3V2(any(), anyString())).thenReturn(amazonS3);
+    lenient()
+        .when(amazonS3.deleteObjects(any(DeleteObjectsRequest.class)))
+        .thenReturn(DeleteObjectsResponse.builder().build());
+    lenient()
+        .when(amazonS3.listObjectsV2(any(ListObjectsV2Request.class)))
+        .thenReturn(ListObjectsV2Response.builder().isTruncated(false).build());
   }
 
   @Test
@@ -108,6 +115,8 @@ class UploadArtifactToS3AtomicOperationTest {
             .collect(java.util.stream.Collectors.toSet()));
     assertEquals("s3://my-bucket/releases/v1/", result.get("destinationUri"));
     assertEquals(2, result.get("fileCount"));
+    assertEquals(2, result.get("uploadCount"));
+    assertEquals(0, result.get("skippedCount"));
   }
 
   @Test
@@ -261,7 +270,8 @@ class UploadArtifactToS3AtomicOperationTest {
 
     Map<String, Object> result = operation.operate(Collections.emptyList());
 
-    verify(amazonS3, never()).listObjectsV2(any(ListObjectsV2Request.class));
+    // listObjectsV2 is called once for ETag sync, but not for stale file deletion
+    verify(amazonS3, times(1)).listObjectsV2(any(ListObjectsV2Request.class));
     verify(amazonS3, never()).deleteObjects(any(DeleteObjectsRequest.class));
     assertEquals(false, result.get("deleteStaleFiles"));
     assertEquals(0, result.get("deletedCount"));
@@ -361,6 +371,7 @@ class UploadArtifactToS3AtomicOperationTest {
 
     assertEquals(true, result.get("deleteStaleFiles"));
     assertEquals(0, result.get("deletedCount"));
+    verify(amazonS3, times(1)).listObjectsV2(any(ListObjectsV2Request.class));
     verify(amazonS3, never()).deleteObjects(any(DeleteObjectsRequest.class));
   }
 
@@ -488,7 +499,6 @@ class UploadArtifactToS3AtomicOperationTest {
     Map<String, Object> result = operation.operate(Collections.emptyList());
 
     // Even though deleteStaleFiles=true in description, single file mode forces it off
-    verify(amazonS3, never()).listObjectsV2(any(ListObjectsV2Request.class));
     verify(amazonS3, never()).deleteObjects(any(DeleteObjectsRequest.class));
     assertEquals(false, result.get("deleteStaleFiles"));
     assertEquals(0, result.get("deletedCount"));
@@ -658,7 +668,7 @@ class UploadArtifactToS3AtomicOperationTest {
   }
 
   @Test
-  void shouldPassMetadataProviderToUploadDirectory() throws Exception {
+  void shouldPassMetadataProviderToUploadFileList() throws Exception {
     byte[] zipContent =
         createTestZip(new String[] {"index.html", "app.js"}, new String[] {"<html/>", "var x=1;"});
 
@@ -925,6 +935,387 @@ class UploadArtifactToS3AtomicOperationTest {
         ArgumentCaptor.forClass(PutObjectRequest.class);
     verify(amazonS3).putObject(requestCaptor.capture(), any(RequestBody.class));
     assertEquals("text/html", requestCaptor.getValue().contentType());
+  }
+
+  @Test
+  void shouldSkipUnchangedFilesWhenEtagsMatch() throws Exception {
+    byte[] zipContent =
+        createTestZip(
+            new String[] {"unchanged.txt", "changed.txt"},
+            new String[] {"same content", "new content"});
+
+    Artifact artifact =
+        Artifact.builder()
+            .type("http/file")
+            .name("test.zip")
+            .reference("https://example.com/test.zip")
+            .build();
+
+    UploadArtifactToS3Description description = new UploadArtifactToS3Description();
+    description.setRegion("us-west-2");
+    description.setBucket("my-bucket");
+    description.setObjectKeyPrefix("prefix");
+    description.setArtifact(artifact);
+    description.setCredentials(TestCredential.named("test"));
+
+    when(artifactDownloader.download(artifact)).thenReturn(new ByteArrayInputStream(zipContent));
+
+    // Remote has unchanged.txt with matching ETag, changed.txt with different ETag
+    String unchangedMd5 = md5Hex("same content");
+    S3Object unchanged =
+        S3Object.builder().key("prefix/unchanged.txt").eTag("\"" + unchangedMd5 + "\"").build();
+
+    S3Object changed =
+        S3Object.builder()
+            .key("prefix/changed.txt")
+            .eTag("\"oldmd5hash000000000000000000000\"")
+            .build();
+
+    ListObjectsV2Response listResult =
+        ListObjectsV2Response.builder().contents(unchanged, changed).isTruncated(false).build();
+
+    when(amazonS3.listObjectsV2(any(ListObjectsV2Request.class))).thenReturn(listResult);
+
+    UploadArtifactToS3AtomicOperation operation =
+        new UploadArtifactToS3AtomicOperation(
+            description, amazonClientProvider, artifactDownloader);
+
+    Map<String, Object> result = operation.operate(Collections.emptyList());
+
+    assertEquals(2, result.get("fileCount"));
+    assertEquals(1, result.get("uploadCount"));
+    assertEquals(1, result.get("skippedCount"));
+
+    ArgumentCaptor<PutObjectRequest> uploaded = ArgumentCaptor.forClass(PutObjectRequest.class);
+    verify(amazonS3).putObject(uploaded.capture(), any(RequestBody.class));
+    assertTrue(uploaded.getValue().key().endsWith("changed.txt"));
+  }
+
+  @Test
+  void shouldSkipAllFilesWhenNothingChanged() throws Exception {
+    byte[] zipContent =
+        createTestZip(
+            new String[] {"file1.txt", "file2.txt"}, new String[] {"content1", "content2"});
+
+    Artifact artifact =
+        Artifact.builder()
+            .type("http/file")
+            .name("test.zip")
+            .reference("https://example.com/test.zip")
+            .build();
+
+    UploadArtifactToS3Description description = new UploadArtifactToS3Description();
+    description.setRegion("us-west-2");
+    description.setBucket("my-bucket");
+    description.setObjectKeyPrefix("prefix");
+    description.setArtifact(artifact);
+    description.setCredentials(TestCredential.named("test"));
+
+    when(artifactDownloader.download(artifact)).thenReturn(new ByteArrayInputStream(zipContent));
+
+    S3Object obj1 =
+        S3Object.builder().key("prefix/file1.txt").eTag("\"" + md5Hex("content1") + "\"").build();
+
+    S3Object obj2 =
+        S3Object.builder().key("prefix/file2.txt").eTag("\"" + md5Hex("content2") + "\"").build();
+
+    ListObjectsV2Response listResult =
+        ListObjectsV2Response.builder().contents(obj1, obj2).isTruncated(false).build();
+
+    when(amazonS3.listObjectsV2(any(ListObjectsV2Request.class))).thenReturn(listResult);
+
+    UploadArtifactToS3AtomicOperation operation =
+        new UploadArtifactToS3AtomicOperation(
+            description, amazonClientProvider, artifactDownloader);
+
+    Map<String, Object> result = operation.operate(Collections.emptyList());
+
+    assertEquals(2, result.get("fileCount"));
+    assertEquals(0, result.get("uploadCount"));
+    assertEquals(2, result.get("skippedCount"));
+
+    // TransferManager should not be invoked at all
+    verify(amazonS3, never()).putObject(any(PutObjectRequest.class), any(RequestBody.class));
+  }
+
+  @Test
+  void shouldUploadFileWhenRemoteHasMultipartEtag() throws Exception {
+    byte[] zipContent = createTestZip(new String[] {"file.txt"}, new String[] {"content"});
+
+    Artifact artifact =
+        Artifact.builder()
+            .type("http/file")
+            .name("test.zip")
+            .reference("https://example.com/test.zip")
+            .build();
+
+    UploadArtifactToS3Description description = new UploadArtifactToS3Description();
+    description.setRegion("us-west-2");
+    description.setBucket("my-bucket");
+    description.setObjectKeyPrefix("prefix");
+    description.setArtifact(artifact);
+    description.setCredentials(TestCredential.named("test"));
+
+    when(artifactDownloader.download(artifact)).thenReturn(new ByteArrayInputStream(zipContent));
+
+    // Multipart ETags contain a dash suffix
+    S3Object obj =
+        S3Object.builder()
+            .key("prefix/file.txt")
+            .eTag("\"d41d8cd98f00b204e9800998ecf8427e-2\"")
+            .build();
+
+    ListObjectsV2Response listResult =
+        ListObjectsV2Response.builder().contents(obj).isTruncated(false).build();
+
+    when(amazonS3.listObjectsV2(any(ListObjectsV2Request.class))).thenReturn(listResult);
+
+    UploadArtifactToS3AtomicOperation operation =
+        new UploadArtifactToS3AtomicOperation(
+            description, amazonClientProvider, artifactDownloader);
+
+    Map<String, Object> result = operation.operate(Collections.emptyList());
+
+    assertEquals(1, result.get("uploadCount"));
+    assertEquals(0, result.get("skippedCount"));
+
+    verify(amazonS3).putObject(any(PutObjectRequest.class), any(RequestBody.class));
+  }
+
+  @Test
+  void shouldUploadNewFilesNotPresentInRemote() throws Exception {
+    byte[] zipContent =
+        createTestZip(
+            new String[] {"existing.txt", "brand-new.txt"},
+            new String[] {"same content", "new content"});
+
+    Artifact artifact =
+        Artifact.builder()
+            .type("http/file")
+            .name("test.zip")
+            .reference("https://example.com/test.zip")
+            .build();
+
+    UploadArtifactToS3Description description = new UploadArtifactToS3Description();
+    description.setRegion("us-west-2");
+    description.setBucket("my-bucket");
+    description.setObjectKeyPrefix("prefix");
+    description.setArtifact(artifact);
+    description.setCredentials(TestCredential.named("test"));
+
+    when(artifactDownloader.download(artifact)).thenReturn(new ByteArrayInputStream(zipContent));
+
+    // Remote only has existing.txt with matching ETag
+    S3Object existing =
+        S3Object.builder()
+            .key("prefix/existing.txt")
+            .eTag("\"" + md5Hex("same content") + "\"")
+            .build();
+
+    ListObjectsV2Response listResult =
+        ListObjectsV2Response.builder().contents(existing).isTruncated(false).build();
+
+    when(amazonS3.listObjectsV2(any(ListObjectsV2Request.class))).thenReturn(listResult);
+
+    UploadArtifactToS3AtomicOperation operation =
+        new UploadArtifactToS3AtomicOperation(
+            description, amazonClientProvider, artifactDownloader);
+
+    Map<String, Object> result = operation.operate(Collections.emptyList());
+
+    assertEquals(2, result.get("fileCount"));
+    assertEquals(1, result.get("uploadCount"));
+    assertEquals(1, result.get("skippedCount"));
+
+    ArgumentCaptor<PutObjectRequest> uploaded = ArgumentCaptor.forClass(PutObjectRequest.class);
+    verify(amazonS3).putObject(uploaded.capture(), any(RequestBody.class));
+    assertTrue(uploaded.getValue().key().endsWith("brand-new.txt"));
+  }
+
+  @Test
+  void shouldHandlePaginatedEtagListing() throws Exception {
+    byte[] zipContent =
+        createTestZip(
+            new String[] {"file1.txt", "file2.txt"}, new String[] {"content1", "content2"});
+
+    Artifact artifact =
+        Artifact.builder()
+            .type("http/file")
+            .name("test.zip")
+            .reference("https://example.com/test.zip")
+            .build();
+
+    UploadArtifactToS3Description description = new UploadArtifactToS3Description();
+    description.setRegion("us-west-2");
+    description.setBucket("my-bucket");
+    description.setObjectKeyPrefix("prefix");
+    description.setArtifact(artifact);
+    description.setCredentials(TestCredential.named("test"));
+
+    when(artifactDownloader.download(artifact)).thenReturn(new ByteArrayInputStream(zipContent));
+
+    // Page 1: file1.txt with matching ETag
+    S3Object obj1 =
+        S3Object.builder().key("prefix/file1.txt").eTag("\"" + md5Hex("content1") + "\"").build();
+
+    ListObjectsV2Response page1 =
+        ListObjectsV2Response.builder()
+            .contents(obj1)
+            .isTruncated(true)
+            .nextContinuationToken("token-123")
+            .build();
+
+    // Page 2: file2.txt with matching ETag
+    S3Object obj2 =
+        S3Object.builder().key("prefix/file2.txt").eTag("\"" + md5Hex("content2") + "\"").build();
+
+    ListObjectsV2Response page2 =
+        ListObjectsV2Response.builder().contents(obj2).isTruncated(false).build();
+
+    when(amazonS3.listObjectsV2(any(ListObjectsV2Request.class)))
+        .thenReturn(page1)
+        .thenReturn(page2);
+
+    UploadArtifactToS3AtomicOperation operation =
+        new UploadArtifactToS3AtomicOperation(
+            description, amazonClientProvider, artifactDownloader);
+
+    Map<String, Object> result = operation.operate(Collections.emptyList());
+
+    // Both files matched across two pages — nothing should be uploaded
+    assertEquals(2, result.get("fileCount"));
+    assertEquals(0, result.get("uploadCount"));
+    assertEquals(2, result.get("skippedCount"));
+
+    verify(amazonS3, times(2)).listObjectsV2(any(ListObjectsV2Request.class));
+    verify(amazonS3, never()).putObject(any(PutObjectRequest.class), any(RequestBody.class));
+  }
+
+  @Test
+  void shouldDeleteStaleFilesWhileSkippingUnchangedFiles() throws Exception {
+    byte[] zipContent =
+        createTestZip(
+            new String[] {"unchanged.txt", "changed.txt"},
+            new String[] {"same content", "new content"});
+
+    Artifact artifact =
+        Artifact.builder()
+            .type("http/file")
+            .name("test.zip")
+            .reference("https://example.com/test.zip")
+            .build();
+
+    UploadArtifactToS3Description description = new UploadArtifactToS3Description();
+    description.setRegion("us-west-2");
+    description.setBucket("my-bucket");
+    description.setObjectKeyPrefix("prefix");
+    description.setArtifact(artifact);
+    description.setDeleteStaleFiles(true);
+    description.setCredentials(TestCredential.named("test"));
+
+    when(artifactDownloader.download(artifact)).thenReturn(new ByteArrayInputStream(zipContent));
+
+    // ETag sync listing: unchanged.txt matches, changed.txt differs, stale.txt is extra
+    S3Object unchanged =
+        S3Object.builder()
+            .key("prefix/unchanged.txt")
+            .eTag("\"" + md5Hex("same content") + "\"")
+            .build();
+
+    S3Object changed =
+        S3Object.builder()
+            .key("prefix/changed.txt")
+            .eTag("\"oldmd5hash000000000000000000000\"")
+            .build();
+
+    S3Object stale =
+        S3Object.builder()
+            .key("prefix/stale.txt")
+            .eTag("\"someetag0000000000000000000000000\"")
+            .build();
+
+    ListObjectsV2Response listResult =
+        ListObjectsV2Response.builder()
+            .contents(unchanged, changed, stale)
+            .isTruncated(false)
+            .build();
+
+    when(amazonS3.listObjectsV2(any(ListObjectsV2Request.class))).thenReturn(listResult);
+
+    UploadArtifactToS3AtomicOperation operation =
+        new UploadArtifactToS3AtomicOperation(
+            description, amazonClientProvider, artifactDownloader);
+
+    Map<String, Object> result = operation.operate(Collections.emptyList());
+
+    assertEquals(2, result.get("fileCount"));
+    assertEquals(1, result.get("uploadCount"));
+    assertEquals(1, result.get("skippedCount"));
+    assertEquals(true, result.get("deleteStaleFiles"));
+    assertEquals(1, result.get("deletedCount"));
+
+    ArgumentCaptor<DeleteObjectsRequest> deleteCaptor =
+        ArgumentCaptor.forClass(DeleteObjectsRequest.class);
+    verify(amazonS3).deleteObjects(deleteCaptor.capture());
+
+    List<String> deletedKeys =
+        deleteCaptor.getValue().delete().objects().stream().map(ObjectIdentifier::key).toList();
+    assertEquals(1, deletedKeys.size());
+    assertTrue(deletedKeys.contains("prefix/stale.txt"));
+  }
+
+  @Test
+  void shouldUploadAllFilesOnFirstDeploy() throws Exception {
+    byte[] zipContent =
+        createTestZip(
+            new String[] {"file1.txt", "dir/file2.txt", "dir/nested/file3.txt"},
+            new String[] {"content1", "content2", "content3"});
+
+    Artifact artifact =
+        Artifact.builder()
+            .type("http/file")
+            .name("test.zip")
+            .reference("https://example.com/test.zip")
+            .build();
+
+    UploadArtifactToS3Description description = new UploadArtifactToS3Description();
+    description.setRegion("us-west-2");
+    description.setBucket("my-bucket");
+    description.setObjectKeyPrefix("releases/v1");
+    description.setArtifact(artifact);
+    description.setCredentials(TestCredential.named("test"));
+
+    when(artifactDownloader.download(artifact)).thenReturn(new ByteArrayInputStream(zipContent));
+
+    // Empty remote (first deploy)
+    ListObjectsV2Response emptyResult = ListObjectsV2Response.builder().isTruncated(false).build();
+    when(amazonS3.listObjectsV2(any(ListObjectsV2Request.class))).thenReturn(emptyResult);
+
+    UploadArtifactToS3AtomicOperation operation =
+        new UploadArtifactToS3AtomicOperation(
+            description, amazonClientProvider, artifactDownloader);
+
+    Map<String, Object> result = operation.operate(Collections.emptyList());
+
+    assertEquals(3, result.get("fileCount"));
+    assertEquals(3, result.get("uploadCount"));
+    assertEquals(0, result.get("skippedCount"));
+
+    verify(amazonS3, times(3)).putObject(any(PutObjectRequest.class), any(RequestBody.class));
+  }
+
+  private static String md5Hex(String content) {
+    try {
+      MessageDigest md = MessageDigest.getInstance("MD5");
+      byte[] digest = md.digest(content.getBytes(StandardCharsets.UTF_8));
+      StringBuilder sb = new StringBuilder();
+      for (byte b : digest) {
+        sb.append(String.format("%02x", b));
+      }
+      return sb.toString();
+    } catch (Exception e) {
+      throw new RuntimeException(e);
+    }
   }
 
   private byte[] createTestZip(String[] paths, String[] contents) throws IOException {

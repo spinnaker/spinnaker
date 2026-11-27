@@ -176,6 +176,38 @@ describe('<UploadArtifactToObjectStorageExecutionDetails />', () => {
     expect(container).not.toHaveTextContent('Deleted');
   });
 
+  it('should display uploaded and skipped counts when sync data is present', () => {
+    const stage = createStage({ uploadCount: 12, skippedCount: 35, fileCount: 47 });
+    const props = createProps(stage);
+    const { container } = render(<UploadArtifactToObjectStorageExecutionDetails {...props} />);
+
+    expect(container).toHaveTextContent('Uploaded');
+    expect(container).toHaveTextContent('12');
+    expect(container).toHaveTextContent('Skipped');
+    expect(container).toHaveTextContent('35');
+    expect(container).toHaveTextContent('Total Files');
+    expect(container).toHaveTextContent('47');
+  });
+
+  it('should display uploaded count without skipped when skippedCount is absent', () => {
+    const stage = createStage({ uploadCount: 47, fileCount: 47 });
+    const props = createProps(stage);
+    const { container } = render(<UploadArtifactToObjectStorageExecutionDetails {...props} />);
+
+    expect(container).toHaveTextContent('Uploaded');
+    expect(container).toHaveTextContent('47');
+    expect(container).not.toHaveTextContent('Skipped');
+  });
+
+  it('should display zero uploaded and all skipped when nothing changed', () => {
+    const stage = createStage({ uploadCount: 0, skippedCount: 100, fileCount: 100 });
+    const props = createProps(stage);
+    const { container } = render(<UploadArtifactToObjectStorageExecutionDetails {...props} />);
+    const uploadedLabel = Array.from(container.querySelectorAll('dt')).find((dt) => dt.textContent === 'Uploaded');
+    expect(uploadedLabel.nextElementSibling).toHaveTextContent('0');
+    expect(container).toHaveTextContent('Skipped');
+  });
+
   it('should have the correct title', () => {
     expect(UploadArtifactToObjectStorageExecutionDetails.title).toBe('uploadArtifactToObjectStorageConfig');
   });
