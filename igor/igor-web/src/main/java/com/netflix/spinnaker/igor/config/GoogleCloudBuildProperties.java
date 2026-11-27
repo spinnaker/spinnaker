@@ -22,6 +22,7 @@ import com.netflix.spinnaker.fiat.model.resources.Permissions;
 import com.netflix.spinnaker.igor.model.BuildServiceProvider;
 import com.netflix.spinnaker.igor.service.BuildService;
 import com.netflix.spinnaker.kork.annotations.NonnullByDefault;
+import com.netflix.spinnaker.kork.google.auth.GoogleAuthProperties;
 import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
@@ -48,7 +49,7 @@ public class GoogleCloudBuildProperties {
     private final String name;
     private final String project;
     private final Optional<String> cloudBuildRegion;
-    private final Optional<String> jsonKey;
+    private final GoogleAuthProperties auth;
     private final Permissions permissions;
 
     @Builder
@@ -57,14 +58,19 @@ public class GoogleCloudBuildProperties {
         String name,
         String project,
         String cloudBuildRegion,
+        GoogleAuthProperties auth,
         String jsonKey,
         Permissions.Builder permissions) {
+      // Binding guard only, not an alias. Preserve constructor binding of permissions and accounts.
+      if (jsonKey != null) {
+        throw GoogleAuthProperties.removedProperty("jsonKey", "use auth.credentialsFile");
+      }
       this.name = Preconditions.checkNotNull(Strings.emptyToNull(name), ERROR_TEMPLATE, "", "name");
       this.project =
           Preconditions.checkNotNull(
               Strings.emptyToNull(project), ERROR_TEMPLATE, this.name, "project");
       this.cloudBuildRegion = Optional.ofNullable(Strings.emptyToNull(cloudBuildRegion));
-      this.jsonKey = Optional.ofNullable(Strings.emptyToNull(jsonKey));
+      this.auth = auth == null ? new GoogleAuthProperties() : auth;
       this.permissions =
           Optional.ofNullable(permissions)
               .map(Permissions.Builder::build)

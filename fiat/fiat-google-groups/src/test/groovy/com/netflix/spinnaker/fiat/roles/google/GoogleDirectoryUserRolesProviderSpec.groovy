@@ -5,9 +5,9 @@ import com.google.api.client.http.HttpResponse
 import com.google.api.client.testing.http.HttpTesting
 import com.google.api.client.testing.http.MockHttpTransport
 import com.google.api.client.testing.http.MockLowLevelHttpResponse
-import com.google.auth.oauth2.GoogleCredentials
-import com.google.auth.oauth2.ServiceAccountCredentials
-import com.google.api.services.directory.DirectoryScopes
+import com.google.api.services.cloudidentity.v1.model.EntityKey
+import com.google.api.services.cloudidentity.v1.model.GroupRelation
+import com.google.api.services.cloudidentity.v1.model.SearchTransitiveGroupsResponse
 import com.google.api.services.directory.model.Group
 import com.google.api.services.directory.model.Groups
 import com.netflix.spinnaker.fiat.model.resources.Role
@@ -17,81 +17,6 @@ import spock.lang.Unroll
 
 class GoogleDirectoryUserRolesProviderSpec extends Specification {
   GoogleDirectoryUserRolesProvider.Config config = new GoogleDirectoryUserRolesProvider.Config()
-
-  @Unroll
-  def "should use scoped ADC without delegation when adminUsername is '#adminUsername'"() {
-    given:
-    config.domain = "example.com"
-    config.adminUsername = adminUsername
-    // Direct mode must not attempt to open a configured key file.
-    config.credentialPath = "/nonexistent/unused-key.json"
-    def credentials = Mock(GoogleCredentials)
-    def scoped = Mock(GoogleCredentials)
-    def provider = new GoogleDirectoryUserRolesProvider() {
-      @Override
-      protected GoogleCredentials getApplicationDefaultCredentials() {
-        return credentials
-      }
-    }
-    provider.setConfig(config)
-
-    when:
-    provider.afterPropertiesSet()
-    def result = provider.getGoogleCredential()
-
-    then:
-    1 * credentials.createScoped(Collections.singleton(DirectoryScopes.ADMIN_DIRECTORY_GROUP_READONLY)) >> scoped
-    0 * scoped.createDelegated(_)
-    result.is(scoped)
-
-    where:
-    adminUsername << [null, "", "  "]
-  }
-
-  def "should delegate service-account ADC when adminUsername is set"() {
-    given:
-    config.adminUsername = "admin@example.com"
-    def credentials = Mock(ServiceAccountCredentials)
-    def scoped = Mock(ServiceAccountCredentials)
-    def delegated = Mock(ServiceAccountCredentials)
-    def provider = new GoogleDirectoryUserRolesProvider() {
-      @Override
-      protected GoogleCredentials getApplicationDefaultCredentials() {
-        return credentials
-      }
-    }
-    provider.setConfig(config)
-
-    when:
-    def result = provider.getGoogleCredential()
-
-    then:
-    1 * credentials.createScoped(Collections.singleton(DirectoryScopes.ADMIN_DIRECTORY_GROUP_READONLY)) >> scoped
-    1 * scoped.createDelegated("admin@example.com") >> delegated
-    result.is(delegated)
-  }
-
-  def "should reject unsupported delegation instead of silently using ADC directly"() {
-    given:
-    config.adminUsername = "admin@example.com"
-    def credentials = Mock(GoogleCredentials)
-    def scoped = Mock(GoogleCredentials)
-    credentials.createScoped(_) >> scoped
-    def provider = new GoogleDirectoryUserRolesProvider() {
-      @Override
-      protected GoogleCredentials getApplicationDefaultCredentials() {
-        return credentials
-      }
-    }
-    provider.setConfig(config)
-
-    when:
-    provider.getGoogleCredential()
-
-    then:
-    def error = thrown(IllegalStateException)
-    error.message.contains("adminUsername requires credentials supporting domain-wide delegation")
-  }
 
   def "should read google groups"() {
     setup:
@@ -162,24 +87,14 @@ class GoogleDirectoryUserRolesProviderSpec extends Specification {
     result6.name.size() == 0
   }
 
-  @Unroll
-  def "should recursively collect all nested groups if expandIndirectGroups is #expandIndirectGroups"() {
+  def "should return direct groups only when expandIndirectGroups is false"() {
     given:
-    config.expandIndirectGroups = expandIndirectGroups
+    config.expandIndirectGroups = false
     def provider = Spy(GoogleDirectoryUserRolesProvider) {
       getGroupsFromEmail("root@example.com") >> new Groups(groups: [
         new Group(email: "child1@example.com"),
         new Group(email: "child2@example.com")
       ])
-      getGroupsFromEmail("child1@example.com") >> new Groups(groups: [
-        new Group(email: "grandchild1@example.com")
-      ])
-      getGroupsFromEmail("child2@example.com") >> new Groups(groups: [
-        new Group(email: "grandchild2@example.com"),
-        new Group(email: "child1@example.com")
-      ])
-      getGroupsFromEmail("grandchild1@example.com") >> new Groups(groups: [])
-      getGroupsFromEmail("grandchild2@example.com") >> null
     }
     provider.setConfig(config)
 
@@ -187,14 +102,32 @@ class GoogleDirectoryUserRolesProviderSpec extends Specification {
     def result = provider.getGroupsFromEmailRecursively("root@example.com")
 
     then:
-    result.groups*.email.containsAll(groupsContent)
-    result.groups.size() == totalEmails
+    result.groups*.email.containsAll(["child1@example.com", "child2@example.com"])
+    result.groups.size() == 2
+    0 * provider.getTransitiveGroupsFromEmail(_)
+  }
 
-    where:
-    expandIndirectGroups | totalEmails | groupsContent
-    true                 | 4           | ["child1@example.com", "child2@example.com", "grandchild1@example.com", "grandchild2@example.com"]
-    false                | 2           | ["child1@example.com", "child2@example.com"]
+  def "should use searchTransitiveGroups when expandIndirectGroups is true"() {
+    given:
+    config.expandIndirectGroups = true
+    def transitiveGroups = new Groups(groups: [
+      new Group(email: "child1@example.com", name: "child1"),
+      new Group(email: "child2@example.com", name: "child2"),
+      new Group(email: "grandchild1@example.com", name: "grandchild1"),
+      new Group(email: "grandchild2@example.com", name: "grandchild2")
+    ])
+    def provider = Spy(GoogleDirectoryUserRolesProvider) {
+      getTransitiveGroupsFromEmail("root@example.com") >> transitiveGroups
+    }
+    provider.setConfig(config)
 
+    when:
+    def result = provider.getGroupsFromEmailRecursively("root@example.com")
+
+    then:
+    result.groups*.email.containsAll(["child1@example.com", "child2@example.com", "grandchild1@example.com", "grandchild2@example.com"])
+    result.groups.size() == 4
+    0 * provider.getGroupsFromEmail(_)
   }
 
   @Unroll
@@ -271,33 +204,24 @@ class GoogleDirectoryUserRolesProviderSpec extends Specification {
     config.expandIndirectGroups = expandIndirectGroups
     config.groupLookupConcurrency = 4
     def provider = new GoogleDirectoryUserRolesProvider() {
-      // Move from spy to  a real overload due to thread hnadling.
+      // Override transitive groups for the expand case.
       @Override
-      protected Groups getGroupsFromEmail(String email) throws IOException {
+      protected Groups getTransitiveGroupsFromEmail(String email) throws IOException {
         switch (email) {
           case "root@example.com":
             return new Groups(groups: [
-              new Group(email: "child1@example.com"),
-              new Group(email: "child2@example.com")
-            ])
-          case "child1@example.com":
-            return new Groups(groups: [
-              new Group(email: "grandchild1@example.com"),
+              new Group(email: "child1@example.com", name: "child1"),
+              new Group(email: "child2@example.com", name: "child2"),
+              new Group(email: "grandchild1@example.com", name: "test1"),
+              new Group(email: "grandchild2@example.com", name: "grandchild2"),
               new Group(name: "grandchild22")
             ])
-          case "child2@example.com":
-            return new Groups(groups: [
-              new Group(email: "grandchild2@example.com"),
-              new Group(email: "child1@example.com")
-            ])
-          case "grandchild1@example.com":
-            return new Groups(groups: [new Group(name: "test1")])
           case "user2@example.com":
             return new Groups(groups: [new Group(name: "test2")])
           case "user3@example.com":
             return new Groups(groups: [new Group(name: "test3")])
           default:
-            return null;
+            return new Groups(groups: [])
         }
       }
     }

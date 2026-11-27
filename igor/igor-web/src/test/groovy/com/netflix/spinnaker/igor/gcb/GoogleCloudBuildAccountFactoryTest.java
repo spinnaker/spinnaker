@@ -1,7 +1,7 @@
 /*
  * Copyright 2019 Google, Inc.
  *
- * Licensed under the Apache License, Version 2.0 (the "License")
+ * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
  *
@@ -13,108 +13,138 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
 package com.netflix.spinnaker.igor.gcb;
 
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.Mockito.*;
 
+import com.google.api.services.cloudbuild.v1.CloudBuildScopes;
 import com.google.auth.oauth2.GoogleCredentials;
 import com.netflix.spinnaker.igor.config.GoogleCloudBuildProperties;
+import com.netflix.spinnaker.kork.google.auth.GoogleAuthProperties;
+import com.netflix.spinnaker.kork.google.auth.GoogleCredentialsFactory;
+import java.io.IOException;
+import java.io.UncheckedIOException;
+import java.util.Map;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.boot.context.properties.bind.Binder;
+import org.springframework.boot.context.properties.source.MapConfigurationPropertySource;
 
 @ExtendWith(MockitoExtension.class)
-public class GoogleCloudBuildAccountFactoryTest {
-  private final GoogleCredentialsService googleCredentialsService =
-      mock(GoogleCredentialsService.class);
-  private final GoogleCloudBuildClient.Factory googleCloudBuildClientFactory =
+class GoogleCloudBuildAccountFactoryTest {
+  private final GoogleCredentialsService credentialService = mock(GoogleCredentialsService.class);
+  private final GoogleCloudBuildClient.Factory clientFactory =
       mock(GoogleCloudBuildClient.Factory.class);
-  private final GoogleCloudBuildCache.Factory googleCloudBuildCacheFactory =
-      mock(GoogleCloudBuildCache.Factory.class);
-  private final GoogleCloudBuildParser googleCloudBuildParser = new GoogleCloudBuildParser();
-
-  private final GoogleCredentials googleCredentials = mock(GoogleCredentials.class);
-  private final GoogleCloudBuildClient googleCloudBuildClient = mock(GoogleCloudBuildClient.class);
-
-  private final GoogleCloudBuildAccountFactory googleCloudBuildAccountFactory =
+  private final GoogleCloudBuildClient client = mock(GoogleCloudBuildClient.class);
+  private final GoogleCredentials credentials = mock(GoogleCredentials.class);
+  private final GoogleCloudBuildAccountFactory factory =
       new GoogleCloudBuildAccountFactory(
-          googleCredentialsService,
-          googleCloudBuildClientFactory,
-          googleCloudBuildCacheFactory,
-          googleCloudBuildParser);
+          credentialService,
+          clientFactory,
+          mock(GoogleCloudBuildCache.Factory.class),
+          new GoogleCloudBuildParser());
 
   @Test
-  public void applicationDefaultCredentials() {
-    GoogleCloudBuildProperties.Account accountConfig =
+  void defaultsToAnEmptyAuthConfiguration() {
+    GoogleCloudBuildProperties.Account account =
         GoogleCloudBuildProperties.Account.builder()
             .name("test-account")
             .project("test-project")
-            .jsonKey("")
             .build();
+    when(credentialService.getCredentials(account.getAuth())).thenReturn(credentials);
+    when(clientFactory.create(credentials, "test-project")).thenReturn(client);
 
-    when(googleCredentialsService.getApplicationDefault()).thenReturn(googleCredentials);
-    when(googleCloudBuildClientFactory.create(eq(googleCredentials), any(String.class)))
-        .thenReturn(googleCloudBuildClient);
+    factory.build(account);
 
-    GoogleCloudBuildAccount account = googleCloudBuildAccountFactory.build(accountConfig);
-
-    verify(googleCredentialsService).getApplicationDefault();
-    verify(googleCredentialsService, never()).getFromKey(any());
-    verify(googleCloudBuildClientFactory).create(eq(googleCredentials), any(String.class));
+    assertThat(account.getAuth().getCredentialsFile()).isNull();
+    assertThat(account.getAuth().getImpersonateServiceAccount()).isNull();
+    verify(clientFactory).create(credentials, "test-project");
   }
 
   @Test
-  public void cloudBuildRegional() {
-    GoogleCloudBuildProperties.Account accountConfig =
+  void retainsRegionalClientSelection() {
+    GoogleCloudBuildProperties.Account account =
         GoogleCloudBuildProperties.Account.builder()
             .name("test-account")
             .project("test-project")
             .cloudBuildRegion("north")
             .build();
+    when(credentialService.getCredentials(account.getAuth())).thenReturn(credentials);
+    when(clientFactory.create(credentials, "test-project", "north")).thenReturn(client);
 
-    when(googleCredentialsService.getApplicationDefault()).thenReturn(googleCredentials);
-    when(googleCloudBuildClientFactory.create(eq(googleCredentials), any(String.class)))
-        .thenReturn(googleCloudBuildClient);
+    factory.build(account);
 
-    GoogleCloudBuildAccount account = googleCloudBuildAccountFactory.build(accountConfig);
-    verify(googleCloudBuildClientFactory)
-        .create(eq(googleCredentials), any(String.class), any(String.class));
+    verify(clientFactory).create(credentials, "test-project", "north");
   }
 
   @Test
-  public void cloudBuildGlobal() {
-    GoogleCloudBuildProperties.Account accountConfig =
-        GoogleCloudBuildProperties.Account.builder()
-            .name("test-account")
-            .project("test-project")
-            .build();
+  void passesBoundFileAndImpersonationSettingsToTheCredentialService() {
+    GoogleCloudBuildProperties properties =
+        bind(
+            Map.of(
+                "gcb.accounts[0].name",
+                "test-account",
+                "gcb.accounts[0].project",
+                "test-project",
+                "gcb.accounts[0].auth.credentials-file",
+                "credentials.json",
+                "gcb.accounts[0].auth.impersonate-service-account",
+                "builder@identity-project.iam.gserviceaccount.com"));
+    GoogleCloudBuildProperties.Account account = properties.getAccounts().get(0);
+    when(credentialService.getCredentials(account.getAuth())).thenReturn(credentials);
+    when(clientFactory.create(credentials, "test-project")).thenReturn(client);
 
-    when(googleCredentialsService.getApplicationDefault()).thenReturn(googleCredentials);
-    when(googleCloudBuildClientFactory.create(eq(googleCredentials), any(String.class)))
-        .thenReturn(googleCloudBuildClient);
+    factory.build(account);
 
-    GoogleCloudBuildAccount account = googleCloudBuildAccountFactory.build(accountConfig);
-    verify(googleCloudBuildClientFactory).create(eq(googleCredentials), any(String.class));
+    verify(credentialService).getCredentials(account.getAuth());
+    assertThat(account.getAuth().getCredentialsFile()).isEqualTo("credentials.json");
+    assertThat(account.getAuth().getImpersonateServiceAccount())
+        .isEqualTo("builder@identity-project.iam.gserviceaccount.com");
   }
 
   @Test
-  public void jsonCredentials() {
-    GoogleCloudBuildProperties.Account accountConfig =
-        GoogleCloudBuildProperties.Account.builder()
-            .name("test-account")
-            .project("test-project")
-            .jsonKey("/path/to/file")
-            .build();
+  void rejectsTheRemovedJsonKeySetting() {
+    assertThatThrownBy(
+            () ->
+                bind(
+                    Map.of(
+                        "gcb.accounts[0].name",
+                        "test-account",
+                        "gcb.accounts[0].project",
+                        "test-project",
+                        "gcb.accounts[0].json-key",
+                        "unused")))
+        .hasRootCauseMessage("jsonKey is no longer supported; use auth.credentialsFile");
+  }
 
-    when(googleCredentialsService.getFromKey("/path/to/file")).thenReturn(googleCredentials);
-    when(googleCloudBuildClientFactory.create(eq(googleCredentials), any(String.class)))
-        .thenReturn(googleCloudBuildClient);
+  @Test
+  void credentialServiceAppliesCloudBuildScopes() throws IOException {
+    GoogleCredentialsFactory shared = mock(GoogleCredentialsFactory.class);
+    GoogleAuthProperties auth = new GoogleAuthProperties();
+    when(shared.create(auth, CloudBuildScopes.all())).thenReturn(credentials);
 
-    GoogleCloudBuildAccount account = googleCloudBuildAccountFactory.build(accountConfig);
+    assertThat(new GoogleCredentialsService(shared).getCredentials(auth)).isSameAs(credentials);
+    verify(shared).create(auth, CloudBuildScopes.all());
+  }
 
-    verify(googleCredentialsService, never()).getApplicationDefault();
-    verify(googleCredentialsService).getFromKey("/path/to/file");
-    verify(googleCloudBuildClientFactory).create(eq(googleCredentials), any(String.class));
+  @Test
+  void credentialServicePropagatesFailure() throws IOException {
+    GoogleCredentialsFactory shared = mock(GoogleCredentialsFactory.class);
+    GoogleAuthProperties auth = new GoogleAuthProperties();
+    when(shared.create(auth, CloudBuildScopes.all()))
+        .thenThrow(new IOException("credential failure"));
+
+    assertThatThrownBy(() -> new GoogleCredentialsService(shared).getCredentials(auth))
+        .isInstanceOf(UncheckedIOException.class)
+        .hasRootCauseMessage("credential failure");
+  }
+
+  private static GoogleCloudBuildProperties bind(Map<String, String> properties) {
+    return new Binder(new MapConfigurationPropertySource(properties))
+        .bind("gcb", GoogleCloudBuildProperties.class)
+        .get();
   }
 }
