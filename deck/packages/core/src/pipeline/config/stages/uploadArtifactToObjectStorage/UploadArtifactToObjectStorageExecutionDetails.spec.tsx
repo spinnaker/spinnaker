@@ -1,16 +1,12 @@
-import { mock } from 'angular';
-import { mount } from 'enzyme';
+import { UIRouterContext, UIRouterReact } from '@uirouter/react';
+import { render, screen } from '@testing-library/react';
 import React from 'react';
 
 import type { IExecutionStage } from '../../../../domain';
-import { REACT_MODULE } from '../../../../reactShims';
 import { UploadArtifactToObjectStorageExecutionDetails } from './UploadArtifactToObjectStorageExecutionDetails';
 
 describe('<UploadArtifactToObjectStorageExecutionDetails />', () => {
-  beforeEach(mock.module(REACT_MODULE));
-  beforeEach(mock.inject());
-
-  const createStage = (contextOverrides: Record<string, any> = {}): IExecutionStage => ({
+  const createStage = (resultOverrides: Record<string, any> = {}): IExecutionStage => ({
     id: 'stage-id',
     name: 'Upload Artifact',
     type: 'uploadArtifactToObjectStorage',
@@ -24,7 +20,7 @@ describe('<UploadArtifactToObjectStorageExecutionDetails />', () => {
       destinationUri: 's3://my-bucket/releases/latest/',
       fileCount: 47,
       totalSizeBytes: 2516582,
-      ...contextOverrides,
+      ...resultOverrides,
     },
   });
 
@@ -42,45 +38,52 @@ describe('<UploadArtifactToObjectStorageExecutionDetails />', () => {
   it('should display the destination URI', () => {
     const stage = createStage();
     const props = createProps(stage);
-    const component = mount(<UploadArtifactToObjectStorageExecutionDetails {...props} />);
+    const { container } = render(<UploadArtifactToObjectStorageExecutionDetails {...props} />);
 
-    expect(component.find('code').text()).toContain('s3://my-bucket/releases/latest/');
+    expect(container.querySelector('code')).toHaveTextContent('s3://my-bucket/releases/latest/');
   });
 
-  it('should display the file count', () => {
+  it('should display the total file count', () => {
     const stage = createStage();
     const props = createProps(stage);
-    const component = mount(<UploadArtifactToObjectStorageExecutionDetails {...props} />);
+    const { container } = render(<UploadArtifactToObjectStorageExecutionDetails {...props} />);
 
-    expect(component.text()).toContain('47');
+    expect(container).toHaveTextContent('Files');
+    expect(container).toHaveTextContent('47');
   });
 
   it('should format and display the total size in MB', () => {
     const stage = createStage({ totalSizeBytes: 2516582 });
     const props = createProps(stage);
-    const component = mount(<UploadArtifactToObjectStorageExecutionDetails {...props} />);
+    const { container } = render(<UploadArtifactToObjectStorageExecutionDetails {...props} />);
 
-    expect(component.text()).toContain('2.4 MB');
+    expect(container).toHaveTextContent('2.4 MB');
   });
 
   it('should format bytes correctly', () => {
     const stage = createStage({ totalSizeBytes: 1024 });
     const props = createProps(stage);
-    const component = mount(<UploadArtifactToObjectStorageExecutionDetails {...props} />);
+    const { container } = render(<UploadArtifactToObjectStorageExecutionDetails {...props} />);
 
-    expect(component.text()).toContain('1 KB');
+    expect(container).toHaveTextContent('1 KB');
   });
 
   it('should handle missing data gracefully', () => {
-    const stage = createStage({
-      destinationUri: undefined,
-      fileCount: undefined,
-      totalSizeBytes: undefined,
-    });
+    const stage: IExecutionStage = {
+      id: 'stage-id',
+      name: 'Upload Artifact',
+      type: 'uploadArtifactToObjectStorage',
+      refId: '1',
+      requisiteStageRefIds: [],
+      status: 'RUNNING',
+      startTime: Date.now() - 10000,
+      endTime: Date.now(),
+      tasks: [],
+      context: {},
+    };
     const props = createProps(stage);
-    const component = mount(<UploadArtifactToObjectStorageExecutionDetails {...props} />);
-
-    expect(component.exists()).toBe(true);
+    const { container } = render(<UploadArtifactToObjectStorageExecutionDetails {...props} />);
+    expect(container).not.toBeEmptyDOMElement();
   });
 
   it('should display failure message when stage fails', () => {
@@ -90,10 +93,12 @@ describe('<UploadArtifactToObjectStorageExecutionDetails />', () => {
       failureMessage: 'Upload failed: Access Denied',
     };
     const props = createProps(stage);
-    const component = mount(<UploadArtifactToObjectStorageExecutionDetails {...props} />);
-
-    expect(component.find('StageFailureMessage').exists()).toBe(true);
-    expect(component.find('StageFailureMessage').prop('message')).toBe('Upload failed: Access Denied');
+    render(
+      <UIRouterContext.Provider value={new UIRouterReact()}>
+        <UploadArtifactToObjectStorageExecutionDetails {...props} />
+      </UIRouterContext.Provider>,
+    );
+    expect(screen.getByText('Upload failed: Access Denied')).toBeVisible();
   });
 
   it('should have the correct title', () => {
