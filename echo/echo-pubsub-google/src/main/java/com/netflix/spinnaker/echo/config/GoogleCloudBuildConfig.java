@@ -63,7 +63,7 @@ public class GoogleCloudBuildConfig {
                       .name(account.getName())
                       .project(account.getProject())
                       .subscriptionName(account.getSubscriptionName())
-                      .jsonPath(account.getJsonKey())
+                      .auth(account.getAuth())
                       .messageFormat(GooglePubsubProperties.MessageFormat.GCB)
                       .build();
               log.info(

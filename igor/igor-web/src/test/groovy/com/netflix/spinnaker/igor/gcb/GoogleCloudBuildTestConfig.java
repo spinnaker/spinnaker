@@ -26,6 +26,7 @@ import com.google.api.services.cloudbuild.v1.CloudBuildScopes;
 import com.google.auth.oauth2.GoogleCredentials;
 import com.netflix.spectator.api.NoopRegistry;
 import com.netflix.spectator.api.Registry;
+import com.netflix.spinnaker.kork.google.auth.GoogleAuthProperties;
 import java.io.IOException;
 import java.io.InputStream;
 import org.springframework.beans.factory.annotation.Qualifier;
@@ -63,8 +64,8 @@ public class GoogleCloudBuildTestConfig {
   GoogleCredentialsService googleCredentialService() {
     return new GoogleCredentialsService() {
       @Override
-      GoogleCredentials getFromKey(String jsonPath) {
-        if (!jsonPath.equals("/path/to/some/file")) {
+      GoogleCredentials getCredentials(GoogleAuthProperties auth) {
+        if (!"/path/to/some/file".equals(auth.getCredentialsFile())) {
           throw new RuntimeException("Could not generate GoogleCredentials");
         }
         // Create a mock credential whose bearer token is always "test-token"
