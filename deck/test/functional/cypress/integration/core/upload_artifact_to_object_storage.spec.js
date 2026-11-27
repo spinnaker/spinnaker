@@ -22,10 +22,6 @@ describe('core: Upload Artifact to Object Storage Stage', () => {
       fixture: 'core/upload_artifact_to_object_storage/pipelines.json',
     });
 
-    cy.intercept('/application/compute/pipelineLock', {
-      fixture: 'default/pipelineLock.json',
-    });
-
     cy.intercept('/executions?limit=*', {
       fixture: 'core/upload_artifact_to_object_storage/pipelines.json',
     });
