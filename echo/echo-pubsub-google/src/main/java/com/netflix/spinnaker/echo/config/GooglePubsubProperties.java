@@ -16,6 +16,7 @@
 
 package com.netflix.spinnaker.echo.config;
 
+import com.netflix.spinnaker.kork.google.auth.GoogleAuthProperties;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.Min;
 import jakarta.validation.constraints.NotEmpty;
@@ -56,8 +57,11 @@ public class GooglePubsubProperties {
 
     @Builder.Default private int ackDeadlineSeconds = 10;
 
-    // Not required since subscriptions can be public.
-    private String jsonPath;
+    @Builder.Default private GoogleAuthProperties auth = new GoogleAuthProperties();
+
+    public void setJsonPath(String ignored) {
+      throw GoogleAuthProperties.removedProperty("jsonPath", "use auth.credentialsFile");
+    }
 
     private String templatePath;
 
@@ -91,8 +95,11 @@ public class GooglePubsubProperties {
 
     @NotEmpty private String project;
 
-    // Optional. Uses Application Default Credentials if not set.
-    private String jsonPath;
+    private GoogleAuthProperties auth = new GoogleAuthProperties();
+
+    public void setJsonPath(String ignored) {
+      throw GoogleAuthProperties.removedProperty("jsonPath", "use auth.credentialsFile");
+    }
 
     private Content content = Content.ALL;
 

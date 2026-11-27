@@ -19,7 +19,9 @@ package com.netflix.spinnaker.clouddriver.google.config
 import com.netflix.spinnaker.clouddriver.consul.config.ConsulConfig
 import com.netflix.spinnaker.clouddriver.googlecommon.config.GoogleCommonManagedAccount
 import com.fasterxml.jackson.annotation.JsonTypeName
+import com.fasterxml.jackson.annotation.JsonProperty
 import com.netflix.spinnaker.clouddriver.security.AccessControlledAccountDefinition
+import com.netflix.spinnaker.kork.google.auth.GoogleAuthProperties
 import groovy.transform.Canonical
 import groovy.transform.ToString
 import org.springframework.boot.context.properties.NestedConfigurationProperty
@@ -42,6 +44,27 @@ class GoogleConfigurationProperties {
   @ToString(includeNames = true)
   @JsonTypeName("google")
   static class ManagedAccount extends GoogleCommonManagedAccount implements AccessControlledAccountDefinition {
+    GoogleAuthProperties auth = new GoogleAuthProperties()
+
+    // Reject the inherited legacy settings; other providers migrate separately.
+    @Override
+    @JsonProperty(access = JsonProperty.Access.WRITE_ONLY)
+    void setJsonPath(String ignored) {
+      throw GoogleAuthProperties.removedProperty("jsonPath", "use auth.credentialsFile")
+    }
+
+    @Override
+    @JsonProperty(access = JsonProperty.Access.WRITE_ONLY)
+    void setServiceAccountId(String ignored) {
+      throw GoogleAuthProperties.removedProperty("serviceAccountId", "use auth.impersonateServiceAccount with the full service-account email")
+    }
+
+    @Override
+    @JsonProperty(access = JsonProperty.Access.WRITE_ONLY)
+    void setServiceAccountProject(String ignored) {
+      throw GoogleAuthProperties.removedProperty("serviceAccountProject", "use auth.impersonateServiceAccount with the full service-account email")
+    }
+
     boolean alphaListed
     List<String> imageProjects
     ConsulConfig consul

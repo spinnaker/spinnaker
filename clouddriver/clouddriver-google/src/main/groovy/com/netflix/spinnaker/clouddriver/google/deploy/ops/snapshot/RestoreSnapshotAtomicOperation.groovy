@@ -32,6 +32,7 @@ import com.netflix.spinnaker.clouddriver.google.provider.view.GoogleClusterProvi
 import com.netflix.spinnaker.clouddriver.google.provider.view.GoogleLoadBalancerProvider
 import com.netflix.spinnaker.clouddriver.google.provider.view.GoogleSecurityGroupProvider
 import com.netflix.spinnaker.clouddriver.google.security.GoogleNamedAccountCredentials
+import com.netflix.spinnaker.clouddriver.google.security.GoogleAuthCredentials
 import com.netflix.spinnaker.clouddriver.jobs.JobExecutor
 import com.netflix.spinnaker.clouddriver.jobs.JobRequest
 import com.netflix.spinnaker.clouddriver.jobs.JobResult
@@ -97,17 +98,22 @@ class RestoreSnapshotAtomicOperation implements AtomicOperation<Void> {
     // Set up google credentials
     def credentials = accountCredentialsRepository.getOne(accountName) as GoogleNamedAccountCredentials
     project = credentials.project
+    // TODO: migrate the external Terraform restore path to shared authentication semantics.
+    // Check the resolved credentials, including dynamic accounts, before considering environment credentials.
+    if (credentials.credentials instanceof GoogleAuthCredentials && credentials.credentials.usesImpersonation()) {
+      throw new IllegalStateException("Snapshot restore does not yet support auth.impersonateServiceAccount")
+    }
     def pb = new ProcessBuilder()
     def env = pb.environment()
-    if (env.GOOGLE_PROJECT == project && env.GOOGLE_CREDENTIALS && env.GOOGLE_REGION) {
-      hasEnvCredentials = true
-    } else {
-      for (GoogleConfigurationProperties.ManagedAccount account : googleConfigurationProperties.accounts) {
-        if (account.name == accountName) {
-          credentialPath = account.jsonPath
-          break
-        }
+    for (GoogleConfigurationProperties.ManagedAccount account : googleConfigurationProperties.accounts) {
+      if (account.name == accountName) {
+        account.auth.validate()
+        credentialPath = account.auth.credentialsFile
+        break
       }
+    }
+    if (credentialPath == null && env.GOOGLE_PROJECT == project && env.GOOGLE_CREDENTIALS && env.GOOGLE_REGION) {
+      hasEnvCredentials = true
     }
     if (credentialPath == null && !hasEnvCredentials) {
       throw new IllegalStateException("Could not find credentials for $accountName")
