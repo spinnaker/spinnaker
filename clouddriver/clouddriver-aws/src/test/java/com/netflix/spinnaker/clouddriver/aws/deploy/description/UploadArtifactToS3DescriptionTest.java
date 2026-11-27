@@ -24,6 +24,11 @@ import org.junit.jupiter.api.Test;
 class UploadArtifactToS3DescriptionTest {
 
   @Test
+  void shouldUseAccountRestrictions() {
+    assertFalse(new UploadArtifactToS3Description().requiresApplicationRestriction());
+  }
+
+  @Test
   void shouldStoreAllRequiredFields() {
     UploadArtifactToS3Description description = new UploadArtifactToS3Description();
     description.setRegion("us-west-2");
