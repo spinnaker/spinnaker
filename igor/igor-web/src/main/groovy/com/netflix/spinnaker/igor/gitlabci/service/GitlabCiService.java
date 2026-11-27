@@ -188,12 +188,17 @@ public class GitlabCiService implements BuildOperations, BuildProperties, Stoppa
     return permissions;
   }
 
+  /** Whether the project dropdown should list projects live (see GitlabCiHost#listProjectsLive). */
+  public boolean isListProjectsLive() {
+    return hostConfig.isListProjectsLive();
+  }
+
   public List<Project> getProjects() {
     return getProjectsRec(new ArrayList<>(), 1).parallelStream()
         // Ignore projects that don't have Gitlab CI enabled.  It is not possible to filter this
         // using the GitLab
         // API. We need to filter it after retrieving all projects
-        .filter(project -> project.getBuildsAccessLevel().equals("enabled"))
+        .filter(project -> "enabled".equals(project.getBuildsAccessLevel()))
         .collect(Collectors.toList());
   }
 
