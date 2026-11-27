@@ -44,6 +44,7 @@ import './config/stages/tagImage/tagImageStage';
 import './config/stages/travis/travisStage';
 import './config/stages/unmatchedStageTypeStage/unmatchedStageTypeStage';
 import './config/stages/unshareService/unshareServiceStage';
+import './config/stages/uploadArtifactToObjectStorage/uploadArtifactToObjectStorage.stage';
 import './config/stages/wait/waitStage';
 import './config/stages/waitForCondition/waitForConditionStage';
 import './config/stages/waitForParentTasks/waitForParentTasks';
