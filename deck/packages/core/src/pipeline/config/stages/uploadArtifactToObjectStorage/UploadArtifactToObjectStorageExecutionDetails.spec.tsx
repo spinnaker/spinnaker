@@ -211,27 +211,27 @@ describe('<UploadArtifactToObjectStorageExecutionDetails />', () => {
   it('should display force upload enabled when forceUpload is true', () => {
     const stage = createStage({ forceUpload: true });
     const props = createProps(stage);
-    const component = mount(<UploadArtifactToObjectStorageExecutionDetails {...props} />);
+    const { container } = render(<UploadArtifactToObjectStorageExecutionDetails {...props} />);
 
-    expect(component.text()).toContain('Force Upload');
-    expect(component.text()).toContain('Yes');
+    expect(container).toHaveTextContent('Force Upload');
+    expect(container).toHaveTextContent('Yes');
   });
 
   it('should display force upload disabled when forceUpload is false', () => {
     const stage = createStage({ forceUpload: false });
     const props = createProps(stage);
-    const component = mount(<UploadArtifactToObjectStorageExecutionDetails {...props} />);
+    const { container } = render(<UploadArtifactToObjectStorageExecutionDetails {...props} />);
 
-    expect(component.text()).toContain('Force Upload');
-    expect(component.text()).toContain('No');
+    expect(container).toHaveTextContent('Force Upload');
+    expect(container).toHaveTextContent('No');
   });
 
   it('should not display force upload when forceUpload is not present', () => {
     const stage = createStage();
     const props = createProps(stage);
-    const component = mount(<UploadArtifactToObjectStorageExecutionDetails {...props} />);
+    const { container } = render(<UploadArtifactToObjectStorageExecutionDetails {...props} />);
 
-    expect(component.text()).not.toContain('Force Upload');
+    expect(container).not.toHaveTextContent('Force Upload');
   });
 
   it('should have the correct title', () => {
