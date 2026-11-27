@@ -10,32 +10,12 @@ describe('core: Upload Artifact to Object Storage Stage', () => {
     });
 
     cy.intercept('/applications/compute/pipelineConfigs/Upload%20Artifact%20Pipeline', {
-      fixture: 'core/upload_artifact_to_object_storage/pipelineConfigs.json',
-    });
-
-    // Mock pipeline executions
-    cy.intercept('/applications/compute/pipelines?expand=false&limit=*', {
-      fixture: 'core/upload_artifact_to_object_storage/pipelines.json',
-    });
-
-    cy.intercept('/applications/compute/pipelines*', {
-      fixture: 'core/upload_artifact_to_object_storage/pipelines.json',
-    });
-
-    cy.intercept('/executions?limit=*', {
-      fixture: 'core/upload_artifact_to_object_storage/pipelines.json',
+      fixture: 'core/upload_artifact_to_object_storage/pipelineWithStage.json',
     });
   });
 
   it('displays the Upload Artifact to Object Storage stage in pipeline config', () => {
-    cy.visit('#/applications/compute/executions');
-
-    // Clear time boundary filter and select Pipeline view
-    cy.get('.glyphicon-remove-sign').click();
-    cy.get('.input-sm:contains("Pipeline")').select('Pipeline');
-
-    // Click Configure on the pipeline
-    cy.get('a:contains("Configure")').first().click({ force: true });
+    cy.visit('#/applications/compute/executions/configure/upload-artifact-pipeline-id');
 
     // Click on the stage to select it
     cy.get('a:contains("Upload to S3")').click({ force: true });
@@ -47,13 +27,7 @@ describe('core: Upload Artifact to Object Storage Stage', () => {
   });
 
   it('shows stage configuration fields', () => {
-    cy.visit('#/applications/compute/executions');
-
-    // Clear time boundary filter and select Pipeline view
-    cy.get('.glyphicon-remove-sign').click();
-    cy.get('.input-sm:contains("Pipeline")').select('Pipeline');
-
-    cy.get('a:contains("Configure")').first().click({ force: true });
+    cy.visit('#/applications/compute/executions/configure/upload-artifact-pipeline-id');
     cy.get('a:contains("Upload to S3")').click({ force: true });
 
     // Verify form fields exist
