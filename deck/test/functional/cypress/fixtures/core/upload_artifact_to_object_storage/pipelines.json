@@ -1,0 +1,60 @@
+[
+  {
+    "type": "PIPELINE",
+    "id": "01UPLOAD123456789",
+    "application": "compute",
+    "name": "Upload Artifact Pipeline",
+    "buildTime": 1706900000000,
+    "canceled": false,
+    "limitConcurrent": true,
+    "keepWaitingPipelines": false,
+    "stages": [
+      {
+        "id": "01UPLOADSTAGE001",
+        "refId": "1",
+        "type": "uploadArtifactToObjectStorage",
+        "name": "Upload to S3",
+        "startTime": 1706900001000,
+        "endTime": 1706900010000,
+        "status": "SUCCEEDED",
+        "context": {
+          "cloudProvider": "aws",
+          "credentials": "my-aws-account",
+          "region": "us-east-1",
+          "bucket": "my-bucket",
+          "objectKeyPrefix": "releases/latest",
+          "destinationUri": "s3://my-bucket/releases/latest/",
+          "fileCount": 5,
+          "totalSizeBytes": 1048576
+        },
+        "outputs": {},
+        "tasks": [],
+        "requisiteStageRefIds": []
+      }
+    ],
+    "startTime": 1706900000500,
+    "endTime": 1706900010500,
+    "status": "SUCCEEDED",
+    "authentication": {
+      "user": "anonymous",
+      "allowedAccounts": ["my-aws-account"]
+    },
+    "origin": "api",
+    "trigger": {
+      "type": "manual",
+      "user": "[anonymous]",
+      "parameters": {},
+      "artifacts": [],
+      "notifications": [],
+      "rebake": false,
+      "dryRun": false,
+      "strategy": false,
+      "resolvedExpectedArtifacts": [],
+      "expectedArtifacts": []
+    },
+    "pipelineConfigId": "upload-artifact-pipeline-id",
+    "notifications": [],
+    "initialConfig": {},
+    "systemNotifications": []
+  }
+]

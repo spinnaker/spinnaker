@@ -1,0 +1,26 @@
+{
+  "application": "compute",
+  "id": "upload-artifact-pipeline-id",
+  "index": 0,
+  "keepWaitingPipelines": false,
+  "lastModifiedBy": "anonymous",
+  "limitConcurrent": true,
+  "name": "Upload Artifact Pipeline",
+  "parameterConfig": [],
+  "spelEvaluator": "v4",
+  "stages": [
+    {
+      "name": "Upload to S3",
+      "type": "uploadArtifactToObjectStorage",
+      "refId": "1",
+      "requisiteStageRefIds": [],
+      "cloudProvider": "aws",
+      "credentials": "my-aws-account",
+      "region": "us-east-1",
+      "bucket": "my-bucket",
+      "objectKeyPrefix": "releases/latest"
+    }
+  ],
+  "triggers": [],
+  "updateTs": "1706900000000"
+}
