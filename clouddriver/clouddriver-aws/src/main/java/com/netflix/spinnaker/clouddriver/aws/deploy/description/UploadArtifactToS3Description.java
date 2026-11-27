@@ -61,6 +61,12 @@ public class UploadArtifactToS3Description extends AbstractAmazonCredentialsDesc
   private boolean deleteStaleFiles = false;
 
   /**
+   * When true, all files are uploaded regardless of whether they have changed. Bypasses the ETag
+   * comparison that would normally skip unchanged files. Ignored when extractArchive is false.
+   */
+  private boolean forceUpload = false;
+
+  /**
    * Optional Cache-Control header value to set on uploaded S3 objects (e.g., "max-age=31536000,
    * public"). When null or blank, no Cache-Control metadata is set.
    */

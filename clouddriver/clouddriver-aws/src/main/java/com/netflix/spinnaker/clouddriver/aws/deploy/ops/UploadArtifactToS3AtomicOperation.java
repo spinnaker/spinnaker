@@ -84,6 +84,7 @@ import software.amazon.awssdk.services.s3.model.S3Object;
  *   <li>{@code fileCount} - the total number of files in the archive
  *   <li>{@code uploadCount} - the number of files actually uploaded (new or changed)
  *   <li>{@code skippedCount} - the number of files skipped (unchanged)
+ *   <li>{@code forceUpload} - whether all files were uploaded regardless of changes
  *   <li>{@code deleteStaleFiles} - whether stale files were deleted
  *   <li>{@code deletedCount} - the number of stale files deleted
  * </ul>
@@ -176,18 +177,28 @@ public class UploadArtifactToS3AtomicOperation implements AtomicOperation<Map<St
     Path extractDir = tempDir.resolve("extracted");
     List<Path> extractedFiles = ArchiveExtractor.extract(archiveFile, extractDir);
 
-    Map<String, String> remoteEtags = listRemoteEtags(s3Client, bucket, prefix);
+    boolean forceUpload = description.isForceUpload();
+    Map<String, String> remoteEtags =
+        forceUpload ? Map.of() : listRemoteEtags(s3Client, bucket, prefix);
 
     List<File> changedFiles = new ArrayList<>();
-    for (Path relativePath : extractedFiles) {
-      Path localFile = extractDir.resolve(relativePath);
-      String key =
-          prefix.isEmpty()
-              ? relativePath.toString().replace('\\', '/')
-              : prefix + "/" + relativePath.toString().replace('\\', '/');
-      String remoteEtag = remoteEtags.get(key);
-      if (remoteEtag == null || isMultipartEtag(remoteEtag) || !remoteEtag.equals(md5(localFile))) {
-        changedFiles.add(localFile.toFile());
+    if (forceUpload) {
+      for (Path relativePath : extractedFiles) {
+        changedFiles.add(extractDir.resolve(relativePath).toFile());
+      }
+    } else {
+      for (Path relativePath : extractedFiles) {
+        Path localFile = extractDir.resolve(relativePath);
+        String key =
+            prefix.isEmpty()
+                ? relativePath.toString().replace('\\', '/')
+                : prefix + "/" + relativePath.toString().replace('\\', '/');
+        String remoteEtag = remoteEtags.get(key);
+        if (remoteEtag == null
+            || isMultipartEtag(remoteEtag)
+            || !remoteEtag.equals(md5(localFile))) {
+          changedFiles.add(localFile.toFile());
+        }
       }
     }
 
@@ -232,8 +243,9 @@ public class UploadArtifactToS3AtomicOperation implements AtomicOperation<Map<St
 
     int deletedCount = 0;
     if (description.isDeleteStaleFiles()) {
-      deletedCount =
-          deleteStaleFiles(s3Client, bucket, prefix, extractedFiles, remoteEtags.keySet());
+      Set<String> remoteKeys =
+          forceUpload ? listRemoteEtags(s3Client, bucket, prefix).keySet() : remoteEtags.keySet();
+      deletedCount = deleteStaleFiles(s3Client, bucket, prefix, extractedFiles, remoteKeys);
     }
 
     String destinationUri =
@@ -254,6 +266,7 @@ public class UploadArtifactToS3AtomicOperation implements AtomicOperation<Map<St
     result.put("fileCount", extractedFiles.size());
     result.put("uploadCount", changedFiles.size());
     result.put("skippedCount", skippedCount);
+    result.put("forceUpload", forceUpload);
     result.put("deleteStaleFiles", description.isDeleteStaleFiles());
     result.put("deletedCount", deletedCount);
     return result;

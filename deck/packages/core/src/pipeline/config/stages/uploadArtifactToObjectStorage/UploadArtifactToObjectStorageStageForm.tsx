@@ -163,6 +163,7 @@ export function UploadArtifactToObjectStorageStageForm(props: IFormikStageConfig
             props.formik.setFieldValue('extractArchive', e.target.checked);
             if (!e.target.checked) {
               props.formik.setFieldValue('deleteStaleFiles', false);
+              props.formik.setFieldValue('forceUpload', false);
             }
           }}
         />
@@ -178,6 +179,16 @@ export function UploadArtifactToObjectStorageStageForm(props: IFormikStageConfig
             checked={!!stage.deleteStaleFiles}
             text="Delete stale files from destination"
             onChange={onCheckboxChange('deleteStaleFiles')}
+          />
+        </StageConfigField>
+      )}
+
+      {stage.extractArchive !== false && (
+        <StageConfigField label="Force Upload" fieldColumns={6}>
+          <CheckboxInput
+            checked={!!stage.forceUpload}
+            text="Upload all files, even if unchanged"
+            onChange={onCheckboxChange('forceUpload')}
           />
         </StageConfigField>
       )}

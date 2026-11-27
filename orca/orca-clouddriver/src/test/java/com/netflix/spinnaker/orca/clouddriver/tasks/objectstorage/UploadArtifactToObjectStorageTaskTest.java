@@ -247,6 +247,51 @@ class UploadArtifactToObjectStorageTaskTest {
   }
 
   @Test
+  void shouldPassForceUploadTrueInPayload() {
+    // Given
+    Artifact resolvedArtifact = Artifact.builder().name("app.zip").build();
+
+    when(artifactUtils.getBoundArtifactForStage(any(), eq(ARTIFACT_ID), any()))
+        .thenReturn(resolvedArtifact);
+    when(katoService.requestOperations(anyString(), any())).thenReturn(new TaskId("kato-task-123"));
+
+    Map<String, Object> context = createStageContext();
+    context.put("forceUpload", true);
+    StageExecutionImpl stage = createStage(context);
+
+    // When
+    TaskResult result = task.execute(stage);
+
+    // Then
+    AssertionsForClassTypes.assertThat(result.getStatus()).isEqualTo(ExecutionStatus.SUCCEEDED);
+
+    Map<String, Object> operationDetails = captureOperationDetails(CLOUD_PROVIDER);
+    assertThat(operationDetails.get("forceUpload")).isEqualTo(true);
+  }
+
+  @Test
+  void shouldDefaultForceUploadToFalseWhenAbsentFromContext() {
+    // Given
+    Artifact resolvedArtifact = Artifact.builder().name("app.zip").build();
+
+    when(artifactUtils.getBoundArtifactForStage(any(), eq(ARTIFACT_ID), any()))
+        .thenReturn(resolvedArtifact);
+    when(katoService.requestOperations(anyString(), any())).thenReturn(new TaskId("kato-task-123"));
+
+    Map<String, Object> context = createStageContext();
+    StageExecutionImpl stage = createStage(context);
+
+    // When
+    TaskResult result = task.execute(stage);
+
+    // Then
+    AssertionsForClassTypes.assertThat(result.getStatus()).isEqualTo(ExecutionStatus.SUCCEEDED);
+
+    Map<String, Object> operationDetails = captureOperationDetails(CLOUD_PROVIDER);
+    assertThat(operationDetails.get("forceUpload")).isEqualTo(false);
+  }
+
+  @Test
   void shouldPassExtractArchiveFalseInPayload() {
     // Given
     Artifact resolvedArtifact = Artifact.builder().name("config.json").build();
