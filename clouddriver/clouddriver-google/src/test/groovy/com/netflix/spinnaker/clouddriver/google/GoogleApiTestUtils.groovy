@@ -16,6 +16,8 @@
 
 package com.netflix.spinnaker.clouddriver.google
 
+import com.google.api.client.googleapis.json.GoogleJsonError
+import com.google.api.client.googleapis.json.GoogleJsonResponseException
 import com.google.api.client.http.HttpHeaders
 import com.google.api.client.http.HttpResponseException
 
@@ -33,6 +35,22 @@ public class GoogleApiTestUtils {
         "Injected Error",
         new HttpHeaders()).setMessage(statusCode.toString() + " Injected Error")
     return new HttpResponseException(builder)
+  }
+
+  static public GoogleJsonResponseException makeGoogleJsonResponseException(int statusCode) {
+    return makeGoogleJsonResponseException(statusCode, null)
+  }
+
+  static public GoogleJsonResponseException makeGoogleJsonResponseException(int statusCode, String reason) {
+    def builder = new HttpResponseException.Builder(
+        statusCode,
+        "Injected Error",
+        new HttpHeaders()).setMessage(statusCode.toString() + " Injected Error")
+    def details = new GoogleJsonError(code: statusCode, message: "Injected Error")
+    if (reason) {
+      details.errors = [new GoogleJsonError.ErrorInfo(reason: reason, message: "Injected Error")]
+    }
+    return new GoogleJsonResponseException(builder, details)
   }
 
   static public Map makeTraitsTagMap(String method, int statusCode, Map extra) {

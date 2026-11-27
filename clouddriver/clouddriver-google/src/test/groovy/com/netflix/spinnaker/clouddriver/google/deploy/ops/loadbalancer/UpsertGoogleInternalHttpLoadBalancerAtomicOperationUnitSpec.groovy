@@ -593,10 +593,12 @@ class UpsertGoogleInternalHttpLoadBalancerAtomicOperationUnitSpec extends Specif
       def targetHttpProxies = Mock(Compute.RegionTargetHttpProxies)
       def targetHttpProxiesDelete = Mock(Compute.RegionTargetHttpProxies.Delete)
       def proxyDeleteOperation = new Operation(name: "proxy-delete", status: DONE)
+      def poller = Mock(GoogleOperationPoller)
       @Subject def operation = new UpsertGoogleInternalHttpLoadBalancerAtomicOperation(
         new UpsertGoogleLoadBalancerDescription())
       operation.registry = registry
       operation.safeRetry = safeRetry
+      operation.googleOperationPoller = poller
 
     when:
       def result = operation.deleteRegionalListenerIfOwned(
@@ -619,6 +621,7 @@ class UpsertGoogleInternalHttpLoadBalancerAtomicOperationUnitSpec extends Specif
 
       1 * forwardingRules.delete(PROJECT_NAME, REGION, "internal-listener") >> forwardingRulesDelete
       1 * forwardingRulesDelete.execute() >> new Operation(name: "rule-delete", status: DONE)
+      1 * poller.waitForRegionalOperation(compute, PROJECT_NAME, REGION, "rule-delete", *_)
       1 * targetHttpProxies.delete(PROJECT_NAME, REGION, "internal-proxy") >> targetHttpProxiesDelete
       1 * targetHttpProxiesDelete.execute() >> proxyDeleteOperation
 

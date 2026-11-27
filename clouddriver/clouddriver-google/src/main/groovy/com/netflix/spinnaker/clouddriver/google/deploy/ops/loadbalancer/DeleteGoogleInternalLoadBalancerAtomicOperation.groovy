@@ -228,6 +228,8 @@ class DeleteGoogleInternalLoadBalancerAtomicOperation extends GoogleAtomicOperat
       if (deleteForwardingRuleOp) {
         googleOperationPoller.waitForRegionalOperation(compute, project, region, deleteForwardingRuleOp.getName(),
             timeoutSeconds, task, "Regional forwarding rule $forwardingRuleName", BASE_PHASE)
+      } else {
+        GCEUtil.checkRegionalForwardingRuleDeleted(compute, project, region, ruleName, BASE_PHASE, task, safeRetry, this)
       }
     }
 

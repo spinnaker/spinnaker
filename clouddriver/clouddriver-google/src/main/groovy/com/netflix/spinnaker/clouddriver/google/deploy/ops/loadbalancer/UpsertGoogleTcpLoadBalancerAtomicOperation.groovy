@@ -314,7 +314,12 @@ class UpsertGoogleTcpLoadBalancerAtomicOperation extends UpsertGoogleLoadBalance
     // Delete extraneous listeners.
     description.listenersToDelete?.each { String forwardingRuleName ->
       task.updateStatus BASE_PHASE, "Deleting listener ${forwardingRuleName}..."
-      GCEUtil.deleteGlobalListener(compute, project, forwardingRuleName, BASE_PHASE, safeRetry, this)
+      Operation deleteProxyOp = GCEUtil.deleteGlobalListener(compute, project, forwardingRuleName, BASE_PHASE, null,
+        task, googleOperationPoller, safeRetry, this)
+      if (deleteProxyOp) {
+        googleOperationPoller.waitForGlobalOperation(compute, project, deleteProxyOp.getName(),
+          null, task, "listener " + forwardingRuleName, BASE_PHASE)
+      }
     }
 
     task.updateStatus BASE_PHASE, "Done upserting load balancer $description.loadBalancerName."
