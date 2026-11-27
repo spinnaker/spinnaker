@@ -56,7 +56,8 @@ class TaskControllerTest : JUnit5Minutests {
             OrcaObjectMapper.getInstance(),
             NoopRegistry(),
             mock(),
-            taskControllerConfigurationProperties
+            taskControllerConfigurationProperties,
+            mock()
         )
 
         init {

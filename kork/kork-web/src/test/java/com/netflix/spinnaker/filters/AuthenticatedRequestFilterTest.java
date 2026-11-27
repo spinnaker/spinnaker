@@ -19,14 +19,11 @@ package com.netflix.spinnaker.filters;
 import static org.assertj.core.api.Assertions.assertThat;
 
 import com.netflix.spinnaker.kork.common.Header;
-import com.netflix.spinnaker.security.AllowedAccountsAuthorities;
 import com.netflix.spinnaker.security.AuthenticatedRequest;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.ServletRequest;
 import jakarta.servlet.ServletResponse;
 import java.io.IOException;
-import java.util.ArrayList;
-import java.util.Collection;
 import java.util.List;
 import java.util.Optional;
 import java.util.concurrent.atomic.AtomicReference;
@@ -52,10 +49,8 @@ class AuthenticatedRequestFilterTest {
   }
 
   @Test
-  void derivesUserAndAccountsFromAuthenticationWithoutUserDetailsPrincipal() throws Exception {
-    List<GrantedAuthority> authorities = new ArrayList<>();
-    authorities.add(AuthorityUtils.createAuthorityList("some-role").get(0));
-    authorities.addAll(AllowedAccountsAuthorities.buildAllowedAccounts(List.of("prod", "test")));
+  void derivesUserFromAuthenticationWithoutUserDetailsPrincipal() throws Exception {
+    List<GrantedAuthority> authorities = AuthorityUtils.createAuthorityList("some-role");
     AuthenticatedPrincipal principal = () -> "oauth-user";
     SecurityContextHolder.getContext()
         .setAuthentication(new UsernamePasswordAuthenticationToken(principal, null, authorities));
@@ -63,7 +58,6 @@ class AuthenticatedRequestFilterTest {
     var seen = filter();
 
     assertThat(seen.user.get()).contains("oauth-user");
-    assertThat(seen.accounts.get()).contains("prod,test");
   }
 
   @Test
@@ -79,10 +73,8 @@ class AuthenticatedRequestFilterTest {
   }
 
   @Test
-  void anonymousTokenWithUserPrincipalKeepsItsIdentityAndAccounts() throws Exception {
-    Collection<GrantedAuthority> authorities =
-        new ArrayList<>(AllowedAccountsAuthorities.buildAllowedAccounts(List.of("anon-account")));
-    authorities.add(AuthorityUtils.createAuthorityList("ROLE_ANONYMOUS").get(0));
+  void anonymousTokenWithUserPrincipalKeepsItsIdentity() throws Exception {
+    List<GrantedAuthority> authorities = AuthorityUtils.createAuthorityList("ROLE_ANONYMOUS");
     SecurityContextHolder.getContext()
         .setAuthentication(
             new AnonymousAuthenticationToken(
@@ -91,15 +83,12 @@ class AuthenticatedRequestFilterTest {
     var seen = filter();
 
     assertThat(seen.user.get()).contains("anonymous");
-    assertThat(seen.accounts.get()).contains("anon-account");
   }
 
-  private record Seen(
-      AtomicReference<Optional<String>> user, AtomicReference<Optional<String>> accounts) {}
+  private record Seen(AtomicReference<Optional<String>> user) {}
 
   private Seen filter() throws Exception {
     var user = new AtomicReference<Optional<String>>();
-    var accounts = new AtomicReference<Optional<String>>();
     new AuthenticatedRequestFilter()
         .doFilter(
             new MockHttpServletRequest(),
@@ -109,9 +98,8 @@ class AuthenticatedRequestFilterTest {
               public void doFilter(ServletRequest request, ServletResponse response)
                   throws IOException, ServletException {
                 user.set(AuthenticatedRequest.get(Header.USER));
-                accounts.set(AuthenticatedRequest.get(Header.ACCOUNTS));
               }
             });
-    return new Seen(user, accounts);
+    return new Seen(user);
   }
 }

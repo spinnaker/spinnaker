@@ -25,6 +25,7 @@ import com.netflix.spinnaker.kork.web.filters.ProvidedIdRequestFilterConfigurati
 import com.netflix.spinnaker.orca.api.pipeline.models.PipelineExecution;
 import com.netflix.spinnaker.orca.config.ExecutionConfigurationProperties;
 import com.netflix.spinnaker.orca.pipeline.persistence.ExecutionRepository;
+import com.netflix.spinnaker.orca.security.AllowedAccountsResolver;
 import java.time.Clock;
 import java.util.List;
 import java.util.Map;
@@ -62,7 +63,9 @@ public class ExecutionLauncherTest {
           Optional.empty() /* pipelineValidator */,
           new NoopRegistry(),
           executionConfigurationProperties,
-          providedIdRequestFilterConfigurationProperties);
+          providedIdRequestFilterConfigurationProperties,
+          new AllowedAccountsResolver(
+              Optional.empty(), Optional.empty(), executionConfigurationProperties));
 
   @Test
   public void parsePipelinePopulatesRootId() {

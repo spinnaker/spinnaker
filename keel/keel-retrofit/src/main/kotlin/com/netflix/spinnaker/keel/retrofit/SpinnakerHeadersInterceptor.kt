@@ -26,19 +26,6 @@ class SpinnakerHeadersInterceptor : Interceptor {
       headers[Header.REQUEST_ID.header] = id
     }
 
-    // add account information so that downstream services can use that as a fallback if fiat is down
-    request.header(Header.USER.header)?.also { user ->
-      // TODO: move the call to fiat to retrieve account permission up in the stack to avoid circular dependency
-      //  with new OkHttpClient setup in kork.
-      /*
-      AuthenticatedRequest.allowAnonymous {
-        val accounts = fiatPermissionEvaluator.getPermission(user).accounts.joinToString(",") { it.name }
-        log.trace("Adding X-SPINNAKER-ACCOUNTS: $accounts to ${request.method} ${request.url}")
-        headers[Header.ACCOUNTS.header] = accounts
-      }
-      */
-    }
-
     request = request.newBuilder().let { builder ->
       headers.forEach { (header, value) ->
         builder.addHeader(header, value)

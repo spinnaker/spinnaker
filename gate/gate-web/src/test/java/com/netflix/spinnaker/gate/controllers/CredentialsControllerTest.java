@@ -20,7 +20,6 @@ import static com.github.tomakehurst.wiremock.client.WireMock.aResponse;
 import static com.github.tomakehurst.wiremock.client.WireMock.urlEqualTo;
 import static com.github.tomakehurst.wiremock.client.WireMock.urlPathEqualTo;
 import static com.github.tomakehurst.wiremock.core.WireMockConfiguration.wireMockConfig;
-import static com.netflix.spinnaker.kork.common.Header.ACCOUNTS;
 import static com.netflix.spinnaker.kork.common.Header.REQUEST_ID;
 import static com.netflix.spinnaker.kork.common.Header.USER;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
@@ -136,8 +135,7 @@ public class CredentialsControllerTest {
             get("/credentials/type/sometype")
                 .contentType(MediaType.APPLICATION_JSON_VALUE)
                 .header(USER.getHeader(), USERNAME)
-                .header(REQUEST_ID.getHeader(), SUBMITTED_REQUEST_ID)
-                .header(ACCOUNTS.getHeader(), ACCOUNT))
+                .header(REQUEST_ID.getHeader(), SUBMITTED_REQUEST_ID))
         .andDo(print())
         .andExpect(status().is2xxSuccessful())
         .andExpect(content().string(accountDefinitionJson))

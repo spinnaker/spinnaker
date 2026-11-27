@@ -16,7 +16,6 @@
 
 package com.netflix.spinnaker.okhttp;
 
-import com.netflix.spinnaker.kork.common.Header;
 import com.netflix.spinnaker.security.AuthenticatedRequest;
 import java.io.IOException;
 import java.util.Collections;
@@ -42,9 +41,6 @@ public class SpinnakerRequestHeaderInterceptor implements Interceptor {
    */
   private final boolean propagateSpinnakerHeaders;
 
-  /** Don't propagate X-SPINNAKER-ACCOUNTS. Only relevant when propagateSpinnakerHeaders is true. */
-  private final boolean skipAccountsHeader;
-
   /**
    * Headers to propagate from the MDC, in addition to the X-SPINNAKER-* headers. Each element whose
    * the value in the MDC is non-empty is included in outgoing HTTP requests.
@@ -53,16 +49,7 @@ public class SpinnakerRequestHeaderInterceptor implements Interceptor {
 
   public SpinnakerRequestHeaderInterceptor(
       boolean propagateSpinnakerHeaders, List<String> additionalHeaders) {
-    this(propagateSpinnakerHeaders, false /* skipAccountsHeader */, additionalHeaders);
-  }
-
-  public SpinnakerRequestHeaderInterceptor(
-      boolean propagateSpinnakerHeaders,
-      boolean skipAccountsHeader,
-      List<String> additionalHeaders) {
-
     this.propagateSpinnakerHeaders = propagateSpinnakerHeaders;
-    this.skipAccountsHeader = skipAccountsHeader;
     this.additionalHeaders = Optional.ofNullable(additionalHeaders).orElse(Collections.emptyList());
   }
 
@@ -76,8 +63,7 @@ public class SpinnakerRequestHeaderInterceptor implements Interceptor {
     AuthenticatedRequest.getAuthenticationHeaders()
         .forEach(
             (key, value) -> {
-              if (value.isPresent()
-                  && (!skipAccountsHeader || !Header.ACCOUNTS.getHeader().equals(key))) {
+              if (value.isPresent()) {
                 builder.addHeader(key, value.get());
               }
             });

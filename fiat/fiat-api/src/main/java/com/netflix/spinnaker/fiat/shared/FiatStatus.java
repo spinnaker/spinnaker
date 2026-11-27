@@ -34,7 +34,6 @@ public class FiatStatus {
   private final FiatClientConfigurationProperties fiatClientConfigurationProperties;
 
   private final AtomicBoolean enabled;
-  private final AtomicBoolean legacyFallbackEnabled;
   private final AtomicBoolean grantedAuthoritiesEnabled;
 
   @Autowired
@@ -46,8 +45,6 @@ public class FiatStatus {
     this.fiatClientConfigurationProperties = fiatClientConfigurationProperties;
 
     this.enabled = new AtomicBoolean(fiatClientConfigurationProperties.isEnabled());
-    this.legacyFallbackEnabled =
-        new AtomicBoolean(fiatClientConfigurationProperties.isLegacyFallback());
     this.grantedAuthoritiesEnabled =
         new AtomicBoolean(fiatClientConfigurationProperties.getGrantedAuthorities().isEnabled());
 
@@ -55,19 +52,12 @@ public class FiatStatus {
         .withName("fiat.enabled")
         .monitorValue(enabled, value -> enabled.get() ? 1 : 0);
     PolledMeter.using(registry)
-        .withName("fiat.legacyFallback.enabled")
-        .monitorValue(legacyFallbackEnabled, value -> legacyFallbackEnabled.get() ? 1 : 0);
-    PolledMeter.using(registry)
         .withName("fiat.granted-authorities.enabled")
         .monitorValue(grantedAuthoritiesEnabled, value -> grantedAuthoritiesEnabled.get() ? 1 : 0);
   }
 
   public boolean isEnabled() {
     return enabled.get();
-  }
-
-  public boolean isLegacyFallbackEnabled() {
-    return legacyFallbackEnabled.get();
   }
 
   public boolean isGrantedAuthoritiesEnabled() {
@@ -83,9 +73,6 @@ public class FiatStatus {
 
       enabled.set(
           dynamicConfigService.isEnabled("fiat", fiatClientConfigurationProperties.isEnabled()));
-      legacyFallbackEnabled.set(
-          dynamicConfigService.isEnabled(
-              "fiat.legacyFallback", fiatClientConfigurationProperties.isLegacyFallback()));
       grantedAuthoritiesEnabled.set(
           dynamicConfigService.isEnabled(
               "fiat.granted-authorities",

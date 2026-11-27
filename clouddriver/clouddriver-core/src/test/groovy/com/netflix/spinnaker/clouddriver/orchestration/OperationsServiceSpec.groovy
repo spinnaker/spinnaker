@@ -44,7 +44,6 @@ class OperationsServiceSpec extends Specification {
     ),
     [descriptionAuthorizer],
     Optional.empty(),
-    Optional.empty(),
     Mock(AccountCredentialsRepository),
     Optional.of(Mock(SagaRepository)),
     new NoopRegistry(),

@@ -217,7 +217,7 @@ class EchoNotifyingPipelineExecutionListenerSpec extends Specification {
     0 * _
   }
 
-  def "propagates authentication details to front50"() {
+  def "propagates the user, but not allowed accounts, to front50"() {
     given:
     def pipeline = new PipelineExecutionImpl(PIPELINE, "myapp")
     pipeline.setAuthentication(new PipelineExecution.AuthenticationDetails("user@schibsted.com", "someAccount", "anotherAccount"))
@@ -230,7 +230,7 @@ class EchoNotifyingPipelineExecutionListenerSpec extends Specification {
 
     1 * front50Service.getApplicationNotifications("myapp") >> {
       assert MDC.get(Header.USER.header) == "user@schibsted.com"
-      assert MDC.get(Header.ACCOUNTS.header).split(",").toList().toSorted() == ["anotheraccount", "someaccount"]
+      assert MDC.get("X-SPINNAKER-ACCOUNTS") == null
       return Calls.response(notifications)
     }
     1 * echoService.recordEvent(_) >> Calls.response(null)

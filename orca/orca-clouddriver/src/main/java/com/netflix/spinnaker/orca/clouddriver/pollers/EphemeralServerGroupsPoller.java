@@ -173,7 +173,6 @@ public class EphemeralServerGroupsPoller extends AbstractPollingNotificationAgen
 
         AuthenticatedRequest.runAs(
                 taskUser,
-                Collections.singletonList(ephemeralServerGroupTag.account),
                 () -> executionLauncher.start(ExecutionType.ORCHESTRATION, cleanupOperation))
             .call();
 

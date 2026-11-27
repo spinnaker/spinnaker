@@ -18,7 +18,6 @@ package com.netflix.spinnaker.gate.controllers;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.netflix.spinnaker.gate.security.UserProfileMapping;
-import com.netflix.spinnaker.security.AllowedAccountsAuthorities;
 import java.util.Collection;
 import java.util.List;
 import java.util.Map;
@@ -41,7 +40,6 @@ public record AuthUserResponse(
     String firstName,
     String lastName,
     Collection<String> roles,
-    Collection<String> allowedAccounts,
     List<Authority> authorities,
     boolean accountNonExpired,
     boolean accountNonLocked,
@@ -90,7 +88,6 @@ public record AuthUserResponse(
         firstName,
         lastName,
         roles,
-        AllowedAccountsAuthorities.getAllowedAccountNames(authentication),
         authentication.getAuthorities().stream()
             .map(GrantedAuthority::getAuthority)
             .map(Authority::new)

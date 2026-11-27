@@ -68,7 +68,6 @@ public class OAuthUserInfoServiceHelperTest {
             front50Service,
             null,
             null,
-            null,
             Optional.empty());
   }
 
@@ -196,7 +195,6 @@ public class OAuthUserInfoServiceHelperTest {
                 front50Service,
                 allowedAccountsSupport,
                 null,
-                null,
                 Optional.empty()));
     String userName = "userName";
     List<String> roles = Collections.singletonList("ROLE_USER");
@@ -227,7 +225,6 @@ public class OAuthUserInfoServiceHelperTest {
                 permissionService,
                 front50Service,
                 allowedAccountsSupport,
-                null,
                 null,
                 Optional.empty()));
     Map<String, Object> details =

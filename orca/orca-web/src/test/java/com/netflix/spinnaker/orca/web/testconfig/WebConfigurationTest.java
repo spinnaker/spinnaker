@@ -34,6 +34,7 @@ import com.netflix.spinnaker.orca.pipeline.StageDefinitionBuilderFactory;
 import com.netflix.spinnaker.orca.pipeline.persistence.ExecutionRepository;
 import com.netflix.spinnaker.orca.pipeline.util.ContextParameterProcessor;
 import com.netflix.spinnaker.orca.pipelinetemplate.PipelineTemplateService;
+import com.netflix.spinnaker.orca.security.AllowedAccountsResolver;
 import com.netflix.spinnaker.orca.web.config.WebConfiguration;
 import org.junit.jupiter.api.Test;
 import org.springframework.boot.context.annotation.UserConfigurations;
@@ -160,6 +161,11 @@ class WebConfigurationTest {
     @Bean
     TaskControllerConfigurationProperties taskControllerConfigurationProperties() {
       return mock(TaskControllerConfigurationProperties.class);
+    }
+
+    @Bean
+    AllowedAccountsResolver allowedAccountsResolver() {
+      return mock(AllowedAccountsResolver.class);
     }
 
     @Bean

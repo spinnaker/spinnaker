@@ -125,7 +125,6 @@ public class UserPermission {
 
     boolean admin;
     boolean accountManager;
-    boolean legacyFallback = false;
     boolean allowAccessToUnknownApplications = false;
 
     public View(UserPermission permission) {

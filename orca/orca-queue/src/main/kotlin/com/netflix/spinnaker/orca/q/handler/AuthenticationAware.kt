@@ -48,7 +48,7 @@ interface AuthenticationAware {
         )
       )
       if (StringUtils.isNotBlank(currentUser?.user)) {
-        AuthenticatedRequest.runAs(currentUser.user, currentUser.allowedAccounts, true, block).call()
+        AuthenticatedRequest.runAs(currentUser.user, true, block).call()
       } else {
         AuthenticatedRequest.propagate(block, true).call()
       }

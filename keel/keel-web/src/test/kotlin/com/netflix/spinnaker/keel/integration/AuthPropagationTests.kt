@@ -9,7 +9,6 @@ import com.netflix.spinnaker.keel.KeelApplication
 import com.netflix.spinnaker.keel.clouddriver.CloudDriverService
 import com.netflix.spinnaker.keel.clouddriver.model.Network
 import com.netflix.spinnaker.keel.integration.AuthPropagationTests.MockFiat
-import com.netflix.spinnaker.kork.common.Header.ACCOUNTS
 import com.netflix.spinnaker.kork.common.Header.USER
 import com.netflix.spinnaker.kork.common.Header.USER_ORIGIN
 import dev.minutest.experimental.SKIP
@@ -110,15 +109,6 @@ internal class AuthPropagationTests
           .getHeader(USER.header)
           .isNotNull()
           .isEqualTo("keel@spinnaker.io")
-      }
-
-      // TODO: reenable when issue in SpinnakerHeadersInterceptor is addressed
-      SKIP - test("includes ${ACCOUNTS.header} header") {
-        expectThat(server.takeRequest())
-          .describedAs("recorded request")
-          .getHeader(ACCOUNTS.header)
-          .isNotNull()
-          .isEqualTo("test")
       }
 
       test("includes ${USER_ORIGIN.header} header") {
