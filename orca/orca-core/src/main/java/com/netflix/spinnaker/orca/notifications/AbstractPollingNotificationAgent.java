@@ -64,6 +64,9 @@ public abstract class AbstractPollingNotificationAgent
             }
           } catch (Exception e) {
             log.error("Error running agent tick", e);
+          } catch (Error e) {
+            log.error("Fatal error running agent tick, the agent will stop polling", e);
+            throw e;
           } finally {
             MDC.remove(AGENT_MDC_KEY);
           }
