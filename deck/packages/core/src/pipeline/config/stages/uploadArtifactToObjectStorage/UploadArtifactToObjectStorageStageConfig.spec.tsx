@@ -82,11 +82,15 @@ describe('<UploadArtifactToObjectStorageStageConfig />', () => {
   });
 
   it('should render expires when configured', () => {
-    const props = createProps({ cloudProvider: 'aws', credentials: 'my-aws-account', region: 'us-east-1', expires: 'P1Y' });
+    const props = createProps({
+      cloudProvider: 'aws',
+      credentials: 'my-aws-account',
+      region: 'us-east-1',
+      expires: 'P1Y',
+    });
     render(<UploadArtifactToObjectStorageStageConfig {...props} />);
     const expiresInput = screen.getByDisplayValue('P1Y');
     fireEvent.change(expiresInput, { target: { value: 'PT6H' } });
     expect(expiresInput).toHaveValue('PT6H');
   });
-
 });
