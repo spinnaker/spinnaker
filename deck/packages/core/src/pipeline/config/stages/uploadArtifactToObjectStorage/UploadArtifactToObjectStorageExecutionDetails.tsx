@@ -41,6 +41,7 @@ export class UploadArtifactToObjectStorageExecutionDetails extends React.Compone
     const skippedCount: number | undefined = result.skippedCount;
     const totalSizeBytes: number = result.totalSizeBytes;
     const extractArchive: boolean = get(stage, 'context.extractArchive', true);
+    const forceUpload: boolean | undefined = result.forceUpload;
     const deleteStaleFiles: boolean | undefined = result.deleteStaleFiles;
     const deletedCount: number | undefined = result.deletedCount;
 
@@ -67,6 +68,12 @@ export class UploadArtifactToObjectStorageExecutionDetails extends React.Compone
                 <dt>Extract</dt>
                 <dd>{extractArchive ? 'Yes' : 'No'}</dd>
               </>
+              {forceUpload !== undefined && forceUpload !== null && (
+                <>
+                  <dt>Force Upload</dt>
+                  <dd>{forceUpload ? 'Yes' : 'No'}</dd>
+                </>
+              )}
               {deleteStaleFiles !== undefined && deleteStaleFiles !== null && (
                 <>
                   <dt>Delete Stale</dt>

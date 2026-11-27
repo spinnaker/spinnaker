@@ -106,6 +106,7 @@ public class UploadArtifactToObjectStorageTask implements CloudProviderAware, Ta
         Optional.ofNullable(context.get("objectKeyPrefix")).map(Object::toString).orElse(""));
     operationPayload.put("artifact", artifact);
     operationPayload.put("deleteStaleFiles", Boolean.TRUE.equals(context.get("deleteStaleFiles")));
+    operationPayload.put("forceUpload", Boolean.TRUE.equals(context.get("forceUpload")));
     operationPayload.put(
         "extractArchive", Boolean.TRUE.equals(context.getOrDefault("extractArchive", true)));
 

@@ -217,6 +217,32 @@ describe('<UploadArtifactToObjectStorageExecutionDetails />', () => {
     expect(dds.at(uploadedIndex).text()).toBe('0');
   });
 
+  it('should display force upload enabled when forceUpload is true', () => {
+    const stage = createStage({ forceUpload: true });
+    const props = createProps(stage);
+    const component = mount(<UploadArtifactToObjectStorageExecutionDetails {...props} />);
+
+    expect(component.text()).toContain('Force Upload');
+    expect(component.text()).toContain('Yes');
+  });
+
+  it('should display force upload disabled when forceUpload is false', () => {
+    const stage = createStage({ forceUpload: false });
+    const props = createProps(stage);
+    const component = mount(<UploadArtifactToObjectStorageExecutionDetails {...props} />);
+
+    expect(component.text()).toContain('Force Upload');
+    expect(component.text()).toContain('No');
+  });
+
+  it('should not display force upload when forceUpload is not present', () => {
+    const stage = createStage();
+    const props = createProps(stage);
+    const component = mount(<UploadArtifactToObjectStorageExecutionDetails {...props} />);
+
+    expect(component.text()).not.toContain('Force Upload');
+  });
+
   it('should have the correct title', () => {
     expect(UploadArtifactToObjectStorageExecutionDetails.title).toBe('uploadArtifactToObjectStorageConfig');
   });
