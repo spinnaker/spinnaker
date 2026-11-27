@@ -20,6 +20,7 @@ import com.netflix.spinnaker.clouddriver.core.ClouddriverHostname
 import com.netflix.spinnaker.clouddriver.data.task.DefaultTaskStatus
 import com.netflix.spinnaker.clouddriver.data.task.Task
 import com.netflix.spinnaker.clouddriver.data.task.TaskOutput
+import com.netflix.spinnaker.clouddriver.data.task.TaskLeaseLostException
 import com.netflix.spinnaker.clouddriver.data.task.TaskRepository
 import com.netflix.spinnaker.clouddriver.data.task.TaskState
 import com.netflix.spinnaker.clouddriver.data.task.TaskState.STARTED
@@ -51,7 +52,8 @@ class SqlTaskRepository @JvmOverloads constructor(
   private val mapper: ObjectMapper,
   private val clock: Clock,
   private val poolName: String,
-  private val retries: SqlRetries = SqlRetries()
+  private val retries: SqlRetries = SqlRetries(),
+  private val leaseManager: SqlTaskLeaseManager? = null
 ) : TaskRepository {
 
   private val log = LoggerFactory.getLogger(javaClass)
@@ -80,7 +82,19 @@ class SqlTaskRepository @JvmOverloads constructor(
             field("saga_ids") to mapper.writeValueAsString(task.sagaIds),
             field("current_state") to STARTED.toString(),
             field("next_seq") to FIRST_SEQ + 1
-          )
+          ).let { pairs ->
+            // Stamp the lease in the same transaction, so fencing applies from the first write.
+            val manager = leaseManager
+            val currentEpoch = manager?.epoch
+            if (manager != null && currentEpoch != null) {
+              val stamped = pairs.toMutableMap()
+              stamped[field("lease_owner")] = manager.instanceId
+              stamped[field("lease_epoch")] = currentEpoch
+              stamped
+            } else {
+              pairs
+            }
+          }
           ctx.insertInto(tasksTable, *pairs.keys.toTypedArray()).values(*pairs.values.toTypedArray()).execute()
           insertState(ctx, task.id, FIRST_SEQ, STARTED, phase, status)
         }
@@ -348,15 +362,26 @@ class SqlTaskRepository @JvmOverloads constructor(
 
   /**
    * Locks the task's row for the rest of the transaction, so writes to one task are serialized and each gets
-   * the next sequence number.
+   * the next sequence number. While the row is locked the lease fence is checked: a task leased to
+   * [SqlTaskLeaseManager.instanceId] is writable only while that registration is still the current epoch,
+   * so a pod that lost its lease (reaper declared it dead, or it restarted and re-registered) cannot write
+   * behind the reaper's back — the executor abandons the task instead.
    */
   private fun lockTask(ctx: DSLContext, taskId: String): TaskRow {
-    val record = ctx.select(field("current_state"), field("next_seq"))
-      .from(tasksTable)
-      .where(field("id").eq(taskId))
-      .forUpdate()
-      .fetchOne()
-      ?: throw IllegalStateException("Task $taskId does not exist")
+    val record =
+      ctx.select(field("current_state"), field("next_seq"), field("lease_owner"), field("lease_epoch"))
+        .from(tasksTable)
+        .where(field("id").eq(taskId))
+        .forUpdate()
+        .fetchOne()
+        ?: throw IllegalStateException("Task $taskId does not exist")
+    val leaseOwner = record.get("lease_owner", String::class.java)
+    val leaseEpoch = record.get("lease_epoch", Long::class.javaObjectType)
+    if (leaseOwner != null && leaseManager != null && !leaseManager.mayWrite(leaseOwner, leaseEpoch)) {
+      throw TaskLeaseLostException(
+        "Task $taskId is leased to $leaseOwner (epoch $leaseEpoch); this instance no longer holds the lease"
+      )
+    }
     return TaskRow(
       record.get("current_state", String::class.java)?.let { TaskState.valueOf(it) },
       record.get("next_seq", Long::class.javaObjectType) ?: FIRST_SEQ
