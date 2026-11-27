@@ -104,21 +104,21 @@ describe('<UploadArtifactToObjectStorageExecutionDetails />', () => {
   it('should display delete stale files enabled and deleted count when both present', () => {
     const stage = createStage({ deleteStaleFiles: true, deletedCount: 5 });
     const props = createProps(stage);
-    const component = mount(<UploadArtifactToObjectStorageExecutionDetails {...props} />);
+    const { container } = render(<UploadArtifactToObjectStorageExecutionDetails {...props} />);
 
-    expect(component.text()).toContain('Delete Stale Files');
-    expect(component.text()).toContain('Enabled');
-    expect(component.text()).toContain('Deleted');
-    expect(component.text()).toContain('5');
+    expect(container).toHaveTextContent('Delete Stale Files');
+    expect(container).toHaveTextContent('Enabled');
+    expect(container).toHaveTextContent('Deleted');
+    expect(container).toHaveTextContent('5');
   });
 
   it('should display delete stale files disabled when deleteStaleFiles is false', () => {
     const stage = createStage({ deleteStaleFiles: false });
     const props = createProps(stage);
-    const component = mount(<UploadArtifactToObjectStorageExecutionDetails {...props} />);
+    const { container } = render(<UploadArtifactToObjectStorageExecutionDetails {...props} />);
 
-    expect(component.text()).toContain('Delete Stale Files');
-    expect(component.text()).toContain('Disabled');
+    expect(container).toHaveTextContent('Delete Stale Files');
+    expect(container).toHaveTextContent('Disabled');
   });
 
   it('should handle missing deleteStaleFiles and deletedCount gracefully', () => {
@@ -127,11 +127,11 @@ describe('<UploadArtifactToObjectStorageExecutionDetails />', () => {
       deletedCount: undefined,
     });
     const props = createProps(stage);
-    const component = mount(<UploadArtifactToObjectStorageExecutionDetails {...props} />);
+    const { container } = render(<UploadArtifactToObjectStorageExecutionDetails {...props} />);
 
-    expect(component.exists()).toBe(true);
-    expect(component.text()).not.toContain('Delete Stale Files');
-    expect(component.text()).not.toContain('Deleted');
+    expect(container).not.toBeEmptyDOMElement();
+    expect(container).not.toHaveTextContent('Delete Stale Files');
+    expect(container).not.toHaveTextContent('Deleted');
   });
 
   it('should handle null deleteStaleFiles gracefully', () => {
@@ -140,11 +140,11 @@ describe('<UploadArtifactToObjectStorageExecutionDetails />', () => {
       deletedCount: null,
     });
     const props = createProps(stage);
-    const component = mount(<UploadArtifactToObjectStorageExecutionDetails {...props} />);
+    const { container } = render(<UploadArtifactToObjectStorageExecutionDetails {...props} />);
 
-    expect(component.exists()).toBe(true);
-    expect(component.text()).not.toContain('Delete Stale Files');
-    expect(component.text()).not.toContain('Deleted');
+    expect(container).not.toBeEmptyDOMElement();
+    expect(container).not.toHaveTextContent('Delete Stale Files');
+    expect(container).not.toHaveTextContent('Deleted');
   });
 
   it('should have the correct title', () => {
