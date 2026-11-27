@@ -46,24 +46,24 @@ export function UploadArtifactToObjectStorageStageForm(props: IFormikStageConfig
 
   // Clear dependent fields when cloud provider changes
   React.useEffect(() => {
-    if (stage.cloudProvider) {
+    if (stage.cloudProvider && accountsStatus === 'RESOLVED') {
       const currentAccount = accounts.find((a) => a.name === stage.credentials);
       if (!currentAccount) {
         props.formik.setFieldValue('credentials', '');
         props.formik.setFieldValue('region', '');
       }
     }
-  }, [stage.cloudProvider, stage.credentials, accounts, props.formik.setFieldValue]);
+  }, [stage.cloudProvider, stage.credentials, accountsStatus, accounts, props.formik.setFieldValue]);
 
   // Clear region when account changes
   React.useEffect(() => {
-    if (stage.credentials) {
+    if (stage.credentials && regionsStatus === 'RESOLVED') {
       const currentRegion = regions.find((r) => r.name === stage.region);
       if (!currentRegion && regions.length > 0) {
         props.formik.setFieldValue('region', '');
       }
     }
-  }, [stage.credentials, stage.region, regions, props.formik.setFieldValue]);
+  }, [stage.credentials, stage.region, regionsStatus, regions, props.formik.setFieldValue]);
 
   const accountOptions: Array<Option<string>> = [
     { label: 'Select an account...', value: '', disabled: true },
