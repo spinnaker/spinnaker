@@ -82,7 +82,7 @@ dependencies {
   implementation "org.springframework.boot:spring-boot-actuator"
   implementation "org.springframework.boot:spring-boot-starter-web"
   implementation "com.github.wnameless.json:json-flattener:${jsonFlattenerVersion}"
-  implementation "org.apache.commons:commons-compress:1.26.0"
+  implementation "org.apache.commons:commons-compress:1.28.0"
 
   testImplementation "io.spinnaker.kork:kork-exceptions"
   testImplementation "cglib:cglib-nodep"
@@ -107,6 +107,8 @@ dependencies {
   integrationImplementation "io.rest-assured:rest-assured"
   integrationRuntimeOnly     "org.junit.jupiter:junit-jupiter-engine"
   integrationRuntimeOnly    "org.junit.platform:junit-platform-launcher"
+  integrationImplementation "org.ministack:testcontainers-ministack"
+  integrationImplementation "org.testcontainers:junit-jupiter"
 }
 
 task integrationTest(type: Test) {
