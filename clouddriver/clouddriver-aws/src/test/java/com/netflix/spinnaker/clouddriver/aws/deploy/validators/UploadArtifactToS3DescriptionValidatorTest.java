@@ -85,4 +85,102 @@ class UploadArtifactToS3DescriptionValidatorTest {
 
     verify(errors).rejectValue("artifact", "uploadArtifactToS3Description.artifact.empty");
   }
+
+  @Test
+  void shouldAllowBlankExpires() {
+    UploadArtifactToS3Description description = new UploadArtifactToS3Description();
+    description.setRegion("us-west-2");
+    description.setBucket("my-bucket");
+    description.setArtifact(Artifact.builder().build());
+    description.setExpires("   ");
+    description.setCredentials(TestCredential.named("test"));
+
+    validator.validate(Collections.emptyList(), description, errors);
+
+    verify(errors, never()).rejectValue(eq("expires"), anyString());
+  }
+
+  @Test
+  void shouldAllowValidExpires() {
+    UploadArtifactToS3Description description = new UploadArtifactToS3Description();
+    description.setRegion("us-west-2");
+    description.setBucket("my-bucket");
+    description.setArtifact(Artifact.builder().build());
+    description.setExpires("P1Y");
+    description.setCredentials(TestCredential.named("test"));
+
+    validator.validate(Collections.emptyList(), description, errors);
+
+    verify(errors, never()).rejectValue(eq("expires"), anyString());
+  }
+
+  @Test
+  void shouldAllowValidTimeBasedExpires() {
+    UploadArtifactToS3Description description = new UploadArtifactToS3Description();
+    description.setRegion("us-west-2");
+    description.setBucket("my-bucket");
+    description.setArtifact(Artifact.builder().build());
+    description.setExpires("PT6H");
+    description.setCredentials(TestCredential.named("test"));
+
+    validator.validate(Collections.emptyList(), description, errors);
+
+    verify(errors, never()).rejectValue(eq("expires"), anyString());
+  }
+
+  @Test
+  void shouldAllowExpiresWithTrailingWhitespace() {
+    UploadArtifactToS3Description description = new UploadArtifactToS3Description();
+    description.setRegion("us-west-2");
+    description.setBucket("my-bucket");
+    description.setArtifact(Artifact.builder().build());
+    description.setExpires("P30D ");
+    description.setCredentials(TestCredential.named("test"));
+
+    validator.validate(Collections.emptyList(), description, errors);
+
+    verify(errors, never()).rejectValue(eq("expires"), anyString());
+  }
+
+  @Test
+  void shouldRejectZeroExpires() {
+    UploadArtifactToS3Description description = new UploadArtifactToS3Description();
+    description.setRegion("us-west-2");
+    description.setBucket("my-bucket");
+    description.setArtifact(Artifact.builder().build());
+    description.setExpires("PT0S");
+    description.setCredentials(TestCredential.named("test"));
+
+    validator.validate(Collections.emptyList(), description, errors);
+
+    verify(errors).rejectValue("expires", "uploadArtifactToS3Description.expires.invalid");
+  }
+
+  @Test
+  void shouldRejectNegativeExpires() {
+    UploadArtifactToS3Description description = new UploadArtifactToS3Description();
+    description.setRegion("us-west-2");
+    description.setBucket("my-bucket");
+    description.setArtifact(Artifact.builder().build());
+    description.setExpires("-PT6H");
+    description.setCredentials(TestCredential.named("test"));
+
+    validator.validate(Collections.emptyList(), description, errors);
+
+    verify(errors).rejectValue("expires", "uploadArtifactToS3Description.expires.invalid");
+  }
+
+  @Test
+  void shouldRejectInvalidExpires() {
+    UploadArtifactToS3Description description = new UploadArtifactToS3Description();
+    description.setRegion("us-west-2");
+    description.setBucket("my-bucket");
+    description.setArtifact(Artifact.builder().build());
+    description.setExpires("1 year");
+    description.setCredentials(TestCredential.named("test"));
+
+    validator.validate(Collections.emptyList(), description, errors);
+
+    verify(errors).rejectValue("expires", "uploadArtifactToS3Description.expires.invalid");
+  }
 }
