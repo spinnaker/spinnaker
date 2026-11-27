@@ -1097,10 +1097,10 @@ class UpsertGoogleLoadBalancerDescriptionValidatorSpec extends Specification {
   }
 
   @Unroll
-  void "external managed listenersToDelete rejects #scenario"() {
+  void "#loadBalancerType listenersToDelete rejects #scenario"() {
     given:
       def description = new UpsertGoogleLoadBalancerDescription(
-        loadBalancerType: GoogleLoadBalancerType.EXTERNAL_MANAGED,
+        loadBalancerType: loadBalancerType,
         loadBalancerName: LOAD_BALANCER_NAME,
         region: REGION,
         accountName: ACCOUNT_NAME,
@@ -1123,10 +1123,13 @@ class UpsertGoogleLoadBalancerDescriptionValidatorSpec extends Specification {
         "upsertGoogleLoadBalancerDescription.listenersToDelete.${errorCode}")
 
     where:
-      scenario       | listeners                    | errorCode
-      "blank names"  | [" "]                        | "blank"
-      "duplicates"   | ["old-listener", "old-listener"] | "duplicate"
-      "current name" | [LOAD_BALANCER_NAME]         | "currentListener"
+      loadBalancerType                        | scenario       | listeners                        | errorCode
+      GoogleLoadBalancerType.EXTERNAL_MANAGED | "blank names"  | [" "]                            | "blank"
+      GoogleLoadBalancerType.EXTERNAL_MANAGED | "duplicates"   | ["old-listener", "old-listener"] | "duplicate"
+      GoogleLoadBalancerType.EXTERNAL_MANAGED | "current name" | [LOAD_BALANCER_NAME]             | "currentListener"
+      GoogleLoadBalancerType.INTERNAL_MANAGED | "blank names"  | [" "]                            | "blank"
+      GoogleLoadBalancerType.INTERNAL_MANAGED | "duplicates"   | ["old-listener", "old-listener"] | "duplicate"
+      GoogleLoadBalancerType.INTERNAL_MANAGED | "current name" | [LOAD_BALANCER_NAME]             | "currentListener"
   }
 
   @Unroll

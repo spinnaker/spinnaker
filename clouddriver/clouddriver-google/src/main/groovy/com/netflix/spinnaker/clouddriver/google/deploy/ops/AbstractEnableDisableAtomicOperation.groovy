@@ -391,9 +391,10 @@ abstract class AbstractEnableDisableAtomicOperation extends GoogleAtomicOperatio
 
       def forwardingRules = GCEUtil.queryRegionalForwardingRules(project, region, newForwardingRuleNames, compute, task, phaseName, safeRetry, this)
 
+      // INTERNAL rules have no target, and INTERNAL_MANAGED rules target regional proxies.
       newTargetPoolUrls = forwardingRules.collect { forwardingRule ->
         forwardingRule.target
-      } - null // Need to remove nulls that result from internal load balancers.
+      }.findAll { it?.contains("/targetPools/") }
 
       newTargetPoolUrls.each { newTargetPoolUrl ->
         def targetPoolLocalName = GCEUtil.getLocalName(newTargetPoolUrl)
