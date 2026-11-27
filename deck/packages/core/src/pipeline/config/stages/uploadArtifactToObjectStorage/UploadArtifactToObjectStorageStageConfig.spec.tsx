@@ -80,5 +80,4 @@ describe('<UploadArtifactToObjectStorageStageConfig />', () => {
     expect(await screen.findByText('my-aws-account')).toBeVisible();
     expect(await screen.findByText('us-east-1')).toBeVisible();
   });
-
 });
