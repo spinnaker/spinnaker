@@ -8,7 +8,7 @@ import com.netflix.spinnaker.keel.scm.isCodeEvent
 import com.netflix.spinnaker.keel.scm.toCodeEvent
 import com.netflix.spinnaker.keel.artifacts.WorkQueueProcessor
 import com.netflix.spinnaker.keel.igor.artifact.ArtifactMetadataService
-import com.netflix.spinnaker.keel.yaml.APPLICATION_YAML_VALUE
+import org.springframework.http.MediaType.APPLICATION_YAML_VALUE
 import kotlinx.coroutines.runBlocking
 import org.slf4j.LoggerFactory
 import org.springframework.context.ApplicationEventPublisher

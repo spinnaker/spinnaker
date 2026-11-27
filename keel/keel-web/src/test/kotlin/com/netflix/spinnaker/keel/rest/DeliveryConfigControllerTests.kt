@@ -31,7 +31,7 @@ import com.netflix.spinnaker.keel.retrofit.InstrumentedJacksonConverter
 import com.netflix.spinnaker.keel.spring.test.MockEurekaConfiguration
 import com.netflix.spinnaker.keel.test.DummyResourceSpec
 import com.netflix.spinnaker.keel.test.TEST_API_V1
-import com.netflix.spinnaker.keel.yaml.APPLICATION_YAML
+import org.springframework.http.MediaType.APPLICATION_YAML
 import com.netflix.spinnaker.kork.retrofit.exceptions.SpinnakerHttpException
 import com.ninjasquad.springmockk.MockkBean
 import dev.minutest.junit.JUnit5Minutests

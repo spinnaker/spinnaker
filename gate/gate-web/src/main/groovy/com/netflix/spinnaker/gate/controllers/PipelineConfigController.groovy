@@ -24,6 +24,8 @@ import groovy.transform.CompileStatic
 import groovy.util.logging.Slf4j
 import io.swagger.v3.oas.annotations.Operation
 import org.springframework.beans.factory.annotation.Autowired
+import org.springframework.http.MediaType
+import org.springframework.http.ResponseEntity
 import org.springframework.web.bind.annotation.*
 
 @Slf4j
@@ -52,12 +54,12 @@ class PipelineConfigController {
 
   @Operation(summary = "Convert a pipeline config to a pipeline template.")
   @RequestMapping(value = "/{pipelineConfigId}/convertToTemplate", method = RequestMethod.GET)
-  String convertPipelineConfigToPipelineTemplate(@PathVariable("pipelineConfigId") String pipelineConfigId) {
+  ResponseEntity<String> convertPipelineConfigToPipelineTemplate(@PathVariable("pipelineConfigId") String pipelineConfigId) {
     Map<String, Object> pipelineConfig = Retrofit2SyncCall.execute(front50Service.getAllPipelineConfigs()).find { (pipelineConfigId == it.get("id")) }
     if (pipelineConfig == null) {
       throw new NotFoundException("Pipeline config '${pipelineConfigId}' could not be found")
     }
     String template = Retrofit2SyncCall.execute(orcaServiceSelector.select().convertToPipelineTemplate(pipelineConfig)).byteStream().text
-    return template
+    return ResponseEntity.ok().contentType(MediaType.APPLICATION_YAML).body(template)
   }
 }

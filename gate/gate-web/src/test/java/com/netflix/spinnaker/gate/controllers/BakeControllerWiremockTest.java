@@ -160,7 +160,7 @@ class BakeControllerWiremockTest {
                     .withHeader("Content-Type", "application/json")
                     .withBody("{\"logsContent\":\"some logs\"}")));
 
-    // BakeService.lookupLogs returns a plain (i.e. not json) String
+    // BakeService.lookupLogs returns an HTML fragment, served as-is (not JSON-quoted)
     webAppMockMvc
         .perform(
             get("/bakery/logs/us-east-1/some-status-id")
@@ -168,9 +168,37 @@ class BakeControllerWiremockTest {
                 .header(ACCOUNTS.getHeader(), ACCOUNT))
         .andDo(print())
         .andExpect(status().isOk())
-        .andExpect(content().string("\"<pre>some logs</pre>\""));
+        .andExpect(content().contentTypeCompatibleWith("text/html"))
+        .andExpect(content().string("<pre>some logs</pre>"));
 
     wmRosco.verify(1, getRequestedFor(urlPathEqualTo("/api/v1/us-east-1/logs/some-status-id")));
+  }
+
+  @Test
+  void loggedOutIsPlainText() throws Exception {
+    webAppMockMvc
+        .perform(get("/auth/loggedOut"))
+        .andExpect(status().isOk())
+        .andExpect(content().contentTypeCompatibleWith("text/plain"));
+  }
+
+  @Test
+  void lookupLogsEscapesHtml() throws Exception {
+    wmRosco.stubFor(
+        WireMock.get(urlPathEqualTo("/api/v1/us-east-1/logs/some-status-id"))
+            .willReturn(
+                aResponse()
+                    .withStatus(HttpStatus.OK.value())
+                    .withHeader("Content-Type", "application/json")
+                    .withBody("{\"logsContent\":\"<script>alert(1)</script> & more\"}")));
+
+    webAppMockMvc
+        .perform(
+            get("/bakery/logs/us-east-1/some-status-id")
+                .header(USER.getHeader(), USERNAME)
+                .header(ACCOUNTS.getHeader(), ACCOUNT))
+        .andExpect(status().isOk())
+        .andExpect(content().string("<pre>&lt;script&gt;alert(1)&lt;/script&gt; &amp; more</pre>"));
   }
 
   @Test

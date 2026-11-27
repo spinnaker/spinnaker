@@ -12,7 +12,7 @@ import com.netflix.spinnaker.keel.persistence.NoSuchResourceId
 import com.netflix.spinnaker.keel.spring.test.MockEurekaConfiguration
 import com.netflix.spinnaker.keel.test.resource
 import com.netflix.spinnaker.keel.test.submittedResource
-import com.netflix.spinnaker.keel.yaml.APPLICATION_YAML
+import org.springframework.http.MediaType.APPLICATION_YAML
 import com.ninjasquad.springmockk.MockkBean
 import dev.minutest.junit.JUnit5Minutests
 import dev.minutest.rootContext

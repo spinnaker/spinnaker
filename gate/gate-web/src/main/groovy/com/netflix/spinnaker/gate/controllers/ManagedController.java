@@ -1,6 +1,7 @@
 package com.netflix.spinnaker.gate.controllers;
 
 import static org.springframework.http.MediaType.APPLICATION_JSON_VALUE;
+import static org.springframework.http.MediaType.APPLICATION_YAML_VALUE;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.netflix.spinnaker.gate.model.manageddelivery.ConstraintState;
@@ -59,7 +60,6 @@ import retrofit2.Response;
 public class ManagedController {
 
   private static final Logger log = LoggerFactory.getLogger(ManagedController.class);
-  private static final String APPLICATION_YAML_VALUE = "application/x-yaml";
 
   private final HttpHeaders yamlResponseHeaders;
   private final KeelService keelService;
@@ -79,7 +79,7 @@ public class ManagedController {
     this.retryRegistry = retryRegistry;
     this.notificationService = notificationService;
     yamlResponseHeaders.setContentType(
-        new MediaType("application", "x-yaml", StandardCharsets.UTF_8));
+        new MediaType("application", "yaml", StandardCharsets.UTF_8));
 
     configureRetry();
   }

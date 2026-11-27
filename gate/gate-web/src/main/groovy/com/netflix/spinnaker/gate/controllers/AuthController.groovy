@@ -31,6 +31,8 @@ import org.springframework.beans.factory.annotation.Value
 import org.springframework.security.access.prepost.PreAuthorize
 import org.springframework.security.core.Authentication
 import org.springframework.security.core.annotation.CurrentSecurityContext
+import org.springframework.http.MediaType
+import org.springframework.http.ResponseEntity
 import org.springframework.web.bind.annotation.RequestMapping
 import org.springframework.web.bind.annotation.RequestMethod
 import org.springframework.web.bind.annotation.RequestParam
@@ -128,8 +130,8 @@ class AuthController {
 
   @Operation(summary = "Get logged out message")
   @RequestMapping(value = "/loggedOut", method = RequestMethod.GET)
-  String loggedOut() {
-    return LOGOUT_MESSAGES[r.nextInt(LOGOUT_MESSAGES.size())]
+  ResponseEntity<String> loggedOut() {
+    return ResponseEntity.ok().contentType(MediaType.TEXT_PLAIN).body(LOGOUT_MESSAGES[r.nextInt(LOGOUT_MESSAGES.size())])
   }
 
   /**

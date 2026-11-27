@@ -20,9 +20,10 @@ import org.springframework.http.MediaType
 import org.springframework.http.converter.json.AbstractJackson2HttpMessageConverter
 import org.springframework.stereotype.Component
 
-const val APPLICATION_YAML_VALUE = "application/x-yaml"
-val APPLICATION_YAML: MediaType = MediaType.parseMediaType(APPLICATION_YAML_VALUE)
-
+/**
+ * Serializes YAML with Keel's own (Jackson 2) [YAMLMapper] rather than Boot's default Jackson 3
+ * YAML converter, which doesn't carry Keel's mixins/modules. Uses the standard `application/yaml`.
+ */
 @Component
 class YamlHttpMessageConverter(yamlMapper: YAMLMapper) :
-  AbstractJackson2HttpMessageConverter(yamlMapper, APPLICATION_YAML)
+  AbstractJackson2HttpMessageConverter(yamlMapper, MediaType.APPLICATION_YAML)
