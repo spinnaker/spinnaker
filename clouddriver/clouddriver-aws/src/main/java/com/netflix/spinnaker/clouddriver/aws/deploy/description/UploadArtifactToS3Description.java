@@ -59,4 +59,17 @@ public class UploadArtifactToS3Description extends AbstractAmazonCredentialsDesc
    * deleted after upload completes. Ignored when extractArchive is false.
    */
   private boolean deleteStaleFiles = false;
+
+  /**
+   * Optional Cache-Control header value to set on uploaded S3 objects (e.g., "max-age=31536000,
+   * public"). When null or blank, no Cache-Control metadata is set.
+   */
+  private String cacheControl;
+
+  /**
+   * Optional Content-Type override for single file uploads (extractArchive=false). When set,
+   * overrides the auto-detected content type. Ignored for archive uploads where per-file detection
+   * is used.
+   */
+  private String contentType;
 }

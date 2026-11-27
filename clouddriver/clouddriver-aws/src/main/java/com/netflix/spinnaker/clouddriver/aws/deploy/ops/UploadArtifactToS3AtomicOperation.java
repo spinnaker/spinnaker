@@ -67,6 +67,8 @@ import software.amazon.awssdk.services.s3.model.S3Object;
  * <ul>
  *   <li>{@code destinationUri} - the S3 URI where files were uploaded (e.g., s3://bucket/prefix/)
  *   <li>{@code fileCount} - the number of files uploaded
+ *   <li>{@code deleteStaleFiles} - whether stale files were deleted
+ *   <li>{@code deletedCount} - the number of stale files deleted
  * </ul>
  */
 @Slf4j
@@ -170,7 +172,13 @@ public class UploadArtifactToS3AtomicOperation implements AtomicOperation<Map<St
               prefix,
               extractDir.toFile(),
               extractedFiles.stream().map(extractDir::resolve).map(Path::toFile).toList(),
-              (file, metadata) -> {},
+              (file, metadata) -> {
+                metadata.contentType(detectContentType(file.getName()));
+                String cacheControl = description.getCacheControl();
+                if (cacheControl != null && !cacheControl.isBlank()) {
+                  metadata.cacheControl(cacheControl);
+                }
+              },
               null)
           .waitForCompletion();
     }
@@ -207,8 +215,20 @@ public class UploadArtifactToS3AtomicOperation implements AtomicOperation<Map<St
 
     getTask().updateStatus(BASE_PHASE, "Uploading single file to " + destinationUri);
 
-    s3Client.putObject(
-        PutObjectRequest.builder().bucket(bucket).key(key).build(), RequestBody.fromFile(file));
+    String contentType = description.getContentType();
+    PutObjectRequest.Builder request =
+        PutObjectRequest.builder()
+            .bucket(bucket)
+            .key(key)
+            .contentType(
+                contentType != null && !contentType.isBlank()
+                    ? contentType
+                    : detectContentType(filename));
+    String cacheControl = description.getCacheControl();
+    if (cacheControl != null && !cacheControl.isBlank()) {
+      request.cacheControl(cacheControl);
+    }
+    s3Client.putObject(request.build(), RequestBody.fromFile(file));
 
     getTask().updateStatus(BASE_PHASE, "Successfully uploaded file to " + destinationUri);
 
@@ -288,6 +308,15 @@ public class UploadArtifactToS3AtomicOperation implements AtomicOperation<Map<St
 
     getTask().updateStatus(BASE_PHASE, "Deleted " + deleted + " stale files from destination");
     return deleted;
+  }
+
+  /**
+   * Detects the content type for a file based on its name/extension using Spring Boot's MIME
+   * mappings with custom overrides. Falls back to {@code application/octet-stream} when the type
+   * cannot be determined.
+   */
+  static String detectContentType(String filename) {
+    return ContentTypeDetector.detectContentType(filename);
   }
 
   /**

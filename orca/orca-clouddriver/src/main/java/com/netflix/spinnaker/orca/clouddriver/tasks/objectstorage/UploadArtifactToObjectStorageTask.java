@@ -27,8 +27,10 @@ import com.netflix.spinnaker.orca.clouddriver.KatoService;
 import com.netflix.spinnaker.orca.clouddriver.model.TaskId;
 import com.netflix.spinnaker.orca.clouddriver.utils.CloudProviderAware;
 import com.netflix.spinnaker.orca.pipeline.util.ArtifactUtils;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Optional;
 import javax.annotation.Nonnull;
 import lombok.RequiredArgsConstructor;
@@ -91,18 +93,33 @@ public class UploadArtifactToObjectStorageTask implements CloudProviderAware, Ta
     String credentials = getCredentials(stage);
     Artifact artifact = resolveArtifact(stage, context);
 
-    Map<String, Object> operationPayload =
-        Map.of(
-            "credentials", credentials,
-            "region", context.get("region"),
-            "bucket", context.get("bucket"),
-            "objectKeyPrefix",
-                Optional.ofNullable(context.get("objectKeyPrefix"))
-                    .map(Object::toString)
-                    .orElse(""),
-            "artifact", artifact,
-            "deleteStaleFiles", Boolean.TRUE.equals(context.get("deleteStaleFiles")),
-            "extractArchive", Boolean.TRUE.equals(context.getOrDefault("extractArchive", true)));
+    Objects.requireNonNull(credentials, "'credentials' is required in stage context");
+    Objects.requireNonNull(context.get("region"), "'region' is required in stage context");
+    Objects.requireNonNull(context.get("bucket"), "'bucket' is required in stage context");
+
+    Map<String, Object> operationPayload = new HashMap<>();
+    operationPayload.put("credentials", credentials);
+    operationPayload.put("region", context.get("region"));
+    operationPayload.put("bucket", context.get("bucket"));
+    operationPayload.put(
+        "objectKeyPrefix",
+        Optional.ofNullable(context.get("objectKeyPrefix")).map(Object::toString).orElse(""));
+    operationPayload.put("artifact", artifact);
+    operationPayload.put("deleteStaleFiles", Boolean.TRUE.equals(context.get("deleteStaleFiles")));
+    operationPayload.put(
+        "extractArchive", Boolean.TRUE.equals(context.getOrDefault("extractArchive", true)));
+
+    String cacheControl =
+        Optional.ofNullable(context.get("cacheControl")).map(Object::toString).orElse(null);
+    if (cacheControl != null && !cacheControl.isBlank()) {
+      operationPayload.put("cacheControl", cacheControl);
+    }
+
+    String contentType =
+        Optional.ofNullable(context.get("contentType")).map(Object::toString).orElse(null);
+    if (contentType != null && !contentType.isBlank()) {
+      operationPayload.put("contentType", contentType);
+    }
 
     return List.of(Map.of(OPERATION_NAME, operationPayload));
   }

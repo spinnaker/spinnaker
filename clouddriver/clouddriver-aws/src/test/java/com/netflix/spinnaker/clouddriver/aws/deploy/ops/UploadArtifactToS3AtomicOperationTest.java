@@ -5,7 +5,7 @@
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
  *
- *   http://www.apache.org/licenses/LICENSE-2.0
+ *   https://www.apache.org/licenses/LICENSE-2.0
  *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
@@ -77,7 +77,7 @@ class UploadArtifactToS3AtomicOperationTest {
         Artifact.builder()
             .type("http/file")
             .name("test.zip")
-            .reference("http://example.com/test.zip")
+            .reference("https://example.com/test.zip")
             .build();
 
     UploadArtifactToS3Description description = new UploadArtifactToS3Description();
@@ -115,7 +115,7 @@ class UploadArtifactToS3AtomicOperationTest {
         Artifact.builder()
             .type("http/file")
             .name("test.zip")
-            .reference("http://example.com/test.zip")
+            .reference("https://example.com/test.zip")
             .build();
 
     UploadArtifactToS3Description description = new UploadArtifactToS3Description();
@@ -147,7 +147,7 @@ class UploadArtifactToS3AtomicOperationTest {
         Artifact.builder()
             .type("http/file")
             .name("test.zip")
-            .reference("http://example.com/test.zip")
+            .reference("https://example.com/test.zip")
             .build();
 
     UploadArtifactToS3Description description = new UploadArtifactToS3Description();
@@ -177,7 +177,7 @@ class UploadArtifactToS3AtomicOperationTest {
         Artifact.builder()
             .type("http/file")
             .name("config.json")
-            .reference("http://example.com/config.json")
+            .reference("https://example.com/config.json")
             .build();
 
     UploadArtifactToS3Description description = new UploadArtifactToS3Description();
@@ -211,7 +211,7 @@ class UploadArtifactToS3AtomicOperationTest {
         Artifact.builder()
             .type("http/file")
             .name("test.zip")
-            .reference("http://example.com/test.zip")
+            .reference("https://example.com/test.zip")
             .build();
 
     UploadArtifactToS3Description description = new UploadArtifactToS3Description();
@@ -239,7 +239,7 @@ class UploadArtifactToS3AtomicOperationTest {
         Artifact.builder()
             .type("http/file")
             .name("test.zip")
-            .reference("http://example.com/test.zip")
+            .reference("https://example.com/test.zip")
             .build();
 
     UploadArtifactToS3Description description = new UploadArtifactToS3Description();
@@ -274,7 +274,7 @@ class UploadArtifactToS3AtomicOperationTest {
         Artifact.builder()
             .type("http/file")
             .name("test.zip")
-            .reference("http://example.com/test.zip")
+            .reference("https://example.com/test.zip")
             .build();
 
     UploadArtifactToS3Description description = new UploadArtifactToS3Description();
@@ -328,7 +328,7 @@ class UploadArtifactToS3AtomicOperationTest {
         Artifact.builder()
             .type("http/file")
             .name("test.zip")
-            .reference("http://example.com/test.zip")
+            .reference("https://example.com/test.zip")
             .build();
 
     UploadArtifactToS3Description description = new UploadArtifactToS3Description();
@@ -369,7 +369,7 @@ class UploadArtifactToS3AtomicOperationTest {
         Artifact.builder()
             .type("http/file")
             .name("test.zip")
-            .reference("http://example.com/test.zip")
+            .reference("https://example.com/test.zip")
             .build();
 
     UploadArtifactToS3Description description = new UploadArtifactToS3Description();
@@ -427,7 +427,7 @@ class UploadArtifactToS3AtomicOperationTest {
         Artifact.builder()
             .type("http/file")
             .name("config.json")
-            .reference("http://example.com/config.json")
+            .reference("https://example.com/config.json")
             .build();
 
     UploadArtifactToS3Description description = new UploadArtifactToS3Description();
@@ -464,7 +464,7 @@ class UploadArtifactToS3AtomicOperationTest {
         Artifact.builder()
             .type("http/file")
             .name("config.json")
-            .reference("http://example.com/config.json")
+            .reference("https://example.com/config.json")
             .build();
 
     UploadArtifactToS3Description description = new UploadArtifactToS3Description();
@@ -497,7 +497,7 @@ class UploadArtifactToS3AtomicOperationTest {
         Artifact.builder()
             .type("http/file")
             .name("data.yaml")
-            .reference("http://example.com/data.yaml")
+            .reference("https://example.com/data.yaml")
             .build();
 
     UploadArtifactToS3Description description = new UploadArtifactToS3Description();
@@ -522,6 +522,270 @@ class UploadArtifactToS3AtomicOperationTest {
 
     assertEquals("s3://my-bucket/data.yaml", result.get("destinationUri"));
     assertEquals(1, result.get("fileCount"));
+  }
+
+  @Test
+  void shouldSetContentTypeOnSingleFileUpload() throws Exception {
+    Artifact artifact =
+        Artifact.builder()
+            .type("http/file")
+            .name("index.html")
+            .reference("https://example.com/index.html")
+            .build();
+
+    UploadArtifactToS3Description description = new UploadArtifactToS3Description();
+    description.setRegion("us-west-2");
+    description.setBucket("my-bucket");
+    description.setObjectKeyPrefix("site");
+    description.setArtifact(artifact);
+    description.setExtractArchive(false);
+    description.setCredentials(TestCredential.named("test"));
+
+    when(artifactDownloader.download(artifact))
+        .thenReturn(new ByteArrayInputStream("<html/>".getBytes(StandardCharsets.UTF_8)));
+
+    UploadArtifactToS3AtomicOperation operation =
+        new UploadArtifactToS3AtomicOperation(
+            description, amazonClientProvider, artifactDownloader);
+
+    operation.operate(Collections.emptyList());
+
+    ArgumentCaptor<PutObjectRequest> requestCaptor =
+        ArgumentCaptor.forClass(PutObjectRequest.class);
+    verify(amazonS3).putObject(requestCaptor.capture(), any(RequestBody.class));
+    assertEquals("text/html", requestCaptor.getValue().contentType());
+  }
+
+  @Test
+  void shouldSetCacheControlOnSingleFileUpload() throws Exception {
+    Artifact artifact =
+        Artifact.builder()
+            .type("http/file")
+            .name("app.js")
+            .reference("https://example.com/app.js")
+            .build();
+
+    UploadArtifactToS3Description description = new UploadArtifactToS3Description();
+    description.setRegion("us-west-2");
+    description.setBucket("my-bucket");
+    description.setObjectKeyPrefix("assets");
+    description.setArtifact(artifact);
+    description.setExtractArchive(false);
+    description.setCacheControl("max-age=31536000, public");
+    description.setCredentials(TestCredential.named("test"));
+
+    when(artifactDownloader.download(artifact))
+        .thenReturn(new ByteArrayInputStream("var x=1;".getBytes(StandardCharsets.UTF_8)));
+
+    UploadArtifactToS3AtomicOperation operation =
+        new UploadArtifactToS3AtomicOperation(
+            description, amazonClientProvider, artifactDownloader);
+
+    operation.operate(Collections.emptyList());
+
+    ArgumentCaptor<PutObjectRequest> requestCaptor =
+        ArgumentCaptor.forClass(PutObjectRequest.class);
+    verify(amazonS3).putObject(requestCaptor.capture(), any(RequestBody.class));
+    assertEquals("max-age=31536000, public", requestCaptor.getValue().cacheControl());
+  }
+
+  @Test
+  void shouldNotSetCacheControlWhenNull() throws Exception {
+    Artifact artifact =
+        Artifact.builder()
+            .type("http/file")
+            .name("app.js")
+            .reference("https://example.com/app.js")
+            .build();
+
+    UploadArtifactToS3Description description = new UploadArtifactToS3Description();
+    description.setRegion("us-west-2");
+    description.setBucket("my-bucket");
+    description.setObjectKeyPrefix("assets");
+    description.setArtifact(artifact);
+    description.setExtractArchive(false);
+    description.setCredentials(TestCredential.named("test"));
+
+    when(artifactDownloader.download(artifact))
+        .thenReturn(new ByteArrayInputStream("var x=1;".getBytes(StandardCharsets.UTF_8)));
+
+    UploadArtifactToS3AtomicOperation operation =
+        new UploadArtifactToS3AtomicOperation(
+            description, amazonClientProvider, artifactDownloader);
+
+    operation.operate(Collections.emptyList());
+
+    ArgumentCaptor<PutObjectRequest> requestCaptor =
+        ArgumentCaptor.forClass(PutObjectRequest.class);
+    verify(amazonS3).putObject(requestCaptor.capture(), any(RequestBody.class));
+    assertNull(requestCaptor.getValue().cacheControl());
+  }
+
+  @Test
+  void shouldNotSetCacheControlWhenBlank() throws Exception {
+    Artifact artifact =
+        Artifact.builder()
+            .type("http/file")
+            .name("app.js")
+            .reference("https://example.com/app.js")
+            .build();
+
+    UploadArtifactToS3Description description = new UploadArtifactToS3Description();
+    description.setRegion("us-west-2");
+    description.setBucket("my-bucket");
+    description.setObjectKeyPrefix("assets");
+    description.setArtifact(artifact);
+    description.setExtractArchive(false);
+    description.setCacheControl("   ");
+    description.setCredentials(TestCredential.named("test"));
+
+    when(artifactDownloader.download(artifact))
+        .thenReturn(new ByteArrayInputStream("var x=1;".getBytes(StandardCharsets.UTF_8)));
+
+    UploadArtifactToS3AtomicOperation operation =
+        new UploadArtifactToS3AtomicOperation(
+            description, amazonClientProvider, artifactDownloader);
+
+    operation.operate(Collections.emptyList());
+
+    ArgumentCaptor<PutObjectRequest> requestCaptor =
+        ArgumentCaptor.forClass(PutObjectRequest.class);
+    verify(amazonS3).putObject(requestCaptor.capture(), any(RequestBody.class));
+    assertNull(requestCaptor.getValue().cacheControl());
+  }
+
+  @Test
+  void shouldPassMetadataProviderToUploadDirectory() throws Exception {
+    byte[] zipContent =
+        createTestZip(new String[] {"index.html", "app.js"}, new String[] {"<html/>", "var x=1;"});
+
+    Artifact artifact =
+        Artifact.builder()
+            .type("http/file")
+            .name("test.zip")
+            .reference("https://example.com/test.zip")
+            .build();
+
+    UploadArtifactToS3Description description = new UploadArtifactToS3Description();
+    description.setRegion("us-west-2");
+    description.setBucket("my-bucket");
+    description.setObjectKeyPrefix("site");
+    description.setArtifact(artifact);
+    description.setCacheControl("max-age=3600");
+    description.setCredentials(TestCredential.named("test"));
+
+    when(artifactDownloader.download(artifact)).thenReturn(new ByteArrayInputStream(zipContent));
+
+    UploadArtifactToS3AtomicOperation operation =
+        new UploadArtifactToS3AtomicOperation(
+            description, amazonClientProvider, artifactDownloader);
+
+    operation.operate(Collections.emptyList());
+
+    ArgumentCaptor<PutObjectRequest> requests = ArgumentCaptor.forClass(PutObjectRequest.class);
+    verify(amazonS3, times(2)).putObject(requests.capture(), any(RequestBody.class));
+    assertTrue(
+        requests.getAllValues().stream().allMatch(r -> "max-age=3600".equals(r.cacheControl())));
+    assertTrue(requests.getAllValues().stream().anyMatch(r -> "text/html".equals(r.contentType())));
+  }
+
+  @Test
+  void shouldUseContentTypeOverrideOnSingleFileUpload() throws Exception {
+    Artifact artifact =
+        Artifact.builder()
+            .type("http/file")
+            .name("current")
+            .reference("https://example.com/current")
+            .build();
+
+    UploadArtifactToS3Description description = new UploadArtifactToS3Description();
+    description.setRegion("us-west-2");
+    description.setBucket("my-bucket");
+    description.setObjectKeyPrefix("versions");
+    description.setArtifact(artifact);
+    description.setExtractArchive(false);
+    description.setContentType("text/plain");
+    description.setCredentials(TestCredential.named("test"));
+
+    when(artifactDownloader.download(artifact))
+        .thenReturn(new ByteArrayInputStream("v1.2.3".getBytes(StandardCharsets.UTF_8)));
+
+    UploadArtifactToS3AtomicOperation operation =
+        new UploadArtifactToS3AtomicOperation(
+            description, amazonClientProvider, artifactDownloader);
+
+    operation.operate(Collections.emptyList());
+
+    ArgumentCaptor<PutObjectRequest> requestCaptor =
+        ArgumentCaptor.forClass(PutObjectRequest.class);
+    verify(amazonS3).putObject(requestCaptor.capture(), any(RequestBody.class));
+    assertEquals("text/plain", requestCaptor.getValue().contentType());
+  }
+
+  @Test
+  void shouldFallbackToAutoDetectWhenContentTypeIsNull() throws Exception {
+    Artifact artifact =
+        Artifact.builder()
+            .type("http/file")
+            .name("index.html")
+            .reference("https://example.com/index.html")
+            .build();
+
+    UploadArtifactToS3Description description = new UploadArtifactToS3Description();
+    description.setRegion("us-west-2");
+    description.setBucket("my-bucket");
+    description.setObjectKeyPrefix("site");
+    description.setArtifact(artifact);
+    description.setExtractArchive(false);
+    description.setCredentials(TestCredential.named("test"));
+    // contentType is null by default
+
+    when(artifactDownloader.download(artifact))
+        .thenReturn(new ByteArrayInputStream("<html/>".getBytes(StandardCharsets.UTF_8)));
+
+    UploadArtifactToS3AtomicOperation operation =
+        new UploadArtifactToS3AtomicOperation(
+            description, amazonClientProvider, artifactDownloader);
+
+    operation.operate(Collections.emptyList());
+
+    ArgumentCaptor<PutObjectRequest> requestCaptor =
+        ArgumentCaptor.forClass(PutObjectRequest.class);
+    verify(amazonS3).putObject(requestCaptor.capture(), any(RequestBody.class));
+    assertEquals("text/html", requestCaptor.getValue().contentType());
+  }
+
+  @Test
+  void shouldFallbackToAutoDetectWhenContentTypeIsBlank() throws Exception {
+    Artifact artifact =
+        Artifact.builder()
+            .type("http/file")
+            .name("index.html")
+            .reference("https://example.com/index.html")
+            .build();
+
+    UploadArtifactToS3Description description = new UploadArtifactToS3Description();
+    description.setRegion("us-west-2");
+    description.setBucket("my-bucket");
+    description.setObjectKeyPrefix("site");
+    description.setArtifact(artifact);
+    description.setExtractArchive(false);
+    description.setContentType("   ");
+    description.setCredentials(TestCredential.named("test"));
+
+    when(artifactDownloader.download(artifact))
+        .thenReturn(new ByteArrayInputStream("<html/>".getBytes(StandardCharsets.UTF_8)));
+
+    UploadArtifactToS3AtomicOperation operation =
+        new UploadArtifactToS3AtomicOperation(
+            description, amazonClientProvider, artifactDownloader);
+
+    operation.operate(Collections.emptyList());
+
+    ArgumentCaptor<PutObjectRequest> requestCaptor =
+        ArgumentCaptor.forClass(PutObjectRequest.class);
+    verify(amazonS3).putObject(requestCaptor.capture(), any(RequestBody.class));
+    assertEquals("text/html", requestCaptor.getValue().contentType());
   }
 
   private byte[] createTestZip(String[] paths, String[] contents) throws IOException {
