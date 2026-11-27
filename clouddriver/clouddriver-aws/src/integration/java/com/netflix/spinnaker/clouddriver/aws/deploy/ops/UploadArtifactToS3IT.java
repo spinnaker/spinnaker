@@ -226,6 +226,174 @@ class UploadArtifactToS3IT {
     return amazonS3.getObjectAsBytes(b -> b.bucket(BUCKET_NAME).key(key)).asUtf8String();
   }
 
+  @Test
+  void shouldDeleteStaleFilesWhenDeleteStaleFilesIsTrue() throws Exception {
+    // Pre-populate S3 with stale files
+    putObject("releases/v1/old-file.txt", "stale content");
+    putObject("releases/v1/another-old.txt", "stale content 2");
+
+    byte[] zipContent =
+        createTestZip(new String[] {"file1.txt", "dir/file2.txt"}, new String[] {"new1", "new2"});
+
+    Artifact artifact =
+        Artifact.builder().type("embedded/base64").name("test.zip").reference("test.zip").build();
+
+    ArtifactDownloader artifactDownloader = Mockito.mock(ArtifactDownloader.class);
+    Mockito.when(artifactDownloader.download(Mockito.any(Artifact.class)))
+        .thenReturn(new ByteArrayInputStream(zipContent));
+
+    AmazonClientProvider amazonClientProvider = Mockito.mock(AmazonClientProvider.class);
+    Mockito.when(
+            amazonClientProvider.getAmazonS3V2(
+                Mockito.any(NetflixAmazonCredentials.class), Mockito.anyString()))
+        .thenReturn(amazonS3);
+
+    UploadArtifactToS3Description description = new UploadArtifactToS3Description();
+    description.setRegion("us-east-1");
+    description.setBucket(BUCKET_NAME);
+    description.setObjectKeyPrefix("releases/v1");
+    description.setArtifact(artifact);
+    description.setDeleteStaleFiles(true);
+    description.setCredentials(TestCredential.named("test"));
+
+    UploadArtifactToS3AtomicOperation operation =
+        new UploadArtifactToS3AtomicOperation(
+            description, amazonClientProvider, artifactDownloader);
+
+    Map<String, Object> result = operation.operate(Collections.emptyList());
+
+    assertEquals(true, result.get("deleteStaleFiles"));
+    assertEquals(2, result.get("deletedCount"));
+
+    List<String> remainingKeys =
+        amazonS3.listObjectsV2(b -> b.bucket(BUCKET_NAME)).contents().stream()
+            .map(S3Object::key)
+            .sorted()
+            .toList();
+
+    assertEquals(2, remainingKeys.size());
+    assertTrue(remainingKeys.contains("releases/v1/file1.txt"));
+    assertTrue(remainingKeys.contains("releases/v1/dir/file2.txt"));
+    assertFalse(remainingKeys.contains("releases/v1/old-file.txt"));
+    assertFalse(remainingKeys.contains("releases/v1/another-old.txt"));
+  }
+
+  @Test
+  void shouldPreserveStaleFilesWhenDeleteStaleFilesIsFalse() throws Exception {
+    // Pre-populate S3 with stale files
+    putObject("releases/v1/old-file.txt", "stale content");
+
+    byte[] zipContent = createTestZip(new String[] {"file1.txt"}, new String[] {"new content"});
+
+    Artifact artifact =
+        Artifact.builder().type("embedded/base64").name("test.zip").reference("test.zip").build();
+
+    ArtifactDownloader artifactDownloader = Mockito.mock(ArtifactDownloader.class);
+    Mockito.when(artifactDownloader.download(Mockito.any(Artifact.class)))
+        .thenReturn(new ByteArrayInputStream(zipContent));
+
+    AmazonClientProvider amazonClientProvider = Mockito.mock(AmazonClientProvider.class);
+    Mockito.when(
+            amazonClientProvider.getAmazonS3V2(
+                Mockito.any(NetflixAmazonCredentials.class), Mockito.anyString()))
+        .thenReturn(amazonS3);
+
+    UploadArtifactToS3Description description = new UploadArtifactToS3Description();
+    description.setRegion("us-east-1");
+    description.setBucket(BUCKET_NAME);
+    description.setObjectKeyPrefix("releases/v1");
+    description.setArtifact(artifact);
+    description.setDeleteStaleFiles(false);
+    description.setCredentials(TestCredential.named("test"));
+
+    UploadArtifactToS3AtomicOperation operation =
+        new UploadArtifactToS3AtomicOperation(
+            description, amazonClientProvider, artifactDownloader);
+
+    Map<String, Object> result = operation.operate(Collections.emptyList());
+
+    assertEquals(false, result.get("deleteStaleFiles"));
+    assertEquals(0, result.get("deletedCount"));
+
+    List<String> remainingKeys =
+        amazonS3.listObjectsV2(b -> b.bucket(BUCKET_NAME)).contents().stream()
+            .map(S3Object::key)
+            .sorted()
+            .toList();
+
+    // Both the new file and the stale file should still exist
+    assertTrue(remainingKeys.contains("releases/v1/file1.txt"));
+    assertTrue(remainingKeys.contains("releases/v1/old-file.txt"));
+  }
+
+  @Test
+  void shouldDeleteStaleDirectoryTreeWhenDeleteStaleFilesIsTrue() throws Exception {
+    // Pre-populate S3 with a stale directory tree
+    putObject("releases/v1/old-module/css/style.css", "old css");
+    putObject("releases/v1/old-module/js/app.js", "old js");
+    putObject("releases/v1/old-module/index.html", "old html");
+    // Also put a file that will be in the new artifact
+    putObject("releases/v1/index.html", "will be overwritten");
+
+    byte[] zipContent =
+        createTestZip(
+            new String[] {"index.html", "css/main.css"}, new String[] {"new html", "new css"});
+
+    Artifact artifact =
+        Artifact.builder().type("embedded/base64").name("test.zip").reference("test.zip").build();
+
+    ArtifactDownloader artifactDownloader = Mockito.mock(ArtifactDownloader.class);
+    Mockito.when(artifactDownloader.download(Mockito.any(Artifact.class)))
+        .thenReturn(new ByteArrayInputStream(zipContent));
+
+    AmazonClientProvider amazonClientProvider = Mockito.mock(AmazonClientProvider.class);
+    Mockito.when(
+            amazonClientProvider.getAmazonS3V2(
+                Mockito.any(NetflixAmazonCredentials.class), Mockito.anyString()))
+        .thenReturn(amazonS3);
+
+    UploadArtifactToS3Description description = new UploadArtifactToS3Description();
+    description.setRegion("us-east-1");
+    description.setBucket(BUCKET_NAME);
+    description.setObjectKeyPrefix("releases/v1");
+    description.setArtifact(artifact);
+    description.setDeleteStaleFiles(true);
+    description.setCredentials(TestCredential.named("test"));
+
+    UploadArtifactToS3AtomicOperation operation =
+        new UploadArtifactToS3AtomicOperation(
+            description, amazonClientProvider, artifactDownloader);
+
+    Map<String, Object> result = operation.operate(Collections.emptyList());
+
+    assertEquals(true, result.get("deleteStaleFiles"));
+    assertEquals(3, result.get("deletedCount"));
+
+    List<String> remainingKeys =
+        amazonS3.listObjectsV2(b -> b.bucket(BUCKET_NAME)).contents().stream()
+            .map(S3Object::key)
+            .sorted()
+            .toList();
+
+    // Only the new artifact files should remain
+    assertEquals(2, remainingKeys.size());
+    assertTrue(remainingKeys.contains("releases/v1/index.html"));
+    assertTrue(remainingKeys.contains("releases/v1/css/main.css"));
+
+    // Stale directory tree should be gone
+    assertFalse(remainingKeys.contains("releases/v1/old-module/css/style.css"));
+    assertFalse(remainingKeys.contains("releases/v1/old-module/js/app.js"));
+    assertFalse(remainingKeys.contains("releases/v1/old-module/index.html"));
+
+    // Verify content of remaining files
+    assertEquals("new html", getObjectAsString("releases/v1/index.html"));
+    assertEquals("new css", getObjectAsString("releases/v1/css/main.css"));
+  }
+
+  private void putObject(String key, String content) {
+    amazonS3.putObject(b -> b.bucket(BUCKET_NAME).key(key), RequestBody.fromString(content));
+  }
+
   private byte[] createTestZip(String[] paths, String[] contents) throws IOException {
     ByteArrayOutputStream baos = new ByteArrayOutputStream();
     try (ZipOutputStream zos = new ZipOutputStream(baos)) {

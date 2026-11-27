@@ -96,6 +96,52 @@ describe('<UploadArtifactToObjectStorageExecutionDetails />', () => {
     expect(component.find('StageFailureMessage').prop('message')).toBe('Upload failed: Access Denied');
   });
 
+  it('should display delete stale files enabled and deleted count when both present', () => {
+    const stage = createStage({ deleteStaleFiles: true, deletedCount: 5 });
+    const props = createProps(stage);
+    const component = mount(<UploadArtifactToObjectStorageExecutionDetails {...props} />);
+
+    expect(component.text()).toContain('Delete Stale Files');
+    expect(component.text()).toContain('Enabled');
+    expect(component.text()).toContain('Deleted');
+    expect(component.text()).toContain('5');
+  });
+
+  it('should display delete stale files disabled when deleteStaleFiles is false', () => {
+    const stage = createStage({ deleteStaleFiles: false });
+    const props = createProps(stage);
+    const component = mount(<UploadArtifactToObjectStorageExecutionDetails {...props} />);
+
+    expect(component.text()).toContain('Delete Stale Files');
+    expect(component.text()).toContain('Disabled');
+  });
+
+  it('should handle missing deleteStaleFiles and deletedCount gracefully', () => {
+    const stage = createStage({
+      deleteStaleFiles: undefined,
+      deletedCount: undefined,
+    });
+    const props = createProps(stage);
+    const component = mount(<UploadArtifactToObjectStorageExecutionDetails {...props} />);
+
+    expect(component.exists()).toBe(true);
+    expect(component.text()).not.toContain('Delete Stale Files');
+    expect(component.text()).not.toContain('Deleted');
+  });
+
+  it('should handle null deleteStaleFiles gracefully', () => {
+    const stage = createStage({
+      deleteStaleFiles: null,
+      deletedCount: null,
+    });
+    const props = createProps(stage);
+    const component = mount(<UploadArtifactToObjectStorageExecutionDetails {...props} />);
+
+    expect(component.exists()).toBe(true);
+    expect(component.text()).not.toContain('Delete Stale Files');
+    expect(component.text()).not.toContain('Deleted');
+  });
+
   it('should have the correct title', () => {
     expect(UploadArtifactToObjectStorageExecutionDetails.title).toBe('uploadArtifactToObjectStorageStatus');
   });

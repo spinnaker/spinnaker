@@ -28,12 +28,23 @@ import java.io.InputStream;
 import java.io.UncheckedIOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import lombok.extern.slf4j.Slf4j;
 import software.amazon.awssdk.services.s3.S3Client;
+import software.amazon.awssdk.services.s3.model.Delete;
+import software.amazon.awssdk.services.s3.model.DeleteObjectsRequest;
+import software.amazon.awssdk.services.s3.model.DeleteObjectsResponse;
+import software.amazon.awssdk.services.s3.model.ListObjectsV2Request;
+import software.amazon.awssdk.services.s3.model.ListObjectsV2Response;
+import software.amazon.awssdk.services.s3.model.ObjectIdentifier;
+import software.amazon.awssdk.services.s3.model.S3Exception;
+import software.amazon.awssdk.services.s3.model.S3Object;
 
 /**
  * Atomic operation that uploads an artifact to S3.
@@ -85,6 +96,7 @@ public class UploadArtifactToS3AtomicOperation implements AtomicOperation<Map<St
     if (prefix == null) {
       prefix = "";
     }
+    prefix = prefix.replaceAll("/+$", "");
     Artifact artifact = description.getArtifact();
 
     getTask()
@@ -131,6 +143,12 @@ public class UploadArtifactToS3AtomicOperation implements AtomicOperation<Map<St
             .waitForCompletion();
       }
 
+      // if enabled, remove objects from destination that are not in the uploaded artifact
+      int deletedCount = 0;
+      if (description.isDeleteStaleFiles()) {
+        deletedCount = deleteStaleFiles(s3Client, bucket, prefix, extractedFiles);
+      }
+
       String destinationUri =
           prefix.isEmpty() ? "s3://" + bucket + "/" : "s3://" + bucket + "/" + prefix + "/";
       getTask()
@@ -141,6 +159,8 @@ public class UploadArtifactToS3AtomicOperation implements AtomicOperation<Map<St
       Map<String, Object> result = new HashMap<>();
       result.put("destinationUri", destinationUri);
       result.put("fileCount", extractedFiles.size());
+      result.put("deleteStaleFiles", description.isDeleteStaleFiles());
+      result.put("deletedCount", deletedCount);
       return result;
     } catch (IOException e) {
       log.error("Failed to upload artifact to S3", e);
@@ -158,6 +178,76 @@ public class UploadArtifactToS3AtomicOperation implements AtomicOperation<Map<St
         }
       }
     }
+  }
+
+  /**
+   * Deletes S3 objects under the given prefix that are not present in the uploaded file set.
+   *
+   * @return the number of objects deleted
+   */
+  private int deleteStaleFiles(
+      S3Client s3Client, String bucket, String prefix, List<Path> extractedFiles) {
+    Set<String> expectedKeys = new HashSet<>();
+    for (Path file : extractedFiles) {
+      String relativePath = file.toString().replace('\\', '/');
+      String key = prefix.isEmpty() ? relativePath : prefix + "/" + relativePath;
+      expectedKeys.add(key);
+    }
+
+    // List all objects under the prefix
+    List<String> staleKeys = new ArrayList<>();
+    String listPrefix = prefix.isEmpty() ? "" : prefix + "/";
+    String continuationToken = null;
+    ListObjectsV2Response listResult;
+    do {
+      listResult =
+          s3Client.listObjectsV2(
+              ListObjectsV2Request.builder()
+                  .bucket(bucket)
+                  .prefix(listPrefix)
+                  .continuationToken(continuationToken)
+                  .build());
+      for (S3Object summary : listResult.contents()) {
+        if (!expectedKeys.contains(summary.key())) {
+          staleKeys.add(summary.key());
+        }
+      }
+      continuationToken = listResult.nextContinuationToken();
+    } while (Boolean.TRUE.equals(listResult.isTruncated()));
+
+    if (staleKeys.isEmpty()) {
+      getTask().updateStatus(BASE_PHASE, "No stale files to remove");
+      return 0;
+    }
+
+    // Batch delete in groups of 1000 (S3 API limit)
+    int deleted = 0;
+    for (int i = 0; i < staleKeys.size(); i += 1000) {
+      List<String> batch = staleKeys.subList(i, Math.min(i + 1000, staleKeys.size()));
+      DeleteObjectsRequest deleteRequest =
+          DeleteObjectsRequest.builder()
+              .bucket(bucket)
+              .delete(
+                  Delete.builder()
+                      .objects(
+                          batch.stream()
+                              .map(key -> ObjectIdentifier.builder().key(key).build())
+                              .toList())
+                      .quiet(true)
+                      .build())
+              .build();
+      DeleteObjectsResponse response = s3Client.deleteObjects(deleteRequest);
+      if (!response.errors().isEmpty()) {
+        throw S3Exception.builder()
+            .statusCode(200)
+            .message("S3 returned errors while deleting stale artifact files")
+            .build();
+      }
+      deleted += batch.size();
+    }
+
+    getTask().updateStatus(BASE_PHASE, "Deleted " + deleted + " stale files from destination");
+    return deleted;
   }
 
   /**

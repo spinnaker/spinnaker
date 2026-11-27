@@ -28,6 +28,8 @@ export class UploadArtifactToObjectStorageExecutionDetails extends React.Compone
     const destinationUri: string = get(stage, 'context.destinationUri');
     const fileCount: number = get(stage, 'context.fileCount');
     const totalSizeBytes: number = get(stage, 'context.totalSizeBytes');
+    const deleteStaleFiles: boolean | undefined = get(stage, 'context.deleteStaleFiles');
+    const deletedCount: number | undefined = get(stage, 'context.deletedCount');
 
     return (
       <ExecutionDetailsSection name={name} current={current}>
@@ -52,6 +54,18 @@ export class UploadArtifactToObjectStorageExecutionDetails extends React.Compone
                 <>
                   <dt>Total Size</dt>
                   <dd>{formatBytes(totalSizeBytes)}</dd>
+                </>
+              )}
+              {deleteStaleFiles !== undefined && deleteStaleFiles !== null && (
+                <>
+                  <dt>Delete Stale Files</dt>
+                  <dd>{deleteStaleFiles ? 'Enabled' : 'Disabled'}</dd>
+                </>
+              )}
+              {deleteStaleFiles && deletedCount !== undefined && deletedCount !== null && (
+                <>
+                  <dt>Deleted</dt>
+                  <dd>{deletedCount}</dd>
                 </>
               )}
             </dl>

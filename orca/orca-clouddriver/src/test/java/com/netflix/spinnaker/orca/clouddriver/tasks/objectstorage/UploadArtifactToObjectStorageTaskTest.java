@@ -41,6 +41,7 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.ArgumentCaptor;
+import org.mockito.Captor;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
@@ -57,6 +58,10 @@ class UploadArtifactToObjectStorageTaskTest {
   @Mock private KatoService katoService;
   @Mock private ArtifactUtils artifactUtils;
   @Mock private ObjectMapper objectMapper;
+
+  @SuppressWarnings("rawtypes")
+  @Captor
+  private ArgumentCaptor<Collection<Map<String, Map>>> operationsCaptor;
 
   private UploadArtifactToObjectStorageTask task;
 
@@ -92,17 +97,7 @@ class UploadArtifactToObjectStorageTaskTest {
     assertThat(result.getContext().get("notification.type"))
         .isEqualTo("uploadArtifactToObjectStorage");
 
-    ArgumentCaptor<Collection<Map<String, Map>>> operationsCaptor =
-        ArgumentCaptor.forClass(Collection.class);
-    verify(katoService).requestOperations(eq(CLOUD_PROVIDER), operationsCaptor.capture());
-
-    Collection<Map<String, Map>> operations = operationsCaptor.getValue();
-    assertThat(operations).hasSize(1);
-
-    Map<String, Map> operation = operations.iterator().next();
-    assertThat(operation).containsKey("uploadArtifactToObjectStorage");
-
-    Map<String, Object> operationDetails = operation.get("uploadArtifactToObjectStorage");
+    Map<String, Object> operationDetails = captureOperationDetails(CLOUD_PROVIDER);
     assertThat(operationDetails.get("credentials")).isEqualTo(CREDENTIALS);
     assertThat(operationDetails.get("region")).isEqualTo(REGION);
     assertThat(operationDetails.get("bucket")).isEqualTo(BUCKET);
@@ -182,12 +177,7 @@ class UploadArtifactToObjectStorageTaskTest {
     // Then
     AssertionsForClassTypes.assertThat(result.getStatus()).isEqualTo(ExecutionStatus.SUCCEEDED);
 
-    ArgumentCaptor<Collection<Map<String, Map>>> operationsCaptor =
-        ArgumentCaptor.forClass(Collection.class);
-    verify(katoService).requestOperations(eq(CLOUD_PROVIDER), operationsCaptor.capture());
-
-    Map<String, Object> operationDetails =
-        operationsCaptor.getValue().iterator().next().get("uploadArtifactToObjectStorage");
+    Map<String, Object> operationDetails = captureOperationDetails(CLOUD_PROVIDER);
     assertThat(operationDetails.get("objectKeyPrefix")).isEqualTo("");
   }
 
@@ -210,6 +200,52 @@ class UploadArtifactToObjectStorageTaskTest {
     assertThat(result.getContext().get("kato.result.expected")).isEqualTo(true);
   }
 
+  @Test
+  void shouldPassDeleteStaleFilesTrueInPayload() {
+    // Given
+    Artifact resolvedArtifact = Artifact.builder().name("app.zip").build();
+
+    when(artifactUtils.getBoundArtifactForStage(any(), eq(ARTIFACT_ID), any()))
+        .thenReturn(resolvedArtifact);
+    when(katoService.requestOperations(anyString(), any())).thenReturn(new TaskId("kato-task-123"));
+
+    Map<String, Object> context = createStageContext();
+    context.put("deleteStaleFiles", true);
+    StageExecutionImpl stage = createStage(context);
+
+    // When
+    TaskResult result = task.execute(stage);
+
+    // Then
+    AssertionsForClassTypes.assertThat(result.getStatus()).isEqualTo(ExecutionStatus.SUCCEEDED);
+
+    Map<String, Object> operationDetails = captureOperationDetails(CLOUD_PROVIDER);
+    assertThat(operationDetails.get("deleteStaleFiles")).isEqualTo(true);
+  }
+
+  @Test
+  void shouldDefaultDeleteStaleFilesToFalseWhenAbsentFromContext() {
+    // Given
+    Artifact resolvedArtifact = Artifact.builder().name("app.zip").build();
+
+    when(artifactUtils.getBoundArtifactForStage(any(), eq(ARTIFACT_ID), any()))
+        .thenReturn(resolvedArtifact);
+    when(katoService.requestOperations(anyString(), any())).thenReturn(new TaskId("kato-task-123"));
+
+    Map<String, Object> context = createStageContext();
+    // deleteStaleFiles is not set in context
+    StageExecutionImpl stage = createStage(context);
+
+    // When
+    TaskResult result = task.execute(stage);
+
+    // Then
+    AssertionsForClassTypes.assertThat(result.getStatus()).isEqualTo(ExecutionStatus.SUCCEEDED);
+
+    Map<String, Object> operationDetails = captureOperationDetails(CLOUD_PROVIDER);
+    assertThat(operationDetails.get("deleteStaleFiles")).isEqualTo(false);
+  }
+
   private Map<String, Object> createStageContext() {
     Map<String, Object> context = new HashMap<>();
     context.put("cloudProvider", CLOUD_PROVIDER);
@@ -224,5 +260,18 @@ class UploadArtifactToObjectStorageTaskTest {
   private StageExecutionImpl createStage(Map<String, Object> context) {
     return new StageExecutionImpl(
         new PipelineExecutionImpl(PIPELINE, "test-app"), "uploadArtifactToObjectStorage", context);
+  }
+
+  @SuppressWarnings("unchecked")
+  private Map<String, Object> captureOperationDetails(String cloudProvider) {
+    verify(katoService).requestOperations(eq(cloudProvider), operationsCaptor.capture());
+
+    Collection<Map<String, Map>> operations = operationsCaptor.getValue();
+    assertThat(operations).hasSize(1);
+
+    Map<String, Map> operation = operations.iterator().next();
+    assertThat(operation).containsKey("uploadArtifactToObjectStorage");
+
+    return (Map<String, Object>) operation.get("uploadArtifactToObjectStorage");
   }
 }
