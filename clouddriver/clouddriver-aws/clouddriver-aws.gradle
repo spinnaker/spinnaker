@@ -28,6 +28,10 @@ dependencies {
   implementation project(":clouddriver-eureka")
   implementation project(":clouddriver-security")
   implementation project(":clouddriver-saga")
+  implementation(project(":clouddriver-artifacts")) {
+    // Exclude XML format to avoid changing Spring content negotiation in tests
+    exclude group: 'com.fasterxml.jackson.dataformat', module: 'jackson-dataformat-xml'
+  }
 
   implementation "jakarta.inject:jakarta.inject-api:2.0.1"
   api "software.amazon.awssdk:applicationautoscaling"
@@ -66,6 +70,7 @@ dependencies {
   implementation "io.spinnaker.kork:kork-secrets"
   implementation "io.spinnaker.kork:kork-security"
   implementation "io.spinnaker.kork:kork-credentials"
+  implementation "io.spinnaker.kork:kork-artifacts"
   implementation "io.spinnaker.kork:kork-moniker"
   implementation "io.spinnaker.kork:kork-retrofit"
   implementation "io.spinnaker.kork:kork-web"
@@ -77,6 +82,7 @@ dependencies {
   implementation "org.springframework.boot:spring-boot-actuator"
   implementation "org.springframework.boot:spring-boot-starter-web"
   implementation "com.github.wnameless.json:json-flattener:${jsonFlattenerVersion}"
+  implementation "org.apache.commons:commons-compress:1.26.0"
 
   testImplementation "io.spinnaker.kork:kork-exceptions"
   testImplementation "cglib:cglib-nodep"
