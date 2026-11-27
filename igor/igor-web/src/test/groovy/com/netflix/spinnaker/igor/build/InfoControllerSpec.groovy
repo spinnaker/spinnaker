@@ -302,6 +302,8 @@ class InfoControllerSpec extends Specification {
             .accept(MediaType.APPLICATION_JSON)).andReturn().response
 
         then:
+        // live listing is on (the default)
+        gitlabCiService.isListProjectsLive() >> true
         // live projects from GitLab (like Jenkins), identified by their project id
         gitlabCiService.getProjects() >> [
             new Project(id: 9266),
@@ -310,6 +312,23 @@ class InfoControllerSpec extends Specification {
         // the shared build-cache path must NOT be used for GitLab CI
         0 * cache.getJobNames(_)
         response.contentAsString == '["9266","1234"]'
+    }
+
+    void 'falls back to the build cache for GitLab CI when live project listing is turned off'() {
+        given:
+        GitlabCiService gitlabCiService = Mock(GitlabCiService)
+        createMocks(['gitlab-master1': gitlabCiService])
+
+        when:
+        MockHttpServletResponse response = mockMvc.perform(get('/jobs/gitlab-master1')
+            .accept(MediaType.APPLICATION_JSON)).andReturn().response
+
+        then:
+        // listProjectsLive=false for this master -> use the cache, and never call GitLab
+        gitlabCiService.isListProjectsLive() >> false
+        0 * gitlabCiService.getProjects()
+        1 * cache.getJobNames('gitlab-master1') >> ["5", "9"]
+        response.contentAsString == '["5","9"]'
     }
 
     private void setResponse(String body) {
