@@ -43,4 +43,19 @@ class UploadArtifactToS3DescriptionTest {
 
     assertEquals("", description.getObjectKeyPrefix());
   }
+
+  @Test
+  void shouldHaveDefaultDeleteStaleFilesFalse() {
+    UploadArtifactToS3Description description = new UploadArtifactToS3Description();
+
+    assertFalse(description.isDeleteStaleFiles());
+  }
+
+  @Test
+  void shouldSetDeleteStaleFiles() {
+    UploadArtifactToS3Description description = new UploadArtifactToS3Description();
+    description.setDeleteStaleFiles(true);
+
+    assertTrue(description.isDeleteStaleFiles());
+  }
 }

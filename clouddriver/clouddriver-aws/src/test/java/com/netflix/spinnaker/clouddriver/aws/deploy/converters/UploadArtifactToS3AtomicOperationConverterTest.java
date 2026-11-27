@@ -83,4 +83,18 @@ class UploadArtifactToS3AtomicOperationConverterTest {
 
     assertInstanceOf(UploadArtifactToS3AtomicOperation.class, operation);
   }
+
+  @Test
+  void shouldConvertDeleteStaleFilesField() {
+    Map<String, Object> input = new HashMap<>();
+    input.put("region", "us-west-2");
+    input.put("bucket", "my-bucket");
+    input.put("credentials", "test-account");
+    input.put("deleteStaleFiles", true);
+    input.put("artifact", Map.of("type", "http/file", "reference", "https://example.com/test.zip"));
+
+    UploadArtifactToS3Description description = converter.convertDescription(input);
+
+    assertTrue(description.isDeleteStaleFiles());
+  }
 }

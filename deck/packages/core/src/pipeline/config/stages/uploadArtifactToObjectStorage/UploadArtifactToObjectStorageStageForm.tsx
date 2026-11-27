@@ -11,6 +11,7 @@ import type { IArtifact, IExpectedArtifact } from '../../../../domain';
 import { HelpField } from '../../../../help';
 import type { IFormInputProps } from '../../../../presentation';
 import {
+  CheckboxInput,
   FormikFormField,
   FormikSpelContextProvider,
   ReactSelectInput,
@@ -144,6 +145,17 @@ export function UploadArtifactToObjectStorageStageForm(props: IFormikStageConfig
           required={true}
           help={<HelpField content="The key prefix (path) for uploaded files. SpEL expressions are supported." />}
           input={(inputProps: IFormInputProps) => <TextInput {...inputProps} placeholder="releases/latest" />}
+        />
+
+        <FormikFormField
+          name="deleteStaleFiles"
+          label="Delete Stale Files"
+          help={
+            <HelpField content="When enabled, files in the destination that are not present in the uploaded artifact will be deleted." />
+          }
+          input={(inputProps: IFormInputProps) => (
+            <CheckboxInput {...inputProps} text="Delete stale files from destination" />
+          )}
         />
 
         <h4>Source Artifact</h4>

@@ -101,6 +101,52 @@ describe('<UploadArtifactToObjectStorageExecutionDetails />', () => {
     expect(screen.getByText('Upload failed: Access Denied')).toBeVisible();
   });
 
+  it('should display delete stale files enabled and deleted count when both present', () => {
+    const stage = createStage({ deleteStaleFiles: true, deletedCount: 5 });
+    const props = createProps(stage);
+    const { container } = render(<UploadArtifactToObjectStorageExecutionDetails {...props} />);
+
+    expect(container).toHaveTextContent('Delete Stale Files');
+    expect(container).toHaveTextContent('Enabled');
+    expect(container).toHaveTextContent('Deleted');
+    expect(container).toHaveTextContent('5');
+  });
+
+  it('should display delete stale files disabled when deleteStaleFiles is false', () => {
+    const stage = createStage({ deleteStaleFiles: false });
+    const props = createProps(stage);
+    const { container } = render(<UploadArtifactToObjectStorageExecutionDetails {...props} />);
+
+    expect(container).toHaveTextContent('Delete Stale Files');
+    expect(container).toHaveTextContent('Disabled');
+  });
+
+  it('should handle missing deleteStaleFiles and deletedCount gracefully', () => {
+    const stage = createStage({
+      deleteStaleFiles: undefined,
+      deletedCount: undefined,
+    });
+    const props = createProps(stage);
+    const { container } = render(<UploadArtifactToObjectStorageExecutionDetails {...props} />);
+
+    expect(container).not.toBeEmptyDOMElement();
+    expect(container).not.toHaveTextContent('Delete Stale Files');
+    expect(container).not.toHaveTextContent('Deleted');
+  });
+
+  it('should handle null deleteStaleFiles gracefully', () => {
+    const stage = createStage({
+      deleteStaleFiles: null,
+      deletedCount: null,
+    });
+    const props = createProps(stage);
+    const { container } = render(<UploadArtifactToObjectStorageExecutionDetails {...props} />);
+
+    expect(container).not.toBeEmptyDOMElement();
+    expect(container).not.toHaveTextContent('Delete Stale Files');
+    expect(container).not.toHaveTextContent('Deleted');
+  });
+
   it('should have the correct title', () => {
     expect(UploadArtifactToObjectStorageExecutionDetails.title).toBe('uploadArtifactToObjectStorageStatus');
   });

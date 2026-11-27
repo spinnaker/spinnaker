@@ -31,6 +31,7 @@ import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.util.Collections;
+import java.util.List;
 import java.util.Map;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipOutputStream;
@@ -39,7 +40,13 @@ import org.junit.jupiter.api.Test;
 import org.mockito.ArgumentCaptor;
 import software.amazon.awssdk.core.sync.RequestBody;
 import software.amazon.awssdk.services.s3.S3Client;
+import software.amazon.awssdk.services.s3.model.DeleteObjectsRequest;
+import software.amazon.awssdk.services.s3.model.DeleteObjectsResponse;
+import software.amazon.awssdk.services.s3.model.ListObjectsV2Request;
+import software.amazon.awssdk.services.s3.model.ListObjectsV2Response;
+import software.amazon.awssdk.services.s3.model.ObjectIdentifier;
 import software.amazon.awssdk.services.s3.model.PutObjectRequest;
+import software.amazon.awssdk.services.s3.model.S3Object;
 
 class UploadArtifactToS3AtomicOperationTest {
 
@@ -157,6 +164,196 @@ class UploadArtifactToS3AtomicOperationTest {
     operation.operate(Collections.emptyList());
 
     verify(task, atLeastOnce()).updateStatus(eq("UPLOAD_ARTIFACT_TO_S3"), anyString());
+  }
+
+  @Test
+  void shouldNotListOrDeleteWhenDeleteStaleFilesIsFalse() throws Exception {
+    byte[] zipContent = createTestZip(new String[] {"file.txt"}, new String[] {"content"});
+
+    Artifact artifact =
+        Artifact.builder()
+            .type("http/file")
+            .name("test.zip")
+            .reference("http://example.com/test.zip")
+            .build();
+
+    UploadArtifactToS3Description description = new UploadArtifactToS3Description();
+    description.setRegion("us-west-2");
+    description.setBucket("my-bucket");
+    description.setObjectKeyPrefix("prefix");
+    description.setArtifact(artifact);
+    description.setDeleteStaleFiles(false);
+    description.setCredentials(TestCredential.named("test"));
+
+    when(artifactDownloader.download(artifact)).thenReturn(new ByteArrayInputStream(zipContent));
+
+    UploadArtifactToS3AtomicOperation operation =
+        new UploadArtifactToS3AtomicOperation(
+            description, amazonClientProvider, artifactDownloader);
+
+    Map<String, Object> result = operation.operate(Collections.emptyList());
+
+    verify(amazonS3, never()).listObjectsV2(any(ListObjectsV2Request.class));
+    verify(amazonS3, never()).deleteObjects(any(DeleteObjectsRequest.class));
+    assertEquals(false, result.get("deleteStaleFiles"));
+    assertEquals(0, result.get("deletedCount"));
+  }
+
+  @Test
+  void shouldDeleteStaleObjectsWhenDeleteStaleFilesIsTrue() throws Exception {
+    byte[] zipContent =
+        createTestZip(
+            new String[] {"file1.txt", "dir/file2.txt"}, new String[] {"content1", "content2"});
+
+    Artifact artifact =
+        Artifact.builder()
+            .type("http/file")
+            .name("test.zip")
+            .reference("http://example.com/test.zip")
+            .build();
+
+    UploadArtifactToS3Description description = new UploadArtifactToS3Description();
+    description.setRegion("us-west-2");
+    description.setBucket("my-bucket");
+    description.setObjectKeyPrefix("prefix");
+    description.setArtifact(artifact);
+    description.setDeleteStaleFiles(true);
+    description.setCredentials(TestCredential.named("test"));
+
+    when(artifactDownloader.download(artifact)).thenReturn(new ByteArrayInputStream(zipContent));
+
+    // Mock S3 listing with stale objects
+    ListObjectsV2Response listResult =
+        ListObjectsV2Response.builder()
+            .contents(
+                S3Object.builder().key("prefix/file1.txt").build(),
+                S3Object.builder().key("prefix/dir/file2.txt").build(),
+                S3Object.builder().key("prefix/old-file.txt").build())
+            .isTruncated(false)
+            .build();
+
+    when(amazonS3.listObjectsV2(any(ListObjectsV2Request.class))).thenReturn(listResult);
+    when(amazonS3.deleteObjects(any(DeleteObjectsRequest.class)))
+        .thenReturn(DeleteObjectsResponse.builder().build());
+
+    UploadArtifactToS3AtomicOperation operation =
+        new UploadArtifactToS3AtomicOperation(
+            description, amazonClientProvider, artifactDownloader);
+
+    Map<String, Object> result = operation.operate(Collections.emptyList());
+
+    assertEquals(true, result.get("deleteStaleFiles"));
+    assertEquals(1, result.get("deletedCount"));
+
+    ArgumentCaptor<DeleteObjectsRequest> deleteCaptor =
+        ArgumentCaptor.forClass(DeleteObjectsRequest.class);
+    verify(amazonS3).deleteObjects(deleteCaptor.capture());
+
+    List<String> deletedKeys =
+        deleteCaptor.getValue().delete().objects().stream().map(ObjectIdentifier::key).toList();
+    assertEquals(1, deletedKeys.size());
+    assertTrue(deletedKeys.contains("prefix/old-file.txt"));
+  }
+
+  @Test
+  void shouldNotCallDeleteObjectsWhenNoStaleObjects() throws Exception {
+    byte[] zipContent = createTestZip(new String[] {"file.txt"}, new String[] {"content"});
+
+    Artifact artifact =
+        Artifact.builder()
+            .type("http/file")
+            .name("test.zip")
+            .reference("http://example.com/test.zip")
+            .build();
+
+    UploadArtifactToS3Description description = new UploadArtifactToS3Description();
+    description.setRegion("us-west-2");
+    description.setBucket("my-bucket");
+    description.setObjectKeyPrefix("prefix");
+    description.setArtifact(artifact);
+    description.setDeleteStaleFiles(true);
+    description.setCredentials(TestCredential.named("test"));
+
+    when(artifactDownloader.download(artifact)).thenReturn(new ByteArrayInputStream(zipContent));
+
+    // Mock S3 listing with only the uploaded file
+    ListObjectsV2Response listResult =
+        ListObjectsV2Response.builder()
+            .contents(S3Object.builder().key("prefix/file.txt").build())
+            .isTruncated(false)
+            .build();
+
+    when(amazonS3.listObjectsV2(any(ListObjectsV2Request.class))).thenReturn(listResult);
+
+    UploadArtifactToS3AtomicOperation operation =
+        new UploadArtifactToS3AtomicOperation(
+            description, amazonClientProvider, artifactDownloader);
+
+    Map<String, Object> result = operation.operate(Collections.emptyList());
+
+    assertEquals(true, result.get("deleteStaleFiles"));
+    assertEquals(0, result.get("deletedCount"));
+    verify(amazonS3, never()).deleteObjects(any(DeleteObjectsRequest.class));
+  }
+
+  @Test
+  void shouldDeleteNestedStaleObjectsRecursively() throws Exception {
+    byte[] zipContent = createTestZip(new String[] {"index.html"}, new String[] {"<html/>"});
+
+    Artifact artifact =
+        Artifact.builder()
+            .type("http/file")
+            .name("test.zip")
+            .reference("http://example.com/test.zip")
+            .build();
+
+    UploadArtifactToS3Description description = new UploadArtifactToS3Description();
+    description.setRegion("us-west-2");
+    description.setBucket("my-bucket");
+    description.setObjectKeyPrefix("prefix");
+    description.setArtifact(artifact);
+    description.setDeleteStaleFiles(true);
+    description.setCredentials(TestCredential.named("test"));
+
+    when(artifactDownloader.download(artifact)).thenReturn(new ByteArrayInputStream(zipContent));
+
+    // Mock S3 listing with nested stale objects in a directory tree
+    ListObjectsV2Response listResult =
+        ListObjectsV2Response.builder()
+            .contents(
+                S3Object.builder().key("prefix/index.html").build(),
+                S3Object.builder().key("prefix/old-dir/sub/file.txt").build(),
+                S3Object.builder().key("prefix/old-dir/sub/other.txt").build(),
+                S3Object.builder().key("prefix/old-dir/root.txt").build())
+            .isTruncated(false)
+            .build();
+
+    when(amazonS3.listObjectsV2(any(ListObjectsV2Request.class))).thenReturn(listResult);
+    when(amazonS3.deleteObjects(any(DeleteObjectsRequest.class)))
+        .thenReturn(DeleteObjectsResponse.builder().build());
+
+    UploadArtifactToS3AtomicOperation operation =
+        new UploadArtifactToS3AtomicOperation(
+            description, amazonClientProvider, artifactDownloader);
+
+    Map<String, Object> result = operation.operate(Collections.emptyList());
+
+    assertEquals(true, result.get("deleteStaleFiles"));
+    assertEquals(3, result.get("deletedCount"));
+
+    ArgumentCaptor<DeleteObjectsRequest> deleteCaptor =
+        ArgumentCaptor.forClass(DeleteObjectsRequest.class);
+    verify(amazonS3).deleteObjects(deleteCaptor.capture());
+
+    List<String> deletedKeys =
+        deleteCaptor.getValue().delete().objects().stream()
+            .map(ObjectIdentifier::key)
+            .sorted()
+            .toList();
+    assertEquals(3, deletedKeys.size());
+    assertTrue(deletedKeys.contains("prefix/old-dir/sub/file.txt"));
+    assertTrue(deletedKeys.contains("prefix/old-dir/sub/other.txt"));
+    assertTrue(deletedKeys.contains("prefix/old-dir/root.txt"));
   }
 
   private byte[] createTestZip(String[] paths, String[] contents) throws IOException {
