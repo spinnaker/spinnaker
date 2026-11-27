@@ -36,6 +36,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import lombok.extern.slf4j.Slf4j;
+import software.amazon.awssdk.core.sync.RequestBody;
 import software.amazon.awssdk.services.s3.S3Client;
 import software.amazon.awssdk.services.s3.model.Delete;
 import software.amazon.awssdk.services.s3.model.DeleteObjectsRequest;
@@ -43,6 +44,7 @@ import software.amazon.awssdk.services.s3.model.DeleteObjectsResponse;
 import software.amazon.awssdk.services.s3.model.ListObjectsV2Request;
 import software.amazon.awssdk.services.s3.model.ListObjectsV2Response;
 import software.amazon.awssdk.services.s3.model.ObjectIdentifier;
+import software.amazon.awssdk.services.s3.model.PutObjectRequest;
 import software.amazon.awssdk.services.s3.model.S3Exception;
 import software.amazon.awssdk.services.s3.model.S3Object;
 
@@ -92,11 +94,7 @@ public class UploadArtifactToS3AtomicOperation implements AtomicOperation<Map<St
   @Override
   public Map<String, Object> operate(List<Map<String, Object>> priorOutputs) {
     String bucket = description.getBucket();
-    String prefix = description.getObjectKeyPrefix();
-    if (prefix == null) {
-      prefix = "";
-    }
-    prefix = prefix.replaceAll("/+$", "");
+    String prefix = normalizePrefix(description.getObjectKeyPrefix());
     Artifact artifact = description.getArtifact();
 
     getTask()
@@ -119,49 +117,13 @@ public class UploadArtifactToS3AtomicOperation implements AtomicOperation<Map<St
         Files.copy(inputStream, archiveFile);
       }
 
-      // Extract archive
-      getTask().updateStatus(BASE_PHASE, "Extracting archive: " + filename);
-      Path extractDir = tempDir.resolve("extracted");
-      List<Path> extractedFiles = ArchiveExtractor.extract(archiveFile, extractDir);
-
-      getTask()
-          .updateStatus(
-              BASE_PHASE,
-              "Syncing " + extractedFiles.size() + " files to s3://" + bucket + "/" + prefix);
-
       S3Client s3Client =
           amazonClientProvider.getAmazonS3V2(description.getCredentials(), description.getRegion());
-      try (S3ArchiveUpload uploader = new S3ArchiveUpload(s3Client)) {
-        uploader
-            .uploadFileList(
-                bucket,
-                prefix.replaceAll("/+$", ""),
-                extractDir.toFile(),
-                extractedFiles.stream().map(extractDir::resolve).map(Path::toFile).toList(),
-                (file, metadata) -> {},
-                null)
-            .waitForCompletion();
+      if (description.isExtractArchive()) {
+        return uploadExtractedArchive(s3Client, bucket, prefix, filename, archiveFile, tempDir);
+      } else {
+        return uploadSingleFile(s3Client, bucket, prefix, filename, archiveFile);
       }
-
-      // if enabled, remove objects from destination that are not in the uploaded artifact
-      int deletedCount = 0;
-      if (description.isDeleteStaleFiles()) {
-        deletedCount = deleteStaleFiles(s3Client, bucket, prefix, extractedFiles);
-      }
-
-      String destinationUri =
-          prefix.isEmpty() ? "s3://" + bucket + "/" : "s3://" + bucket + "/" + prefix + "/";
-      getTask()
-          .updateStatus(
-              BASE_PHASE,
-              "Successfully uploaded " + extractedFiles.size() + " files to " + destinationUri);
-
-      Map<String, Object> result = new HashMap<>();
-      result.put("destinationUri", destinationUri);
-      result.put("fileCount", extractedFiles.size());
-      result.put("deleteStaleFiles", description.isDeleteStaleFiles());
-      result.put("deletedCount", deletedCount);
-      return result;
     } catch (IOException e) {
       log.error("Failed to upload artifact to S3", e);
       getTask().updateStatus(BASE_PHASE, "Failed to upload artifact: " + e.getMessage());
@@ -178,6 +140,84 @@ public class UploadArtifactToS3AtomicOperation implements AtomicOperation<Map<St
         }
       }
     }
+  }
+
+  /**
+   * Extracts the archive and uploads all extracted files to S3. If {@code deleteStaleFiles} is
+   * enabled, objects under the prefix that are not present in the archive are removed after upload.
+   */
+  private Map<String, Object> uploadExtractedArchive(
+      S3Client s3Client,
+      String bucket,
+      String prefix,
+      String filename,
+      Path archiveFile,
+      Path tempDir)
+      throws IOException, InterruptedException {
+    getTask().updateStatus(BASE_PHASE, "Extracting archive: " + filename);
+    Path extractDir = tempDir.resolve("extracted");
+    List<Path> extractedFiles = ArchiveExtractor.extract(archiveFile, extractDir);
+
+    getTask()
+        .updateStatus(
+            BASE_PHASE,
+            "Syncing " + extractedFiles.size() + " files to s3://" + bucket + "/" + prefix);
+
+    try (S3ArchiveUpload uploader = new S3ArchiveUpload(s3Client)) {
+      uploader
+          .uploadFileList(
+              bucket,
+              prefix,
+              extractDir.toFile(),
+              extractedFiles.stream().map(extractDir::resolve).map(Path::toFile).toList(),
+              (file, metadata) -> {},
+              null)
+          .waitForCompletion();
+    }
+
+    // if enabled, remove objects from destination that are not in the uploaded artifact
+    int deletedCount = 0;
+    if (description.isDeleteStaleFiles()) {
+      deletedCount = deleteStaleFiles(s3Client, bucket, prefix, extractedFiles);
+    }
+
+    String destinationUri =
+        prefix.isEmpty() ? "s3://" + bucket + "/" : "s3://" + bucket + "/" + prefix + "/";
+    getTask()
+        .updateStatus(
+            BASE_PHASE,
+            "Successfully uploaded " + extractedFiles.size() + " files to " + destinationUri);
+
+    Map<String, Object> result = new HashMap<>();
+    result.put("destinationUri", destinationUri);
+    result.put("fileCount", extractedFiles.size());
+    result.put("deleteStaleFiles", description.isDeleteStaleFiles());
+    result.put("deletedCount", deletedCount);
+    return result;
+  }
+
+  /**
+   * Uploads the downloaded artifact as a single file to S3. Stale file deletion is always disabled
+   * for single-file uploads.
+   */
+  private Map<String, Object> uploadSingleFile(
+      S3Client s3Client, String bucket, String prefix, String filename, Path file) {
+    String key = prefix.isEmpty() ? filename : prefix + "/" + filename;
+    String destinationUri = "s3://" + bucket + "/" + key;
+
+    getTask().updateStatus(BASE_PHASE, "Uploading single file to " + destinationUri);
+
+    s3Client.putObject(
+        PutObjectRequest.builder().bucket(bucket).key(key).build(), RequestBody.fromFile(file));
+
+    getTask().updateStatus(BASE_PHASE, "Successfully uploaded file to " + destinationUri);
+
+    Map<String, Object> result = new HashMap<>();
+    result.put("destinationUri", destinationUri);
+    result.put("fileCount", 1);
+    result.put("deleteStaleFiles", false);
+    result.put("deletedCount", 0);
+    return result;
   }
 
   /**
@@ -248,6 +288,17 @@ public class UploadArtifactToS3AtomicOperation implements AtomicOperation<Map<St
 
     getTask().updateStatus(BASE_PHASE, "Deleted " + deleted + " stale files from destination");
     return deleted;
+  }
+
+  /**
+   * Normalizes the object key prefix by stripping leading and trailing slashes. Returns an empty
+   * string for null or blank input.
+   */
+  private static String normalizePrefix(String prefix) {
+    if (prefix == null || prefix.isBlank()) {
+      return "";
+    }
+    return prefix.replaceAll("^/+|/+$", "");
   }
 
   /**

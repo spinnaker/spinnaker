@@ -101,7 +101,8 @@ public class UploadArtifactToObjectStorageTask implements CloudProviderAware, Ta
                     .map(Object::toString)
                     .orElse(""),
             "artifact", artifact,
-            "deleteStaleFiles", Boolean.TRUE.equals(context.get("deleteStaleFiles")));
+            "deleteStaleFiles", Boolean.TRUE.equals(context.get("deleteStaleFiles")),
+            "extractArchive", Boolean.TRUE.equals(context.getOrDefault("extractArchive", true)));
 
     return List.of(Map.of(OPERATION_NAME, operationPayload));
   }

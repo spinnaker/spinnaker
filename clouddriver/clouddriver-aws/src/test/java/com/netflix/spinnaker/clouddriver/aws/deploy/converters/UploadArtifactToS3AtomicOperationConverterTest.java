@@ -85,6 +85,34 @@ class UploadArtifactToS3AtomicOperationConverterTest {
   }
 
   @Test
+  void shouldConvertExtractArchiveField() {
+    Map<String, Object> input = new HashMap<>();
+    input.put("region", "us-west-2");
+    input.put("bucket", "my-bucket");
+    input.put("credentials", "test-account");
+    input.put("extractArchive", false);
+    input.put(
+        "artifact", Map.of("type", "http/file", "reference", "https://example.com/config.json"));
+
+    UploadArtifactToS3Description description = converter.convertDescription(input);
+
+    assertFalse(description.isExtractArchive());
+  }
+
+  @Test
+  void shouldDefaultExtractArchiveToTrue() {
+    Map<String, Object> input = new HashMap<>();
+    input.put("region", "us-west-2");
+    input.put("bucket", "my-bucket");
+    input.put("credentials", "test-account");
+    input.put("artifact", Map.of("type", "http/file", "reference", "https://example.com/test.zip"));
+
+    UploadArtifactToS3Description description = converter.convertDescription(input);
+
+    assertTrue(description.isExtractArchive());
+  }
+
+  @Test
   void shouldConvertDeleteStaleFilesField() {
     Map<String, Object> input = new HashMap<>();
     input.put("region", "us-west-2");

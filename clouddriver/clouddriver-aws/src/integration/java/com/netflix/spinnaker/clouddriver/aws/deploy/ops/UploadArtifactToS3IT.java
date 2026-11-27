@@ -31,6 +31,7 @@ import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.net.URI;
+import java.nio.charset.StandardCharsets;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
@@ -392,6 +393,97 @@ class UploadArtifactToS3IT {
 
   private void putObject(String key, String content) {
     amazonS3.putObject(b -> b.bucket(BUCKET_NAME).key(key), RequestBody.fromString(content));
+  }
+
+  @Test
+  void shouldUploadSingleFileWithoutExtraction() throws Exception {
+    String fileContent = "{\"config\": \"value\", \"version\": 42}";
+
+    Artifact artifact =
+        Artifact.builder()
+            .type("embedded/base64")
+            .name("config.json")
+            .reference("config.json")
+            .build();
+
+    ArtifactDownloader artifactDownloader = Mockito.mock(ArtifactDownloader.class);
+    Mockito.when(artifactDownloader.download(Mockito.any(Artifact.class)))
+        .thenReturn(new ByteArrayInputStream(fileContent.getBytes(StandardCharsets.UTF_8)));
+
+    AmazonClientProvider amazonClientProvider = Mockito.mock(AmazonClientProvider.class);
+    Mockito.when(
+            amazonClientProvider.getAmazonS3V2(
+                Mockito.any(NetflixAmazonCredentials.class), Mockito.anyString()))
+        .thenReturn(amazonS3);
+
+    UploadArtifactToS3Description description = new UploadArtifactToS3Description();
+    description.setRegion("us-east-1");
+    description.setBucket(BUCKET_NAME);
+    description.setObjectKeyPrefix("configs/production");
+    description.setArtifact(artifact);
+    description.setExtractArchive(false);
+    description.setCredentials(TestCredential.named("test"));
+
+    UploadArtifactToS3AtomicOperation operation =
+        new UploadArtifactToS3AtomicOperation(
+            description, amazonClientProvider, artifactDownloader);
+
+    Map<String, Object> result = operation.operate(Collections.emptyList());
+
+    assertEquals(
+        "s3://test-upload-bucket/configs/production/config.json", result.get("destinationUri"));
+    assertEquals(1, result.get("fileCount"));
+    assertEquals(false, result.get("deleteStaleFiles"));
+    assertEquals(0, result.get("deletedCount"));
+
+    List<String> uploadedKeys =
+        amazonS3.listObjectsV2(b -> b.bucket(BUCKET_NAME)).contents().stream()
+            .map(S3Object::key)
+            .toList();
+
+    assertEquals(1, uploadedKeys.size());
+    assertTrue(uploadedKeys.contains("configs/production/config.json"));
+
+    String actualContent = getObjectAsString("configs/production/config.json");
+    assertEquals(fileContent, actualContent);
+  }
+
+  @Test
+  void shouldUploadSingleFileToRootWhenNoPrefixSpecified() throws Exception {
+    String fileContent = "key: value";
+
+    Artifact artifact =
+        Artifact.builder().type("embedded/base64").name("data.yaml").reference("data.yaml").build();
+
+    ArtifactDownloader artifactDownloader = Mockito.mock(ArtifactDownloader.class);
+    Mockito.when(artifactDownloader.download(Mockito.any(Artifact.class)))
+        .thenReturn(new ByteArrayInputStream(fileContent.getBytes(StandardCharsets.UTF_8)));
+
+    AmazonClientProvider amazonClientProvider = Mockito.mock(AmazonClientProvider.class);
+    Mockito.when(
+            amazonClientProvider.getAmazonS3V2(
+                Mockito.any(NetflixAmazonCredentials.class), Mockito.anyString()))
+        .thenReturn(amazonS3);
+
+    UploadArtifactToS3Description description = new UploadArtifactToS3Description();
+    description.setRegion("us-east-1");
+    description.setBucket(BUCKET_NAME);
+    description.setObjectKeyPrefix("");
+    description.setArtifact(artifact);
+    description.setExtractArchive(false);
+    description.setCredentials(TestCredential.named("test"));
+
+    UploadArtifactToS3AtomicOperation operation =
+        new UploadArtifactToS3AtomicOperation(
+            description, amazonClientProvider, artifactDownloader);
+
+    Map<String, Object> result = operation.operate(Collections.emptyList());
+
+    assertEquals("s3://test-upload-bucket/data.yaml", result.get("destinationUri"));
+    assertEquals(1, result.get("fileCount"));
+
+    String actualContent = getObjectAsString("data.yaml");
+    assertEquals(fileContent, actualContent);
   }
 
   private byte[] createTestZip(String[] paths, String[] contents) throws IOException {

@@ -17,6 +17,7 @@ export function UploadArtifactToObjectStorageStageConfig({
   const stageWithDefaults: IStage = React.useMemo(() => {
     return {
       cloudProvider: stage.cloudProvider || 'aws',
+      extractArchive: stage.extractArchive ?? true,
       ...cloneDeep(stage),
     };
   }, []);

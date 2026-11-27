@@ -148,15 +148,37 @@ export function UploadArtifactToObjectStorageStageForm(props: IFormikStageConfig
         />
 
         <FormikFormField
-          name="deleteStaleFiles"
-          label="Delete Stale Files"
+          name="extractArchive"
+          label="Extract Archive"
           help={
-            <HelpField content="When enabled, files in the destination that are not present in the uploaded artifact will be deleted." />
+            <HelpField content="Enable if the artifact is an archive that should be extracted before uploading its contents. Disable for single-file artifacts." />
           }
           input={(inputProps: IFormInputProps) => (
-            <CheckboxInput {...inputProps} text="Delete stale files from destination" />
+            <CheckboxInput
+              {...inputProps}
+              text="Artifact is an archive (ZIP, TAR, TAR.GZ) — extract before upload"
+              onChange={(e: React.ChangeEvent<HTMLInputElement>) => {
+                inputProps.onChange(e);
+                if (!e.target.checked) {
+                  props.formik.setFieldValue('deleteStaleFiles', false);
+                }
+              }}
+            />
           )}
         />
+
+        {stage.extractArchive !== false && (
+          <FormikFormField
+            name="deleteStaleFiles"
+            label="Delete Stale Files"
+            help={
+              <HelpField content="When enabled, files in the destination that are not present in the uploaded artifact will be deleted." />
+            }
+            input={(inputProps: IFormInputProps) => (
+              <CheckboxInput {...inputProps} text="Delete stale files from destination" />
+            )}
+          />
+        )}
 
         <h4>Source Artifact</h4>
         <StageConfigField label="Artifact">
