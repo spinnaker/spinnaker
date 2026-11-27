@@ -179,6 +179,7 @@ gitlab-ci:
       defaultHttpPageLength: 100 # defaults 100, page length when querying paginated Gitlab API endpoints (100 is max per Gitlab docs)
       limitByOwnership: false # defaults false, limits API results to projects/groups owned by the token creator
       limitByMembership: true # defaults true, limits API results to projects/groups the token creator is a member in
+      listProjectsLive: true # defaults true, the project dropdown lists projects live from Gitlab; if false it reads the build cache instead (only projects with a successful pipeline), which avoids a Gitlab call on every dropdown open for very large instances
       httpRetryMaxAttempts: 5 # defaults 5, # default max number of retries when hitting Gitlab APIs and errors occur
       httpRetryWaitSeconds: 2 # defaults 2, # of seconds to wait between retries
       httpRetryExponentialBackoff: false # deafults false, if true retries to Gitlab will increase exponentially using the httpRetryWaitSeconds option's value

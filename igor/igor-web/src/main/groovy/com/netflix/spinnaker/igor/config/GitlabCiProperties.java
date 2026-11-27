@@ -53,6 +53,10 @@ public class GitlabCiProperties implements BuildServerProperties<GitlabCiPropert
     private String triggerToken;
     private boolean limitByMembership = true;
     private boolean limitByOwnership = false;
+    // When true (default), the project dropdown lists projects live from GitLab. When false, it
+    // falls back to the build cache (only projects with a successful pipeline). Useful for very
+    // large instances where listing every project each time the dropdown opens is too slow.
+    private boolean listProjectsLive = true;
     private Integer defaultHttpPageLength = 100;
     private Integer itemUpperThreshold = 1000;
     private Integer httpRetryMaxAttempts = 5;
@@ -114,6 +118,14 @@ public class GitlabCiProperties implements BuildServerProperties<GitlabCiPropert
 
     public void setLimitByOwnership(boolean limitByOwnership) {
       this.limitByOwnership = limitByOwnership;
+    }
+
+    public boolean isListProjectsLive() {
+      return listProjectsLive;
+    }
+
+    public void setListProjectsLive(boolean listProjectsLive) {
+      this.listProjectsLive = listProjectsLive;
     }
 
     public Integer getItemUpperThreshold() {
