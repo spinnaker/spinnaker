@@ -1,0 +1,360 @@
+{
+    "apiVersion": "v1",
+    "items": [
+        {
+            "apiVersion": "v1",
+            "count": 3,
+            "eventTime": null,
+            "firstTimestamp": "2024-07-08T22:37:07Z",
+            "involvedObject": {
+                "apiVersion": "v1",
+                "kind": "Pod",
+                "name": "example-service-web-867f486c5-cvprp",
+                "namespace": "my-namespace",
+                "resourceVersion": "190442490",
+                "uid": "30942905-3eab-475d-bbbf-c8c700dbe916"
+            },
+            "kind": "Event",
+            "lastTimestamp": "2024-07-08T22:37:14Z",
+            "message": "0/110 nodes are available: 1 node(s) had untolerated taint {example.com/node-not-ready: true}, 2 node(s) had untolerated taint {example.com/node-type: example}, 2 node(s) had untolerated taint {example.com/disruption: disrupting}, 3 node(s) had untolerated taint {kubernetes.io/arch: arm64}, 4 node(s) had untolerated taint {node.kubernetes.io/disk-pressure: }, 85 Insufficient memory, 94 Insufficient cpu. preemption: 0/110 nodes are available: 12 Preemption is not helpful for scheduling, 98 No preemption victims found for incoming pod.",
+            "metadata": {
+                "creationTimestamp": "2024-07-08T22:37:07Z",
+                "name": "example-service-web-867f486c5-cvprp.17e05dd5079d9807",
+                "namespace": "my-namespace",
+                "resourceVersion": "190443119",
+                "uid": "5ffc7b31-234b-4a1d-9a5e-2d5b69047700"
+            },
+            "reason": "FailedScheduling",
+            "reportingComponent": "default-scheduler",
+            "reportingInstance": "",
+            "source": {
+                "component": "default-scheduler"
+            },
+            "type": "Warning"
+        },
+        {
+            "apiVersion": "v1",
+            "count": 2,
+            "eventTime": null,
+            "firstTimestamp": "2024-07-08T22:37:23Z",
+            "involvedObject": {
+                "apiVersion": "v1",
+                "kind": "Pod",
+                "name": "example-service-web-867f486c5-cvprp",
+                "namespace": "my-namespace",
+                "resourceVersion": "190442730",
+                "uid": "30942905-3eab-475d-bbbf-c8c700dbe916"
+            },
+            "kind": "Event",
+            "lastTimestamp": "2024-07-08T22:37:33Z",
+            "message": "0/110 nodes are available: 1 node(s) had untolerated taint {example.com/node-not-ready: true}, 2 node(s) had untolerated taint {example.com/node-type: example}, 2 node(s) had untolerated taint {example.com/disruption: disrupting}, 3 node(s) had untolerated taint {kubernetes.io/arch: arm64}, 4 node(s) had untolerated taint {node.kubernetes.io/disk-pressure: }, 85 Insufficient memory, 93 Insufficient cpu. preemption: 0/110 nodes are available: 12 Preemption is not helpful for scheduling, 98 No preemption victims found for incoming pod.",
+            "metadata": {
+                "creationTimestamp": "2024-07-08T22:37:23Z",
+                "name": "example-service-web-867f486c5-cvprp.17e05dd8c26477cf",
+                "namespace": "my-namespace",
+                "resourceVersion": "190443924",
+                "uid": "fc31d797-c079-47c6-b1b0-9fed323917f9"
+            },
+            "reason": "FailedScheduling",
+            "reportingComponent": "default-scheduler",
+            "reportingInstance": "",
+            "source": {
+                "component": "default-scheduler"
+            },
+            "type": "Warning"
+        },
+        {
+            "apiVersion": "v1",
+            "count": 1,
+            "eventTime": null,
+            "firstTimestamp": "2024-07-08T22:37:43Z",
+            "involvedObject": {
+                "apiVersion": "v1",
+                "kind": "Pod",
+                "name": "example-service-web-867f486c5-cvprp",
+                "namespace": "my-namespace",
+                "resourceVersion": "190443550",
+                "uid": "30942905-3eab-475d-bbbf-c8c700dbe916"
+            },
+            "kind": "Event",
+            "lastTimestamp": "2024-07-08T22:37:43Z",
+            "message": "0/111 nodes are available: 2 node(s) had untolerated taint {example.com/node-not-ready: true}, 2 node(s) had untolerated taint {example.com/node-type: example}, 2 node(s) had untolerated taint {example.com/disruption: disrupting}, 3 node(s) had untolerated taint {kubernetes.io/arch: arm64}, 4 node(s) had untolerated taint {node.kubernetes.io/disk-pressure: }, 85 Insufficient memory, 94 Insufficient cpu. preemption: 0/111 nodes are available: 13 Preemption is not helpful for scheduling, 98 No preemption victims found for incoming pod.",
+            "metadata": {
+                "creationTimestamp": "2024-07-08T22:37:43Z",
+                "name": "example-service-web-867f486c5-cvprp.17e05ddd6b4d658d",
+                "namespace": "my-namespace",
+                "resourceVersion": "190444731",
+                "uid": "7e3a68dd-845d-4446-87c5-998dc6c10bd0"
+            },
+            "reason": "FailedScheduling",
+            "reportingComponent": "default-scheduler",
+            "reportingInstance": "",
+            "source": {
+                "component": "default-scheduler"
+            },
+            "type": "Warning"
+        },
+        {
+            "apiVersion": "v1",
+            "count": 2,
+            "eventTime": null,
+            "firstTimestamp": "2024-07-08T22:37:53Z",
+            "involvedObject": {
+                "apiVersion": "v1",
+                "kind": "Pod",
+                "name": "example-service-web-867f486c5-cvprp",
+                "namespace": "my-namespace",
+                "resourceVersion": "190444735",
+                "uid": "30942905-3eab-475d-bbbf-c8c700dbe916"
+            },
+            "kind": "Event",
+            "lastTimestamp": "2024-07-08T22:38:03Z",
+            "message": "0/112 nodes are available: 2 node(s) had untolerated taint {example.com/node-type: example}, 2 node(s) had untolerated taint {example.com/disruption: disrupting}, 3 node(s) had untolerated taint {example.com/node-not-ready: true}, 3 node(s) had untolerated taint {kubernetes.io/arch: arm64}, 4 node(s) had untolerated taint {node.kubernetes.io/disk-pressure: }, 85 Insufficient memory, 94 Insufficient cpu. preemption: 0/112 nodes are available: 14 Preemption is not helpful for scheduling, 98 No preemption victims found for incoming pod.",
+            "metadata": {
+                "creationTimestamp": "2024-07-08T22:37:53Z",
+                "name": "example-service-web-867f486c5-cvprp.17e05ddfbfca69ea",
+                "namespace": "my-namespace",
+                "resourceVersion": "190446085",
+                "uid": "96bbc734-ba16-4363-8e3c-065fad206acd"
+            },
+            "reason": "FailedScheduling",
+            "reportingComponent": "default-scheduler",
+            "reportingInstance": "",
+            "source": {
+                "component": "default-scheduler"
+            },
+            "type": "Warning"
+        },
+        {
+            "apiVersion": "v1",
+            "count": 1,
+            "eventTime": null,
+            "firstTimestamp": "2024-07-08T22:38:13Z",
+            "involvedObject": {
+                "apiVersion": "v1",
+                "kind": "Pod",
+                "name": "example-service-web-867f486c5-cvprp",
+                "namespace": "my-namespace",
+                "resourceVersion": "190445623",
+                "uid": "30942905-3eab-475d-bbbf-c8c700dbe916"
+            },
+            "kind": "Event",
+            "lastTimestamp": "2024-07-08T22:38:13Z",
+            "message": "0/112 nodes are available: 2 node(s) had untolerated taint {example.com/node-type: example}, 3 node(s) had untolerated taint {example.com/node-not-ready: true}, 3 node(s) had untolerated taint {example.com/disruption: disrupting}, 3 node(s) had untolerated taint {kubernetes.io/arch: arm64}, 4 node(s) had untolerated taint {node.kubernetes.io/disk-pressure: }, 84 Insufficient memory, 93 Insufficient cpu. preemption: 0/112 nodes are available: 15 Preemption is not helpful for scheduling, 97 No preemption victims found for incoming pod.",
+            "metadata": {
+                "creationTimestamp": "2024-07-08T22:38:13Z",
+                "name": "example-service-web-867f486c5-cvprp.17e05de4688af76f",
+                "namespace": "my-namespace",
+                "resourceVersion": "190446588",
+                "uid": "f45e720a-869a-48c0-84f0-38f87f5a0fbf"
+            },
+            "reason": "FailedScheduling",
+            "reportingComponent": "default-scheduler",
+            "reportingInstance": "",
+            "source": {
+                "component": "default-scheduler"
+            },
+            "type": "Warning"
+        },
+        {
+            "apiVersion": "v1",
+            "count": 1,
+            "eventTime": null,
+            "firstTimestamp": "2024-07-08T22:38:23Z",
+            "involvedObject": {
+                "apiVersion": "v1",
+                "kind": "Pod",
+                "name": "example-service-web-867f486c5-cvprp",
+                "namespace": "my-namespace",
+                "resourceVersion": "190446590",
+                "uid": "30942905-3eab-475d-bbbf-c8c700dbe916"
+            },
+            "kind": "Event",
+            "lastTimestamp": "2024-07-08T22:38:23Z",
+            "message": "Successfully assigned example-service/example-service-web-867f486c5-cvprp to node-1.example.com",
+            "metadata": {
+                "creationTimestamp": "2024-07-08T22:38:23Z",
+                "name": "example-service-web-867f486c5-cvprp.17e05de6bd8de52d",
+                "namespace": "my-namespace",
+                "resourceVersion": "190447423",
+                "uid": "e3e7308f-2a46-44f5-a528-166c119218ff"
+            },
+            "reason": "Scheduled",
+            "reportingComponent": "default-scheduler",
+            "reportingInstance": "",
+            "source": {
+                "component": "default-scheduler"
+            },
+            "type": "Normal"
+        },
+        {
+            "apiVersion": "v1",
+            "count": 10,
+            "eventTime": null,
+            "firstTimestamp": "2024-07-08T22:40:57Z",
+            "involvedObject": {
+                "apiVersion": "v1",
+                "fieldPath": "spec.containers{web-group1-sandbox-7082cc7-web}",
+                "kind": "Pod",
+                "name": "example-service-web-867f486c5-cvprp",
+                "namespace": "my-namespace",
+                "resourceVersion": "190447421",
+                "uid": "30942905-3eab-475d-bbbf-c8c700dbe916"
+            },
+            "kind": "Event",
+            "lastTimestamp": "2024-07-08T23:28:47Z",
+            "message": "Container image \"registry.example.com/example-service:7082cc73eb298c85fc16b3bc2ac0a45bd3562cd9\" already present on machine",
+            "metadata": {
+                "creationTimestamp": "2024-07-08T22:40:57Z",
+                "name": "example-service-web-867f486c5-cvprp.17e05e0ab438eb88",
+                "namespace": "my-namespace",
+                "resourceVersion": "190618161",
+                "uid": "c2fe59b2-f46e-4160-8ce3-1138d6430ac4"
+            },
+            "reason": "Pulled",
+            "reportingComponent": "kubelet",
+            "reportingInstance": "node-1.example.com",
+            "source": {
+                "component": "kubelet",
+                "host": "node-1.example.com"
+            },
+            "type": "Normal"
+        },
+        {
+            "apiVersion": "v1",
+            "count": 1,
+            "eventTime": null,
+            "firstTimestamp": "2024-07-08T22:40:57Z",
+            "involvedObject": {
+                "apiVersion": "v1",
+                "fieldPath": "spec.containers{web-group1-sandbox-7082cc7-web}",
+                "kind": "Pod",
+                "name": "example-service-web-867f486c5-cvprp",
+                "namespace": "my-namespace",
+                "resourceVersion": "190447421",
+                "uid": "30942905-3eab-475d-bbbf-c8c700dbe916"
+            },
+            "kind": "Event",
+            "lastTimestamp": "2024-07-08T22:40:57Z",
+            "message": "Created container web-group1-sandbox-7082cc7-web",
+            "metadata": {
+                "creationTimestamp": "2024-07-08T22:40:57Z",
+                "name": "example-service-web-867f486c5-cvprp.17e05e0ab60995ad",
+                "namespace": "my-namespace",
+                "resourceVersion": "190455269",
+                "uid": "8f6e424c-f6bd-4a70-bb8a-c699ae120acd"
+            },
+            "reason": "Created",
+            "reportingComponent": "kubelet",
+            "reportingInstance": "node-1.example.com",
+            "source": {
+                "component": "kubelet",
+                "host": "node-1.example.com"
+            },
+            "type": "Normal"
+        },
+        {
+            "apiVersion": "v1",
+            "count": 1,
+            "eventTime": null,
+            "firstTimestamp": "2024-07-08T22:40:57Z",
+            "involvedObject": {
+                "apiVersion": "v1",
+                "fieldPath": "spec.containers{web-group1-sandbox-7082cc7-web}",
+                "kind": "Pod",
+                "name": "example-service-web-867f486c5-cvprp",
+                "namespace": "my-namespace",
+                "resourceVersion": "190447421",
+                "uid": "30942905-3eab-475d-bbbf-c8c700dbe916"
+            },
+            "kind": "Event",
+            "lastTimestamp": "2024-07-08T22:40:57Z",
+            "message": "Started container web-group1-sandbox-7082cc7-web",
+            "metadata": {
+                "creationTimestamp": "2024-07-08T22:40:57Z",
+                "name": "example-service-web-867f486c5-cvprp.17e05e0ac1cfc75d",
+                "namespace": "my-namespace",
+                "resourceVersion": "190455280",
+                "uid": "227e6a04-dad9-4f48-9351-8805a5d6b0af"
+            },
+            "reason": "Started",
+            "reportingComponent": "kubelet",
+            "reportingInstance": "node-1.example.com",
+            "source": {
+                "component": "kubelet",
+                "host": "node-1.example.com"
+            },
+            "type": "Normal"
+        },
+        {
+            "apiVersion": "v1",
+            "count": 80,
+            "eventTime": null,
+            "firstTimestamp": "2024-07-08T22:42:03Z",
+            "involvedObject": {
+                "apiVersion": "v1",
+                "fieldPath": "spec.containers{web-group1-sandbox-7082cc7-web}",
+                "kind": "Pod",
+                "name": "example-service-web-867f486c5-cvprp",
+                "namespace": "my-namespace",
+                "resourceVersion": "190447421",
+                "uid": "30942905-3eab-475d-bbbf-c8c700dbe916"
+            },
+            "kind": "Event",
+            "lastTimestamp": "2024-07-08T23:03:33Z",
+            "message": "Startup probe failed: ",
+            "metadata": {
+                "creationTimestamp": "2024-07-08T22:42:03Z",
+                "name": "example-service-web-867f486c5-cvprp.17e05e1a0e9024e7",
+                "namespace": "my-namespace",
+                "resourceVersion": "190535067",
+                "uid": "64e7738d-2cad-4178-8f98-d84db581e67c"
+            },
+            "reason": "Unhealthy",
+            "reportingComponent": "kubelet",
+            "reportingInstance": "node-1.example.com",
+            "source": {
+                "component": "kubelet",
+                "host": "node-1.example.com"
+            },
+            "type": "Warning"
+        },
+        {
+            "apiVersion": "v1",
+            "count": 26,
+            "eventTime": null,
+            "firstTimestamp": "2024-07-08T23:18:54Z",
+            "involvedObject": {
+                "apiVersion": "v1",
+                "fieldPath": "spec.containers{web-group1-sandbox-7082cc7-web}",
+                "kind": "Pod",
+                "name": "example-service-web-867f486c5-cvprp",
+                "namespace": "my-namespace",
+                "resourceVersion": "190447421",
+                "uid": "30942905-3eab-475d-bbbf-c8c700dbe916"
+            },
+            "kind": "Event",
+            "lastTimestamp": "2024-07-08T23:33:29Z",
+            "message": "Back-off restarting failed container web-group1-sandbox-7082cc7-web in pod example-service-web-867f486c5-cvprp_example-service(30942905-3eab-475d-bbbf-c8c700dbe916)",
+            "metadata": {
+                "creationTimestamp": "2024-07-08T23:18:54Z",
+                "name": "example-service-web-867f486c5-cvprp.17e0601ccfcc72f7",
+                "namespace": "my-namespace",
+                "resourceVersion": "190631880",
+                "uid": "63b5f56f-eb69-409f-a21b-1ea23b0cca42"
+            },
+            "reason": "BackOff",
+            "reportingComponent": "kubelet",
+            "reportingInstance": "node-1.example.com",
+            "source": {
+                "component": "kubelet",
+                "host": "node-1.example.com"
+            },
+            "type": "Warning"
+        }
+    ],
+    "kind": "List",
+    "metadata": {
+        "resourceVersion": ""
+    }
+}
