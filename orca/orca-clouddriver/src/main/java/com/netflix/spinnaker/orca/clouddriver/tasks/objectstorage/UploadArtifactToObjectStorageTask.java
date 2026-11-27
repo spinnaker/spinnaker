@@ -121,6 +121,11 @@ public class UploadArtifactToObjectStorageTask implements CloudProviderAware, Ta
       operationPayload.put("contentType", contentType);
     }
 
+    String expires = Optional.ofNullable(context.get("expires")).map(Object::toString).orElse(null);
+    if (expires != null && !expires.isBlank()) {
+      operationPayload.put("expires", expires);
+    }
+
     return List.of(Map.of(OPERATION_NAME, operationPayload));
   }
 

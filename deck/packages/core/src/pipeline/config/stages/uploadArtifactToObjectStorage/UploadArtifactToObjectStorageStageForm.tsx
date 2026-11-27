@@ -147,6 +147,14 @@ export function UploadArtifactToObjectStorageStageForm(props: IFormikStageConfig
         />
       </StageConfigField>
 
+      <StageConfigField
+        label="Expires"
+        fieldColumns={6}
+        helpKey="pipeline.config.uploadArtifactToObjectStorage.expires"
+      >
+        <TextInput name="expires" value={stage.expires || ''} onChange={onTextChange('expires')} placeholder="P1Y" />
+      </StageConfigField>
+
       <StageConfigField label="Extract Archive" fieldColumns={6}>
         <CheckboxInput
           checked={stage.extractArchive !== false}

@@ -73,6 +73,9 @@ public class UploadArtifactToS3Description extends AbstractAmazonCredentialsDesc
    */
   private String contentType;
 
+  /** Optional ISO-8601 duration or period for object expiration. */
+  private String expires;
+
   /** Uploads are restricted by account; S3 keys do not identify a Spinnaker application. */
   @Override
   public boolean requiresApplicationRestriction() {

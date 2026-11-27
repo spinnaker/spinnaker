@@ -428,6 +428,46 @@ class UploadArtifactToObjectStorageTaskTest {
     assertThat(operationDetails).doesNotContainKey("contentType");
   }
 
+  @Test
+  void shouldPassExpiresWhenPresentInContext() {
+    Artifact resolvedArtifact = Artifact.builder().name("app.zip").build();
+
+    when(artifactUtils.getBoundArtifactForStage(any(), eq(ARTIFACT_ID), any()))
+        .thenReturn(resolvedArtifact);
+    when(katoService.requestOperations(anyString(), any())).thenReturn(new TaskId("kato-task-123"));
+
+    Map<String, Object> context = createStageContext();
+    context.put("expires", "P1Y");
+    StageExecutionImpl stage = createStage(context);
+
+    TaskResult result = task.execute(stage);
+
+    AssertionsForClassTypes.assertThat(result.getStatus()).isEqualTo(ExecutionStatus.SUCCEEDED);
+
+    Map<String, Object> operationDetails = captureOperationDetails(CLOUD_PROVIDER);
+    assertThat(operationDetails.get("expires")).isEqualTo("P1Y");
+  }
+
+  @Test
+  void shouldNotIncludeExpiresWhenBlankInContext() {
+    Artifact resolvedArtifact = Artifact.builder().name("app.zip").build();
+
+    when(artifactUtils.getBoundArtifactForStage(any(), eq(ARTIFACT_ID), any()))
+        .thenReturn(resolvedArtifact);
+    when(katoService.requestOperations(anyString(), any())).thenReturn(new TaskId("kato-task-123"));
+
+    Map<String, Object> context = createStageContext();
+    context.put("expires", "   ");
+    StageExecutionImpl stage = createStage(context);
+
+    TaskResult result = task.execute(stage);
+
+    AssertionsForClassTypes.assertThat(result.getStatus()).isEqualTo(ExecutionStatus.SUCCEEDED);
+
+    Map<String, Object> operationDetails = captureOperationDetails(CLOUD_PROVIDER);
+    assertThat(operationDetails).doesNotContainKey("expires");
+  }
+
   private Map<String, Object> createStageContext() {
     Map<String, Object> context = new HashMap<>();
     context.put("cloudProvider", CLOUD_PROVIDER);

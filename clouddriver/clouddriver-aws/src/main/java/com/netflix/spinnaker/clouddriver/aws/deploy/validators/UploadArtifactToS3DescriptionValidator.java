@@ -17,6 +17,7 @@
 package com.netflix.spinnaker.clouddriver.aws.deploy.validators;
 
 import com.netflix.spinnaker.clouddriver.aws.AmazonOperation;
+import com.netflix.spinnaker.clouddriver.aws.deploy.UploadArtifactExpirationSupport;
 import com.netflix.spinnaker.clouddriver.aws.deploy.description.UploadArtifactToS3Description;
 import com.netflix.spinnaker.clouddriver.deploy.ValidationErrors;
 import com.netflix.spinnaker.clouddriver.orchestration.AtomicOperations;
@@ -49,6 +50,13 @@ public class UploadArtifactToS3DescriptionValidator
 
     if (description.getArtifact() == null) {
       errors.rejectValue("artifact", KEY + ".artifact.empty");
+    }
+
+    String expires = description.getExpires();
+    if (expires != null
+        && !expires.isBlank()
+        && !UploadArtifactExpirationSupport.isValid(expires)) {
+      errors.rejectValue("expires", KEY + ".expires.invalid");
     }
   }
 }

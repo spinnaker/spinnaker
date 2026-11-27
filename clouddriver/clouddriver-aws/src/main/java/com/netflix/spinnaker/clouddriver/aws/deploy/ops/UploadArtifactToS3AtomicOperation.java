@@ -17,6 +17,7 @@
 package com.netflix.spinnaker.clouddriver.aws.deploy.ops;
 
 import com.netflix.spinnaker.clouddriver.artifacts.ArtifactDownloader;
+import com.netflix.spinnaker.clouddriver.aws.deploy.UploadArtifactExpirationSupport;
 import com.netflix.spinnaker.clouddriver.aws.deploy.description.UploadArtifactToS3Description;
 import com.netflix.spinnaker.clouddriver.aws.security.AmazonClientProvider;
 import com.netflix.spinnaker.clouddriver.data.task.Task;
@@ -28,13 +29,16 @@ import java.io.InputStream;
 import java.io.UncheckedIOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.time.Clock;
 import java.util.ArrayList;
 import java.util.Comparator;
+import java.util.Date;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import lombok.Setter;
 import lombok.extern.slf4j.Slf4j;
 import software.amazon.awssdk.core.sync.RequestBody;
 import software.amazon.awssdk.services.s3.S3Client;
@@ -79,6 +83,8 @@ public class UploadArtifactToS3AtomicOperation implements AtomicOperation<Map<St
   private final UploadArtifactToS3Description description;
   private final AmazonClientProvider amazonClientProvider;
   private final ArtifactDownloader artifactDownloader;
+
+  @Setter private Clock clock = Clock.systemUTC();
 
   public UploadArtifactToS3AtomicOperation(
       UploadArtifactToS3Description description,
@@ -165,6 +171,7 @@ public class UploadArtifactToS3AtomicOperation implements AtomicOperation<Map<St
             BASE_PHASE,
             "Syncing " + extractedFiles.size() + " files to s3://" + bucket + "/" + prefix);
 
+    Date expiresAt = resolveExpirationTime();
     try (S3ArchiveUpload uploader = new S3ArchiveUpload(s3Client)) {
       uploader
           .uploadFileList(
@@ -177,6 +184,9 @@ public class UploadArtifactToS3AtomicOperation implements AtomicOperation<Map<St
                 String cacheControl = description.getCacheControl();
                 if (cacheControl != null && !cacheControl.isBlank()) {
                   metadata.cacheControl(cacheControl);
+                }
+                if (expiresAt != null) {
+                  metadata.expires(expiresAt.toInstant());
                 }
               },
               null)
@@ -227,6 +237,10 @@ public class UploadArtifactToS3AtomicOperation implements AtomicOperation<Map<St
     String cacheControl = description.getCacheControl();
     if (cacheControl != null && !cacheControl.isBlank()) {
       request.cacheControl(cacheControl);
+    }
+    Date expiresAt = resolveExpirationTime();
+    if (expiresAt != null) {
+      request.expires(expiresAt.toInstant());
     }
     s3Client.putObject(request.build(), RequestBody.fromFile(file));
 
@@ -317,6 +331,10 @@ public class UploadArtifactToS3AtomicOperation implements AtomicOperation<Map<St
    */
   static String detectContentType(String filename) {
     return ContentTypeDetector.detectContentType(filename);
+  }
+
+  private Date resolveExpirationTime() {
+    return UploadArtifactExpirationSupport.resolve(description.getExpires(), clock);
   }
 
   /**

@@ -31,6 +31,9 @@ import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
+import java.time.Clock;
+import java.time.Instant;
+import java.time.ZoneOffset;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
@@ -690,6 +693,42 @@ class UploadArtifactToS3AtomicOperationTest {
   }
 
   @Test
+  void shouldSetExpiresOnArchiveUploadMetadata() throws Exception {
+    byte[] zipContent =
+        createTestZip(new String[] {"index.html", "app.js"}, new String[] {"<html/>", "var x=1;"});
+
+    Artifact artifact =
+        Artifact.builder()
+            .type("http/file")
+            .name("test.zip")
+            .reference("https://example.com/test.zip")
+            .build();
+
+    UploadArtifactToS3Description description = new UploadArtifactToS3Description();
+    description.setRegion("us-west-2");
+    description.setBucket("my-bucket");
+    description.setObjectKeyPrefix("site");
+    description.setArtifact(artifact);
+    description.setExpires("P1Y");
+    description.setCredentials(TestCredential.named("test"));
+
+    when(artifactDownloader.download(artifact)).thenReturn(new ByteArrayInputStream(zipContent));
+
+    UploadArtifactToS3AtomicOperation operation =
+        new UploadArtifactToS3AtomicOperation(
+            description, amazonClientProvider, artifactDownloader);
+    operation.setClock(Clock.fixed(Instant.parse("2026-03-31T12:00:00Z"), ZoneOffset.UTC));
+
+    operation.operate(Collections.emptyList());
+
+    ArgumentCaptor<PutObjectRequest> requests = ArgumentCaptor.forClass(PutObjectRequest.class);
+    verify(amazonS3, times(2)).putObject(requests.capture(), any(RequestBody.class));
+    assertTrue(
+        requests.getAllValues().stream()
+            .allMatch(r -> Instant.parse("2027-03-31T12:00:00Z").equals(r.expires())));
+  }
+
+  @Test
   void shouldUseContentTypeOverrideOnSingleFileUpload() throws Exception {
     Artifact artifact =
         Artifact.builder()
@@ -720,6 +759,106 @@ class UploadArtifactToS3AtomicOperationTest {
         ArgumentCaptor.forClass(PutObjectRequest.class);
     verify(amazonS3).putObject(requestCaptor.capture(), any(RequestBody.class));
     assertEquals("text/plain", requestCaptor.getValue().contentType());
+  }
+
+  @Test
+  void shouldSetExpiresOnSingleFileUpload() throws Exception {
+    Artifact artifact =
+        Artifact.builder()
+            .type("http/file")
+            .name("current")
+            .reference("https://example.com/current")
+            .build();
+
+    UploadArtifactToS3Description description = new UploadArtifactToS3Description();
+    description.setRegion("us-west-2");
+    description.setBucket("my-bucket");
+    description.setObjectKeyPrefix("versions");
+    description.setArtifact(artifact);
+    description.setExtractArchive(false);
+    description.setExpires("PT6H");
+    description.setCredentials(TestCredential.named("test"));
+
+    when(artifactDownloader.download(artifact))
+        .thenReturn(new ByteArrayInputStream("v1.2.3".getBytes(StandardCharsets.UTF_8)));
+
+    UploadArtifactToS3AtomicOperation operation =
+        new UploadArtifactToS3AtomicOperation(
+            description, amazonClientProvider, artifactDownloader);
+    operation.setClock(Clock.fixed(Instant.parse("2026-03-31T12:00:00Z"), ZoneOffset.UTC));
+
+    operation.operate(Collections.emptyList());
+
+    ArgumentCaptor<PutObjectRequest> requestCaptor =
+        ArgumentCaptor.forClass(PutObjectRequest.class);
+    verify(amazonS3).putObject(requestCaptor.capture(), any(RequestBody.class));
+    assertEquals(Instant.parse("2026-03-31T18:00:00Z"), requestCaptor.getValue().expires());
+  }
+
+  @Test
+  void shouldThrowWhenExpiresIsInvalid() throws Exception {
+    Artifact artifact =
+        Artifact.builder()
+            .type("http/file")
+            .name("current")
+            .reference("https://example.com/current")
+            .build();
+
+    UploadArtifactToS3Description description = new UploadArtifactToS3Description();
+    description.setRegion("us-west-2");
+    description.setBucket("my-bucket");
+    description.setObjectKeyPrefix("versions");
+    description.setArtifact(artifact);
+    description.setExtractArchive(false);
+    description.setExpires("1 year");
+    description.setCredentials(TestCredential.named("test"));
+
+    when(artifactDownloader.download(artifact))
+        .thenReturn(new ByteArrayInputStream("v1.2.3".getBytes(StandardCharsets.UTF_8)));
+
+    UploadArtifactToS3AtomicOperation operation =
+        new UploadArtifactToS3AtomicOperation(
+            description, amazonClientProvider, artifactDownloader);
+    operation.setClock(Clock.fixed(Instant.parse("2026-03-31T12:00:00Z"), ZoneOffset.UTC));
+
+    IllegalArgumentException exception =
+        assertThrows(
+            IllegalArgumentException.class, () -> operation.operate(Collections.emptyList()));
+
+    assertEquals("Invalid expires value: 1 year", exception.getMessage());
+  }
+
+  @Test
+  void shouldThrowWhenExpiresIsNonPositive() throws Exception {
+    Artifact artifact =
+        Artifact.builder()
+            .type("http/file")
+            .name("current")
+            .reference("https://example.com/current")
+            .build();
+
+    UploadArtifactToS3Description description = new UploadArtifactToS3Description();
+    description.setRegion("us-west-2");
+    description.setBucket("my-bucket");
+    description.setObjectKeyPrefix("versions");
+    description.setArtifact(artifact);
+    description.setExtractArchive(false);
+    description.setExpires("PT0S");
+    description.setCredentials(TestCredential.named("test"));
+
+    when(artifactDownloader.download(artifact))
+        .thenReturn(new ByteArrayInputStream("v1.2.3".getBytes(StandardCharsets.UTF_8)));
+
+    UploadArtifactToS3AtomicOperation operation =
+        new UploadArtifactToS3AtomicOperation(
+            description, amazonClientProvider, artifactDownloader);
+    operation.setClock(Clock.fixed(Instant.parse("2026-03-31T12:00:00Z"), ZoneOffset.UTC));
+
+    IllegalArgumentException exception =
+        assertThrows(
+            IllegalArgumentException.class, () -> operation.operate(Collections.emptyList()));
+
+    assertEquals("Invalid expires value: PT0S", exception.getMessage());
   }
 
   @Test

@@ -1,4 +1,4 @@
-import { render, screen } from '@testing-library/react';
+import { fireEvent, render, screen } from '@testing-library/react';
 import React from 'react';
 
 import { ApplicationModelBuilder } from '../../../../application';
@@ -74,10 +74,23 @@ describe('<UploadArtifactToObjectStorageStageConfig />', () => {
       bucket: 'my-bucket',
       objectKeyPrefix: 'releases/latest',
     });
-    const { container } = render(<UploadArtifactToObjectStorageStageConfig {...props} />);
-    expect(container.querySelector('input[name="bucket"]')).toHaveValue('my-bucket');
-    expect(container.querySelector('input[name="objectKeyPrefix"]')).toHaveValue('releases/latest');
+    render(<UploadArtifactToObjectStorageStageConfig {...props} />);
+    expect(screen.getByDisplayValue('my-bucket')).toBeVisible();
+    expect(screen.getByDisplayValue('releases/latest')).toBeVisible();
     expect(await screen.findByText('my-aws-account')).toBeVisible();
     expect(await screen.findByText('us-east-1')).toBeVisible();
+  });
+
+  it('should render expires when configured', () => {
+    const props = createProps({
+      cloudProvider: 'aws',
+      credentials: 'my-aws-account',
+      region: 'us-east-1',
+      expires: 'P1Y',
+    });
+    render(<UploadArtifactToObjectStorageStageConfig {...props} />);
+    const expiresInput = screen.getByDisplayValue('P1Y');
+    fireEvent.change(expiresInput, { target: { value: 'PT6H' } });
+    expect(expiresInput).toHaveValue('PT6H');
   });
 });

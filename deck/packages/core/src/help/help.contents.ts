@@ -602,6 +602,8 @@ const helpContents: { [key: string]: string } = {
   'pipeline.config.codebuild.envVar': `(Optional) Environment variables that will be propagated into the build.`,
   'pipeline.config.uploadArtifactToObjectStorage.bucket': `The name of the bucket to upload to. SpEL expressions are supported.`,
   'pipeline.config.uploadArtifactToObjectStorage.objectKeyPrefix': `The key prefix (path) for uploaded files. SpEL expressions are supported.`,
+  'pipeline.config.uploadArtifactToObjectStorage.expires': `Optional relative expiry duration applied when the stage runs.
+Use ISO-8601 durations such as 'P1Y', 'P30D', or 'PT6H'.`,
   'pipeline.config.uploadArtifactToObjectStorage.deleteStaleFiles': `When enabled, files in the destination that are not present in the uploaded artifact will be deleted.`,
   'pipeline.config.uploadArtifactToObjectStorage.cacheControl': `Optional Cache-Control header for uploaded objects (e.g., 'max-age=31536000, public'). Applied to all files. SpEL expressions are supported.`,
   'pipeline.config.uploadArtifactToObjectStorage.contentType': `Optional Content-Type override for the uploaded file. When set, overrides auto-detection (useful for extensionless files like 'current' or 'Dockerfile'). SpEL expressions are supported.`,
