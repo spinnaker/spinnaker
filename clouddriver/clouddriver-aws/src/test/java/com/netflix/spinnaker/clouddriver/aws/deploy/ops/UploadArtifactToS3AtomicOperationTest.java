@@ -30,6 +30,7 @@ import com.netflix.spinnaker.kork.artifacts.model.Artifact;
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
+import java.nio.charset.StandardCharsets;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
@@ -136,6 +137,70 @@ class UploadArtifactToS3AtomicOperationTest {
     verify(amazonS3).putObject(request.capture(), any(RequestBody.class));
     assertEquals("file.txt", request.getValue().key());
     assertEquals("s3://my-bucket/", result.get("destinationUri"));
+  }
+
+  @Test
+  void shouldNormalizeTrailingSlashInPrefix() throws Exception {
+    byte[] zipContent = createTestZip(new String[] {"file.txt"}, new String[] {"content"});
+
+    Artifact artifact =
+        Artifact.builder()
+            .type("http/file")
+            .name("test.zip")
+            .reference("http://example.com/test.zip")
+            .build();
+
+    UploadArtifactToS3Description description = new UploadArtifactToS3Description();
+    description.setRegion("us-west-2");
+    description.setBucket("my-bucket");
+    description.setObjectKeyPrefix("releases/v1/");
+    description.setArtifact(artifact);
+    description.setCredentials(TestCredential.named("test"));
+
+    when(artifactDownloader.download(artifact)).thenReturn(new ByteArrayInputStream(zipContent));
+
+    UploadArtifactToS3AtomicOperation operation =
+        new UploadArtifactToS3AtomicOperation(
+            description, amazonClientProvider, artifactDownloader);
+
+    Map<String, Object> result = operation.operate(Collections.emptyList());
+
+    ArgumentCaptor<PutObjectRequest> request = ArgumentCaptor.forClass(PutObjectRequest.class);
+    verify(amazonS3).putObject(request.capture(), any(RequestBody.class));
+    assertEquals("releases/v1/file.txt", request.getValue().key());
+    assertEquals("s3://my-bucket/releases/v1/", result.get("destinationUri"));
+  }
+
+  @Test
+  void shouldNormalizeLeadingSlashInPrefix() throws Exception {
+    Artifact artifact =
+        Artifact.builder()
+            .type("http/file")
+            .name("config.json")
+            .reference("http://example.com/config.json")
+            .build();
+
+    UploadArtifactToS3Description description = new UploadArtifactToS3Description();
+    description.setRegion("us-west-2");
+    description.setBucket("my-bucket");
+    description.setObjectKeyPrefix("/configs/latest/");
+    description.setArtifact(artifact);
+    description.setExtractArchive(false);
+    description.setCredentials(TestCredential.named("test"));
+
+    when(artifactDownloader.download(artifact))
+        .thenReturn(
+            new ByteArrayInputStream("{\"key\":\"value\"}".getBytes(StandardCharsets.UTF_8)));
+    UploadArtifactToS3AtomicOperation operation =
+        new UploadArtifactToS3AtomicOperation(
+            description, amazonClientProvider, artifactDownloader);
+
+    Map<String, Object> result = operation.operate(Collections.emptyList());
+
+    ArgumentCaptor<PutObjectRequest> request = ArgumentCaptor.forClass(PutObjectRequest.class);
+    verify(amazonS3).putObject(request.capture(), any(RequestBody.class));
+    assertEquals("configs/latest/config.json", request.getValue().key());
+    assertEquals("s3://my-bucket/configs/latest/config.json", result.get("destinationUri"));
   }
 
   @Test
@@ -354,6 +419,109 @@ class UploadArtifactToS3AtomicOperationTest {
     assertTrue(deletedKeys.contains("prefix/old-dir/sub/file.txt"));
     assertTrue(deletedKeys.contains("prefix/old-dir/sub/other.txt"));
     assertTrue(deletedKeys.contains("prefix/old-dir/root.txt"));
+  }
+
+  @Test
+  void shouldUploadSingleFileWhenExtractArchiveIsFalse() throws Exception {
+    Artifact artifact =
+        Artifact.builder()
+            .type("http/file")
+            .name("config.json")
+            .reference("http://example.com/config.json")
+            .build();
+
+    UploadArtifactToS3Description description = new UploadArtifactToS3Description();
+    description.setRegion("us-west-2");
+    description.setBucket("my-bucket");
+    description.setObjectKeyPrefix("configs/latest");
+    description.setArtifact(artifact);
+    description.setExtractArchive(false);
+    description.setCredentials(TestCredential.named("test"));
+
+    when(artifactDownloader.download(artifact))
+        .thenReturn(
+            new ByteArrayInputStream("{\"key\":\"value\"}".getBytes(StandardCharsets.UTF_8)));
+    UploadArtifactToS3AtomicOperation operation =
+        new UploadArtifactToS3AtomicOperation(
+            description, amazonClientProvider, artifactDownloader);
+
+    Map<String, Object> result = operation.operate(Collections.emptyList());
+
+    ArgumentCaptor<PutObjectRequest> request = ArgumentCaptor.forClass(PutObjectRequest.class);
+    verify(amazonS3).putObject(request.capture(), any(RequestBody.class));
+    assertEquals("my-bucket", request.getValue().bucket());
+    assertEquals("configs/latest/config.json", request.getValue().key());
+
+    assertEquals(1, result.get("fileCount"));
+    assertEquals("s3://my-bucket/configs/latest/config.json", result.get("destinationUri"));
+    assertEquals(false, result.get("deleteStaleFiles"));
+    assertEquals(0, result.get("deletedCount"));
+  }
+
+  @Test
+  void shouldNotDeleteStaleFilesWhenExtractArchiveIsFalse() throws Exception {
+    Artifact artifact =
+        Artifact.builder()
+            .type("http/file")
+            .name("config.json")
+            .reference("http://example.com/config.json")
+            .build();
+
+    UploadArtifactToS3Description description = new UploadArtifactToS3Description();
+    description.setRegion("us-west-2");
+    description.setBucket("my-bucket");
+    description.setObjectKeyPrefix("configs");
+    description.setArtifact(artifact);
+    description.setExtractArchive(false);
+    description.setDeleteStaleFiles(true); // explicitly set, should still be forced off
+    description.setCredentials(TestCredential.named("test"));
+
+    when(artifactDownloader.download(artifact))
+        .thenReturn(new ByteArrayInputStream("content".getBytes(StandardCharsets.UTF_8)));
+    UploadArtifactToS3AtomicOperation operation =
+        new UploadArtifactToS3AtomicOperation(
+            description, amazonClientProvider, artifactDownloader);
+
+    Map<String, Object> result = operation.operate(Collections.emptyList());
+
+    // Even though deleteStaleFiles=true in description, single file mode forces it off
+    verify(amazonS3, never()).listObjectsV2(any(ListObjectsV2Request.class));
+    verify(amazonS3, never()).deleteObjects(any(DeleteObjectsRequest.class));
+    assertEquals(false, result.get("deleteStaleFiles"));
+    assertEquals(0, result.get("deletedCount"));
+  }
+
+  @Test
+  void shouldUploadSingleFileWithEmptyPrefix() throws Exception {
+    Artifact artifact =
+        Artifact.builder()
+            .type("http/file")
+            .name("data.yaml")
+            .reference("http://example.com/data.yaml")
+            .build();
+
+    UploadArtifactToS3Description description = new UploadArtifactToS3Description();
+    description.setRegion("us-west-2");
+    description.setBucket("my-bucket");
+    description.setObjectKeyPrefix("");
+    description.setArtifact(artifact);
+    description.setExtractArchive(false);
+    description.setCredentials(TestCredential.named("test"));
+
+    when(artifactDownloader.download(artifact))
+        .thenReturn(new ByteArrayInputStream("key: value".getBytes(StandardCharsets.UTF_8)));
+    UploadArtifactToS3AtomicOperation operation =
+        new UploadArtifactToS3AtomicOperation(
+            description, amazonClientProvider, artifactDownloader);
+
+    Map<String, Object> result = operation.operate(Collections.emptyList());
+
+    ArgumentCaptor<PutObjectRequest> request = ArgumentCaptor.forClass(PutObjectRequest.class);
+    verify(amazonS3).putObject(request.capture(), any(RequestBody.class));
+    assertEquals("data.yaml", request.getValue().key());
+
+    assertEquals("s3://my-bucket/data.yaml", result.get("destinationUri"));
+    assertEquals(1, result.get("fileCount"));
   }
 
   private byte[] createTestZip(String[] paths, String[] contents) throws IOException {

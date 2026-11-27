@@ -42,12 +42,21 @@ public class UploadArtifactToS3Description extends AbstractAmazonCredentialsDesc
    */
   private String objectKeyPrefix = "";
 
-  /** The artifact to download and extract. Must be a ZIP, TAR, or TAR.GZ archive. */
+  /**
+   * The artifact to download and upload. Must be a ZIP, TAR, or TAR.GZ archive when extractArchive
+   * is true.
+   */
   private Artifact artifact;
 
   /**
+   * When true (default), the artifact is treated as an archive (ZIP, TAR, TAR.GZ) and extracted
+   * before uploading its contents. When false, the artifact is uploaded as a single file.
+   */
+  private boolean extractArchive = true;
+
+  /**
    * When true, objects in the destination that are not present in the uploaded artifact will be
-   * deleted after upload completes.
+   * deleted after upload completes. Ignored when extractArchive is false.
    */
   private boolean deleteStaleFiles = false;
 }
