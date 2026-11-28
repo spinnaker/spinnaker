@@ -331,10 +331,14 @@ public class DetermineRollbackCandidatesTask implements CloudProviderAware, Retr
   private ImmutableMap<Object, Object> getImageToRestore(
       String region, RollbackDetails rollbackDetails) {
     ImmutableMap.Builder<Object, Object> imageToRestore =
-        ImmutableMap.builder()
-            .put("region", region)
-            .put("image", rollbackDetails.imageName)
-            .put("rollbackMethod", rollbackDetails.rollbackType.toString());
+        ImmutableMap.builder().put("region", region);
+
+    // An explicit rollback can restore an existing server group without an image name.
+    if (rollbackDetails.imageName != null) {
+      imageToRestore.put("image", rollbackDetails.imageName);
+    }
+
+    imageToRestore.put("rollbackMethod", rollbackDetails.rollbackType.toString());
 
     if (rollbackDetails.buildNumber != null) {
       imageToRestore.put("buildNumber", rollbackDetails.buildNumber);
