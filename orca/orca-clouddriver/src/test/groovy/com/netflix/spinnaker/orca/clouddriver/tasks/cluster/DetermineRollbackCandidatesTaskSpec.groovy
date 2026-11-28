@@ -182,6 +182,42 @@ class DetermineRollbackCandidatesTaskSpec extends Specification {
     [moniker: null, serverGroup: serverGroup, additionalRollbackContext: [onlyEnabledServerGroups: onlyEnabledServerGroups]]
   }
 
+  def "should roll back to an enabled GCE server group without an image name"() {
+    given:
+    stage.context.putAll(buildAdditionalStageContext("servergroup-v002", true))
+    stage.context.putAll(cloudProvider: "gce", regions: ["us-central1"])
+
+    when:
+    def result = task.execute(stage)
+
+    then:
+    1 * cloudDriverService.getServerGroup("test", "us-central1", "servergroup-v002") >> new ServerGroup(
+        moniker: new Moniker(app: "app", cluster: "app-stack-details"))
+    1 * cloudDriverService.getCluster("app", "test", "app-stack-details", "gce") >> ModelUtils.cluster([
+        serverGroups: [
+            buildServerGroup("servergroup-v000", "us-central1", 50, false, null, [:], 5),
+            buildServerGroup("servergroup-v001", "us-central1", 100, false, null, [:], 5),
+            buildServerGroup("servergroup-v002", "us-central1", 150, false, null, [:], 5)
+        ]
+    ])
+    1 * featuresService.areEntityTagsAvailable() >> false
+    0 * cloudDriverService.getEntityTags(*_)
+
+    result.context == [
+        imagesToRestore: [[region: "us-central1", rollbackMethod: "EXPLICIT"]]
+    ]
+    result.outputs == [
+        rollbackTypes: ["us-central1": "EXPLICIT"],
+        rollbackContexts: [
+            "us-central1": [
+                rollbackServerGroupName: "servergroup-v002",
+                restoreServerGroupName: "servergroup-v001",
+                targetHealthyRollbackPercentage: 100
+            ]
+        ]
+    ]
+  }
+
   def "should build EXPLICIT rollback context when entity tags contain previousServerGroup info and there's a corresponding active server group"() {
     given: "entity tags contain metadata with the image id of the previous server group"
     featuresService.areEntityTagsAvailable() >> { return true }
